@@ -30,6 +30,16 @@ export default function UI({ biomeIndex, biomeCount, biomeNames, onPrev, onNext,
       {/* Right arrow — middle right */}
       <button style={{ ...arrowBtn, position: 'absolute', right: '1.5rem', top: '50%', transform: 'translateY(-50%)' }} onClick={onNext}>▶</button>
 
+      {/* Version label */}
+      <div style={{
+        position: 'absolute', bottom: '1rem', left: '1.25rem',
+        color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace',
+        fontSize: '0.7rem', letterSpacing: '0.05em',
+        pointerEvents: 'none', userSelect: 'none',
+      }}>
+        world-oceanarium_v-alpha-1.0
+      </div>
+
       {/* Depth scroll indicator */}
       <div style={{
         position: 'absolute', right: '4rem', top: '10%', height: '80%',

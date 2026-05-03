@@ -5,6 +5,7 @@ import Biome from './components/Biome'
 import WaterSurface from './components/WaterSurface'
 import UI from './components/UI'
 import InfoCard from './components/InfoCard'
+import { useCreatures } from './hooks/useCreatures'
 
 const BIOMES = ['ocean', 'reef']
 
@@ -13,6 +14,7 @@ export default function App() {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [transitioning, setTransitioning] = useState(false)
   const [scrollY, setScrollY] = useState(1)
+  const { creatures } = useCreatures()
 
   const changeBiome = (delta) => {
     const next = ((biomeIndex + delta) % BIOMES.length + BIOMES.length) % BIOMES.length
@@ -40,7 +42,12 @@ export default function App() {
 
           <Camera biomeIndex={biomeIndex} biomeSpacing={0} onScrollChange={setScrollY} />
 
-          <Biome key={BIOMES[biomeIndex]} name={BIOMES[biomeIndex]} onCreatureClick={setSelectedCreature} />
+          <Biome
+            key={BIOMES[biomeIndex]}
+            name={BIOMES[biomeIndex]}
+            creatures={creatures}
+            onCreatureClick={setSelectedCreature}
+          />
 
           <WaterSurface />
         </Canvas>

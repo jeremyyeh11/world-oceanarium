@@ -75,12 +75,12 @@ function RiverVegetation() {
   ))
 }
 
-export default function Environment({ biome }) {
+export default function Environment({ biome, hideZoneLabels = false }) {
   return (
     <group>
       <NoiseFloor biome={biome} />
-      {biome === 'ocean' && <ZoneLabels zones={OCEAN_ZONES} />}
-      {biome === 'tropical-river' && <ZoneLabels zones={RIVER_ZONES} x={-5.5} />}
+      {!hideZoneLabels && biome === 'ocean' && <ZoneLabels zones={OCEAN_ZONES} />}
+      {!hideZoneLabels && biome === 'tropical-river' && <ZoneLabels zones={RIVER_ZONES} x={-5.5} />}
       {biome === 'tropical-river' && <RiverVegetation />}
     </group>
   )

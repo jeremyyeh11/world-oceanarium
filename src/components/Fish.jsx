@@ -32,18 +32,16 @@ export default function Fish({ creature, selected = false, onClick }) {
   })
 
   const size = creature.traits?.size ?? 1
+  const focusScale = selected ? 1.08 : 1
+
   return (
     <mesh
       ref={ref}
-      scale={[selected ? size * 1.14 : size, selected ? size * 1.14 : size, selected ? size * 1.14 : size]}
+      scale={[size * focusScale, size * focusScale, size * focusScale]}
       onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
     >
       <boxGeometry args={[0.7, 0.28, 0.18]} />
-      <meshStandardMaterial
-        color={creature.color ?? '#7ab8c0'}
-        emissive={selected ? '#dff7ff' : '#000000'}
-        emissiveIntensity={selected ? 0.35 : 0}
-      />
+      <meshStandardMaterial color={creature.color ?? '#7ab8c0'} />
     </mesh>
   )
 }

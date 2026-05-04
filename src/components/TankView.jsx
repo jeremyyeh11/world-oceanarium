@@ -9,6 +9,7 @@ export default function TankView({ biome, creatures, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [scrollY, setScrollY] = useState(1)
+  const zoomActive = Boolean(selectedCreature)
 
   const focusCreature = (creature, fishRef) => {
     setSelectedCreature(creature)
@@ -34,6 +35,7 @@ export default function TankView({ biome, creatures, onBack }) {
           name={biome.id}
           creatures={creatures}
           selectedCreatureId={selectedCreature?.id}
+          zoomActive={zoomActive}
           onCreatureClick={focusCreature}
         />
         <WaterSurface biome={biome.id} />
@@ -51,7 +53,7 @@ export default function TankView({ biome, creatures, onBack }) {
         fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase', pointerEvents: 'none',
       }}>{biome.name}</div>
 
-      <DepthIndicator scrollY={scrollY} />
+      {!zoomActive && <DepthIndicator scrollY={scrollY} />}
 
       {selectedCreature && <FocusHint />}
       {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}

@@ -1,7 +1,7 @@
 import Environment from './Environment'
 import Fish from './Fish'
 
-export default function Biome({ name, creatures, onCreatureClick }) {
+export default function Biome({ name, creatures, selectedCreatureId, onCreatureClick }) {
   const visibleCreatures = creatures.filter(c => c.biome === name && c.alive)
   return (
     <group>
@@ -10,7 +10,8 @@ export default function Biome({ name, creatures, onCreatureClick }) {
         <Fish
           key={creature.id}
           creature={creature}
-          onClick={() => onCreatureClick(creature)}
+          selected={creature.id === selectedCreatureId}
+          onClick={onCreatureClick}
         />
       ))}
     </group>

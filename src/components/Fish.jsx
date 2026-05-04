@@ -13,7 +13,7 @@ const DEPTH_Y = {
   benthic: [-9, -7],
 }
 
-export default function Fish({ creature, onClick }) {
+export default function Fish({ creature, selected = false, onClick }) {
   const ref = useRef()
   const o = useRef(Math.random() * Math.PI * 2)
   const spd = useRef(0.3 + Math.random() * 0.4)
@@ -33,9 +33,17 @@ export default function Fish({ creature, onClick }) {
 
   const size = creature.traits?.size ?? 1
   return (
-    <mesh ref={ref} scale={[size, size, size]} onClick={(e) => { e.stopPropagation(); onClick() }}>
+    <mesh
+      ref={ref}
+      scale={[selected ? size * 1.14 : size, selected ? size * 1.14 : size, selected ? size * 1.14 : size]}
+      onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
+    >
       <boxGeometry args={[0.7, 0.28, 0.18]} />
-      <meshStandardMaterial color={creature.color ?? '#7ab8c0'} />
+      <meshStandardMaterial
+        color={creature.color ?? '#7ab8c0'}
+        emissive={selected ? '#dff7ff' : '#000000'}
+        emissiveIntensity={selected ? 0.35 : 0}
+      />
     </mesh>
   )
 }

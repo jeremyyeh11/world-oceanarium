@@ -7,18 +7,35 @@ import InfoCard from './InfoCard'
 
 export default function TankView({ biome, creatures, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
+  const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [scrollY, setScrollY] = useState(1)
+
+  const focusCreature = (creature, fishRef) => {
+    setSelectedCreature(creature)
+    setFocusedFishRef(fishRef)
+  }
+
+  const releaseFocus = () => {
+    setSelectedCreature(null)
+    setFocusedFishRef(null)
+  }
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <Canvas camera={{ fov: 60, near: 0.1, far: 200 }}>
+      <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
         <color attach="background" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e']} />
         <fog attach="fog" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e', 25, 80]} />
         <ambientLight intensity={biome.id === 'tropical-river' ? 0.5 : 0.4} />
         <directionalLight position={[5, 10, 5]} intensity={biome.id === 'tropical-river' ? 0.7 : 0.8} color={biome.id === 'tropical-river' ? '#c4e8a0' : '#7ecfff'} />
         <pointLight position={[0, 5, 5]} intensity={0.3} color={biome.id === 'tropical-river' ? '#80cc60' : '#00aaff'} />
-        <Camera biome={biome.id} onScrollChange={setScrollY} />
-        <Biome key={biome.id} name={biome.id} creatures={creatures} onCreatureClick={setSelectedCreature} />
+        <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} onScrollChange={setScrollY} />
+        <Biome
+          key={biome.id}
+          name={biome.id}
+          creatures={creatures}
+          selectedCreatureId={selectedCreature?.id}
+          onCreatureClick={focusCreature}
+        />
         <WaterSurface biome={biome.id} />
       </Canvas>
 
@@ -35,7 +52,23 @@ export default function TankView({ biome, creatures, onBack }) {
       }}>{biome.name}</div>
 
       <DepthIndicator scrollY={scrollY} />
-      {selectedCreature && <InfoCard creature={selectedCreature} onClose={() => setSelectedCreature(null)} />}
+
+      {selectedCreature && <FocusHint />}
+      {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}
+    </div>
+  )
+}
+
+function FocusHint() {
+  return (
+    <div style={{
+      position: 'absolute', top: '4rem', left: '50%', transform: 'translateX(-50%)',
+      color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.72rem',
+      letterSpacing: '0.08em', textTransform: 'uppercase', pointerEvents: 'none',
+      background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 999, padding: '0.45rem 0.7rem', backdropFilter: 'blur(6px)',
+    }}>
+      Following fish · click water or close card to release
     </div>
   )
 }

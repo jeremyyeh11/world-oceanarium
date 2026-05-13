@@ -29,7 +29,7 @@ function NoiseFloor({ biome }) {
   return (
     <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]} position={[0, floorY, 0]}>
       <planeGeometry args={[120, 40, 60, 30]} />
-      <meshStandardMaterial color={FLOOR_COLORS[biome] ?? '#0e1f33'} roughness={1} side={THREE.DoubleSide} />
+      <meshStandardMaterial color={FLOOR_COLORS[biome] ?? '#0e1f33'} roughness={0.92} envMapIntensity={0.28} side={THREE.DoubleSide} />
     </mesh>
   )
 }
@@ -43,7 +43,7 @@ function RiverVegetation() {
   return plants.map(([x, y, z, h], i) => (
     <mesh key={i} position={[x, y + h / 2, z]}>
       <cylinderGeometry args={[0.06, 0.16, h, 6]} />
-      <meshStandardMaterial color={i % 2 ? '#2f7d3f' : '#1f5f32'} />
+      <meshStandardMaterial color={i % 2 ? '#2f7d3f' : '#1f5f32'} roughness={0.58} envMapIntensity={0.45} />
     </mesh>
   ))
 }

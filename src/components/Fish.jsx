@@ -41,7 +41,7 @@ export default function Fish({ creature, selected = false, onClick }) {
       onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
     >
       <boxGeometry args={[0.7, 0.28, 0.18]} />
-      <meshStandardMaterial color={creature.color ?? '#7ab8c0'} />
+      <meshStandardMaterial color={creature.color ?? '#7ab8c0'} roughness={0.42} metalness={0.02} envMapIntensity={0.85} />
     </mesh>
   )
 }

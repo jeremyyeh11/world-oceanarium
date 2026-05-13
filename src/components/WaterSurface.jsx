@@ -14,7 +14,7 @@ export default function WaterSurface({ biome = 'ocean' }) {
   return (
     <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[60, 3.5, 0]}>
       <planeGeometry args={[240, 30]} />
-      <meshStandardMaterial color={COLORS[biome] ?? '#1a90d0'} transparent opacity={0.32} />
+      <meshStandardMaterial color={COLORS[biome] ?? '#1a90d0'} transparent opacity={0.32} roughness={0.18} metalness={0.02} envMapIntensity={1.15} />
     </mesh>
   )
 }

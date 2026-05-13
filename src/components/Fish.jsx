@@ -62,9 +62,13 @@ function makeSwimPath(creature) {
   return new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.42)
 }
 
-export default function Fish({ creature, selected = false, onClick }) {
+export default function Fish({ creature, selected = false, debug = false, onClick }) {
   const ref = useRef()
   const path = useMemo(() => makeSwimPath(creature), [creature])
+  const splineGeometry = useMemo(() => {
+    const points = path.getPoints(120)
+    return new THREE.BufferGeometry().setFromPoints(points)
+  }, [path])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
     return {
@@ -100,13 +104,20 @@ export default function Fish({ creature, selected = false, onClick }) {
   const focusScale = selected ? 1.08 : 1
 
   return (
-    <mesh
-      ref={ref}
-      scale={[size * focusScale, size * focusScale, size * focusScale]}
-      onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
-    >
-      <boxGeometry args={[0.7, 0.28, 0.18]} />
-      <meshStandardMaterial color={creature.color ?? '#7ab8c0'} roughness={0.42} metalness={0.02} envMapIntensity={0.85} />
-    </mesh>
+    <group>
+      {debug && (
+        <lineLoop geometry={splineGeometry} raycast={() => null}>
+          <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
+        </lineLoop>
+      )}
+      <mesh
+        ref={ref}
+        scale={[size * focusScale, size * focusScale, size * focusScale]}
+        onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
+      >
+        <boxGeometry args={[0.7, 0.28, 0.18]} />
+        <meshStandardMaterial color={creature.color ?? '#7ab8c0'} roughness={0.42} metalness={0.02} envMapIntensity={0.85} />
+      </mesh>
+    </group>
   )
 }

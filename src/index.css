@@ -20,6 +20,30 @@ button { font: inherit; }
   user-select: none;
 }
 
+.debug-mode-button {
+  position: absolute;
+  right: 1rem;
+  bottom: 2.35rem;
+  z-index: 55;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 240, 255, 0.14);
+  background: rgba(0, 13, 28, 0.42);
+  color: rgba(220, 245, 255, 0.44);
+  font: 0.68rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.debug-mode-button:hover,
+.debug-mode-button.is-active {
+  border-color: rgba(125, 249, 255, 0.5);
+  color: rgba(225, 255, 255, 0.82);
+  background: rgba(0, 40, 54, 0.58);
+}
+
 .tank-viewport {
   position: fixed;
   inset: 0;

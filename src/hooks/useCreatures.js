@@ -3,10 +3,49 @@ import { CREATURES, SPECIES } from '../data/species'
 import { supabase } from '../lib/supabase'
 
 const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
-const LOCAL_CREATURES = CREATURES.filter(creature => ACTIVE_SPECIES.has(creature.species))
+const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+const DEFAULT_SIZE_RANGE = [0.9, 1.1]
+
+function hashString(value) {
+  let hash = 2166136261
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
+
+function persistentUnitRandom(seed) {
+  let t = hashString(seed) + 0x6D2B79F5
+  t = Math.imul(t ^ (t >>> 15), t | 1)
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+}
+
+function speciesSizeForCreature(creature) {
+  const species = SPECIES_BY_NAME.get(creature.species)
+  const [min, max] = species?.sizeRange ?? DEFAULT_SIZE_RANGE
+  const random = persistentUnitRandom(`${creature.species}:${creature.id}:size`)
+  return min + random * (max - min)
+}
+
+function withDefaultTraits(creature) {
+  const traits = creature.traits ?? {}
+  return {
+    ...creature,
+    traits: {
+      ...traits,
+      size: traits.size ?? speciesSizeForCreature(creature),
+    },
+  }
+}
+
+const LOCAL_CREATURES = CREATURES
+  .filter(creature => ACTIVE_SPECIES.has(creature.species))
+  .map(withDefaultTraits)
 
 function fromSupabaseCreature(row) {
-  return {
+  return withDefaultTraits({
     id: row.id,
     species: row.species,
     biome: row.biome,
@@ -17,7 +56,7 @@ function fromSupabaseCreature(row) {
     generation: row.generation,
     traits: row.traits ?? {},
     color: row.color,
-  }
+  })
 }
 
 function activeCreaturesOnly(creatures) {

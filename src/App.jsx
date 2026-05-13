@@ -4,6 +4,7 @@ import BiomeMenu from './components/BiomeMenu'
 import TankView from './components/TankView'
 import { BIOMES } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
+import { APP_VERSION_LABEL } from './version'
 
 const DEFAULT_BIOME_ID = 'ocean'
 const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
@@ -26,15 +27,22 @@ export default function App() {
     setScreen('landing')
   }
 
-  if (screen === 'landing') return <Landing onEnter={enterSite} />
+  let page = null
 
-  // Kept intact for future multi-tank work, but hidden while Ocean is the only active tank.
-  if (screen === 'menu') return <BiomeMenu biomes={ACTIVE_BIOMES} onSelect={selectBiome} />
-
-  if (screen === 'tank' && activeBiome) {
+  if (screen === 'landing') {
+    page = <Landing onEnter={enterSite} />
+  } else if (screen === 'menu') {
+    // Kept intact for future multi-tank work, but hidden while Ocean is the only active tank.
+    page = <BiomeMenu biomes={ACTIVE_BIOMES} onSelect={selectBiome} />
+  } else if (screen === 'tank' && activeBiome) {
     const biome = ACTIVE_BIOMES.find(b => b.id === activeBiome) ?? ACTIVE_BIOMES[0]
-    return <TankView biome={biome} creatures={creatures} onBack={backToLanding} />
+    page = <TankView biome={biome} creatures={creatures} onBack={backToLanding} />
   }
 
-  return null
+  return (
+    <>
+      {page}
+      <div className="app-version-footnote">{APP_VERSION_LABEL}</div>
+    </>
+  )
 }

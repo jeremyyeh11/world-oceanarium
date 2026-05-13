@@ -7,6 +7,19 @@ body {
 }
 button { font: inherit; }
 
+.app-version-footnote {
+  position: fixed;
+  right: 1rem;
+  bottom: 0.85rem;
+  z-index: 50;
+  color: rgba(220, 245, 255, 0.26);
+  font: 0.68rem/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  pointer-events: none;
+  user-select: none;
+}
+
 .tank-viewport {
   position: fixed;
   inset: 0;

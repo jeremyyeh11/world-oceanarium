@@ -64,9 +64,6 @@ export default function Landing({ onEnter }) {
         </button>
       </div>
 
-      <div style={{ position: 'absolute', bottom: '1.5rem', color: 'rgba(255,255,255,0.15)', fontSize: '0.7rem', fontFamily: 'monospace' }}>
-        world-oceanarium · v0.2
-      </div>
       <style>{bubbles.map(b => `
         @keyframes bubbleUp-${b.id} {
           0% { transform: translateY(0) translateX(0); opacity: 0; }

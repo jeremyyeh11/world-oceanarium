@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react'
-import { CREATURES } from '../data/species'
+import { useEffect, useMemo, useState } from 'react'
+import { CREATURES, SPECIES } from '../data/species'
 import { supabase } from '../lib/supabase'
+
+const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
+const LOCAL_CREATURES = CREATURES.filter(creature => ACTIVE_SPECIES.has(creature.species))
 
 function fromSupabaseCreature(row) {
   return {
@@ -17,9 +20,13 @@ function fromSupabaseCreature(row) {
   }
 }
 
+function activeCreaturesOnly(creatures) {
+  return creatures.filter(creature => creature.alive !== false && ACTIVE_SPECIES.has(creature.species))
+}
+
 export function useCreatures() {
-  const [creatures, setCreatures] = useState(CREATURES)
-  const [source, setSource] = useState('local')
+  const [creatures, setCreatures] = useState(() => supabase ? [] : LOCAL_CREATURES)
+  const [source, setSource] = useState(supabase ? 'supabase-loading' : 'local')
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -39,14 +46,13 @@ export function useCreatures() {
       if (queryError) {
         console.warn('Could not load creatures from Supabase. Using local seed creatures.', queryError)
         setError(queryError)
+        setCreatures(LOCAL_CREATURES)
         setSource('local')
         return
       }
 
-      if (data?.length) {
-        setCreatures(data.map(fromSupabaseCreature))
-        setSource('supabase')
-      }
+      setCreatures(activeCreaturesOnly((data ?? []).map(fromSupabaseCreature)))
+      setSource('supabase')
     }
 
     loadCreatures()
@@ -56,5 +62,5 @@ export function useCreatures() {
     }
   }, [])
 
-  return { creatures, source, error }
+  return useMemo(() => ({ creatures, source, error }), [creatures, source, error])
 }

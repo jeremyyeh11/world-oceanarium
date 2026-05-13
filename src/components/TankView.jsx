@@ -4,6 +4,7 @@ import Camera from './Camera'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
+import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 
 function getPanLimits() {
@@ -98,6 +99,7 @@ export default function TankView({ biome, creatures, onBack }) {
             onCreatureClick={focusCreature}
           />
           <WaterSurface biome={biome.id} />
+          <UnderwaterFX biome={biome.id} />
         </Canvas>
       </div>
 

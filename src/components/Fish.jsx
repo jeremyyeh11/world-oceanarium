@@ -22,6 +22,7 @@ const SWIM_BOX = {
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
+const nextPoint = new THREE.Vector3()
 
 function hashString(value) {
   let hash = 2166136261
@@ -45,21 +46,44 @@ function randomRange(rand, min, max) {
   return min + rand() * (max - min)
 }
 
-function makeSwimPath(creature, seed = hashString(creature.id ?? creature.species ?? 'fish')) {
+function clampToSwimBox(point, yMin, yMax) {
+  point.x = THREE.MathUtils.clamp(point.x, -SWIM_BOX.x, SWIM_BOX.x)
+  point.y = THREE.MathUtils.clamp(point.y, yMin, yMax)
+  point.z = THREE.MathUtils.clamp(point.z, -SWIM_BOX.z, SWIM_BOX.z)
+  return point
+}
+
+function randomPoint(rand, yMin, yMax) {
+  return new THREE.Vector3(
+    randomRange(rand, -SWIM_BOX.x, SWIM_BOX.x),
+    randomRange(rand, yMin, yMax),
+    randomRange(rand, -SWIM_BOX.z, SWIM_BOX.z),
+  )
+}
+
+function makeSwimPath(creature, seed = hashString(creature.id ?? creature.species ?? 'fish'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
   const [yMin, yMax] = DEPTH_Y[creature.depthZone] ?? DEPTH_Y.epipelagic
   const pointCount = 7
   const points = []
 
-  for (let i = 0; i < pointCount; i += 1) {
-    const side = i % 2 === 0 ? -1 : 1
-    const x = side * randomRange(rand, SWIM_BOX.x * 0.45, SWIM_BOX.x)
-    const y = randomRange(rand, yMin, yMax)
-    const z = randomRange(rand, -SWIM_BOX.z, SWIM_BOX.z)
-    points.push(new THREE.Vector3(x, y, z))
+  if (start && exitTangent) {
+    points.push(start.clone())
+
+    const leadDistance = randomRange(rand, 2.8, 4.6)
+    const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
+    lead.y += randomRange(rand, -0.55, 0.55)
+    lead.z += randomRange(rand, -0.45, 0.45)
+    points.push(clampToSwimBox(lead, yMin, yMax))
+
+    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax))
+  } else {
+    const first = randomPoint(rand, yMin, yMax)
+    points.push(first)
+    for (let i = 1; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax))
   }
 
-  return new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.42)
+  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.42)
 }
 
 function makePathGeometry(path) {
@@ -75,8 +99,9 @@ export default function Fish({ creature, selected = false, debug = false, onClic
   const ref = useRef()
   const materialRef = useRef()
   const pathSeed = useRef(hashString(creature.id ?? creature.species ?? 'fish'))
-  const previousT = useRef(null)
+  const progress = useRef(0)
   const [path, setPath] = useState(() => makeSwimPath(creature, pathSeed.current))
+  const pathRef = useRef(path)
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
@@ -87,24 +112,29 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       bobAmount: randomRange(rand, 0.035, 0.11),
     }
   }, [creature])
-  const elapsedOffset = useRef(null)
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const fish = ref.current
     if (!fish) return
 
-    if (elapsedOffset.current === null) elapsedOffset.current = clock.getElapsedTime()
-    const elapsed = clock.getElapsedTime() - elapsedOffset.current
-    const t = (motion.offset + elapsed * motion.speed) % 1
+    progress.current += delta * motion.speed
 
-    if (previousT.current !== null && previousT.current > 0.92 && t < 0.08) {
+    if (progress.current >= 1) {
+      const oldPath = pathRef.current
+      const endPoint = oldPath.getPointAt(1)
+      const endTangent = oldPath.getTangentAt(1).normalize()
+
       pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
-      setPath(makeSwimPath(creature, pathSeed.current))
+      const nextPath = makeSwimPath(creature, pathSeed.current, endPoint, endTangent)
+      pathRef.current = nextPath
+      setPath(nextPath)
+      progress.current = 0
     }
-    previousT.current = t
 
-    const position = path.getPointAt(t)
-    const next = path.getPointAt((t + 0.006) % 1)
+    const activePath = pathRef.current
+    const t = THREE.MathUtils.clamp(progress.current + motion.offset * 0.0001, 0, 1)
+    const position = activePath.getPointAt(t)
+    activePath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
 
     fish.position.copy(position)
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
@@ -115,7 +145,7 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       materialRef.current.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)
     }
 
-    tangent.subVectors(next, position).normalize()
+    tangent.subVectors(nextPoint, position).normalize()
     lookTarget.copy(fish.position).add(tangent)
     fish.lookAt(lookTarget)
     fish.rotateY(Math.PI / 2)
@@ -131,9 +161,9 @@ export default function Fish({ creature, selected = false, debug = false, onClic
   return (
     <group>
       {debug && (
-        <lineLoop geometry={splineGeometry} raycast={() => null}>
+        <line geometry={splineGeometry} raycast={() => null}>
           <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
-        </lineLoop>
+        </line>
       )}
       <mesh
         ref={ref}

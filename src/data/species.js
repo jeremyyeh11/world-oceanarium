@@ -21,6 +21,21 @@ export const BIOMES = [
 
 export const SPECIES = [
   {
+    id: 'sardine',
+    name: 'Sardine',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: true,
+    aggressive: false,
+    predator: false,
+    swim: { speed: 1.12, erraticness: 0.24, turnRadius: 0.78 },
+    model: {
+      path: '/models/fish/sardine/sardine.glb',
+      scale: 0.42,
+      rotation: [0, Math.PI / 2, 0],
+    },
+  },
+  {
     id: 'mackerel',
     name: 'Mackerel',
     biome: 'ocean',
@@ -53,6 +68,18 @@ export const SPECIES = [
 ]
 
 export const CREATURES = [
+  {
+    id: 'sardine_1',
+    species: 'Sardine',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    bornAt: '2026-05-13T00:00:00Z',
+    alive: true,
+    parentIds: null,
+    generation: 0,
+    traits: { size: 1.0, swimSpeed: 1.08, swimErraticness: 0.22, turnRadius: 0.82 },
+    color: '#b7c8cc',
+  },
   {
     id: 'alpha_1',
     species: 'Mackerel',

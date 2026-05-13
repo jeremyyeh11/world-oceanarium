@@ -33,7 +33,7 @@ const RAY_FRAGMENT = /* glsl */ `
 
   void main() {
     float horizontal = smoothstep(0.0, 0.42, vUv.x) * smoothstep(1.0, 0.58, vUv.x);
-    float vertical = pow(1.0 - vUv.y, 1.55);
+    float vertical = pow(vUv.y, 1.55);
     float shimmer = 0.72 + noise(vec2(vUv.x * 2.5 + uSeed, vUv.y * 5.0 - uTime * 0.28)) * 0.34;
     float alpha = horizontal * vertical * shimmer * uStrength;
     gl_FragColor = vec4(0.62, 0.86, 1.0, alpha);

@@ -5,7 +5,7 @@ export default function Biome({ name, creatures, selectedCreatureId, zoomActive,
   const visibleCreatures = creatures.filter(c => c.biome === name && c.alive)
   return (
     <group>
-      <Environment biome={name} hideZoneLabels={zoomActive} />
+      <Environment biome={name} />
       {visibleCreatures.map(creature => (
         <Fish
           key={creature.id}

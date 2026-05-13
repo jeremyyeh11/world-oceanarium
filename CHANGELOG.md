@@ -1,6 +1,6 @@
 # Changelog
 
-Significant changes only. Versions before `v0.3.0` were not consistently tagged in-app, so early work is grouped by milestone.
+Significant changes only. Versions before `v0.3.0` are grouped under `pre-v0.3.0`.
 
 ## v0.5.0 — Movement tuning foundation
 
@@ -67,32 +67,17 @@ Significant changes only. Versions before `v0.3.0` were not consistently tagged 
 - Added persistent bottom-right version footer.
 - Established app/package versioning.
 
-## Ocean-only baseline milestone
-
-- Removed Tropical River from the active flow while keeping selection/menu code for future tanks.
-- Landing now enters Open Ocean directly.
-- Back button returns to landing instead of biome selection.
-- Established generated HDRI-equivalent environment lighting as the baseline for all future tanks.
-
-## Lighting/depth milestone
-
-- Added generated equirectangular environment lighting per biome.
-- Replaced flat lighting with hemisphere, key, fill, and point lighting.
-- Added exponential water-depth fog.
-- Tuned fish, floor, vegetation, and water materials to respond to environment lighting.
-
-## 3D tank interaction milestone
-
-- Added fish selection and focus-follow camera behavior.
-- Preserved fish color while focused.
-- Cropped the 3D tank to a fixed 16:9 viewport.
-- Removed vertical tank scrolling in favor of a stable framed view.
-
-## Inception milestone
+## pre-v0.3.0
 
 - Created the initial World Oceanarium Vite/React/Three.js project.
-- Added initial oceanarium UI shell.
-- Added landing screen and biome selection flow.
+- Added initial oceanarium UI shell, landing screen, and biome selection flow.
 - Added read-only Supabase creature loading with local seed fallback.
 - Added initial biome/tank rendering with fish, floor, vegetation, water surface, camera, and UI.
+- Added fish selection and focus-follow camera behavior.
+- Cropped the 3D tank to a fixed 16:9 viewport and removed vertical tank scrolling.
+- Added generated equirectangular environment lighting, hemisphere/key/fill/point lighting, and exponential water-depth fog.
+- Tuned fish, floor, vegetation, and water materials to respond to environment lighting.
+- Removed Tropical River from the active flow while keeping selection/menu code for future tanks.
+- Made landing enter Open Ocean directly and back return to landing.
+- Established generated HDRI-equivalent environment lighting as the baseline for future tanks.
 - Added CI build workflow and production deployment workflow.

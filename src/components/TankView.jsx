@@ -4,6 +4,7 @@ import Camera from './Camera'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
 import InfoCard from './InfoCard'
+import FX from './FX'
 
 export default function TankView({ biome, creatures, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
@@ -24,11 +25,11 @@ export default function TankView({ biome, creatures, onBack }) {
     <div className="tank-viewport">
       <div className="tank-stage">
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
-          <color attach="background" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e']} />
-          <fog attach="fog" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e', 25, 80]} />
-          <ambientLight intensity={biome.id === 'tropical-river' ? 0.5 : 0.4} />
-          <directionalLight position={[5, 10, 5]} intensity={biome.id === 'tropical-river' ? 0.7 : 0.8} color={biome.id === 'tropical-river' ? '#c4e8a0' : '#7ecfff'} />
-          <pointLight position={[0, 5, 5]} intensity={0.3} color={biome.id === 'tropical-river' ? '#80cc60' : '#00aaff'} />
+          <color attach="background" args={[biome.id === 'tropical-river' ? '#06251d' : '#041c2b']} />
+          <fogExp2 attach="fog" args={[biome.id === 'tropical-river' ? '#11b889' : '#08a9bf', biome.id === 'tropical-river' ? 0.085 : 0.055]} />
+          <ambientLight intensity={biome.id === 'tropical-river' ? 0.45 : 0.36} color={biome.id === 'tropical-river' ? '#73ffd0' : '#78f7ff'} />
+          <directionalLight position={[-4, 8, 5]} intensity={biome.id === 'tropical-river' ? 1.05 : 0.95} color={biome.id === 'tropical-river' ? '#b8ffd0' : '#9ffcff'} />
+          <pointLight position={[0, 2, 5]} intensity={0.42} color={biome.id === 'tropical-river' ? '#7cffba' : '#35f5ff'} />
           <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} />
           <Biome
             key={biome.id}
@@ -39,6 +40,7 @@ export default function TankView({ biome, creatures, onBack }) {
             onCreatureClick={focusCreature}
           />
           <WaterSurface biome={biome.id} />
+          <FX biome={biome.id} />
         </Canvas>
       </div>
 

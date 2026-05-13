@@ -2,7 +2,7 @@ import Environment from './Environment'
 import Fish from './Fish'
 import OceanBubbles from './OceanBubbles'
 
-export default function Biome({ name, creatures, selectedCreatureId, zoomActive, onCreatureClick }) {
+export default function Biome({ name, creatures, selectedCreatureId, zoomActive, debug = false, onCreatureClick }) {
   const visibleCreatures = creatures.filter(c => c.biome === name && c.alive)
   return (
     <group>
@@ -13,6 +13,7 @@ export default function Biome({ name, creatures, selectedCreatureId, zoomActive,
           key={creature.id}
           creature={creature}
           selected={creature.id === selectedCreatureId}
+          debug={debug}
           onClick={onCreatureClick}
         />
       ))}

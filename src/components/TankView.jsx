@@ -9,6 +9,7 @@ import InfoCard from './InfoCard'
 export default function TankView({ biome, creatures, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
+  const [debugMode, setDebugMode] = useState(false)
   const zoomActive = Boolean(selectedCreature)
 
   const focusCreature = (creature, fishRef) => {
@@ -19,6 +20,16 @@ export default function TankView({ biome, creatures, onBack }) {
   const releaseFocus = () => {
     setSelectedCreature(null)
     setFocusedFishRef(null)
+  }
+
+  const toggleDebugMode = () => {
+    if (debugMode) {
+      setDebugMode(false)
+      return
+    }
+
+    const passcode = window.prompt('Enter debug passcode')
+    if (passcode === '5373') setDebugMode(true)
   }
 
   return (
@@ -33,6 +44,7 @@ export default function TankView({ biome, creatures, onBack }) {
             creatures={creatures}
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
+            debug={debugMode}
             onCreatureClick={focusCreature}
           />
           <WaterSurface biome={biome.id} />
@@ -57,6 +69,14 @@ export default function TankView({ biome, creatures, onBack }) {
           </div>
         )}
       </div>
+
+      <button
+        className={`debug-mode-button${debugMode ? ' is-active' : ''}`}
+        onClick={toggleDebugMode}
+        aria-pressed={debugMode}
+      >
+        {debugMode ? 'Debug Mode On' : 'Debug Mode'}
+      </button>
 
       {selectedCreature && <FocusHint />}
       {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}

@@ -29,23 +29,20 @@ function speciesSizeForCreature(creature) {
   return min + random * (max - min)
 }
 
-function withDefaultTraits(creature) {
-  const traits = creature.traits ?? {}
+function withDefaultSize(creature) {
   return {
     ...creature,
-    traits: {
-      ...traits,
-      size: traits.size ?? speciesSizeForCreature(creature),
-    },
+    size: creature.size ?? speciesSizeForCreature(creature),
+    traits: creature.traits ?? {},
   }
 }
 
 const LOCAL_CREATURES = CREATURES
   .filter(creature => ACTIVE_SPECIES.has(creature.species))
-  .map(withDefaultTraits)
+  .map(withDefaultSize)
 
 function fromSupabaseCreature(row) {
-  return withDefaultTraits({
+  return withDefaultSize({
     id: row.id,
     species: row.species,
     biome: row.biome,
@@ -55,6 +52,7 @@ function fromSupabaseCreature(row) {
     parentIds: row.parent_ids,
     generation: row.generation,
     traits: row.traits ?? {},
+    size: row.size,
     color: row.color,
   })
 }
@@ -76,7 +74,7 @@ export function useCreatures() {
 
       const { data, error: queryError } = await supabase
         .from('creatures')
-        .select('id, species, biome, depth_zone, born_at, alive, parent_ids, generation, traits, color')
+        .select('id, species, biome, depth_zone, born_at, alive, parent_ids, generation, traits, size, color')
         .eq('alive', true)
         .order('born_at', { ascending: true })
 

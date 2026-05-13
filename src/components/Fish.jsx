@@ -227,7 +227,7 @@ export default function Fish({ creature, selected = false, debug = false, onClic
     fish.up.lerp(up, 0.18)
   })
 
-  const size = creature.traits?.size ?? 1
+  const size = creature.size ?? 1
   const focusScale = selected ? 1.08 : 1
 
   return (

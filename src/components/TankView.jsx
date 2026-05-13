@@ -1,16 +1,42 @@
 import { Canvas } from '@react-three/fiber'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Camera from './Camera'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import InfoCard from './InfoCard'
 
+function getPanLimits() {
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  const stageWidth = Math.max(viewportWidth, viewportHeight * 16 / 9)
+  const croppedRatio = Math.max(0, stageWidth - viewportWidth) / stageWidth
+  const enabled = croppedRatio > 0.3
+  return { enabled, maxPan: enabled ? (stageWidth - viewportWidth) / 2 : 0 }
+}
+
 export default function TankView({ biome, creatures, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
+  const [stagePan, setStagePan] = useState(0)
+  const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
+  const dragRef = useRef(null)
   const zoomActive = Boolean(selectedCreature)
+
+  useEffect(() => {
+    const updatePanLimits = () => {
+      const nextLimits = getPanLimits()
+      setPanLimits(nextLimits)
+      setStagePan(current => nextLimits.enabled
+        ? Math.max(-nextLimits.maxPan, Math.min(nextLimits.maxPan, current))
+        : 0)
+    }
+
+    updatePanLimits()
+    window.addEventListener('resize', updatePanLimits)
+    return () => window.removeEventListener('resize', updatePanLimits)
+  }, [])
 
   const focusCreature = (creature, fishRef) => {
     setSelectedCreature(creature)
@@ -32,9 +58,33 @@ export default function TankView({ biome, creatures, onBack }) {
     if (passcode === '5373') setDebugMode(true)
   }
 
+  const startStageDrag = (event) => {
+    if (!panLimits.enabled || event.button !== 0) return
+    dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startPan: stagePan }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const moveStageDrag = (event) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const nextPan = drag.startPan + event.clientX - drag.startX
+    setStagePan(Math.max(-panLimits.maxPan, Math.min(panLimits.maxPan, nextPan)))
+  }
+
+  const endStageDrag = (event) => {
+    if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null
+  }
+
   return (
-    <div className="tank-viewport">
-      <div className="tank-stage">
+    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}`}>
+      <div
+        className="tank-stage"
+        style={{ '--stage-pan-x': `${stagePan}px` }}
+        onPointerDown={startStageDrag}
+        onPointerMove={moveStageDrag}
+        onPointerUp={endStageDrag}
+        onPointerCancel={endStageDrag}
+      >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
           <SceneLighting biome={biome.id} />
           <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} />

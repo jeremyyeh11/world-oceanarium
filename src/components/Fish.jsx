@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { SPECIES } from '../data/species'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -15,9 +16,12 @@ const DEPTH_Y = {
 }
 
 const SWIM_BOX = {
-  x: 9.5,
+  x: 8.0,
   z: 7.4,
 }
+
+const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+const DEFAULT_SWIM = { speed: 1, erraticness: 0.35, turnRadius: 0.65 }
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -46,6 +50,18 @@ function randomRange(rand, min, max) {
   return min + rand() * (max - min)
 }
 
+function resolveSwimProfile(creature) {
+  const species = SPECIES_BY_NAME.get(creature.species)
+  const speciesSwim = species?.swim ?? DEFAULT_SWIM
+  const traits = creature.traits ?? {}
+
+  return {
+    speed: traits.swimSpeed ?? speciesSwim.speed ?? DEFAULT_SWIM.speed,
+    erraticness: traits.swimErraticness ?? speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
+    turnRadius: traits.turnRadius ?? speciesSwim.turnRadius ?? DEFAULT_SWIM.turnRadius,
+  }
+}
+
 function clampToSwimBox(point, yMin, yMax) {
   point.x = THREE.MathUtils.clamp(point.x, -SWIM_BOX.x, SWIM_BOX.x)
   point.y = THREE.MathUtils.clamp(point.y, yMin, yMax)
@@ -53,37 +69,42 @@ function clampToSwimBox(point, yMin, yMax) {
   return point
 }
 
-function randomPoint(rand, yMin, yMax) {
+function randomPoint(rand, yMin, yMax, swim, index = 0) {
+  const midY = (yMin + yMax) / 2
+  const halfY = (yMax - yMin) / 2
+  const verticalRange = THREE.MathUtils.lerp(0.16, 1.0, swim.erraticness)
+  const edgeBias = index % 2 === 0 ? -0.55 : 0.55
+
   return new THREE.Vector3(
-    randomRange(rand, -SWIM_BOX.x, SWIM_BOX.x),
-    randomRange(rand, yMin, yMax),
+    randomRange(rand, -SWIM_BOX.x * 0.82, SWIM_BOX.x * 0.82) + edgeBias,
+    midY + randomRange(rand, -halfY * verticalRange, halfY * verticalRange),
     randomRange(rand, -SWIM_BOX.z, SWIM_BOX.z),
   )
 }
 
-function makeSwimPath(creature, seed = hashString(creature.id ?? creature.species ?? 'fish'), start = null, exitTangent = null) {
+function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.species ?? 'fish'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
   const [yMin, yMax] = DEPTH_Y[creature.depthZone] ?? DEPTH_Y.epipelagic
-  const pointCount = 7
+  const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, swim.turnRadius))
   const points = []
 
   if (start && exitTangent) {
     points.push(start.clone())
 
-    const leadDistance = randomRange(rand, 2.8, 4.6)
+    const leadDistance = THREE.MathUtils.lerp(1.8, 5.8, swim.turnRadius) * randomRange(rand, 0.86, 1.12)
     const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
-    lead.y += randomRange(rand, -0.55, 0.55)
-    lead.z += randomRange(rand, -0.45, 0.45)
+    const verticalKick = THREE.MathUtils.lerp(0.12, 0.85, swim.erraticness)
+    lead.y += randomRange(rand, -verticalKick, verticalKick)
+    lead.z += randomRange(rand, -0.55, 0.55)
     points.push(clampToSwimBox(lead, yMin, yMax))
 
-    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax))
+    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax, swim, i))
   } else {
-    const first = randomPoint(rand, yMin, yMax)
-    points.push(first)
-    for (let i = 1; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax))
+    for (let i = 0; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax, swim, i))
   }
 
-  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.42)
+  const tension = THREE.MathUtils.lerp(0.32, 0.74, swim.turnRadius)
+  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
 function makePathGeometry(path) {
@@ -98,20 +119,20 @@ function depthFadeFromScreenZ(z) {
 export default function Fish({ creature, selected = false, debug = false, onClick }) {
   const ref = useRef()
   const materialRef = useRef()
+  const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const pathSeed = useRef(hashString(creature.id ?? creature.species ?? 'fish'))
   const progress = useRef(0)
-  const [path, setPath] = useState(() => makeSwimPath(creature, pathSeed.current))
+  const [path, setPath] = useState(() => makeSwimPath(creature, swim, pathSeed.current))
   const pathRef = useRef(path)
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
     return {
-      offset: rand(),
-      speed: randomRange(rand, 0.018, 0.034),
+      speed: randomRange(rand, 0.018, 0.034) * swim.speed,
       bobPhase: randomRange(rand, 0, Math.PI * 2),
-      bobAmount: randomRange(rand, 0.035, 0.11),
+      bobAmount: randomRange(rand, 0.035, 0.11) * THREE.MathUtils.lerp(0.45, 1.35, swim.erraticness),
     }
-  }, [creature])
+  }, [creature, swim])
 
   useFrame(({ clock }, delta) => {
     const fish = ref.current
@@ -125,14 +146,14 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       const endTangent = oldPath.getTangentAt(1).normalize()
 
       pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
-      const nextPath = makeSwimPath(creature, pathSeed.current, endPoint, endTangent)
+      const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
       pathRef.current = nextPath
       setPath(nextPath)
       progress.current = 0
     }
 
     const activePath = pathRef.current
-    const t = THREE.MathUtils.clamp(progress.current + motion.offset * 0.0001, 0, 1)
+    const t = THREE.MathUtils.clamp(progress.current, 0, 1)
     const position = activePath.getPointAt(t)
     activePath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
 

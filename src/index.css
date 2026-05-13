@@ -64,7 +64,15 @@ button { font: inherit; }
   width: max(100vw, calc(100vh * 16 / 9));
   width: max(100vw, calc(100dvh * 16 / 9));
   height: auto;
-  transform: translate(-50%, -50%);
+  transform: translate(calc(-50% + var(--stage-pan-x, 0px)), -50%);
+}
+
+.tank-viewport.can-pan .tank-stage {
+  cursor: grab;
+}
+
+.tank-viewport.can-pan .tank-stage:active {
+  cursor: grabbing;
 }
 
 .tank-stage canvas {

@@ -29,7 +29,7 @@ export const SPECIES = [
     aggressive: false,
     predator: false,
     swim: { speed: 1.12, erraticness: 0.24, turnRadius: 0.78 },
-    sizeRange: [0.9, 1.16],
+    sizeRange: [0.7, 0.9],
     model: {
       path: '/models/fish/sardine/sardine.glb',
       scale: 0.42,
@@ -82,7 +82,8 @@ export const CREATURES = [
     alive: true,
     parentIds: null,
     generation: 0,
-    traits: { size: 0.8 },
+    size: 0.8,
+    traits: {},
     color: '#d43f5a',
   },
   {
@@ -94,7 +95,8 @@ export const CREATURES = [
     alive: true,
     parentIds: null,
     generation: 0,
-    traits: { size: 0.5 },
+    size: 0.5,
+    traits: {},
     color: '#00d4ff',
   },
 ]

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Camera from './Camera'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
+import SceneLighting from './SceneLighting'
 import InfoCard from './InfoCard'
 
 export default function TankView({ biome, creatures, onBack }) {
@@ -24,11 +25,7 @@ export default function TankView({ biome, creatures, onBack }) {
     <div className="tank-viewport">
       <div className="tank-stage">
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
-          <color attach="background" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e']} />
-          <fog attach="fog" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e', 25, 80]} />
-          <ambientLight intensity={biome.id === 'tropical-river' ? 0.5 : 0.4} />
-          <directionalLight position={[5, 10, 5]} intensity={biome.id === 'tropical-river' ? 0.7 : 0.8} color={biome.id === 'tropical-river' ? '#c4e8a0' : '#7ecfff'} />
-          <pointLight position={[0, 5, 5]} intensity={0.3} color={biome.id === 'tropical-river' ? '#80cc60' : '#00aaff'} />
+          <SceneLighting biome={biome.id} />
           <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} />
           <Biome
             key={biome.id}

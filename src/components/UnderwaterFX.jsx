@@ -172,7 +172,7 @@ export default function UnderwaterFX({ biome = 'ocean' }) {
   return (
     <group>
       <SurfaceFoam />
-      <LightRays />
+      {/* Light rays hidden for now; keeping implementation here for later retuning. */}
     </group>
   )
 }

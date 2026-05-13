@@ -16,7 +16,7 @@ const DEPTH_Y = {
 
 const SWIM_BOX = {
   x: 9.5,
-  z: 3.8,
+  z: 7.4,
 }
 
 const tangent = new THREE.Vector3()

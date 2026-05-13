@@ -53,7 +53,7 @@ export default function TankView({ biome, creatures, onBack }) {
         <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
         {biome.id === 'ocean' && (
           <div style={{ marginTop: '0.35rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-            Sunlight
+            Sunlight Zone
           </div>
         )}
       </div>

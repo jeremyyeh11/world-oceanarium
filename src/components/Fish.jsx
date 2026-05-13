@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { SPECIES } from '../data/species'
 
@@ -50,8 +51,12 @@ function randomRange(rand, min, max) {
   return min + rand() * (max - min)
 }
 
+function resolveSpecies(creature) {
+  return SPECIES_BY_NAME.get(creature.species)
+}
+
 function resolveSwimProfile(creature) {
-  const species = SPECIES_BY_NAME.get(creature.species)
+  const species = resolveSpecies(creature)
   const speciesSwim = species?.swim ?? DEFAULT_SWIM
   const traits = creature.traits ?? {}
 
@@ -60,6 +65,11 @@ function resolveSwimProfile(creature) {
     erraticness: traits.swimErraticness ?? speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
     turnRadius: traits.turnRadius ?? speciesSwim.turnRadius ?? DEFAULT_SWIM.turnRadius,
   }
+}
+
+function resolveModel(creature) {
+  const species = resolveSpecies(creature)
+  return species?.model ?? null
 }
 
 function clampToSwimBox(point, yMin, yMax) {
@@ -116,10 +126,46 @@ function depthFadeFromScreenZ(z) {
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
 }
 
+function applyModelMaterialSettings(root) {
+  const materials = []
+  root.traverse(child => {
+    if (!child.isMesh) return
+    child.castShadow = false
+    child.receiveShadow = false
+    const list = Array.isArray(child.material) ? child.material : [child.material]
+    list.filter(Boolean).forEach(material => {
+      material.transparent = true
+      material.depthWrite = true
+      material.roughness = material.roughness ?? 0.5
+      materials.push(material)
+    })
+  })
+  return materials
+}
+
+function FishModel({ model }) {
+  const gltf = useGLTF(model.path)
+  const object = useMemo(() => gltf.scene.clone(true), [gltf.scene])
+
+  useEffect(() => {
+    applyModelMaterialSettings(object)
+  }, [object])
+
+  return (
+    <primitive
+      object={object}
+      scale={model.scale ?? 1}
+      rotation={model.rotation ?? [0, 0, 0]}
+      position={model.position ?? [0, 0, 0]}
+    />
+  )
+}
+
 export default function Fish({ creature, selected = false, debug = false, onClick }) {
   const ref = useRef()
-  const materialRef = useRef()
+  const modelRootRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
+  const model = useMemo(() => resolveModel(creature), [creature])
   const pathSeed = useRef(hashString(creature.id ?? creature.species ?? 'fish'))
   const progress = useRef(0)
   const [path, setPath] = useState(() => makeSwimPath(creature, swim, pathSeed.current))
@@ -161,10 +207,15 @@ export default function Fish({ creature, selected = false, debug = false, onClic
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
 
     const fade = depthFadeFromScreenZ(fish.position.z)
-    if (materialRef.current) {
-      materialRef.current.opacity = fade
-      materialRef.current.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)
-    }
+    fish.traverse(child => {
+      if (!child.isMesh) return
+      const materials = Array.isArray(child.material) ? child.material : [child.material]
+      materials.filter(Boolean).forEach(material => {
+        material.transparent = true
+        material.opacity = fade
+        if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)
+      })
+    })
 
     tangent.subVectors(nextPoint, position).normalize()
     lookTarget.copy(fish.position).add(tangent)
@@ -186,22 +237,31 @@ export default function Fish({ creature, selected = false, debug = false, onClic
           <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
         </line>
       )}
-      <mesh
+      <group
         ref={ref}
         scale={[size * focusScale, size * focusScale, size * focusScale]}
         onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
       >
-        <boxGeometry args={[0.7, 0.28, 0.18]} />
-        <meshStandardMaterial
-          ref={materialRef}
-          color={creature.color ?? '#7ab8c0'}
-          roughness={0.42}
-          metalness={0.02}
-          envMapIntensity={0.85}
-          transparent
-          opacity={1}
-        />
-      </mesh>
+        <group ref={modelRootRef}>
+          {model ? (
+            <FishModel model={model} />
+          ) : (
+            <mesh>
+              <boxGeometry args={[0.7, 0.28, 0.18]} />
+              <meshStandardMaterial
+                color={creature.color ?? '#7ab8c0'}
+                roughness={0.42}
+                metalness={0.02}
+                envMapIntensity={0.85}
+                transparent
+                opacity={1}
+              />
+            </mesh>
+          )}
+        </group>
+      </group>
     </group>
   )
 }
+
+useGLTF.preload('/models/fish/sardine/sardine.glb')

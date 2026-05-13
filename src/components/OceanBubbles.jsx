@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const BUBBLE_COUNT = 56
+const BUBBLE_COUNT = 24
 const SPREAD_X = 18
 const MIN_Y = -7.5
 const MAX_Y = 5
@@ -35,7 +35,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     float shell = smoothstep(0.5, 0.34, dist);
     float rim = smoothstep(0.34, 0.48, dist) * 0.45;
     float highlight = smoothstep(0.13, 0.0, length(uv - vec2(-0.16, 0.15))) * 0.55;
-    float alpha = (shell * 0.18 + rim + highlight) * vAlpha * 0.48;
+    float alpha = (shell * 0.18 + rim + highlight) * vAlpha * 0.34;
 
     if (dist > 0.5 || alpha < 0.01) discard;
     gl_FragColor = vec4(0.74, 0.94, 1.0, alpha);
@@ -58,7 +58,7 @@ function respawn(index, positions, baseSizes, lifeScales, ages, lifetimes, veloc
   positions[j] = randomRange(-SPREAD_X / 2, SPREAD_X / 2)
   positions[j + 1] = initial ? randomRange(MIN_Y, MAX_Y) : MIN_Y + randomRange(-1.2, 0.8)
   positions[j + 2] = randomRange(-SPREAD_Z / 2, SPREAD_Z / 2)
-  baseSizes[index] = randomRange(12, 26)
+  baseSizes[index] = randomRange(1.2, 2.6)
   lifeScales[index] = 0
   ages[index] = initial ? -randomRange(0, RESPAWN_STAGGER) : 0
   lifetimes[index] = randomRange(MIN_LIFETIME, MAX_LIFETIME)

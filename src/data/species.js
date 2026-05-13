@@ -20,9 +20,36 @@ export const BIOMES = [
 ]
 
 export const SPECIES = [
-  { id: 'mackerel', name: 'Mackerel', biome: 'ocean', depthZone: 'epipelagic', schooling: true, aggressive: false, predator: false },
-  { id: 'betta', name: 'Betta Fish', biome: 'tropical-river', depthZone: 'shallow', schooling: false, aggressive: true, predator: false },
-  { id: 'tetra', name: 'Neon Tetra', biome: 'tropical-river', depthZone: 'mid', schooling: true, aggressive: false, predator: false },
+  {
+    id: 'mackerel',
+    name: 'Mackerel',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: true,
+    aggressive: false,
+    predator: false,
+    swim: { speed: 1.05, erraticness: 0.28, turnRadius: 0.72 },
+  },
+  {
+    id: 'betta',
+    name: 'Betta Fish',
+    biome: 'tropical-river',
+    depthZone: 'shallow',
+    schooling: false,
+    aggressive: true,
+    predator: false,
+    swim: { speed: 0.78, erraticness: 0.62, turnRadius: 0.45 },
+  },
+  {
+    id: 'tetra',
+    name: 'Neon Tetra',
+    biome: 'tropical-river',
+    depthZone: 'mid',
+    schooling: true,
+    aggressive: false,
+    predator: false,
+    swim: { speed: 1.18, erraticness: 0.52, turnRadius: 0.55 },
+  },
 ]
 
 export const CREATURES = [
@@ -35,7 +62,7 @@ export const CREATURES = [
     alive: true,
     parentIds: null,
     generation: 0,
-    traits: { size: 1.0 },
+    traits: { size: 1.0, swimSpeed: 1.0, swimErraticness: 0.28, turnRadius: 0.72 },
     color: '#7ab8c0',
   },
   {

@@ -44,8 +44,6 @@ export default function TankView({ biome, creatures, onBack }) {
         </Canvas>
       </div>
 
-      {biome.id === 'tropical-river' && <TropicalRiverReferenceLayer />}
-
       <button onClick={onBack} aria-label="Back to biome menu" style={{
         position: 'absolute', top: '1.25rem', left: '1.25rem', background: 'rgba(0,10,30,0.65)',
         border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '1rem', width: 44, height: 44,
@@ -60,27 +58,6 @@ export default function TankView({ biome, creatures, onBack }) {
 
       {selectedCreature && <FocusHint />}
       {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}
-    </div>
-  )
-}
-
-function TropicalRiverReferenceLayer() {
-  const markers = [
-    ['12%', '62%', '-14deg'], ['34%', '70%', '9deg'], ['58%', '58%', '-5deg'], ['78%', '77%', '15deg'],
-  ]
-
-  return (
-    <div className="river-reference-layer" aria-hidden="true">
-      <div className="river-map-title">TROPICAL RIVER</div>
-      <svg className="river-bank-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M0 0 H100 V54 L91 59 L82 55 L73 63 L62 57 L53 64 L44 58 L35 62 L27 55 L18 60 L9 54 L0 58 Z" />
-      </svg>
-      <div className="river-water" />
-      <div className="river-contours" />
-      <div className="river-vignette" />
-      {markers.map(([left, top, rotate], i) => (
-        <span key={i} className="river-marker" style={{ left, top, transform: `rotate(${rotate})` }} />
-      ))}
     </div>
   )
 }

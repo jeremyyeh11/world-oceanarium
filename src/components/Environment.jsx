@@ -1,6 +1,5 @@
 import { useRef, useEffect } from 'react'
 import * as THREE from 'three'
-import RiverReferenceBackdrop from './RiverReferenceBackdrop'
 
 function noise(x, z) {
   const n = Math.sin(x * 127.1 + z * 311.7) * 43758.5453
@@ -52,7 +51,6 @@ function RiverVegetation() {
 export default function Environment({ biome }) {
   return (
     <group>
-      {biome === 'tropical-river' && <RiverReferenceBackdrop />}
       <NoiseFloor biome={biome} />
       {biome === 'tropical-river' && <RiverVegetation />}
     </group>

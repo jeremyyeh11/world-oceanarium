@@ -2,6 +2,9 @@ import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
+// Baseline tank lighting: generated HDRI-equivalent environment, ACES tone mapping,
+// hemisphere/key/fill lights, and exponential water-depth fade. New tanks should add
+// a palette here and tune from this setup rather than replacing the lighting model.
 const PALETTES = {
   ocean: {
     envTop: '#8bdcff',

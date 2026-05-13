@@ -78,3 +78,14 @@ button { font: inherit; }
 .tank-stage canvas {
   display: block;
 }
+
+.tank-top-exposure {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% -8%, rgba(170, 235, 255, 0.30) 0%, rgba(76, 168, 220, 0.12) 28%, transparent 58%),
+    linear-gradient(180deg, rgba(190, 245, 255, 0.16) 0%, rgba(92, 190, 235, 0.055) 22%, transparent 50%);
+  mix-blend-mode: screen;
+}

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -45,8 +45,8 @@ function randomRange(rand, min, max) {
   return min + rand() * (max - min)
 }
 
-function makeSwimPath(creature) {
-  const rand = mulberry32(hashString(creature.id ?? creature.species ?? 'fish'))
+function makeSwimPath(creature, seed = hashString(creature.id ?? creature.species ?? 'fish')) {
+  const rand = mulberry32(seed)
   const [yMin, yMax] = DEPTH_Y[creature.depthZone] ?? DEPTH_Y.epipelagic
   const pointCount = 7
   const points = []
@@ -62,13 +62,22 @@ function makeSwimPath(creature) {
   return new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.42)
 }
 
+function makePathGeometry(path) {
+  return new THREE.BufferGeometry().setFromPoints(path.getPoints(120))
+}
+
+function depthFadeFromScreenZ(z) {
+  const normalized = THREE.MathUtils.clamp((z + SWIM_BOX.z) / (SWIM_BOX.z * 2), 0, 1)
+  return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
+}
+
 export default function Fish({ creature, selected = false, debug = false, onClick }) {
   const ref = useRef()
-  const path = useMemo(() => makeSwimPath(creature), [creature])
-  const splineGeometry = useMemo(() => {
-    const points = path.getPoints(120)
-    return new THREE.BufferGeometry().setFromPoints(points)
-  }, [path])
+  const materialRef = useRef()
+  const pathSeed = useRef(hashString(creature.id ?? creature.species ?? 'fish'))
+  const previousT = useRef(null)
+  const [path, setPath] = useState(() => makeSwimPath(creature, pathSeed.current))
+  const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
     return {
@@ -78,17 +87,33 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       bobAmount: randomRange(rand, 0.035, 0.11),
     }
   }, [creature])
+  const elapsedOffset = useRef(null)
 
   useFrame(({ clock }) => {
     const fish = ref.current
     if (!fish) return
 
-    const t = (motion.offset + clock.getElapsedTime() * motion.speed) % 1
+    if (elapsedOffset.current === null) elapsedOffset.current = clock.getElapsedTime()
+    const elapsed = clock.getElapsedTime() - elapsedOffset.current
+    const t = (motion.offset + elapsed * motion.speed) % 1
+
+    if (previousT.current !== null && previousT.current > 0.92 && t < 0.08) {
+      pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
+      setPath(makeSwimPath(creature, pathSeed.current))
+    }
+    previousT.current = t
+
     const position = path.getPointAt(t)
     const next = path.getPointAt((t + 0.006) % 1)
 
     fish.position.copy(position)
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
+
+    const fade = depthFadeFromScreenZ(fish.position.z)
+    if (materialRef.current) {
+      materialRef.current.opacity = fade
+      materialRef.current.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)
+    }
 
     tangent.subVectors(next, position).normalize()
     lookTarget.copy(fish.position).add(tangent)
@@ -116,7 +141,15 @@ export default function Fish({ creature, selected = false, debug = false, onClic
         onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
       >
         <boxGeometry args={[0.7, 0.28, 0.18]} />
-        <meshStandardMaterial color={creature.color ?? '#7ab8c0'} roughness={0.42} metalness={0.02} envMapIntensity={0.85} />
+        <meshStandardMaterial
+          ref={materialRef}
+          color={creature.color ?? '#7ab8c0'}
+          roughness={0.42}
+          metalness={0.02}
+          envMapIntensity={0.85}
+          transparent
+          opacity={1}
+        />
       </mesh>
     </group>
   )

@@ -1,5 +1,4 @@
 import { useRef, useEffect } from 'react'
-import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 
 function noise(x, z) {
@@ -9,21 +8,6 @@ function noise(x, z) {
 
 const FLOOR_Y = { ocean: -52, 'tropical-river': -12, lake: -20 }
 const FLOOR_COLORS = { ocean: '#0e1f33', 'tropical-river': '#1a2e14', lake: '#1a2e1c' }
-
-const OCEAN_ZONES = [
-  { name: 'Epipelagic', sub: 'Sunlight Zone · 0–200 m', y: 1.5, color: '#a8d8ea' },
-  { name: 'Mesopelagic', sub: 'Twilight Zone · 200–1,000 m', y: -10, color: '#5b8db8' },
-  { name: 'Bathypelagic', sub: 'Midnight Zone · 1,000–4,000 m', y: -22, color: '#2d5480' },
-  { name: 'Abyssalpelagic', sub: 'Abyssal Zone · 4,000–6,000 m', y: -36, color: '#1a3a5c' },
-  { name: 'Hadalpelagic', sub: 'Hadal Zone · 6,000 m+', y: -47, color: '#0d1f33' },
-]
-
-const RIVER_ZONES = [
-  { name: 'Surface', sub: 'Shallow bank · 0–0.5 m', y: 2, color: '#8dd4a0' },
-  { name: 'Mid-water', sub: 'Flowing channel · 0.5–2 m', y: -2, color: '#4a9a60' },
-  { name: 'Deep', sub: 'Pool bottom · 2–4 m', y: -6, color: '#2a5a35' },
-  { name: 'Benthic', sub: 'Riverbed · 4 m+', y: -10, color: '#1a3a20' },
-]
 
 function NoiseFloor({ biome }) {
   const ref = useRef()
@@ -50,17 +34,6 @@ function NoiseFloor({ biome }) {
   )
 }
 
-function ZoneLabels({ zones, x = -6.5 }) {
-  return zones.map(zone => (
-    <Html key={zone.name} position={[x, zone.y, 0]} style={{ pointerEvents: 'none' }}>
-      <div style={{ color: zone.color, fontFamily: 'system-ui, sans-serif', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,0.8)', borderLeft: `2px solid ${zone.color}`, paddingLeft: 6, opacity: 0.75 }}>
-        <div style={{ fontWeight: 600 }}>{zone.name}</div>
-        <div style={{ opacity: 0.7, fontSize: 10, marginTop: 1 }}>{zone.sub}</div>
-      </div>
-    </Html>
-  ))
-}
-
 function RiverVegetation() {
   const plants = [
     [-7, -10.2, -2.4, 2.3], [-5.4, -10.4, 1.8, 3.1], [-3.2, -10.8, -1.1, 1.8],
@@ -75,12 +48,10 @@ function RiverVegetation() {
   ))
 }
 
-export default function Environment({ biome, hideZoneLabels = false }) {
+export default function Environment({ biome }) {
   return (
     <group>
       <NoiseFloor biome={biome} />
-      {!hideZoneLabels && biome === 'ocean' && <ZoneLabels zones={OCEAN_ZONES} />}
-      {!hideZoneLabels && biome === 'tropical-river' && <ZoneLabels zones={RIVER_ZONES} x={-5.5} />}
       {biome === 'tropical-river' && <RiverVegetation />}
     </group>
   )

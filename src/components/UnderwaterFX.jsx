@@ -2,59 +2,6 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const CAUSTIC_VERTEX = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`
-
-const CAUSTIC_FRAGMENT = /* glsl */ `
-  uniform float uTime;
-  varying vec2 vUv;
-
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-  }
-
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
-      u.y
-    );
-  }
-
-  float fbm(vec2 p) {
-    float value = 0.0;
-    float amp = 0.55;
-    for (int i = 0; i < 4; i++) {
-      value += amp * noise(p);
-      p = mat2(1.58, -1.06, 1.06, 1.58) * p + 5.7;
-      amp *= 0.52;
-    }
-    return value;
-  }
-
-  void main() {
-    vec2 uv = vUv;
-    vec2 driftA = vec2(uTime * 0.035, -uTime * 0.022);
-    vec2 driftB = vec2(-uTime * 0.018, uTime * 0.031);
-    float a = fbm(uv * vec2(8.0, 5.2) + driftA);
-    float b = fbm(uv * vec2(10.0, 6.4) + driftB);
-    float web = abs(fract((a + b) * 6.3) - 0.5);
-    float line = smoothstep(0.105, 0.015, web);
-    float surfaceMask = smoothstep(0.15, 0.95, uv.y);
-    float centerMask = smoothstep(0.0, 0.28, uv.x) * smoothstep(1.0, 0.72, uv.x);
-    float alpha = line * surfaceMask * centerMask * 0.115;
-    gl_FragColor = vec4(0.58, 0.90, 1.0, alpha);
-  }
-`
-
 const RAY_VERTEX = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -103,8 +50,7 @@ function LightRay({ x, z, width, height, rotation, strength, seed }) {
 
   useFrame(({ clock }) => {
     if (!material.current) return
-    const time = clock.getElapsedTime()
-    material.current.uniforms.uTime.value = time
+    material.current.uniforms.uTime.value = clock.getElapsedTime()
   })
 
   return (
@@ -140,38 +86,8 @@ function LightRays() {
   ))
 }
 
-function CausticsOverlay() {
-  const material = useRef()
-  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
-
-  useFrame(({ clock }) => {
-    if (material.current) material.current.uniforms.uTime.value = clock.getElapsedTime()
-  })
-
-  return (
-    <mesh position={[0, 0, 5.2]} raycast={() => null}>
-      <planeGeometry args={[26, 14.6, 1, 1]} />
-      <shaderMaterial
-        ref={material}
-        uniforms={uniforms}
-        vertexShader={CAUSTIC_VERTEX}
-        fragmentShader={CAUSTIC_FRAGMENT}
-        transparent
-        depthWrite={false}
-        depthTest={false}
-        blending={THREE.AdditiveBlending}
-      />
-    </mesh>
-  )
-}
-
 export default function UnderwaterFX({ biome = 'ocean' }) {
   if (biome !== 'ocean') return null
 
-  return (
-    <group>
-      <LightRays />
-      <CausticsOverlay />
-    </group>
-  )
+  return <LightRays />
 }

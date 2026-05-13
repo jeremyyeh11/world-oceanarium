@@ -29,6 +29,7 @@ export const SPECIES = [
     aggressive: false,
     predator: false,
     swim: { speed: 1.12, erraticness: 0.24, turnRadius: 0.78 },
+    sizeRange: [0.9, 1.16],
     model: {
       path: '/models/fish/sardine/sardine.glb',
       scale: 0.42,
@@ -44,6 +45,7 @@ export const SPECIES = [
     aggressive: true,
     predator: false,
     swim: { speed: 0.78, erraticness: 0.62, turnRadius: 0.45 },
+    sizeRange: [0.72, 1.08],
   },
   {
     id: 'tetra',
@@ -54,6 +56,7 @@ export const SPECIES = [
     aggressive: false,
     predator: false,
     swim: { speed: 1.18, erraticness: 0.52, turnRadius: 0.55 },
+    sizeRange: [0.82, 1.12],
   },
 ]
 
@@ -67,7 +70,7 @@ export const CREATURES = [
     alive: true,
     parentIds: null,
     generation: 0,
-    traits: { size: 1.0, swimSpeed: 1.08, swimErraticness: 0.22, turnRadius: 0.82 },
+    traits: { swimSpeed: 1.08, swimErraticness: 0.22, turnRadius: 0.82 },
     color: '#b7c8cc',
   },
   {

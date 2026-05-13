@@ -6,3 +6,29 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 button { font: inherit; }
+
+.tank-viewport {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: #030d17;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.tank-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  aspect-ratio: 16 / 9;
+  width: max(100vw, calc(100vh * 16 / 9));
+  width: max(100vw, calc(100dvh * 16 / 9));
+  height: auto;
+  transform: translate(-50%, -50%);
+}
+
+.tank-stage canvas {
+  display: block;
+}

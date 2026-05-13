@@ -22,24 +22,26 @@ export default function TankView({ biome, creatures, onBack }) {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
-        <color attach="background" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e']} />
-        <fog attach="fog" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e', 25, 80]} />
-        <ambientLight intensity={biome.id === 'tropical-river' ? 0.5 : 0.4} />
-        <directionalLight position={[5, 10, 5]} intensity={biome.id === 'tropical-river' ? 0.7 : 0.8} color={biome.id === 'tropical-river' ? '#c4e8a0' : '#7ecfff'} />
-        <pointLight position={[0, 5, 5]} intensity={0.3} color={biome.id === 'tropical-river' ? '#80cc60' : '#00aaff'} />
-        <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} onScrollChange={setScrollY} />
-        <Biome
-          key={biome.id}
-          name={biome.id}
-          creatures={creatures}
-          selectedCreatureId={selectedCreature?.id}
-          zoomActive={zoomActive}
-          onCreatureClick={focusCreature}
-        />
-        <WaterSurface biome={biome.id} />
-      </Canvas>
+    <div className="tank-viewport">
+      <div className="tank-stage">
+        <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
+          <color attach="background" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e']} />
+          <fog attach="fog" args={[biome.id === 'tropical-river' ? '#0a2818' : '#061a2e', 25, 80]} />
+          <ambientLight intensity={biome.id === 'tropical-river' ? 0.5 : 0.4} />
+          <directionalLight position={[5, 10, 5]} intensity={biome.id === 'tropical-river' ? 0.7 : 0.8} color={biome.id === 'tropical-river' ? '#c4e8a0' : '#7ecfff'} />
+          <pointLight position={[0, 5, 5]} intensity={0.3} color={biome.id === 'tropical-river' ? '#80cc60' : '#00aaff'} />
+          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} onScrollChange={setScrollY} />
+          <Biome
+            key={biome.id}
+            name={biome.id}
+            creatures={creatures}
+            selectedCreatureId={selectedCreature?.id}
+            zoomActive={zoomActive}
+            onCreatureClick={focusCreature}
+          />
+          <WaterSurface biome={biome.id} />
+        </Canvas>
+      </div>
 
       <button onClick={onBack} aria-label="Back to biome menu" style={{
         position: 'absolute', top: '1.25rem', left: '1.25rem', background: 'rgba(0,10,30,0.65)',

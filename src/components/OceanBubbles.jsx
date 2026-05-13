@@ -2,14 +2,14 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const BUBBLE_COUNT = 64
-const SPREAD_X = 22
-const MIN_Y = -48
+const BUBBLE_COUNT = 56
+const SPREAD_X = 18
+const MIN_Y = -7.5
 const MAX_Y = 5
-const SPREAD_Z = 9
-const MIN_LIFETIME = 2.4
-const MAX_LIFETIME = 5.2
-const RESPAWN_STAGGER = 7.5
+const SPREAD_Z = 7
+const MIN_LIFETIME = 2.1
+const MAX_LIFETIME = 3.8
+const RESPAWN_STAGGER = 3.2
 
 const VERTEX_SHADER = /* glsl */ `
   attribute float aBaseSize;
@@ -35,7 +35,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     float shell = smoothstep(0.5, 0.34, dist);
     float rim = smoothstep(0.34, 0.48, dist) * 0.45;
     float highlight = smoothstep(0.13, 0.0, length(uv - vec2(-0.16, 0.15))) * 0.55;
-    float alpha = (shell * 0.16 + rim + highlight) * vAlpha * 0.34;
+    float alpha = (shell * 0.18 + rim + highlight) * vAlpha * 0.48;
 
     if (dist > 0.5 || alpha < 0.01) discard;
     gl_FragColor = vec4(0.74, 0.94, 1.0, alpha);
@@ -56,13 +56,13 @@ function lifeCurve(age01) {
 function respawn(index, positions, baseSizes, lifeScales, ages, lifetimes, velocities, initial = false) {
   const j = index * 3
   positions[j] = randomRange(-SPREAD_X / 2, SPREAD_X / 2)
-  positions[j + 1] = MIN_Y + randomRange(-3, 2)
+  positions[j + 1] = initial ? randomRange(MIN_Y, MAX_Y) : MIN_Y + randomRange(-1.2, 0.8)
   positions[j + 2] = randomRange(-SPREAD_Z / 2, SPREAD_Z / 2)
-  baseSizes[index] = randomRange(7, 17)
+  baseSizes[index] = randomRange(12, 26)
   lifeScales[index] = 0
   ages[index] = initial ? -randomRange(0, RESPAWN_STAGGER) : 0
   lifetimes[index] = randomRange(MIN_LIFETIME, MAX_LIFETIME)
-  velocities[index] = randomRange(3.8, 7.4)
+  velocities[index] = randomRange(0.85, 1.85)
 }
 
 export default function OceanBubbles() {

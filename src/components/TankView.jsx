@@ -7,6 +7,9 @@ import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 
+const MAX_FOLLOW_ORBIT = Math.PI / 6
+const FOLLOW_ORBIT_DRAG_SPEED = 0.006
+
 function getPanLimits() {
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
@@ -21,6 +24,7 @@ export default function TankView({ biome, creatures, onBack }) {
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [stagePan, setStagePan] = useState(0)
+  const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const dragRef = useRef(null)
   const zoomActive = Boolean(selectedCreature)
@@ -42,11 +46,13 @@ export default function TankView({ biome, creatures, onBack }) {
   const focusCreature = (creature, fishRef) => {
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
+    setFollowOrbit({ yaw: 0, pitch: 0 })
   }
 
   const releaseFocus = () => {
     setSelectedCreature(null)
     setFocusedFishRef(null)
+    setFollowOrbit({ yaw: 0, pitch: 0 })
   }
 
   const toggleDebugMode = () => {
@@ -60,14 +66,39 @@ export default function TankView({ biome, creatures, onBack }) {
   }
 
   const startStageDrag = (event) => {
-    if (!panLimits.enabled || event.button !== 0) return
-    dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startPan: stagePan }
+    if (event.button !== 0) return
+
+    if (selectedCreature) {
+      dragRef.current = {
+        mode: 'orbit',
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        startOrbit: followOrbit,
+      }
+      event.currentTarget.setPointerCapture(event.pointerId)
+      return
+    }
+
+    if (!panLimits.enabled) return
+    dragRef.current = { mode: 'pan', pointerId: event.pointerId, startX: event.clientX, startPan: stagePan }
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
   const moveStageDrag = (event) => {
     const drag = dragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
+
+    if (drag.mode === 'orbit') {
+      const deltaX = event.clientX - drag.startX
+      const deltaY = event.clientY - drag.startY
+      setFollowOrbit({
+        yaw: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED)),
+        pitch: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED)),
+      })
+      return
+    }
+
     const nextPan = drag.startPan + event.clientX - drag.startX
     setStagePan(Math.max(-panLimits.maxPan, Math.min(panLimits.maxPan, nextPan)))
   }
@@ -88,7 +119,7 @@ export default function TankView({ biome, creatures, onBack }) {
       >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
           <SceneLighting biome={biome.id} />
-          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} />
+          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} followOrbit={followOrbit} />
           <Biome
             key={biome.id}
             name={biome.id}
@@ -147,7 +178,7 @@ function FocusHint() {
       background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',
       borderRadius: 999, padding: '0.45rem 0.7rem', backdropFilter: 'blur(6px)',
     }}>
-      Following fish · click water or close card to release
+      Following fish · drag to orbit ±30° · click water or close card to release
     </div>
   )
 }

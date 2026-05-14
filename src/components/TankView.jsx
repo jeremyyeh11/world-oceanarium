@@ -19,7 +19,7 @@ function getPanLimits() {
   return { enabled, maxPan: enabled ? (stageWidth - viewportWidth) / 2 : 0 }
 }
 
-export default function TankView({ biome, creatures, onBack }) {
+export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -182,6 +182,22 @@ export default function TankView({ biome, creatures, onBack }) {
       >
         {debugMode ? 'Debug Mode On' : 'Debug Mode'}
       </button>
+
+      {debugMode && (
+        <div style={{
+          position: 'absolute', right: '1rem', bottom: '4.25rem', zIndex: 55,
+          padding: '0.5rem 0.65rem', borderRadius: 10,
+          border: '1px solid rgba(125,249,255,0.22)',
+          background: 'rgba(0,13,28,0.58)', color: 'rgba(220,245,255,0.72)',
+          font: '0.68rem/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+          letterSpacing: '0.04em', textTransform: 'uppercase', backdropFilter: 'blur(8px)',
+          pointerEvents: 'none',
+        }}>
+          <div>Data: {creatureDataSource}</div>
+          <div>Creatures: {creatures.length}</div>
+          {creatureDataError && <div style={{ color: 'rgba(255,155,155,0.86)' }}>Supabase error</div>}
+        </div>
+      )}
 
       {selectedCreature && <FocusHint />}
       {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}

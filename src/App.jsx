@@ -12,7 +12,7 @@ const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
 export default function App() {
   const [screen, setScreen] = useState('landing')
   const [activeBiome, setActiveBiome] = useState(DEFAULT_BIOME_ID)
-  const { creatures } = useCreatures()
+  const creatureData = useCreatures()
 
   const enterSite = () => {
     setActiveBiome(DEFAULT_BIOME_ID)
@@ -36,7 +36,7 @@ export default function App() {
     page = <BiomeMenu biomes={ACTIVE_BIOMES} onSelect={selectBiome} />
   } else if (screen === 'tank' && activeBiome) {
     const biome = ACTIVE_BIOMES.find(b => b.id === activeBiome) ?? ACTIVE_BIOMES[0]
-    page = <TankView biome={biome} creatures={creatures} onBack={backToLanding} />
+    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} onBack={backToLanding} />
   }
 
   return (

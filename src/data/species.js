@@ -28,7 +28,19 @@ export const SPECIES = [
     schooling: true,
     aggressive: false,
     predator: false,
-    swim: { speed: 0.82, erraticness: 0.24, turnRadius: 0.78 },
+    swim: {
+      // World Oceanarium scale: 1 WU = 25 cm. Common adult sardine ≈20 cm = 0.8 WU.
+      bodyLengthWU: 0.8,
+      // Keeps biologically grounded BL/s ratios readable in the aquarium camera.
+      visualTimeScale: 0.35,
+      idleBLPerSec: [1.0, 1.8],
+      idleDriftBLPerSec: [0.18, 0.35],
+      snapBLPerSec: [3.0, 5.0],
+      burstBLPerSec: [5.0, 8.0],
+      burstInterval: [5.5, 9.5],
+      erraticness: 0.24,
+      turnRadius: 0.78,
+    },
     sizeRange: [0.7, 0.9],
     model: {
       path: '/models/fish/sardine/sardine.glb',
@@ -69,7 +81,7 @@ export const CREATURES = [
     alive: true,
     parentIds: null,
     generation: 0,
-    traits: { swimSpeed: 0.82, swimErraticness: 0.22, turnRadius: 0.82 },
+    traits: { swimErraticness: 0.22, turnRadius: 0.82 },
     color: '#b7c8cc',
   },
   {

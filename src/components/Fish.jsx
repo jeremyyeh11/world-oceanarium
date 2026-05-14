@@ -23,7 +23,19 @@ const SWIM_BOX = {
 }
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
-const DEFAULT_SWIM = { speed: 1, erraticness: 0.35, turnRadius: 0.65 }
+const WORLD_UNIT_METERS = 0.25
+const DEFAULT_SWIM = {
+  bodyLengthWU: 1,
+  visualTimeScale: 0.45,
+  idleBLPerSec: [1.0, 1.5],
+  idleDriftBLPerSec: [0.18, 0.35],
+  snapBLPerSec: [3.0, 5.0],
+  burstBLPerSec: [5.0, 8.0],
+  burstInterval: [5.5, 9.5],
+  speedMultiplier: 1,
+  erraticness: 0.35,
+  turnRadius: 0.65,
+}
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(3)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -61,6 +73,11 @@ function randomRange(rand, min, max) {
   return min + rand() * (max - min)
 }
 
+function randomRangeFromPair(rand, pair, fallback) {
+  const [min, max] = Array.isArray(pair) ? pair : fallback
+  return randomRange(rand, min, max)
+}
+
 function resolveSpecies(creature) {
   return SPECIES_BY_NAME.get(creature.species)
 }
@@ -71,7 +88,14 @@ function resolveSwimProfile(creature) {
   const traits = creature.traits ?? {}
 
   return {
-    speed: traits.swimSpeed ?? speciesSwim.speed ?? DEFAULT_SWIM.speed,
+    bodyLengthWU: traits.bodyLengthWU ?? speciesSwim.bodyLengthWU ?? DEFAULT_SWIM.bodyLengthWU,
+    visualTimeScale: traits.visualTimeScale ?? speciesSwim.visualTimeScale ?? DEFAULT_SWIM.visualTimeScale,
+    idleBLPerSec: traits.idleBLPerSec ?? speciesSwim.idleBLPerSec ?? DEFAULT_SWIM.idleBLPerSec,
+    idleDriftBLPerSec: traits.idleDriftBLPerSec ?? speciesSwim.idleDriftBLPerSec ?? DEFAULT_SWIM.idleDriftBLPerSec,
+    snapBLPerSec: traits.snapBLPerSec ?? speciesSwim.snapBLPerSec ?? DEFAULT_SWIM.snapBLPerSec,
+    burstBLPerSec: traits.burstBLPerSec ?? speciesSwim.burstBLPerSec ?? DEFAULT_SWIM.burstBLPerSec,
+    burstInterval: traits.burstInterval ?? speciesSwim.burstInterval ?? DEFAULT_SWIM.burstInterval,
+    speedMultiplier: traits.swimSpeedMultiplier ?? speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
     erraticness: traits.swimErraticness ?? speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
     turnRadius: traits.turnRadius ?? speciesSwim.turnRadius ?? DEFAULT_SWIM.turnRadius,
   }
@@ -218,16 +242,18 @@ export default function Fish({ creature, selected = false, debug = false, onClic
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
+    const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
     return {
-      idleSpeed: randomRange(rand, 0.22, 0.34) * swim.speed,
-      idleDrift: randomRange(rand, 0.045, 0.095) * swim.speed,
+      idleSpeed: randomRangeFromPair(rand, swim.idleBLPerSec, DEFAULT_SWIM.idleBLPerSec) * velocityScale,
+      idleDrift: randomRangeFromPair(rand, swim.idleDriftBLPerSec, DEFAULT_SWIM.idleDriftBLPerSec) * velocityScale,
       idlePeriod: randomRange(rand, 4.5, 8.5),
-      snapSpeed: randomRange(rand, 0.72, 0.92) * swim.speed,
-      burstSpeed: randomRange(rand, 1.05, 1.35) * swim.speed,
-      burstInterval: randomRange(rand, 5.5, 9.5),
+      snapSpeed: randomRangeFromPair(rand, swim.snapBLPerSec, DEFAULT_SWIM.snapBLPerSec) * velocityScale,
+      burstSpeed: randomRangeFromPair(rand, swim.burstBLPerSec, DEFAULT_SWIM.burstBLPerSec) * velocityScale,
+      burstInterval: randomRangeFromPair(rand, swim.burstInterval, DEFAULT_SWIM.burstInterval),
       burstPhase: randomRange(rand, 0, 3.5),
       bobPhase: randomRange(rand, 0, Math.PI * 2),
       bobAmount: randomRange(rand, 0.035, 0.11) * THREE.MathUtils.lerp(0.45, 1.35, swim.erraticness),
+      metersPerWU: WORLD_UNIT_METERS,
     }
   }, [creature, swim])
 

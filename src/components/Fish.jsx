@@ -36,7 +36,8 @@ const DEFAULT_SWIM = {
   erraticness: 0.35,
   turnRadius: 0.65,
 }
-const MAX_MODEL_BANK = THREE.MathUtils.degToRad(3)
+const MAX_MODEL_PITCH = THREE.MathUtils.degToRad(15)
+const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
 
@@ -49,6 +50,7 @@ const modelRight = new THREE.Vector3()
 const modelUp = new THREE.Vector3()
 const modelBack = new THREE.Vector3()
 const orientationMatrix = new THREE.Matrix4()
+const pitchQuaternion = new THREE.Quaternion()
 const bankQuaternion = new THREE.Quaternion()
 
 function hashString(value) {
@@ -332,6 +334,10 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       modelUp.crossVectors(modelBack, modelRight).normalize()
       orientationMatrix.makeBasis(modelRight, modelUp, modelBack)
       fish.quaternion.setFromRotationMatrix(orientationMatrix)
+
+      const modelPitch = THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(tangent.y, -1, 1)), -MAX_MODEL_PITCH, MAX_MODEL_PITCH)
+      pitchQuaternion.setFromAxisAngle(modelRight, -modelPitch)
+      fish.quaternion.premultiply(pitchQuaternion)
     } else {
       lookTarget.copy(fish.position).add(tangent)
       fish.lookAt(lookTarget)

@@ -195,7 +195,14 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         }}>
           <div>Data: {creatureDataSource}</div>
           <div>Creatures: {creatures.length}</div>
-          {creatureDataError && <div style={{ color: 'rgba(255,155,155,0.86)' }}>Supabase error</div>}
+          {creatureDataError && (
+            <>
+              <div style={{ color: 'rgba(255,155,155,0.86)' }}>Supabase error</div>
+              <div style={{ maxWidth: 280, whiteSpace: 'normal', textTransform: 'none', color: 'rgba(255,205,205,0.8)' }}>
+                {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}
+              </div>
+            </>
+          )}
         </div>
       )}
 

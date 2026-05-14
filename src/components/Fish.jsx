@@ -58,6 +58,16 @@ function hashString(value) {
   return hash >>> 0
 }
 
+function randomSeed() {
+  if (globalThis.crypto?.getRandomValues) {
+    const values = new Uint32Array(1)
+    globalThis.crypto.getRandomValues(values)
+    return values[0]
+  }
+
+  return Math.floor(Math.random() * 0xFFFFFFFF) >>> 0
+}
+
 function mulberry32(seed) {
   return function rand() {
     let t = seed += 0x6D2B79F5
@@ -223,7 +233,7 @@ export default function Fish({ creature, selected = false, debug = false, onClic
   const modelRootRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
-  const pathSeed = useRef(hashString(creature.id ?? creature.species ?? 'fish'))
+  const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
   const progress = useRef(0)
   const previousTangent = useRef(new THREE.Vector3())
   const animationCooldown = useRef(0)

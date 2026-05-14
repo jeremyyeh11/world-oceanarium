@@ -28,7 +28,7 @@ const DEFAULT_SWIM = { speed: 1, erraticness: 0.35, turnRadius: 0.65 }
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
-const modelForward = new THREE.Vector3(0, 1, 0)
+const modelForward = new THREE.Vector3(0, 0, 1)
 const nextPoint = new THREE.Vector3()
 
 function hashString(value) {

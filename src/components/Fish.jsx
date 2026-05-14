@@ -46,11 +46,11 @@ const lookTarget = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
 const nextPoint = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
+const pitchedForward = new THREE.Vector3()
 const modelRight = new THREE.Vector3()
 const modelUp = new THREE.Vector3()
 const modelBack = new THREE.Vector3()
 const orientationMatrix = new THREE.Matrix4()
-const pitchQuaternion = new THREE.Quaternion()
 const bankQuaternion = new THREE.Quaternion()
 
 function hashString(value) {
@@ -329,15 +329,22 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
       horizontalForward.normalize()
 
-      modelBack.copy(horizontalForward).negate()
-      modelRight.crossVectors(horizontalForward, up).normalize()
+      const modelPitch = THREE.MathUtils.clamp(
+        Math.atan2(tangent.y, Math.max(0.0001, Math.hypot(tangent.x, tangent.z))),
+        -MAX_MODEL_PITCH,
+        MAX_MODEL_PITCH,
+      )
+      pitchedForward
+        .copy(horizontalForward)
+        .multiplyScalar(Math.cos(modelPitch))
+        .addScaledVector(up, Math.sin(modelPitch))
+        .normalize()
+
+      modelBack.copy(pitchedForward).negate()
+      modelRight.crossVectors(pitchedForward, up).normalize()
       modelUp.crossVectors(modelBack, modelRight).normalize()
       orientationMatrix.makeBasis(modelRight, modelUp, modelBack)
       fish.quaternion.setFromRotationMatrix(orientationMatrix)
-
-      const modelPitch = THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(tangent.y, -1, 1)), -MAX_MODEL_PITCH, MAX_MODEL_PITCH)
-      pitchQuaternion.setFromAxisAngle(modelRight, -modelPitch)
-      fish.quaternion.premultiply(pitchQuaternion)
     } else {
       lookTarget.copy(fish.position).add(tangent)
       fish.lookAt(lookTarget)
@@ -379,7 +386,7 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       }
 
       const bank = THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
-      bankQuaternion.setFromAxisAngle(horizontalForward, -bank)
+      bankQuaternion.setFromAxisAngle(pitchedForward, -bank)
       fish.quaternion.premultiply(bankQuaternion)
 
       previousTangent.current.copy(tangent)

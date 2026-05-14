@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES } from '../data/species'
 
 const DEPTH_Y = {
@@ -27,6 +28,7 @@ const DEFAULT_SWIM = { speed: 1, erraticness: 0.35, turnRadius: 0.65 }
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
+const modelForward = new THREE.Vector3(0, 1, 0)
 const nextPoint = new THREE.Vector3()
 
 function hashString(value) {
@@ -143,13 +145,38 @@ function applyModelMaterialSettings(root) {
   return materials
 }
 
-function FishModel({ model }) {
+function FishModel({ model, animation = 'idle' }) {
   const gltf = useGLTF(model.path)
-  const object = useMemo(() => gltf.scene.clone(true), [gltf.scene])
+  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
+  const { actions } = useAnimations(gltf.animations, object)
+  const activeActionRef = useRef(null)
 
   useEffect(() => {
     applyModelMaterialSettings(object)
   }, [object])
+
+  useEffect(() => {
+    const nextAction = actions[animation] ?? actions.idle ?? Object.values(actions)[0]
+    if (!nextAction || activeActionRef.current === nextAction) return
+
+    nextAction.reset()
+    nextAction.enabled = true
+    nextAction.setEffectiveWeight(1)
+    nextAction.setEffectiveTimeScale(1)
+
+    if (animation === 'idle') {
+      nextAction.setLoop(THREE.LoopRepeat, Infinity)
+    } else {
+      nextAction.setLoop(THREE.LoopOnce, 1)
+      nextAction.clampWhenFinished = true
+    }
+
+    const previousAction = activeActionRef.current
+    nextAction.play()
+    if (previousAction) nextAction.crossFadeFrom(previousAction, 0.12, false)
+
+    activeActionRef.current = nextAction
+  }, [actions, animation])
 
   return (
     <primitive
@@ -168,17 +195,28 @@ export default function Fish({ creature, selected = false, debug = false, onClic
   const model = useMemo(() => resolveModel(creature), [creature])
   const pathSeed = useRef(hashString(creature.id ?? creature.species ?? 'fish'))
   const progress = useRef(0)
+  const previousTangent = useRef(new THREE.Vector3())
+  const animationCooldown = useRef(0)
+  const animationHoldUntil = useRef(0)
+  const animationRef = useRef('idle')
+  const [animation, setAnimation] = useState('idle')
   const [path, setPath] = useState(() => makeSwimPath(creature, swim, pathSeed.current))
   const pathRef = useRef(path)
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
     return {
-      speed: randomRange(rand, 0.018, 0.034) * swim.speed,
+      speed: randomRange(rand, 0.052, 0.086) * swim.speed,
       bobPhase: randomRange(rand, 0, Math.PI * 2),
       bobAmount: randomRange(rand, 0.035, 0.11) * THREE.MathUtils.lerp(0.45, 1.35, swim.erraticness),
     }
   }, [creature, swim])
+
+  const playAnimation = (name) => {
+    if (animationRef.current === name) return
+    animationRef.current = name
+    setAnimation(name)
+  }
 
   useFrame(({ clock }, delta) => {
     const fish = ref.current
@@ -196,6 +234,11 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       pathRef.current = nextPath
       setPath(nextPath)
       progress.current = 0
+      if (model) {
+        playAnimation('burst')
+        animationHoldUntil.current = clock.getElapsedTime() + 0.42
+        animationCooldown.current = clock.getElapsedTime() + 0.65
+      }
     }
 
     const activePath = pathRef.current
@@ -218,13 +261,37 @@ export default function Fish({ creature, selected = false, debug = false, onClic
     })
 
     tangent.subVectors(nextPoint, position).normalize()
-    lookTarget.copy(fish.position).add(tangent)
-    fish.lookAt(lookTarget)
-    fish.rotateY(Math.PI / 2)
+    if (model) {
+      fish.quaternion.setFromUnitVectors(modelForward, tangent)
+    } else {
+      lookTarget.copy(fish.position).add(tangent)
+      fish.lookAt(lookTarget)
+      fish.rotateY(Math.PI / 2)
+    }
 
     const pitch = THREE.MathUtils.clamp(tangent.y * 0.55, -0.32, 0.32)
-    fish.rotateZ(pitch)
+    if (!model) fish.rotateZ(pitch)
     fish.up.lerp(up, 0.18)
+
+    if (model) {
+      const now = clock.getElapsedTime()
+      if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
+        const turn = previousTangent.current.x * tangent.z - previousTangent.current.z * tangent.x
+        if (turn > 0.012) {
+          playAnimation('snap_left')
+          animationHoldUntil.current = now + 0.32
+          animationCooldown.current = now + 0.7
+        } else if (turn < -0.012) {
+          playAnimation('snap_right')
+          animationHoldUntil.current = now + 0.32
+          animationCooldown.current = now + 0.7
+        }
+      } else if (now > animationHoldUntil.current) {
+        playAnimation('idle')
+      }
+
+      previousTangent.current.copy(tangent)
+    }
   })
 
   const size = creature.size ?? 1
@@ -244,7 +311,7 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       >
         <group ref={modelRootRef}>
           {model ? (
-            <FishModel model={model} />
+            <FishModel model={model} animation={animation} />
           ) : (
             <mesh>
               <boxGeometry args={[0.7, 0.28, 0.18]} />

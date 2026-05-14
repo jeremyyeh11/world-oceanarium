@@ -33,7 +33,6 @@ export const SPECIES = [
     model: {
       path: '/models/fish/sardine/sardine.glb',
       scale: 0.42,
-      rotation: [0, Math.PI, 0],
     },
   },
   {

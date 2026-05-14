@@ -1,45 +1,55 @@
 # World Oceanarium
 
-An interactive 3D aquarium and living ecosystem simulator built with React Three Fiber. The scene is a "window" into an underwater world — you navigate through distinct biomes and descend through real depth zones, observing creatures that are born, age, and die as part of an ongoing simulation.
+World Oceanarium is a living window into real aquatic ecosystems.
 
-## Concept
+The goal is not to make a generic aquarium toy. It is to build a faithful, beautiful, slow-burn oceanarium where every animal is treated as a real creature: correctly scaled, biologically grounded, individually tracked, and placed inside an ecosystem that can eventually change over real time.
 
-This is equal parts portfolio project and passion project. The goal is a faithful, educational replica of real aquatic ecosystems — not a game, not an evolution sandbox. Species are introduced manually by a curator. Individual creatures are born organically through in-sim interactions, persist across sessions, and carry a full identity: a unique ID, birth timestamp, lineage, and genetic traits inherited from their parents.
+## Purpose
 
-## Features (current)
+World Oceanarium should feel like looking into a carefully maintained slice of the ocean.
 
-- Perspective camera locked to pan — scroll vertically through depth zones, switch horizontally between biomes
-- Biome switching with blur-slide transition
-- Ocean depth zones: Epipelagic → Mesopelagic → Bathypelagic → Abyssalpelagic → Hadalpelagic
-- Noise-displaced seabed per biome
-- Click a creature to view its identity card (ID, species, birth date, generation)
-- Versioned local creature records — every individual has a stable identity and migration-ready data shape
+Each species is introduced deliberately. Movement, size, behavior, depth range, and interactions should be based on how the animal actually lives, then tuned just enough to remain readable and elegant on screen.
 
-## Planned
+The project values:
 
-- Reef, lake, and river biomes
-- Behavioral mechanics: schooling, aggression, predation, breeding, symbiosis
-- Population dynamics: colony formation, extinction
-- Real GLB assets from Blender (currently placeholder geometry)
-- Scrolling texture FX: caustics, water shimmer, bubbles
-- Vercel deployment
+- biological plausibility over arbitrary game stats
+- calm observation over noisy mechanics
+- one strong creature at a time over shallow variety
+- real scale and body-length-based motion
+- persistent identity for individual animals
+- tasteful presentation with minimal UI
 
-## Stack
+## Current Focus
 
-- React + Vite
-- React Three Fiber + @react-three/drei
-- Local JSON data for current curated creatures; future persistence can migrate these records to PostgreSQL/Supabase when live simulation state is needed
+The current tank contains a single sardine in the ocean sunlight zone.
 
-## Running Locally
+This sardine is the reference creature for the project’s core standards:
+
+- real-world scale: `1 WU = 25 cm`
+- body-length-based swim speed
+- idle swimming, snap turns, and straight-line bursts
+- Blender-authored GLB animation clips
+- follow camera for close observation
+- local creature records shaped for future persistence
+
+## Long-Term Direction
+
+Eventually, World Oceanarium should support real simulation state over time:
+
+- births and deaths
+- aging
+- lineage
+- schooling
+- predation
+- biome-specific behavior
+- curator-introduced species
+- persistent individual histories
+
+For now, creature data lives locally in versioned source files. This keeps the early project simple and reliable. The data is intentionally shaped like future database records, so it can later migrate to Supabase/Postgres without resetting existing creatures.
+
+## Development
 
 ```bash
 npm install
 npm run dev
 ```
-
-## Creature ID Scheme
-
-- Alpha phase: `alpha_1`, `alpha_2`, ... (manually introduced)
-- Production: globally incrementing integers `1`, `2`, `3`, ...
-- New species are always manually introduced
-- New individuals can be manually introduced or born organically between existing creatures

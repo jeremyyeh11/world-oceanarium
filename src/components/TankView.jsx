@@ -43,6 +43,17 @@ export default function TankView({ biome, creatures, onBack }) {
     return () => window.removeEventListener('resize', updatePanLimits)
   }, [])
 
+  useEffect(() => {
+    if (!selectedCreature) return undefined
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') releaseFocus()
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [selectedCreature])
+
   const focusCreature = (creature, fishRef) => {
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
@@ -92,6 +103,7 @@ export default function TankView({ biome, creatures, onBack }) {
     if (drag.mode === 'orbit') {
       const deltaX = event.clientX - drag.startX
       const deltaY = event.clientY - drag.startY
+      drag.moved = drag.moved || Math.hypot(deltaX, deltaY) > 5
       setFollowOrbit({
         yaw: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED)),
         pitch: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED)),
@@ -105,12 +117,18 @@ export default function TankView({ biome, creatures, onBack }) {
 
   const endStageDrag = (event) => {
     if (dragRef.current?.pointerId !== event.pointerId) return
-    if (dragRef.current.mode === 'orbit') setFollowOrbit({ yaw: 0, pitch: 0 })
+    if (dragRef.current.mode === 'orbit') {
+      const shouldReleaseFocus = !dragRef.current.moved
+      setFollowOrbit({ yaw: 0, pitch: 0 })
+      dragRef.current = null
+      if (shouldReleaseFocus) releaseFocus()
+      return
+    }
     dragRef.current = null
   }
 
   return (
-    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}`}>
+    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${zoomActive ? ' is-following-fish' : ''}`}>
       <div
         className="tank-stage"
         style={{ '--stage-pan-x': `${stagePan}px` }}
@@ -132,11 +150,11 @@ export default function TankView({ biome, creatures, onBack }) {
             onCreatureClick={focusCreature}
           />
           {!zoomActive && <WaterSurface biome={biome.id} />}
-          <UnderwaterFX biome={biome.id} />
+          {!zoomActive && <UnderwaterFX biome={biome.id} />}
         </Canvas>
       </div>
 
-      <div className="tank-top-exposure" aria-hidden="true" />
+      {!zoomActive && <div className="tank-top-exposure" aria-hidden="true" />}
 
       <button onClick={onBack} aria-label="Back to biome menu" style={{
         position: 'absolute', top: '1.25rem', left: '1.25rem', background: 'rgba(0,10,30,0.65)',

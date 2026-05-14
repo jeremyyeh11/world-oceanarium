@@ -12,8 +12,7 @@ const FOLLOW_DISTANCE = 3.2
 const FOLLOW_HEIGHT = 0.85
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
-const focusQuaternion = new THREE.Quaternion()
-const followForward = new THREE.Vector3()
+const followForward = new THREE.Vector3(0, 0, -1)
 const followOffset = new THREE.Vector3()
 const followRight = new THREE.Vector3()
 const yawQuaternion = new THREE.Quaternion()
@@ -30,17 +29,10 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   useFrame(() => {
     if (focusTarget) {
       focusTarget.getWorldPosition(focusPosition)
-      focusTarget.getWorldQuaternion(focusQuaternion)
       const clampedY = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
       focusPosition.y = clampedY
 
-      followForward.set(0, 0, -1).applyQuaternion(focusQuaternion)
-      followForward.y = 0
-      if (followForward.lengthSq() < 0.0001) followForward.set(0, 0, -1)
-      followForward.normalize()
-
-      followOffset.copy(followForward).multiplyScalar(-FOLLOW_DISTANCE)
-      followOffset.y = FOLLOW_HEIGHT
+      followOffset.set(0, FOLLOW_HEIGHT, FOLLOW_DISTANCE)
 
       yawQuaternion.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, followOrbit.yaw)
       followOffset.applyQuaternion(yawQuaternion)

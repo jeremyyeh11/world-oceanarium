@@ -104,7 +104,9 @@ export default function TankView({ biome, creatures, onBack }) {
   }
 
   const endStageDrag = (event) => {
-    if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null
+    if (dragRef.current?.pointerId !== event.pointerId) return
+    if (dragRef.current.mode === 'orbit') setFollowOrbit({ yaw: 0, pitch: 0 })
+    dragRef.current = null
   }
 
   return (
@@ -129,7 +131,7 @@ export default function TankView({ biome, creatures, onBack }) {
             debug={debugMode}
             onCreatureClick={focusCreature}
           />
-          <WaterSurface biome={biome.id} />
+          {!zoomActive && <WaterSurface biome={biome.id} />}
           <UnderwaterFX biome={biome.id} />
         </Canvas>
       </div>
@@ -149,7 +151,7 @@ export default function TankView({ biome, creatures, onBack }) {
       }}>
         <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
         {biome.id === 'ocean' && (
-          <div style={{ marginTop: '0.35rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          <div style={{ marginTop: '0.5rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
             Sunlight Zone
           </div>
         )}
@@ -172,13 +174,13 @@ export default function TankView({ biome, creatures, onBack }) {
 function FocusHint() {
   return (
     <div style={{
-      position: 'absolute', top: '4rem', left: '50%', transform: 'translateX(-50%)',
+      position: 'absolute', top: '4.8rem', left: '50%', transform: 'translateX(-50%)',
       color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.72rem',
       letterSpacing: '0.08em', textTransform: 'uppercase', pointerEvents: 'none',
       background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',
       borderRadius: 999, padding: '0.45rem 0.7rem', backdropFilter: 'blur(6px)',
     }}>
-      Following fish · drag to orbit ±30° · click water or close card to release
+      Following fish
     </div>
   )
 }

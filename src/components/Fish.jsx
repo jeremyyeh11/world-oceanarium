@@ -337,7 +337,7 @@ export default function Fish({ creature, selected = false, debug = false, onClic
         .normalize()
 
       fish.up.copy(up)
-      lookTarget.copy(fish.position).add(pitchedForward)
+      lookTarget.copy(fish.position).addScaledVector(pitchedForward, -1)
       fish.lookAt(lookTarget)
     } else {
       lookTarget.copy(fish.position).add(tangent)

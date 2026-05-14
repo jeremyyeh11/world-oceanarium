@@ -154,7 +154,7 @@ export default function TankView({ biome, creatures, onBack }) {
         </Canvas>
       </div>
 
-      {!zoomActive && <div className="tank-top-exposure" aria-hidden="true" />}
+      <div className="tank-top-exposure" aria-hidden="true" />
 
       <button onClick={onBack} aria-label="Back to biome menu" style={{
         position: 'absolute', top: '1.25rem', left: '1.25rem', background: 'rgba(0,10,30,0.65)',

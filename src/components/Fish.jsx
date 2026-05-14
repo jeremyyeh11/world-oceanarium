@@ -47,10 +47,6 @@ const up = new THREE.Vector3(0, 1, 0)
 const nextPoint = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
-const modelRight = new THREE.Vector3()
-const modelUp = new THREE.Vector3()
-const modelBack = new THREE.Vector3()
-const orientationMatrix = new THREE.Matrix4()
 const bankQuaternion = new THREE.Quaternion()
 
 function hashString(value) {
@@ -340,11 +336,9 @@ export default function Fish({ creature, selected = false, debug = false, onClic
         .addScaledVector(up, Math.sin(modelPitch))
         .normalize()
 
-      modelBack.copy(pitchedForward).negate()
-      modelRight.crossVectors(pitchedForward, up).normalize()
-      modelUp.crossVectors(modelBack, modelRight).normalize()
-      orientationMatrix.makeBasis(modelRight, modelUp, modelBack)
-      fish.quaternion.setFromRotationMatrix(orientationMatrix)
+      fish.up.copy(up)
+      lookTarget.copy(fish.position).add(pitchedForward)
+      fish.lookAt(lookTarget)
     } else {
       lookTarget.copy(fish.position).add(tangent)
       fish.lookAt(lookTarget)

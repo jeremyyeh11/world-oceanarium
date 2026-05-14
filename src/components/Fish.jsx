@@ -25,6 +25,8 @@ const SWIM_BOX = {
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 const DEFAULT_SWIM = { speed: 1, erraticness: 0.35, turnRadius: 0.65 }
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(3)
+const SNAP_TURN_THRESHOLD = 0.014
+const BURST_STRAIGHT_THRESHOLD = 0.004
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -204,19 +206,35 @@ export default function Fish({ creature, selected = false, debug = false, onClic
   const previousTangent = useRef(new THREE.Vector3())
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
+  const velocity = useRef(0)
+  const actionSpeedUntil = useRef(0)
+  const actionSpeedTarget = useRef(0)
+  const nextBurstAt = useRef(0)
   const animationRef = useRef('idle')
   const [animation, setAnimation] = useState('idle')
   const [path, setPath] = useState(() => makeSwimPath(creature, swim, pathSeed.current))
   const pathRef = useRef(path)
+  const pathLengthRef = useRef(path.getLength())
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
     return {
-      speed: randomRange(rand, 0.052, 0.086) * swim.speed,
+      idleSpeed: randomRange(rand, 0.22, 0.34) * swim.speed,
+      idleDrift: randomRange(rand, 0.045, 0.095) * swim.speed,
+      idlePeriod: randomRange(rand, 4.5, 8.5),
+      snapSpeed: randomRange(rand, 0.72, 0.92) * swim.speed,
+      burstSpeed: randomRange(rand, 1.05, 1.35) * swim.speed,
+      burstInterval: randomRange(rand, 5.5, 9.5),
+      burstPhase: randomRange(rand, 0, 3.5),
       bobPhase: randomRange(rand, 0, Math.PI * 2),
       bobAmount: randomRange(rand, 0.035, 0.11) * THREE.MathUtils.lerp(0.45, 1.35, swim.erraticness),
     }
   }, [creature, swim])
+
+  useEffect(() => {
+    velocity.current = motion.idleSpeed
+    nextBurstAt.current = motion.burstPhase + motion.burstInterval
+  }, [motion])
 
   const playAnimation = (name) => {
     if (animationRef.current === name) return
@@ -228,29 +246,40 @@ export default function Fish({ creature, selected = false, debug = false, onClic
     const fish = ref.current
     if (!fish) return
 
-    progress.current += delta * motion.speed
+    const now = clock.getElapsedTime()
+    const activePath = pathRef.current
+    const pathLength = Math.max(0.001, pathLengthRef.current)
+    const idleVelocity = Math.max(
+      0.08,
+      motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
+    )
+    const targetVelocity = now < actionSpeedUntil.current ? actionSpeedTarget.current : idleVelocity
+    const velocityResponse = now < actionSpeedUntil.current ? 8 : 2.4
+
+    velocity.current = THREE.MathUtils.lerp(
+      velocity.current,
+      targetVelocity,
+      1 - Math.exp(-delta * velocityResponse),
+    )
+
+    progress.current += delta * velocity.current / pathLength
 
     if (progress.current >= 1) {
-      const oldPath = pathRef.current
-      const endPoint = oldPath.getPointAt(1)
-      const endTangent = oldPath.getTangentAt(1).normalize()
+      const endPoint = activePath.getPointAt(1)
+      const endTangent = activePath.getTangentAt(1).normalize()
 
       pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
       const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
       pathRef.current = nextPath
+      pathLengthRef.current = nextPath.getLength()
       setPath(nextPath)
       progress.current = 0
-      if (model) {
-        playAnimation('burst')
-        animationHoldUntil.current = clock.getElapsedTime() + 0.42
-        animationCooldown.current = clock.getElapsedTime() + 0.65
-      }
     }
 
-    const activePath = pathRef.current
     const t = THREE.MathUtils.clamp(progress.current, 0, 1)
-    const position = activePath.getPointAt(t)
-    activePath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
+    const currentPath = pathRef.current
+    const position = currentPath.getPointAt(t)
+    currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
 
     fish.position.copy(position)
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
@@ -288,20 +317,30 @@ export default function Fish({ creature, selected = false, debug = false, onClic
     fish.up.lerp(up, 0.18)
 
     if (model) {
-      const now = clock.getElapsedTime()
       let turn = 0
       if (previousTangent.current.lengthSq() > 0) {
         turn = previousTangent.current.x * tangent.z - previousTangent.current.z * tangent.x
       }
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
-        if (turn > 0.012) {
+        if (turn > SNAP_TURN_THRESHOLD) {
           playAnimation('snap_left')
+          actionSpeedUntil.current = now + 0.34
+          actionSpeedTarget.current = motion.snapSpeed
           animationHoldUntil.current = now + 0.32
           animationCooldown.current = now + 0.7
-        } else if (turn < -0.012) {
+        } else if (turn < -SNAP_TURN_THRESHOLD) {
           playAnimation('snap_right')
+          actionSpeedUntil.current = now + 0.34
+          actionSpeedTarget.current = motion.snapSpeed
           animationHoldUntil.current = now + 0.32
           animationCooldown.current = now + 0.7
+        } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
+          playAnimation('burst')
+          actionSpeedUntil.current = now + 0.5
+          actionSpeedTarget.current = motion.burstSpeed
+          animationHoldUntil.current = now + 0.46
+          animationCooldown.current = now + 1.0
+          nextBurstAt.current = now + motion.burstInterval
         }
       } else if (now > animationHoldUntil.current) {
         playAnimation('idle')

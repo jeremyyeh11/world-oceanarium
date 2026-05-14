@@ -13,7 +13,7 @@ This is equal parts portfolio project and passion project. The goal is a faithfu
 - Ocean depth zones: Epipelagic → Mesopelagic → Bathypelagic → Abyssalpelagic → Hadalpelagic
 - Noise-displaced seabed per biome
 - Click a creature to view its identity card (ID, species, birth date, generation)
-- Persistent creature database via Supabase — every individual has a record
+- Versioned local creature records — every individual has a stable identity and migration-ready data shape
 
 ## Planned
 
@@ -28,7 +28,7 @@ This is equal parts portfolio project and passion project. The goal is a faithfu
 
 - React + Vite
 - React Three Fiber + @react-three/drei
-- Supabase (PostgreSQL) for creature persistence
+- Local JSON data for current curated creatures; future persistence can migrate these records to PostgreSQL/Supabase when live simulation state is needed
 
 ## Running Locally
 

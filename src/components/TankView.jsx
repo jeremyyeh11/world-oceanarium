@@ -9,6 +9,8 @@ import InfoCard from './InfoCard'
 
 const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
+const DEBUG_AUTH_STORAGE_KEY = 'world-oceanarium-debug-auth-until'
+const DEBUG_AUTH_DURATION_MS = 5 * 60 * 1000
 
 function getPanLimits() {
   const viewportWidth = window.innerWidth
@@ -29,6 +31,25 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const dragRef = useRef(null)
   const zoomActive = Boolean(selectedCreature)
 
+  const toggleDebugMode = () => {
+    if (debugMode) {
+      setDebugMode(false)
+      return
+    }
+
+    const authUntil = Number(window.localStorage.getItem(DEBUG_AUTH_STORAGE_KEY) ?? 0)
+    if (authUntil > Date.now()) {
+      setDebugMode(true)
+      return
+    }
+
+    const passcode = window.prompt('Enter debug passcode')
+    if (passcode === '5373') {
+      window.localStorage.setItem(DEBUG_AUTH_STORAGE_KEY, String(Date.now() + DEBUG_AUTH_DURATION_MS))
+      setDebugMode(true)
+    }
+  }
+
   useEffect(() => {
     const updatePanLimits = () => {
       const nextLimits = getPanLimits()
@@ -42,6 +63,17 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     window.addEventListener('resize', updatePanLimits)
     return () => window.removeEventListener('resize', updatePanLimits)
   }, [])
+
+  useEffect(() => {
+    const toggleDebugOnShortcut = (event) => {
+      if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.key.toLowerCase() !== 'd') return
+      event.preventDefault()
+      toggleDebugMode()
+    }
+
+    window.addEventListener('keydown', toggleDebugOnShortcut)
+    return () => window.removeEventListener('keydown', toggleDebugOnShortcut)
+  }, [debugMode])
 
   useEffect(() => {
     if (!selectedCreature) return undefined
@@ -64,16 +96,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     setSelectedCreature(null)
     setFocusedFishRef(null)
     setFollowOrbit({ yaw: 0, pitch: 0 })
-  }
-
-  const toggleDebugMode = () => {
-    if (debugMode) {
-      setDebugMode(false)
-      return
-    }
-
-    const passcode = window.prompt('Enter debug passcode')
-    if (passcode === '5373') setDebugMode(true)
   }
 
   const startStageDrag = (event) => {
@@ -174,14 +196,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           </div>
         )}
       </div>
-
-      <button
-        className={`debug-mode-button${debugMode ? ' is-active' : ''}`}
-        onClick={toggleDebugMode}
-        aria-pressed={debugMode}
-      >
-        {debugMode ? 'Debug Mode On' : 'Debug Mode'}
-      </button>
 
       {debugMode && (
         <div style={{

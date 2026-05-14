@@ -24,12 +24,18 @@ const SWIM_BOX = {
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 const DEFAULT_SWIM = { speed: 1, erraticness: 0.35, turnRadius: 0.65 }
+const MAX_MODEL_BANK = THREE.MathUtils.degToRad(3)
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
-const modelForward = new THREE.Vector3(0, 0, 1)
 const nextPoint = new THREE.Vector3()
+const horizontalForward = new THREE.Vector3()
+const modelRight = new THREE.Vector3()
+const modelUp = new THREE.Vector3()
+const modelBack = new THREE.Vector3()
+const orientationMatrix = new THREE.Matrix4()
+const bankQuaternion = new THREE.Quaternion()
 
 function hashString(value) {
   let hash = 2166136261
@@ -262,7 +268,15 @@ export default function Fish({ creature, selected = false, debug = false, onClic
 
     tangent.subVectors(nextPoint, position).normalize()
     if (model) {
-      fish.quaternion.setFromUnitVectors(modelForward, tangent)
+      horizontalForward.set(tangent.x, 0, tangent.z)
+      if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
+      horizontalForward.normalize()
+
+      modelBack.copy(horizontalForward).negate()
+      modelRight.crossVectors(horizontalForward, up).normalize()
+      modelUp.crossVectors(modelBack, modelRight).normalize()
+      orientationMatrix.makeBasis(modelRight, modelUp, modelBack)
+      fish.quaternion.setFromRotationMatrix(orientationMatrix)
     } else {
       lookTarget.copy(fish.position).add(tangent)
       fish.lookAt(lookTarget)
@@ -275,8 +289,11 @@ export default function Fish({ creature, selected = false, debug = false, onClic
 
     if (model) {
       const now = clock.getElapsedTime()
+      let turn = 0
+      if (previousTangent.current.lengthSq() > 0) {
+        turn = previousTangent.current.x * tangent.z - previousTangent.current.z * tangent.x
+      }
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
-        const turn = previousTangent.current.x * tangent.z - previousTangent.current.z * tangent.x
         if (turn > 0.012) {
           playAnimation('snap_left')
           animationHoldUntil.current = now + 0.32
@@ -289,6 +306,10 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       } else if (now > animationHoldUntil.current) {
         playAnimation('idle')
       }
+
+      const bank = THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
+      bankQuaternion.setFromAxisAngle(horizontalForward, -bank)
+      fish.quaternion.premultiply(bankQuaternion)
 
       previousTangent.current.copy(tangent)
     }

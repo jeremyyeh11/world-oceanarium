@@ -176,7 +176,8 @@ function applyModelMaterialSettings(root) {
     child.receiveShadow = false
     const list = Array.isArray(child.material) ? child.material : [child.material]
     list.filter(Boolean).forEach(material => {
-      material.transparent = true
+      material.transparent = false
+      material.opacity = 1
       material.depthWrite = true
       material.roughness = material.roughness ?? 0.5
       materials.push(material)
@@ -323,6 +324,13 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       if (!child.isMesh) return
       const materials = Array.isArray(child.material) ? child.material : [child.material]
       materials.filter(Boolean).forEach(material => {
+        if (model) {
+          material.transparent = false
+          material.opacity = 1
+          if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.45, 0.95, fade)
+          return
+        }
+
         material.transparent = true
         material.opacity = fade
         if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)

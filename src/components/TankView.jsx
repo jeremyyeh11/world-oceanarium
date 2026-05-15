@@ -7,6 +7,11 @@ import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 
+const MAX_FOLLOW_ORBIT = Math.PI / 6
+const FOLLOW_ORBIT_DRAG_SPEED = 0.006
+const DEBUG_AUTH_STORAGE_KEY = 'world-oceanarium-debug-auth-until'
+const DEBUG_AUTH_DURATION_MS = 5 * 60 * 1000
+
 function getPanLimits() {
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
@@ -16,14 +21,34 @@ function getPanLimits() {
   return { enabled, maxPan: enabled ? (stageWidth - viewportWidth) / 2 : 0 }
 }
 
-export default function TankView({ biome, creatures, onBack }) {
+export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [stagePan, setStagePan] = useState(0)
+  const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const dragRef = useRef(null)
   const zoomActive = Boolean(selectedCreature)
+
+  const toggleDebugMode = () => {
+    if (debugMode) {
+      setDebugMode(false)
+      return
+    }
+
+    const authUntil = Number(window.localStorage.getItem(DEBUG_AUTH_STORAGE_KEY) ?? 0)
+    if (authUntil > Date.now()) {
+      setDebugMode(true)
+      return
+    }
+
+    const passcode = window.prompt('Enter debug passcode')
+    if (passcode === '5373') {
+      window.localStorage.setItem(DEBUG_AUTH_STORAGE_KEY, String(Date.now() + DEBUG_AUTH_DURATION_MS))
+      setDebugMode(true)
+    }
+  }
 
   useEffect(() => {
     const updatePanLimits = () => {
@@ -39,45 +64,93 @@ export default function TankView({ biome, creatures, onBack }) {
     return () => window.removeEventListener('resize', updatePanLimits)
   }, [])
 
+  useEffect(() => {
+    const toggleDebugOnShortcut = (event) => {
+      if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.key.toLowerCase() !== 'd') return
+      event.preventDefault()
+      toggleDebugMode()
+    }
+
+    window.addEventListener('keydown', toggleDebugOnShortcut)
+    return () => window.removeEventListener('keydown', toggleDebugOnShortcut)
+  }, [debugMode])
+
+  useEffect(() => {
+    if (!selectedCreature) return undefined
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') releaseFocus()
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [selectedCreature])
+
   const focusCreature = (creature, fishRef) => {
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
+    setFollowOrbit({ yaw: 0, pitch: 0 })
   }
 
   const releaseFocus = () => {
     setSelectedCreature(null)
     setFocusedFishRef(null)
-  }
-
-  const toggleDebugMode = () => {
-    if (debugMode) {
-      setDebugMode(false)
-      return
-    }
-
-    const passcode = window.prompt('Enter debug passcode')
-    if (passcode === '5373') setDebugMode(true)
+    setFollowOrbit({ yaw: 0, pitch: 0 })
   }
 
   const startStageDrag = (event) => {
-    if (!panLimits.enabled || event.button !== 0) return
-    dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startPan: stagePan }
+    if (event.button !== 0) return
+
+    if (selectedCreature) {
+      dragRef.current = {
+        mode: 'orbit',
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        startOrbit: followOrbit,
+      }
+      event.currentTarget.setPointerCapture(event.pointerId)
+      return
+    }
+
+    if (!panLimits.enabled) return
+    dragRef.current = { mode: 'pan', pointerId: event.pointerId, startX: event.clientX, startPan: stagePan }
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
   const moveStageDrag = (event) => {
     const drag = dragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
+
+    if (drag.mode === 'orbit') {
+      const deltaX = event.clientX - drag.startX
+      const deltaY = event.clientY - drag.startY
+      drag.moved = drag.moved || Math.hypot(deltaX, deltaY) > 5
+      setFollowOrbit({
+        yaw: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED)),
+        pitch: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED)),
+      })
+      return
+    }
+
     const nextPan = drag.startPan + event.clientX - drag.startX
     setStagePan(Math.max(-panLimits.maxPan, Math.min(panLimits.maxPan, nextPan)))
   }
 
   const endStageDrag = (event) => {
-    if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null
+    if (dragRef.current?.pointerId !== event.pointerId) return
+    if (dragRef.current.mode === 'orbit') {
+      const shouldReleaseFocus = !dragRef.current.moved
+      setFollowOrbit({ yaw: 0, pitch: 0 })
+      dragRef.current = null
+      if (shouldReleaseFocus) releaseFocus()
+      return
+    }
+    dragRef.current = null
   }
 
   return (
-    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}`}>
+    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${zoomActive ? ' is-following-fish' : ''}`}>
       <div
         className="tank-stage"
         style={{ '--stage-pan-x': `${stagePan}px` }}
@@ -88,7 +161,7 @@ export default function TankView({ biome, creatures, onBack }) {
       >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
           <SceneLighting biome={biome.id} />
-          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} />
+          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} followOrbit={followOrbit} />
           <Biome
             key={biome.id}
             name={biome.id}
@@ -98,8 +171,8 @@ export default function TankView({ biome, creatures, onBack }) {
             debug={debugMode}
             onCreatureClick={focusCreature}
           />
-          <WaterSurface biome={biome.id} />
-          <UnderwaterFX biome={biome.id} />
+          {!zoomActive && <WaterSurface biome={biome.id} />}
+          {!zoomActive && <UnderwaterFX biome={biome.id} />}
         </Canvas>
       </div>
 
@@ -118,19 +191,31 @@ export default function TankView({ biome, creatures, onBack }) {
       }}>
         <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
         {biome.id === 'ocean' && (
-          <div style={{ marginTop: '0.35rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          <div style={{ marginTop: '0.5rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
             Sunlight Zone
           </div>
         )}
       </div>
 
-      <button
-        className={`debug-mode-button${debugMode ? ' is-active' : ''}`}
-        onClick={toggleDebugMode}
-        aria-pressed={debugMode}
-      >
-        {debugMode ? 'Debug Mode On' : 'Debug Mode'}
-      </button>
+      {debugMode && (
+        <div style={{
+          position: 'absolute', right: '1rem', bottom: '4.25rem', zIndex: 55,
+          padding: '0.5rem 0.65rem', borderRadius: 10,
+          border: '1px solid rgba(125,249,255,0.22)',
+          background: 'rgba(0,13,28,0.58)', color: 'rgba(220,245,255,0.72)',
+          font: '0.68rem/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+          letterSpacing: '0.04em', textTransform: 'uppercase', backdropFilter: 'blur(8px)',
+          pointerEvents: 'none',
+        }}>
+          <div>Data: {creatureDataSource}</div>
+          <div>Creatures: {creatures.length}</div>
+          {creatureDataError && (
+            <div style={{ maxWidth: 280, whiteSpace: 'normal', textTransform: 'none', color: 'rgba(255,205,205,0.8)' }}>
+              {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}
+            </div>
+          )}
+        </div>
+      )}
 
       {selectedCreature && <FocusHint />}
       {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}
@@ -141,13 +226,13 @@ export default function TankView({ biome, creatures, onBack }) {
 function FocusHint() {
   return (
     <div style={{
-      position: 'absolute', top: '4rem', left: '50%', transform: 'translateX(-50%)',
+      position: 'absolute', top: '4.8rem', left: '50%', transform: 'translateX(-50%)',
       color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.72rem',
       letterSpacing: '0.08em', textTransform: 'uppercase', pointerEvents: 'none',
       background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',
       borderRadius: 999, padding: '0.45rem 0.7rem', backdropFilter: 'blur(6px)',
     }}>
-      Following fish · click water or close card to release
+      Following fish
     </div>
   )
 }

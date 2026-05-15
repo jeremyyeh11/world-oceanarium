@@ -8,11 +8,17 @@ export const CAMERA_LIMITS = {
 }
 
 const DEFAULT_CAMERA_Z = 12
-const FOCUS_CAMERA_Z = 5.8
+const FOLLOW_DISTANCE = 3.2
+const FOLLOW_HEIGHT = 0.85
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
+const followForward = new THREE.Vector3(0, 0, -1)
+const followOffset = new THREE.Vector3()
+const followRight = new THREE.Vector3()
+const yawQuaternion = new THREE.Quaternion()
+const pitchQuaternion = new THREE.Quaternion()
 
-export default function Camera({ biome = 'ocean', focusTarget = null }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 } }) {
   const { camera } = useThree()
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
 
@@ -24,12 +30,23 @@ export default function Camera({ biome = 'ocean', focusTarget = null }) {
     if (focusTarget) {
       focusTarget.getWorldPosition(focusPosition)
       const clampedY = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
+      focusPosition.y = clampedY
 
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, focusPosition.x, 0.075)
-      camera.position.y = THREE.MathUtils.lerp(camera.position.y, clampedY, 0.075)
-      camera.position.z = THREE.MathUtils.lerp(camera.position.z, FOCUS_CAMERA_Z, 0.07)
+      followOffset.set(0, FOLLOW_HEIGHT, FOLLOW_DISTANCE)
 
-      lookTarget.set(focusPosition.x, clampedY, focusPosition.z)
+      yawQuaternion.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, followOrbit.yaw)
+      followOffset.applyQuaternion(yawQuaternion)
+
+      followRight.crossVectors(THREE.Object3D.DEFAULT_UP, followOffset).normalize()
+      pitchQuaternion.setFromAxisAngle(followRight, followOrbit.pitch)
+      followOffset.applyQuaternion(pitchQuaternion)
+
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, focusPosition.x + followOffset.x, 0.12)
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, focusPosition.y + followOffset.y, 0.12)
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, focusPosition.z + followOffset.z, 0.12)
+
+      lookTarget.copy(focusPosition)
+      lookTarget.addScaledVector(followForward, 0.7)
       camera.lookAt(lookTarget)
       return
     }

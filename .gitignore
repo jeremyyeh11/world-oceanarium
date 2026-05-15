@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Blender source files
+*.blend
+*.blend1
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

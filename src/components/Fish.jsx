@@ -47,6 +47,9 @@ const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
+const DENSE_SCHOOL_MIN_COUNT = 12
+const DENSE_SCHOOL_RADIUS_SCALE = 0.58
+const DENSE_SCHOOL_PADDING_SCALE = 0.2
 const FISH_SEPARATION_PUSH_PER_SEC = 1.45
 const MAX_SEPARATION_STEP = 0.06
 
@@ -278,12 +281,20 @@ function offsetFromSchoolPoint(target, path, t, schoolOffset, now) {
   return target
 }
 
-function fishCollisionRadius(creature, swim) {
-  return Math.max(0.24, swim.bodyLengthWU * (creature.size ?? 1) * 0.42)
+function fishCollisionRadius(creature, swim, school = null) {
+  const baseRadius = Math.max(0.24, swim.bodyLengthWU * (creature.size ?? 1) * 0.42)
+  return school?.count >= DENSE_SCHOOL_MIN_COUNT ? baseRadius * DENSE_SCHOOL_RADIUS_SCALE : baseRadius
 }
 
-function applySoftSeparation(fish, creature, swim, delta) {
-  const radius = fishCollisionRadius(creature, swim)
+function separationPaddingForPair(school, other) {
+  if (school?.id && other.schoolId === school.id && school.count >= DENSE_SCHOOL_MIN_COUNT) {
+    return FISH_SEPARATION_PADDING * DENSE_SCHOOL_PADDING_SCALE
+  }
+  return FISH_SEPARATION_PADDING
+}
+
+function applySoftSeparation(fish, creature, swim, delta, school = null) {
+  const radius = fishCollisionRadius(creature, swim, school)
   separation.set(0, 0, 0)
 
   FISH_REGISTRY.forEach((other, id) => {
@@ -291,7 +302,8 @@ function applySoftSeparation(fish, creature, swim, delta) {
     separationDelta.subVectors(fish.position, other.position)
     separationDelta.y *= 0.45
     const distanceSq = separationDelta.lengthSq()
-    const minDistance = radius + other.radius + FISH_SEPARATION_PADDING
+    const pairPadding = separationPaddingForPair(school, other)
+    const minDistance = radius + other.radius + pairPadding
     if (distanceSq >= minDistance * minDistance) return
 
     if (distanceSq < 0.000001) {
@@ -318,11 +330,13 @@ function applySoftSeparation(fish, creature, swim, delta) {
     entry.position.copy(fish.position)
     entry.radius = radius
     entry.biome = creature.biome
+    entry.schoolId = school?.id ?? null
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
       radius,
       biome: creature.biome,
+      schoolId: school?.id ?? null,
     })
   }
 }
@@ -581,7 +595,7 @@ export default function Fish({ creature, selected = false, debug = false, school
       fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
     }
 
-    applySoftSeparation(fish, creature, swim, delta)
+    applySoftSeparation(fish, creature, swim, delta, school)
 
     if (debug) {
       debugForwardEnd.copy(fish.position).addScaledVector(tangent, 1.2)

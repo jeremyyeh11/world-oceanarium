@@ -5,7 +5,7 @@ import OceanBubbles from './OceanBubbles'
 import { SPECIES } from '../data/species'
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
-const SCHOOL_MAX_SIZE = 8
+const SCHOOL_MAX_SIZE = 64
 
 function hashString(value) {
   let hash = 2166136261

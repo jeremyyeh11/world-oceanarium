@@ -40,10 +40,15 @@ const MAX_MODEL_PITCH = THREE.MathUtils.degToRad(15)
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
-const SCHOOL_SPACING = 0.46
+const SCHOOL_SPACING = 0.58
 const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
+const PATH_EDGE_PADDING = 0.75
+const PATH_VERTICAL_PADDING = 0.16
+const FISH_SEPARATION_PADDING = 0.18
+const FISH_SEPARATION_PUSH_PER_SEC = 1.45
+const MAX_SEPARATION_STEP = 0.06
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -57,7 +62,10 @@ const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
+const separation = new THREE.Vector3()
+const separationDelta = new THREE.Vector3()
 const SCHOOL_STATES = new Map()
+const FISH_REGISTRY = new Map()
 
 function getSchoolState(school, creature, swim) {
   const key = school.id
@@ -142,29 +150,46 @@ function resolveModel(creature) {
   return species?.model ?? null
 }
 
-function clampToSwimBox(point, yMin, yMax) {
-  point.x = THREE.MathUtils.clamp(point.x, -SWIM_BOX.x, SWIM_BOX.x)
+function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
+  const [rawYMin, rawYMax] = DEPTH_Y[depthZone] ?? DEPTH_Y.epipelagic
+  const bodyMargin = Math.max(PATH_EDGE_PADDING, swim.bodyLengthWU * size * 0.8)
+  const verticalMargin = Math.min((rawYMax - rawYMin) * 0.18, Math.max(PATH_VERTICAL_PADDING, swim.bodyLengthWU * size * 0.32))
+  return {
+    x: Math.max(1.5, SWIM_BOX.x - bodyMargin),
+    z: Math.max(1.5, SWIM_BOX.z - bodyMargin),
+    yMin: rawYMin + verticalMargin,
+    yMax: rawYMax - verticalMargin,
+  }
+}
+
+function clampToSwimBox(point, yMin, yMax, xLimit = SWIM_BOX.x - PATH_EDGE_PADDING, zLimit = SWIM_BOX.z - PATH_EDGE_PADDING) {
+  point.x = THREE.MathUtils.clamp(point.x, -xLimit, xLimit)
   point.y = THREE.MathUtils.clamp(point.y, yMin, yMax)
-  point.z = THREE.MathUtils.clamp(point.z, -SWIM_BOX.z, SWIM_BOX.z)
+  point.z = THREE.MathUtils.clamp(point.z, -zLimit, zLimit)
   return point
 }
 
-function randomPoint(rand, yMin, yMax, swim, index = 0) {
-  const midY = (yMin + yMax) / 2
-  const halfY = (yMax - yMin) / 2
+function clampFishPosition(point, creature, swim) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  return clampToSwimBox(point, bounds.yMin, bounds.yMax, bounds.x, bounds.z)
+}
+
+function randomPoint(rand, bounds, swim, index = 0) {
+  const midY = (bounds.yMin + bounds.yMax) / 2
+  const halfY = (bounds.yMax - bounds.yMin) / 2
   const verticalRange = THREE.MathUtils.lerp(0.16, 1.0, swim.erraticness)
   const edgeBias = index % 2 === 0 ? -0.55 : 0.55
 
   return new THREE.Vector3(
-    randomRange(rand, -SWIM_BOX.x * 0.82, SWIM_BOX.x * 0.82) + edgeBias,
+    randomRange(rand, -bounds.x * 0.82, bounds.x * 0.82) + edgeBias,
     midY + randomRange(rand, -halfY * verticalRange, halfY * verticalRange),
-    randomRange(rand, -SWIM_BOX.z, SWIM_BOX.z),
+    randomRange(rand, -bounds.z, bounds.z),
   )
 }
 
 function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.species ?? 'fish'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
-  const [yMin, yMax] = DEPTH_Y[creature.depthZone] ?? DEPTH_Y.epipelagic
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, swim.turnRadius))
   const points = []
 
@@ -176,11 +201,11 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
     const verticalKick = THREE.MathUtils.lerp(0.12, 0.85, swim.erraticness)
     lead.y += randomRange(rand, -verticalKick, verticalKick)
     lead.z += randomRange(rand, -0.55, 0.55)
-    points.push(clampToSwimBox(lead, yMin, yMax))
+    points.push(clampToSwimBox(lead, bounds.yMin, bounds.yMax, bounds.x, bounds.z))
 
-    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax, swim, i))
+    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i))
   } else {
-    for (let i = 0; i < pointCount; i += 1) points.push(randomPoint(rand, yMin, yMax, swim, i))
+    for (let i = 0; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i))
   }
 
   const tension = THREE.MathUtils.lerp(0.32, 0.74, swim.turnRadius)
@@ -189,9 +214,9 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
 
 function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
-  const [yMin, yMax] = DEPTH_Y[creature.depthZone] ?? DEPTH_Y.epipelagic
-  const midY = (yMin + yMax) / 2
-  const halfY = (yMax - yMin) / 2
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const midY = (bounds.yMin + bounds.yMax) / 2
+  const halfY = (bounds.yMax - bounds.yMin) / 2
   const pointCount = 7
   const verticalRange = THREE.MathUtils.lerp(0.18, 0.55, swim.erraticness)
   const points = []
@@ -202,16 +227,16 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
     const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
     lead.y += randomRange(rand, -halfY * verticalRange * 0.38, halfY * verticalRange * 0.38)
     lead.z += randomRange(rand, -0.7, 0.7)
-    points.push(clampToSwimBox(lead, yMin, yMax))
+    points.push(clampToSwimBox(lead, bounds.yMin, bounds.yMax, bounds.x, bounds.z))
   }
 
   for (let i = points.length; i < pointCount; i += 1) {
     const sweep = i / Math.max(1, pointCount - 1)
     const sideBias = i % 2 === 0 ? -0.42 : 0.42
     points.push(new THREE.Vector3(
-      THREE.MathUtils.lerp(-SWIM_BOX.x * 0.72, SWIM_BOX.x * 0.72, sweep) + randomRange(rand, -1.2, 1.2) + sideBias,
+      THREE.MathUtils.lerp(-bounds.x * 0.72, bounds.x * 0.72, sweep) + randomRange(rand, -1.2, 1.2) + sideBias,
       midY + randomRange(rand, -halfY * verticalRange, halfY * verticalRange),
-      randomRange(rand, -SWIM_BOX.z * 0.78, SWIM_BOX.z * 0.78),
+      randomRange(rand, -bounds.z * 0.78, bounds.z * 0.78),
     ))
   }
 
@@ -251,6 +276,55 @@ function offsetFromSchoolPoint(target, path, t, schoolOffset, now) {
     .addScaledVector(schoolTargetTangent, -schoolOffset.trailing)
 
   return target
+}
+
+function fishCollisionRadius(creature, swim) {
+  return Math.max(0.24, swim.bodyLengthWU * (creature.size ?? 1) * 0.42)
+}
+
+function applySoftSeparation(fish, creature, swim, delta) {
+  const radius = fishCollisionRadius(creature, swim)
+  separation.set(0, 0, 0)
+
+  FISH_REGISTRY.forEach((other, id) => {
+    if (id === creature.id || other.biome !== creature.biome) return
+    separationDelta.subVectors(fish.position, other.position)
+    separationDelta.y *= 0.45
+    const distanceSq = separationDelta.lengthSq()
+    const minDistance = radius + other.radius + FISH_SEPARATION_PADDING
+    if (distanceSq >= minDistance * minDistance) return
+
+    if (distanceSq < 0.000001) {
+      const fallback = hashString(`${creature.id}:${id}:separate`) % 6283 / 1000
+      separationDelta.set(Math.cos(fallback), 0, Math.sin(fallback))
+    } else {
+      separationDelta.normalize()
+    }
+
+    const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
+    const overlap = (minDistance - distance) / minDistance
+    separation.addScaledVector(separationDelta, overlap)
+  })
+
+  if (separation.lengthSq() > 0.000001) {
+    const maxStep = Math.min(MAX_SEPARATION_STEP, delta * FISH_SEPARATION_PUSH_PER_SEC)
+    separation.clampLength(0, maxStep)
+    fish.position.add(separation)
+  }
+
+  clampFishPosition(fish.position, creature, swim)
+  const entry = FISH_REGISTRY.get(creature.id)
+  if (entry) {
+    entry.position.copy(fish.position)
+    entry.radius = radius
+    entry.biome = creature.biome
+  } else {
+    FISH_REGISTRY.set(creature.id, {
+      position: fish.position.clone(),
+      radius,
+      biome: creature.biome,
+    })
+  }
 }
 
 function makePathGeometry(path) {
@@ -390,6 +464,10 @@ export default function Fish({ creature, selected = false, debug = false, school
   }, [creature, swim, isSchooling, school?.id])
 
   useEffect(() => {
+    return () => FISH_REGISTRY.delete(creature.id)
+  }, [creature.id])
+
+  useEffect(() => {
     if (!isSchoolLeader || !school?.id) return undefined
     return () => {
       if (SCHOOL_STATES.get(school.id) === schoolState) SCHOOL_STATES.delete(school.id)
@@ -502,6 +580,8 @@ export default function Fish({ creature, selected = false, debug = false, school
       fish.position.copy(position)
       fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
     }
+
+    applySoftSeparation(fish, creature, swim, delta)
 
     if (debug) {
       debugForwardEnd.copy(fish.position).addScaledVector(tangent, 1.2)

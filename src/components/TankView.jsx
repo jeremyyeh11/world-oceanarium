@@ -22,7 +22,7 @@ function getPanLimits() {
   return { enabled, maxPan: enabled ? (stageWidth - viewportWidth) / 2 : 0 }
 }
 
-export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, onBack }) {
+export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -200,6 +200,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             key={biome.id}
             name={biome.id}
             creatures={creatures}
+            tankVisitSeed={tankVisitSeed}
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
             debug={debugMode}

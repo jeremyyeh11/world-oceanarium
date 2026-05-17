@@ -12,9 +12,20 @@ const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 
+function createTankVisitSeed() {
+  if (globalThis.crypto?.getRandomValues) {
+    const values = new Uint32Array(1)
+    globalThis.crypto.getRandomValues(values)
+    return values[0]
+  }
+
+  return Math.floor(Math.random() * 0xFFFFFFFF) >>> 0
+}
+
 export default function App() {
   const [screen, setScreen] = useState('landing')
   const [activeBiome, setActiveBiome] = useState(DEFAULT_BIOME_ID)
+  const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const creatureData = useCreatures()
@@ -44,10 +55,12 @@ export default function App() {
 
   const enterSite = () => {
     setActiveBiome(DEFAULT_BIOME_ID)
+    setTankVisitSeed(createTankVisitSeed())
     setScreen('tank')
   }
   const selectBiome = (biomeId) => {
     setActiveBiome(biomeId)
+    setTankVisitSeed(createTankVisitSeed())
     setScreen('tank')
   }
   const backToLanding = () => {
@@ -64,7 +77,7 @@ export default function App() {
     page = <BiomeMenu biomes={ACTIVE_BIOMES} onSelect={selectBiome} />
   } else if (screen === 'tank' && activeBiome) {
     const biome = ACTIVE_BIOMES.find(b => b.id === activeBiome) ?? ACTIVE_BIOMES[0]
-    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} onBack={backToLanding} />
+    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} onBack={backToLanding} />
   }
 
   return (

@@ -43,11 +43,16 @@ const BURST_STRAIGHT_THRESHOLD = 0.004
 const SCHOOL_SPACING = 0.46
 const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
+const SCHOOL_LOOK_AHEAD = 0.012
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
 const nextPoint = new THREE.Vector3()
+const schoolNextPoint = new THREE.Vector3()
+const schoolFuturePosition = new THREE.Vector3()
+const schoolFutureTangent = new THREE.Vector3()
+const schoolLateral = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
@@ -209,6 +214,18 @@ function schoolFormationOffset(school, creature) {
     driftPhase: randomRange(rand, 0, Math.PI * 2),
     driftSpeed: randomRange(rand, 0.75, 1.25),
   }
+}
+
+function applySchoolOffset(target, pathTangent, schoolOffset, now) {
+  schoolLateral.set(pathTangent.z, 0, -pathTangent.x)
+  if (schoolLateral.lengthSq() < 0.0001) schoolLateral.set(1, 0, 0)
+  schoolLateral.normalize()
+
+  const organicDrift = Math.sin(now * schoolOffset.driftSpeed + schoolOffset.driftPhase) * SCHOOL_DRIFT
+  target.addScaledVector(schoolLateral, schoolOffset.lateral + organicDrift)
+  target.addScaledVector(pathTangent, -schoolOffset.trailing)
+  target.y += schoolOffset.vertical + Math.cos(now * 0.8 + schoolOffset.driftPhase) * SCHOOL_DRIFT * 0.55
+  return target
 }
 
 function makePathGeometry(path) {
@@ -378,13 +395,14 @@ export default function Fish({ creature, selected = false, debug = false, school
 
     fish.position.copy(position)
     if (schoolOffset) {
-      const lateral = new THREE.Vector3(tangent.z, 0, -tangent.x)
-      if (lateral.lengthSq() < 0.0001) lateral.set(1, 0, 0)
-      lateral.normalize()
-      const organicDrift = Math.sin(now * schoolOffset.driftSpeed + schoolOffset.driftPhase) * SCHOOL_DRIFT
-      fish.position.addScaledVector(lateral, schoolOffset.lateral + organicDrift)
-      fish.position.addScaledVector(tangent, -schoolOffset.trailing)
-      fish.position.y += schoolOffset.vertical + Math.cos(now * 0.8 + schoolOffset.driftPhase) * SCHOOL_DRIFT * 0.55
+      applySchoolOffset(fish.position, tangent, schoolOffset, now)
+
+      const futureT = THREE.MathUtils.clamp(t + SCHOOL_LOOK_AHEAD, 0, 1)
+      currentPath.getPointAt(futureT, schoolFuturePosition)
+      currentPath.getPointAt(Math.min(futureT + 0.006, 1), schoolNextPoint)
+      schoolFutureTangent.subVectors(schoolNextPoint, schoolFuturePosition).normalize()
+      applySchoolOffset(schoolFuturePosition, schoolFutureTangent, schoolOffset, now + SCHOOL_LOOK_AHEAD * pathLength / Math.max(0.001, velocity.current))
+      tangent.subVectors(schoolFuturePosition, fish.position).normalize()
     }
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
 

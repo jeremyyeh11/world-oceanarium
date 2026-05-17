@@ -52,7 +52,7 @@ export default function Landing({ onEnter }) {
           margin: '0.65rem 0 3rem', fontSize: 'clamp(0.85rem, 2vw, 1.05rem)',
           color: 'rgba(160, 200, 230, 0.6)', letterSpacing: '0.12em', textTransform: 'uppercase',
         }}>
-          Interactive Ecosystem Simulator
+          Virtual Aquatic Ecosystems
         </p>
         <button onClick={onEnter} style={{
           background: 'linear-gradient(180deg, #4db8ff 0%, #1a7acc 100%)', border: 0, color: '#fff',

@@ -40,6 +40,8 @@ const MAX_MODEL_PITCH = THREE.MathUtils.degToRad(15)
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
+const SCHOOL_SPACING = 0.46
+const SCHOOL_DRIFT = 0.08
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -159,6 +161,52 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
+function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school')) {
+  const rand = mulberry32(seed)
+  const [yMin, yMax] = DEPTH_Y[creature.depthZone] ?? DEPTH_Y.epipelagic
+  const midY = (yMin + yMax) / 2
+  const halfY = (yMax - yMin) / 2
+  const verticalRange = THREE.MathUtils.lerp(0.22, 0.42, swim.erraticness)
+  const loopWidth = SWIM_BOX.x * randomRange(rand, 0.48, 0.68)
+  const loopDepth = SWIM_BOX.z * randomRange(rand, 0.36, 0.58)
+  const centerY = midY + randomRange(rand, -halfY * 0.22, halfY * 0.22)
+  const points = []
+
+  for (let i = 0; i < 9; i += 1) {
+    const angle = (i / 9) * Math.PI * 2
+    const wobble = randomRange(rand, 0.82, 1.18)
+    points.push(new THREE.Vector3(
+      Math.cos(angle) * loopWidth * wobble + randomRange(rand, -0.45, 0.45),
+      THREE.MathUtils.clamp(
+        centerY + Math.sin(angle * 2.0 + randomRange(rand, -0.4, 0.4)) * halfY * verticalRange,
+        yMin,
+        yMax,
+      ),
+      Math.sin(angle) * loopDepth * randomRange(rand, 0.84, 1.16),
+    ))
+  }
+
+  return new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.58)
+}
+
+function schoolFormationOffset(school, creature) {
+  if (!school) return null
+  const rand = mulberry32(hashString(`${school.id}:${creature.id}:formation`))
+  const rank = school.index - (school.count - 1) / 2
+  const row = Math.floor(Math.abs(rank) / 2)
+  const side = rank === 0 ? 0 : Math.sign(rank)
+
+  return {
+    phase: (school.index / school.count) * 0.055 + randomRange(rand, -0.008, 0.008),
+    lateral: side * (SCHOOL_SPACING + row * 0.18) + randomRange(rand, -0.08, 0.08),
+    vertical: randomRange(rand, -0.18, 0.18),
+    trailing: row * 0.12 + randomRange(rand, -0.05, 0.08),
+    driftPhase: randomRange(rand, 0, Math.PI * 2),
+    driftSpeed: randomRange(rand, 0.75, 1.25),
+    speedScale: randomRange(rand, 0.94, 1.04),
+  }
+}
+
 function makePathGeometry(path) {
   return new THREE.BufferGeometry().setFromPoints(path.getPoints(120))
 }
@@ -229,13 +277,15 @@ function FishModel({ model, animation = 'idle' }) {
   )
 }
 
-export default function Fish({ creature, selected = false, debug = false, onClick }) {
+export default function Fish({ creature, selected = false, debug = false, school = null, onClick }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
-  const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
-  const progress = useRef(0)
+  const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
+  const isSchooling = Boolean(schoolOffset)
+  const pathSeed = useRef((hashString(isSchooling ? school.id : (creature.id ?? creature.species ?? 'fish')) ^ (isSchooling ? 0 : randomSeed())) >>> 0)
+  const progress = useRef(schoolOffset?.phase ?? 0)
   const previousTangent = useRef(new THREE.Vector3())
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
@@ -245,7 +295,9 @@ export default function Fish({ creature, selected = false, debug = false, onClic
   const nextBurstAt = useRef(0)
   const animationRef = useRef('idle')
   const [animation, setAnimation] = useState('idle')
-  const [path, setPath] = useState(() => makeSwimPath(creature, swim, pathSeed.current))
+  const [path, setPath] = useState(() => (isSchooling
+    ? makeSchoolPath(creature, swim, pathSeed.current)
+    : makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(path)
   const pathLengthRef = useRef(path.getLength())
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
@@ -297,26 +349,40 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    progress.current += delta * velocity.current / pathLength
+    progress.current += delta * velocity.current * (schoolOffset?.speedScale ?? 1) / pathLength
 
     if (progress.current >= 1) {
-      const endPoint = activePath.getPointAt(1)
-      const endTangent = activePath.getTangentAt(1).normalize()
+      if (isSchooling) {
+        progress.current %= 1
+      } else {
+        const endPoint = activePath.getPointAt(1)
+        const endTangent = activePath.getTangentAt(1).normalize()
 
-      pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
-      const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
-      pathRef.current = nextPath
-      pathLengthRef.current = nextPath.getLength()
-      setPath(nextPath)
-      progress.current = 0
+        pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
+        const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
+        pathRef.current = nextPath
+        pathLengthRef.current = nextPath.getLength()
+        setPath(nextPath)
+        progress.current = 0
+      }
     }
 
     const t = THREE.MathUtils.clamp(progress.current, 0, 1)
     const currentPath = pathRef.current
     const position = currentPath.getPointAt(t)
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
+    tangent.subVectors(nextPoint, position).normalize()
 
     fish.position.copy(position)
+    if (schoolOffset) {
+      const lateral = new THREE.Vector3(tangent.z, 0, -tangent.x)
+      if (lateral.lengthSq() < 0.0001) lateral.set(1, 0, 0)
+      lateral.normalize()
+      const organicDrift = Math.sin(now * schoolOffset.driftSpeed + schoolOffset.driftPhase) * SCHOOL_DRIFT
+      fish.position.addScaledVector(lateral, schoolOffset.lateral + organicDrift)
+      fish.position.addScaledVector(tangent, -schoolOffset.trailing)
+      fish.position.y += schoolOffset.vertical + Math.cos(now * 0.8 + schoolOffset.driftPhase) * SCHOOL_DRIFT * 0.55
+    }
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
 
     const fade = depthFadeFromScreenZ(fish.position.z)
@@ -337,7 +403,6 @@ export default function Fish({ creature, selected = false, debug = false, onClic
       })
     })
 
-    tangent.subVectors(nextPoint, position).normalize()
     if (model) {
       horizontalForward.set(tangent.x, 0, tangent.z)
       if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)

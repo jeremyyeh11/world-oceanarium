@@ -50,8 +50,10 @@ const FISH_SEPARATION_PADDING = 0.18
 const DENSE_SCHOOL_MIN_COUNT = 12
 const DENSE_SCHOOL_RADIUS_SCALE = 0.58
 const DENSE_SCHOOL_PADDING_SCALE = 0.2
-const FISH_SEPARATION_PUSH_PER_SEC = 1.45
-const MAX_SEPARATION_STEP = 0.06
+const AVOIDANCE_SMOOTHING = 3.4
+const AVOIDANCE_MAX_WEIGHT = 0.28
+const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
+const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -65,7 +67,6 @@ const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
-const separation = new THREE.Vector3()
 const separationDelta = new THREE.Vector3()
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
@@ -293,14 +294,24 @@ function separationPaddingForPair(school, other) {
   return FISH_SEPARATION_PADDING
 }
 
-function applySoftSeparation(fish, creature, swim, delta, school = null) {
+function avoidanceWeightForPair(creature, swim, school, other) {
+  const bodyScale = THREE.MathUtils.clamp(swim.bodyLengthWU * (creature.size ?? 1), 0.35, 1.8)
+  const sameSchool = school?.id && other.schoolId === school.id
+  if (!sameSchool) return bodyScale
+
+  const density = 1 / Math.sqrt(Math.max(1, school.count))
+  const denseScale = school.count >= DENSE_SCHOOL_MIN_COUNT ? 0.34 : 0.75
+  return bodyScale * density * denseScale
+}
+
+function computeSoftAvoidance(out, fish, creature, swim, school = null) {
   const radius = fishCollisionRadius(creature, swim, school)
-  separation.set(0, 0, 0)
+  out.set(0, 0, 0)
 
   FISH_REGISTRY.forEach((other, id) => {
     if (id === creature.id || other.biome !== creature.biome) return
     separationDelta.subVectors(fish.position, other.position)
-    separationDelta.y *= 0.45
+    separationDelta.y *= 0.35
     const distanceSq = separationDelta.lengthSq()
     const pairPadding = separationPaddingForPair(school, other)
     const minDistance = radius + other.radius + pairPadding
@@ -314,16 +325,25 @@ function applySoftSeparation(fish, creature, swim, delta, school = null) {
     }
 
     const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
-    const overlap = (minDistance - distance) / minDistance
-    separation.addScaledVector(separationDelta, overlap)
+    const overlap = THREE.MathUtils.clamp((minDistance - distance) / minDistance, 0, 1)
+    const easedOverlap = overlap * overlap
+    out.addScaledVector(separationDelta, easedOverlap * avoidanceWeightForPair(creature, swim, school, other))
   })
 
-  if (separation.lengthSq() > 0.000001) {
-    const maxStep = Math.min(MAX_SEPARATION_STEP, delta * FISH_SEPARATION_PUSH_PER_SEC)
-    separation.clampLength(0, maxStep)
-    fish.position.add(separation)
-  }
+  out.clampLength(0, AVOIDANCE_MAX_WEIGHT)
+  return out
+}
 
+function limitAvoidanceAngle(out, followDirection, maxAngle) {
+  if (out.lengthSq() < 0.000001) return out.copy(followDirection)
+  out.normalize()
+  const angle = followDirection.angleTo(out)
+  if (angle > maxAngle) out.lerpVectors(followDirection, out, maxAngle / angle).normalize()
+  return out
+}
+
+function updateFishRegistry(fish, creature, swim, school = null) {
+  const radius = fishCollisionRadius(creature, swim, school)
   clampFishPosition(fish.position, creature, swim)
   const entry = FISH_REGISTRY.get(creature.id)
   if (entry) {
@@ -443,6 +463,9 @@ export default function Fish({ creature, selected = false, debug = false, school
   const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
   const progress = useRef(0)
   const followTarget = useRef(new THREE.Vector3())
+  const rawAvoidance = useRef(new THREE.Vector3())
+  const smoothedAvoidance = useRef(new THREE.Vector3())
+  const desiredDirection = useRef(new THREE.Vector3())
   const previousPosition = useRef(new THREE.Vector3())
   const hasFollowPosition = useRef(false)
   const previousTangent = useRef(new THREE.Vector3())
@@ -491,6 +514,8 @@ export default function Fish({ creature, selected = false, debug = false, school
   useEffect(() => {
     velocity.current = motion.idleSpeed
     nextBurstAt.current = motion.burstPhase + motion.burstInterval
+    rawAvoidance.current.set(0, 0, 0)
+    smoothedAvoidance.current.set(0, 0, 0)
   }, [motion])
 
   const playAnimation = (name) => {
@@ -580,13 +605,22 @@ export default function Fish({ creature, selected = false, debug = false, school
         const targetDistance = schoolFollowDirection.length()
         if (targetDistance > 0.0001) {
           schoolFollowDirection.normalize()
+          computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
+          smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
+          desiredDirection.current.copy(schoolFollowDirection).add(smoothedAvoidance.current)
+          limitAvoidanceAngle(
+            desiredDirection.current,
+            schoolFollowDirection,
+            school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
+          )
+
           const catchup = THREE.MathUtils.clamp(targetDistance / Math.max(0.001, followDistance), 0.55, 1.65)
-          fish.position.addScaledVector(schoolFollowDirection, Math.min(targetDistance, velocity.current * catchup * delta))
+          fish.position.addScaledVector(desiredDirection.current, Math.min(targetDistance, velocity.current * catchup * delta))
           tangent.subVectors(fish.position, previousPosition.current)
           if (tangent.lengthSq() > 0.000001) {
             tangent.normalize()
           } else {
-            tangent.copy(schoolFollowDirection)
+            tangent.copy(desiredDirection.current)
           }
         }
       }
@@ -595,7 +629,7 @@ export default function Fish({ creature, selected = false, debug = false, school
       fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
     }
 
-    applySoftSeparation(fish, creature, swim, delta, school)
+    updateFishRegistry(fish, creature, swim, school)
 
     if (debug) {
       debugForwardEnd.copy(fish.position).addScaledVector(tangent, 1.2)

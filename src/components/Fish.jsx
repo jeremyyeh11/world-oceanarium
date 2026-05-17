@@ -44,6 +44,7 @@ const SCHOOL_SPACING = 0.46
 const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_LANE_JITTER = 0.06
+const SCHOOL_FOLLOW_RESPONSE = 7.5
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -324,6 +325,9 @@ export default function Fish({ creature, selected = false, debug = false, school
   const isSchooling = Boolean(schoolOffset)
   const pathSeed = useRef((hashString(isSchooling ? school.id : (creature.id ?? creature.species ?? 'fish')) ^ (isSchooling ? 0 : randomSeed())) >>> 0)
   const progress = useRef(0)
+  const followTarget = useRef(new THREE.Vector3())
+  const previousPosition = useRef(new THREE.Vector3())
+  const hasFollowPosition = useRef(false)
   const previousTangent = useRef(new THREE.Vector3())
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
@@ -410,7 +414,27 @@ export default function Fish({ creature, selected = false, debug = false, school
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
     tangent.subVectors(nextPoint, position).normalize()
 
-    fish.position.copy(position)
+    if (isSchooling) {
+      followTarget.current.copy(position)
+
+      if (!hasFollowPosition.current) {
+        fish.position.copy(followTarget.current)
+        previousPosition.current.copy(fish.position)
+        hasFollowPosition.current = true
+      } else {
+        previousPosition.current.copy(fish.position)
+        fish.position.lerp(followTarget.current, 1 - Math.exp(-delta * SCHOOL_FOLLOW_RESPONSE))
+
+        const followedDirection = tangent.subVectors(fish.position, previousPosition.current)
+        if (followedDirection.lengthSq() > 0.000001) {
+          followedDirection.normalize()
+        } else {
+          tangent.subVectors(nextPoint, position).normalize()
+        }
+      }
+    } else {
+      fish.position.copy(position)
+    }
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
 
     const fade = depthFadeFromScreenZ(fish.position.z)

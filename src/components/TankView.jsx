@@ -30,6 +30,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const dragRef = useRef(null)
+  const focusChangeAtRef = useRef(0)
   const zoomActive = Boolean(selectedCreature)
 
   const toggleDebugMode = () => {
@@ -93,12 +94,14 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }, [selectedCreature])
 
   const focusCreature = (creature, fishRef) => {
+    focusChangeAtRef.current = performance.now()
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
     setFollowOrbit({ yaw: 0, pitch: 0 })
   }
 
   const releaseFocus = () => {
+    focusChangeAtRef.current = performance.now()
     setSelectedCreature(null)
     setFocusedFishRef(null)
     setFollowOrbit({ yaw: 0, pitch: 0 })
@@ -114,8 +117,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         startX: event.clientX,
         startY: event.clientY,
         startOrbit: followOrbit,
+        startFocusChangeAt: focusChangeAtRef.current,
       }
-      event.currentTarget.setPointerCapture(event.pointerId)
       return
     }
 
@@ -146,8 +149,14 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const endStageDrag = (event) => {
     if (dragRef.current?.pointerId !== event.pointerId) return
     if (dragRef.current.mode === 'orbit') {
+      const drag = dragRef.current
       setFollowOrbit({ yaw: 0, pitch: 0 })
       dragRef.current = null
+      if (!drag.moved) {
+        window.setTimeout(() => {
+          if (focusChangeAtRef.current === drag.startFocusChangeAt) releaseFocus()
+        }, 0)
+      }
       return
     }
     dragRef.current = null

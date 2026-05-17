@@ -146,10 +146,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const endStageDrag = (event) => {
     if (dragRef.current?.pointerId !== event.pointerId) return
     if (dragRef.current.mode === 'orbit') {
-      const shouldReleaseFocus = !dragRef.current.moved
       setFollowOrbit({ yaw: 0, pitch: 0 })
       dragRef.current = null
-      if (shouldReleaseFocus) releaseFocus()
       return
     }
     dragRef.current = null
@@ -238,7 +236,7 @@ function FocusHint() {
       background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',
       borderRadius: 999, padding: '0.45rem 0.7rem', backdropFilter: 'blur(6px)',
     }}>
-      Following fish
+      Following fish · tap another fish to switch
     </div>
   )
 }

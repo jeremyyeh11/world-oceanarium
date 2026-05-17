@@ -41,6 +41,9 @@ const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
 const SCHOOL_SPACING = 0.58
+const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
+const SCHOOL_VERTICAL_SPREAD = 0.92
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
 const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
@@ -251,15 +254,16 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
 function schoolFormationOffset(school, creature) {
   if (!school) return null
   const rand = mulberry32(hashString(`${school.id}:${creature.id}:formation`))
-  const rank = school.index - (school.count - 1) / 2
-  const row = Math.floor(Math.abs(rank) / 2)
-  const side = rank === 0 ? 0 : Math.sign(rank)
+  const count = Math.max(1, school.count)
+  const indexRadius = Math.sqrt((school.index + 0.5) / count)
+  const schoolRadius = SCHOOL_SPACING * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
+  const angle = school.index * GOLDEN_ANGLE + randomRange(rand, -0.14, 0.14)
 
   return {
-    phase: (school.index / school.count) * SCHOOL_PHASE_WINDOW + randomRange(rand, -0.006, 0.006),
-    lateral: side * (SCHOOL_SPACING + row * 0.18) + randomRange(rand, -0.08, 0.08),
-    vertical: randomRange(rand, -0.18, 0.18),
-    trailing: row * 0.12 + randomRange(rand, -0.05, 0.08),
+    phase: (school.index / count) * SCHOOL_PHASE_WINDOW + randomRange(rand, -0.006, 0.006),
+    lateral: Math.cos(angle) * schoolRadius * indexRadius + randomRange(rand, -0.045, 0.045),
+    vertical: Math.sin(angle) * schoolRadius * indexRadius * SCHOOL_VERTICAL_SPREAD + randomRange(rand, -0.045, 0.045),
+    trailing: indexRadius * 0.28 + randomRange(rand, -0.04, 0.06),
     driftPhase: randomRange(rand, 0, Math.PI * 2),
     driftSpeed: randomRange(rand, 0.75, 1.25),
   }

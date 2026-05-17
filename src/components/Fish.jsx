@@ -43,6 +43,7 @@ const BURST_STRAIGHT_THRESHOLD = 0.004
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
+const SCHOOL_LONGITUDINAL_SPREAD = 0.55
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
 const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
@@ -258,12 +259,15 @@ function schoolFormationOffset(school, creature) {
   const indexRadius = Math.sqrt((school.index + 0.5) / count)
   const schoolRadius = SCHOOL_SPACING * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
   const angle = school.index * GOLDEN_ANGLE + randomRange(rand, -0.14, 0.14)
+  const longitudinal = (
+    Math.sin(school.index * GOLDEN_ANGLE * 0.73) * 0.55 + randomRange(rand, -0.45, 0.45)
+  ) * schoolRadius * SCHOOL_LONGITUDINAL_SPREAD
 
   return {
     phase: (school.index / count) * SCHOOL_PHASE_WINDOW + randomRange(rand, -0.006, 0.006),
     lateral: Math.cos(angle) * schoolRadius * indexRadius + randomRange(rand, -0.045, 0.045),
     vertical: Math.sin(angle) * schoolRadius * indexRadius * SCHOOL_VERTICAL_SPREAD + randomRange(rand, -0.045, 0.045),
-    trailing: indexRadius * 0.28 + randomRange(rand, -0.04, 0.06),
+    longitudinal,
     driftPhase: randomRange(rand, 0, Math.PI * 2),
     driftSpeed: randomRange(rand, 0.75, 1.25),
   }
@@ -281,7 +285,7 @@ function offsetFromSchoolPoint(target, path, t, schoolOffset, now) {
   target
     .addScaledVector(schoolLateral, schoolOffset.lateral + drift)
     .addScaledVector(up, schoolOffset.vertical)
-    .addScaledVector(schoolTargetTangent, -schoolOffset.trailing)
+    .addScaledVector(schoolTargetTangent, schoolOffset.longitudinal)
 
   return target
 }

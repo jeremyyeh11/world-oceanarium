@@ -42,6 +42,7 @@ const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
 const SCHOOL_SPACING = 0.46
 const SCHOOL_DRIFT = 0.08
+const SCHOOL_PHASE_WINDOW = 0.07
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -161,32 +162,36 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
-function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school')) {
+function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
   const [yMin, yMax] = DEPTH_Y[creature.depthZone] ?? DEPTH_Y.epipelagic
   const midY = (yMin + yMax) / 2
   const halfY = (yMax - yMin) / 2
-  const verticalRange = THREE.MathUtils.lerp(0.22, 0.42, swim.erraticness)
-  const loopWidth = SWIM_BOX.x * randomRange(rand, 0.48, 0.68)
-  const loopDepth = SWIM_BOX.z * randomRange(rand, 0.36, 0.58)
-  const centerY = midY + randomRange(rand, -halfY * 0.22, halfY * 0.22)
+  const pointCount = 7
+  const verticalRange = THREE.MathUtils.lerp(0.18, 0.55, swim.erraticness)
   const points = []
 
-  for (let i = 0; i < 9; i += 1) {
-    const angle = (i / 9) * Math.PI * 2
-    const wobble = randomRange(rand, 0.82, 1.18)
+  if (start && exitTangent) {
+    points.push(start.clone())
+    const leadDistance = THREE.MathUtils.lerp(2.4, 6.2, swim.turnRadius) * randomRange(rand, 0.9, 1.15)
+    const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
+    lead.y += randomRange(rand, -halfY * verticalRange * 0.38, halfY * verticalRange * 0.38)
+    lead.z += randomRange(rand, -0.7, 0.7)
+    points.push(clampToSwimBox(lead, yMin, yMax))
+  }
+
+  for (let i = points.length; i < pointCount; i += 1) {
+    const sweep = i / Math.max(1, pointCount - 1)
+    const sideBias = i % 2 === 0 ? -0.42 : 0.42
     points.push(new THREE.Vector3(
-      Math.cos(angle) * loopWidth * wobble + randomRange(rand, -0.45, 0.45),
-      THREE.MathUtils.clamp(
-        centerY + Math.sin(angle * 2.0 + randomRange(rand, -0.4, 0.4)) * halfY * verticalRange,
-        yMin,
-        yMax,
-      ),
-      Math.sin(angle) * loopDepth * randomRange(rand, 0.84, 1.16),
+      THREE.MathUtils.lerp(-SWIM_BOX.x * 0.72, SWIM_BOX.x * 0.72, sweep) + randomRange(rand, -1.2, 1.2) + sideBias,
+      midY + randomRange(rand, -halfY * verticalRange, halfY * verticalRange),
+      randomRange(rand, -SWIM_BOX.z * 0.78, SWIM_BOX.z * 0.78),
     ))
   }
 
-  return new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.58)
+  const tension = THREE.MathUtils.lerp(0.42, 0.7, swim.turnRadius)
+  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
 function schoolFormationOffset(school, creature) {
@@ -197,13 +202,12 @@ function schoolFormationOffset(school, creature) {
   const side = rank === 0 ? 0 : Math.sign(rank)
 
   return {
-    phase: (school.index / school.count) * 0.055 + randomRange(rand, -0.008, 0.008),
+    phase: (school.index / school.count) * SCHOOL_PHASE_WINDOW + randomRange(rand, -0.006, 0.006),
     lateral: side * (SCHOOL_SPACING + row * 0.18) + randomRange(rand, -0.08, 0.08),
     vertical: randomRange(rand, -0.18, 0.18),
     trailing: row * 0.12 + randomRange(rand, -0.05, 0.08),
     driftPhase: randomRange(rand, 0, Math.PI * 2),
     driftSpeed: randomRange(rand, 0.75, 1.25),
-    speedScale: randomRange(rand, 0.94, 1.04),
   }
 }
 
@@ -285,7 +289,7 @@ export default function Fish({ creature, selected = false, debug = false, school
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
   const pathSeed = useRef((hashString(isSchooling ? school.id : (creature.id ?? creature.species ?? 'fish')) ^ (isSchooling ? 0 : randomSeed())) >>> 0)
-  const progress = useRef(schoolOffset?.phase ?? 0)
+  const progress = useRef(0)
   const previousTangent = useRef(new THREE.Vector3())
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
@@ -302,7 +306,7 @@ export default function Fish({ creature, selected = false, debug = false, school
   const pathLengthRef = useRef(path.getLength())
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const motion = useMemo(() => {
-    const rand = mulberry32(hashString(`${creature.id ?? creature.species}-motion`))
+    const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
     const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
     return {
       idleSpeed: randomRangeFromPair(rand, swim.idleBLPerSec, DEFAULT_SWIM.idleBLPerSec) * velocityScale,
@@ -349,25 +353,24 @@ export default function Fish({ creature, selected = false, debug = false, school
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    progress.current += delta * velocity.current * (schoolOffset?.speedScale ?? 1) / pathLength
+    progress.current += delta * velocity.current / pathLength
 
-    if (progress.current >= 1) {
-      if (isSchooling) {
-        progress.current %= 1
-      } else {
-        const endPoint = activePath.getPointAt(1)
-        const endTangent = activePath.getTangentAt(1).normalize()
+    const shouldAdvanceSchoolPath = isSchooling && progress.current >= 1 - SCHOOL_PHASE_WINDOW
+    if (progress.current >= 1 || shouldAdvanceSchoolPath) {
+      const endPoint = activePath.getPointAt(1)
+      const endTangent = activePath.getTangentAt(1).normalize()
 
-        pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
-        const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
-        pathRef.current = nextPath
-        pathLengthRef.current = nextPath.getLength()
-        setPath(nextPath)
-        progress.current = 0
-      }
+      pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
+      const nextPath = isSchooling
+        ? makeSchoolPath(creature, swim, pathSeed.current, endPoint, endTangent)
+        : makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
+      pathRef.current = nextPath
+      pathLengthRef.current = nextPath.getLength()
+      setPath(nextPath)
+      progress.current = 0
     }
 
-    const t = THREE.MathUtils.clamp(progress.current, 0, 1)
+    const t = THREE.MathUtils.clamp(progress.current + (schoolOffset?.phase ?? 0), 0, 1)
     const currentPath = pathRef.current
     const position = currentPath.getPointAt(t)
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)

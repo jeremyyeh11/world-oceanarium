@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { CREATURES, SPECIES } from '../data/species'
+import { useEffect, useState } from 'react'
+import { SPECIES } from '../data/species'
 
 const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
@@ -68,24 +68,24 @@ function resolveCreaturesUrl() {
   return `${SUPABASE_URL}/rest/v1/creatures?select=*&alive=eq.true`
 }
 
-const LOCAL_CREATURES = CREATURES
-  .filter(creature => creature.alive !== false && ACTIVE_SPECIES.has(creature.species))
-  .map(withDefaultSize)
+const EMPTY_CREATURE_STATE = {
+  creatures: [],
+  source: 'supabase-empty',
+  error: null,
+}
 
 export function useCreatures() {
-  const fallback = useMemo(() => ({
-    creatures: LOCAL_CREATURES,
-    source: 'local',
-    error: null,
-  }), [])
-
-  const [state, setState] = useState(fallback)
+  const [state, setState] = useState(EMPTY_CREATURE_STATE)
 
   useEffect(() => {
     const creaturesUrl = resolveCreaturesUrl()
 
     if (!creaturesUrl || !SUPABASE_ANON_KEY) {
-      setState(fallback)
+      setState({
+        creatures: [],
+        source: 'supabase-not-configured',
+        error: 'Supabase creature env vars are not configured.',
+      })
       return undefined
     }
 
@@ -109,15 +109,15 @@ export function useCreatures() {
         const creatures = creaturesFromRows(Array.isArray(rows) ? rows : [])
 
         setState({
-          creatures: creatures.length > 0 ? creatures : LOCAL_CREATURES,
-          source: creatures.length > 0 ? 'supabase' : 'local-fallback-empty-supabase',
-          error: creatures.length > 0 ? null : 'Supabase returned zero active known creatures; showing local fallback.',
+          creatures,
+          source: 'supabase',
+          error: null,
         })
       } catch (error) {
         if (controller.signal.aborted) return
         setState({
-          creatures: LOCAL_CREATURES,
-          source: 'local-fallback-supabase-error',
+          creatures: [],
+          source: 'supabase-error',
           error: error instanceof Error ? error.message : 'Supabase creatures fetch failed.',
         })
       }
@@ -125,7 +125,7 @@ export function useCreatures() {
 
     loadCreatures()
     return () => controller.abort()
-  }, [fallback])
+  }, [])
 
   return state
 }

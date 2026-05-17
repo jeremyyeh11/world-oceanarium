@@ -1,5 +1,5 @@
 import { useThree, useFrame } from '@react-three/fiber'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
 export const CAMERA_LIMITS = {
@@ -10,6 +10,7 @@ export const CAMERA_LIMITS = {
 const DEFAULT_CAMERA_Z = 12
 const FOLLOW_DISTANCE = 3.2
 const FOLLOW_HEIGHT = 0.85
+const FOLLOW_TARGET_LERP = 0.075
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const followForward = new THREE.Vector3(0, 0, -1)
@@ -20,6 +21,8 @@ const pitchQuaternion = new THREE.Quaternion()
 
 export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 } }) {
   const { camera } = useThree()
+  const smoothedFocus = useRef(new THREE.Vector3())
+  const hasSmoothedFocus = useRef(false)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
 
   useEffect(() => {
@@ -32,6 +35,13 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       const clampedY = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
       focusPosition.y = clampedY
 
+      if (!hasSmoothedFocus.current) {
+        smoothedFocus.current.copy(focusPosition)
+        hasSmoothedFocus.current = true
+      } else {
+        smoothedFocus.current.lerp(focusPosition, FOLLOW_TARGET_LERP)
+      }
+
       followOffset.set(0, FOLLOW_HEIGHT, FOLLOW_DISTANCE)
 
       yawQuaternion.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, followOrbit.yaw)
@@ -41,16 +51,17 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       pitchQuaternion.setFromAxisAngle(followRight, followOrbit.pitch)
       followOffset.applyQuaternion(pitchQuaternion)
 
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, focusPosition.x + followOffset.x, 0.12)
-      camera.position.y = THREE.MathUtils.lerp(camera.position.y, focusPosition.y + followOffset.y, 0.12)
-      camera.position.z = THREE.MathUtils.lerp(camera.position.z, focusPosition.z + followOffset.z, 0.12)
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, smoothedFocus.current.x + followOffset.x, 0.12)
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, smoothedFocus.current.y + followOffset.y, 0.12)
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, smoothedFocus.current.z + followOffset.z, 0.12)
 
-      lookTarget.copy(focusPosition)
+      lookTarget.copy(smoothedFocus.current)
       lookTarget.addScaledVector(followForward, 0.7)
       camera.lookAt(lookTarget)
       return
     }
 
+    hasSmoothedFocus.current = false
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.08)
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0, 0.06)
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, DEFAULT_CAMERA_Z, 0.07)

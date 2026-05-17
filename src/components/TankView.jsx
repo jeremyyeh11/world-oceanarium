@@ -188,7 +188,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         onPointerUp={endStageDrag}
         onPointerCancel={endStageDrag}
       >
-        <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={releaseFocus}>
+        <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <SceneLighting biome={biome.id} />
           <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} followOrbit={followOrbit} />
           <Biome

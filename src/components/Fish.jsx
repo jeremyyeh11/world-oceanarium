@@ -593,6 +593,8 @@ export default function Fish({ creature, selected = false, debug = false, school
 
   const handleSelect = (event) => {
     event.stopPropagation()
+    event.nativeEvent?.stopImmediatePropagation?.()
+    event.nativeEvent?.preventDefault?.()
     if (event.delta > 8) return
     onClick(creature, ref)
   }

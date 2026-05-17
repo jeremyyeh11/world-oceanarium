@@ -110,6 +110,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }, [selectedCreature, panLimits.enabled])
 
   const focusCreature = (creature, fishRef) => {
+    dragRef.current = null
     focusChangeAtRef.current = performance.now()
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
@@ -128,7 +129,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
     if (selectedCreature) {
       dragRef.current = {
-        mode: 'orbit',
+        mode: 'orbit-pending',
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
@@ -147,10 +148,13 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     const drag = dragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
 
-    if (drag.mode === 'orbit') {
+    if (drag.mode === 'orbit' || drag.mode === 'orbit-pending') {
       const deltaX = event.clientX - drag.startX
       const deltaY = event.clientY - drag.startY
-      drag.moved = drag.moved || Math.hypot(deltaX, deltaY) > 5
+      const moved = Math.hypot(deltaX, deltaY) > 5
+      if (!moved && drag.mode === 'orbit-pending') return
+      drag.mode = 'orbit'
+      drag.moved = true
       setFollowOrbit({
         yaw: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED)),
         pitch: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED)),
@@ -164,15 +168,16 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
   const endStageDrag = (event) => {
     if (dragRef.current?.pointerId !== event.pointerId) return
-    if (dragRef.current.mode === 'orbit') {
+    if (dragRef.current.mode === 'orbit' || dragRef.current.mode === 'orbit-pending') {
       const drag = dragRef.current
-      setFollowOrbit({ yaw: 0, pitch: 0 })
       dragRef.current = null
-      if (!drag.moved) {
-        window.setTimeout(() => {
-          if (focusChangeAtRef.current === drag.startFocusChangeAt) releaseFocus()
-        }, 0)
+      if (drag.mode === 'orbit') {
+        setFollowOrbit({ yaw: 0, pitch: 0 })
+        return
       }
+      window.setTimeout(() => {
+        if (focusChangeAtRef.current === drag.startFocusChangeAt) releaseFocus()
+      }, 0)
       return
     }
     dragRef.current = null

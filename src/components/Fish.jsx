@@ -57,6 +57,25 @@ const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
+const SCHOOL_STATES = new Map()
+
+function getSchoolState(school, creature, swim) {
+  const key = school.id
+  let state = SCHOOL_STATES.get(key)
+  if (!state) {
+    const seed = hashString(key)
+    const path = makeSchoolPath(creature, swim, seed)
+    state = {
+      seed,
+      path,
+      pathLength: path.getLength(),
+      progress: 0,
+      version: 0,
+    }
+    SCHOOL_STATES.set(key, state)
+  }
+  return state
+}
 
 function hashString(value) {
   let hash = 2166136261
@@ -331,7 +350,9 @@ export default function Fish({ creature, selected = false, debug = false, school
   const model = useMemo(() => resolveModel(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
-  const pathSeed = useRef((hashString(isSchooling ? school.id : (creature.id ?? creature.species ?? 'fish')) ^ (isSchooling ? 0 : randomSeed())) >>> 0)
+  const isSchoolLeader = isSchooling && school.index === 0
+  const schoolState = useMemo(() => (isSchooling ? getSchoolState(school, creature, swim) : null), [isSchooling, school, creature, swim])
+  const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
   const progress = useRef(0)
   const followTarget = useRef(new THREE.Vector3())
   const previousPosition = useRef(new THREE.Vector3())
@@ -345,11 +366,9 @@ export default function Fish({ creature, selected = false, debug = false, school
   const nextBurstAt = useRef(0)
   const animationRef = useRef('idle')
   const [animation, setAnimation] = useState('idle')
-  const [path, setPath] = useState(() => (isSchooling
-    ? makeSchoolPath(creature, swim, pathSeed.current)
-    : makeSwimPath(creature, swim, pathSeed.current)))
-  const pathRef = useRef(path)
-  const pathLengthRef = useRef(path.getLength())
+  const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
+  const pathRef = useRef(schoolState?.path ?? path)
+  const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const followDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
@@ -386,8 +405,8 @@ export default function Fish({ creature, selected = false, debug = false, school
     if (!fish) return
 
     const now = clock.getElapsedTime()
-    const activePath = pathRef.current
-    const pathLength = Math.max(0.001, pathLengthRef.current)
+    const activePath = schoolState?.path ?? pathRef.current
+    const pathLength = Math.max(0.001, schoolState?.pathLength ?? pathLengthRef.current)
     const idleVelocity = Math.max(
       0.08,
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
@@ -401,24 +420,45 @@ export default function Fish({ creature, selected = false, debug = false, school
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    progress.current += delta * velocity.current / pathLength
+    if (isSchooling) {
+      if (isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
+    } else {
+      progress.current += delta * velocity.current / pathLength
+    }
 
-    const shouldAdvanceSchoolPath = isSchooling && progress.current >= 1 - SCHOOL_PHASE_WINDOW
-    if (progress.current >= 1 || shouldAdvanceSchoolPath) {
+    const pathProgress = isSchooling ? schoolState.progress : progress.current
+    const shouldAdvanceSchoolPath = isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
+    if ((!isSchooling && progress.current >= 1) || shouldAdvanceSchoolPath) {
       const endPoint = activePath.getPointAt(1)
       const endTangent = activePath.getTangentAt(1).normalize()
 
-      pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
-      const nextPath = isSchooling
-        ? makeSchoolPath(creature, swim, pathSeed.current, endPoint, endTangent)
-        : makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
-      pathRef.current = nextPath
-      pathLengthRef.current = nextPath.getLength()
-      setPath(nextPath)
-      progress.current = 0
+      if (isSchooling) {
+        schoolState.seed = Math.imul(schoolState.seed ^ 0x9E3779B9, 1664525) >>> 0
+        const nextPath = makeSchoolPath(creature, swim, schoolState.seed, endPoint, endTangent)
+        schoolState.path = nextPath
+        schoolState.pathLength = nextPath.getLength()
+        schoolState.progress = 0
+        schoolState.version += 1
+        pathRef.current = nextPath
+        pathLengthRef.current = schoolState.pathLength
+        setPath(nextPath)
+      } else {
+        pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
+        const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
+        pathRef.current = nextPath
+        pathLengthRef.current = nextPath.getLength()
+        setPath(nextPath)
+        progress.current = 0
+      }
     }
 
-    const t = THREE.MathUtils.clamp(progress.current + (schoolOffset?.phase ?? 0), 0, 1)
+    if (isSchooling && schoolState.path !== pathRef.current) {
+      pathRef.current = schoolState.path
+      pathLengthRef.current = schoolState.pathLength
+      setPath(schoolState.path)
+    }
+
+    const t = THREE.MathUtils.clamp((isSchooling ? schoolState.progress : progress.current) + (schoolOffset?.phase ?? 0), 0, 1)
     const currentPath = pathRef.current
     const position = isSchooling
       ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now)
@@ -555,9 +595,11 @@ export default function Fish({ creature, selected = false, debug = false, school
     <group>
       {debug && (
         <>
-          <line geometry={splineGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
-          </line>
+          {(!isSchooling || isSchoolLeader) && (
+            <line geometry={splineGeometry} raycast={() => null}>
+              <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
+            </line>
+          )}
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthWrite={false} />
           </line>

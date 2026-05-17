@@ -11,7 +11,7 @@ button { font: inherit; }
   position: fixed;
   right: 1rem;
   bottom: 0.85rem;
-  z-index: 50;
+  z-index: 1000;
   border: 0;
   background: transparent;
   color: rgba(220, 245, 255, 0.26);

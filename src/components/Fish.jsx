@@ -45,6 +45,7 @@ const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_LANE_JITTER = 0.06
 const SCHOOL_FOLLOW_RESPONSE = 7.5
+const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -438,10 +439,15 @@ export default function Fish({ creature, selected = false, debug = false, school
     tangent.subVectors(nextPoint, position).normalize()
 
     if (isSchooling) {
-      followTarget.current.copy(position)
+      const followTargetT = THREE.MathUtils.clamp(
+        t + (swim.bodyLengthWU * SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS) / pathLength,
+        0,
+        1,
+      )
+      currentPath.getPointAt(followTargetT, followTarget.current)
 
       if (!hasFollowPosition.current) {
-        fish.position.copy(followTarget.current)
+        fish.position.copy(position)
         previousPosition.current.copy(fish.position)
         hasFollowPosition.current = true
       } else {

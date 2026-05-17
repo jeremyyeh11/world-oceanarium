@@ -11,6 +11,7 @@ const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
 const DEBUG_AUTH_STORAGE_KEY = 'world-oceanarium-debug-auth-until'
 const DEBUG_AUTH_DURATION_MS = 5 * 60 * 1000
+const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 
 function getPanLimits() {
   const viewportWidth = window.innerWidth
@@ -73,6 +74,11 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
     window.addEventListener('keydown', toggleDebugOnShortcut)
     return () => window.removeEventListener('keydown', toggleDebugOnShortcut)
+  }, [debugMode])
+
+  useEffect(() => {
+    window.addEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
+    return () => window.removeEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
   }, [debugMode])
 
   useEffect(() => {

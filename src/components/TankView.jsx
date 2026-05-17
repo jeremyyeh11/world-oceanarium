@@ -93,6 +93,22 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [selectedCreature])
 
+  useEffect(() => {
+    if (!selectedCreature || !panLimits.enabled) return undefined
+
+    let frameId = 0
+    const centerStage = () => {
+      setStagePan(current => {
+        if (Math.abs(current) < 0.5) return 0
+        return current + (0 - current) * 0.12
+      })
+      frameId = window.requestAnimationFrame(centerStage)
+    }
+
+    frameId = window.requestAnimationFrame(centerStage)
+    return () => window.cancelAnimationFrame(frameId)
+  }, [selectedCreature, panLimits.enabled])
+
   const focusCreature = (creature, fishRef) => {
     focusChangeAtRef.current = performance.now()
     setSelectedCreature(creature)

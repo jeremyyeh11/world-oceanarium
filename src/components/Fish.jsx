@@ -591,6 +591,12 @@ export default function Fish({ creature, selected = false, debug = false, school
   const size = creature.size ?? 1
   const focusScale = selected ? 1.08 : 1
 
+  const handleSelect = (event) => {
+    event.stopPropagation()
+    if (event.delta > 8) return
+    onClick(creature, ref)
+  }
+
   return (
     <group>
       {debug && (
@@ -619,7 +625,8 @@ export default function Fish({ creature, selected = false, debug = false, school
       <group
         ref={ref}
         scale={[size * focusScale, size * focusScale, size * focusScale]}
-        onClick={(e) => { e.stopPropagation(); onClick(creature, ref) }}
+        onPointerUp={handleSelect}
+        onClick={handleSelect}
       >
         <group ref={modelRootRef}>
           {model ? (

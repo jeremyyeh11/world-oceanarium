@@ -387,7 +387,14 @@ export default function Fish({ creature, selected = false, debug = false, school
       bobAmount: randomRange(rand, 0.035, 0.11) * THREE.MathUtils.lerp(0.45, 1.35, swim.erraticness),
       metersPerWU: WORLD_UNIT_METERS,
     }
-  }, [creature, swim])
+  }, [creature, swim, isSchooling, school?.id])
+
+  useEffect(() => {
+    if (!isSchoolLeader || !school?.id) return undefined
+    return () => {
+      if (SCHOOL_STATES.get(school.id) === schoolState) SCHOOL_STATES.delete(school.id)
+    }
+  }, [isSchoolLeader, school?.id, schoolState])
 
   useEffect(() => {
     velocity.current = motion.idleSpeed

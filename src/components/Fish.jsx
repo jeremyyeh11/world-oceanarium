@@ -52,6 +52,7 @@ const up = new THREE.Vector3(0, 1, 0)
 const nextPoint = new THREE.Vector3()
 const laneControlTangent = new THREE.Vector3()
 const laneControlLateral = new THREE.Vector3()
+const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
@@ -250,6 +251,23 @@ function makePathGeometry(path) {
   return new THREE.BufferGeometry().setFromPoints(path.getPoints(120))
 }
 
+function makeDebugLineGeometry() {
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0], 3))
+  return geometry
+}
+
+function updateDebugLine(lineRef, start, end) {
+  const geometry = lineRef.current?.geometry
+  const positions = geometry?.attributes?.position
+  if (!positions) return
+
+  positions.setXYZ(0, start.x, start.y, start.z)
+  positions.setXYZ(1, end.x, end.y, end.z)
+  positions.needsUpdate = true
+  geometry.computeBoundingSphere()
+}
+
 function depthFadeFromScreenZ(z) {
   const normalized = THREE.MathUtils.clamp((z + SWIM_BOX.z) / (SWIM_BOX.z * 2), 0, 1)
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
@@ -319,6 +337,9 @@ function FishModel({ model, animation = 'idle' }) {
 export default function Fish({ creature, selected = false, debug = false, school = null, onClick }) {
   const ref = useRef()
   const modelRootRef = useRef()
+  const forwardLineRef = useRef()
+  const followLineRef = useRef()
+  const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
@@ -343,6 +364,8 @@ export default function Fish({ creature, selected = false, debug = false, school
   const pathRef = useRef(path)
   const pathLengthRef = useRef(path.getLength())
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
+  const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const followDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
     const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
@@ -437,6 +460,13 @@ export default function Fish({ creature, selected = false, debug = false, school
     }
     fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
 
+    if (debug) {
+      debugForwardEnd.copy(fish.position).addScaledVector(tangent, 1.2)
+      updateDebugLine(forwardLineRef, fish.position, debugForwardEnd)
+      updateDebugLine(followLineRef, fish.position, followTarget.current)
+      if (followTargetMarkerRef.current) followTargetMarkerRef.current.position.copy(followTarget.current)
+    }
+
     const fade = depthFadeFromScreenZ(fish.position.z)
     fish.traverse(child => {
       if (!child.isMesh) return
@@ -528,9 +558,25 @@ export default function Fish({ creature, selected = false, debug = false, school
   return (
     <group>
       {debug && (
-        <line geometry={splineGeometry} raycast={() => null}>
-          <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
-        </line>
+        <>
+          <line geometry={splineGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
+          </line>
+          <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthWrite={false} />
+          </line>
+          {isSchooling && (
+            <>
+              <line ref={followLineRef} geometry={followDebugGeometry} raycast={() => null}>
+                <lineBasicMaterial color="#ffd166" transparent opacity={0.85} depthWrite={false} />
+              </line>
+              <mesh ref={followTargetMarkerRef} raycast={() => null}>
+                <sphereGeometry args={[0.08, 8, 8]} />
+                <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />
+              </mesh>
+            </>
+          )}
+        </>
       )}
       <group
         ref={ref}

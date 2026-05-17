@@ -8,27 +8,38 @@ import { APP_VERSION_LABEL } from './version'
 
 const DEFAULT_BIOME_ID = 'ocean'
 const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
-const DEBUG_LONG_PRESS_MS = 900
+const DEBUG_TAP_WINDOW_MS = 1200
+const DEBUG_REQUIRED_TAPS = 3
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 
 export default function App() {
   const [screen, setScreen] = useState('landing')
   const [activeBiome, setActiveBiome] = useState(DEFAULT_BIOME_ID)
-  const debugPressTimer = useRef(null)
+  const debugTapCount = useRef(0)
+  const debugTapTimer = useRef(null)
   const creatureData = useCreatures()
 
-  const clearDebugPressTimer = () => {
-    if (!debugPressTimer.current) return
-    window.clearTimeout(debugPressTimer.current)
-    debugPressTimer.current = null
+  const resetDebugTaps = () => {
+    debugTapCount.current = 0
+    if (!debugTapTimer.current) return
+    window.clearTimeout(debugTapTimer.current)
+    debugTapTimer.current = null
   }
 
-  const startDebugLongPress = () => {
-    clearDebugPressTimer()
-    debugPressTimer.current = window.setTimeout(() => {
-      debugPressTimer.current = null
+  const handleDebugTap = () => {
+    if (debugTapTimer.current) {
+      window.clearTimeout(debugTapTimer.current)
+    }
+
+    debugTapCount.current += 1
+
+    if (debugTapCount.current >= DEBUG_REQUIRED_TAPS) {
+      resetDebugTaps()
       window.dispatchEvent(new CustomEvent(DEBUG_TOGGLE_EVENT))
-    }, DEBUG_LONG_PRESS_MS)
+      return
+    }
+
+    debugTapTimer.current = window.setTimeout(resetDebugTaps, DEBUG_TAP_WINDOW_MS)
   }
 
   const enterSite = () => {
@@ -62,11 +73,8 @@ export default function App() {
       <button
         className="app-version-footnote"
         type="button"
-        aria-label="Hold to toggle debug mode"
-        onPointerDown={startDebugLongPress}
-        onPointerUp={clearDebugPressTimer}
-        onPointerCancel={clearDebugPressTimer}
-        onPointerLeave={clearDebugPressTimer}
+        aria-label="Tap three times to toggle debug mode"
+        onPointerUp={handleDebugTap}
         onContextMenu={(event) => event.preventDefault()}
       >
         {APP_VERSION_LABEL}

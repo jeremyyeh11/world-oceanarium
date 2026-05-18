@@ -131,8 +131,8 @@ function formatBornAt(value) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-function fallbackIndividualDescription(creature) {
-  return `this ${String(creature.species ?? 'creature').toLowerCase()} poops a lot`
+function fallbackIndividualDescription() {
+  return 'this one poops a lot'
 }
 
 function Stat({ label, value }) {

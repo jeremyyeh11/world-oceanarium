@@ -499,7 +499,6 @@ export default function Fish({ creature, selected = false, debug = false, school
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
-  const followLineRef = useRef()
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
@@ -529,7 +528,6 @@ export default function Fish({ creature, selected = false, debug = false, school
   const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
   const splineGeometry = useMemo(() => makePathGeometry(path), [path])
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
-  const followDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
     const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
@@ -679,9 +677,8 @@ export default function Fish({ creature, selected = false, debug = false, school
     updateFishRegistry(fish, creature, swim, school)
 
     if (debug) {
-      debugForwardEnd.copy(fish.position).addScaledVector(tangent, 1.2)
+      debugForwardEnd.copy(fish.position).addScaledVector(tangent, 0.72)
       updateDebugLine(forwardLineRef, fish.position, debugForwardEnd)
-      updateDebugLine(followLineRef, fish.position, followTarget.current)
       if (followTargetMarkerRef.current) followTargetMarkerRef.current.position.copy(followTarget.current)
     }
 
@@ -794,9 +791,6 @@ export default function Fish({ creature, selected = false, debug = false, school
           )}
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthWrite={false} />
-          </line>
-          <line ref={followLineRef} geometry={followDebugGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#ffd166" transparent opacity={0.85} depthWrite={false} />
           </line>
           <mesh ref={followTargetMarkerRef} scale={debugTargetScale} raycast={() => null}>
             <sphereGeometry args={[0.09, 8, 8]} />

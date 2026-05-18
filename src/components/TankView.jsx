@@ -351,7 +351,8 @@ function FocusHint() {
       width: 'min(82vw, 25rem)', textAlign: 'center',
     }}>
       <span className="focus-hint-title">Following fish</span>
-      <span className="focus-hint-controls">scroll/pinch to zoom · drag to orbit</span>
+      <span className="focus-hint-controls focus-hint-controls-desktop">scroll to zoom · drag to orbit</span>
+      <span className="focus-hint-controls focus-hint-controls-mobile">pinch to zoom · drag to orbit</span>
     </div>
   )
 }

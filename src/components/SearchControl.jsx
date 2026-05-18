@@ -74,6 +74,17 @@ export default function SearchControl({ creatures = [], active = false }) {
     resetSearch()
   }
 
+  const handleButtonClick = (event) => {
+    const isMobile = window.matchMedia?.('(max-width: 640px)').matches
+    if (expanded && isMobile) {
+      event.preventDefault()
+      resetSearch()
+      return
+    }
+
+    submitSearch(event)
+  }
+
   const handleInputFocus = () => {
     if (!failed) return
     setFailed(false)
@@ -113,13 +124,17 @@ export default function SearchControl({ creatures = [], active = false }) {
       />
       <button
         className="fish-search-button"
-        type="submit"
+        type="button"
         disabled={!active}
-        aria-label={expanded ? 'Search fish' : 'Open fish search'}
+        aria-label={expanded ? 'Close fish search' : 'Open fish search'}
         aria-expanded={expanded}
+        onClick={handleButtonClick}
       >
-        <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+        <svg className="top-control-icon fish-search-icon" aria-hidden="true" viewBox="0 0 24 24">
           <path d="M10.8 17.1a6.3 6.3 0 1 1 0-12.6 6.3 6.3 0 0 1 0 12.6Zm4.8-1.5 4 4" />
+        </svg>
+        <svg className="top-control-icon fish-search-close-icon" aria-hidden="true" viewBox="0 0 24 24">
+          <path d="m6 6 12 12M18 6 6 18" />
         </svg>
       </button>
     </form>

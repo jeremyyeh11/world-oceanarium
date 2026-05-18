@@ -9,8 +9,6 @@ import InfoCard from './InfoCard'
 
 const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
-const DEBUG_AUTH_STORAGE_KEY = 'world-oceanarium-debug-auth-until'
-const DEBUG_AUTH_DURATION_MS = 5 * 60 * 1000
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 
 function getPanLimits() {
@@ -34,22 +32,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const zoomActive = Boolean(selectedCreature)
 
   const toggleDebugMode = () => {
-    if (debugMode) {
-      setDebugMode(false)
-      return
-    }
-
-    const authUntil = Number(window.localStorage.getItem(DEBUG_AUTH_STORAGE_KEY) ?? 0)
-    if (authUntil > Date.now()) {
-      setDebugMode(true)
-      return
-    }
-
-    const passcode = window.prompt('Enter debug passcode')
-    if (passcode === '5373') {
-      window.localStorage.setItem(DEBUG_AUTH_STORAGE_KEY, String(Date.now() + DEBUG_AUTH_DURATION_MS))
-      setDebugMode(true)
-    }
+    setDebugMode(current => !current)
   }
 
   useEffect(() => {

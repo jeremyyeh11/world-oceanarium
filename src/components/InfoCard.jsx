@@ -155,13 +155,13 @@ function estimateMassKg(lengthMeters, species) {
 
 function formatLength(lengthMeters) {
   if (!Number.isFinite(lengthMeters) || lengthMeters <= 0) return 'Unknown'
-  if (lengthMeters < 1) return `${Math.round(lengthMeters * 100)} cm`
+  if (lengthMeters < 1) return `${(lengthMeters * 100).toFixed(1)} cm`
   return `${lengthMeters.toFixed(lengthMeters < 10 ? 1 : 0)} m`
 }
 
 function formatMass(massKg) {
   if (!Number.isFinite(massKg) || massKg <= 0) return 'Unknown'
-  if (massKg < 1) return `${Math.round(massKg * 1000)} g`
+  if (massKg < 1) return `${(massKg * 1000).toFixed(1)} g`
   return `${massKg.toFixed(massKg < 10 ? 1 : 0)} kg`
 }
 

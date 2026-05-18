@@ -64,6 +64,7 @@ function normalizeCreature(row) {
     parentIds: row.parentIds ?? row.parent_ids ?? null,
     generation: row.generation ?? 0,
     traits: row.traits ?? {},
+    description: row.description ?? row.individual_description ?? row.traits?.description ?? row.traits?.individualDescription,
     color: row.color,
     size: row.size,
   })

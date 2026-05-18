@@ -28,6 +28,7 @@ export const SPECIES = [
     schooling: true,
     aggressive: false,
     predator: false,
+    description: 'A small, silver schooling fish that survives by moving as one shimmering cloud in the sunlit ocean.',
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Common adult sardine ≈20 cm = 0.8 WU.
       bodyLengthWU: 0.8,
@@ -55,6 +56,7 @@ export const SPECIES = [
     schooling: false,
     aggressive: false,
     predator: true,
+    description: 'A generic large solo predator placeholder for testing scale, presence, and future apex species behavior.',
     swim: {
       // Generic large non-schooling predator placeholder for future specific species.
       bodyLengthWU: 2.0,

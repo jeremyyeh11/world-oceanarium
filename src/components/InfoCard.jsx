@@ -195,7 +195,7 @@ export default function InfoCard({ creature, onClose }) {
   const massKg = estimateMassKg(lengthMeters, species)
 
   return (
-    <section style={styles.wrap} aria-label={`${creature.species} details`}>
+    <section className="info-card" style={styles.wrap} aria-label={`${creature.species} details`}>
       <div style={styles.header}>
         <div>
           <p style={styles.eyebrow}>ID: {creature.id}</p>

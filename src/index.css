@@ -132,6 +132,77 @@ button { font: inherit; }
   display: block;
 }
 
+@media (max-width: 640px) and (orientation: portrait) {
+  .tank-viewport.is-following-fish .tank-stage {
+    top: 30dvh;
+    width: max(100vw, calc(60dvh * 16 / 9));
+    transform: translate(calc(-50% + var(--stage-pan-x, 0px)), -50%);
+  }
+
+  .tank-viewport.is-following-fish .tank-top-exposure {
+    bottom: 40dvh;
+  }
+
+  .tank-viewport.is-following-fish .info-card {
+    left: max(0.55rem, env(safe-area-inset-left)) !important;
+    right: max(0.55rem, env(safe-area-inset-right)) !important;
+    bottom: max(0.45rem, env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-height: 40dvh !important;
+    padding: 0.72rem !important;
+    border-radius: 18px !important;
+    overflow-y: auto !important;
+    z-index: 70 !important;
+    overscroll-behavior: contain !important;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card h2 {
+    font-size: 1.18rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card p {
+    font-size: 0.72rem !important;
+    line-height: 1.32 !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card button {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card > div:nth-of-type(2) {
+    gap: 0.3rem !important;
+    margin-top: 0.55rem !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card > div:nth-of-type(2) span {
+    padding: 0.22rem 0.45rem !important;
+    font-size: 0.58rem !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card > div:nth-of-type(3) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.36rem !important;
+    margin-top: 0.58rem !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card > div:nth-of-type(3) > div {
+    padding: 0.46rem 0.48rem !important;
+    border-radius: 12px !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card > p {
+    margin-top: 0.52rem !important;
+  }
+
+  body:has(.tank-viewport.is-following-fish) .app-version-footnote {
+    bottom: calc(40dvh + 0.7rem);
+  }
+}
+
 .tank-top-exposure {
   position: absolute;
   inset: 0;

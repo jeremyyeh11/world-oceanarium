@@ -598,43 +598,43 @@ export default function Fish({ creature, selected = false, debug = false, school
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
     tangent.subVectors(nextPoint, currentPath.getPointAt(t)).normalize()
 
+    const followDistance = swim.bodyLengthWU * (creature.size ?? 1) * SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS
+    const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
-      const followDistance = swim.bodyLengthWU * (creature.size ?? 1) * SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS
-      const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
       offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now)
+    } else {
+      currentPath.getPointAt(followTargetT, followTarget.current)
+      followTarget.current.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
+    }
 
-      if (!hasFollowPosition.current) {
-        fish.position.copy(position)
-        previousPosition.current.copy(fish.position)
-        hasFollowPosition.current = true
-      } else {
-        previousPosition.current.copy(fish.position)
-        schoolFollowDirection.subVectors(followTarget.current, fish.position)
-        const targetDistance = schoolFollowDirection.length()
-        if (targetDistance > 0.0001) {
-          schoolFollowDirection.normalize()
-          computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
-          smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
-          desiredDirection.current.copy(schoolFollowDirection).add(smoothedAvoidance.current)
-          limitAvoidanceAngle(
-            desiredDirection.current,
-            schoolFollowDirection,
-            school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
-          )
+    if (!hasFollowPosition.current) {
+      fish.position.copy(position)
+      previousPosition.current.copy(fish.position)
+      hasFollowPosition.current = true
+    } else {
+      previousPosition.current.copy(fish.position)
+      schoolFollowDirection.subVectors(followTarget.current, fish.position)
+      const targetDistance = schoolFollowDirection.length()
+      if (targetDistance > 0.0001) {
+        schoolFollowDirection.normalize()
+        computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
+        smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
+        desiredDirection.current.copy(schoolFollowDirection).add(smoothedAvoidance.current)
+        limitAvoidanceAngle(
+          desiredDirection.current,
+          schoolFollowDirection,
+          school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
+        )
 
-          const catchup = THREE.MathUtils.clamp(targetDistance / Math.max(0.001, followDistance), 0.55, 1.65)
-          fish.position.addScaledVector(desiredDirection.current, Math.min(targetDistance, velocity.current * catchup * delta))
-          tangent.subVectors(fish.position, previousPosition.current)
-          if (tangent.lengthSq() > 0.000001) {
-            tangent.normalize()
-          } else {
-            tangent.copy(desiredDirection.current)
-          }
+        const catchup = THREE.MathUtils.clamp(targetDistance / Math.max(0.001, followDistance), 0.55, 1.65)
+        fish.position.addScaledVector(desiredDirection.current, Math.min(targetDistance, velocity.current * catchup * delta))
+        tangent.subVectors(fish.position, previousPosition.current)
+        if (tangent.lengthSq() > 0.000001) {
+          tangent.normalize()
+        } else {
+          tangent.copy(desiredDirection.current)
         }
       }
-    } else {
-      fish.position.copy(position)
-      fish.position.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
     }
 
     updateFishRegistry(fish, creature, swim, school)
@@ -658,8 +658,8 @@ export default function Fish({ creature, selected = false, debug = false, school
           return
         }
 
-        material.transparent = true
-        material.opacity = fade
+        material.transparent = false
+        material.opacity = 1
         if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)
       })
     })
@@ -754,17 +754,13 @@ export default function Fish({ creature, selected = false, debug = false, school
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthWrite={false} />
           </line>
-          {isSchooling && (
-            <>
-              <line ref={followLineRef} geometry={followDebugGeometry} raycast={() => null}>
-                <lineBasicMaterial color="#ffd166" transparent opacity={0.85} depthWrite={false} />
-              </line>
-              <mesh ref={followTargetMarkerRef} raycast={() => null}>
-                <sphereGeometry args={[0.08, 8, 8]} />
-                <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />
-              </mesh>
-            </>
-          )}
+          <line ref={followLineRef} geometry={followDebugGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ffd166" transparent opacity={0.85} depthWrite={false} />
+          </line>
+          <mesh ref={followTargetMarkerRef} raycast={() => null}>
+            <sphereGeometry args={[0.08, 8, 8]} />
+            <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />
+          </mesh>
         </>
       )}
       <group
@@ -784,8 +780,6 @@ export default function Fish({ creature, selected = false, debug = false, school
                 roughness={0.42}
                 metalness={0.02}
                 envMapIntensity={0.85}
-                transparent
-                opacity={1}
               />
             </mesh>
           )}

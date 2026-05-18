@@ -1,3 +1,5 @@
+export const WORLD_UNIT_METERS = 0.25
+
 export const BIOMES = [
   {
     id: 'tropical-river',
@@ -43,6 +45,11 @@ export const SPECIES = [
       turnRadius: 0.78,
     },
     sizeRange: [0.7, 0.9],
+    mass: {
+      // Length-weight estimate: grams = coefficient * bodyLengthCm^exponent.
+      coefficient: 0.006,
+      exponent: 3,
+    },
     model: {
       path: '/models/fish/sardine/sardine.glb',
       scale: 0.42,
@@ -71,6 +78,11 @@ export const SPECIES = [
       speedMultiplier: 0.55,
     },
     sizeRange: [3.2, 3.8],
+    mass: {
+      // Generic shark-like estimate until this placeholder becomes a specific species.
+      coefficient: 0.0095,
+      exponent: 3,
+    },
   },
 ]
 

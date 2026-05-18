@@ -118,7 +118,7 @@ export const SPECIES = [
 
 export const CREATURES = [
   {
-    id: 'fish_0001',
+    id: 1,
     species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -130,7 +130,7 @@ export const CREATURES = [
     color: '#b7c8cc',
   },
   {
-    id: 'fish_0002',
+    id: 2,
     species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -142,7 +142,7 @@ export const CREATURES = [
     color: '#b7c8cc',
   },
   {
-    id: 'fish_0003',
+    id: 3,
     species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -154,7 +154,7 @@ export const CREATURES = [
     color: '#b7c8cc',
   },
   {
-    id: 'fish_0004',
+    id: 4,
     species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -166,7 +166,7 @@ export const CREATURES = [
     color: '#b7c8cc',
   },
   {
-    id: 'fish_0005',
+    id: 5,
     species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -178,7 +178,7 @@ export const CREATURES = [
     color: '#b7c8cc',
   },
   {
-    id: 'fish_0006',
+    id: 6,
     species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',

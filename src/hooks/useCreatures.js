@@ -80,7 +80,7 @@ function creaturesFromRows(rows) {
 function resolveCreaturesUrl() {
   if (SUPABASE_CREATURES_URL) return SUPABASE_CREATURES_URL
   if (!SUPABASE_URL) return null
-  return `${SUPABASE_URL}/rest/v1/creatures?select=*&alive=eq.true`
+  return `${SUPABASE_URL}/rest/v1/creatures?select=*&alive=eq.true&order=id.asc`
 }
 
 const EMPTY_CREATURE_STATE = {

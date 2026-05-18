@@ -38,6 +38,8 @@ const DEFAULT_SWIM = {
 }
 const MAX_MODEL_PITCH = THREE.MathUtils.degToRad(15)
 const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
+const SMALL_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(220)
+const LARGE_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(42)
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -73,6 +75,7 @@ const schoolFollowDirection = new THREE.Vector3()
 const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
+const rawVisualForward = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const separationDelta = new THREE.Vector3()
 const SCHOOL_STATES = new Map()
@@ -179,6 +182,18 @@ function verticalPathScale(creature, swim) {
 
 function maxVisualPitch(creature, swim) {
   return THREE.MathUtils.lerp(MAX_MODEL_PITCH, MIN_LARGE_CREATURE_PITCH, largeCreatureFactor(creature, swim))
+}
+
+function turnRateForCreature(creature, swim) {
+  return THREE.MathUtils.lerp(SMALL_CREATURE_TURN_RATE, LARGE_CREATURE_TURN_RATE, largeCreatureFactor(creature, swim))
+}
+
+function rotateDirectionToward(current, target, maxAngle) {
+  if (current.lengthSq() < 0.000001) return current.copy(target)
+  const angle = current.angleTo(target)
+  if (angle <= maxAngle) return current.copy(target)
+  const alpha = maxAngle / Math.max(0.000001, angle)
+  return current.lerp(target, alpha).normalize()
 }
 
 function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
@@ -537,6 +552,8 @@ export default function Fish({ creature, selected = false, debug = false, school
   const previousPosition = useRef(new THREE.Vector3())
   const hasFollowPosition = useRef(false)
   const previousTangent = useRef(new THREE.Vector3())
+  const visualForward = useRef(new THREE.Vector3())
+  const hasVisualForward = useRef(false)
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
   const velocity = useRef(0)
@@ -583,6 +600,7 @@ export default function Fish({ creature, selected = false, debug = false, school
     nextBurstAt.current = motion.burstPhase + motion.burstInterval
     rawAvoidance.current.set(0, 0, 0)
     smoothedAvoidance.current.set(0, 0, 0)
+    hasVisualForward.current = false
   }, [motion])
 
   const playAnimation = (name) => {
@@ -698,12 +716,6 @@ export default function Fish({ creature, selected = false, debug = false, school
 
     updateFishRegistry(fish, creature, swim, school)
 
-    if (debug) {
-      debugForwardEnd.copy(fish.position).addScaledVector(tangent, 0.72)
-      updateDebugLine(forwardLineRef, fish.position, debugForwardEnd)
-      if (followTargetMarkerRef.current) followTargetMarkerRef.current.position.copy(followTarget.current)
-    }
-
     const fade = depthFadeFromScreenZ(fish.position.z)
     fish.traverse(child => {
       if (!child.isMesh) return
@@ -732,11 +744,29 @@ export default function Fish({ creature, selected = false, debug = false, school
       -pitchLimit,
       pitchLimit,
     )
-    pitchedForward
+    rawVisualForward
       .copy(horizontalForward)
       .multiplyScalar(Math.cos(visualPitch))
       .addScaledVector(up, Math.sin(visualPitch))
       .normalize()
+
+    if (!hasVisualForward.current) {
+      visualForward.current.copy(rawVisualForward)
+      hasVisualForward.current = true
+    } else {
+      rotateDirectionToward(
+        visualForward.current,
+        rawVisualForward,
+        turnRateForCreature(creature, swim) * delta,
+      )
+    }
+    pitchedForward.copy(visualForward.current)
+
+    if (debug) {
+      debugForwardEnd.copy(fish.position).addScaledVector(pitchedForward, 0.72)
+      updateDebugLine(forwardLineRef, fish.position, debugForwardEnd)
+      if (followTargetMarkerRef.current) followTargetMarkerRef.current.position.copy(followTarget.current)
+    }
 
     if (model) {
       fish.up.copy(up)
@@ -755,7 +785,7 @@ export default function Fish({ creature, selected = false, debug = false, school
     if (model) {
       let turn = 0
       if (previousTangent.current.lengthSq() > 0) {
-        turn = previousTangent.current.x * tangent.z - previousTangent.current.z * tangent.x
+        turn = previousTangent.current.x * pitchedForward.z - previousTangent.current.z * pitchedForward.x
       }
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
         if (turn > SNAP_TURN_THRESHOLD) {
@@ -786,7 +816,7 @@ export default function Fish({ creature, selected = false, debug = false, school
       bankQuaternion.setFromAxisAngle(pitchedForward, -bank)
       fish.quaternion.premultiply(bankQuaternion)
 
-      previousTangent.current.copy(tangent)
+      previousTangent.current.copy(pitchedForward)
     }
   })
 

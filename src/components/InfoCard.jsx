@@ -222,7 +222,7 @@ export default function InfoCard({ creature, onClose }) {
         <Stat label="Weight" value={formatMass(massKg)} />
       </div>
 
-      <p style={styles.footer}>Tap another fish to switch focus. Tap empty water or × to release.</p>
+      <p className="info-card-footer" style={styles.footer}>Tap another fish to switch focus. Tap empty water or × to release.</p>
     </section>
   )
 }

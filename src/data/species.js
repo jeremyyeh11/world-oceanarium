@@ -124,10 +124,6 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-13T00:00:00Z',
     alive: true,
-    parentIds: null,
-    generation: 0,
-    traits: { swimErraticness: 0.22, turnRadius: 0.82 },
-    color: '#b7c8cc',
   },
   {
     id: 2,
@@ -136,10 +132,6 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
     alive: true,
-    parentIds: null,
-    generation: 0,
-    traits: { swimErraticness: 0.2, turnRadius: 0.76 },
-    color: '#b7c8cc',
   },
   {
     id: 3,
@@ -148,10 +140,6 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
     alive: true,
-    parentIds: null,
-    generation: 0,
-    traits: { swimErraticness: 0.24, turnRadius: 0.8 },
-    color: '#b7c8cc',
   },
   {
     id: 4,
@@ -160,10 +148,6 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
     alive: true,
-    parentIds: null,
-    generation: 0,
-    traits: { swimErraticness: 0.26, turnRadius: 0.84 },
-    color: '#b7c8cc',
   },
   {
     id: 5,
@@ -172,10 +156,6 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
     alive: true,
-    parentIds: null,
-    generation: 0,
-    traits: { swimErraticness: 0.23, turnRadius: 0.78 },
-    color: '#b7c8cc',
   },
   {
     id: 6,
@@ -184,9 +164,6 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
     alive: true,
-    parentIds: null,
-    generation: 0,
-    traits: { swimErraticness: 0.21, turnRadius: 0.86 },
-    color: '#b7c8cc',
   },
 ]
+

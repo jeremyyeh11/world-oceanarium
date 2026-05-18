@@ -48,7 +48,6 @@ function withDefaultSize(creature) {
     ...creature,
     sizeParameter: Number.isFinite(Number(creature.size)) ? Math.max(0, Math.min(1, Number(creature.size))) : null,
     size: sizeFromParameter(creature),
-    traits: creature.traits ?? {},
   }
 }
 
@@ -61,12 +60,8 @@ function normalizeCreature(row) {
     bornAt: row.bornAt ?? row.born_at,
     diedAt: row.diedAt ?? row.died_at,
     alive: row.alive ?? true,
-    parentIds: row.parentIds ?? row.parent_ids ?? null,
-    generation: row.generation ?? 0,
-    traits: row.traits ?? {},
-    description: row.description ?? row.individual_description ?? row.traits?.description ?? row.traits?.individualDescription,
-    customName: row.customName ?? row.custom_name ?? row.traits?.customName ?? row.traits?.custom_name,
-    color: row.color,
+    description: row.description ?? row.individual_description,
+    customName: row.customName ?? row.custom_name,
     size: row.size,
   })
 }

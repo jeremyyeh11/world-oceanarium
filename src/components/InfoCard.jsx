@@ -83,6 +83,19 @@ const styles = {
     gap: '0.55rem',
     marginTop: '0.95rem',
   },
+  speciesDescription: {
+    margin: '0.9rem 0 0',
+    color: 'rgba(226,246,255,0.76)',
+    fontSize: '0.84rem',
+    lineHeight: 1.45,
+  },
+  individualDescription: {
+    margin: '0.72rem 0 0',
+    color: 'rgba(232,244,250,0.62)',
+    fontSize: '0.78rem',
+    fontStyle: 'italic',
+    lineHeight: 1.4,
+  },
   stat: {
     borderRadius: 14,
     padding: '0.62rem 0.68rem',
@@ -118,11 +131,8 @@ function formatBornAt(value) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-function formatSize(creature, species) {
-  const size = creature.size
-  if (Number.isFinite(size)) return `${Math.round(size * 100)}%`
-  if (species?.sizeRange) return `${Math.round(species.sizeRange[0] * 100)}–${Math.round(species.sizeRange[1] * 100)}% range`
-  return 'Unknown'
+function defaultIndividualDescription(creature) {
+  return `this ${String(creature.species ?? 'creature').toLowerCase()} poops a lot`
 }
 
 function Stat({ label, value }) {
@@ -137,7 +147,7 @@ function Stat({ label, value }) {
 export default function InfoCard({ creature, onClose }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthLabel = DEPTH_LABELS[creature.depthZone] ?? creature.depthZone ?? 'Unknown zone'
-  const generation = creature.generation ?? 0
+  const individualDescription = creature.description?.trim() || defaultIndividualDescription(creature)
 
   return (
     <section style={styles.wrap} aria-label={`${creature.species} details`}>
@@ -156,11 +166,12 @@ export default function InfoCard({ creature, onClose }) {
         {species?.aggressive && <span style={styles.chip}>Aggressive</span>}
       </div>
 
+      {species?.description && <p style={styles.speciesDescription}>{species.description}</p>}
+      <p style={styles.individualDescription}>{individualDescription}</p>
+
       <div style={styles.grid}>
         <Stat label="ID" value={creature.id} />
-        <Stat label="Generation" value={`G${generation}`} />
         <Stat label="Born" value={formatBornAt(creature.bornAt)} />
-        <Stat label="Size" value={formatSize(creature, species)} />
       </div>
 
       <p style={styles.footer}>Tap another fish to switch focus. Tap empty water or × to release.</p>

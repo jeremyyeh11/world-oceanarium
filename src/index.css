@@ -144,13 +144,16 @@ button { font: inherit; }
   }
 
   .tank-viewport.is-following-fish .info-card {
-    left: max(0.55rem, env(safe-area-inset-left)) !important;
-    right: max(0.55rem, env(safe-area-inset-right)) !important;
-    bottom: max(0.45rem, env(safe-area-inset-bottom)) !important;
-    width: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
     max-height: 40dvh !important;
-    padding: 0.72rem !important;
-    border-radius: 18px !important;
+    padding: 0.72rem max(0.9rem, env(safe-area-inset-right)) max(0.72rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left)) !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
     overflow-y: auto !important;
     z-index: 70 !important;
     overscroll-behavior: contain !important;

@@ -32,10 +32,10 @@ const styles = {
   },
   eyebrow: {
     margin: 0,
-    color: 'rgba(170,225,255,0.64)',
-    fontSize: '0.62rem',
-    letterSpacing: '0.16em',
-    textTransform: 'uppercase',
+    color: 'rgba(210,235,245,0.62)',
+    fontSize: '0.78rem',
+    fontWeight: 560,
+    letterSpacing: '0.01em',
   },
   title: {
     margin: '0.22rem 0 0',
@@ -198,7 +198,7 @@ export default function InfoCard({ creature, onClose }) {
     <section style={styles.wrap} aria-label={`${creature.species} details`}>
       <div style={styles.header}>
         <div>
-          <p style={styles.eyebrow}>Focused creature</p>
+          <p style={styles.eyebrow}>ID: {creature.id}</p>
           <h2 style={styles.title}>{creature.species}</h2>
           {customName && <div style={styles.nameTag}>{customName}</div>}
           {species?.scientificName && <p style={styles.scientificName}>{species.scientificName}</p>}
@@ -217,7 +217,6 @@ export default function InfoCard({ creature, onClose }) {
       <p style={styles.individualDescription}>{individualDescription}</p>
 
       <div style={styles.grid}>
-        <Stat label="ID" value={creature.id} />
         <Stat label="Born" value={formatBornAt(creature.bornAt)} />
         <Stat label="Body length" value={formatLength(lengthMeters)} />
         <Stat label="Weight" value={formatMass(massKg)} />

@@ -138,8 +138,19 @@ export default function App() {
           title="Audio placeholder"
           onClick={() => setAudioMuted(current => !current)}
         >
-          <span aria-hidden="true">{audioMuted ? '🔇' : '🔊'}</span>
-          <span>{audioMuted ? 'Mute' : 'Audio'}</span>
+          <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+            {audioMuted ? (
+              <>
+                <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                <path d="m17 9 4 6m0-6-4 6" />
+              </>
+            ) : (
+              <>
+                <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6.2a8.2 8.2 0 0 1 0 11.6" />
+              </>
+            )}
+          </svg>
         </button>
         {fullscreenSupported && (
           <button
@@ -149,8 +160,23 @@ export default function App() {
             aria-pressed={isFullscreen}
             onClick={toggleFullscreen}
           >
-            <span aria-hidden="true">{isFullscreen ? '↙' : '↗'}</span>
-            <span>{isFullscreen ? 'Exit' : 'Full'}</span>
+            <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+              {isFullscreen ? (
+                <>
+                  <path d="M9 4v5H4" />
+                  <path d="m4 9 5-5" />
+                  <path d="M15 20v-5h5" />
+                  <path d="m20 15-5 5" />
+                </>
+              ) : (
+                <>
+                  <path d="M4 9V4h5" />
+                  <path d="m4 4 6 6" />
+                  <path d="M20 15v5h-5" />
+                  <path d="m20 20-6-6" />
+                </>
+              )}
+            </svg>
           </button>
         )}
       </div>

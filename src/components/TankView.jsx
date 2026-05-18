@@ -10,6 +10,11 @@ import InfoCard from './InfoCard'
 const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
+const DEBUG_VIEW_MODES = [
+  { id: 'all', icon: '◎', label: 'View all' },
+  { id: 'focused', icon: '◉', label: 'Focused' },
+  { id: 'none', icon: '○', label: 'None' },
+]
 
 function getPanLimits() {
   const viewportWidth = window.innerWidth
@@ -24,6 +29,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
+  const [debugView, setDebugView] = useState('all')
   const [stagePan, setStagePan] = useState(0)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
@@ -187,6 +193,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
             debug={debugMode}
+            debugView={debugView}
             onCreatureClick={focusCreature}
           />
           {!zoomActive && <WaterSurface biome={biome.id} />}
@@ -223,10 +230,35 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           background: 'rgba(0,13,28,0.58)', color: 'rgba(220,245,255,0.72)',
           font: '0.68rem/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
           letterSpacing: '0.04em', textTransform: 'uppercase', backdropFilter: 'blur(8px)',
-          pointerEvents: 'none',
+          pointerEvents: 'auto',
         }}>
           <div>Data: {creatureDataSource}</div>
           <div>Creatures: {creatures.length}</div>
+          <div style={{ marginTop: '0.42rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ opacity: 0.7 }}>Debug</span>
+            {DEBUG_VIEW_MODES.map(mode => (
+              <button
+                key={mode.id}
+                type="button"
+                title={mode.label}
+                aria-label={`Debug ${mode.label}`}
+                aria-pressed={debugView === mode.id}
+                onClick={() => setDebugView(mode.id)}
+                style={{
+                  width: 26,
+                  height: 24,
+                  borderRadius: 999,
+                  border: debugView === mode.id ? '1px solid rgba(125,249,255,0.72)' : '1px solid rgba(125,249,255,0.18)',
+                  background: debugView === mode.id ? 'rgba(0,60,78,0.7)' : 'rgba(0,18,32,0.46)',
+                  color: debugView === mode.id ? 'rgba(245,255,255,0.96)' : 'rgba(220,245,255,0.62)',
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                }}
+              >
+                {mode.icon}
+              </button>
+            ))}
+          </div>
           {creatureDataError && (
             <div style={{ maxWidth: 280, whiteSpace: 'normal', textTransform: 'none', color: 'rgba(255,205,205,0.8)' }}>
               {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}

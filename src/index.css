@@ -44,8 +44,9 @@ button { font: inherit; }
   align-items: center;
   justify-content: center;
   gap: 0.36rem;
+  width: 2.3rem;
   min-height: 2.3rem;
-  padding: 0.5rem 0.72rem;
+  padding: 0.5rem;
   border: 1px solid rgba(190, 240, 255, 0.22);
   border-radius: 999px;
   background: rgba(2, 18, 34, 0.52);
@@ -60,6 +61,17 @@ button { font: inherit; }
   cursor: pointer;
   backdrop-filter: blur(10px);
   transition: border-color 180ms ease, color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.top-control-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .fullscreen-toggle:hover,
@@ -147,15 +159,10 @@ button { font: inherit; }
   .fullscreen-toggle,
   .audio-toggle,
   .fish-search-button {
+    width: 2.15rem;
     min-height: 2.15rem;
-    padding: 0.48rem 0.64rem;
+    padding: 0.48rem;
     font-size: 0.62rem;
-  }
-
-  .audio-toggle span:last-child,
-  .fullscreen-toggle span:last-child,
-  .fish-search-button-label {
-    display: none;
   }
 
   .fish-search.is-expanded {

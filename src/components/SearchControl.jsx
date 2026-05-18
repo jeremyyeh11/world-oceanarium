@@ -118,8 +118,9 @@ export default function SearchControl({ creatures = [], active = false }) {
         aria-label={expanded ? 'Search fish' : 'Open fish search'}
         aria-expanded={expanded}
       >
-        <span aria-hidden="true">⌕</span>
-        <span className="fish-search-button-label">Search</span>
+        <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M10.8 17.1a6.3 6.3 0 1 1 0-12.6 6.3 6.3 0 0 1 0 12.6Zm4.8-1.5 4 4" />
+        </svg>
       </button>
     </form>
   )

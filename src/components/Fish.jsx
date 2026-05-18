@@ -41,6 +41,8 @@ const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
 const SMALL_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(220)
 const LARGE_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(42)
 const MAX_PATH_Y_GRADIENT = 0.2
+const PATH_VERTICAL_TRAVERSAL_BIAS = 0.82
+const PATH_VERTICAL_TRAVERSAL_JITTER = 0.16
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -251,15 +253,27 @@ function clampFishPosition(point, creature, swim) {
   return clampToSwimBox(point, bounds.yMin, bounds.yMax, bounds.x, bounds.z)
 }
 
-function randomPoint(rand, bounds, swim, index = 0, verticalScale = 1) {
+function traversalY(rand, bounds, swim, index = 0, verticalScale = 1, rangeFloor = 0.42) {
   const midY = (bounds.yMin + bounds.yMax) / 2
   const halfY = (bounds.yMax - bounds.yMin) / 2
-  const verticalRange = THREE.MathUtils.lerp(0.42, 1.0, swim.erraticness)
-  const edgeBias = index % 2 === 0 ? -0.55 : 0.55
+  const verticalRange = THREE.MathUtils.clamp(
+    THREE.MathUtils.lerp(rangeFloor, 1.0, swim.erraticness) * verticalScale,
+    0,
+    1,
+  )
+  const direction = index % 2 === 0 ? -1 : 1
+  const bandCenter = midY + direction * halfY * verticalRange * PATH_VERTICAL_TRAVERSAL_BIAS
+  const jitter = halfY * verticalRange * PATH_VERTICAL_TRAVERSAL_JITTER
+  return THREE.MathUtils.clamp(bandCenter + randomRange(rand, -jitter, jitter), bounds.yMin, bounds.yMax)
+}
+
+function randomPoint(rand, bounds, swim, index = 0, verticalScale = 1) {
+  const side = index % 2 === 0 ? -1 : 1
+  const laneJitter = bounds.x * 0.12
 
   return new THREE.Vector3(
-    randomRange(rand, -bounds.x * 0.82, bounds.x * 0.82) + edgeBias,
-    midY + randomRange(rand, -halfY * verticalRange * verticalScale, halfY * verticalRange * verticalScale),
+    side * bounds.x * 0.72 + randomRange(rand, -laneJitter, laneJitter),
+    traversalY(rand, bounds, swim, index, verticalScale, 0.52),
     randomRange(rand, -bounds.z, bounds.z),
   )
 }
@@ -295,29 +309,27 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
 function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const midY = (bounds.yMin + bounds.yMax) / 2
-  const halfY = (bounds.yMax - bounds.yMin) / 2
   const turnRadius = effectiveTurnRadius(creature, swim)
   const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, turnRadius))
-  const verticalRange = THREE.MathUtils.lerp(0.45, 1.0, swim.erraticness) * verticalPathScale(creature, swim)
+  const verticalScale = verticalPathScale(creature, swim)
   const points = []
 
   if (start && exitTangent) {
     points.push(start.clone())
     const leadDistance = THREE.MathUtils.lerp(2.4, 7.0, turnRadius) * THREE.MathUtils.lerp(1, 1.35, largeCreatureFactor(creature, swim)) * randomRange(rand, 0.9, 1.15)
     const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
-    lead.y += randomRange(rand, -halfY * verticalRange * 0.38, halfY * verticalRange * 0.38)
+    lead.y = THREE.MathUtils.lerp(lead.y, traversalY(rand, bounds, swim, 1, verticalScale, 0.62), 0.58)
     lead.z += randomRange(rand, -0.7, 0.7)
     points.push(clampToSwimBox(lead, bounds.yMin, bounds.yMax, bounds.x, bounds.z))
   }
 
   for (let i = points.length; i < pointCount; i += 1) {
-    const sweep = i / Math.max(1, pointCount - 1)
-    const sideBias = i % 2 === 0 ? -0.42 : 0.42
+    const side = i % 2 === 0 ? -1 : 1
+    const depthSide = Math.floor(i / 2) % 2 === 0 ? -1 : 1
     points.push(new THREE.Vector3(
-      THREE.MathUtils.lerp(-bounds.x * 0.72, bounds.x * 0.72, sweep) + randomRange(rand, -1.2, 1.2) + sideBias,
-      midY + randomRange(rand, -halfY * verticalRange, halfY * verticalRange),
-      randomRange(rand, -bounds.z * 0.78, bounds.z * 0.78),
+      side * bounds.x * 0.74 + randomRange(rand, -bounds.x * 0.1, bounds.x * 0.1),
+      traversalY(rand, bounds, swim, i, verticalScale, 0.62),
+      depthSide * bounds.z * 0.72 + randomRange(rand, -bounds.z * 0.16, bounds.z * 0.16),
     ))
   }
 

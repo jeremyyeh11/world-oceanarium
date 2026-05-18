@@ -153,7 +153,7 @@ button { font: inherit; }
     border-left: 0 !important;
     border-right: 0 !important;
     border-bottom: 0 !important;
-    border-radius: 20px 20px 0 0 !important;
+    border-radius: 0 !important;
     overflow-y: auto !important;
     z-index: 70 !important;
     overscroll-behavior: contain !important;
@@ -199,6 +199,10 @@ button { font: inherit; }
 
   .tank-viewport.is-following-fish .info-card > p {
     margin-top: 0.52rem !important;
+  }
+
+  .tank-viewport.is-following-fish .info-card-footer {
+    display: none !important;
   }
 
   body:has(.tank-viewport.is-following-fish) .app-version-footnote {

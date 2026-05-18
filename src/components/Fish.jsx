@@ -48,6 +48,9 @@ const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
 const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
+const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 0.45
+const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
+const SOLO_FOLLOW_LOOKAHEAD_MAX = 1.25
 const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
@@ -288,6 +291,17 @@ function offsetFromSchoolPoint(target, path, t, schoolOffset, now) {
     .addScaledVector(schoolTargetTangent, schoolOffset.longitudinal)
 
   return target
+}
+
+function followLookaheadDistance(creature, swim, isSchooling) {
+  const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
+  if (isSchooling) return bodyLength * SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS
+
+  return THREE.MathUtils.clamp(
+    bodyLength * SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS,
+    SOLO_FOLLOW_LOOKAHEAD_MIN,
+    SOLO_FOLLOW_LOOKAHEAD_MAX,
+  )
 }
 
 function fishCollisionRadius(creature, swim, school = null) {
@@ -598,7 +612,7 @@ export default function Fish({ creature, selected = false, debug = false, school
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
     tangent.subVectors(nextPoint, currentPath.getPointAt(t)).normalize()
 
-    const followDistance = swim.bodyLengthWU * (creature.size ?? 1) * SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS
+    const followDistance = followLookaheadDistance(creature, swim, isSchooling)
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
       offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now)

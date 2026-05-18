@@ -51,6 +51,21 @@ const styles = {
     fontStyle: 'italic',
     letterSpacing: '0.01em',
   },
+  nameTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    width: 'fit-content',
+    marginTop: '0.58rem',
+    border: '1px solid rgba(127, 255, 214, 0.42)',
+    background: 'linear-gradient(135deg, rgba(21, 214, 176, 0.24), rgba(92, 164, 255, 0.16))',
+    color: 'rgba(232, 255, 248, 0.95)',
+    boxShadow: '0 0 18px rgba(38, 225, 185, 0.12)',
+    padding: '0.32rem 0.62rem',
+    borderRadius: 999,
+    fontSize: '0.78rem',
+    fontWeight: 700,
+    letterSpacing: '0.035em',
+  },
   close: {
     width: 34,
     height: 34,
@@ -175,6 +190,7 @@ export default function InfoCard({ creature, onClose }) {
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
   const depthLabel = depthZone?.label ?? creature.depthZone ?? 'Unknown zone'
   const individualDescription = creature.description?.trim() || fallbackIndividualDescription(creature)
+  const customName = creature.customName?.trim()
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
 
@@ -184,6 +200,7 @@ export default function InfoCard({ creature, onClose }) {
         <div>
           <p style={styles.eyebrow}>Focused creature</p>
           <h2 style={styles.title}>{creature.species}</h2>
+          {customName && <div style={styles.nameTag}>{customName}</div>}
           {species?.scientificName && <p style={styles.scientificName}>{species.scientificName}</p>}
         </div>
         <button type="button" style={styles.close} onClick={onClose} aria-label="Close focus card">×</button>
@@ -192,7 +209,6 @@ export default function InfoCard({ creature, onClose }) {
       <div style={styles.chips}>
         <span style={styles.chip}>{depthLabel}</span>
         {species?.family && <span style={styles.chip}>{species.family}</span>}
-        <span style={styles.chip}>{species?.schooling ? 'Schooling' : 'Solo'}</span>
         {species?.predator && <span style={styles.chip}>Predator</span>}
         {species?.aggressive && <span style={styles.chip}>Aggressive</span>}
       </div>

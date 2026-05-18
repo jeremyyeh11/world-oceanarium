@@ -8,7 +8,6 @@ export const CAMERA_LIMITS = {
 }
 
 const DEFAULT_CAMERA_Z = 12
-const FOLLOW_DISTANCE = 3.2
 const FOLLOW_HEIGHT = 0.85
 const FOLLOW_TARGET_LERP = 0.075
 const focusPosition = new THREE.Vector3()
@@ -19,7 +18,7 @@ const followRight = new THREE.Vector3()
 const yawQuaternion = new THREE.Quaternion()
 const pitchQuaternion = new THREE.Quaternion()
 
-export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 } }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2 }) {
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
   const hasSmoothedFocus = useRef(false)
@@ -42,7 +41,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
         smoothedFocus.current.lerp(focusPosition, FOLLOW_TARGET_LERP)
       }
 
-      followOffset.set(0, FOLLOW_HEIGHT, FOLLOW_DISTANCE)
+      followOffset.set(0, FOLLOW_HEIGHT, followDistance)
 
       yawQuaternion.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, followOrbit.yaw)
       followOffset.applyQuaternion(yawQuaternion)

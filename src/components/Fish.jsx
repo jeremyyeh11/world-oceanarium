@@ -72,6 +72,7 @@ const schoolBasePosition = new THREE.Vector3()
 const schoolTargetTangent = new THREE.Vector3()
 const schoolLateral = new THREE.Vector3()
 const schoolFollowDirection = new THREE.Vector3()
+const debugForwardStart = new THREE.Vector3()
 const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
@@ -194,6 +195,19 @@ function rotateDirectionToward(current, target, maxAngle) {
   if (angle <= maxAngle) return current.copy(target)
   const alpha = maxAngle / Math.max(0.000001, angle)
   return current.lerp(target, alpha).normalize()
+}
+
+function debugForwardOffset(creature, swim, model) {
+  if (model?.debugForwardOrigin === 'head') return 0
+  if (Number.isFinite(model?.debugForwardOffsetWU)) return model.debugForwardOffsetWU
+  const size = creature.size ?? 1
+  if (!model) return 0.35 * size
+  return creatureBodyLength(creature, swim) * 0.42
+}
+
+function debugForwardLength(creature) {
+  const size = creature.size ?? 1
+  return THREE.MathUtils.clamp(0.72 * Math.sqrt(size), 0.72, 1.35)
 }
 
 function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
@@ -763,8 +777,9 @@ export default function Fish({ creature, selected = false, debug = false, school
     pitchedForward.copy(visualForward.current)
 
     if (debug) {
-      debugForwardEnd.copy(fish.position).addScaledVector(pitchedForward, 0.72)
-      updateDebugLine(forwardLineRef, fish.position, debugForwardEnd)
+      debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
+      debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugForwardLength(creature))
+      updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
       if (followTargetMarkerRef.current) followTargetMarkerRef.current.position.copy(followTarget.current)
     }
 
@@ -842,7 +857,7 @@ export default function Fish({ creature, selected = false, debug = false, school
             </line>
           )}
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthWrite={false} />
+            <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>
           <mesh ref={followTargetMarkerRef} scale={debugTargetScale} raycast={() => null}>
             <sphereGeometry args={[0.09, 8, 8]} />

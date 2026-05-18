@@ -44,6 +44,13 @@ const styles = {
     fontWeight: 720,
     letterSpacing: '-0.035em',
   },
+  scientificName: {
+    margin: '0.38rem 0 0',
+    color: 'rgba(210,235,245,0.62)',
+    fontSize: '0.78rem',
+    fontStyle: 'italic',
+    letterSpacing: '0.01em',
+  },
   close: {
     width: 34,
     height: 34,
@@ -177,12 +184,14 @@ export default function InfoCard({ creature, onClose }) {
         <div>
           <p style={styles.eyebrow}>Focused creature</p>
           <h2 style={styles.title}>{creature.species}</h2>
+          {species?.scientificName && <p style={styles.scientificName}>{species.scientificName}</p>}
         </div>
         <button type="button" style={styles.close} onClick={onClose} aria-label="Close focus card">×</button>
       </div>
 
       <div style={styles.chips}>
         <span style={styles.chip}>{depthLabel}</span>
+        {species?.family && <span style={styles.chip}>{species.family}</span>}
         <span style={styles.chip}>{species?.schooling ? 'Schooling' : 'Solo'}</span>
         {species?.predator && <span style={styles.chip}>Predator</span>}
         {species?.aggressive && <span style={styles.chip}>Aggressive</span>}

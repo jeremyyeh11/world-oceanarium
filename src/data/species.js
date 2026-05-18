@@ -50,16 +50,19 @@ export const BIOMES = [
 export const SPECIES = [
   {
     id: 'sardine',
-    name: 'Sardine',
+    name: 'Spotted Sardinella',
+    scientificName: 'Amblygaster sirm',
+    family: 'Clupeidae',
+    alternateNames: ['Northern pilchard', 'Spotted pilchard', 'Spotted sardine', 'Trenched sardine'],
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: true,
     aggressive: false,
     predator: false,
-    description: 'A small, silver schooling fish that survives by moving as one shimmering cloud in the sunlit ocean.',
+    description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. It reaches up to 27 cm total length and is widely caught for food and bait fisheries.',
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. Common adult sardine ≈20 cm = 0.8 WU.
-      bodyLengthWU: 0.8,
+      // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.
+      bodyLengthWU: 1.08,
       // Keeps biologically grounded BL/s ratios readable in the aquarium camera.
       visualTimeScale: 0.35,
       idleBLPerSec: [1.0, 1.8],
@@ -70,7 +73,8 @@ export const SPECIES = [
       erraticness: 0.24,
       turnRadius: 0.78,
     },
-    sizeRange: [0.7, 0.9],
+    // Normalized individual size maps to roughly 15–27 cm total length for Amblygaster sirm.
+    sizeRange: [0.55, 1.0],
     mass: {
       // Length-weight estimate: grams = coefficient * bodyLengthCm^exponent.
       coefficient: 0.006,
@@ -115,7 +119,7 @@ export const SPECIES = [
 export const CREATURES = [
   {
     id: 'sardine_1',
-    species: 'Sardine',
+    species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-13T00:00:00Z',
@@ -127,7 +131,7 @@ export const CREATURES = [
   },
   {
     id: 'sardine_2_temp',
-    species: 'Sardine',
+    species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -139,7 +143,7 @@ export const CREATURES = [
   },
   {
     id: 'sardine_3_temp',
-    species: 'Sardine',
+    species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -151,7 +155,7 @@ export const CREATURES = [
   },
   {
     id: 'sardine_4_temp',
-    species: 'Sardine',
+    species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -163,7 +167,7 @@ export const CREATURES = [
   },
   {
     id: 'sardine_5_temp',
-    species: 'Sardine',
+    species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -175,7 +179,7 @@ export const CREATURES = [
   },
   {
     id: 'sardine_6_temp',
-    species: 'Sardine',
+    species: 'Spotted Sardinella',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',

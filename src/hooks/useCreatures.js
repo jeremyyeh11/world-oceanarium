@@ -65,6 +65,7 @@ function normalizeCreature(row) {
     generation: row.generation ?? 0,
     traits: row.traits ?? {},
     description: row.description ?? row.individual_description ?? row.traits?.description ?? row.traits?.individualDescription,
+    customName: row.customName ?? row.custom_name ?? row.traits?.customName ?? row.traits?.custom_name,
     color: row.color,
     size: row.size,
   })

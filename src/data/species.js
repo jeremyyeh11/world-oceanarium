@@ -48,15 +48,15 @@ export const SPECIES = [
     },
   },
   {
-    id: 'test-shark',
-    name: 'Test Shark',
+    id: 'large-predator',
+    name: 'Large Predator',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
     aggressive: false,
     predator: true,
     swim: {
-      // Temporary large cuboid predator proxy for testing sardine avoidance.
+      // Generic large non-schooling predator placeholder for future specific species.
       bodyLengthWU: 2.0,
       visualTimeScale: 0.35,
       idleBLPerSec: [0.35, 0.65],

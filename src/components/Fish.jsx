@@ -49,9 +49,8 @@ const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
 const SCHOOL_DRIFT = 0.08
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
-const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 0.62
+const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
 const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
-const SOLO_FOLLOW_LOOKAHEAD_MAX = 4.5
 const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
@@ -322,10 +321,9 @@ function followLookaheadDistance(creature, swim, isSchooling) {
   const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
   if (isSchooling) return bodyLength * SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS
 
-  return THREE.MathUtils.clamp(
+  return Math.max(
     bodyLength * SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS,
     SOLO_FOLLOW_LOOKAHEAD_MIN,
-    SOLO_FOLLOW_LOOKAHEAD_MAX,
   )
 }
 

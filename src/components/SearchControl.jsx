@@ -75,8 +75,7 @@ export default function SearchControl({ creatures = [], active = false }) {
   }
 
   const handleButtonClick = (event) => {
-    const isMobile = window.matchMedia?.('(max-width: 640px)').matches
-    if (expanded && isMobile) {
+    if (expanded) {
       event.preventDefault()
       resetSearch()
       return

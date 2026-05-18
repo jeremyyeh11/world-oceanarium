@@ -131,8 +131,35 @@ function formatBornAt(value) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-function defaultIndividualDescription(creature) {
-  return `this ${String(creature.species ?? 'creature').toLowerCase()} poops a lot`
+const DESCRIPTION_MOODS = [
+  'is convinced it owns this tank',
+  'keeps pretending bubbles are treasure',
+  'starts drama near the glass',
+  'poops a lot and looks proud of it',
+  'has suspiciously strong opinions about currents',
+  'is probably planning something tiny',
+  'forgot where it was going but committed anyway',
+  'treats every shadow like breaking news',
+  'does laps like rent is due',
+  'thinks the camera is a personal documentary crew',
+  'keeps photobombing more serious fish',
+  'has never once respected personal space',
+]
+
+function hashString(value) {
+  let hash = 2166136261
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
+
+function generatedIndividualDescription(creature) {
+  const speciesName = String(creature.species ?? 'creature').toLowerCase()
+  const seed = `${creature.species ?? 'creature'}:${creature.id ?? 'unknown'}:description`
+  const mood = DESCRIPTION_MOODS[hashString(seed) % DESCRIPTION_MOODS.length]
+  return `this ${speciesName} ${mood}`
 }
 
 function Stat({ label, value }) {
@@ -147,7 +174,7 @@ function Stat({ label, value }) {
 export default function InfoCard({ creature, onClose }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthLabel = DEPTH_LABELS[creature.depthZone] ?? creature.depthZone ?? 'Unknown zone'
-  const individualDescription = creature.description?.trim() || defaultIndividualDescription(creature)
+  const individualDescription = creature.description?.trim() || generatedIndividualDescription(creature)
 
   return (
     <section style={styles.wrap} aria-label={`${creature.species} details`}>

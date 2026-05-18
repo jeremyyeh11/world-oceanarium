@@ -16,6 +16,7 @@ const MAX_FOLLOW_DISTANCE = 8.5
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
+const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const DEBUG_VIEW_MODES = [
   { id: 'all', icon: '◎', label: 'View all' },
   { id: 'focused', icon: '◉', label: 'Focused' },
@@ -54,6 +55,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
   const focusChangeAtRef = useRef(0)
+  const fishRefsByCreatureId = useRef(new Map())
   const zoomActive = Boolean(selectedCreature)
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
 
@@ -126,6 +128,11 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     setFollowOrbit({ yaw: 0, pitch: 0 })
   }
 
+  const registerCreatureRef = (creature, fishRef) => {
+    if (!creature?.id || !fishRef) return
+    fishRefsByCreatureId.current.set(String(creature.id), fishRef)
+  }
+
   const releaseFocus = () => {
     focusChangeAtRef.current = performance.now()
     touchPointsRef.current.clear()
@@ -138,6 +145,20 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const adjustFollowDistance = (delta) => {
     setFollowDistance(current => clampFollowDistance(current + delta))
   }
+
+  useEffect(() => {
+    const focusFromSearch = (event) => {
+      const creatureId = String(event.detail?.creatureId ?? '')
+      if (!creatureId) return
+      const creature = creatures.find(candidate => String(candidate.id) === creatureId)
+      const fishRef = fishRefsByCreatureId.current.get(creatureId)
+      if (!creature || !fishRef) return
+      focusCreature(creature, fishRef)
+    }
+
+    window.addEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
+    return () => window.removeEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
+  }, [creatures])
 
   const zoomFollowWithWheel = (event) => {
     if (!selectedCreature) return
@@ -262,6 +283,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debug={debugMode}
             debugView={debugView}
             onCreatureClick={focusCreature}
+            onCreatureReady={registerCreatureRef}
           />
           {!zoomActive && <WaterSurface biome={biome.id} />}
           {!zoomActive && <UnderwaterFX biome={biome.id} />}

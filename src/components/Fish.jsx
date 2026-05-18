@@ -573,7 +573,7 @@ function FishModel({ model, animation = 'idle', animationVariation }) {
   )
 }
 
-export default function Fish({ creature, selected = false, debug = false, school = null, onClick }) {
+export default function Fish({ creature, selected = false, debug = false, school = null, onClick, onReady }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -625,6 +625,10 @@ export default function Fish({ creature, selected = false, debug = false, school
       metersPerWU: WORLD_UNIT_METERS,
     }
   }, [creature, swim, isSchooling, school?.id])
+
+  useEffect(() => {
+    onReady?.(creature, ref)
+  }, [creature, onReady])
 
   useEffect(() => {
     return () => FISH_REGISTRY.delete(creature.id)

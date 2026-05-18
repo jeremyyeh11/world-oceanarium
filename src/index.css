@@ -25,13 +25,24 @@ button { font: inherit; }
   cursor: default;
 }
 
-.fullscreen-toggle {
+.top-controls {
   position: fixed;
   top: max(0.85rem, env(safe-area-inset-top));
   right: max(0.85rem, env(safe-area-inset-right));
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.48rem;
+  pointer-events: none;
+}
+
+.fullscreen-toggle,
+.audio-toggle,
+.fish-search-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.36rem;
   min-height: 2.3rem;
   padding: 0.5rem 0.72rem;
@@ -48,28 +59,115 @@ button { font: inherit; }
   touch-action: manipulation;
   cursor: pointer;
   backdrop-filter: blur(10px);
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
 .fullscreen-toggle:hover,
 .fullscreen-toggle:focus-visible,
-.fullscreen-toggle.is-active {
+.fullscreen-toggle.is-active,
+.audio-toggle:hover,
+.audio-toggle:focus-visible,
+.audio-toggle.is-active,
+.fish-search-button:hover,
+.fish-search-button:focus-visible,
+.fish-search.is-expanded .fish-search-button {
   border-color: rgba(125, 249, 255, 0.58);
   color: rgba(245, 255, 255, 0.94);
   background: rgba(0, 42, 58, 0.68);
 }
 
-.fullscreen-toggle:focus-visible {
+.fullscreen-toggle:focus-visible,
+.audio-toggle:focus-visible,
+.fish-search-button:focus-visible,
+.fish-search-input:focus-visible {
   outline: 2px solid rgba(125, 249, 255, 0.45);
   outline-offset: 3px;
 }
 
+.fish-search {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  gap: 0.42rem;
+  pointer-events: auto;
+}
+
+.fish-search-input {
+  width: 0;
+  min-width: 0;
+  height: 2.3rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(2, 18, 34, 0.54);
+  color: rgba(240, 255, 255, 0.94);
+  font: 0.72rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  transition: width 240ms ease, opacity 180ms ease, padding 240ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.fish-search.is-expanded .fish-search-input {
+  width: min(20rem, calc(100vw - 19rem));
+  padding: 0.5rem 0.82rem;
+  border-color: rgba(190, 240, 255, 0.24);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fish-search.has-error .fish-search-input {
+  width: min(24rem, calc(100vw - 17rem));
+  border-color: rgba(255, 104, 112, 0.82);
+  background: rgba(64, 8, 18, 0.82);
+  color: rgba(255, 232, 235, 0.96);
+}
+
+.fish-search-input::placeholder {
+  color: rgba(210, 238, 245, 0.48);
+}
+
+.fish-search.is-disabled {
+  opacity: 0.42;
+}
+
+.fish-search.is-disabled .fish-search-button {
+  cursor: default;
+}
+
 @media (max-width: 640px) {
-  .fullscreen-toggle {
+  .top-controls {
     top: max(0.65rem, env(safe-area-inset-top));
     right: max(0.65rem, env(safe-area-inset-right));
+    left: max(0.65rem, env(safe-area-inset-left));
+    gap: 0.36rem;
+  }
+
+  .fullscreen-toggle,
+  .audio-toggle,
+  .fish-search-button {
     min-height: 2.15rem;
     padding: 0.48rem 0.64rem;
     font-size: 0.62rem;
+  }
+
+  .audio-toggle span:last-child,
+  .fullscreen-toggle span:last-child,
+  .fish-search-button-label {
+    display: none;
+  }
+
+  .fish-search.is-expanded {
+    flex: 1 1 auto;
+  }
+
+  .fish-search.is-expanded .fish-search-input,
+  .fish-search.has-error .fish-search-input {
+    width: 100%;
+    flex: 1 1 auto;
+    height: 2.15rem;
+    font-size: 0.68rem;
   }
 }
 
@@ -264,3 +362,4 @@ button { font: inherit; }
     linear-gradient(180deg, rgba(190, 245, 255, 0.16) 0%, rgba(92, 190, 235, 0.055) 22%, transparent 50%);
   mix-blend-mode: screen;
 }
+

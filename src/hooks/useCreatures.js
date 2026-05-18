@@ -24,17 +24,30 @@ function persistentUnitRandom(seed) {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
-function speciesSizeForCreature(creature) {
+function speciesSizeRange(creature) {
   const species = SPECIES_BY_NAME.get(creature.species)
-  const [min, max] = species?.sizeRange ?? DEFAULT_SIZE_RANGE
-  const random = persistentUnitRandom(`${creature.species}:${creature.id}:size`)
-  return min + random * (max - min)
+  return species?.sizeRange ?? DEFAULT_SIZE_RANGE
+}
+
+function deterministicSizeParameter(creature) {
+  return persistentUnitRandom(`${creature.species}:${creature.id}:size`)
+}
+
+function sizeFromParameter(creature) {
+  const [min, max] = speciesSizeRange(creature)
+  const rawSize = Number(creature.size)
+  const sizeParameter = Number.isFinite(rawSize)
+    ? Math.max(0, Math.min(1, rawSize))
+    : deterministicSizeParameter(creature)
+
+  return min + sizeParameter * (max - min)
 }
 
 function withDefaultSize(creature) {
   return {
     ...creature,
-    size: creature.size ?? speciesSizeForCreature(creature),
+    sizeParameter: Number.isFinite(Number(creature.size)) ? Math.max(0, Math.min(1, Number(creature.size))) : null,
+    size: sizeFromParameter(creature),
     traits: creature.traits ?? {},
   }
 }

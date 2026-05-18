@@ -283,7 +283,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       }}>
         <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
         {defaultDepthZone && (
-          <div style={{ marginTop: '0.5rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          <div className="tank-zone-label" style={{ marginTop: '0.5rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
             {defaultDepthZone.label}
           </div>
         )}
@@ -342,7 +342,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
 function FocusHint() {
   return (
-    <div style={{
+    <div className="focus-hint" style={{
       position: 'absolute', top: '4.8rem', left: '50%', transform: 'translateX(-50%)',
       color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.56rem',
       letterSpacing: '0.075em', textTransform: 'uppercase', pointerEvents: 'none',
@@ -350,7 +350,8 @@ function FocusHint() {
       borderRadius: 999, padding: '0.38rem 0.85rem', backdropFilter: 'blur(6px)',
       width: 'min(82vw, 25rem)', textAlign: 'center',
     }}>
-      Following fish · scroll/pinch to zoom · drag to orbit · tap fish to switch
+      <span className="focus-hint-title">Following fish</span>
+      <span className="focus-hint-controls">scroll/pinch to zoom · drag to orbit · tap fish to switch</span>
     </div>
   )
 }

@@ -104,6 +104,7 @@ button { font: inherit; }
   display: flex;
   align-items: center;
   flex-direction: row-reverse;
+  flex: 0 0 auto;
   gap: 0;
   pointer-events: auto;
 }
@@ -183,6 +184,18 @@ button { font: inherit; }
 
   .fish-search.is-expanded {
     gap: 0;
+  }
+
+  .fish-search,
+  .fish-search.is-expanded {
+    width: 2.15rem;
+    min-width: 2.15rem;
+    height: 2.15rem;
+  }
+
+  .fish-search-button {
+    flex: 0 0 2.15rem;
+    transform: none !important;
   }
 
   .fish-search.is-expanded .fish-search-input,

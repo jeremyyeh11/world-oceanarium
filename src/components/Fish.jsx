@@ -37,6 +37,7 @@ const DEFAULT_SWIM = {
   turnRadius: 0.65,
 }
 const MAX_MODEL_PITCH = THREE.MathUtils.degToRad(15)
+const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -161,10 +162,31 @@ function resolveModel(creature) {
   return species?.model ?? null
 }
 
+function creatureBodyLength(creature, swim) {
+  return swim.bodyLengthWU * (creature.size ?? 1)
+}
+
+function largeCreatureFactor(creature, swim) {
+  return THREE.MathUtils.clamp((creatureBodyLength(creature, swim) - 1.0) / 6.5, 0, 1)
+}
+
+function effectiveTurnRadius(creature, swim) {
+  return THREE.MathUtils.clamp(swim.turnRadius + largeCreatureFactor(creature, swim) * 0.32, 0, 1)
+}
+
+function verticalPathScale(creature, swim) {
+  return THREE.MathUtils.lerp(1, 0.32, largeCreatureFactor(creature, swim))
+}
+
+function maxVisualPitch(creature, swim) {
+  return THREE.MathUtils.lerp(MAX_MODEL_PITCH, MIN_LARGE_CREATURE_PITCH, largeCreatureFactor(creature, swim))
+}
+
 function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const [rawYMin, rawYMax] = DEPTH_Y[depthZone] ?? DEPTH_Y.epipelagic
-  const bodyMargin = Math.max(PATH_EDGE_PADDING, swim.bodyLengthWU * size * 0.8)
-  const verticalMargin = Math.min((rawYMax - rawYMin) * 0.18, Math.max(PATH_VERTICAL_PADDING, swim.bodyLengthWU * size * 0.32))
+  const bodyLength = swim.bodyLengthWU * size
+  const bodyMargin = Math.max(PATH_EDGE_PADDING, Math.min(2.2, bodyLength * 0.35))
+  const verticalMargin = Math.min((rawYMax - rawYMin) * 0.16, Math.max(PATH_VERTICAL_PADDING, Math.min(0.58, bodyLength * 0.16)))
   return {
     x: Math.max(1.5, SWIM_BOX.x - bodyMargin),
     z: Math.max(1.5, SWIM_BOX.z - bodyMargin),
@@ -185,7 +207,7 @@ function clampFishPosition(point, creature, swim) {
   return clampToSwimBox(point, bounds.yMin, bounds.yMax, bounds.x, bounds.z)
 }
 
-function randomPoint(rand, bounds, swim, index = 0) {
+function randomPoint(rand, bounds, swim, index = 0, verticalScale = 1) {
   const midY = (bounds.yMin + bounds.yMax) / 2
   const halfY = (bounds.yMax - bounds.yMin) / 2
   const verticalRange = THREE.MathUtils.lerp(0.16, 1.0, swim.erraticness)
@@ -193,7 +215,7 @@ function randomPoint(rand, bounds, swim, index = 0) {
 
   return new THREE.Vector3(
     randomRange(rand, -bounds.x * 0.82, bounds.x * 0.82) + edgeBias,
-    midY + randomRange(rand, -halfY * verticalRange, halfY * verticalRange),
+    midY + randomRange(rand, -halfY * verticalRange * verticalScale, halfY * verticalRange * verticalScale),
     randomRange(rand, -bounds.z, bounds.z),
   )
 }
@@ -201,25 +223,27 @@ function randomPoint(rand, bounds, swim, index = 0) {
 function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.species ?? 'fish'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, swim.turnRadius))
+  const turnRadius = effectiveTurnRadius(creature, swim)
+  const verticalScale = verticalPathScale(creature, swim)
+  const pointCount = Math.round(THREE.MathUtils.lerp(8, 4, turnRadius))
   const points = []
 
   if (start && exitTangent) {
     points.push(start.clone())
 
-    const leadDistance = THREE.MathUtils.lerp(1.8, 5.8, swim.turnRadius) * randomRange(rand, 0.86, 1.12)
+    const leadDistance = THREE.MathUtils.lerp(1.8, 7.2, turnRadius) * THREE.MathUtils.lerp(1, 1.45, largeCreatureFactor(creature, swim)) * randomRange(rand, 0.86, 1.12)
     const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
-    const verticalKick = THREE.MathUtils.lerp(0.12, 0.85, swim.erraticness)
+    const verticalKick = THREE.MathUtils.lerp(0.12, 0.85, swim.erraticness) * verticalScale
     lead.y += randomRange(rand, -verticalKick, verticalKick)
     lead.z += randomRange(rand, -0.55, 0.55)
     points.push(clampToSwimBox(lead, bounds.yMin, bounds.yMax, bounds.x, bounds.z))
 
-    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i))
+    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i, verticalScale))
   } else {
-    for (let i = 0; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i))
+    for (let i = 0; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i, verticalScale))
   }
 
-  const tension = THREE.MathUtils.lerp(0.32, 0.74, swim.turnRadius)
+  const tension = THREE.MathUtils.lerp(0.32, 0.78, turnRadius)
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
@@ -228,13 +252,14 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const midY = (bounds.yMin + bounds.yMax) / 2
   const halfY = (bounds.yMax - bounds.yMin) / 2
-  const pointCount = 7
-  const verticalRange = THREE.MathUtils.lerp(0.18, 0.55, swim.erraticness)
+  const turnRadius = effectiveTurnRadius(creature, swim)
+  const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, turnRadius))
+  const verticalRange = THREE.MathUtils.lerp(0.18, 0.55, swim.erraticness) * verticalPathScale(creature, swim)
   const points = []
 
   if (start && exitTangent) {
     points.push(start.clone())
-    const leadDistance = THREE.MathUtils.lerp(2.4, 6.2, swim.turnRadius) * randomRange(rand, 0.9, 1.15)
+    const leadDistance = THREE.MathUtils.lerp(2.4, 7.0, turnRadius) * THREE.MathUtils.lerp(1, 1.35, largeCreatureFactor(creature, swim)) * randomRange(rand, 0.9, 1.15)
     const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
     lead.y += randomRange(rand, -halfY * verticalRange * 0.38, halfY * verticalRange * 0.38)
     lead.z += randomRange(rand, -0.7, 0.7)
@@ -251,7 +276,7 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
     ))
   }
 
-  const tension = THREE.MathUtils.lerp(0.42, 0.7, swim.turnRadius)
+  const tension = THREE.MathUtils.lerp(0.42, 0.76, turnRadius)
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
@@ -678,32 +703,33 @@ export default function Fish({ creature, selected = false, debug = false, school
       })
     })
 
+    const pitchLimit = maxVisualPitch(creature, swim)
+    horizontalForward.set(tangent.x, 0, tangent.z)
+    if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
+    horizontalForward.normalize()
+
+    const visualPitch = THREE.MathUtils.clamp(
+      Math.atan2(tangent.y, Math.max(0.0001, Math.hypot(tangent.x, tangent.z))),
+      -pitchLimit,
+      pitchLimit,
+    )
+    pitchedForward
+      .copy(horizontalForward)
+      .multiplyScalar(Math.cos(visualPitch))
+      .addScaledVector(up, Math.sin(visualPitch))
+      .normalize()
+
     if (model) {
-      horizontalForward.set(tangent.x, 0, tangent.z)
-      if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
-      horizontalForward.normalize()
-
-      const modelPitch = THREE.MathUtils.clamp(
-        Math.atan2(tangent.y, Math.max(0.0001, Math.hypot(tangent.x, tangent.z))),
-        -MAX_MODEL_PITCH,
-        MAX_MODEL_PITCH,
-      )
-      pitchedForward
-        .copy(horizontalForward)
-        .multiplyScalar(Math.cos(modelPitch))
-        .addScaledVector(up, Math.sin(modelPitch))
-        .normalize()
-
       fish.up.copy(up)
       lookTarget.copy(fish.position).addScaledVector(pitchedForward, -1)
       fish.lookAt(lookTarget)
     } else {
-      lookTarget.copy(fish.position).add(tangent)
+      lookTarget.copy(fish.position).add(pitchedForward)
       fish.lookAt(lookTarget)
       fish.rotateY(Math.PI / 2)
     }
 
-    const pitch = THREE.MathUtils.clamp(tangent.y * 0.55, -0.32, 0.32)
+    const pitch = THREE.MathUtils.clamp(pitchedForward.y * 0.55, -0.22, 0.22)
     if (!model) fish.rotateZ(pitch)
     fish.up.lerp(up, 0.18)
 
@@ -747,6 +773,7 @@ export default function Fish({ creature, selected = false, debug = false, school
 
   const size = creature.size ?? 1
   const focusScale = selected ? 1.08 : 1
+  const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size), 1, 2.6)
 
   const handleSelect = (event) => {
     event.stopPropagation()
@@ -771,8 +798,8 @@ export default function Fish({ creature, selected = false, debug = false, school
           <line ref={followLineRef} geometry={followDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ffd166" transparent opacity={0.85} depthWrite={false} />
           </line>
-          <mesh ref={followTargetMarkerRef} raycast={() => null}>
-            <sphereGeometry args={[0.08, 8, 8]} />
+          <mesh ref={followTargetMarkerRef} scale={debugTargetScale} raycast={() => null}>
+            <sphereGeometry args={[0.09, 8, 8]} />
             <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />
           </mesh>
         </>

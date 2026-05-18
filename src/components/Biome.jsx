@@ -24,7 +24,7 @@ function deterministicSchoolOrder(creature) {
   return hashString(`${creature.species}:${creature.biome}:${creature.depthZone}:${creature.id}`)
 }
 
-export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debug = false, onCreatureClick }) {
+export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debug = false, debugView = 'all', onCreatureClick }) {
   const visibleCreatures = useMemo(
     () => creatures.filter(c => c.biome === name && c.alive),
     [creatures, name],
@@ -65,16 +65,20 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
     <group>
       <Environment biome={name} />
       {name === 'ocean' && <OceanBubbles />}
-      {visibleCreatures.map(creature => (
-        <Fish
-          key={creature.id}
-          creature={creature}
-          selected={creature.id === selectedCreatureId}
-          debug={debug}
-          school={schoolByCreatureId.get(creature.id) ?? null}
-          onClick={onCreatureClick}
-        />
-      ))}
+      {visibleCreatures.map(creature => {
+        const selected = creature.id === selectedCreatureId
+        const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))
+        return (
+          <Fish
+            key={creature.id}
+            creature={creature}
+            selected={selected}
+            debug={showDebug}
+            school={schoolByCreatureId.get(creature.id) ?? null}
+            onClick={onCreatureClick}
+          />
+        )
+      })}
     </group>
   )
 }

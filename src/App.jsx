@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Landing from './components/Landing'
 import BiomeMenu from './components/BiomeMenu'
 import TankView from './components/TankView'
+import SearchControl from './components/SearchControl'
 import { BIOMES } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { APP_VERSION_LABEL } from './version'
@@ -45,6 +46,7 @@ export default function App() {
   const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
+  const [audioMuted, setAudioMuted] = useState(true)
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const creatureData = useCreatures()
@@ -126,18 +128,32 @@ export default function App() {
   return (
     <>
       {page}
-      {fullscreenSupported && (
+      <div className="top-controls">
+        {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
         <button
-          className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
+          className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
           type="button"
-          aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-          aria-pressed={isFullscreen}
-          onClick={toggleFullscreen}
+          aria-label={audioMuted ? 'Unmute ocean audio placeholder' : 'Mute ocean audio placeholder'}
+          aria-pressed={!audioMuted}
+          title="Audio placeholder"
+          onClick={() => setAudioMuted(current => !current)}
         >
-          <span aria-hidden="true">{isFullscreen ? '↙' : '↗'}</span>
-          <span>{isFullscreen ? 'Exit' : 'Full'}</span>
+          <span aria-hidden="true">{audioMuted ? '🔇' : '🔊'}</span>
+          <span>{audioMuted ? 'Mute' : 'Audio'}</span>
         </button>
-      )}
+        {fullscreenSupported && (
+          <button
+            className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
+            type="button"
+            aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+            aria-pressed={isFullscreen}
+            onClick={toggleFullscreen}
+          >
+            <span aria-hidden="true">{isFullscreen ? '↙' : '↗'}</span>
+            <span>{isFullscreen ? 'Exit' : 'Full'}</span>
+          </button>
+        )}
+      </div>
       <button
         className="app-version-footnote"
         type="button"

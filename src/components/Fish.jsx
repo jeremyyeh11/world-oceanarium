@@ -452,7 +452,25 @@ function applyModelMaterialSettings(root) {
   return materials
 }
 
-function FishModel({ model, animation = 'idle' }) {
+function animationVariationForCreature(creature) {
+  const rand = mulberry32(hashString(`${creature.id ?? creature.species}:animation-variation`))
+  const baseSpeed = randomRange(rand, 0.88, 1.14)
+  const idleSpeed = baseSpeed * randomRange(rand, 0.92, 1.08)
+  const actionSpeed = baseSpeed * randomRange(rand, 0.94, 1.1)
+
+  return {
+    startOffset: randomRange(rand, 0, 1),
+    speeds: {
+      idle: idleSpeed,
+      burst: actionSpeed * randomRange(rand, 1.04, 1.16),
+      snap_left: actionSpeed * randomRange(rand, 0.96, 1.12),
+      snap_right: actionSpeed * randomRange(rand, 0.96, 1.12),
+      default: baseSpeed,
+    },
+  }
+}
+
+function FishModel({ model, animation = 'idle', animationVariation }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
@@ -466,16 +484,21 @@ function FishModel({ model, animation = 'idle' }) {
     const nextAction = actions[animation] ?? actions.idle ?? Object.values(actions)[0]
     if (!nextAction || activeActionRef.current === nextAction) return
 
+    const speed = animationVariation?.speeds?.[animation] ?? animationVariation?.speeds?.default ?? 1
+    const offset = animationVariation?.startOffset ?? 0
+
     nextAction.reset()
     nextAction.enabled = true
     nextAction.setEffectiveWeight(1)
-    nextAction.setEffectiveTimeScale(1)
+    nextAction.setEffectiveTimeScale(speed)
 
     if (animation === 'idle') {
       nextAction.setLoop(THREE.LoopRepeat, Infinity)
+      nextAction.time = (nextAction.getClip()?.duration ?? 0) * offset
     } else {
       nextAction.setLoop(THREE.LoopOnce, 1)
       nextAction.clampWhenFinished = true
+      nextAction.time = 0
     }
 
     const previousAction = activeActionRef.current
@@ -483,7 +506,7 @@ function FishModel({ model, animation = 'idle' }) {
     if (previousAction) nextAction.crossFadeFrom(previousAction, 0.12, false)
 
     activeActionRef.current = nextAction
-  }, [actions, animation])
+  }, [actions, animation, animationVariation])
 
   return (
     <primitive
@@ -502,6 +525,7 @@ export default function Fish({ creature, selected = false, debug = false, school
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
+  const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
   const isSchoolLeader = isSchooling && school.index === 0
@@ -806,7 +830,7 @@ export default function Fish({ creature, selected = false, debug = false, school
       >
         <group ref={modelRootRef}>
           {model ? (
-            <FishModel model={model} animation={animation} />
+            <FishModel model={model} animation={animation} animationVariation={animationVariation} />
           ) : (
             <mesh>
               <boxGeometry args={[0.7, 0.28, 0.18]} />

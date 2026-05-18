@@ -132,6 +132,18 @@ button { font: inherit; }
   display: block;
 }
 
+.focus-hint {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.16rem !important;
+  line-height: 1.15 !important;
+}
+
+.focus-hint-title,
+.focus-hint-controls {
+  display: block !important;
+}
+
 @media (max-width: 640px) and (orientation: portrait) {
   .tank-viewport.is-following-fish .tank-stage {
     top: 30dvh;

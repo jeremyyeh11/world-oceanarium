@@ -169,9 +169,7 @@ button { font: inherit; }
     top: max(0.65rem, env(safe-area-inset-top));
     right: max(0.65rem, env(safe-area-inset-right));
     left: max(0.65rem, env(safe-area-inset-left));
-    flex-wrap: wrap;
     gap: 0.28rem;
-    row-gap: 0.95rem;
   }
 
   .fullscreen-toggle,
@@ -184,26 +182,16 @@ button { font: inherit; }
   }
 
   .fish-search.is-expanded {
-    display: contents;
-  }
-
-  .fish-search.is-expanded .fish-search-button {
-    order: 1;
-  }
-
-  .audio-toggle {
-    order: 2;
-  }
-
-  .fullscreen-toggle {
-    order: 3;
+    gap: 0;
   }
 
   .fish-search.is-expanded .fish-search-input,
   .fish-search.has-error .fish-search-input {
-    order: 4;
-    flex: 0 0 100%;
-    width: 100%;
+    position: absolute;
+    top: calc(2.15rem + 0.95rem);
+    left: 0;
+    right: 0;
+    width: auto;
     height: 2rem;
     padding: 0.42rem 0.7rem;
     font: 16px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

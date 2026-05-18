@@ -1,4 +1,4 @@
-import { SPECIES } from '../data/species'
+import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 
 const DEPTH_LABELS = {
   epipelagic: 'Sunlight Zone',
@@ -13,6 +13,11 @@ const DEPTH_LABELS = {
 }
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+const DEFAULT_BODY_LENGTH_WU = 1
+const DEFAULT_MASS = {
+  coefficient: 0.008,
+  exponent: 3,
+}
 
 const styles = {
   wrap: {
@@ -135,6 +140,31 @@ function fallbackIndividualDescription() {
   return 'this one poops a lot'
 }
 
+function bodyLengthMeters(creature, species) {
+  const bodyLengthWU = creature.traits?.bodyLengthWU ?? species?.swim?.bodyLengthWU ?? DEFAULT_BODY_LENGTH_WU
+  return bodyLengthWU * (creature.size ?? 1) * WORLD_UNIT_METERS
+}
+
+function estimateMassKg(lengthMeters, species) {
+  const mass = species?.mass ?? DEFAULT_MASS
+  const lengthCm = lengthMeters * 100
+  const coefficient = mass.coefficient ?? DEFAULT_MASS.coefficient
+  const exponent = mass.exponent ?? DEFAULT_MASS.exponent
+  return (coefficient * (lengthCm ** exponent)) / 1000
+}
+
+function formatLength(lengthMeters) {
+  if (!Number.isFinite(lengthMeters) || lengthMeters <= 0) return 'Unknown'
+  if (lengthMeters < 1) return `${Math.round(lengthMeters * 100)} cm`
+  return `${lengthMeters.toFixed(lengthMeters < 10 ? 1 : 0)} m`
+}
+
+function formatMass(massKg) {
+  if (!Number.isFinite(massKg) || massKg <= 0) return 'Unknown'
+  if (massKg < 1) return `${Math.round(massKg * 1000)} g`
+  return `${massKg.toFixed(massKg < 10 ? 1 : 0)} kg`
+}
+
 function Stat({ label, value }) {
   return (
     <div style={styles.stat}>
@@ -148,6 +178,8 @@ export default function InfoCard({ creature, onClose }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthLabel = DEPTH_LABELS[creature.depthZone] ?? creature.depthZone ?? 'Unknown zone'
   const individualDescription = creature.description?.trim() || fallbackIndividualDescription(creature)
+  const lengthMeters = bodyLengthMeters(creature, species)
+  const massKg = estimateMassKg(lengthMeters, species)
 
   return (
     <section style={styles.wrap} aria-label={`${creature.species} details`}>
@@ -172,6 +204,8 @@ export default function InfoCard({ creature, onClose }) {
       <div style={styles.grid}>
         <Stat label="ID" value={creature.id} />
         <Stat label="Born" value={formatBornAt(creature.bornAt)} />
+        <Stat label="Body length" value={formatLength(lengthMeters)} />
+        <Stat label="Weight" value={formatMass(massKg)} />
       </div>
 
       <p style={styles.footer}>Tap another fish to switch focus. Tap empty water or × to release.</p>

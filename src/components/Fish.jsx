@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { SPECIES } from '../data/species'
+import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -23,7 +23,6 @@ const SWIM_BOX = {
 }
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
-const WORLD_UNIT_METERS = 0.25
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
   visualTimeScale: 0.45,

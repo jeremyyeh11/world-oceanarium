@@ -74,6 +74,10 @@ button { font: inherit; }
   stroke-linejoin: round;
 }
 
+.fish-search-close-icon {
+  display: none;
+}
+
 .fullscreen-toggle:hover,
 .fullscreen-toggle:focus-visible,
 .fullscreen-toggle.is-active,
@@ -156,6 +160,13 @@ button { font: inherit; }
     gap: 0.36rem;
   }
 
+  .top-controls:has(.fish-search.is-expanded) .audio-toggle,
+  .top-controls:has(.fish-search.is-expanded) .fullscreen-toggle {
+    opacity: 0;
+    transform: translateX(5rem);
+    pointer-events: none;
+  }
+
   .fullscreen-toggle,
   .audio-toggle,
   .fish-search-button {
@@ -167,6 +178,15 @@ button { font: inherit; }
 
   .fish-search.is-expanded {
     flex: 1 1 auto;
+    flex-direction: row;
+  }
+
+  .fish-search.is-expanded .fish-search-icon {
+    display: none;
+  }
+
+  .fish-search.is-expanded .fish-search-close-icon {
+    display: block;
   }
 
   .fish-search.is-expanded .fish-search-input,
@@ -174,7 +194,7 @@ button { font: inherit; }
     width: 100%;
     flex: 1 1 auto;
     height: 2.15rem;
-    font-size: 0.68rem;
+    font-size: 16px;
   }
 }
 

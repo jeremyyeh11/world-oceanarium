@@ -144,6 +144,10 @@ button { font: inherit; }
   display: block !important;
 }
 
+.focus-hint-controls-mobile {
+  display: none !important;
+}
+
 @media (max-width: 640px) and (orientation: portrait) {
   .tank-viewport.is-following-fish .tank-stage {
     top: 30dvh;
@@ -170,6 +174,10 @@ button { font: inherit; }
   .tank-viewport.is-following-fish .focus-hint-title,
   .tank-viewport.is-following-fish .focus-hint-controls {
     display: block !important;
+  }
+
+  .tank-viewport.is-following-fish .focus-hint-controls-desktop {
+    display: none !important;
   }
 
   .tank-viewport.is-following-fish .focus-hint-title {

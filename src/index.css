@@ -209,6 +209,51 @@ button { font: inherit; }
     font: 16px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     letter-spacing: 0.01em;
   }
+
+  .fish-search.is-expanded .fish-search-input::placeholder {
+    font-size: 0.52rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+}
+
+.tank-back-button {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(190, 240, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(2, 18, 34, 0.52);
+  color: rgba(230, 252, 255, 0.76);
+  font: 1rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.tank-back-button:hover,
+.tank-back-button:focus-visible {
+  border-color: rgba(125, 249, 255, 0.58);
+  color: rgba(245, 255, 255, 0.94);
+  background: rgba(0, 42, 58, 0.68);
+}
+
+@media (max-width: 640px) {
+  .tank-back-button {
+    top: max(0.65rem, env(safe-area-inset-top));
+    left: max(0.65rem, env(safe-area-inset-left));
+    width: 2.15rem;
+    height: 2.15rem;
+    padding: 0.48rem;
+    font-size: 0.82rem;
+  }
 }
 
 .debug-mode-button {

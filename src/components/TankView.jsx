@@ -283,7 +283,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       }}>
         <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
         {defaultDepthZone && (
-          <div className="tank-zone-label" style={{ marginTop: '0.5rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          <div className="tank-zone-label" style={{ marginTop: '0.34rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.52rem', letterSpacing: '0.13em', textTransform: 'uppercase' }}>
             {defaultDepthZone.label}
           </div>
         )}
@@ -351,7 +351,7 @@ function FocusHint() {
       width: 'min(82vw, 25rem)', textAlign: 'center',
     }}>
       <span className="focus-hint-title">Following fish</span>
-      <span className="focus-hint-controls">scroll/pinch to zoom · drag to orbit · tap fish to switch</span>
+      <span className="focus-hint-controls">scroll/pinch to zoom · drag to orbit</span>
     </div>
   )
 }

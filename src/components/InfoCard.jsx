@@ -132,12 +132,6 @@ const styles = {
     fontWeight: 620,
     overflowWrap: 'anywhere',
   },
-  footer: {
-    margin: '0.85rem 0 0',
-    color: 'rgba(210,235,245,0.48)',
-    fontSize: '0.68rem',
-    lineHeight: 1.35,
-  },
 }
 
 function formatBornAt(value) {
@@ -221,8 +215,6 @@ export default function InfoCard({ creature, onClose }) {
         <Stat label="Body length" value={formatLength(lengthMeters)} />
         <Stat label="Weight" value={formatMass(massKg)} />
       </div>
-
-      <p className="info-card-footer" style={styles.footer}>Tap another fish to switch focus. Tap empty water or × to release.</p>
     </section>
   )
 }

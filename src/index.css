@@ -143,11 +143,6 @@ button { font: inherit; }
     bottom: 40dvh;
   }
 
-  .tank-viewport.is-following-fish .tank-zone-label {
-    margin-top: 0.34rem !important;
-    font-size: 0.52rem !important;
-    letter-spacing: 0.13em !important;
-  }
 
   .tank-viewport.is-following-fish .focus-hint {
     top: 4.35rem !important;
@@ -233,9 +228,6 @@ button { font: inherit; }
     margin-top: 0.52rem !important;
   }
 
-  .tank-viewport.is-following-fish .info-card-footer {
-    display: none !important;
-  }
 
   body:has(.tank-viewport.is-following-fish) .app-version-footnote {
     bottom: calc(40dvh + 0.7rem);

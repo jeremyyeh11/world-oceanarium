@@ -70,28 +70,6 @@ export const SPECIES = [
     },
     sizeRange: [3.2, 3.8],
   },
-  {
-    id: 'betta',
-    name: 'Betta Fish',
-    biome: 'tropical-river',
-    depthZone: 'shallow',
-    schooling: false,
-    aggressive: true,
-    predator: false,
-    swim: { speed: 0.78, erraticness: 0.62, turnRadius: 0.45 },
-    sizeRange: [0.72, 1.08],
-  },
-  {
-    id: 'tetra',
-    name: 'Neon Tetra',
-    biome: 'tropical-river',
-    depthZone: 'mid',
-    schooling: true,
-    aggressive: false,
-    predator: false,
-    swim: { speed: 1.18, erraticness: 0.52, turnRadius: 0.55 },
-    sizeRange: [0.82, 1.12],
-  },
 ]
 
 export const CREATURES = [

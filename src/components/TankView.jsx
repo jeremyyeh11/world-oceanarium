@@ -341,10 +341,11 @@ function FocusHint() {
   return (
     <div style={{
       position: 'absolute', top: '4.8rem', left: '50%', transform: 'translateX(-50%)',
-      color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.72rem',
-      letterSpacing: '0.08em', textTransform: 'uppercase', pointerEvents: 'none',
+      color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.56rem',
+      letterSpacing: '0.075em', textTransform: 'uppercase', pointerEvents: 'none',
       background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 999, padding: '0.45rem 0.7rem', backdropFilter: 'blur(6px)',
+      borderRadius: 999, padding: '0.38rem 0.85rem', backdropFilter: 'blur(6px)',
+      width: 'min(82vw, 25rem)', textAlign: 'center',
     }}>
       Following fish · scroll/pinch to zoom · drag to orbit · tap fish to switch
     </div>

@@ -40,6 +40,7 @@ button { font: inherit; }
 .fullscreen-toggle,
 .audio-toggle,
 .fish-search-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -72,10 +73,15 @@ button { font: inherit; }
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: opacity 140ms ease;
+}
+
+.fish-search-button .top-control-icon {
+  position: absolute;
 }
 
 .fish-search-close-icon {
-  display: none;
+  opacity: 0;
 }
 
 .fullscreen-toggle:hover,
@@ -114,11 +120,11 @@ button { font: inherit; }
 }
 
 .fish-search.is-expanded .fish-search-icon {
-  display: none;
+  opacity: 0;
 }
 
 .fish-search.is-expanded .fish-search-close-icon {
-  display: block;
+  opacity: 1;
 }
 
 .fish-search-input {
@@ -173,6 +179,10 @@ button { font: inherit; }
     gap: 0.28rem;
   }
 
+  .fish-search-input {
+    transition: opacity 160ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+  }
+
   .fullscreen-toggle,
   .audio-toggle,
   .fish-search-button {
@@ -201,7 +211,7 @@ button { font: inherit; }
   .fish-search.is-expanded .fish-search-input,
   .fish-search.has-error .fish-search-input {
     position: absolute;
-    top: calc(2.15rem + 0.95rem);
+    top: calc(2.15rem + 3rem);
     left: 0;
     right: 0;
     width: auto;

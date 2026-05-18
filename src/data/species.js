@@ -1,5 +1,29 @@
 export const WORLD_UNIT_METERS = 0.25
 
+export const DEPTH_ZONES = [
+  {
+    id: 'epipelagic',
+    name: 'Epipelagic',
+    label: 'Epipelagic · Sunlight Zone',
+    shortLabel: 'Sunlight Zone',
+    depthRangeMeters: [0, 200],
+  },
+  {
+    id: 'mesopelagic',
+    name: 'Mesopelagic',
+    label: 'Mesopelagic · Twilight Zone',
+    shortLabel: 'Twilight Zone',
+    depthRangeMeters: [200, 1000],
+  },
+  {
+    id: 'bathypelagic',
+    name: 'Bathypelagic',
+    label: 'Bathypelagic · Midnight Zone',
+    shortLabel: 'Midnight Zone',
+    depthRangeMeters: [1000, 4000],
+  },
+]
+
 export const BIOMES = [
   {
     id: 'tropical-river',
@@ -12,12 +36,14 @@ export const BIOMES = [
   },
   {
     id: 'ocean',
-    name: 'Open Ocean',
-    tagline: 'The deep blue, surface to hadal',
+    name: 'Pelagic Ocean',
+    tagline: 'Open water from sunlight to midnight',
     color: '#0e4a7a',
     accent: '#4db8ff',
     icon: '🌊',
-    description: 'From sunlit surface to the deepest trenches.',
+    description: 'Open-water ocean habitat organized by depth zones, from epipelagic sunlight to the dark pelagic depths.',
+    zones: ['epipelagic', 'mesopelagic', 'bathypelagic'],
+    defaultDepthZone: 'epipelagic',
   },
 ]
 

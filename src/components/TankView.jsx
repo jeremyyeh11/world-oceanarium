@@ -6,6 +6,7 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
+import { DEPTH_ZONES } from '../data/species'
 
 const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
@@ -20,6 +21,7 @@ const DEBUG_VIEW_MODES = [
   { id: 'focused', icon: '◉', label: 'Focused' },
   { id: 'none', icon: '○', label: 'None' },
 ]
+const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
 function getPanLimits() {
   const viewportWidth = window.innerWidth
@@ -53,6 +55,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const touchPointsRef = useRef(new Map())
   const focusChangeAtRef = useRef(0)
   const zoomActive = Boolean(selectedCreature)
+  const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
 
   const toggleDebugMode = () => {
     setDebugMode(current => !current)
@@ -279,9 +282,9 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         pointerEvents: 'none',
       }}>
         <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
-        {biome.id === 'ocean' && (
+        {defaultDepthZone && (
           <div style={{ marginTop: '0.5rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-            Sunlight Zone
+            {defaultDepthZone.label}
           </div>
         )}
       </div>

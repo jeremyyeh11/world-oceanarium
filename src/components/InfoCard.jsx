@@ -1,18 +1,7 @@
-import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
-
-const DEPTH_LABELS = {
-  epipelagic: 'Sunlight Zone',
-  mesopelagic: 'Twilight Zone',
-  bathypelagic: 'Midnight Zone',
-  abyssalpelagic: 'Abyssal Zone',
-  hadalpelagic: 'Hadal Zone',
-  shallow: 'Shallow Water',
-  mid: 'Mid Water',
-  deep: 'Deep Water',
-  benthic: 'Benthic Floor',
-}
+import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 const DEFAULT_BODY_LENGTH_WU = 1
 const DEFAULT_MASS = {
   coefficient: 0.008,
@@ -176,7 +165,8 @@ function Stat({ label, value }) {
 
 export default function InfoCard({ creature, onClose }) {
   const species = SPECIES_BY_NAME.get(creature.species)
-  const depthLabel = DEPTH_LABELS[creature.depthZone] ?? creature.depthZone ?? 'Unknown zone'
+  const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
+  const depthLabel = depthZone?.label ?? creature.depthZone ?? 'Unknown zone'
   const individualDescription = creature.description?.trim() || fallbackIndividualDescription(creature)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)

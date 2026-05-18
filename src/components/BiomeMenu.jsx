@@ -1,4 +1,13 @@
 import { useState } from 'react'
+import { DEPTH_ZONES } from '../data/species'
+
+const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
+
+function zoneSummary(biome) {
+  return biome.zones
+    ?.map(zoneId => DEPTH_ZONE_BY_ID.get(zoneId)?.name ?? zoneId)
+    .join(' / ')
+}
 
 export default function BiomeMenu({ biomes, onSelect }) {
   const [hoveredId, setHoveredId] = useState(null)
@@ -44,6 +53,11 @@ export default function BiomeMenu({ biomes, onSelect }) {
                 </div>
               </div>
               <div style={{ fontSize: '0.82rem', color: 'rgba(220, 240, 255, 0.55)', lineHeight: 1.5 }}>{biome.description}</div>
+              {zoneSummary(biome) && (
+                <div style={{ fontSize: '0.7rem', color: 'rgba(125, 210, 255, 0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Zones: {zoneSummary(biome)}
+                </div>
+              )}
               <div style={{ marginTop: 'auto', fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>
                 Enter →
               </div>

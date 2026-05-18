@@ -40,6 +40,7 @@ const MAX_MODEL_PITCH = THREE.MathUtils.degToRad(15)
 const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
 const SMALL_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(220)
 const LARGE_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(42)
+const MAX_PATH_Y_GRADIENT = 0.2
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -230,6 +231,21 @@ function clampToSwimBox(point, yMin, yMax, xLimit = SWIM_BOX.x - PATH_EDGE_PADDI
   return point
 }
 
+function limitPathYGradient(points, bounds, maxGradient = MAX_PATH_Y_GRADIENT) {
+  for (let i = 1; i < points.length; i += 1) {
+    const prev = points[i - 1]
+    const point = points[i]
+    const horizontalDistance = Math.max(0.001, Math.hypot(point.x - prev.x, point.z - prev.z))
+    const maxDeltaY = horizontalDistance * maxGradient
+    point.y = THREE.MathUtils.clamp(
+      point.y,
+      Math.max(bounds.yMin, prev.y - maxDeltaY),
+      Math.min(bounds.yMax, prev.y + maxDeltaY),
+    )
+  }
+  return points
+}
+
 function clampFishPosition(point, creature, swim) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   return clampToSwimBox(point, bounds.yMin, bounds.yMax, bounds.x, bounds.z)
@@ -238,7 +254,7 @@ function clampFishPosition(point, creature, swim) {
 function randomPoint(rand, bounds, swim, index = 0, verticalScale = 1) {
   const midY = (bounds.yMin + bounds.yMax) / 2
   const halfY = (bounds.yMax - bounds.yMin) / 2
-  const verticalRange = THREE.MathUtils.lerp(0.16, 1.0, swim.erraticness)
+  const verticalRange = THREE.MathUtils.lerp(0.42, 1.0, swim.erraticness)
   const edgeBias = index % 2 === 0 ? -0.55 : 0.55
 
   return new THREE.Vector3(
@@ -271,6 +287,7 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
     for (let i = 0; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i, verticalScale))
   }
 
+  limitPathYGradient(points, bounds)
   const tension = THREE.MathUtils.lerp(0.32, 0.78, turnRadius)
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
@@ -282,7 +299,7 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
   const halfY = (bounds.yMax - bounds.yMin) / 2
   const turnRadius = effectiveTurnRadius(creature, swim)
   const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, turnRadius))
-  const verticalRange = THREE.MathUtils.lerp(0.18, 0.55, swim.erraticness) * verticalPathScale(creature, swim)
+  const verticalRange = THREE.MathUtils.lerp(0.45, 1.0, swim.erraticness) * verticalPathScale(creature, swim)
   const points = []
 
   if (start && exitTangent) {
@@ -304,6 +321,7 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
     ))
   }
 
+  limitPathYGradient(points, bounds)
   const tension = THREE.MathUtils.lerp(0.42, 0.76, turnRadius)
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }

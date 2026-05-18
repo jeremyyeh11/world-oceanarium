@@ -146,19 +146,18 @@ function resolveSpecies(creature) {
 function resolveSwimProfile(creature) {
   const species = resolveSpecies(creature)
   const speciesSwim = species?.swim ?? DEFAULT_SWIM
-  const traits = creature.traits ?? {}
 
   return {
-    bodyLengthWU: traits.bodyLengthWU ?? speciesSwim.bodyLengthWU ?? DEFAULT_SWIM.bodyLengthWU,
-    visualTimeScale: traits.visualTimeScale ?? speciesSwim.visualTimeScale ?? DEFAULT_SWIM.visualTimeScale,
-    idleBLPerSec: traits.idleBLPerSec ?? speciesSwim.idleBLPerSec ?? DEFAULT_SWIM.idleBLPerSec,
-    idleDriftBLPerSec: traits.idleDriftBLPerSec ?? speciesSwim.idleDriftBLPerSec ?? DEFAULT_SWIM.idleDriftBLPerSec,
-    snapBLPerSec: traits.snapBLPerSec ?? speciesSwim.snapBLPerSec ?? DEFAULT_SWIM.snapBLPerSec,
-    burstBLPerSec: traits.burstBLPerSec ?? speciesSwim.burstBLPerSec ?? DEFAULT_SWIM.burstBLPerSec,
-    burstInterval: traits.burstInterval ?? speciesSwim.burstInterval ?? DEFAULT_SWIM.burstInterval,
-    speedMultiplier: traits.swimSpeedMultiplier ?? speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
-    erraticness: traits.swimErraticness ?? speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
-    turnRadius: traits.turnRadius ?? speciesSwim.turnRadius ?? DEFAULT_SWIM.turnRadius,
+    bodyLengthWU: speciesSwim.bodyLengthWU ?? DEFAULT_SWIM.bodyLengthWU,
+    visualTimeScale: speciesSwim.visualTimeScale ?? DEFAULT_SWIM.visualTimeScale,
+    idleBLPerSec: speciesSwim.idleBLPerSec ?? DEFAULT_SWIM.idleBLPerSec,
+    idleDriftBLPerSec: speciesSwim.idleDriftBLPerSec ?? DEFAULT_SWIM.idleDriftBLPerSec,
+    snapBLPerSec: speciesSwim.snapBLPerSec ?? DEFAULT_SWIM.snapBLPerSec,
+    burstBLPerSec: speciesSwim.burstBLPerSec ?? DEFAULT_SWIM.burstBLPerSec,
+    burstInterval: speciesSwim.burstInterval ?? DEFAULT_SWIM.burstInterval,
+    speedMultiplier: speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
+    erraticness: speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
+    turnRadius: speciesSwim.turnRadius ?? DEFAULT_SWIM.turnRadius,
   }
 }
 
@@ -907,7 +906,7 @@ export default function Fish({ creature, selected = false, debug = false, school
             <mesh>
               <boxGeometry args={[0.7, 0.28, 0.18]} />
               <meshStandardMaterial
-                color={creature.color ?? '#7ab8c0'}
+                color="#7ab8c0"
                 roughness={0.42}
                 metalness={0.02}
                 envMapIntensity={0.85}

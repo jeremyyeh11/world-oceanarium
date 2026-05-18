@@ -152,7 +152,7 @@ function fallbackIndividualDescription() {
 }
 
 function bodyLengthMeters(creature, species) {
-  const bodyLengthWU = creature.traits?.bodyLengthWU ?? species?.swim?.bodyLengthWU ?? DEFAULT_BODY_LENGTH_WU
+  const bodyLengthWU = species?.swim?.bodyLengthWU ?? DEFAULT_BODY_LENGTH_WU
   return bodyLengthWU * (creature.size ?? 1) * WORLD_UNIT_METERS
 }
 

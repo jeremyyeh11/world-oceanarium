@@ -25,6 +25,54 @@ button { font: inherit; }
   cursor: default;
 }
 
+.fullscreen-toggle {
+  position: fixed;
+  top: max(0.85rem, env(safe-area-inset-top));
+  right: max(0.85rem, env(safe-area-inset-right));
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+  min-height: 2.3rem;
+  padding: 0.5rem 0.72rem;
+  border: 1px solid rgba(190, 240, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(2, 18, 34, 0.52);
+  color: rgba(230, 252, 255, 0.76);
+  font: 0.68rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.fullscreen-toggle:hover,
+.fullscreen-toggle:focus-visible,
+.fullscreen-toggle.is-active {
+  border-color: rgba(125, 249, 255, 0.58);
+  color: rgba(245, 255, 255, 0.94);
+  background: rgba(0, 42, 58, 0.68);
+}
+
+.fullscreen-toggle:focus-visible {
+  outline: 2px solid rgba(125, 249, 255, 0.45);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .fullscreen-toggle {
+    top: max(0.65rem, env(safe-area-inset-top));
+    right: max(0.65rem, env(safe-area-inset-right));
+    min-height: 2.15rem;
+    padding: 0.48rem 0.64rem;
+    font-size: 0.62rem;
+  }
+}
+
 .debug-mode-button {
   position: absolute;
   right: 1rem;

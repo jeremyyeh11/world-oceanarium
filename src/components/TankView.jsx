@@ -66,6 +66,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [stagePan, setStagePan] = useState(0)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
+  const [followScreenOffset, setFollowScreenOffset] = useState(0)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const audioLevels = useAudioLevels(debugMode)
   const dragRef = useRef(null)
@@ -146,6 +147,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   useEffect(() => {
     if (!selectedCreature) {
       document.documentElement.style.removeProperty('--mobile-follow-card-height')
+      setFollowScreenOffset(0)
       return undefined
     }
 
@@ -157,7 +159,9 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       if (!card) return
 
       const syncHeight = () => {
-        document.documentElement.style.setProperty('--mobile-follow-card-height', `${card.getBoundingClientRect().height}px`)
+        const cardHeight = card.getBoundingClientRect().height
+        document.documentElement.style.setProperty('--mobile-follow-card-height', `${cardHeight}px`)
+        setFollowScreenOffset(isMobileInputSurface() ? Math.min(0.4, cardHeight / Math.max(1, window.innerHeight)) : 0)
       }
 
       syncHeight()
@@ -354,7 +358,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <SceneLighting biome={biome.id} />
-          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} followOrbit={followOrbit} followDistance={followDistance} />
+          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} followOrbit={followOrbit} followDistance={followDistance} followScreenOffset={followScreenOffset} />
           <Biome
             key={biome.id}
             name={biome.id}

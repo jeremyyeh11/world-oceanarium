@@ -47,7 +47,7 @@ export default function App() {
   const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
-  const { muted: audioMuted, supported: audioSupported, startAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
+  const { muted: audioMuted, supported: audioSupported, startAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const creatureData = useCreatures()
@@ -112,6 +112,7 @@ export default function App() {
     setScreen('tank')
   }
   const backToLanding = () => {
+    stopAudio()
     setActiveBiome(DEFAULT_BIOME_ID)
     setScreen('landing')
   }
@@ -133,29 +134,31 @@ export default function App() {
       {page}
       <div className="top-controls">
         {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
-        <button
-          className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
-          type="button"
-          aria-label={audioMuted ? 'Unmute audio' : 'Mute audio'}
-          aria-pressed={!audioMuted}
-          title={audioSupported ? undefined : 'Audio unavailable'}
-          disabled={!audioSupported}
-          onClick={toggleAudioMuted}
-        >
-          <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-            {audioMuted ? (
-              <>
-                <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
-                <path d="m17 9 4 6m0-6-4 6" />
-              </>
-            ) : (
-              <>
-                <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
-                <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6.2a8.2 8.2 0 0 1 0 11.6" />
-              </>
-            )}
-          </svg>
-        </button>
+        {screen === 'tank' && (
+          <button
+            className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
+            type="button"
+            aria-label={audioMuted ? 'Unmute audio' : 'Mute audio'}
+            aria-pressed={!audioMuted}
+            title={audioSupported ? undefined : 'Audio unavailable'}
+            disabled={!audioSupported}
+            onClick={toggleAudioMuted}
+          >
+            <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+              {audioMuted ? (
+                <>
+                  <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                  <path d="m17 9 4 6m0-6-4 6" />
+                </>
+              ) : (
+                <>
+                  <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                  <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6.2a8.2 8.2 0 0 1 0 11.6" />
+                </>
+              )}
+            </svg>
+          </button>
+        )}
         {fullscreenSupported && (
           <button
             className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}

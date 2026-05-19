@@ -53,6 +53,7 @@ button { font: inherit; }
   align-items: flex-end;
   gap: 0.34rem;
   pointer-events: auto;
+  perspective: 12rem;
 }
 
 .fullscreen-toggle,
@@ -93,7 +94,55 @@ button { font: inherit; }
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: opacity 140ms ease;
+  transition: opacity 140ms ease, transform 260ms cubic-bezier(0.2, 0.78, 0.18, 1);
+}
+
+.top-controls.is-open .top-menu-toggle .top-control-icon {
+  transform: rotate(90deg);
+}
+
+.top-controls-menu > .screenshot-toggle,
+.top-controls-menu > .audio-toggle,
+.top-controls-menu > .fullscreen-toggle {
+  opacity: 0;
+  transform: translateY(-0.7rem) scale(0.88) rotateX(-18deg);
+  transform-origin: top center;
+  animation: top-control-pour-down 260ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+}
+
+.top-controls-menu > .audio-toggle {
+  animation-delay: 45ms;
+}
+
+.top-controls-menu > .fullscreen-toggle {
+  animation-delay: 90ms;
+}
+
+@keyframes top-control-pour-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.7rem) scale(0.88) rotateX(-18deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0.08rem) scale(1.025) rotateX(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-control-icon,
+  .top-controls-menu > .screenshot-toggle,
+  .top-controls-menu > .audio-toggle,
+  .top-controls-menu > .fullscreen-toggle {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .fish-search-button .top-control-icon {

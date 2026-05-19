@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.3 — Public launch shell polish
 
-Status: in progress as `v0.7.3-dev_06`.
+Status: in progress as `v0.7.3-dev_07`.
 
 ### Screenshot/share polish
 
@@ -22,6 +22,7 @@ Status: in progress as `v0.7.3-dev_06`.
 - Hid the selected/followed fish silhouette in screenshot mode while preserving the follow camera state.
 - Replaced the crowded top-right icon row with a consistent hamburger menu that drops tank controls vertically.
 - Kept search as a top-level button beside the hamburger while screenshot/audio/fullscreen stay inside the dropdown.
+- Animated the hamburger icon to rotate open while menu icons pour/slide downward with a short stagger.
 
 ## v0.7.2 — Audio + mobile follow polish
 

@@ -7,6 +7,7 @@ import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 import { DEPTH_ZONES } from '../data/species'
+import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
 const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
@@ -58,6 +59,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
+  const audioLevels = useAudioLevels(debugMode)
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
   const focusChangeAtRef = useRef(0)
@@ -381,6 +383,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               </button>
             ))}
           </div>
+          <AudioDebugMeters levels={audioLevels} />
           {creatureDataError && (
             <div style={{ maxWidth: 280, whiteSpace: 'normal', textTransform: 'none', color: 'rgba(255,205,205,0.8)' }}>
               {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}
@@ -391,6 +394,43 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
       {selectedCreature && <FocusHint />}
       {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}
+    </div>
+  )
+}
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value))
+}
+
+function formatDb(value) {
+  if (!Number.isFinite(value) || value <= LEVEL_FLOOR_DB + 0.5) return '-∞ dB'
+  return `${Math.round(value)} dB`
+}
+
+function meterLevel(value) {
+  if (!Number.isFinite(value)) return 0
+  return clamp01((value - LEVEL_FLOOR_DB) / Math.abs(LEVEL_FLOOR_DB))
+}
+
+function AudioDebugMeters({ levels }) {
+  const rows = [
+    { id: 'overall', label: 'Overall', value: levels.overallDb },
+    { id: 'ambient', label: 'Ambient', value: levels.ambientDb },
+    { id: 'sfx', label: 'SFX', value: levels.sfxDb },
+  ]
+
+  return (
+    <div className="audio-debug-meters" aria-label="Audio volume debug meters">
+      <div className="audio-debug-heading">Audio dB{levels.muted ? ' · muted' : ''}</div>
+      {rows.map(row => (
+        <div className="audio-debug-row" key={row.id}>
+          <span className="audio-debug-label">{row.label}</span>
+          <div className="audio-debug-track" aria-hidden="true">
+            <span className="audio-debug-fill" style={{ transform: `scaleX(${meterLevel(row.value)})` }} />
+          </div>
+          <span className="audio-debug-value">{formatDb(row.value)}</span>
+        </div>
+      ))}
     </div>
   )
 }

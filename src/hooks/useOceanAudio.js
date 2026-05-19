@@ -257,6 +257,14 @@ export function useOceanAudio() {
     return true
   }, [ensureAudio, setMasterMuted])
 
+  const stopAudio = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    setMasterMuted(true)
+    audio.context.suspend?.()
+  }, [setMasterMuted])
+
   const toggleMuted = useCallback(async () => {
     const audio = await ensureAudio()
     if (!audio) return
@@ -304,7 +312,7 @@ export function useOceanAudio() {
     audio.context.close?.()
   }, [stopLevelMeter])
 
-  return { muted, supported, startAudio, toggleMuted }
+  return { muted, supported, startAudio, stopAudio, toggleMuted }
 }
 
 export function useAudioLevels(active) {

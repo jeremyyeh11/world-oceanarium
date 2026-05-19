@@ -48,6 +48,10 @@ const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
+const SELECTED_OUTLINE_COLOR = '#b9f7ff'
+const LEADER_OUTLINE_COLOR = '#80ff72'
+const SELECTED_OUTLINE_OPACITY = 0.30
+const LEADER_OUTLINE_OPACITY = 0.22
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -560,6 +564,53 @@ function animationVariationForCreature(creature) {
   }
 }
 
+function applyOutlineMaterialSettings(object, color, opacity) {
+  object.traverse(child => {
+    if (!child.isMesh) return
+    child.castShadow = false
+    child.receiveShadow = false
+    child.raycast = () => null
+    child.material = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      side: THREE.BackSide,
+      depthTest: true,
+      depthWrite: false,
+      blending: THREE.NormalBlending,
+      toneMapped: false,
+    })
+  })
+}
+
+function playModelAction(actions, activeActionRef, animation, animationVariation) {
+  const nextAction = actions[animation] ?? actions.idle ?? Object.values(actions)[0]
+  if (!nextAction || activeActionRef.current === nextAction) return
+
+  const speed = animationVariation?.speeds?.[animation] ?? animationVariation?.speeds?.default ?? 1
+  const offset = animationVariation?.startOffset ?? 0
+
+  nextAction.reset()
+  nextAction.enabled = true
+  nextAction.setEffectiveWeight(1)
+  nextAction.setEffectiveTimeScale(speed)
+
+  if (animation === 'idle') {
+    nextAction.setLoop(THREE.LoopRepeat, Infinity)
+    nextAction.time = (nextAction.getClip()?.duration ?? 0) * offset
+  } else {
+    nextAction.setLoop(THREE.LoopOnce, 1)
+    nextAction.clampWhenFinished = true
+    nextAction.time = 0
+  }
+
+  const previousAction = activeActionRef.current
+  nextAction.play()
+  if (previousAction) nextAction.crossFadeFrom(previousAction, 0.12, false)
+
+  activeActionRef.current = nextAction
+}
+
 function FishModel({ model, animation = 'idle', animationVariation }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
@@ -571,37 +622,37 @@ function FishModel({ model, animation = 'idle', animationVariation }) {
   }, [object])
 
   useEffect(() => {
-    const nextAction = actions[animation] ?? actions.idle ?? Object.values(actions)[0]
-    if (!nextAction || activeActionRef.current === nextAction) return
-
-    const speed = animationVariation?.speeds?.[animation] ?? animationVariation?.speeds?.default ?? 1
-    const offset = animationVariation?.startOffset ?? 0
-
-    nextAction.reset()
-    nextAction.enabled = true
-    nextAction.setEffectiveWeight(1)
-    nextAction.setEffectiveTimeScale(speed)
-
-    if (animation === 'idle') {
-      nextAction.setLoop(THREE.LoopRepeat, Infinity)
-      nextAction.time = (nextAction.getClip()?.duration ?? 0) * offset
-    } else {
-      nextAction.setLoop(THREE.LoopOnce, 1)
-      nextAction.clampWhenFinished = true
-      nextAction.time = 0
-    }
-
-    const previousAction = activeActionRef.current
-    nextAction.play()
-    if (previousAction) nextAction.crossFadeFrom(previousAction, 0.12, false)
-
-    activeActionRef.current = nextAction
+    playModelAction(actions, activeActionRef, animation, animationVariation)
   }, [actions, animation, animationVariation])
 
   return (
     <primitive
       object={object}
       scale={model.scale ?? 1}
+      rotation={model.rotation ?? [0, 0, 0]}
+      position={model.position ?? [0, 0, 0]}
+    />
+  )
+}
+
+function FishModelOutline({ model, animation = 'idle', animationVariation, color, opacity = 0.24 }) {
+  const gltf = useGLTF(model.path)
+  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
+  const { actions } = useAnimations(gltf.animations, object)
+  const activeActionRef = useRef(null)
+
+  useEffect(() => {
+    applyOutlineMaterialSettings(object, color, opacity)
+  }, [object, color, opacity])
+
+  useEffect(() => {
+    playModelAction(actions, activeActionRef, animation, animationVariation)
+  }, [actions, animation, animationVariation])
+
+  return (
+    <primitive
+      object={object}
+      scale={(model.scale ?? 1) * 1.08}
       rotation={model.rotation ?? [0, 0, 0]}
       position={model.position ?? [0, 0, 0]}
     />
@@ -1005,6 +1056,8 @@ export default function Fish({ creature, selected = false, debug = false, debugL
 
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
+  const outlineColor = selected ? SELECTED_OUTLINE_COLOR : (isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
+  const outlineOpacity = selected ? SELECTED_OUTLINE_OPACITY : LEADER_OUTLINE_OPACITY
 
   const handleSelect = (event) => {
     event.stopPropagation()
@@ -1081,17 +1134,36 @@ export default function Fish({ creature, selected = false, debug = false, debugL
       >
         <group ref={modelRootRef}>
           {model ? (
-            <FishModel model={model} animation={animation} animationVariation={animationVariation} />
+            <>
+              {outlineColor && (
+                <FishModelOutline
+                  model={model}
+                  animation={animation}
+                  animationVariation={animationVariation}
+                  color={outlineColor}
+                  opacity={outlineOpacity}
+                />
+              )}
+              <FishModel model={model} animation={animation} animationVariation={animationVariation} />
+            </>
           ) : (
-            <mesh>
-              <boxGeometry args={[0.7, 0.28, 0.18]} />
-              <meshStandardMaterial
-                color="#7ab8c0"
-                roughness={0.42}
-                metalness={0.02}
-                envMapIntensity={0.85}
-              />
-            </mesh>
+            <>
+              {outlineColor && (
+                <mesh scale={1.1} raycast={() => null}>
+                  <boxGeometry args={[0.7, 0.28, 0.18]} />
+                  <meshBasicMaterial color={outlineColor} transparent opacity={outlineOpacity} side={THREE.BackSide} depthWrite={false} toneMapped={false} />
+                </mesh>
+              )}
+              <mesh>
+                <boxGeometry args={[0.7, 0.28, 0.18]} />
+                <meshStandardMaterial
+                  color="#7ab8c0"
+                  roughness={0.42}
+                  metalness={0.02}
+                  envMapIntensity={0.85}
+                />
+              </mesh>
+            </>
           )}
         </group>
       </group>

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.2 — Audio + mobile follow polish
 
-Status: in progress as `v0.7.2-dev_34`.
+Status: in progress as `v0.7.2-dev_35`.
 
 ### Audio foundation
 
@@ -107,6 +107,7 @@ Status: in progress as `v0.7.2-dev_34`.
 - Follow camera centers on selected fish mesh bounds instead of model root, with translation damping and user-orbit-only rotation.
 - Added drag threshold before orbiting the follow camera.
 - Randomized initial school paths per tank visit.
+- Added per-visit rotated/weaved school control points so debug splines do not collapse into a straight line from the front view.
 
 ### Schooling foundation
 

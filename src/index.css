@@ -599,7 +599,7 @@ button { font: inherit; }
 
 
   body:has(.tank-viewport.is-following-fish) .app-version-footnote {
-    bottom: max(0.85rem, env(safe-area-inset-bottom));
+    bottom: calc(var(--mobile-follow-card-height, 0px) + 0.7rem);
   }
 }
 

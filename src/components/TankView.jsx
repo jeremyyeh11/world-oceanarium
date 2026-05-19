@@ -113,6 +113,40 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }, [selectedCreature])
 
   useEffect(() => {
+    if (!selectedCreature) {
+      document.documentElement.style.removeProperty('--mobile-follow-card-height')
+      return undefined
+    }
+
+    let observer = null
+    let frameId = 0
+
+    const updateCardHeight = () => {
+      const card = document.querySelector('.tank-viewport.is-following-fish .info-card')
+      if (!card) return
+
+      const syncHeight = () => {
+        document.documentElement.style.setProperty('--mobile-follow-card-height', `${card.getBoundingClientRect().height}px`)
+      }
+
+      syncHeight()
+      observer?.disconnect()
+      observer = new ResizeObserver(syncHeight)
+      observer.observe(card)
+    }
+
+    frameId = window.requestAnimationFrame(updateCardHeight)
+    window.addEventListener('resize', updateCardHeight)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      window.removeEventListener('resize', updateCardHeight)
+      observer?.disconnect()
+      document.documentElement.style.removeProperty('--mobile-follow-card-height')
+    }
+  }, [selectedCreature, debugMode])
+
+  useEffect(() => {
     if (!selectedCreature || !panLimits.enabled) return undefined
 
     let frameId = 0

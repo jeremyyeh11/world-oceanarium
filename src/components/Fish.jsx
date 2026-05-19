@@ -980,14 +980,14 @@ export default function Fish({ creature, selected = false, debug = false, debugL
         speedLabelRef.current.visible = showNumbers
       }
       if (driftLabelRef.current) {
-        labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.26 + size * 0.12)
+        labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.10 + size * 0.04)
         driftLabelRef.current.position.copy(labelPosition.current)
         driftLabelRef.current.text = `drift ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}`
         driftLabelRef.current.lookAt(camera.position)
         driftLabelRef.current.visible = showNumbers
       }
       if (leaderLabelRef.current) {
-        leaderLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.48 + 0.26)
+        leaderLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.24 + 0.10)
         leaderLabelRef.current.lookAt(camera.position)
         leaderLabelRef.current.visible = isSchoolLeader && showNumbers
       }

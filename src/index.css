@@ -266,8 +266,8 @@ button { font: inherit; }
 }
 
 .screenshot-help-card {
-  width: min(24rem, calc(100vw - 2rem));
-  padding: 1.1rem 1.15rem 1rem;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 1rem 1.1rem 0.95rem;
   border: 1px solid rgba(180, 235, 255, 0.24);
   border-radius: 1.05rem;
   background: rgba(2, 18, 34, 0.82);
@@ -289,7 +289,8 @@ button { font: inherit; }
 .screenshot-help-title {
   font-size: 1rem;
   line-height: 1.35;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .screenshot-help-copy {
@@ -297,6 +298,20 @@ button { font: inherit; }
   color: rgba(218, 242, 248, 0.68);
   font-size: 0.78rem;
   line-height: 1.45;
+}
+
+.screenshot-help-copy--mobile {
+  display: none;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .screenshot-help-copy--desktop {
+    display: none;
+  }
+
+  .screenshot-help-copy--mobile {
+    display: block;
+  }
 }
 
 .screenshot-help-button {

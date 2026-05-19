@@ -48,9 +48,9 @@ const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
-const SELECTED_OUTLINE_COLOR = '#2b7fa3'
+const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
-const SELECTED_OUTLINE_OPACITY = 0.14
+const SELECTED_OUTLINE_OPACITY = 0.18
 const LEADER_OUTLINE_OPACITY = 0.16
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
@@ -666,7 +666,6 @@ export default function Fish({ creature, selected = false, debug = false, debugL
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
   const leaderLabelRef = useRef()
-  const leaderMarkerRef = useRef()
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
@@ -987,11 +986,6 @@ export default function Fish({ creature, selected = false, debug = false, debugL
         driftLabelRef.current.lookAt(camera.position)
         driftLabelRef.current.visible = showNumbers
       }
-      if (leaderMarkerRef.current) {
-        leaderMarkerRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.34 + 0.16)
-        leaderMarkerRef.current.lookAt(camera.position)
-        leaderMarkerRef.current.visible = isSchoolLeader && showVectors
-      }
       if (leaderLabelRef.current) {
         leaderLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.48 + 0.26)
         leaderLabelRef.current.lookAt(camera.position)
@@ -1106,23 +1100,17 @@ export default function Fish({ creature, selected = false, debug = false, debugL
             drift +0.00
           </Text>
           {isSchoolLeader && (
-            <>
-              <mesh ref={leaderMarkerRef} raycast={() => null}>
-                <ringGeometry args={[0.12, 0.18, 24]} />
-                <meshBasicMaterial color="#80ff72" transparent opacity={0.95} depthTest={false} depthWrite={false} side={THREE.DoubleSide} />
-              </mesh>
-              <Text
-                ref={leaderLabelRef}
-                fontSize={DEBUG_LABEL_SCALE * 1.05}
-                color="#80ff72"
-                anchorX="center"
-                anchorY="middle"
-                depthTest={false}
-                raycast={() => null}
-              >
-                leader
-              </Text>
-            </>
+            <Text
+              ref={leaderLabelRef}
+              fontSize={DEBUG_LABEL_SCALE * 1.05}
+              color="#80ff72"
+              anchorX="center"
+              anchorY="middle"
+              depthTest={false}
+              raycast={() => null}
+            >
+              leader
+            </Text>
           )}
         </>
       )}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useAnimations, useGLTF } from '@react-three/drei'
+import { Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
@@ -56,6 +56,9 @@ const PERSONAL_CATCHUP_SCALE = [0.90, 1.15]
 const ORGANIC_NOISE_AMPLITUDE = 0.055
 const ORGANIC_NOISE_RESPONSE = 1.15
 const ORGANIC_NOISE_INTERVAL = [1.8, 3.8]
+const DEBUG_FORWARD_SPEED_SCALE = 1.25
+const DEBUG_FORWARD_MIN_LENGTH = 0.22
+const DEBUG_LABEL_SCALE = 0.115
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
@@ -211,11 +214,6 @@ function debugForwardOffset(creature, swim, model) {
   return creatureBodyLength(creature, swim) * 0.42
 }
 
-function debugForwardLength(creature) {
-  const size = creature.size ?? 1
-  return THREE.MathUtils.clamp(0.72 * Math.sqrt(size), 0.72, 1.35)
-}
-
 function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const [rawYMin, rawYMax] = DEPTH_Y[depthZone] ?? DEPTH_Y.epipelagic
   const bodyLength = swim.bodyLengthWU * size
@@ -362,6 +360,11 @@ function schoolFormationOffset(school, creature) {
   }
 }
 
+function currentSchoolDrift(schoolOffset, now) {
+  if (!schoolOffset) return 0
+  return Math.sin(now * schoolOffset.driftSpeed + schoolOffset.driftPhase) * SCHOOL_DRIFT
+}
+
 function offsetFromSchoolPoint(target, path, t, schoolOffset, now, organicNoise = null) {
   path.getPointAt(t, target)
   path.getTangentAt(t, schoolTargetTangent).normalize()
@@ -370,7 +373,7 @@ function offsetFromSchoolPoint(target, path, t, schoolOffset, now, organicNoise 
   if (schoolLateral.lengthSq() < 0.0001) schoolLateral.set(1, 0, 0)
   schoolLateral.normalize()
 
-  const drift = Math.sin(now * schoolOffset.driftSpeed + schoolOffset.driftPhase) * SCHOOL_DRIFT
+  const drift = currentSchoolDrift(schoolOffset, now)
   target
     .addScaledVector(schoolLateral, schoolOffset.lateral + drift + (organicNoise?.lateral ?? 0))
     .addScaledVector(up, schoolOffset.vertical + (organicNoise?.vertical ?? 0))
@@ -582,12 +585,15 @@ export default function Fish({ creature, selected = false, debug = false, school
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
+  const speedLabelRef = useRef()
+  const driftLabelRef = useRef()
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
+  const size = creature.size ?? 1
   const organicMotion = useMemo(() => {
     const rand = mulberry32(hashString(`${school?.id ?? 'solo'}:${creature.id ?? creature.species}:organic-motion`))
     return {
@@ -604,6 +610,7 @@ export default function Fish({ creature, selected = false, debug = false, school
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
+  const labelPosition = useRef(new THREE.Vector3())
   const previousPosition = useRef(new THREE.Vector3())
   const hasFollowPosition = useRef(false)
   const previousTangent = useRef(new THREE.Vector3())
@@ -691,7 +698,7 @@ export default function Fish({ creature, selected = false, debug = false, school
     setAnimation(name)
   }
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock, camera }, delta) => {
     const fish = ref.current
     if (!fish) return
 
@@ -867,10 +874,24 @@ export default function Fish({ creature, selected = false, debug = false, school
     pitchedForward.copy(visualForward.current)
 
     if (debug) {
+      const effectiveDebugVelocity = velocity.current * organicMotion.speedScale
+      const debugVectorLength = DEBUG_FORWARD_MIN_LENGTH + effectiveDebugVelocity * DEBUG_FORWARD_SPEED_SCALE
+      const drift = currentSchoolDrift(schoolOffset, now)
       debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
-      debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugForwardLength(creature))
+      debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
       if (followTargetMarkerRef.current) followTargetMarkerRef.current.position.copy(followTarget.current)
+      if (speedLabelRef.current) {
+        speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
+        speedLabelRef.current.text = `${effectiveDebugVelocity.toFixed(2)} wu/s`
+        speedLabelRef.current.lookAt(camera.position)
+      }
+      if (driftLabelRef.current) {
+        labelPosition.current.copy(fish.position).addScaledVector(up, 0.58 + size * 0.22)
+        driftLabelRef.current.position.copy(labelPosition.current)
+        driftLabelRef.current.text = `drift ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}`
+        driftLabelRef.current.lookAt(camera.position)
+      }
     }
 
     if (model) {
@@ -925,7 +946,6 @@ export default function Fish({ creature, selected = false, debug = false, school
     }
   })
 
-  const size = creature.size ?? 1
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size), 1, 2.6)
 
@@ -953,6 +973,32 @@ export default function Fish({ creature, selected = false, debug = false, school
             <sphereGeometry args={[0.09, 8, 8]} />
             <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />
           </mesh>
+          <Text
+            ref={speedLabelRef}
+            fontSize={DEBUG_LABEL_SCALE}
+            color="#ff8fe7"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.008}
+            outlineColor="#13051c"
+            depthTest={false}
+            raycast={() => null}
+          >
+            0.00 wu/s
+          </Text>
+          <Text
+            ref={driftLabelRef}
+            fontSize={DEBUG_LABEL_SCALE}
+            color="#f7ff9a"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.008}
+            outlineColor="#161a04"
+            depthTest={false}
+            raycast={() => null}
+          >
+            drift +0.00
+          </Text>
         </>
       )}
       <group

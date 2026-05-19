@@ -23,9 +23,9 @@ const DEBUG_VIEW_MODES = [
   { id: 'none', icon: '○', label: 'None' },
 ]
 const DEBUG_LAYER_BUTTONS = [
-  { id: 'spline', label: 'Spline' },
-  { id: 'numbers', label: 'Numbers' },
-  { id: 'vectors', label: 'Vectors' },
+  { id: 'spline', icon: '〰', label: 'Spline' },
+  { id: 'numbers', icon: '#', label: 'Numbers' },
+  { id: 'vectors', icon: '↗', label: 'Vectors' },
 ]
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
@@ -360,23 +360,24 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               <button
                 key={layer.id}
                 type="button"
+                title={layer.label}
                 aria-label={`Toggle ${layer.label}`}
                 aria-pressed={debugLayers[layer.id]}
                 onClick={() => toggleDebugLayer(layer.id)}
                 style={{
+                  width: 26,
+                  height: 24,
                   borderRadius: 999,
                   border: debugLayers[layer.id] ? '1px solid rgba(125,249,255,0.64)' : '1px solid rgba(125,249,255,0.16)',
                   background: debugLayers[layer.id] ? 'rgba(0,60,78,0.62)' : 'rgba(0,18,32,0.38)',
                   color: debugLayers[layer.id] ? 'rgba(245,255,255,0.92)' : 'rgba(220,245,255,0.48)',
                   cursor: 'pointer',
-                  font: 'inherit',
-                  fontSize: '0.56rem',
+                  font: '0.74rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                   lineHeight: 1,
-                  padding: '0.28rem 0.46rem',
-                  textTransform: 'uppercase',
+                  padding: 0,
                 }}
               >
-                {layer.label}
+                {layer.icon}
               </button>
             ))}
           </div>

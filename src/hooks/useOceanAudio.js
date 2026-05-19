@@ -7,6 +7,8 @@ const LEVEL_FRAME_MS = 100
 const MASTER_TARGET_GAIN = 2.0 // Jeremy requested roughly 2x overall loudness on mobile.
 const AMBIENT_VOLUME = 0.18
 const SFX_VOLUME = 1.0
+const AUDIO_FADE_SECONDS = 0.45
+const AUDIO_SUSPEND_AFTER_FADE_MS = 560
 const FOLLOW_MODE_SFX_BOOST = 4.5
 const SFX_MIN_GAP_SECONDS = 0.09
 const FISH_SFX_ASSETS = {
@@ -308,6 +310,7 @@ export function triggerFishSwimSound(detail) {
 export function useOceanAudio() {
   const audioRef = useRef(null)
   const levelTimerRef = useRef(null)
+  const suspendTimerRef = useRef(null)
   const mutedRef = useRef(false)
   const [muted, setMuted] = useState(false)
   const [supported, setSupported] = useState(true)
@@ -361,13 +364,20 @@ export function useOceanAudio() {
     return audioRef.current
   }, [startLevelMeter])
 
-  const setMasterMuted = useCallback((nextMuted) => {
+  const clearSuspendTimer = useCallback(() => {
+    if (!suspendTimerRef.current) return
+    window.clearTimeout(suspendTimerRef.current)
+    suspendTimerRef.current = null
+  }, [])
+
+  const setMasterMuted = useCallback((nextMuted, fadeSeconds = AUDIO_FADE_SECONDS) => {
     const graph = audioRef.current?.graph
     if (!graph) return
 
     const now = audioRef.current.context.currentTime
     graph.masterGain.gain.cancelScheduledValues(now)
-    graph.masterGain.gain.setTargetAtTime(nextMuted ? 0 : MASTER_TARGET_GAIN, now, 0.08)
+    graph.masterGain.gain.setValueAtTime(graph.masterGain.gain.value, now)
+    graph.masterGain.gain.setTargetAtTime(nextMuted ? 0.0001 : MASTER_TARGET_GAIN, now, Math.max(0.01, fadeSeconds / 4))
   }, [])
 
   const startAudio = useCallback(() => {
@@ -375,27 +385,33 @@ export function useOceanAudio() {
     const audio = ensureAudio()
     if (!audio) return false
 
+    clearSuspendTimer()
     unlockAudioContext(audio.context)
 
     mutedRef.current = false
     setMuted(false)
     setMasterMuted(false)
     return true
-  }, [ensureAudio, setMasterMuted])
+  }, [clearSuspendTimer, ensureAudio, setMasterMuted])
 
   const stopAudio = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
 
+    clearSuspendTimer()
     setMasterMuted(true)
-    audio.context.suspend?.()
-  }, [setMasterMuted])
+    suspendTimerRef.current = window.setTimeout(() => {
+      suspendTimerRef.current = null
+      audio.context.suspend?.()
+    }, AUDIO_SUSPEND_AFTER_FADE_MS)
+  }, [clearSuspendTimer, setMasterMuted])
 
   const toggleMuted = useCallback(() => {
     requestMediaPlaybackSession()
     const audio = ensureAudio()
     if (!audio) return
 
+    clearSuspendTimer()
     unlockAudioContext(audio.context)
 
     setMuted(current => {
@@ -404,7 +420,7 @@ export function useOceanAudio() {
       setMasterMuted(nextMuted)
       return nextMuted
     })
-  }, [ensureAudio, setMasterMuted])
+  }, [clearSuspendTimer, ensureAudio, setMasterMuted])
 
   useEffect(() => {
     mutedRef.current = muted
@@ -424,6 +440,7 @@ export function useOceanAudio() {
   }, [])
 
   useEffect(() => () => {
+    clearSuspendTimer()
     stopLevelMeter()
     const audio = audioRef.current
     if (!audio) return
@@ -435,7 +452,7 @@ export function useOceanAudio() {
       }
     })
     audio.context.close?.()
-  }, [stopLevelMeter])
+  }, [clearSuspendTimer, stopLevelMeter])
 
   return { muted, supported, startAudio, stopAudio, toggleMuted }
 }

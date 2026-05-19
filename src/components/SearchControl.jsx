@@ -64,13 +64,14 @@ export default function SearchControl({ creatures = [], active = false }) {
     if (!match) {
       setFailed(true)
       setQuery(ERROR_TEXT)
-      window.requestAnimationFrame(() => inputRef.current?.select())
+      inputRef.current?.blur()
       return
     }
 
     window.dispatchEvent(new CustomEvent(SEARCH_FOCUS_EVENT, {
       detail: { creatureId: String(match.id) },
     }))
+    inputRef.current?.blur()
     resetSearch()
   }
 

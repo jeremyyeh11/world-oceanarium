@@ -126,7 +126,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     const blockViewportScroll = (event) => {
       if (eventStartedInInfoCard(event)) return
       event.preventDefault()
-      event.stopPropagation()
     }
 
     const blockMobileWheelZoom = (event) => {
@@ -139,8 +138,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     window.addEventListener('wheel', blockMobileWheelZoom, { capture: true, passive: false })
 
     return () => {
-      window.removeEventListener('touchmove', blockViewportScroll, { capture: true })
-      window.removeEventListener('wheel', blockMobileWheelZoom, { capture: true })
+      window.removeEventListener('touchmove', blockViewportScroll, true)
+      window.removeEventListener('wheel', blockMobileWheelZoom, true)
     }
   }, [selectedCreature])
 
@@ -249,6 +248,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (event.button !== 0) return
 
     if (selectedCreature && event.pointerType === 'touch') {
+      event.preventDefault()
+      event.currentTarget.setPointerCapture(event.pointerId)
       touchPointsRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
       if (touchPointsRef.current.size >= 2) {
         dragRef.current = {
@@ -261,6 +262,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     }
 
     if (selectedCreature) {
+      if (event.pointerType === 'touch') event.currentTarget.setPointerCapture(event.pointerId)
       dragRef.current = {
         mode: 'orbit-pending',
         pointerId: event.pointerId,
@@ -278,6 +280,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   const moveStageDrag = (event) => {
+    if (selectedCreature && event.pointerType === 'touch') event.preventDefault()
+
     if (event.pointerType === 'touch' && touchPointsRef.current.has(event.pointerId)) {
       touchPointsRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
     }
@@ -314,6 +318,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   const endStageDrag = (event) => {
+    if (selectedCreature && event.pointerType === 'touch') event.preventDefault()
     if (event.pointerType === 'touch') touchPointsRef.current.delete(event.pointerId)
 
     if (dragRef.current?.mode === 'pinch') {

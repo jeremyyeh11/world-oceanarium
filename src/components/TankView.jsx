@@ -57,7 +57,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, onBack }) {
+export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -74,6 +74,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const focusChangeAtRef = useRef(0)
   const fishRefsByCreatureId = useRef(new Map())
   const zoomActive = Boolean(selectedCreature)
+  const visibleDebugMode = debugMode && !screenshotMode
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
 
   const toggleDebugMode = () => {
@@ -346,7 +347,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   return (
-    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${zoomActive ? ' is-following-fish' : ''}`}>
+    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${zoomActive ? ' is-following-fish' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}>
       <div
         className="tank-stage"
         style={{ '--stage-pan-x': `${stagePan}px` }}
@@ -366,7 +367,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             tankVisitSeed={tankVisitSeed}
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
-            debug={debugMode}
+            debug={visibleDebugMode}
             debugView={debugView}
             debugLayers={debugLayers}
             onCreatureClick={focusCreature}
@@ -379,22 +380,24 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
       <div className="tank-top-exposure" aria-hidden="true" />
 
-      {!zoomActive && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
+      {!screenshotMode && !zoomActive && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
-      <div style={{
-        position: 'absolute', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
-        color: 'rgba(255,255,255,0.7)', fontFamily: 'system-ui, sans-serif', textAlign: 'center',
-        pointerEvents: 'none',
-      }}>
-        <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
-        {defaultDepthZone && (
-          <div className="tank-zone-label" style={{ marginTop: '0.34rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.52rem', letterSpacing: '0.13em', textTransform: 'uppercase' }}>
-            {defaultDepthZone.label}
-          </div>
-        )}
-      </div>
+      {!screenshotMode && (
+        <div style={{
+          position: 'absolute', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
+          color: 'rgba(255,255,255,0.7)', fontFamily: 'system-ui, sans-serif', textAlign: 'center',
+          pointerEvents: 'none',
+        }}>
+          <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
+          {defaultDepthZone && (
+            <div className="tank-zone-label" style={{ marginTop: '0.34rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.52rem', letterSpacing: '0.13em', textTransform: 'uppercase' }}>
+              {defaultDepthZone.label}
+            </div>
+          )}
+        </div>
+      )}
 
-      {debugMode && (
+      {visibleDebugMode && (
         <DebugPanel
           className="debug-panel--floating"
           creatureDataSource={creatureDataSource}
@@ -408,10 +411,10 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         />
       )}
 
-      {selectedCreature && <FocusHint />}
-      {selectedCreature && (
+      {!screenshotMode && selectedCreature && <FocusHint />}
+      {!screenshotMode && selectedCreature && (
         <InfoCard creature={selectedCreature} onClose={releaseFocus}>
-          {debugMode && (
+          {visibleDebugMode && (
             <DebugPanel
               className="debug-panel--inline"
               creatureDataSource={creatureDataSource}

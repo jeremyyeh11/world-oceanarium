@@ -46,6 +46,7 @@ button { font: inherit; }
 
 .fullscreen-toggle,
 .audio-toggle,
+.screenshot-toggle,
 .fish-search-button {
   position: relative;
   display: inline-flex;
@@ -97,6 +98,8 @@ button { font: inherit; }
 .audio-toggle:hover,
 .audio-toggle:focus-visible,
 .audio-toggle.is-active,
+.screenshot-toggle:hover,
+.screenshot-toggle:focus-visible,
 .fish-search-button:hover,
 .fish-search-button:focus-visible,
 .fish-search.is-expanded .fish-search-button {
@@ -118,6 +121,7 @@ button { font: inherit; }
 
 .fullscreen-toggle:focus-visible,
 .audio-toggle:focus-visible,
+.screenshot-toggle:focus-visible,
 .fish-search-button:focus-visible,
 .fish-search-input:focus-visible {
   outline: 2px solid rgba(125, 249, 255, 0.45);
@@ -206,6 +210,7 @@ button { font: inherit; }
 
   .fullscreen-toggle,
   .audio-toggle,
+  .screenshot-toggle,
   .fish-search-button {
     width: 2.15rem;
     min-height: 2.15rem;
@@ -247,6 +252,76 @@ button { font: inherit; }
     letter-spacing: 0.13em;
     text-transform: uppercase;
   }
+}
+
+.screenshot-help {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: radial-gradient(circle at 50% 35%, rgba(24, 92, 118, 0.18), rgba(0, 8, 20, 0.46));
+  pointer-events: auto;
+}
+
+.screenshot-help-card {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 1.1rem 1.15rem 1rem;
+  border: 1px solid rgba(180, 235, 255, 0.24);
+  border-radius: 1.05rem;
+  background: rgba(2, 18, 34, 0.82);
+  color: rgba(238, 252, 255, 0.92);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  text-align: center;
+  box-shadow: 0 1.2rem 4rem rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.screenshot-help-kicker {
+  margin-bottom: 0.5rem;
+  color: rgba(125, 249, 255, 0.68);
+  font: 0.62rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.screenshot-help-title {
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.screenshot-help-copy {
+  margin-top: 0.62rem;
+  color: rgba(218, 242, 248, 0.68);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.screenshot-help-button {
+  margin-top: 1rem;
+  min-height: 2.25rem;
+  padding: 0.58rem 1rem;
+  border: 1px solid rgba(125, 249, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(0, 58, 78, 0.72);
+  color: rgba(245, 255, 255, 0.94);
+  font: 0.68rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.screenshot-help-button:hover,
+.screenshot-help-button:focus-visible {
+  background: rgba(0, 78, 102, 0.82);
+  outline: 2px solid rgba(125, 249, 255, 0.28);
+  outline-offset: 3px;
+}
+
+.tank-viewport.is-screenshot-mode .tank-top-exposure {
+  display: none;
 }
 
 .tank-back-button {

@@ -48,7 +48,7 @@ export default function App() {
   const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
-  const { muted: audioMuted, supported: audioSupported, startAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
+  const { muted: audioMuted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const audioResumeTimers = useRef([])
@@ -78,7 +78,7 @@ export default function App() {
     const pauseWhenBackgrounded = () => {
       clearAudioResumeTimers()
       audioNeedsGestureResume.current = true
-      stopAudio()
+      pauseAudio()
     }
 
     const resumeWhenForegrounded = () => {
@@ -130,7 +130,7 @@ export default function App() {
       window.removeEventListener('touchstart', resumeOnNextGesture, { capture: true })
       window.removeEventListener('keydown', resumeOnNextGesture, { capture: true })
     }
-  }, [audioMuted, screen, startAudio, stopAudio])
+  }, [audioMuted, pauseAudio, screen, startAudio, stopAudio])
 
   const toggleFullscreen = async () => {
     try {

@@ -415,6 +415,13 @@ export function useOceanAudio() {
     }, AUDIO_SUSPEND_AFTER_FADE_MS)
   }, [clearSuspendTimer, setMasterMuted])
 
+  const pauseAudio = useCallback(() => {
+    if (!audioRef.current) return
+
+    clearSuspendTimer()
+    setMasterMuted(true)
+  }, [clearSuspendTimer, setMasterMuted])
+
   const toggleMuted = useCallback(() => {
     requestMediaPlaybackSession()
     const audio = ensureAudio()
@@ -463,7 +470,7 @@ export function useOceanAudio() {
     audio.context.close?.()
   }, [clearSuspendTimer, stopLevelMeter])
 
-  return { muted, supported, startAudio, stopAudio, toggleMuted }
+  return { muted, supported, startAudio, pauseAudio, stopAudio, toggleMuted }
 }
 
 export function useAudioLevels(active) {

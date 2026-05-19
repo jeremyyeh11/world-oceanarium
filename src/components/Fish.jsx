@@ -677,7 +677,7 @@ function FishModelOutline({ model, animation = 'idle', animationVariation, color
   )
 }
 
-export default function Fish({ creature, selected = false, debug = false, debugLayers = null, school = null, onClick, onReady }) {
+export default function Fish({ creature, selected = false, hideSelectionSilhouette = false, debug = false, debugLayers = null, school = null, onClick, onReady }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -1068,8 +1068,9 @@ export default function Fish({ creature, selected = false, debug = false, debugL
 
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
-  const outlineColor = selected ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
-  const outlineOpacity = selected ? SELECTED_OUTLINE_OPACITY : LEADER_OUTLINE_OPACITY
+  const showSelectedOutline = selected && !hideSelectionSilhouette
+  const outlineColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
+  const outlineOpacity = showSelectedOutline ? SELECTED_OUTLINE_OPACITY : LEADER_OUTLINE_OPACITY
 
   const handleSelect = (event) => {
     event.stopPropagation()

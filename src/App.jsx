@@ -64,6 +64,42 @@ export default function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (screen !== 'tank') return undefined
+
+    const pauseWhenBackgrounded = () => {
+      stopAudio()
+    }
+
+    const resumeWhenForegrounded = () => {
+      if (document.visibilityState === 'hidden' || audioMuted) return
+      startAudio()
+    }
+
+    const syncVisibilityAudio = () => {
+      if (document.visibilityState === 'hidden') {
+        pauseWhenBackgrounded()
+        return
+      }
+
+      resumeWhenForegrounded()
+    }
+
+    document.addEventListener('visibilitychange', syncVisibilityAudio)
+    window.addEventListener('pagehide', pauseWhenBackgrounded)
+    window.addEventListener('blur', pauseWhenBackgrounded)
+    window.addEventListener('pageshow', resumeWhenForegrounded)
+    window.addEventListener('focus', resumeWhenForegrounded)
+
+    return () => {
+      document.removeEventListener('visibilitychange', syncVisibilityAudio)
+      window.removeEventListener('pagehide', pauseWhenBackgrounded)
+      window.removeEventListener('blur', pauseWhenBackgrounded)
+      window.removeEventListener('pageshow', resumeWhenForegrounded)
+      window.removeEventListener('focus', resumeWhenForegrounded)
+    }
+  }, [audioMuted, screen, startAudio, stopAudio])
+
   const toggleFullscreen = async () => {
     try {
       if (fullscreenElement()) {

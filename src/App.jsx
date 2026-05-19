@@ -327,6 +327,7 @@ export default function App() {
       {page}
       {!screenshotMode && (
         <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
+          {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
           {screen === 'tank' && (
             <button
               className="top-menu-toggle"
@@ -344,7 +345,6 @@ export default function App() {
           )}
           {screen === 'tank' && topMenuOpen && (
             <div className="top-controls-menu" role="menu" aria-label="Tank controls">
-              <SearchControl creatures={creatureData.creatures} active />
               <button
                 className="screenshot-toggle"
                 type="button"

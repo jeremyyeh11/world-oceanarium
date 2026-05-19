@@ -202,7 +202,7 @@ function Stat({ label, value }) {
   )
 }
 
-export default function InfoCard({ creature, onClose }) {
+export default function InfoCard({ creature, onClose, children }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
   const depthLabel = depthZone?.label ?? creature.depthZone ?? 'Unknown zone'
@@ -238,6 +238,7 @@ export default function InfoCard({ creature, onClose }) {
         <Stat label="Body length" value={formatLength(lengthMeters)} />
         <Stat label="Weight" value={formatMass(massKg)} />
       </div>
+      {children}
     </section>
   )
 }

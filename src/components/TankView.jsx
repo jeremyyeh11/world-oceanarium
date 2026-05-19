@@ -321,79 +321,93 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       </div>
 
       {debugMode && (
-        <div style={{
-          position: 'absolute', left: '1rem', bottom: '4.25rem', zIndex: 55,
-          padding: '0.5rem 0.65rem', borderRadius: 10,
-          border: '1px solid rgba(125,249,255,0.22)',
-          background: 'rgba(0,13,28,0.58)', color: 'rgba(220,245,255,0.72)',
-          font: '0.68rem/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-          letterSpacing: '0.04em', textTransform: 'uppercase', backdropFilter: 'blur(8px)',
-          pointerEvents: 'auto',
-        }}>
-          <div>Data: {creatureDataSource}</div>
-          <div>Creatures: {creatures.length}</div>
-          <div style={{ marginTop: '0.42rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ opacity: 0.7 }}>Debug</span>
-            {DEBUG_VIEW_MODES.map(mode => (
-              <button
-                key={mode.id}
-                type="button"
-                title={mode.label}
-                aria-label={`Debug ${mode.label}`}
-                aria-pressed={debugView === mode.id}
-                onClick={() => setDebugView(mode.id)}
-                style={{
-                  width: 26,
-                  height: 24,
-                  borderRadius: 999,
-                  border: debugView === mode.id ? '1px solid rgba(125,249,255,0.72)' : '1px solid rgba(125,249,255,0.18)',
-                  background: debugView === mode.id ? 'rgba(0,60,78,0.7)' : 'rgba(0,18,32,0.46)',
-                  color: debugView === mode.id ? 'rgba(245,255,255,0.96)' : 'rgba(220,245,255,0.62)',
-                  cursor: 'pointer',
-                  lineHeight: 1,
-                }}
-              >
-                {mode.icon}
-              </button>
-            ))}
-          </div>
-          <div style={{ marginTop: '0.42rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.32rem' }}>
-            {DEBUG_LAYER_BUTTONS.map(layer => (
-              <button
-                key={layer.id}
-                type="button"
-                title={layer.label}
-                aria-label={`Toggle ${layer.label}`}
-                aria-pressed={debugLayers[layer.id]}
-                onClick={() => toggleDebugLayer(layer.id)}
-                style={{
-                  width: 26,
-                  height: 24,
-                  borderRadius: 999,
-                  border: debugLayers[layer.id] ? '1px solid rgba(125,249,255,0.64)' : '1px solid rgba(125,249,255,0.16)',
-                  background: debugLayers[layer.id] ? 'rgba(0,60,78,0.62)' : 'rgba(0,18,32,0.38)',
-                  color: debugLayers[layer.id] ? 'rgba(245,255,255,0.92)' : 'rgba(220,245,255,0.48)',
-                  cursor: 'pointer',
-                  font: '0.74rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                  lineHeight: 1,
-                  padding: 0,
-                }}
-              >
-                {layer.icon}
-              </button>
-            ))}
-          </div>
-          <AudioDebugMeters levels={audioLevels} />
-          {creatureDataError && (
-            <div style={{ maxWidth: 280, whiteSpace: 'normal', textTransform: 'none', color: 'rgba(255,205,205,0.8)' }}>
-              {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}
-            </div>
-          )}
-        </div>
+        <DebugPanel
+          className="debug-panel--floating"
+          creatureDataSource={creatureDataSource}
+          creatureDataError={creatureDataError}
+          creatureCount={creatures.length}
+          debugView={debugView}
+          debugLayers={debugLayers}
+          audioLevels={audioLevels}
+          onDebugViewChange={setDebugView}
+          onDebugLayerToggle={toggleDebugLayer}
+        />
       )}
 
       {selectedCreature && <FocusHint />}
-      {selectedCreature && <InfoCard creature={selectedCreature} onClose={releaseFocus} />}
+      {selectedCreature && (
+        <InfoCard creature={selectedCreature} onClose={releaseFocus}>
+          {debugMode && (
+            <DebugPanel
+              className="debug-panel--inline"
+              creatureDataSource={creatureDataSource}
+              creatureDataError={creatureDataError}
+              creatureCount={creatures.length}
+              debugView={debugView}
+              debugLayers={debugLayers}
+              audioLevels={audioLevels}
+              onDebugViewChange={setDebugView}
+              onDebugLayerToggle={toggleDebugLayer}
+            />
+          )}
+        </InfoCard>
+      )}
+    </div>
+  )
+}
+
+function DebugPanel({
+  className = '',
+  creatureDataSource,
+  creatureDataError,
+  creatureCount,
+  debugView,
+  debugLayers,
+  audioLevels,
+  onDebugViewChange,
+  onDebugLayerToggle,
+}) {
+  return (
+    <div className={`debug-panel ${className}`}>
+      <div>Data: {creatureDataSource}</div>
+      <div>Creatures: {creatureCount}</div>
+      <div className="debug-panel-row">
+        <span className="debug-panel-label">Debug</span>
+        {DEBUG_VIEW_MODES.map(mode => (
+          <button
+            key={mode.id}
+            type="button"
+            title={mode.label}
+            aria-label={`Debug ${mode.label}`}
+            aria-pressed={debugView === mode.id}
+            className="debug-panel-button"
+            onClick={() => onDebugViewChange(mode.id)}
+          >
+            {mode.icon}
+          </button>
+        ))}
+      </div>
+      <div className="debug-panel-row debug-panel-row--wrap">
+        {DEBUG_LAYER_BUTTONS.map(layer => (
+          <button
+            key={layer.id}
+            type="button"
+            title={layer.label}
+            aria-label={`Toggle ${layer.label}`}
+            aria-pressed={debugLayers[layer.id]}
+            className="debug-panel-button"
+            onClick={() => onDebugLayerToggle(layer.id)}
+          >
+            {layer.icon}
+          </button>
+        ))}
+      </div>
+      <AudioDebugMeters levels={audioLevels} />
+      {creatureDataError && (
+        <div className="debug-panel-error">
+          {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}
+        </div>
+      )}
     </div>
   )
 }

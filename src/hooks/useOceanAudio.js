@@ -39,18 +39,29 @@ function createAudioContext() {
   return new AudioContextClass({ latencyHint: 'interactive' })
 }
 
-function requestMediaPlaybackSession() {
+function setAudioSessionType(type) {
   const audioSession = navigator?.audioSession
   if (!audioSession || typeof audioSession !== 'object' || !('type' in audioSession)) return false
 
   try {
-    // iOS Safari can route generic Web Audio like UI/ringer audio. Playback mode
-    // asks the browser to treat the tank soundscape like music/video media instead.
-    audioSession.type = 'playback'
-    return audioSession.type === 'playback'
+    audioSession.type = type
+    return audioSession.type === type
   } catch {
     return false
   }
+}
+
+function requestMediaPlaybackSession() {
+  // iOS Safari can route generic Web Audio like UI/ringer audio. Playback mode
+  // asks the browser to treat the tank soundscape like music/video media instead.
+  return setAudioSessionType('playback')
+}
+
+function releaseMediaPlaybackSession() {
+  // When the tank is hidden/backgrounded, do not keep claiming a playback
+  // session. This avoids Safari showing Oceanarium as active media and lets
+  // other music own the phone audio session.
+  return setAudioSessionType('ambient') || setAudioSessionType('auto')
 }
 
 function getMasterTargetGain() {
@@ -409,6 +420,7 @@ export function useOceanAudio() {
 
     clearSuspendTimer()
     setMasterMuted(true)
+    releaseMediaPlaybackSession()
     suspendTimerRef.current = window.setTimeout(() => {
       suspendTimerRef.current = null
       audio.context.suspend?.()
@@ -420,6 +432,7 @@ export function useOceanAudio() {
 
     clearSuspendTimer()
     setMasterMuted(true)
+    releaseMediaPlaybackSession()
   }, [clearSuspendTimer, setMasterMuted])
 
   const toggleMuted = useCallback(() => {

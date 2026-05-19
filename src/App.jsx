@@ -52,6 +52,7 @@ export default function App() {
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const audioResumeTimers = useRef([])
+  const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function App() {
 
     const pauseWhenBackgrounded = () => {
       clearAudioResumeTimers()
+      audioNeedsGestureResume.current = true
       stopAudio()
     }
 
@@ -89,6 +91,13 @@ export default function App() {
         }, delay)
         audioResumeTimers.current.push(timer)
       })
+    }
+
+    const resumeOnNextGesture = () => {
+      if (!audioNeedsGestureResume.current || document.visibilityState === 'hidden' || audioMuted) return
+      audioNeedsGestureResume.current = false
+      clearAudioResumeTimers()
+      startAudio()
     }
 
     const syncVisibilityAudio = () => {
@@ -105,14 +114,21 @@ export default function App() {
     window.addEventListener('blur', pauseWhenBackgrounded)
     window.addEventListener('pageshow', resumeWhenForegrounded)
     window.addEventListener('focus', resumeWhenForegrounded)
+    window.addEventListener('pointerdown', resumeOnNextGesture, { capture: true })
+    window.addEventListener('touchstart', resumeOnNextGesture, { capture: true, passive: true })
+    window.addEventListener('keydown', resumeOnNextGesture, { capture: true })
 
     return () => {
       clearAudioResumeTimers()
+      audioNeedsGestureResume.current = false
       document.removeEventListener('visibilitychange', syncVisibilityAudio)
       window.removeEventListener('pagehide', pauseWhenBackgrounded)
       window.removeEventListener('blur', pauseWhenBackgrounded)
       window.removeEventListener('pageshow', resumeWhenForegrounded)
       window.removeEventListener('focus', resumeWhenForegrounded)
+      window.removeEventListener('pointerdown', resumeOnNextGesture, { capture: true })
+      window.removeEventListener('touchstart', resumeOnNextGesture, { capture: true })
+      window.removeEventListener('keydown', resumeOnNextGesture, { capture: true })
     }
   }, [audioMuted, screen, startAudio, stopAudio])
 

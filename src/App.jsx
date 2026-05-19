@@ -47,7 +47,7 @@ export default function App() {
   const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
-  const { muted: audioMuted, supported: audioSupported, toggleMuted: toggleAudioMuted } = useOceanAudio()
+  const { muted: audioMuted, supported: audioSupported, startAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const creatureData = useCreatures()
@@ -100,11 +100,13 @@ export default function App() {
   }
 
   const enterSite = () => {
+    startAudio()
     setActiveBiome(DEFAULT_BIOME_ID)
     setTankVisitSeed(createTankVisitSeed())
     setScreen('tank')
   }
   const selectBiome = (biomeId) => {
+    startAudio()
     setActiveBiome(biomeId)
     setTankVisitSeed(createTankVisitSeed())
     setScreen('tank')

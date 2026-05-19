@@ -4,8 +4,9 @@ const AUDIO_VOLUME_EVENT = 'world-oceanarium-audio-volume'
 const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
 const LEVEL_FLOOR_DB = -72
 const LEVEL_FRAME_MS = 100
-const AMBIENT_VOLUME = 0.28
-const SFX_VOLUME = 0.65
+const MASTER_TARGET_GAIN = 0.316 // -10 dB trim.
+const AMBIENT_VOLUME = 0.16
+const SFX_VOLUME = 0.34
 const SFX_MIN_GAP_SECONDS = 0.09
 
 function createAudioContext() {
@@ -62,6 +63,7 @@ function buildAudioGraph(context) {
   const shimmerGain = context.createGain()
   const lowpass = context.createBiquadFilter()
   const rumbleFilter = context.createBiquadFilter()
+  const outputLowpass = context.createBiquadFilter()
   const noiseSource = context.createBufferSource()
   const rumble = context.createOscillator()
   const shimmer = context.createOscillator()
@@ -74,12 +76,16 @@ function buildAudioGraph(context) {
   shimmerGain.gain.value = 0.012
 
   lowpass.type = 'lowpass'
-  lowpass.frequency.value = 520
-  lowpass.Q.value = 0.55
+  lowpass.frequency.value = 320
+  lowpass.Q.value = 0.48
 
   rumbleFilter.type = 'lowpass'
   rumbleFilter.frequency.value = 90
   rumbleFilter.Q.value = 0.7
+
+  outputLowpass.type = 'lowpass'
+  outputLowpass.frequency.value = 620
+  outputLowpass.Q.value = 0.42
 
   rumble.type = 'sine'
   rumble.frequency.value = 42
@@ -100,7 +106,8 @@ function buildAudioGraph(context) {
   shimmer.connect(shimmerGain)
   shimmerGain.connect(ambientGain.gain)
 
-  const overallAnalyser = connectAnalyser(context, masterGain, context.destination)
+  const overallAnalyser = connectAnalyser(context, masterGain, outputLowpass)
+  outputLowpass.connect(context.destination)
   const ambientAnalyser = connectAnalyser(context, ambientGain, masterGain)
   const sfxAnalyser = connectAnalyser(context, sfxGain, masterGain)
 
@@ -144,10 +151,10 @@ function playFishSwimSfx(context, graph, detail = {}) {
   const toneGain = context.createGain()
 
   noise.buffer = createNoiseBuffer(context, 0.35)
-  filter.type = 'bandpass'
-  filter.frequency.setValueAtTime(type === 'burst' ? 760 : 520, now)
-  filter.frequency.exponentialRampToValueAtTime(type === 'burst' ? 230 : 170, now + duration)
-  filter.Q.value = type === 'burst' ? 1.1 : 0.85
+  filter.type = 'lowpass'
+  filter.frequency.setValueAtTime(type === 'burst' ? 430 : 340, now)
+  filter.frequency.exponentialRampToValueAtTime(type === 'burst' ? 180 : 140, now + duration)
+  filter.Q.value = type === 'burst' ? 0.74 : 0.62
 
   gain.gain.setValueAtTime(0.0001, now)
   gain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.16 : 0.09) * intensity, now + 0.018)
@@ -180,8 +187,8 @@ export function triggerFishSwimSound(detail) {
 export function useOceanAudio() {
   const audioRef = useRef(null)
   const levelTimerRef = useRef(null)
-  const mutedRef = useRef(true)
-  const [muted, setMuted] = useState(true)
+  const mutedRef = useRef(false)
+  const [muted, setMuted] = useState(false)
   const [supported, setSupported] = useState(true)
 
   const stopLevelMeter = useCallback(() => {
@@ -231,8 +238,22 @@ export function useOceanAudio() {
 
     const now = audioRef.current.context.currentTime
     graph.masterGain.gain.cancelScheduledValues(now)
-    graph.masterGain.gain.setTargetAtTime(nextMuted ? 0 : 1, now, 0.08)
+    graph.masterGain.gain.setTargetAtTime(nextMuted ? 0 : MASTER_TARGET_GAIN, now, 0.08)
   }, [])
+
+  const startAudio = useCallback(async () => {
+    const audio = await ensureAudio()
+    if (!audio) return false
+
+    if (audio.context.state === 'suspended') {
+      await audio.context.resume()
+    }
+
+    mutedRef.current = false
+    setMuted(false)
+    setMasterMuted(false)
+    return true
+  }, [ensureAudio, setMasterMuted])
 
   const toggleMuted = useCallback(async () => {
     const audio = await ensureAudio()
@@ -281,7 +302,7 @@ export function useOceanAudio() {
     audio.context.close?.()
   }, [stopLevelMeter])
 
-  return { muted, supported, toggleMuted }
+  return { muted, supported, startAudio, toggleMuted }
 }
 
 export function useAudioLevels(active) {

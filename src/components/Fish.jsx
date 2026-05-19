@@ -339,12 +339,31 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
+function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale, rotation, weavePhase) {
+  const normalized = pointCount <= 1 ? 0 : index / (pointCount - 1)
+  const side = index % 2 === 0 ? -1 : 1
+  const depthSide = Math.floor(index / 2) % 2 === 0 ? -1 : 1
+  const weave = Math.sin(normalized * Math.PI * 2.35 + weavePhase) * bounds.z * 0.26
+  const localX = side * bounds.x * randomRange(rand, 0.54, 0.82) + randomRange(rand, -bounds.x * 0.14, bounds.x * 0.14)
+  const localZ = depthSide * bounds.z * randomRange(rand, 0.36, 0.74) + weave + randomRange(rand, -bounds.z * 0.18, bounds.z * 0.18)
+  const cos = Math.cos(rotation)
+  const sin = Math.sin(rotation)
+
+  return clampToSwimBox(new THREE.Vector3(
+    localX * cos - localZ * sin,
+    traversalY(rand, bounds, swim, index, verticalScale, 0.62),
+    localX * sin + localZ * cos,
+  ), bounds.yMin, bounds.yMax, bounds.x, bounds.z)
+}
+
 function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school'), start = null, exitTangent = null) {
   const rand = mulberry32(seed)
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const turnRadius = effectiveTurnRadius(creature, swim)
   const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, turnRadius))
   const verticalScale = verticalPathScale(creature, swim)
+  const rotation = randomRange(rand, -Math.PI, Math.PI)
+  const weavePhase = randomRange(rand, 0, Math.PI * 2)
   const points = []
 
   if (start && exitTangent) {
@@ -357,13 +376,7 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
   }
 
   for (let i = points.length; i < pointCount; i += 1) {
-    const side = i % 2 === 0 ? -1 : 1
-    const depthSide = Math.floor(i / 2) % 2 === 0 ? -1 : 1
-    points.push(new THREE.Vector3(
-      side * bounds.x * 0.74 + randomRange(rand, -bounds.x * 0.1, bounds.x * 0.1),
-      traversalY(rand, bounds, swim, i, verticalScale, 0.62),
-      depthSide * bounds.z * 0.72 + randomRange(rand, -bounds.z * 0.16, bounds.z * 0.16),
-    ))
+    points.push(rotatedSchoolPoint(rand, bounds, swim, i, pointCount, verticalScale, rotation, weavePhase))
   }
 
   limitPathYGradient(points, bounds)

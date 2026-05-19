@@ -65,7 +65,8 @@ const ORGANIC_NOISE_RESPONSE = 1.15
 const ORGANIC_NOISE_INTERVAL = [1.8, 3.8]
 const DEBUG_FORWARD_SPEED_SCALE = 1.25
 const DEBUG_FORWARD_MIN_LENGTH = 0.22
-const DEBUG_LABEL_SCALE = 0.075
+const DEBUG_LABEL_SCALE = 0.0525
+const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
@@ -1080,6 +1081,7 @@ export default function Fish({ creature, selected = false, debug = false, debugL
           <Text
             ref={speedLabelRef}
             fontSize={DEBUG_LABEL_SCALE}
+            font={DEBUG_LABEL_FONT}
             color="#ff8fe7"
             anchorX="center"
             anchorY="middle"
@@ -1091,6 +1093,7 @@ export default function Fish({ creature, selected = false, debug = false, debugL
           <Text
             ref={driftLabelRef}
             fontSize={DEBUG_LABEL_SCALE}
+            font={DEBUG_LABEL_FONT}
             color="#f7ff9a"
             anchorX="center"
             anchorY="middle"
@@ -1103,6 +1106,7 @@ export default function Fish({ creature, selected = false, debug = false, debugL
             <Text
               ref={leaderLabelRef}
               fontSize={DEBUG_LABEL_SCALE * 1.05}
+              font={DEBUG_LABEL_FONT}
               color="#80ff72"
               anchorX="center"
               anchorY="middle"

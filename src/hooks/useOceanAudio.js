@@ -4,7 +4,8 @@ const AUDIO_VOLUME_EVENT = 'world-oceanarium-audio-volume'
 const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
 const LEVEL_FLOOR_DB = -72
 const LEVEL_FRAME_MS = 100
-const MASTER_TARGET_GAIN = 2.0 // Jeremy requested roughly 2x overall loudness on mobile.
+const MOBILE_MASTER_TARGET_GAIN = 2.0 // Jeremy requested roughly 2x overall loudness on mobile.
+const DESKTOP_MASTER_TARGET_GAIN = MOBILE_MASTER_TARGET_GAIN * 0.5
 const AMBIENT_VOLUME = 0.18
 const SFX_VOLUME = 1.0
 const AUDIO_FADE_SECONDS = 0.45
@@ -50,6 +51,14 @@ function requestMediaPlaybackSession() {
   } catch {
     return false
   }
+}
+
+function getMasterTargetGain() {
+  if (typeof window === 'undefined') return DESKTOP_MASTER_TARGET_GAIN
+
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches ?? false
+  const touchCapable = navigator.maxTouchPoints > 0
+  return coarsePointer || touchCapable ? MOBILE_MASTER_TARGET_GAIN : DESKTOP_MASTER_TARGET_GAIN
 }
 
 function unlockAudioContext(context) {
@@ -377,7 +386,7 @@ export function useOceanAudio() {
     const now = audioRef.current.context.currentTime
     graph.masterGain.gain.cancelScheduledValues(now)
     graph.masterGain.gain.setValueAtTime(graph.masterGain.gain.value, now)
-    graph.masterGain.gain.setTargetAtTime(nextMuted ? 0.0001 : MASTER_TARGET_GAIN, now, Math.max(0.01, fadeSeconds / 4))
+    graph.masterGain.gain.setTargetAtTime(nextMuted ? 0.0001 : getMasterTargetGain(), now, Math.max(0.01, fadeSeconds / 4))
   }, [])
 
   const startAudio = useCallback(() => {

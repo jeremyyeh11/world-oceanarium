@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.2 — Audio + mobile follow polish
 
-Status: in progress as `v0.7.2-dev_25`.
+Status: in progress as `v0.7.2-dev_26`.
 
 ### Audio foundation
 
@@ -23,6 +23,7 @@ Status: in progress as `v0.7.2-dev_25`.
 - Replaced procedural fish SFX with Jeremy-uploaded MP3 movement/burst assets.
 - Tuned ambience low-pass and mobile-safe underwater muffling.
 - Tuned SFX louder than ambience, especially in follow mode.
+- Maintained mobile master volume while reducing desktop master volume by 50%.
 - Extended fish SFX envelopes so sounds play fully instead of blipping.
 - Trimmed/faded an uploaded burst-audio artifact.
 

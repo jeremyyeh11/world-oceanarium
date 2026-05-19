@@ -1,8 +1,214 @@
 # Changelog
 
-Significant changes only. Versions before `v0.3.0` are grouped under `pre-v0.3.0`.
+Significant changes only. Categorized by feature area inside each clean release/version grouping.
 
-## v0.5.0 — Movement tuning foundation
+Versioning convention notes:
+- Current convention: work toward a clean target release using visible `-dev_##` builds, then publish the clean version when accepted.
+- Dev patches are intentionally excluded below; each target release summarizes the accepted bucket.
+- Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
+- Earliest unversioned work is grouped as `pre-v0.x`.
+
+## v0.7.2 — Audio + mobile follow polish
+
+Status: in progress as `v0.7.2-dev_25`.
+
+### Audio foundation
+
+- Added procedural underwater ambience for the tank.
+- Added audio debug meters for:
+  - overall mix
+  - ambient channel
+  - SFX channel
+- Added fish swim / turn / burst sound-effect hooks.
+- Replaced procedural fish SFX with Jeremy-uploaded MP3 movement/burst assets.
+- Tuned ambience low-pass and mobile-safe underwater muffling.
+- Tuned SFX louder than ambience, especially in follow mode.
+- Extended fish SFX envelopes so sounds play fully instead of blipping.
+- Trimmed/faded an uploaded burst-audio artifact.
+
+### Audio lifecycle
+
+- Scoped audio to the tank:
+  - landing is silent
+  - landing has no audio control
+  - `DIVE IN` starts tank audio on user gesture
+  - returning to landing stops/suspends audio
+- Added synchronous iOS/WebAudio unlock path.
+- Added best-effort media playback audio-session hint for mobile browsers.
+- Paused tank audio when the browser/app backgrounds.
+- Resumed tank audio only when returning to the tank and not manually muted.
+- Added fade-out / fade-in for app/browser switches before suspend/resume.
+
+### Mobile follow UX
+
+- Reworked mobile follow card to overlay the full tank naturally instead of reserving a fixed bottom band.
+- Kept the info card content-sized with `max-height` rather than fixed/min height.
+- Moved mobile debug panel inside the follow info card.
+- Lifted the version label above the actual mobile card height using dynamic card measurement.
+- Removed follow-card gaps caused by fixed viewport bands.
+- Disabled accidental page/text selection and touch callouts outside inputs.
+- Blocked page scroll while dragging the tank in follow mode.
+- Preserved scrolling inside the info card.
+- Restored orbit and pinch-to-zoom after scroll-lock tuning.
+- Hid home/back navigation while following a creature.
+
+### Search/mobile input
+
+- Hid the mobile keyboard after search submit on both success and failure paths.
+- Preserved text selection in search input despite global selection lock.
+
+### Debug/dev visibility
+
+- Added school-leader highlighting in debug mode.
+- Kept debug audio meters available for audio tuning.
+
+## v0.7.1 — Schooling motion + debug polish
+
+### Schooling motion
+
+- Added organic school motion on top of shared school paths:
+  - per-fish speed variation
+  - catch-up variation
+  - smoother local motion
+  - less synchronized/robotic swimming
+- Clamped fish pitch to spline gradient so fish do not over-tilt on path changes.
+
+### Debug tools
+
+- Added fish motion debug labels.
+- Shrunk noisy debug labels for readability.
+- Added debug overlay layer toggles.
+- Iconified debug layer toggles to keep the panel compact.
+
+### Creature copy
+
+- Used custom creature names inside individual creature descriptions.
+
+## v0.7.0 — Search + interaction foundation
+
+### Creature search / controls
+
+- Added creature search controls.
+- Simplified top controls.
+- Refined desktop/mobile search layout across multiple passes.
+- Anchored the search icon/button so mobile layout stays stable.
+- Stabilized mobile search close behavior.
+
+### Follow interaction
+
+- Allowed switching followed fish by tapping another fish while already following.
+- Improved follow-mode click targeting.
+- Centered follow mode and smoothed camera target switching.
+- Added drag threshold before orbiting the follow camera.
+- Randomized initial school paths per tank visit.
+
+### Schooling foundation
+
+- Added shared school spline follow targets.
+- Moved schooling from individual-looking paths toward one shared spline per school.
+- Added soft fish clipping avoidance.
+- Relaxed dense-school separation so sardines can stay visually dense.
+- Added smoother dense-school avoidance steering.
+- Distributed school offsets vertically and forward/backward for fuller formations.
+- Added follow steering for all fish.
+- Capped solo fish follow target lookahead for large creatures.
+
+### Data/source-of-truth
+
+- Switched Supabase to the creature source of truth.
+- Mapped creature size parameter to species size range.
+
+### App shell
+
+- Added Vercel Analytics using the Vite-safe `inject()` setup.
+- Updated landing tagline.
+- Added fullscreen toggle.
+- Removed debug passcode gate after mobile debug access matured.
+
+## v0.6.x — Creature data, focus mode, schooling foundation
+
+### Creature/species data
+
+- Clarified ocean biome zones.
+- Updated spotted sardinella species information.
+- Added custom-name tag support.
+- Moved creature IDs to integers.
+- Moved creature ID display into the focus header.
+- Removed unused prototype creature fields.
+- Added persistent species size variation.
+- Made creature size a first-class field.
+- Moved between Supabase/local creature-source modes while stabilizing the data model.
+
+### Focus/follow UI
+
+- Polished the focus info card.
+- Added species-level descriptions.
+- Added generated individual descriptions.
+- Added description fallbacks.
+- Added creature size and weight display.
+- Fixed fractional fish measurements.
+- Added follow camera zoom controls.
+- Tightened follow-mode hints and split hints by platform.
+- Constrained and flattened the mobile focus card.
+- Made mobile focus card full-width where needed.
+- Simplified mobile follow labels.
+
+### Fish models/animation
+
+- Added sardine 3D model and GLB pipeline.
+- Added sardine swim animations.
+- Fixed sardine forward axis, orientation, pitch, and roll limits.
+- Kept GLB fish materials opaque.
+- Based swim speeds on body lengths.
+- Varied fish animation playback to avoid synchronized schools.
+
+### Movement/follow mechanics
+
+- Added constrained fish follow camera.
+- Refined fish follow camera behavior and exit mode.
+- Scaled path turns for large creatures.
+- Moved solo follow targets outside large fish.
+- Set solo follow targets by body length.
+- Limited fish facing turn rate.
+- Added vertical spline variation limits.
+- Increased vertical fish traversal.
+- Randomized swim paths per page load.
+- Added soft top-light preservation during follow mode.
+
+### Schooling foundation
+
+- Added temporary sardines for schooling tests.
+- Added schooling path offsets.
+- Refreshed schooling splines over time.
+- Made schooling fish face individual paths.
+- Tried individual/lane splines before moving toward shared-school architecture.
+- Added schooling follow debug vectors.
+- Moved schooling follow target ahead of each fish.
+- Increased schooling follow lookahead.
+- Loaded creatures from Supabase for live schooling data.
+
+### Debug/dev tools
+
+- Added mobile debug long-press, then replaced it with triple-tap version label.
+- Moved debug mode behind keyboard shortcut during tuning.
+- Showed creature data source and Supabase debug error details.
+- Reduced debug vector clutter.
+- Anchored debug forward vector at fish nose.
+
+### App shell / analytics
+
+- Added Vercel Analytics dependency and Vite integration.
+- Updated landing tagline.
+
+### Species cleanup
+
+- Removed river placeholder species.
+- Renamed large predator placeholder species.
+- Added and later cleaned temporary shark/collision-test data.
+
+## v0.5.x — Movement tuning foundation
+
+### Movement controls
 
 - Added horizontal tank panning when the fixed 16:9 stage is heavily cropped on narrow screens.
 - Added species/individual movement tuning parameters:
@@ -12,72 +218,83 @@ Significant changes only. Versions before `v0.3.0` are grouped under `pre-v0.3.0
 - Tightened swim path bounds so fish stay on-screen more reliably.
 - Added baseline mackerel movement values.
 
-## v0.4.4 — Continuous swim paths
+### Changelog/versioning
 
-- Changed fish spline regeneration so new paths start from the previous endpoint.
-- Preserved exit direction into the next spline to avoid teleporting or sudden direction snaps.
-- Debug splines now show the active open swim path.
+- Added the project changelog.
+- Began grouping older pre-`v0.3.0` changes for readability.
 
-## v0.4.3 — Stronger depth fade + refreshed paths
+## v0.4.x — Spline swimming + underwater visuals
 
-- Added explicit screen-depth fade to fish so far-away fish fade more than near-screen fish.
-- Reduced far-fish environment reflection so distant fish no longer stay equally bright through fog.
-- Added automatic spline regeneration after each completed swim path.
-
-## v0.4.2 — Deeper 3D swim volume
-
-- Increased fish swim depth to roughly 60% of visible screen width.
-- Made it easier to see fish swimming toward and away from the screen.
-
-## v0.4.1 — Debug swim splines
-
-- Added passcode-gated Debug Mode.
-- Added visible swim spline rendering while Debug Mode is active.
-- Added toggle behavior to exit Debug Mode.
-
-## v0.4.0 — Spline-based fish swimming
+### Fish movement
 
 - Replaced simple left/right oscillation with Catmull-Rom spline swimming.
 - Fish now travel forward through the tank instead of hovering in place.
-- Fish movement includes X, Y depth, and Z screen-depth variation.
+- Added X, Y depth, and Z screen-depth variation to swimming.
 - Fish rotate toward their movement tangent with slight pitch while climbing/diving.
+- Increased swim volume depth to make toward/away motion more visible.
+- Added automatic spline regeneration after each completed path.
+- Changed path regeneration so new paths start from the previous endpoint.
+- Preserved exit direction into the next spline to avoid teleporting or sudden direction snaps.
 
-## v0.3.3 — Bubble scale/density correction
+### Debug tools
 
-- Reduced bubble size dramatically after visual review.
-- Reduced bubble density.
-- Kept bubbles subtle instead of dominant foreground discs.
+- Added passcode-gated debug mode.
+- Added visible swim spline rendering while debug mode is active.
+- Added toggle behavior to exit debug mode.
+- Debug splines show the active open swim path.
 
-## v0.3.2 — Visible sunlight-zone bubbles
+### Depth/fog/readability
 
-- Moved bubble spawning into the visible sunlight zone.
-- Kept shorter bubble lifetimes while preventing them from dying before they reached camera view.
+- Added explicit screen-depth fade to fish.
+- Reduced far-fish environment reflection so distant fish fade more naturally into fog.
 
-## v0.3.1 — Softer bubble particles
+### Underwater visuals
 
-- Converted bubbles from square point sprites to circular shader particles.
-- Lowered opacity.
-- Reduced particle count/spawn density.
-- Added lifetime-based size scaling using the requested logarithmic curve.
+- Added underwater light rays and caustics experiments.
+- Removed the caustic web overlay after visual review.
+- Tuned surface-ray orientation, width, height, and softness.
+- Added animated surface foam band.
+- Hid underwater light rays when they became visually too loud.
 
-## v0.3.0 — Ocean-only build + version footer
+## v0.3.x — Ocean-only build + bubble field
 
-- Added Open Ocean bubble particle field using Three.js `Points` + `BufferGeometry`.
+### Ocean shell
+
+- Made Open Ocean the active tank focus.
 - Added `Sunlight Zone` subtitle under Open Ocean.
 - Added persistent bottom-right version footer.
 - Established app/package versioning.
 
-## pre-v0.3.0
+### Bubble particles
+
+- Added Open Ocean bubble particle field using Three.js `Points` + `BufferGeometry`.
+- Converted bubbles from square point sprites to circular shader particles.
+- Lowered opacity, size, density, and particle count.
+- Added lifetime-based size scaling.
+- Moved bubble spawning into the visible sunlight zone.
+- Reduced bubble scale/density after visual review so bubbles stayed subtle.
+
+## pre-v0.x — Initial prototype and project foundation
+
+### Project setup
 
 - Created the initial World Oceanarium Vite/React/Three.js project.
+- Added CI build workflow and production deployment workflow.
+- Added Vercel-compatible build/deploy setup.
+
+### App flow
+
 - Added initial oceanarium UI shell, landing screen, and biome selection flow.
 - Added read-only Supabase creature loading with local seed fallback.
 - Added initial biome/tank rendering with fish, floor, vegetation, water surface, camera, and UI.
 - Added fish selection and focus-follow camera behavior.
 - Cropped the 3D tank to a fixed 16:9 viewport and removed vertical tank scrolling.
+- Made landing enter Open Ocean directly and back return to landing.
+- Removed Tropical River from the active flow while keeping selection/menu code for future tanks.
+
+### Visual foundation
+
 - Added generated equirectangular environment lighting, hemisphere/key/fill/point lighting, and exponential water-depth fog.
 - Tuned fish, floor, vegetation, and water materials to respond to environment lighting.
-- Removed Tropical River from the active flow while keeping selection/menu code for future tanks.
-- Made landing enter Open Ocean directly and back return to landing.
 - Established generated HDRI-equivalent environment lighting as the baseline for future tanks.
-- Added CI build workflow and production deployment workflow.
+- Added initial ocean bubbles, depth fade, surface/floor/vegetation visual treatment, and ocean-only scene polish.

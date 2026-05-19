@@ -378,12 +378,16 @@ function schoolFormationOffset(school, creature) {
   const indexRadius = Math.sqrt((school.index + 0.5) / count)
   const schoolRadius = SCHOOL_SPACING * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
   const angle = school.index * GOLDEN_ANGLE + randomRange(rand, -0.14, 0.14)
-  const longitudinal = (
-    Math.sin(school.index * GOLDEN_ANGLE * 0.73) * 0.55 + randomRange(rand, -0.45, 0.45)
-  ) * schoolRadius * SCHOOL_LONGITUDINAL_SPREAD
+  const isLeader = school.index === 0
+  const longitudinal = isLeader
+    ? schoolRadius * SCHOOL_LONGITUDINAL_SPREAD * 0.52
+    : (
+      Math.sin(school.index * GOLDEN_ANGLE * 0.73) * 0.55 + randomRange(rand, -0.45, 0.45)
+    ) * schoolRadius * SCHOOL_LONGITUDINAL_SPREAD
+  const phaseRank = isLeader ? 1 : (count - 1 - school.index) / count
 
   return {
-    phase: (school.index / count) * SCHOOL_PHASE_WINDOW + randomRange(rand, -0.006, 0.006),
+    phase: phaseRank * SCHOOL_PHASE_WINDOW + randomRange(rand, -0.006, 0.006),
     lateral: Math.cos(angle) * schoolRadius * indexRadius + randomRange(rand, -0.045, 0.045),
     vertical: Math.sin(angle) * schoolRadius * indexRadius * SCHOOL_VERTICAL_SPREAD + randomRange(rand, -0.045, 0.045),
     longitudinal,

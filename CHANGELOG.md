@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.2 — Audio + mobile follow polish
 
-Status: in progress as `v0.7.2-dev_33`.
+Status: in progress as `v0.7.2-dev_34`.
 
 ### Audio foundation
 
@@ -116,6 +116,7 @@ Status: in progress as `v0.7.2-dev_33`.
 - Relaxed dense-school separation so sardines can stay visually dense.
 - Added smoother dense-school avoidance steering.
 - Distributed school offsets vertically and forward/backward for fuller formations.
+- Kept the debug school leader in the visual front of the formation instead of letting the arbitrary driver fish trail behind followers.
 - Added follow steering for all fish.
 - Capped solo fish follow target lookahead for large creatures.
 

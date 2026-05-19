@@ -48,10 +48,10 @@ const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
-const SELECTED_OUTLINE_COLOR = '#b9f7ff'
+const SELECTED_OUTLINE_COLOR = '#2b7fa3'
 const LEADER_OUTLINE_COLOR = '#80ff72'
-const SELECTED_OUTLINE_OPACITY = 0.30
-const LEADER_OUTLINE_OPACITY = 0.22
+const SELECTED_OUTLINE_OPACITY = 0.14
+const LEADER_OUTLINE_OPACITY = 0.16
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -1056,7 +1056,7 @@ export default function Fish({ creature, selected = false, debug = false, debugL
 
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
-  const outlineColor = selected ? SELECTED_OUTLINE_COLOR : (isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
+  const outlineColor = selected ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const outlineOpacity = selected ? SELECTED_OUTLINE_OPACITY : LEADER_OUTLINE_OPACITY
 
   const handleSelect = (event) => {

@@ -145,6 +145,29 @@ function fallbackIndividualDescription() {
   return 'this one poops a lot'
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function namedIndividualDescription(creature, customName) {
+  const rawDescription = creature.description?.trim()
+  if (!customName) return rawDescription || fallbackIndividualDescription(creature)
+  if (!rawDescription) return `${customName} poops a lot`
+
+  const namePattern = new RegExp(`\\b${escapeRegExp(customName)}\\b`, 'i')
+  if (namePattern.test(rawDescription)) return rawDescription
+
+  const speciesName = creature.species?.trim()
+  if (!speciesName) return `${customName}: ${rawDescription}`
+
+  const speciesPattern = new RegExp(`\\b${escapeRegExp(speciesName)}\\b`, 'gi')
+  if (speciesPattern.test(rawDescription)) {
+    return rawDescription.replace(speciesPattern, customName)
+  }
+
+  return `${customName}: ${rawDescription}`
+}
+
 function bodyLengthMeters(creature, species) {
   const bodyLengthWU = species?.swim?.bodyLengthWU ?? DEFAULT_BODY_LENGTH_WU
   return bodyLengthWU * (creature.size ?? 1) * WORLD_UNIT_METERS
@@ -183,8 +206,8 @@ export default function InfoCard({ creature, onClose }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
   const depthLabel = depthZone?.label ?? creature.depthZone ?? 'Unknown zone'
-  const individualDescription = creature.description?.trim() || fallbackIndividualDescription(creature)
   const customName = creature.customName?.trim()
+  const individualDescription = namedIndividualDescription(creature, customName)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
 

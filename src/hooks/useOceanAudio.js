@@ -9,6 +9,26 @@ const AMBIENT_VOLUME = 0.16
 const SFX_VOLUME = 0.34
 const FOLLOW_MODE_SFX_BOOST = 4.5
 const SFX_MIN_GAP_SECONDS = 0.09
+const FISH_SFX_ASSETS = {
+  turn: [
+    '/audio/fish-sfx/fish-small-movement-01.mp3',
+    '/audio/fish-sfx/fish-small-movement-02.mp3',
+    '/audio/fish-sfx/fish-small-movement-03.mp3',
+  ],
+  burst: [
+    '/audio/fish-sfx/fish-big-movement-01.mp3',
+    '/audio/fish-sfx/fish-big-movement-02.mp3',
+  ],
+}
+
+function hashString(value) {
+  let hash = 2166136261
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
 
 function createAudioContext() {
   const AudioContextClass = window.AudioContext ?? window.webkitAudioContext
@@ -135,6 +155,60 @@ function emitAudioLevels(levels) {
   window.dispatchEvent(new CustomEvent(AUDIO_VOLUME_EVENT, { detail: levels }))
 }
 
+async function loadAudioBuffer(context, url) {
+  const response = await window.fetch(url)
+  if (!response.ok) throw new Error(`Audio asset failed to load: ${url}`)
+  const arrayBuffer = await response.arrayBuffer()
+  return context.decodeAudioData(arrayBuffer)
+}
+
+async function loadFishSfxAssets(context) {
+  const entries = await Promise.all(Object.entries(FISH_SFX_ASSETS).map(async ([type, urls]) => {
+    const buffers = await Promise.all(urls.map(url => loadAudioBuffer(context, url)))
+    return [type, buffers]
+  }))
+  return Object.fromEntries(entries)
+}
+
+function chooseSfxBuffer(graph, type, detail) {
+  const buffers = graph.fishSfxBuffers?.[type]
+  if (!buffers?.length) return null
+  const seed = `${detail.creatureId ?? 'fish'}:${detail.type ?? type}:${detail.followMode ? 'follow' : 'normal'}`
+  return buffers[hashString(seed) % buffers.length]
+}
+
+function playFishAssetSfx(context, graph, type, intensity, detail) {
+  const buffer = chooseSfxBuffer(graph, type, detail)
+  if (!buffer) return false
+
+  const now = context.currentTime
+  const source = context.createBufferSource()
+  const filter = context.createBiquadFilter()
+  const gain = context.createGain()
+  const activeSfx = graph.activeSfx ?? new Set()
+  graph.activeSfx = activeSfx
+  const sfxNodes = { source, filter, gain }
+  activeSfx.add(sfxNodes)
+
+  source.buffer = buffer
+  filter.type = 'lowpass'
+  filter.frequency.value = detail.followMode ? 760 : 560
+  filter.Q.value = 0.48
+
+  const assetGain = (type === 'burst' ? 0.58 : 0.42) * intensity * (detail.followMode ? 1.15 : 0.42)
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(assetGain, now + 0.018)
+  gain.gain.setTargetAtTime(assetGain * 0.92, now + 0.08, 0.22)
+  gain.gain.setTargetAtTime(0.0001, now + Math.max(0.12, buffer.duration - 0.16), 0.08)
+
+  source.connect(filter)
+  filter.connect(gain)
+  gain.connect(graph.sfxGain)
+  source.start(now)
+  source.onended = () => activeSfx.delete(sfxNodes)
+  return true
+}
+
 function playFishSwimSfx(context, graph, detail = {}) {
   if (!context || !graph) return
 
@@ -144,6 +218,8 @@ function playFishSwimSfx(context, graph, detail = {}) {
 
   const type = detail.type === 'burst' ? 'burst' : 'turn'
   const intensity = Math.max(0.25, Math.min(1, detail.intensity ?? 0.55))
+  if (playFishAssetSfx(context, graph, type, intensity, detail)) return
+
   const focusBoost = detail.followMode ? FOLLOW_MODE_SFX_BOOST : 1
   const duration = detail.followMode
     ? (type === 'burst' ? 0.62 : 0.46)
@@ -241,6 +317,13 @@ export function useOceanAudio() {
 
     const graph = buildAudioGraph(context)
     audioRef.current = { context, graph }
+    loadFishSfxAssets(context)
+      .then(buffers => {
+        graph.fishSfxBuffers = buffers
+      })
+      .catch(error => {
+        console.warn('Fish SFX assets unavailable; using synthesized fallback', error)
+      })
     startLevelMeter()
     return audioRef.current
   }, [startLevelMeter])

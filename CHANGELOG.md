@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.3 — Public launch shell polish
 
-Status: in progress as `v0.7.3-dev_03`.
+Status: in progress as `v0.7.3-dev_04`.
 
 ### Screenshot/share polish
 
@@ -19,6 +19,7 @@ Status: in progress as `v0.7.3-dev_03`.
 - Added a persistent acknowledgement prompt with platform-specific exit instructions.
 - Set desktop exit to `Esc` and mobile/touch exit to long-press anywhere.
 - Kept screenspace lighting/exposure visible in screenshot mode so captures preserve the intended tank look.
+- Hid the selected/followed fish silhouette in screenshot mode while preserving the follow camera state.
 
 ## v0.7.2 — Audio + mobile follow polish
 

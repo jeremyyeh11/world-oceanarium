@@ -367,6 +367,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             tankVisitSeed={tankVisitSeed}
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
+            hideSelectionSilhouette={screenshotMode}
             debug={visibleDebugMode}
             debugView={debugView}
             debugLayers={debugLayers}

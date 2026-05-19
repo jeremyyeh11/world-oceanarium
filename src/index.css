@@ -335,10 +335,6 @@ button { font: inherit; }
   outline-offset: 3px;
 }
 
-.tank-viewport.is-screenshot-mode .tank-top-exposure {
-  display: none;
-}
-
 .tank-back-button {
   position: absolute;
   top: 1.25rem;

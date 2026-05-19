@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.3 — Public launch shell polish
 
-Status: in progress as `v0.7.3-dev_02`.
+Status: in progress as `v0.7.3-dev_03`.
 
 ### Screenshot/share polish
 
@@ -18,6 +18,7 @@ Status: in progress as `v0.7.3-dev_02`.
 - Hid all app UI, fish info cards, debug overlays, version label, and tank labels while screenshot mode is active.
 - Added a persistent acknowledgement prompt with platform-specific exit instructions.
 - Set desktop exit to `Esc` and mobile/touch exit to long-press anywhere.
+- Kept screenspace lighting/exposure visible in screenshot mode so captures preserve the intended tank look.
 
 ## v0.7.2 — Audio + mobile follow polish
 

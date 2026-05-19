@@ -375,7 +375,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
       <div className="tank-top-exposure" aria-hidden="true" />
 
-      <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>
+      {!zoomActive && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
       <div style={{
         position: 'absolute', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',

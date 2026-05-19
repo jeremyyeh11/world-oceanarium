@@ -5,6 +5,7 @@ import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import { BIOMES } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
+import { useOceanAudio } from './hooks/useOceanAudio'
 import { APP_VERSION_LABEL } from './version'
 
 const DEFAULT_BIOME_ID = 'ocean'
@@ -46,7 +47,7 @@ export default function App() {
   const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
-  const [audioMuted, setAudioMuted] = useState(true)
+  const { muted: audioMuted, supported: audioSupported, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const creatureData = useCreatures()
@@ -133,10 +134,11 @@ export default function App() {
         <button
           className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
           type="button"
-          aria-label={audioMuted ? 'Unmute ocean audio placeholder' : 'Mute ocean audio placeholder'}
+          aria-label={audioMuted ? 'Unmute ambient underwater audio' : 'Mute ambient underwater audio'}
           aria-pressed={!audioMuted}
-          title="Audio placeholder"
-          onClick={() => setAudioMuted(current => !current)}
+          title={audioSupported ? 'Ambient underwater audio' : 'Audio unavailable'}
+          disabled={!audioSupported}
+          onClick={toggleAudioMuted}
         >
           <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
             {audioMuted ? (

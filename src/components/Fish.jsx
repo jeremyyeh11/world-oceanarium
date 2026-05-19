@@ -581,7 +581,7 @@ function FishModel({ model, animation = 'idle', animationVariation }) {
   )
 }
 
-export default function Fish({ creature, selected = false, debug = false, school = null, onClick, onReady }) {
+export default function Fish({ creature, selected = false, debug = false, debugLayers = null, school = null, onClick, onReady }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -874,23 +874,31 @@ export default function Fish({ creature, selected = false, debug = false, school
     pitchedForward.copy(visualForward.current)
 
     if (debug) {
+      const showVectors = debugLayers?.vectors ?? true
+      const showNumbers = debugLayers?.numbers ?? true
       const effectiveDebugVelocity = velocity.current * organicMotion.speedScale
       const debugVectorLength = DEBUG_FORWARD_MIN_LENGTH + effectiveDebugVelocity * DEBUG_FORWARD_SPEED_SCALE
       const drift = currentSchoolDrift(schoolOffset, now)
       debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
-      if (followTargetMarkerRef.current) followTargetMarkerRef.current.position.copy(followTarget.current)
+      if (forwardLineRef.current) forwardLineRef.current.visible = showVectors
+      if (followTargetMarkerRef.current) {
+        followTargetMarkerRef.current.position.copy(followTarget.current)
+        followTargetMarkerRef.current.visible = showVectors
+      }
       if (speedLabelRef.current) {
         speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
         speedLabelRef.current.text = `${effectiveDebugVelocity.toFixed(2)} wu/s`
         speedLabelRef.current.lookAt(camera.position)
+        speedLabelRef.current.visible = showNumbers
       }
       if (driftLabelRef.current) {
-        labelPosition.current.copy(fish.position).addScaledVector(up, 0.58 + size * 0.22)
+        labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.26 + size * 0.12)
         driftLabelRef.current.position.copy(labelPosition.current)
         driftLabelRef.current.text = `drift ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}`
         driftLabelRef.current.lookAt(camera.position)
+        driftLabelRef.current.visible = showNumbers
       }
     }
 
@@ -947,7 +955,7 @@ export default function Fish({ creature, selected = false, debug = false, school
   })
 
   const focusScale = selected ? 1.08 : 1
-  const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size), 1, 2.6)
+  const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
 
   const handleSelect = (event) => {
     event.stopPropagation()
@@ -961,7 +969,7 @@ export default function Fish({ creature, selected = false, debug = false, school
     <group>
       {debug && (
         <>
-          {(!isSchooling || isSchoolLeader) && (
+          {(debugLayers?.spline ?? true) && (!isSchooling || isSchoolLeader) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>
@@ -970,7 +978,7 @@ export default function Fish({ creature, selected = false, debug = false, school
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>
           <mesh ref={followTargetMarkerRef} scale={debugTargetScale} raycast={() => null}>
-            <sphereGeometry args={[0.09, 8, 8]} />
+            <sphereGeometry args={[0.055, 8, 8]} />
             <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />
           </mesh>
           <Text

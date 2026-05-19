@@ -22,6 +22,11 @@ const DEBUG_VIEW_MODES = [
   { id: 'focused', icon: '◉', label: 'Focused' },
   { id: 'none', icon: '○', label: 'None' },
 ]
+const DEBUG_LAYER_BUTTONS = [
+  { id: 'spline', label: 'Spline' },
+  { id: 'numbers', label: 'Numbers' },
+  { id: 'vectors', label: 'Vectors' },
+]
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
 function getPanLimits() {
@@ -48,6 +53,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('all')
+  const [debugLayers, setDebugLayers] = useState({ spline: true, numbers: true, vectors: true })
   const [stagePan, setStagePan] = useState(0)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
@@ -144,6 +150,10 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
   const adjustFollowDistance = (delta) => {
     setFollowDistance(current => clampFollowDistance(current + delta))
+  }
+
+  const toggleDebugLayer = (layerId) => {
+    setDebugLayers(current => ({ ...current, [layerId]: !current[layerId] }))
   }
 
   useEffect(() => {
@@ -282,6 +292,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             zoomActive={zoomActive}
             debug={debugMode}
             debugView={debugView}
+            debugLayers={debugLayers}
             onCreatureClick={focusCreature}
             onCreatureReady={registerCreatureRef}
           />
@@ -309,7 +320,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
       {debugMode && (
         <div style={{
-          position: 'absolute', right: '1rem', bottom: '4.25rem', zIndex: 55,
+          position: 'absolute', left: '1rem', bottom: '4.25rem', zIndex: 55,
           padding: '0.5rem 0.65rem', borderRadius: 10,
           border: '1px solid rgba(125,249,255,0.22)',
           background: 'rgba(0,13,28,0.58)', color: 'rgba(220,245,255,0.72)',
@@ -341,6 +352,31 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
                 }}
               >
                 {mode.icon}
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: '0.42rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.32rem' }}>
+            {DEBUG_LAYER_BUTTONS.map(layer => (
+              <button
+                key={layer.id}
+                type="button"
+                aria-label={`Toggle ${layer.label}`}
+                aria-pressed={debugLayers[layer.id]}
+                onClick={() => toggleDebugLayer(layer.id)}
+                style={{
+                  borderRadius: 999,
+                  border: debugLayers[layer.id] ? '1px solid rgba(125,249,255,0.64)' : '1px solid rgba(125,249,255,0.16)',
+                  background: debugLayers[layer.id] ? 'rgba(0,60,78,0.62)' : 'rgba(0,18,32,0.38)',
+                  color: debugLayers[layer.id] ? 'rgba(245,255,255,0.92)' : 'rgba(220,245,255,0.48)',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                  fontSize: '0.56rem',
+                  lineHeight: 1,
+                  padding: '0.28rem 0.46rem',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {layer.label}
               </button>
             ))}
           </div>

@@ -195,6 +195,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
   const focusCreature = (creature, fishRef) => {
     dragRef.current = null
+    touchPointsRef.current.clear()
     focusChangeAtRef.current = performance.now()
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
@@ -249,7 +250,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
     if (selectedCreature && event.pointerType === 'touch') {
       event.preventDefault()
-      event.currentTarget.setPointerCapture(event.pointerId)
       touchPointsRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
       if (touchPointsRef.current.size >= 2) {
         dragRef.current = {
@@ -262,7 +262,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     }
 
     if (selectedCreature) {
-      if (event.pointerType === 'touch') event.currentTarget.setPointerCapture(event.pointerId)
       dragRef.current = {
         mode: 'orbit-pending',
         pointerId: event.pointerId,

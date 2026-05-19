@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.2 — Audio + mobile follow polish
 
-Status: in progress as `v0.7.2-dev_36`.
+Status: in progress as `v0.7.2-dev_37`.
 
 ### Audio foundation
 
@@ -52,6 +52,7 @@ Status: in progress as `v0.7.2-dev_36`.
 - Preserved scrolling inside the info card.
 - Restored orbit and pinch-to-zoom after scroll-lock tuning.
 - Hid home/back navigation while following a creature.
+- Offset mobile follow-camera framing above the info card so followed fish stays centered in the visible tank area.
 
 ### Search/mobile input
 

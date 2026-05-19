@@ -14,6 +14,7 @@ const FOLLOW_POSITION_DAMPING = 6.2
 const DEFAULT_POSITION_DAMPING = 4.0
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
+const framedFocus = new THREE.Vector3()
 const followOffset = new THREE.Vector3()
 const followRight = new THREE.Vector3()
 const desiredCameraPosition = new THREE.Vector3()
@@ -21,7 +22,7 @@ const focusBounds = new THREE.Box3()
 const yawQuaternion = new THREE.Quaternion()
 const pitchQuaternion = new THREE.Quaternion()
 
-export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2 }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0 }) {
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
   const hasSmoothedFocus = useRef(false)
@@ -60,12 +61,16 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       pitchQuaternion.setFromAxisAngle(followRight, followOrbit.pitch)
       followOffset.applyQuaternion(pitchQuaternion)
 
-      desiredCameraPosition.copy(smoothedFocus.current).add(followOffset)
+      const followFramingShift = THREE.MathUtils.clamp(followScreenOffset, 0, 0.4) * 0.5
+      const visibleHeightAtFocus = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5) * followDistance
+      framedFocus.copy(smoothedFocus.current).addScaledVector(THREE.Object3D.DEFAULT_UP, -visibleHeightAtFocus * followFramingShift)
+
+      desiredCameraPosition.copy(framedFocus).add(followOffset)
       camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredCameraPosition.x, FOLLOW_POSITION_DAMPING, delta)
       camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredCameraPosition.y, FOLLOW_POSITION_DAMPING, delta)
       camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredCameraPosition.z, FOLLOW_POSITION_DAMPING, delta)
 
-      lookTarget.copy(smoothedFocus.current)
+      lookTarget.copy(framedFocus)
       camera.lookAt(lookTarget)
       return
     }

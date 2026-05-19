@@ -38,15 +38,28 @@ button { font: inherit; }
   right: max(0.85rem, env(safe-area-inset-right));
   z-index: 1000;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
   justify-content: flex-end;
   gap: 0.34rem;
   pointer-events: none;
 }
 
+.top-controls-menu {
+  position: absolute;
+  top: calc(100% + 0.42rem);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.34rem;
+  pointer-events: auto;
+}
+
 .fullscreen-toggle,
 .audio-toggle,
 .screenshot-toggle,
+.top-menu-toggle,
 .fish-search-button {
   position: relative;
   display: inline-flex;
@@ -100,6 +113,9 @@ button { font: inherit; }
 .audio-toggle.is-active,
 .screenshot-toggle:hover,
 .screenshot-toggle:focus-visible,
+.top-menu-toggle:hover,
+.top-menu-toggle:focus-visible,
+.top-controls.is-open .top-menu-toggle,
 .fish-search-button:hover,
 .fish-search-button:focus-visible,
 .fish-search.is-expanded .fish-search-button {
@@ -122,6 +138,7 @@ button { font: inherit; }
 .fullscreen-toggle:focus-visible,
 .audio-toggle:focus-visible,
 .screenshot-toggle:focus-visible,
+.top-menu-toggle:focus-visible,
 .fish-search-button:focus-visible,
 .fish-search-input:focus-visible {
   outline: 2px solid rgba(125, 249, 255, 0.45);
@@ -177,6 +194,19 @@ button { font: inherit; }
   pointer-events: auto;
 }
 
+.top-controls-menu .fish-search {
+  position: relative;
+}
+
+.top-controls-menu .fish-search.is-expanded .fish-search-input,
+.top-controls-menu .fish-search.has-error .fish-search-input {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 0.5rem);
+  width: min(18rem, calc(100vw - 5.6rem));
+  height: 2.3rem;
+}
+
 .fish-search.has-error .fish-search-input {
   width: min(24rem, calc(100vw - 17rem));
   border-color: rgba(255, 104, 112, 0.82);
@@ -200,7 +230,10 @@ button { font: inherit; }
   .top-controls {
     top: max(0.65rem, env(safe-area-inset-top));
     right: max(0.65rem, env(safe-area-inset-right));
-    left: max(0.65rem, env(safe-area-inset-left));
+    gap: 0.28rem;
+  }
+
+  .top-controls-menu {
     gap: 0.28rem;
   }
 
@@ -211,6 +244,7 @@ button { font: inherit; }
   .fullscreen-toggle,
   .audio-toggle,
   .screenshot-toggle,
+  .top-menu-toggle,
   .fish-search-button {
     width: 2.15rem;
     min-height: 2.15rem;
@@ -237,10 +271,10 @@ button { font: inherit; }
   .fish-search.is-expanded .fish-search-input,
   .fish-search.has-error .fish-search-input {
     position: absolute;
-    top: calc(2.15rem + 3rem);
-    left: 0;
-    right: 0;
-    width: auto;
+    top: 0;
+    left: auto;
+    right: calc(100% + 0.48rem);
+    width: min(16rem, calc(100vw - 5rem));
     height: 2rem;
     padding: 0.42rem 0.7rem;
     font: 16px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

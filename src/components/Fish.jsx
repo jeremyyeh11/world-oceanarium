@@ -87,6 +87,7 @@ const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
 const rawVisualForward = new THREE.Vector3()
+const splineVisualTangent = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const separationDelta = new THREE.Vector3()
 const SCHOOL_STATES = new Map()
@@ -204,6 +205,29 @@ function rotateDirectionToward(current, target, maxAngle) {
   if (angle <= maxAngle) return current.copy(target)
   const alpha = maxAngle / Math.max(0.000001, angle)
   return current.lerp(target, alpha).normalize()
+}
+
+function clampedVisualPitch(direction, pitchLimit) {
+  const horizontal = Math.max(0.0001, Math.hypot(direction.x, direction.z))
+  const gradientLimit = Math.atan(MAX_PATH_Y_GRADIENT)
+  const limit = Math.min(pitchLimit, gradientLimit)
+  return THREE.MathUtils.clamp(Math.atan2(direction.y, horizontal), -limit, limit)
+}
+
+function setForwardWithPitch(out, horizontalDirection, pitch) {
+  out
+    .copy(horizontalDirection)
+    .multiplyScalar(Math.cos(pitch))
+    .addScaledVector(up, Math.sin(pitch))
+    .normalize()
+  return out
+}
+
+function enforceForwardPitchLimit(direction, pitchLimit) {
+  horizontalForward.set(direction.x, 0, direction.z)
+  if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
+  horizontalForward.normalize()
+  return setForwardWithPitch(direction, horizontalForward, clampedVisualPitch(direction, pitchLimit))
 }
 
 function debugForwardOffset(creature, swim, model) {
@@ -850,16 +874,8 @@ export default function Fish({ creature, selected = false, debug = false, debugL
     if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
     horizontalForward.normalize()
 
-    const visualPitch = THREE.MathUtils.clamp(
-      Math.atan2(tangent.y, Math.max(0.0001, Math.hypot(tangent.x, tangent.z))),
-      -pitchLimit,
-      pitchLimit,
-    )
-    rawVisualForward
-      .copy(horizontalForward)
-      .multiplyScalar(Math.cos(visualPitch))
-      .addScaledVector(up, Math.sin(visualPitch))
-      .normalize()
+    currentPath.getTangentAt(t, splineVisualTangent).normalize()
+    setForwardWithPitch(rawVisualForward, horizontalForward, clampedVisualPitch(splineVisualTangent, pitchLimit))
 
     if (!hasVisualForward.current) {
       visualForward.current.copy(rawVisualForward)
@@ -870,6 +886,7 @@ export default function Fish({ creature, selected = false, debug = false, debugL
         rawVisualForward,
         turnRateForCreature(creature, swim) * delta,
       )
+      enforceForwardPitchLimit(visualForward.current, pitchLimit)
     }
     pitchedForward.copy(visualForward.current)
 

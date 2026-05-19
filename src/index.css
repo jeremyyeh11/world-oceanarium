@@ -52,8 +52,12 @@ button { font: inherit; }
   flex-direction: column;
   align-items: flex-end;
   gap: 0.34rem;
-  pointer-events: auto;
+  pointer-events: none;
   perspective: 12rem;
+}
+
+.top-controls.is-open .top-controls-menu {
+  pointer-events: auto;
 }
 
 .fullscreen-toggle,
@@ -107,30 +111,42 @@ button { font: inherit; }
   opacity: 0;
   transform: translateY(-0.7rem) scale(0.88) rotateX(-18deg);
   transform-origin: top center;
-  animation: top-control-pour-down 260ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 260ms cubic-bezier(0.18, 0.82, 0.24, 1);
 }
 
-.top-controls-menu > .audio-toggle {
-  animation-delay: 45ms;
+.top-controls.is-open .top-controls-menu > .screenshot-toggle,
+.top-controls.is-open .top-controls-menu > .audio-toggle,
+.top-controls.is-open .top-controls-menu > .fullscreen-toggle {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotateX(0deg);
+  pointer-events: auto;
 }
 
-.top-controls-menu > .fullscreen-toggle {
-  animation-delay: 90ms;
+.top-controls.is-open .top-controls-menu > .screenshot-toggle {
+  transition-delay: 0ms;
 }
 
-@keyframes top-control-pour-down {
-  0% {
-    opacity: 0;
-    transform: translateY(-0.7rem) scale(0.88) rotateX(-18deg);
-  }
-  70% {
-    opacity: 1;
-    transform: translateY(0.08rem) scale(1.025) rotateX(0deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1) rotateX(0deg);
-  }
+.top-controls.is-open .top-controls-menu > .audio-toggle {
+  transition-delay: 45ms;
+}
+
+.top-controls.is-open .top-controls-menu > .fullscreen-toggle {
+  transition-delay: 90ms;
+}
+
+.top-controls:not(.is-open) .top-controls-menu > .screenshot-toggle {
+  transition-delay: 90ms;
+}
+
+.top-controls:not(.is-open) .top-controls-menu > .audio-toggle {
+  transition-delay: 45ms;
+}
+
+.top-controls:not(.is-open) .top-controls-menu > .fullscreen-toggle {
+  transition-delay: 0ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -140,8 +156,6 @@ button { font: inherit; }
   .top-controls-menu > .fullscreen-toggle {
     animation: none;
     transition: none;
-    opacity: 1;
-    transform: none;
   }
 }
 

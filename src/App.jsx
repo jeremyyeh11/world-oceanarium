@@ -13,6 +13,7 @@ const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
 const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
+const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 
 function fullscreenElement() {
   return document.fullscreenElement ?? document.webkitFullscreenElement ?? null
@@ -50,6 +51,7 @@ export default function App() {
   const { muted: audioMuted, supported: audioSupported, startAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
+  const audioResumeTimers = useRef([])
   const creatureData = useCreatures()
 
   useEffect(() => {
@@ -67,13 +69,26 @@ export default function App() {
   useEffect(() => {
     if (screen !== 'tank') return undefined
 
+    const clearAudioResumeTimers = () => {
+      audioResumeTimers.current.forEach(timer => window.clearTimeout(timer))
+      audioResumeTimers.current = []
+    }
+
     const pauseWhenBackgrounded = () => {
+      clearAudioResumeTimers()
       stopAudio()
     }
 
     const resumeWhenForegrounded = () => {
       if (document.visibilityState === 'hidden' || audioMuted) return
-      startAudio()
+      clearAudioResumeTimers()
+      AUDIO_FOREGROUND_RESUME_DELAYS_MS.forEach(delay => {
+        const timer = window.setTimeout(() => {
+          if (document.visibilityState === 'hidden' || audioMuted) return
+          startAudio()
+        }, delay)
+        audioResumeTimers.current.push(timer)
+      })
     }
 
     const syncVisibilityAudio = () => {
@@ -92,6 +107,7 @@ export default function App() {
     window.addEventListener('focus', resumeWhenForegrounded)
 
     return () => {
+      clearAudioResumeTimers()
       document.removeEventListener('visibilitychange', syncVisibilityAudio)
       window.removeEventListener('pagehide', pauseWhenBackgrounded)
       window.removeEventListener('blur', pauseWhenBackgrounded)

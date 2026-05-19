@@ -7,6 +7,7 @@ const LEVEL_FRAME_MS = 100
 const MASTER_TARGET_GAIN = 0.316 // -10 dB trim.
 const AMBIENT_VOLUME = 0.16
 const SFX_VOLUME = 0.34
+const FOLLOW_MODE_SFX_BOOST = 4.5
 const SFX_MIN_GAP_SECONDS = 0.09
 
 function createAudioContext() {
@@ -143,6 +144,7 @@ function playFishSwimSfx(context, graph, detail = {}) {
 
   const type = detail.type === 'burst' ? 'burst' : 'turn'
   const intensity = Math.max(0.25, Math.min(1, detail.intensity ?? 0.55))
+  const focusBoost = detail.followMode ? FOLLOW_MODE_SFX_BOOST : 1
   const duration = type === 'burst' ? 0.24 : 0.16
   const noise = context.createBufferSource()
   const filter = context.createBiquadFilter()
@@ -157,14 +159,14 @@ function playFishSwimSfx(context, graph, detail = {}) {
   filter.Q.value = type === 'burst' ? 0.74 : 0.62
 
   gain.gain.setValueAtTime(0.0001, now)
-  gain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.16 : 0.09) * intensity, now + 0.018)
+  gain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.16 : 0.09) * intensity * focusBoost, now + 0.018)
   gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
   tone.type = 'sine'
   tone.frequency.setValueAtTime(type === 'burst' ? 210 : 150, now)
   tone.frequency.exponentialRampToValueAtTime(type === 'burst' ? 82 : 70, now + duration * 0.75)
   toneGain.gain.setValueAtTime(0.0001, now)
-  toneGain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.025 : 0.014) * intensity, now + 0.025)
+  toneGain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.025 : 0.014) * intensity * focusBoost, now + 0.025)
   toneGain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
   noise.connect(filter)

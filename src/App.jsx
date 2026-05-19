@@ -53,10 +53,12 @@ export default function App() {
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
   const [screenshotMode, setScreenshotMode] = useState(false)
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
+  const [topMenuOpen, setTopMenuOpen] = useState(false)
   const { muted: audioMuted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const screenshotExitHold = useRef(null)
+  const topControlsRef = useRef(null)
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
@@ -72,6 +74,32 @@ export default function App() {
       document.removeEventListener('webkitfullscreenchange', syncFullscreen)
     }
   }, [])
+
+  useEffect(() => {
+    if (!topMenuOpen) return undefined
+
+    const closeMenu = (event) => {
+      if (topControlsRef.current?.contains(event.target)) return
+      setTopMenuOpen(false)
+    }
+
+    const closeMenuOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      setTopMenuOpen(false)
+    }
+
+    window.addEventListener('pointerdown', closeMenu, { capture: true })
+    window.addEventListener('keydown', closeMenuOnEscape)
+
+    return () => {
+      window.removeEventListener('pointerdown', closeMenu, { capture: true })
+      window.removeEventListener('keydown', closeMenuOnEscape)
+    }
+  }, [topMenuOpen])
+
+  useEffect(() => {
+    if (screen !== 'tank' || screenshotMode) setTopMenuOpen(false)
+  }, [screen, screenshotMode])
 
   useEffect(() => {
     if (screen !== 'tank') return undefined
@@ -273,8 +301,13 @@ export default function App() {
     setScreen('landing')
   }
   const enterScreenshotMode = () => {
+    setTopMenuOpen(false)
     setScreenshotMode(true)
     setScreenshotHelpVisible(true)
+  }
+
+  const toggleTopMenu = () => {
+    setTopMenuOpen(current => !current)
   }
 
   let page = null
@@ -293,72 +326,90 @@ export default function App() {
     <>
       {page}
       {!screenshotMode && (
-        <div className="top-controls">
-          {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
+        <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
           {screen === 'tank' && (
             <button
-              className="screenshot-toggle"
+              className="top-menu-toggle"
               type="button"
-              aria-label="Enter screenshot mode"
-              onClick={enterScreenshotMode}
+              aria-label={topMenuOpen ? 'Close controls menu' : 'Open controls menu'}
+              aria-expanded={topMenuOpen}
+              onClick={toggleTopMenu}
             >
               <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M4 8.5h3.2l1.2-2h7.2l1.2 2H20v9.5H4V8.5Z" />
-                <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
+                <path d="M5 7h14" />
+                <path d="M5 12h14" />
+                <path d="M5 17h14" />
               </svg>
             </button>
           )}
-          {screen === 'tank' && (
-          <button
-            className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
-            type="button"
-            aria-label={audioMuted ? 'Unmute audio' : 'Mute audio'}
-            aria-pressed={!audioMuted}
-            title={audioSupported ? undefined : 'Audio unavailable'}
-            disabled={!audioSupported}
-            onClick={toggleAudioMuted}
-          >
-            <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-              {audioMuted ? (
-                <>
-                  <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
-                  <path d="m17 9 4 6m0-6-4 6" />
-                </>
-              ) : (
-                <>
-                  <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
-                  <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6.2a8.2 8.2 0 0 1 0 11.6" />
-                </>
+          {screen === 'tank' && topMenuOpen && (
+            <div className="top-controls-menu" role="menu" aria-label="Tank controls">
+              <SearchControl creatures={creatureData.creatures} active />
+              <button
+                className="screenshot-toggle"
+                type="button"
+                role="menuitem"
+                aria-label="Enter screenshot mode"
+                onClick={enterScreenshotMode}
+              >
+                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 8.5h3.2l1.2-2h7.2l1.2 2H20v9.5H4V8.5Z" />
+                  <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
+                </svg>
+              </button>
+              <button
+                className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
+                type="button"
+                role="menuitem"
+                aria-label={audioMuted ? 'Unmute audio' : 'Mute audio'}
+                aria-pressed={!audioMuted}
+                title={audioSupported ? undefined : 'Audio unavailable'}
+                disabled={!audioSupported}
+                onClick={toggleAudioMuted}
+              >
+                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  {audioMuted ? (
+                    <>
+                      <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                      <path d="m17 9 4 6m0-6-4 6" />
+                    </>
+                  ) : (
+                    <>
+                      <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                      <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6.2a8.2 8.2 0 0 1 0 11.6" />
+                    </>
+                  )}
+                </svg>
+              </button>
+              {fullscreenSupported && (
+                <button
+                  className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
+                  type="button"
+                  role="menuitem"
+                  aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+                  aria-pressed={isFullscreen}
+                  onClick={toggleFullscreen}
+                >
+                  <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                    {isFullscreen ? (
+                      <>
+                        <path d="M9 4v5H4" />
+                        <path d="m4 9 5-5" />
+                        <path d="M15 20v-5h5" />
+                        <path d="m20 15-5 5" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M4 9V4h5" />
+                        <path d="m4 4 6 6" />
+                        <path d="M20 15v5h-5" />
+                        <path d="m20 20-6-6" />
+                      </>
+                    )}
+                  </svg>
+                </button>
               )}
-            </svg>
-          </button>
-        )}
-          {fullscreenSupported && (
-            <button
-              className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
-              type="button"
-              aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-              aria-pressed={isFullscreen}
-              onClick={toggleFullscreen}
-            >
-              <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                {isFullscreen ? (
-                  <>
-                    <path d="M9 4v5H4" />
-                    <path d="m4 9 5-5" />
-                    <path d="M15 20v-5h5" />
-                    <path d="m20 15-5 5" />
-                  </>
-                ) : (
-                  <>
-                    <path d="M4 9V4h5" />
-                    <path d="m4 4 6 6" />
-                    <path d="M20 15v5h-5" />
-                    <path d="m20 20-6-6" />
-                  </>
-                )}
-              </svg>
-            </button>
+            </div>
           )}
         </div>
       )}

@@ -727,13 +727,14 @@ export default function Fish({ creature, selected = false, debug = false, debugL
   }
 
   const playSwimSfx = (type, intensity, now) => {
-    if (SCHOOL_SFX_LEADER_ONLY && isSchooling && !isSchoolLeader) return
+    if (SCHOOL_SFX_LEADER_ONLY && isSchooling && !isSchoolLeader && !selected) return
     if (now - lastSwimSfxAt.current < FISH_SFX_MIN_INTERVAL) return
     lastSwimSfxAt.current = now
     triggerFishSwimSound({
       type,
       intensity,
       creatureId: creature.id,
+      followMode: selected,
       schooling: isSchooling,
     })
   }

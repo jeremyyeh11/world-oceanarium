@@ -343,8 +343,8 @@ export default function App() {
               </svg>
             </button>
           )}
-          {screen === 'tank' && topMenuOpen && (
-            <div className="top-controls-menu" role="menu" aria-label="Tank controls">
+          {screen === 'tank' && (
+            <div className="top-controls-menu" role="menu" aria-label="Tank controls" aria-hidden={!topMenuOpen}>
               <button
                 className="screenshot-toggle"
                 type="button"

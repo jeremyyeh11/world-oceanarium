@@ -9,12 +9,15 @@ export const CAMERA_LIMITS = {
 
 const DEFAULT_CAMERA_Z = 12
 const FOLLOW_HEIGHT = 0.85
-const FOLLOW_TARGET_LERP = 0.075
+const FOLLOW_TARGET_DAMPING = 4.8
+const FOLLOW_POSITION_DAMPING = 6.2
+const DEFAULT_POSITION_DAMPING = 4.0
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
-const followForward = new THREE.Vector3(0, 0, -1)
 const followOffset = new THREE.Vector3()
 const followRight = new THREE.Vector3()
+const desiredCameraPosition = new THREE.Vector3()
+const focusBounds = new THREE.Box3()
 const yawQuaternion = new THREE.Quaternion()
 const pitchQuaternion = new THREE.Quaternion()
 
@@ -28,17 +31,24 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     camera.position.set(0, 0, DEFAULT_CAMERA_Z)
   }, [camera, biome])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (focusTarget) {
-      focusTarget.getWorldPosition(focusPosition)
-      const clampedY = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
-      focusPosition.y = clampedY
+      focusBounds.setFromObject(focusTarget)
+      if (!focusBounds.isEmpty()) {
+        focusBounds.getCenter(focusPosition)
+      } else {
+        focusTarget.getWorldPosition(focusPosition)
+      }
+
+      focusPosition.y = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
 
       if (!hasSmoothedFocus.current) {
         smoothedFocus.current.copy(focusPosition)
         hasSmoothedFocus.current = true
       } else {
-        smoothedFocus.current.lerp(focusPosition, FOLLOW_TARGET_LERP)
+        smoothedFocus.current.x = THREE.MathUtils.damp(smoothedFocus.current.x, focusPosition.x, FOLLOW_TARGET_DAMPING, delta)
+        smoothedFocus.current.y = THREE.MathUtils.damp(smoothedFocus.current.y, focusPosition.y, FOLLOW_TARGET_DAMPING, delta)
+        smoothedFocus.current.z = THREE.MathUtils.damp(smoothedFocus.current.z, focusPosition.z, FOLLOW_TARGET_DAMPING, delta)
       }
 
       followOffset.set(0, FOLLOW_HEIGHT, followDistance)
@@ -50,20 +60,20 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       pitchQuaternion.setFromAxisAngle(followRight, followOrbit.pitch)
       followOffset.applyQuaternion(pitchQuaternion)
 
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, smoothedFocus.current.x + followOffset.x, 0.12)
-      camera.position.y = THREE.MathUtils.lerp(camera.position.y, smoothedFocus.current.y + followOffset.y, 0.12)
-      camera.position.z = THREE.MathUtils.lerp(camera.position.z, smoothedFocus.current.z + followOffset.z, 0.12)
+      desiredCameraPosition.copy(smoothedFocus.current).add(followOffset)
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredCameraPosition.x, FOLLOW_POSITION_DAMPING, delta)
+      camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredCameraPosition.y, FOLLOW_POSITION_DAMPING, delta)
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredCameraPosition.z, FOLLOW_POSITION_DAMPING, delta)
 
       lookTarget.copy(smoothedFocus.current)
-      lookTarget.addScaledVector(followForward, 0.7)
       camera.lookAt(lookTarget)
       return
     }
 
     hasSmoothedFocus.current = false
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.08)
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0, 0.06)
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, DEFAULT_CAMERA_Z, 0.07)
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, DEFAULT_POSITION_DAMPING, delta)
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, 0, DEFAULT_POSITION_DAMPING, delta)
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, DEFAULT_CAMERA_Z, DEFAULT_POSITION_DAMPING, delta)
     camera.lookAt(camera.position.x, camera.position.y, 0)
   })
 

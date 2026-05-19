@@ -5,8 +5,8 @@ const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
 const LEVEL_FLOOR_DB = -72
 const LEVEL_FRAME_MS = 100
 const MASTER_TARGET_GAIN = 0.5 // -6 dB trim; mobile speakers need more headroom than desktop.
-const AMBIENT_VOLUME = 0.24
-const SFX_VOLUME = 0.62
+const AMBIENT_VOLUME = 0.18
+const SFX_VOLUME = 1.0
 const FOLLOW_MODE_SFX_BOOST = 4.5
 const SFX_MIN_GAP_SECONDS = 0.09
 const FISH_SFX_ASSETS = {
@@ -115,8 +115,8 @@ function buildAudioGraph(context) {
   shimmerGain.gain.value = 0.02
 
   lowpass.type = 'lowpass'
-  lowpass.frequency.value = 720
-  lowpass.Q.value = 0.42
+  lowpass.frequency.value = 360
+  lowpass.Q.value = 0.46
 
   rumbleFilter.type = 'lowpass'
   rumbleFilter.frequency.value = 90
@@ -213,7 +213,7 @@ function playFishAssetSfx(context, graph, type, intensity, detail) {
   filter.frequency.value = detail.followMode ? 1800 : 1200
   filter.Q.value = 0.42
 
-  const assetGain = (type === 'burst' ? 0.82 : 0.58) * intensity * (detail.followMode ? 1.25 : 0.58)
+  const assetGain = (type === 'burst' ? 1.0 : 0.78) * intensity * (detail.followMode ? 1.35 : 0.72)
   gain.gain.setValueAtTime(0.0001, now)
   gain.gain.exponentialRampToValueAtTime(assetGain, now + 0.018)
   gain.gain.setTargetAtTime(assetGain * 0.92, now + 0.08, 0.22)

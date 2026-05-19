@@ -515,7 +515,6 @@ button { font: inherit; }
     right: 0 !important;
     bottom: 0 !important;
     width: 100vw !important;
-    min-height: 40dvh !important;
     max-height: 40dvh !important;
     padding: 0.72rem max(0.9rem, env(safe-area-inset-right)) max(0.72rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left)) !important;
     border-left: 0 !important;

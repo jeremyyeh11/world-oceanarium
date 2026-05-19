@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.7.3 — Public launch shell polish
+
+Status: in progress as `v0.7.3-dev_01`.
+
+### Screenshot/share polish
+
+- Added screenshot mode from the tank top controls.
+- Hid all app UI, fish info cards, debug overlays, version label, and tank labels while screenshot mode is active.
+- Added a persistent acknowledgement prompt explaining exit controls before the clean screenshot view.
+- Set desktop exit to `Esc` and mobile/touch exit to long-press anywhere.
+
 ## v0.7.2 — Audio + mobile follow polish
 
 ### Audio foundation

@@ -15,6 +15,8 @@ const DEBUG_REQUIRED_TAPS = 3
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 const AUDIO_SESSION_RECOVERY_MS = 2500
+const SCREENSHOT_EXIT_HOLD_MS = 900
+const SCREENSHOT_EXIT_MOVE_TOLERANCE = 12
 
 function fullscreenElement() {
   return document.fullscreenElement ?? document.webkitFullscreenElement ?? null
@@ -49,9 +51,12 @@ export default function App() {
   const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
+  const [screenshotMode, setScreenshotMode] = useState(false)
+  const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
   const { muted: audioMuted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
+  const screenshotExitHold = useRef(null)
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
@@ -152,6 +157,67 @@ export default function App() {
     }
   }, [audioMuted, pauseAudio, screen, startAudio, stopAudio])
 
+  useEffect(() => {
+    if (!screenshotMode) return undefined
+
+    const clearExitHold = () => {
+      if (!screenshotExitHold.current) return
+      window.clearTimeout(screenshotExitHold.current.timer)
+      screenshotExitHold.current = null
+    }
+
+    const exitScreenshotMode = () => {
+      clearExitHold()
+      setScreenshotMode(false)
+      setScreenshotHelpVisible(false)
+    }
+
+    const exitOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      exitScreenshotMode()
+    }
+
+    const startExitHold = (event) => {
+      if (event.pointerType === 'mouse') return
+      clearExitHold()
+      const startX = event.clientX
+      const startY = event.clientY
+      const pointerId = event.pointerId
+      const timer = window.setTimeout(exitScreenshotMode, SCREENSHOT_EXIT_HOLD_MS)
+      screenshotExitHold.current = { timer, pointerId, startX, startY }
+    }
+
+    const moveExitHold = (event) => {
+      const hold = screenshotExitHold.current
+      if (!hold || hold.pointerId !== event.pointerId) return
+      if (Math.hypot(event.clientX - hold.startX, event.clientY - hold.startY) > SCREENSHOT_EXIT_MOVE_TOLERANCE) {
+        clearExitHold()
+      }
+    }
+
+    const endExitHold = (event) => {
+      const hold = screenshotExitHold.current
+      if (!hold || hold.pointerId !== event.pointerId) return
+      clearExitHold()
+    }
+
+    window.addEventListener('keydown', exitOnEscape)
+    window.addEventListener('pointerdown', startExitHold, { capture: true })
+    window.addEventListener('pointermove', moveExitHold, { capture: true })
+    window.addEventListener('pointerup', endExitHold, { capture: true })
+    window.addEventListener('pointercancel', endExitHold, { capture: true })
+
+    return () => {
+      clearExitHold()
+      window.removeEventListener('keydown', exitOnEscape)
+      window.removeEventListener('pointerdown', startExitHold, { capture: true })
+      window.removeEventListener('pointermove', moveExitHold, { capture: true })
+      window.removeEventListener('pointerup', endExitHold, { capture: true })
+      window.removeEventListener('pointercancel', endExitHold, { capture: true })
+    }
+  }, [screenshotMode])
+
   const toggleFullscreen = async () => {
     try {
       if (fullscreenElement()) {
@@ -200,9 +266,15 @@ export default function App() {
     setScreen('tank')
   }
   const backToLanding = () => {
+    setScreenshotMode(false)
+    setScreenshotHelpVisible(false)
     stopAudio()
     setActiveBiome(DEFAULT_BIOME_ID)
     setScreen('landing')
+  }
+  const enterScreenshotMode = () => {
+    setScreenshotMode(true)
+    setScreenshotHelpVisible(true)
   }
 
   let page = null
@@ -214,15 +286,29 @@ export default function App() {
     page = <BiomeMenu biomes={ACTIVE_BIOMES} onSelect={selectBiome} />
   } else if (screen === 'tank' && activeBiome) {
     const biome = ACTIVE_BIOMES.find(b => b.id === activeBiome) ?? ACTIVE_BIOMES[0]
-    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} onBack={backToLanding} />
+    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onBack={backToLanding} />
   }
 
   return (
     <>
       {page}
-      <div className="top-controls">
-        {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
-        {screen === 'tank' && (
+      {!screenshotMode && (
+        <div className="top-controls">
+          {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
+          {screen === 'tank' && (
+            <button
+              className="screenshot-toggle"
+              type="button"
+              aria-label="Enter screenshot mode"
+              onClick={enterScreenshotMode}
+            >
+              <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M4 8.5h3.2l1.2-2h7.2l1.2 2H20v9.5H4V8.5Z" />
+                <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
+              </svg>
+            </button>
+          )}
+          {screen === 'tank' && (
           <button
             className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
             type="button"
@@ -247,43 +333,58 @@ export default function App() {
             </svg>
           </button>
         )}
-        {fullscreenSupported && (
-          <button
-            className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
-            type="button"
-            aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-            aria-pressed={isFullscreen}
-            onClick={toggleFullscreen}
-          >
-            <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-              {isFullscreen ? (
-                <>
-                  <path d="M9 4v5H4" />
-                  <path d="m4 9 5-5" />
-                  <path d="M15 20v-5h5" />
-                  <path d="m20 15-5 5" />
-                </>
-              ) : (
-                <>
-                  <path d="M4 9V4h5" />
-                  <path d="m4 4 6 6" />
-                  <path d="M20 15v5h-5" />
-                  <path d="m20 20-6-6" />
-                </>
-              )}
-            </svg>
-          </button>
-        )}
-      </div>
-      <button
-        className="app-version-footnote"
-        type="button"
-        aria-label="Tap three times to toggle debug mode"
-        onPointerUp={handleDebugTap}
-        onContextMenu={(event) => event.preventDefault()}
-      >
-        {APP_VERSION_LABEL}
-      </button>
+          {fullscreenSupported && (
+            <button
+              className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
+              type="button"
+              aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+              aria-pressed={isFullscreen}
+              onClick={toggleFullscreen}
+            >
+              <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                {isFullscreen ? (
+                  <>
+                    <path d="M9 4v5H4" />
+                    <path d="m4 9 5-5" />
+                    <path d="M15 20v-5h5" />
+                    <path d="m20 15-5 5" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M4 9V4h5" />
+                    <path d="m4 4 6 6" />
+                    <path d="M20 15v5h-5" />
+                    <path d="m20 20-6-6" />
+                  </>
+                )}
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+      {screenshotHelpVisible && (
+        <div className="screenshot-help" role="dialog" aria-modal="true" aria-labelledby="screenshot-help-title">
+          <div className="screenshot-help-card">
+            <div className="screenshot-help-kicker">Screenshot mode</div>
+            <div id="screenshot-help-title" className="screenshot-help-title">All UI is hidden for a clean shot.</div>
+            <div className="screenshot-help-copy">Desktop: press Esc to exit. Mobile: long-press anywhere to exit.</div>
+            <button className="screenshot-help-button" type="button" onClick={() => setScreenshotHelpVisible(false)}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+      {!screenshotMode && (
+        <button
+          className="app-version-footnote"
+          type="button"
+          aria-label="Tap three times to toggle debug mode"
+          onPointerUp={handleDebugTap}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          {APP_VERSION_LABEL}
+        </button>
+      )}
     </>
   )
 }

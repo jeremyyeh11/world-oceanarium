@@ -145,12 +145,18 @@ function playFishSwimSfx(context, graph, detail = {}) {
   const type = detail.type === 'burst' ? 'burst' : 'turn'
   const intensity = Math.max(0.25, Math.min(1, detail.intensity ?? 0.55))
   const focusBoost = detail.followMode ? FOLLOW_MODE_SFX_BOOST : 1
-  const duration = type === 'burst' ? 0.24 : 0.16
+  const duration = detail.followMode
+    ? (type === 'burst' ? 0.62 : 0.46)
+    : (type === 'burst' ? 0.38 : 0.28)
   const noise = context.createBufferSource()
   const filter = context.createBiquadFilter()
   const gain = context.createGain()
   const tone = context.createOscillator()
   const toneGain = context.createGain()
+  const activeSfx = graph.activeSfx ?? new Set()
+  graph.activeSfx = activeSfx
+  const sfxNodes = { noise, filter, gain, tone, toneGain }
+  activeSfx.add(sfxNodes)
 
   noise.buffer = createNoiseBuffer(context, 0.35)
   filter.type = 'lowpass'
@@ -158,15 +164,19 @@ function playFishSwimSfx(context, graph, detail = {}) {
   filter.frequency.exponentialRampToValueAtTime(type === 'burst' ? 180 : 140, now + duration)
   filter.Q.value = type === 'burst' ? 0.74 : 0.62
 
+  const noisePeak = (type === 'burst' ? 0.16 : 0.09) * intensity * focusBoost
   gain.gain.setValueAtTime(0.0001, now)
-  gain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.16 : 0.09) * intensity * focusBoost, now + 0.018)
+  gain.gain.exponentialRampToValueAtTime(noisePeak, now + 0.018)
+  gain.gain.linearRampToValueAtTime(noisePeak * 0.55, now + duration * 0.56)
   gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
+  const tonePeak = (type === 'burst' ? 0.025 : 0.014) * intensity * focusBoost
   tone.type = 'sine'
   tone.frequency.setValueAtTime(type === 'burst' ? 210 : 150, now)
   tone.frequency.exponentialRampToValueAtTime(type === 'burst' ? 82 : 70, now + duration * 0.75)
   toneGain.gain.setValueAtTime(0.0001, now)
-  toneGain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.025 : 0.014) * intensity * focusBoost, now + 0.025)
+  toneGain.gain.exponentialRampToValueAtTime(tonePeak, now + 0.025)
+  toneGain.gain.linearRampToValueAtTime(tonePeak * 0.45, now + duration * 0.5)
   toneGain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
   noise.connect(filter)
@@ -177,8 +187,9 @@ function playFishSwimSfx(context, graph, detail = {}) {
 
   noise.start(now)
   tone.start(now)
-  noise.stop(now + duration + 0.04)
-  tone.stop(now + duration + 0.04)
+  noise.stop(now + duration + 0.12)
+  tone.stop(now + duration + 0.12)
+  noise.onended = () => activeSfx.delete(sfxNodes)
 }
 
 export function triggerFishSwimSound(detail) {

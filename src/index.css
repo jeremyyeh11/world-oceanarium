@@ -38,8 +38,7 @@ button { font: inherit; }
   right: max(0.85rem, env(safe-area-inset-right));
   z-index: 1000;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
   gap: 0.34rem;
   pointer-events: none;
@@ -194,19 +193,6 @@ button { font: inherit; }
   pointer-events: auto;
 }
 
-.top-controls-menu .fish-search {
-  position: relative;
-}
-
-.top-controls-menu .fish-search.is-expanded .fish-search-input,
-.top-controls-menu .fish-search.has-error .fish-search-input {
-  position: absolute;
-  top: 0;
-  right: calc(100% + 0.5rem);
-  width: min(18rem, calc(100vw - 5.6rem));
-  height: 2.3rem;
-}
-
 .fish-search.has-error .fish-search-input {
   width: min(24rem, calc(100vw - 17rem));
   border-color: rgba(255, 104, 112, 0.82);
@@ -230,6 +216,7 @@ button { font: inherit; }
   .top-controls {
     top: max(0.65rem, env(safe-area-inset-top));
     right: max(0.65rem, env(safe-area-inset-right));
+    left: max(0.65rem, env(safe-area-inset-left));
     gap: 0.28rem;
   }
 

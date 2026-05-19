@@ -50,7 +50,12 @@ const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
 const SCHOOL_LONGITUDINAL_SPREAD = 0.55
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
-const SCHOOL_DRIFT = 0.08
+const SCHOOL_DRIFT = 0.10
+const PERSONAL_SPEED_SCALE = [0.94, 1.08]
+const PERSONAL_CATCHUP_SCALE = [0.90, 1.15]
+const ORGANIC_NOISE_AMPLITUDE = 0.055
+const ORGANIC_NOISE_RESPONSE = 1.15
+const ORGANIC_NOISE_INTERVAL = [1.8, 3.8]
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
@@ -357,7 +362,7 @@ function schoolFormationOffset(school, creature) {
   }
 }
 
-function offsetFromSchoolPoint(target, path, t, schoolOffset, now) {
+function offsetFromSchoolPoint(target, path, t, schoolOffset, now, organicNoise = null) {
   path.getPointAt(t, target)
   path.getTangentAt(t, schoolTargetTangent).normalize()
 
@@ -367,9 +372,9 @@ function offsetFromSchoolPoint(target, path, t, schoolOffset, now) {
 
   const drift = Math.sin(now * schoolOffset.driftSpeed + schoolOffset.driftPhase) * SCHOOL_DRIFT
   target
-    .addScaledVector(schoolLateral, schoolOffset.lateral + drift)
-    .addScaledVector(up, schoolOffset.vertical)
-    .addScaledVector(schoolTargetTangent, schoolOffset.longitudinal)
+    .addScaledVector(schoolLateral, schoolOffset.lateral + drift + (organicNoise?.lateral ?? 0))
+    .addScaledVector(up, schoolOffset.vertical + (organicNoise?.vertical ?? 0))
+    .addScaledVector(schoolTargetTangent, schoolOffset.longitudinal + (organicNoise?.longitudinal ?? 0))
 
   return target
 }
@@ -583,6 +588,14 @@ export default function Fish({ creature, selected = false, debug = false, school
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
+  const organicMotion = useMemo(() => {
+    const rand = mulberry32(hashString(`${school?.id ?? 'solo'}:${creature.id ?? creature.species}:organic-motion`))
+    return {
+      speedScale: isSchooling ? randomRange(rand, PERSONAL_SPEED_SCALE[0], PERSONAL_SPEED_SCALE[1]) : 1,
+      catchupScale: isSchooling ? randomRange(rand, PERSONAL_CATCHUP_SCALE[0], PERSONAL_CATCHUP_SCALE[1]) : 1,
+      noiseSeed: Math.floor(randomRange(rand, 1, 0xFFFFFFFF)) >>> 0,
+    }
+  }, [creature, isSchooling, school?.id])
   const isSchoolLeader = isSchooling && school.index === 0
   const schoolState = useMemo(() => (isSchooling ? getSchoolState(school, creature, swim) : null), [isSchooling, school, creature, swim])
   const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
@@ -602,6 +615,16 @@ export default function Fish({ creature, selected = false, debug = false, school
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
   const nextBurstAt = useRef(0)
+  const organicRand = useRef(mulberry32(organicMotion.noiseSeed))
+  const organicNoise = useRef({
+    lateral: 0,
+    vertical: 0,
+    longitudinal: 0,
+    targetLateral: 0,
+    targetVertical: 0,
+    targetLongitudinal: 0,
+    nextAt: 0,
+  })
   const animationRef = useRef('idle')
   const [animation, setAnimation] = useState('idle')
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
@@ -635,6 +658,19 @@ export default function Fish({ creature, selected = false, debug = false, school
   }, [creature.id])
 
   useEffect(() => {
+    organicRand.current = mulberry32(organicMotion.noiseSeed)
+    organicNoise.current = {
+      lateral: 0,
+      vertical: 0,
+      longitudinal: 0,
+      targetLateral: 0,
+      targetVertical: 0,
+      targetLongitudinal: 0,
+      nextAt: 0,
+    }
+  }, [organicMotion.noiseSeed])
+
+  useEffect(() => {
     if (!isSchoolLeader || !school?.id) return undefined
     return () => {
       if (SCHOOL_STATES.get(school.id) === schoolState) SCHOOL_STATES.delete(school.id)
@@ -660,6 +696,21 @@ export default function Fish({ creature, selected = false, debug = false, school
     if (!fish) return
 
     const now = clock.getElapsedTime()
+    if (isSchooling) {
+      const noise = organicNoise.current
+      const rand = organicRand.current
+      if (now >= noise.nextAt) {
+        noise.targetLateral = randomRange(rand, -ORGANIC_NOISE_AMPLITUDE, ORGANIC_NOISE_AMPLITUDE)
+        noise.targetVertical = randomRange(rand, -ORGANIC_NOISE_AMPLITUDE * 0.55, ORGANIC_NOISE_AMPLITUDE * 0.55)
+        noise.targetLongitudinal = randomRange(rand, -ORGANIC_NOISE_AMPLITUDE * 0.75, ORGANIC_NOISE_AMPLITUDE * 0.75)
+        noise.nextAt = now + randomRange(rand, ORGANIC_NOISE_INTERVAL[0], ORGANIC_NOISE_INTERVAL[1])
+      }
+      const noiseAlpha = 1 - Math.exp(-delta * ORGANIC_NOISE_RESPONSE)
+      noise.lateral = THREE.MathUtils.lerp(noise.lateral, noise.targetLateral, noiseAlpha)
+      noise.vertical = THREE.MathUtils.lerp(noise.vertical, noise.targetVertical, noiseAlpha)
+      noise.longitudinal = THREE.MathUtils.lerp(noise.longitudinal, noise.targetLongitudinal, noiseAlpha)
+    }
+
     const activePath = schoolState?.path ?? pathRef.current
     const pathLength = Math.max(0.001, schoolState?.pathLength ?? pathLengthRef.current)
     const idleVelocity = Math.max(
@@ -716,7 +767,7 @@ export default function Fish({ creature, selected = false, debug = false, school
     const t = THREE.MathUtils.clamp((isSchooling ? schoolState.progress : progress.current) + (schoolOffset?.phase ?? 0), 0, 1)
     const currentPath = pathRef.current
     const position = isSchooling
-      ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now)
+      ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now, organicNoise.current)
       : currentPath.getPointAt(t)
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
     tangent.subVectors(nextPoint, currentPath.getPointAt(t)).normalize()
@@ -724,7 +775,7 @@ export default function Fish({ creature, selected = false, debug = false, school
     const followDistance = followLookaheadDistance(creature, swim, isSchooling)
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
-      offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now)
+      offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
     } else {
       currentPath.getPointAt(followTargetT, followTarget.current)
       followTarget.current.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
@@ -749,8 +800,15 @@ export default function Fish({ creature, selected = false, debug = false, school
           school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
         )
 
-        const catchup = THREE.MathUtils.clamp(targetDistance / Math.max(0.001, followDistance), 0.55, 1.65)
-        fish.position.addScaledVector(desiredDirection.current, Math.min(targetDistance, velocity.current * catchup * delta))
+        const catchup = THREE.MathUtils.clamp(
+          targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
+          0.50,
+          1.82,
+        )
+        fish.position.addScaledVector(
+          desiredDirection.current,
+          Math.min(targetDistance, velocity.current * organicMotion.speedScale * catchup * delta),
+        )
         tangent.subVectors(fish.position, previousPosition.current)
         if (tangent.lengthSq() > 0.000001) {
           tangent.normalize()

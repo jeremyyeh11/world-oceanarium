@@ -10,8 +10,6 @@ Versioning convention notes:
 
 ## v0.7.2 — Audio + mobile follow polish
 
-Status: in progress as `v0.7.2-dev_37`.
-
 ### Audio foundation
 
 - Added procedural underwater ambience for the tank.
@@ -38,7 +36,11 @@ Status: in progress as `v0.7.2-dev_37`.
 - Added best-effort media playback audio-session hint for mobile browsers.
 - Paused tank audio when the browser/app backgrounds.
 - Resumed tank audio only when returning to the tank and not manually muted.
-- Added fade-out / fade-in for app/browser switches before suspend/resume.
+- Added fade-out / fade-in for app/browser switches.
+- Added foreground resume retries and next-gesture recovery for mobile Safari app switches.
+- Avoided manually suspending Web Audio during app backgrounding to reduce Safari resume failures.
+- Released and reclaimed mobile playback audio-session state so other phone audio can take over cleanly while Oceanarium is hidden.
+- Documented remaining intermittent mobile Safari audio-session recovery as a known limitation.
 
 ### Mobile follow UX
 

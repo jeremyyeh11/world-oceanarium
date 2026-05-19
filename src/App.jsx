@@ -14,6 +14,7 @@ const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
+const AUDIO_SESSION_RECOVERY_MS = 2500
 
 function fullscreenElement() {
   return document.fullscreenElement ?? document.webkitFullscreenElement ?? null
@@ -118,9 +119,28 @@ export default function App() {
     window.addEventListener('touchstart', resumeOnNextGesture, { capture: true, passive: true })
     window.addEventListener('keydown', resumeOnNextGesture, { capture: true })
 
+    const audioSession = navigator?.audioSession
+    const recoverInterruptedAudio = () => {
+      if (document.visibilityState === 'hidden' || audioMuted) return
+      const state = audioSession?.state
+      if (state && state !== 'active') {
+        startAudio()
+      }
+    }
+    audioSession?.addEventListener?.('statechange', recoverInterruptedAudio)
+    if (audioSession && 'onstatechange' in audioSession) {
+      audioSession.onstatechange = recoverInterruptedAudio
+    }
+    const audioSessionRecoveryTimer = window.setInterval(recoverInterruptedAudio, AUDIO_SESSION_RECOVERY_MS)
+
     return () => {
       clearAudioResumeTimers()
       audioNeedsGestureResume.current = false
+      window.clearInterval(audioSessionRecoveryTimer)
+      audioSession?.removeEventListener?.('statechange', recoverInterruptedAudio)
+      if (audioSession?.onstatechange === recoverInterruptedAudio) {
+        audioSession.onstatechange = null
+      }
       document.removeEventListener('visibilitychange', syncVisibilityAudio)
       window.removeEventListener('pagehide', pauseWhenBackgrounded)
       window.removeEventListener('blur', pauseWhenBackgrounded)

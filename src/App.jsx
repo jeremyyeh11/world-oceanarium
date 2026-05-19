@@ -365,11 +365,11 @@ export default function App() {
       {screenshotHelpVisible && (
         <div className="screenshot-help" role="dialog" aria-modal="true" aria-labelledby="screenshot-help-title">
           <div className="screenshot-help-card">
-            <div className="screenshot-help-kicker">Screenshot mode</div>
-            <div id="screenshot-help-title" className="screenshot-help-title">All UI is hidden for a clean shot.</div>
-            <div className="screenshot-help-copy">Desktop: press Esc to exit. Mobile: long-press anywhere to exit.</div>
+            <div id="screenshot-help-title" className="screenshot-help-title">Screenshot mode</div>
+            <div className="screenshot-help-copy screenshot-help-copy--desktop">Press Esc to exit</div>
+            <div className="screenshot-help-copy screenshot-help-copy--mobile">Long-press anywhere to exit</div>
             <button className="screenshot-help-button" type="button" onClick={() => setScreenshotHelpVisible(false)}>
-              Got it
+              OK
             </button>
           </div>
         </div>

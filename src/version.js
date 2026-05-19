@@ -1,2 +1,2 @@
-export const APP_VERSION = 'v0.7.1-dev_04'
+export const APP_VERSION = 'v0.7.1-dev_05'
 export const APP_VERSION_LABEL = `world oceanarium ${APP_VERSION}`

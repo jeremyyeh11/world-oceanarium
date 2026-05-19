@@ -307,10 +307,10 @@ button { font: inherit; }
   }
 
   .fish-search.is-expanded {
-    flex: 1 1 auto;
-    min-width: 0;
-    flex-direction: row;
-    gap: var(--top-control-gap);
+    flex: 0 0 var(--top-control-size);
+    min-width: var(--top-control-size);
+    flex-direction: row-reverse;
+    gap: 0;
   }
 
   .fish-search {
@@ -321,7 +321,7 @@ button { font: inherit; }
   }
 
   .fish-search.is-expanded {
-    width: auto;
+    width: var(--top-control-size);
     height: var(--top-control-size);
   }
 
@@ -332,9 +332,10 @@ button { font: inherit; }
 
   .fish-search.is-expanded .fish-search-input,
   .fish-search.has-error .fish-search-input {
-    position: static;
-    flex: 1 1 auto;
-    width: 100%;
+    position: absolute;
+    top: calc(100% + var(--top-control-gap));
+    right: calc(-1 * (var(--top-control-size) + var(--top-control-gap)));
+    width: min(18rem, calc(100vw - (max(0.65rem, env(safe-area-inset-left)) + max(0.65rem, env(safe-area-inset-right)))));
     min-width: 0;
     height: 2rem;
     padding: 0.42rem 0.7rem;

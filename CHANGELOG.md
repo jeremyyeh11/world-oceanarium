@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.3 — Public launch shell polish
 
-Status: in progress as `v0.7.3-dev_11`.
+Status: in progress as `v0.7.3-dev_12`.
 
 ### Screenshot/share polish
 
@@ -26,7 +26,7 @@ Status: in progress as `v0.7.3-dev_11`.
 - Added the matching reverse animation so dropdown icons slide back up into the hamburger when closing.
 - Added Jeremy-uploaded favicon and Apple touch icon assets for public launch polish.
 - Fixed mobile search expansion so the input anchors to the search button and stays inside the viewport beside the hamburger.
-- Reworked mobile expanded search into the top controls flex row so it fills the available space between the back button and hamburger with consistent icon spacing.
+- Moved mobile expanded search onto a second row below the search/hamburger icons, right-aligned to the hamburger with consistent control spacing.
 
 ## v0.7.2 — Audio + mobile follow polish
 

@@ -36,6 +36,20 @@ function createAudioContext() {
   return new AudioContextClass({ latencyHint: 'interactive' })
 }
 
+function requestMediaPlaybackSession() {
+  const audioSession = navigator?.audioSession
+  if (!audioSession || typeof audioSession !== 'object' || !('type' in audioSession)) return false
+
+  try {
+    // iOS Safari can route generic Web Audio like UI/ringer audio. Playback mode
+    // asks the browser to treat the tank soundscape like music/video media instead.
+    audioSession.type = 'playback'
+    return audioSession.type === 'playback'
+  } catch {
+    return false
+  }
+}
+
 function unlockAudioContext(context) {
   if (!context) return
 
@@ -327,6 +341,7 @@ export function useOceanAudio() {
     if (typeof window === 'undefined') return null
     if (audioRef.current) return audioRef.current
 
+    const usesMediaPlaybackSession = requestMediaPlaybackSession()
     const context = createAudioContext()
     if (!context) {
       setSupported(false)
@@ -334,7 +349,7 @@ export function useOceanAudio() {
     }
 
     const graph = buildAudioGraph(context)
-    audioRef.current = { context, graph }
+    audioRef.current = { context, graph, usesMediaPlaybackSession }
     loadFishSfxAssets(context)
       .then(buffers => {
         graph.fishSfxBuffers = buffers
@@ -356,6 +371,7 @@ export function useOceanAudio() {
   }, [])
 
   const startAudio = useCallback(() => {
+    requestMediaPlaybackSession()
     const audio = ensureAudio()
     if (!audio) return false
 
@@ -376,6 +392,7 @@ export function useOceanAudio() {
   }, [setMasterMuted])
 
   const toggleMuted = useCallback(() => {
+    requestMediaPlaybackSession()
     const audio = ensureAudio()
     if (!audio) return
 

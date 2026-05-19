@@ -33,7 +33,25 @@ function hashString(value) {
 function createAudioContext() {
   const AudioContextClass = window.AudioContext ?? window.webkitAudioContext
   if (!AudioContextClass) return null
-  return new AudioContextClass()
+  return new AudioContextClass({ latencyHint: 'interactive' })
+}
+
+function unlockAudioContext(context) {
+  if (!context) return
+
+  try {
+    const buffer = context.createBuffer(1, 1, context.sampleRate)
+    const source = context.createBufferSource()
+    source.buffer = buffer
+    source.connect(context.destination)
+    source.start(0)
+  } catch {
+    // Unlock pulse is best-effort for iOS Safari.
+  }
+
+  if (context.state !== 'running') {
+    context.resume?.()
+  }
 }
 
 function createNoiseBuffer(context, seconds = 8) {
@@ -305,7 +323,7 @@ export function useOceanAudio() {
     }, LEVEL_FRAME_MS)
   }, [])
 
-  const ensureAudio = useCallback(async () => {
+  const ensureAudio = useCallback(() => {
     if (typeof window === 'undefined') return null
     if (audioRef.current) return audioRef.current
 
@@ -337,13 +355,11 @@ export function useOceanAudio() {
     graph.masterGain.gain.setTargetAtTime(nextMuted ? 0 : MASTER_TARGET_GAIN, now, 0.08)
   }, [])
 
-  const startAudio = useCallback(async () => {
-    const audio = await ensureAudio()
+  const startAudio = useCallback(() => {
+    const audio = ensureAudio()
     if (!audio) return false
 
-    if (audio.context.state === 'suspended') {
-      await audio.context.resume()
-    }
+    unlockAudioContext(audio.context)
 
     mutedRef.current = false
     setMuted(false)
@@ -359,13 +375,11 @@ export function useOceanAudio() {
     audio.context.suspend?.()
   }, [setMasterMuted])
 
-  const toggleMuted = useCallback(async () => {
-    const audio = await ensureAudio()
+  const toggleMuted = useCallback(() => {
+    const audio = ensureAudio()
     if (!audio) return
 
-    if (audio.context.state === 'suspended') {
-      await audio.context.resume()
-    }
+    unlockAudioContext(audio.context)
 
     setMuted(current => {
       const nextMuted = !current

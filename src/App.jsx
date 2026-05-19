@@ -136,9 +136,9 @@ export default function App() {
         <button
           className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
           type="button"
-          aria-label={audioMuted ? 'Unmute ambient underwater audio' : 'Mute ambient underwater audio'}
+          aria-label={audioMuted ? 'Unmute audio' : 'Mute audio'}
           aria-pressed={!audioMuted}
-          title={audioSupported ? 'Ambient underwater audio' : 'Audio unavailable'}
+          title={audioSupported ? undefined : 'Audio unavailable'}
           disabled={!audioSupported}
           onClick={toggleAudioMuted}
         >

@@ -49,6 +49,14 @@ function clampFollowDistance(distance) {
   return Math.max(MIN_FOLLOW_DISTANCE, Math.min(MAX_FOLLOW_DISTANCE, distance))
 }
 
+function eventStartedInInfoCard(event) {
+  return event.target instanceof Element && Boolean(event.target.closest('.info-card'))
+}
+
+function isMobileInputSurface() {
+  return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
+}
+
 export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, onBack }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
@@ -110,6 +118,30 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [selectedCreature])
+
+  useEffect(() => {
+    if (!selectedCreature) return undefined
+
+    const blockViewportScroll = (event) => {
+      if (eventStartedInInfoCard(event)) return
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    const blockMobileWheelZoom = (event) => {
+      if (!isMobileInputSurface() || eventStartedInInfoCard(event)) return
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    window.addEventListener('touchmove', blockViewportScroll, { capture: true, passive: false })
+    window.addEventListener('wheel', blockMobileWheelZoom, { capture: true, passive: false })
+
+    return () => {
+      window.removeEventListener('touchmove', blockViewportScroll, { capture: true })
+      window.removeEventListener('wheel', blockMobileWheelZoom, { capture: true })
+    }
   }, [selectedCreature])
 
   useEffect(() => {

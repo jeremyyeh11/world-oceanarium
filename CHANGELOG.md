@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.2 — Audio + mobile follow polish
 
-Status: in progress as `v0.7.2-dev_32`.
+Status: in progress as `v0.7.2-dev_33`.
 
 ### Audio foundation
 
@@ -64,6 +64,7 @@ Status: in progress as `v0.7.2-dev_32`.
 - Added low-opacity shader-style outlines for selected fish and debug-only school leaders.
 - Removed the oversized debug leader ring so leader marking relies on label + outline.
 - Pulled drift and leader labels closer to their target/mesh anchors.
+- Reduced debug text by 30% and switched drift/speed/leader labels to a basic monospaced font.
 - Kept debug audio meters available for audio tuning.
 
 ## v0.7.1 — Schooling motion + debug polish

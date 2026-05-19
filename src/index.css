@@ -208,6 +208,7 @@ button { font: inherit; }
 }
 
 .fish-search {
+  position: relative;
   display: flex;
   align-items: center;
   flex-direction: row-reverse;
@@ -324,7 +325,7 @@ button { font: inherit; }
     top: 0;
     left: auto;
     right: calc(100% + 0.48rem);
-    width: min(16rem, calc(100vw - 5rem));
+    width: min(14rem, calc(100vw - 8rem));
     height: 2rem;
     padding: 0.42rem 0.7rem;
     font: 16px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

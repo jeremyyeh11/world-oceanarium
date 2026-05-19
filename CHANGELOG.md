@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.3 — Public launch shell polish
 
-Status: in progress as `v0.7.3-dev_08`.
+Status: in progress as `v0.7.3-dev_09`.
 
 ### Screenshot/share polish
 
@@ -24,6 +24,7 @@ Status: in progress as `v0.7.3-dev_08`.
 - Kept search as a top-level button beside the hamburger while screenshot/audio/fullscreen stay inside the dropdown.
 - Animated the hamburger icon to rotate open while menu icons pour/slide downward with a short stagger.
 - Added the matching reverse animation so dropdown icons slide back up into the hamburger when closing.
+- Added Jeremy-uploaded favicon and Apple touch icon assets for public launch polish.
 
 ## v0.7.2 — Audio + mobile follow polish
 

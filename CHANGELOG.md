@@ -10,8 +10,6 @@ Versioning convention notes:
 
 ## v0.7.3 — Public launch shell polish
 
-Status: in progress as `v0.7.3-dev_15`.
-
 ### Screenshot/share polish
 
 - Added screenshot mode from the tank top controls.

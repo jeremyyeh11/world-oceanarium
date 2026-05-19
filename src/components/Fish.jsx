@@ -58,7 +58,7 @@ const ORGANIC_NOISE_RESPONSE = 1.15
 const ORGANIC_NOISE_INTERVAL = [1.8, 3.8]
 const DEBUG_FORWARD_SPEED_SCALE = 1.25
 const DEBUG_FORWARD_MIN_LENGTH = 0.22
-const DEBUG_LABEL_SCALE = 0.115
+const DEBUG_LABEL_SCALE = 0.075
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
@@ -979,8 +979,6 @@ export default function Fish({ creature, selected = false, debug = false, school
             color="#ff8fe7"
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.008}
-            outlineColor="#13051c"
             depthTest={false}
             raycast={() => null}
           >
@@ -992,8 +990,6 @@ export default function Fish({ creature, selected = false, debug = false, school
             color="#f7ff9a"
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.008}
-            outlineColor="#161a04"
             depthTest={false}
             raycast={() => null}
           >

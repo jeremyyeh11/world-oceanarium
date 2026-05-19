@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const AUDIO_VOLUME_EVENT = 'world-oceanarium-audio-volume'
+const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
 const LEVEL_FLOOR_DB = -72
 const LEVEL_FRAME_MS = 100
 const AMBIENT_VOLUME = 0.28
 const SFX_VOLUME = 0.65
+const SFX_MIN_GAP_SECONDS = 0.09
 
 function createAudioContext() {
   const AudioContextClass = window.AudioContext ?? window.webkitAudioContext
@@ -117,11 +119,62 @@ function buildAudioGraph(context) {
     scratchAmbient: new Float32Array(ambientAnalyser.fftSize),
     scratchSfx: new Float32Array(sfxAnalyser.fftSize),
     nodes: [noiseSource, rumble, shimmer],
+    lastSfxAt: 0,
   }
 }
 
 function emitAudioLevels(levels) {
   window.dispatchEvent(new CustomEvent(AUDIO_VOLUME_EVENT, { detail: levels }))
+}
+
+function playFishSwimSfx(context, graph, detail = {}) {
+  if (!context || !graph) return
+
+  const now = context.currentTime
+  if (now - (graph.lastSfxAt ?? 0) < SFX_MIN_GAP_SECONDS) return
+  graph.lastSfxAt = now
+
+  const type = detail.type === 'burst' ? 'burst' : 'turn'
+  const intensity = Math.max(0.25, Math.min(1, detail.intensity ?? 0.55))
+  const duration = type === 'burst' ? 0.24 : 0.16
+  const noise = context.createBufferSource()
+  const filter = context.createBiquadFilter()
+  const gain = context.createGain()
+  const tone = context.createOscillator()
+  const toneGain = context.createGain()
+
+  noise.buffer = createNoiseBuffer(context, 0.35)
+  filter.type = 'bandpass'
+  filter.frequency.setValueAtTime(type === 'burst' ? 760 : 520, now)
+  filter.frequency.exponentialRampToValueAtTime(type === 'burst' ? 230 : 170, now + duration)
+  filter.Q.value = type === 'burst' ? 1.1 : 0.85
+
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.16 : 0.09) * intensity, now + 0.018)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+
+  tone.type = 'sine'
+  tone.frequency.setValueAtTime(type === 'burst' ? 210 : 150, now)
+  tone.frequency.exponentialRampToValueAtTime(type === 'burst' ? 82 : 70, now + duration * 0.75)
+  toneGain.gain.setValueAtTime(0.0001, now)
+  toneGain.gain.exponentialRampToValueAtTime((type === 'burst' ? 0.025 : 0.014) * intensity, now + 0.025)
+  toneGain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+
+  noise.connect(filter)
+  filter.connect(gain)
+  gain.connect(graph.sfxGain)
+  tone.connect(toneGain)
+  toneGain.connect(graph.sfxGain)
+
+  noise.start(now)
+  tone.start(now)
+  noise.stop(now + duration + 0.04)
+  tone.stop(now + duration + 0.04)
+}
+
+export function triggerFishSwimSound(detail) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent(FISH_SWIM_SFX_EVENT, { detail }))
 }
 
 export function useOceanAudio() {
@@ -201,6 +254,18 @@ export function useOceanAudio() {
     mutedRef.current = muted
     setMasterMuted(muted)
   }, [muted, setMasterMuted])
+
+  useEffect(() => {
+    const playSfx = (event) => {
+      if (mutedRef.current) return
+      const audio = audioRef.current
+      if (!audio || audio.context.state !== 'running') return
+      playFishSwimSfx(audio.context, audio.graph, event.detail)
+    }
+
+    window.addEventListener(FISH_SWIM_SFX_EVENT, playSfx)
+    return () => window.removeEventListener(FISH_SWIM_SFX_EVENT, playSfx)
+  }, [])
 
   useEffect(() => () => {
     stopLevelMeter()

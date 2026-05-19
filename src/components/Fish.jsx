@@ -4,6 +4,7 @@ import { Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -45,6 +46,8 @@ const PATH_VERTICAL_TRAVERSAL_JITTER = 0.16
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
+const FISH_SFX_MIN_INTERVAL = 0.75
+const SCHOOL_SFX_LEADER_ONLY = true
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -646,6 +649,7 @@ export default function Fish({ creature, selected = false, debug = false, debugL
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
   const nextBurstAt = useRef(0)
+  const lastSwimSfxAt = useRef(0)
   const organicRand = useRef(mulberry32(organicMotion.noiseSeed))
   const organicNoise = useRef({
     lateral: 0,
@@ -720,6 +724,18 @@ export default function Fish({ creature, selected = false, debug = false, debugL
     if (animationRef.current === name) return
     animationRef.current = name
     setAnimation(name)
+  }
+
+  const playSwimSfx = (type, intensity, now) => {
+    if (SCHOOL_SFX_LEADER_ONLY && isSchooling && !isSchoolLeader) return
+    if (now - lastSwimSfxAt.current < FISH_SFX_MIN_INTERVAL) return
+    lastSwimSfxAt.current = now
+    triggerFishSwimSound({
+      type,
+      intensity,
+      creatureId: creature.id,
+      schooling: isSchooling,
+    })
   }
 
   useFrame(({ clock, camera }, delta) => {
@@ -941,18 +957,21 @@ export default function Fish({ creature, selected = false, debug = false, debugL
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
         if (turn > SNAP_TURN_THRESHOLD) {
           playAnimation('snap_left')
+          playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 24, 0.34, 0.82), now)
           actionSpeedUntil.current = now + 0.34
           actionSpeedTarget.current = motion.snapSpeed
           animationHoldUntil.current = now + 0.32
           animationCooldown.current = now + 0.7
         } else if (turn < -SNAP_TURN_THRESHOLD) {
           playAnimation('snap_right')
+          playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 24, 0.34, 0.82), now)
           actionSpeedUntil.current = now + 0.34
           actionSpeedTarget.current = motion.snapSpeed
           animationHoldUntil.current = now + 0.32
           animationCooldown.current = now + 0.7
         } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
           playAnimation('burst')
+          playSwimSfx('burst', THREE.MathUtils.clamp(motion.burstSpeed / Math.max(0.001, motion.idleSpeed) * 0.18, 0.42, 1), now)
           actionSpeedUntil.current = now + 0.5
           actionSpeedTarget.current = motion.burstSpeed
           animationHoldUntil.current = now + 0.46

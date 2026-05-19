@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.2 — Audio + mobile follow polish
 
-Status: in progress as `v0.7.2-dev_31`.
+Status: in progress as `v0.7.2-dev_32`.
 
 ### Audio foundation
 
@@ -103,6 +103,7 @@ Status: in progress as `v0.7.2-dev_31`.
 - Allowed switching followed fish by tapping another fish while already following.
 - Improved follow-mode click targeting.
 - Centered follow mode and smoothed camera target switching.
+- Follow camera centers on selected fish mesh bounds instead of model root, with translation damping and user-orbit-only rotation.
 - Added drag threshold before orbiting the follow camera.
 - Randomized initial school paths per tank visit.
 

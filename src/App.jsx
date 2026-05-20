@@ -5,7 +5,7 @@ import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import { BIOMES } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
-import { useOceanAudio } from './hooks/useOceanAudio'
+import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
 import { APP_VERSION_LABEL } from './version'
 
 const DEFAULT_BIOME_ID = 'ocean'
@@ -100,6 +100,17 @@ export default function App() {
   useEffect(() => {
     if (screen !== 'tank' || screenshotMode) setTopMenuOpen(false)
   }, [screen, screenshotMode])
+
+  useEffect(() => {
+    const playButtonSfx = (event) => {
+      const button = event.target?.closest?.('button')
+      if (!button || button.disabled || button.classList.contains('app-version-footnote')) return
+      window.setTimeout(() => triggerUiClickSound({ type: 'click' }), 0)
+    }
+
+    document.addEventListener('click', playButtonSfx)
+    return () => document.removeEventListener('click', playButtonSfx)
+  }, [])
 
   useEffect(() => {
     if (screen !== 'tank') return undefined

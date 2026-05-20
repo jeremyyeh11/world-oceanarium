@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { triggerUiClickSound } from '../hooks/useOceanAudio'
 
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const ERROR_TEXT = 'No creature with this name or id found!'
@@ -62,12 +63,14 @@ export default function SearchControl({ creatures = [], active = false }) {
 
     const match = findCreature(searchableCreatures, query)
     if (!match) {
+      triggerUiClickSound({ type: 'click', variant: 'error' })
       setFailed(true)
       setQuery(ERROR_TEXT)
       inputRef.current?.blur()
       return
     }
 
+    triggerUiClickSound({ type: 'click', variant: 'confirm' })
     window.dispatchEvent(new CustomEvent(SEARCH_FOCUS_EVENT, {
       detail: { creatureId: String(match.id) },
     }))

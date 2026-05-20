@@ -79,25 +79,21 @@ function creaturesFromRows(rows) {
     .filter(creature => creature.alive !== false && ACTIVE_SPECIES.has(creature.species))
 }
 
-function resolveCreaturesUrl(table = SUPABASE_CREATURES_TABLE) {
+function resolveCreaturesUrl() {
   if (SUPABASE_CREATURES_URL) {
     if (SUPABASE_CREATURES_URL.includes('{table}')) {
-      return SUPABASE_CREATURES_URL.replaceAll('{table}', table)
+      return SUPABASE_CREATURES_URL.replaceAll('{table}', SUPABASE_CREATURES_TABLE)
     }
 
-    if (table === 'creatures_dev') {
+    if (SUPABASE_CREATURES_TABLE === 'creatures_dev') {
       return SUPABASE_CREATURES_URL.replace(/\/creatures(?=\?|$)/, '/creatures_dev')
-    }
-
-    if (table === 'creatures') {
-      return SUPABASE_CREATURES_URL.replace(/\/creatures_dev(?=\?|$)/, '/creatures')
     }
 
     return SUPABASE_CREATURES_URL
   }
 
   if (!SUPABASE_URL) return null
-  return `${SUPABASE_URL}/rest/v1/${table}?select=*&alive=eq.true&order=id.asc`
+  return `${SUPABASE_URL}/rest/v1/${SUPABASE_CREATURES_TABLE}?select=*&alive=eq.true&order=id.asc`
 }
 
 const EMPTY_CREATURE_STATE = {
@@ -142,25 +138,12 @@ export function useCreatures() {
 
     async function loadCreatures() {
       try {
-        let rows = await fetchCreatureRows(creaturesUrl)
-        let source = SUPABASE_CREATURES_TABLE === 'creatures_dev' ? 'supabase-dev' : 'supabase'
-
-        if (SUPABASE_CREATURES_TABLE === 'creatures_dev' && rows.length === 0) {
-          const productionCreaturesUrl = resolveCreaturesUrl('creatures')
-          if (productionCreaturesUrl && productionCreaturesUrl !== creaturesUrl) {
-            const productionRows = await fetchCreatureRows(productionCreaturesUrl)
-            if (productionRows.length > 0) {
-              rows = productionRows
-              source = 'supabase-dev-fallback'
-            }
-          }
-        }
-
+        const rows = await fetchCreatureRows(creaturesUrl)
         const creatures = creaturesFromRows(rows)
 
         setState({
           creatures,
-          source,
+          source: SUPABASE_CREATURES_TABLE === 'creatures_dev' ? 'supabase-dev' : 'supabase',
           error: null,
         })
       } catch (error) {

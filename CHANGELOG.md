@@ -10,22 +10,13 @@ Versioning convention notes:
 
 ## v0.7.5 — Sardine population staging
 
-Status: in progress as `v0.7.5-dev_10`.
+Status: in progress as `v0.7.5-dev_11`.
 
 ### Creature data
 
 - Started the next dev cycle after clean `v0.7.4` acceptance.
 - Increased `creatures_dev` to 800 live sardines for dense-school testing.
-- Reverted runtime code back to the original `v0.7.5-dev_01` normal animated GLTF fish path while waiting for a lower-LOD sardine asset.
-- Added Jeremy's LOD1/LOD2 sardine models and smooth distance-based model transitions for mobile performance testing.
-- Added an LOD debug overlay toggle that labels each debug-visible fish with active LOD index and camera distance, and initialized LOD fade opacity before first paint to reduce transition flashes.
-- Tightened sardine LOD change distances to `4.0` / `6.8` WU with `0.7` WU hysteresis, and added live FPS to the debug card for phone testing.
-- Fixed close-range LOD hysteresis so sardines already in `LOD1`/`LOD2` can step back down when they move near the camera, using a tighter `0.35` WU deadband.
-- Switched LOD transitions from transparent blended overlap to Three.js alpha-hash dither fading, keeping depth writes on to reduce dense-school sorting flicker.
-- Removed cross-fade overlap after mobile flashing persisted, rate-limited LOD swaps, and synchronized idle animation timing across LOD model mounts so lower LOD fish keep moving.
-- Replaced the hand-rolled React LOD swapper with `THREE.LOD`, removed overlapping previous-model rendering, and strengthened selected/leader silhouettes for visibility.
-- Hotfixed `THREE.LOD` mounting to use declarative R3F `<lOD>` children after `v0.7.5-dev_08` showed debug markers but no fish meshes on device.
-- Skipped `LOD1` for sardines: fish stay on `LOD0` until `5.5` world units, then switch directly to `LOD2`; replaced oversized duplicate-mesh silhouettes with a cheap camera-facing marker.
+- Reverted runtime rendering/LOD/debug changes back to the original `v0.7.5-dev_01` normal animated GLTF fish path after rejecting the LOD/marker experiments.
 - Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
 - Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
 

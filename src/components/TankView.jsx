@@ -29,6 +29,7 @@ const DEBUG_LAYER_BUTTONS = [
   { id: 'vectors', icon: '↗', label: 'Vectors' },
   { id: 'lod', icon: 'L', label: 'LOD' },
 ]
+const FPS_SAMPLE_MS = 500
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
 function getPanLimits() {
@@ -69,6 +70,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
   const [followScreenOffset, setFollowScreenOffset] = useState(0)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
+  const [performanceStats, setPerformanceStats] = useState({ fps: null })
   const audioLevels = useAudioLevels(debugMode)
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
@@ -111,6 +113,31 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     window.addEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
     return () => window.removeEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
   }, [debugMode])
+
+  useEffect(() => {
+    if (!visibleDebugMode) {
+      setPerformanceStats({ fps: null })
+      return undefined
+    }
+
+    let frameCount = 0
+    let sampleStartedAt = performance.now()
+    let frameId = 0
+
+    const sampleFrame = (now) => {
+      frameCount += 1
+      const elapsed = now - sampleStartedAt
+      if (elapsed >= FPS_SAMPLE_MS) {
+        setPerformanceStats({ fps: Math.round(frameCount * 1000 / elapsed) })
+        frameCount = 0
+        sampleStartedAt = now
+      }
+      frameId = requestAnimationFrame(sampleFrame)
+    }
+
+    frameId = requestAnimationFrame(sampleFrame)
+    return () => cancelAnimationFrame(frameId)
+  }, [visibleDebugMode])
 
   useEffect(() => {
     if (!selectedCreature) return undefined
@@ -407,6 +434,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           creatureCount={creatures.length}
           debugView={debugView}
           debugLayers={debugLayers}
+          performanceStats={performanceStats}
           audioLevels={audioLevels}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
@@ -424,6 +452,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               creatureCount={creatures.length}
               debugView={debugView}
               debugLayers={debugLayers}
+              performanceStats={performanceStats}
               audioLevels={audioLevels}
               onDebugViewChange={setDebugView}
               onDebugLayerToggle={toggleDebugLayer}
@@ -442,6 +471,7 @@ function DebugPanel({
   creatureCount,
   debugView,
   debugLayers,
+  performanceStats,
   audioLevels,
   onDebugViewChange,
   onDebugLayerToggle,
@@ -450,6 +480,7 @@ function DebugPanel({
     <div className={`debug-panel ${className}`}>
       <div>Data: {creatureDataSource}</div>
       <div>Creatures: {creatureCount}</div>
+      <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>
         {DEBUG_VIEW_MODES.map(mode => (

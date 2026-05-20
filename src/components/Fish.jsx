@@ -83,7 +83,7 @@ const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
 const LOD_FADE_SECONDS = 0.42
-const LOD_HYSTERESIS = 1.25
+const LOD_HYSTERESIS = 0.7
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()

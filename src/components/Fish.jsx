@@ -50,8 +50,9 @@ const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
-const SELECTED_OUTLINE_OPACITY = 0.18
-const LEADER_OUTLINE_OPACITY = 0.16
+const SELECTED_RIM_INTENSITY = 1.15
+const LEADER_RIM_INTENSITY = 0.55
+const RIM_POWER = 1.6
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -546,20 +547,52 @@ function depthFadeFromScreenZ(z) {
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
 }
 
-function applyModelMaterialSettings(root) {
+function applyFresnelRim(material, color, intensity, power = RIM_POWER) {
+  const rimColor = new THREE.Color(color)
+  const rimKey = `${rimColor.getHexString()}:${intensity}:${power}`
+
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uRimColor = { value: rimColor }
+    shader.uniforms.uRimIntensity = { value: intensity }
+    shader.uniforms.uRimPower = { value: power }
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+uniform vec3 uRimColor;
+uniform float uRimIntensity;
+uniform float uRimPower;`
+      )
+      .replace(
+        '#include <dithering_fragment>',
+        `float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), uRimPower);
+gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
+#include <dithering_fragment>`
+      )
+  }
+  material.customProgramCacheKey = () => `fresnel-rim:${rimKey}`
+  material.needsUpdate = true
+}
+
+function applyModelMaterialSettings(root, rim = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
     child.castShadow = false
     child.receiveShadow = false
     const list = Array.isArray(child.material) ? child.material : [child.material]
-    list.filter(Boolean).forEach(material => {
-      material.transparent = false
-      material.opacity = 1
-      material.depthWrite = true
-      material.roughness = material.roughness ?? 0.5
-      materials.push(material)
+    const clonedMaterials = list.map(material => {
+      if (!material) return material
+      const nextMaterial = material.clone()
+      nextMaterial.transparent = false
+      nextMaterial.opacity = 1
+      nextMaterial.depthWrite = true
+      nextMaterial.roughness = nextMaterial.roughness ?? 0.5
+      if (rim) applyFresnelRim(nextMaterial, rim.color, rim.intensity, rim.power)
+      materials.push(nextMaterial)
+      return nextMaterial
     })
+    child.material = Array.isArray(child.material) ? clonedMaterials : clonedMaterials[0]
   })
   return materials
 }
@@ -580,25 +613,6 @@ function animationVariationForCreature(creature) {
       default: baseSpeed,
     },
   }
-}
-
-function applyOutlineMaterialSettings(object, color, opacity) {
-  object.traverse(child => {
-    if (!child.isMesh) return
-    child.castShadow = false
-    child.receiveShadow = false
-    child.raycast = () => null
-    child.material = new THREE.MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity,
-      side: THREE.BackSide,
-      depthTest: true,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
-      toneMapped: false,
-    })
-  })
 }
 
 function playModelAction(actions, activeActionRef, animation, animationVariation) {
@@ -629,15 +643,15 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   activeActionRef.current = nextAction
 }
 
-function FishModel({ model, animation = 'idle', animationVariation }) {
+function FishModel({ model, animation = 'idle', animationVariation, rim = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
   const activeActionRef = useRef(null)
 
   useEffect(() => {
-    applyModelMaterialSettings(object)
-  }, [object])
+    applyModelMaterialSettings(object, rim)
+  }, [object, rim])
 
   useEffect(() => {
     playModelAction(actions, activeActionRef, animation, animationVariation)
@@ -647,30 +661,6 @@ function FishModel({ model, animation = 'idle', animationVariation }) {
     <primitive
       object={object}
       scale={model.scale ?? 1}
-      rotation={model.rotation ?? [0, 0, 0]}
-      position={model.position ?? [0, 0, 0]}
-    />
-  )
-}
-
-function FishModelOutline({ model, animation = 'idle', animationVariation, color, opacity = 0.24 }) {
-  const gltf = useGLTF(model.path)
-  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const { actions } = useAnimations(gltf.animations, object)
-  const activeActionRef = useRef(null)
-
-  useEffect(() => {
-    applyOutlineMaterialSettings(object, color, opacity)
-  }, [object, color, opacity])
-
-  useEffect(() => {
-    playModelAction(actions, activeActionRef, animation, animationVariation)
-  }, [actions, animation, animationVariation])
-
-  return (
-    <primitive
-      object={object}
-      scale={(model.scale ?? 1) * 1.08}
       rotation={model.rotation ?? [0, 0, 0]}
       position={model.position ?? [0, 0, 0]}
     />
@@ -1069,8 +1059,11 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const showSelectedOutline = selected && !hideSelectionSilhouette
-  const outlineColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
-  const outlineOpacity = showSelectedOutline ? SELECTED_OUTLINE_OPACITY : LEADER_OUTLINE_OPACITY
+  const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
+  const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
+  const fresnelRim = useMemo(() => (
+    rimColor ? { color: rimColor, intensity: rimIntensity, power: RIM_POWER } : null
+  ), [rimColor, rimIntensity])
 
   const handleSelect = (event) => {
     event.stopPropagation()
@@ -1145,23 +1138,19 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
         <group ref={modelRootRef}>
           {model ? (
             <>
-              {outlineColor && (
-                <FishModelOutline
-                  model={model}
-                  animation={animation}
-                  animationVariation={animationVariation}
-                  color={outlineColor}
-                  opacity={outlineOpacity}
-                />
-              )}
-              <FishModel model={model} animation={animation} animationVariation={animationVariation} />
+              <FishModel
+                model={model}
+                animation={animation}
+                animationVariation={animationVariation}
+                rim={fresnelRim}
+              />
             </>
           ) : (
             <>
-              {outlineColor && (
-                <mesh scale={1.1} raycast={() => null}>
+              {rimColor && (
+                <mesh scale={1.02} raycast={() => null}>
                   <boxGeometry args={[0.7, 0.28, 0.18]} />
-                  <meshBasicMaterial color={outlineColor} transparent opacity={outlineOpacity} side={THREE.BackSide} depthWrite={false} toneMapped={false} />
+                  <meshStandardMaterial color="#7ab8c0" emissive={rimColor} emissiveIntensity={rimIntensity} roughness={0.42} metalness={0.02} />
                 </mesh>
               )}
               <mesh>

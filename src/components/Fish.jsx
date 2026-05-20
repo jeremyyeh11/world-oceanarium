@@ -578,6 +578,7 @@ function applyModelMaterialSettings(root) {
     const clonedMaterials = list.map(material => {
       if (!material) return material
       const cloneMaterial = material.clone()
+      if ('alphaHash' in cloneMaterial) cloneMaterial.alphaHash = false
       cloneMaterial.transparent = false
       cloneMaterial.opacity = 1
       cloneMaterial.depthWrite = true
@@ -592,11 +593,13 @@ function applyModelMaterialSettings(root) {
 
 function setModelMaterialOpacity(materials, opacity) {
   const visible = opacity > 0.001
+  const fading = opacity > 0.001 && opacity < 0.999
   materials.forEach(material => {
     material.visible = visible
     material.opacity = opacity
-    material.transparent = opacity < 0.999
-    material.depthWrite = opacity >= 0.999
+    if ('alphaHash' in material) material.alphaHash = fading
+    material.transparent = false
+    material.depthWrite = true
     material.needsUpdate = true
   })
 }

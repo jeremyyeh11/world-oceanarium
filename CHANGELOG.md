@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.7.5 — Sardine population staging
+
+Status: in progress as `v0.7.5-dev_01`.
+
+### Creature data
+
+- Started the next dev cycle after clean `v0.7.4` acceptance.
+- Increased `creatures_dev` to 200 live sardines for dense-school testing.
+- Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
+- Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
+
 ## v0.7.4 — UI audio polish
 
 Status: accepted and promoted as clean `v0.7.4`.

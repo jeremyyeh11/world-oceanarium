@@ -82,8 +82,8 @@ const AVOIDANCE_SMOOTHING = 3.4
 const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
-const LOD_FADE_SECONDS = 0.42
 const LOD_HYSTERESIS = 0.35
+const LOD_MIN_SWITCH_SECONDS = 0.85
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -641,12 +641,16 @@ function applyOutlineMaterialSettings(object, color, opacity) {
   })
 }
 
-function playModelAction(actions, activeActionRef, animation, animationVariation) {
+function playModelAction(actions, activeActionRef, animation, animationVariation, animationClockRef = null) {
   const nextAction = actions[animation] ?? actions.idle ?? Object.values(actions)[0]
   if (!nextAction || activeActionRef.current === nextAction) return
 
   const speed = animationVariation?.speeds?.[animation] ?? animationVariation?.speeds?.default ?? 1
   const offset = animationVariation?.startOffset ?? 0
+  const duration = nextAction.getClip()?.duration ?? 0
+  const syncedTime = duration > 0
+    ? ((animationClockRef?.current ?? 0) * speed + duration * offset) % duration
+    : 0
 
   nextAction.reset()
   nextAction.enabled = true
@@ -655,7 +659,7 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
 
   if (animation === 'idle') {
     nextAction.setLoop(THREE.LoopRepeat, Infinity)
-    nextAction.time = (nextAction.getClip()?.duration ?? 0) * offset
+    nextAction.time = syncedTime
   } else {
     nextAction.setLoop(THREE.LoopOnce, 1)
     nextAction.clampWhenFinished = true
@@ -669,7 +673,7 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   activeActionRef.current = nextAction
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, opacityRef = null }) {
+function FishModel({ model, animation = 'idle', animationVariation, animationClockRef = null, opacityRef = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
@@ -684,6 +688,18 @@ function FishModel({ model, animation = 'idle', animationVariation, opacityRef =
   }, [object, opacityRef])
 
   useFrame(() => {
+    const activeAction = activeActionRef.current
+    if (activeAction) {
+      activeAction.enabled = true
+      activeAction.paused = false
+      if (animation === 'idle') {
+        const duration = activeAction.getClip()?.duration ?? 0
+        const speed = animationVariation?.speeds?.idle ?? animationVariation?.speeds?.default ?? 1
+        const offset = animationVariation?.startOffset ?? 0
+        if (duration > 0) activeAction.time = ((animationClockRef?.current ?? 0) * speed + duration * offset) % duration
+      }
+      if (!activeAction.isRunning()) activeAction.play()
+    }
     const opacity = opacityRef?.current ?? 1
     if (Math.abs((currentOpacityRef.current ?? -1) - opacity) < 0.01) return
     currentOpacityRef.current = opacity
@@ -691,8 +707,8 @@ function FishModel({ model, animation = 'idle', animationVariation, opacityRef =
   })
 
   useEffect(() => {
-    playModelAction(actions, activeActionRef, animation, animationVariation)
-  }, [actions, animation, animationVariation])
+    playModelAction(actions, activeActionRef, animation, animationVariation, animationClockRef)
+  }, [actions, animation, animationVariation, animationClockRef])
 
   return (
     <primitive
@@ -743,6 +759,8 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const [lodState, setLodState] = useState({ active: 0, previous: null, startedAt: 0 })
   const activeLodOpacityRef = useRef(1)
   const previousLodOpacityRef = useRef(0)
+  const lastLodSwitchAt = useRef(-Infinity)
+  const animationClockRef = useRef(0)
   const lodDistanceRef = useRef(0)
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
@@ -871,19 +889,17 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     if (!fish) return
 
     const now = clock.getElapsedTime()
+    animationClockRef.current += delta
     if (modelLods.length > 1) {
       const distance = camera.position.distanceTo(fish.position)
       lodDistanceRef.current = distance
       const targetLod = resolveLodIndex(modelLods, distance, lodState.active, selected)
-      if (targetLod !== lodState.active) {
-        activeLodOpacityRef.current = 0
-        previousLodOpacityRef.current = 1
-        setLodState({ active: targetLod, previous: lodState.active, startedAt: now })
-      } else if (lodState.previous !== null) {
-        const alpha = THREE.MathUtils.clamp((now - lodState.startedAt) / LOD_FADE_SECONDS, 0, 1)
-        activeLodOpacityRef.current = alpha
-        previousLodOpacityRef.current = 1 - alpha
-        if (alpha >= 1) setLodState({ active: lodState.active, previous: null, startedAt: now })
+      const canSwitchLod = selected || now - lastLodSwitchAt.current >= LOD_MIN_SWITCH_SECONDS
+      if (targetLod !== lodState.active && canSwitchLod) {
+        lastLodSwitchAt.current = now
+        activeLodOpacityRef.current = 1
+        previousLodOpacityRef.current = 0
+        setLodState({ active: targetLod, previous: null, startedAt: now })
       } else {
         activeLodOpacityRef.current = 1
         previousLodOpacityRef.current = 0
@@ -1256,6 +1272,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
                   model={modelLods[lodState.previous]}
                   animation={animation}
                   animationVariation={animationVariation}
+                  animationClockRef={animationClockRef}
                   opacityRef={previousLodOpacityRef}
                 />
               )}
@@ -1264,6 +1281,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
                 model={modelLods[lodState.active] ?? model}
                 animation={animation}
                 animationVariation={animationVariation}
+                animationClockRef={animationClockRef}
                 opacityRef={activeLodOpacityRef}
               />
             </>

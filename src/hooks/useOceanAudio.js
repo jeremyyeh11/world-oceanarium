@@ -26,7 +26,12 @@ const FISH_SFX_ASSETS = {
   ],
 }
 const UI_SFX_ASSETS = {
-  click: ['/audio/ui-sfx/ui-click-01.mp3'],
+  click: [
+    '/audio/ui-sfx/ui-click-01.mp3',
+    '/audio/ui-sfx/ui-click-02.mp3',
+    '/audio/ui-sfx/ui-click-03.mp3',
+    '/audio/ui-sfx/ui-click-04.mp3',
+  ],
 }
 
 function hashString(value) {
@@ -339,7 +344,15 @@ function playFishSwimSfx(context, graph, detail = {}) {
 function chooseUiSfxBuffer(graph, type = 'click') {
   const buffers = graph.uiSfxBuffers?.[type] ?? graph.uiSfxBuffers?.click
   if (!buffers?.length) return null
-  graph.uiSfxIndex = ((graph.uiSfxIndex ?? 0) + 1) % buffers.length
+
+  const previousIndex = graph.uiSfxIndex ?? -1
+  if (buffers.length === 1) {
+    graph.uiSfxIndex = 0
+    return buffers[0]
+  }
+
+  const randomIndex = Math.floor(Math.random() * (buffers.length - 1))
+  graph.uiSfxIndex = randomIndex >= previousIndex ? randomIndex + 1 : randomIndex
   return buffers[graph.uiSfxIndex]
 }
 
@@ -362,7 +375,7 @@ function playUiClickSfx(context, graph, detail = {}) {
     activeSfx.add(sfxNodes)
 
     source.buffer = buffer
-    source.playbackRate.value = 0.96 + ((graph.uiSfxIndex ?? 0) % 3) * 0.025
+    source.playbackRate.value = 1
     filter.type = 'lowpass'
     filter.frequency.value = 2400
     filter.Q.value = 0.34

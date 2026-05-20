@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.4 — UI audio polish
 
-Status: in progress as `v0.7.4-dev_01`.
+Status: in progress as `v0.7.4-dev_02`.
 
 ### Button / control SFX
 
@@ -18,6 +18,8 @@ Status: in progress as `v0.7.4-dev_01`.
 - Wired subtle button click playback through the existing tank Web Audio graph.
 - Added search-submit success/error click variants using the same damped aquatic sample.
 - Kept the hidden debug version-label tap silent to avoid noisy triple-tap debug access.
+- Replaced the first generated click with Jeremy's four uploaded UI-click assets.
+- Randomized UI click selection while preventing immediate repeat sounds.
 
 ## v0.7.3 — Public launch shell polish
 

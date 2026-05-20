@@ -67,6 +67,7 @@ const ORGANIC_NOISE_INTERVAL = [1.8, 3.8]
 const DEBUG_FORWARD_SPEED_SCALE = 0.625
 const DEBUG_FORWARD_MIN_LENGTH = 0.11
 const DEBUG_LABEL_SCALE = 0.0525
+const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
@@ -673,9 +674,10 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const forwardLineRef = useRef()
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
-  const leaderLabelRef = useRef()
+  const nameLabelRef = useRef()
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
+  const species = useMemo(() => resolveSpecies(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
@@ -968,36 +970,36 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     pitchedForward.copy(visualForward.current)
 
     if (debug) {
-      const showVectors = debugLayers?.vectors ?? true
-      const showNumbers = debugLayers?.numbers ?? true
+      const showDirection = debugLayers?.direction ?? true
+      const showName = debugLayers?.name ?? true
       const effectiveDebugVelocity = velocity.current * organicMotion.speedScale
       const debugVectorLength = DEBUG_FORWARD_MIN_LENGTH + effectiveDebugVelocity * DEBUG_FORWARD_SPEED_SCALE
       const drift = currentSchoolDrift(schoolOffset, now)
       debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
-      if (forwardLineRef.current) forwardLineRef.current.visible = showVectors
+      if (forwardLineRef.current) forwardLineRef.current.visible = showDirection
       if (followTargetMarkerRef.current) {
         followTargetMarkerRef.current.position.copy(followTarget.current)
-        followTargetMarkerRef.current.visible = showVectors
+        followTargetMarkerRef.current.visible = showDirection
       }
       if (speedLabelRef.current) {
         speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
         speedLabelRef.current.text = `${effectiveDebugVelocity.toFixed(2)} wu/s`
         speedLabelRef.current.lookAt(camera.position)
-        speedLabelRef.current.visible = showNumbers
+        speedLabelRef.current.visible = showDirection
       }
       if (driftLabelRef.current) {
         labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.10 + size * 0.04)
         driftLabelRef.current.position.copy(labelPosition.current)
         driftLabelRef.current.text = `drift ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}`
         driftLabelRef.current.lookAt(camera.position)
-        driftLabelRef.current.visible = showNumbers
+        driftLabelRef.current.visible = showDirection
       }
-      if (leaderLabelRef.current) {
-        leaderLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.24 + 0.10)
-        leaderLabelRef.current.lookAt(camera.position)
-        leaderLabelRef.current.visible = isSchoolLeader && showNumbers
+      if (nameLabelRef.current) {
+        nameLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.16 + 0.045)
+        nameLabelRef.current.lookAt(camera.position)
+        nameLabelRef.current.visible = showName
       }
     }
 
@@ -1077,7 +1079,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     <group>
       {debug && (
         <>
-          {(debugLayers?.spline ?? true) && (!isSchooling || isSchoolLeader) && (
+          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>
@@ -1113,20 +1115,18 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
           >
             drift +0.00
           </Text>
-          {isSchoolLeader && (
-            <Text
-              ref={leaderLabelRef}
-              fontSize={DEBUG_LABEL_SCALE * 1.05}
-              font={DEBUG_LABEL_FONT}
-              color="#80ff72"
-              anchorX="center"
-              anchorY="middle"
-              depthTest={false}
-              raycast={() => null}
-            >
-              leader
-            </Text>
-          )}
+          <Text
+            ref={nameLabelRef}
+            fontSize={DEBUG_NAME_LABEL_SCALE}
+            font={DEBUG_LABEL_FONT}
+            color="#d6f7ff"
+            anchorX="center"
+            anchorY="middle"
+            depthTest={false}
+            raycast={() => null}
+          >
+            {`${creature.id ?? '?'} · ${creature.species ?? 'unknown'}${species?.scientificName ? `\n${species.scientificName}` : ''}`}
+          </Text>
         </>
       )}
       <group

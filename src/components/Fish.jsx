@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text, useAnimations, useGLTF } from '@react-three/drei'
+import { Text, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
@@ -50,8 +50,8 @@ const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
-const SELECTED_OUTLINE_OPACITY = 0.18
-const LEADER_OUTLINE_OPACITY = 0.16
+const SELECTED_OUTLINE_OPACITY = 0.68
+const LEADER_OUTLINE_OPACITY = 0.54
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -83,7 +83,6 @@ const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
 const LOD_HYSTERESIS = 0.35
-const LOD_MIN_SWITCH_SECONDS = 0.85
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -190,19 +189,6 @@ function resolveModelLods(model) {
   if (!model) return []
   if (!Array.isArray(model.lods) || model.lods.length === 0) return [model]
   return model.lods.map(lod => ({ ...model, ...lod }))
-}
-
-function resolveLodIndex(modelLods, distance, activeIndex = 0, selected = false) {
-  if (selected || modelLods.length <= 1) return 0
-  const active = modelLods[activeIndex]
-  if (activeIndex > 0) {
-    const previous = modelLods[activeIndex - 1]
-    if (previous?.maxDistance && distance < previous.maxDistance - LOD_HYSTERESIS) return activeIndex - 1
-  }
-  if (active?.maxDistance && distance <= active.maxDistance + LOD_HYSTERESIS) return activeIndex
-
-  const nextIndex = modelLods.findIndex(lod => !lod.maxDistance || distance <= lod.maxDistance)
-  return nextIndex === -1 ? modelLods.length - 1 : nextIndex
 }
 
 function creatureBodyLength(creature, swim) {
@@ -591,18 +577,22 @@ function applyModelMaterialSettings(root) {
   return materials
 }
 
-function setModelMaterialOpacity(materials, opacity) {
-  const visible = opacity > 0.001
-  const fading = opacity > 0.001 && opacity < 0.999
-  materials.forEach(material => {
-    material.visible = visible
-    material.opacity = opacity
-    if ('alphaHash' in material) material.alphaHash = fading
-    material.transparent = false
-    material.depthWrite = true
-    material.needsUpdate = true
+function setLodLevelVisibility(lod, activeIndex) {
+  lod.levels.forEach((level, index) => {
+    level.object.visible = index === activeIndex
   })
+  lod._currentLevel = activeIndex
 }
+
+function lodDistanceForIndex(modelLods, index) {
+  if (index <= 0) return 0
+  return modelLods[index - 1]?.maxDistance ?? 0
+}
+
+function lodHysteresisForDistance(distance) {
+  return distance > 0 ? LOD_HYSTERESIS / distance : 0
+}
+
 
 function animationVariationForCreature(creature) {
   const rand = mulberry32(hashString(`${creature.id ?? creature.species}:animation-variation`))
@@ -628,14 +618,15 @@ function applyOutlineMaterialSettings(object, color, opacity) {
     child.castShadow = false
     child.receiveShadow = false
     child.raycast = () => null
+    child.renderOrder = 100
     child.material = new THREE.MeshBasicMaterial({
       color,
       transparent: true,
       opacity,
       side: THREE.BackSide,
-      depthTest: true,
+      depthTest: false,
       depthWrite: false,
-      blending: THREE.NormalBlending,
+      blending: THREE.AdditiveBlending,
       toneMapped: false,
     })
   })
@@ -673,25 +664,54 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   activeActionRef.current = nextAction
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationClockRef = null, opacityRef = null }) {
-  const gltf = useGLTF(model.path)
-  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const { actions } = useAnimations(gltf.animations, object)
-  const activeActionRef = useRef(null)
-  const materialsRef = useRef([])
-  const currentOpacityRef = useRef(null)
+function FishLodModel({ modelLods, animation = 'idle', animationVariation, animationClockRef, selected = false, activeLodIndexRef }) {
+  const paths = useMemo(() => modelLods.map(model => model.path), [modelLods])
+  const gltfResult = useGLTF(paths)
+  const gltfs = Array.isArray(gltfResult) ? gltfResult : [gltfResult]
+  const activeActionRefs = useRef([])
 
-  useLayoutEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object)
-    setModelMaterialOpacity(materialsRef.current, opacityRef?.current ?? 1)
-    currentOpacityRef.current = null
-  }, [object, opacityRef])
+  const levels = useMemo(() => modelLods.map((model, index) => {
+    const gltf = gltfs[index]
+    const object = clone(gltf.scene)
+    applyModelMaterialSettings(object)
+    object.scale.setScalar(model.scale ?? 1)
+    if (model.rotation) object.rotation.set(...model.rotation)
+    if (model.position) object.position.set(...model.position)
+    const mixer = new THREE.AnimationMixer(object)
+    const actions = Object.fromEntries((gltf.animations ?? []).map(clip => [clip.name, mixer.clipAction(clip)]))
+    object.userData.lodIndex = index
+    return { model, object, mixer, actions }
+  }), [gltfs, modelLods])
 
-  useFrame(() => {
-    const activeAction = activeActionRef.current
-    if (activeAction) {
-      activeAction.enabled = true
-      activeAction.paused = false
+  const lod = useMemo(() => {
+    const nextLod = new THREE.LOD()
+    nextLod.autoUpdate = false
+    levels.forEach((level, index) => {
+      const distance = lodDistanceForIndex(modelLods, index)
+      nextLod.addLevel(level.object, distance, lodHysteresisForDistance(distance))
+    })
+    setLodLevelVisibility(nextLod, 0)
+    return nextLod
+  }, [levels, modelLods])
+
+  useFrame(({ camera }, delta) => {
+    if (selected) {
+      setLodLevelVisibility(lod, 0)
+    } else {
+      lod.update(camera)
+    }
+
+    const activeIndex = selected ? 0 : lod.getCurrentLevel()
+    activeLodIndexRef.current = activeIndex
+
+    levels.forEach((level, index) => {
+      const activeAction = activeActionRefs.current[index]
+      const isActive = index === activeIndex
+      if (activeAction) {
+        activeAction.enabled = isActive
+        activeAction.paused = !isActive
+      }
+      if (!isActive || !activeAction) return
       if (animation === 'idle') {
         const duration = activeAction.getClip()?.duration ?? 0
         const speed = animationVariation?.speeds?.idle ?? animationVariation?.speeds?.default ?? 1
@@ -699,50 +719,82 @@ function FishModel({ model, animation = 'idle', animationVariation, animationClo
         if (duration > 0) activeAction.time = ((animationClockRef?.current ?? 0) * speed + duration * offset) % duration
       }
       if (!activeAction.isRunning()) activeAction.play()
-    }
-    const opacity = opacityRef?.current ?? 1
-    if (Math.abs((currentOpacityRef.current ?? -1) - opacity) < 0.01) return
-    currentOpacityRef.current = opacity
-    setModelMaterialOpacity(materialsRef.current, opacity)
+      level.mixer.update(delta)
+    })
   })
 
   useEffect(() => {
-    playModelAction(actions, activeActionRef, animation, animationVariation, animationClockRef)
-  }, [actions, animation, animationVariation, animationClockRef])
+    levels.forEach((level, index) => {
+      playModelAction(level.actions, { current: activeActionRefs.current[index] }, animation, animationVariation, animationClockRef)
+      activeActionRefs.current[index] = level.actions[animation] ?? level.actions.idle ?? Object.values(level.actions)[0]
+      if (activeActionRefs.current[index]) {
+        activeActionRefs.current[index].enabled = index === activeLodIndexRef.current
+        activeActionRefs.current[index].paused = index !== activeLodIndexRef.current
+      }
+    })
+  }, [levels, animation, animationVariation, animationClockRef, activeLodIndexRef])
 
-  return (
-    <primitive
-      object={object}
-      scale={model.scale ?? 1}
-      rotation={model.rotation ?? [0, 0, 0]}
-      position={model.position ?? [0, 0, 0]}
-    />
-  )
+  return <primitive object={lod} />
 }
 
-function FishModelOutline({ model, animation = 'idle', animationVariation, color, opacity = 0.24 }) {
-  const gltf = useGLTF(model.path)
-  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const { actions } = useAnimations(gltf.animations, object)
-  const activeActionRef = useRef(null)
+function FishModelOutline({ modelLods, animation = 'idle', animationVariation, color, opacity = 0.24, activeLodIndexRef }) {
+  const paths = useMemo(() => modelLods.map(model => model.path), [modelLods])
+  const gltfResult = useGLTF(paths)
+  const gltfs = Array.isArray(gltfResult) ? gltfResult : [gltfResult]
+  const activeActionRefs = useRef([])
 
-  useEffect(() => {
+  const levels = useMemo(() => modelLods.map((model, index) => {
+    const gltf = gltfs[index]
+    const object = clone(gltf.scene)
     applyOutlineMaterialSettings(object, color, opacity)
-  }, [object, color, opacity])
+    object.scale.setScalar((model.scale ?? 1) * 1.24)
+    if (model.rotation) object.rotation.set(...model.rotation)
+    if (model.position) object.position.set(...model.position)
+    const mixer = new THREE.AnimationMixer(object)
+    const actions = Object.fromEntries((gltf.animations ?? []).map(clip => [clip.name, mixer.clipAction(clip)]))
+    object.userData.lodIndex = index
+    object.visible = index === (activeLodIndexRef.current ?? 0)
+    return { object, mixer, actions }
+  }), [gltfs, modelLods, color, opacity, activeLodIndexRef])
+
+  const group = useMemo(() => {
+    const nextGroup = new THREE.Group()
+    levels.forEach(level => nextGroup.add(level.object))
+    return nextGroup
+  }, [levels])
+
+  useFrame((_, delta) => {
+    const activeIndex = activeLodIndexRef.current ?? 0
+    levels.forEach((level, index) => {
+      const isActive = index === activeIndex
+      level.object.visible = isActive
+      const activeAction = activeActionRefs.current[index]
+      if (activeAction) {
+        activeAction.enabled = isActive
+        activeAction.paused = !isActive
+      }
+      if (isActive && activeAction) {
+        if (!activeAction.isRunning()) activeAction.play()
+        level.mixer.update(delta)
+      }
+    })
+  })
 
   useEffect(() => {
-    playModelAction(actions, activeActionRef, animation, animationVariation)
-  }, [actions, animation, animationVariation])
+    levels.forEach((level, index) => {
+      playModelAction(level.actions, { current: activeActionRefs.current[index] }, animation, animationVariation)
+      activeActionRefs.current[index] = level.actions[animation] ?? level.actions.idle ?? Object.values(level.actions)[0]
+      if (activeActionRefs.current[index]) {
+        const isActive = index === (activeLodIndexRef.current ?? 0)
+        activeActionRefs.current[index].enabled = isActive
+        activeActionRefs.current[index].paused = !isActive
+      }
+    })
+  }, [levels, animation, animationVariation, activeLodIndexRef])
 
-  return (
-    <primitive
-      object={object}
-      scale={(model.scale ?? 1) * 1.08}
-      rotation={model.rotation ?? [0, 0, 0]}
-      position={model.position ?? [0, 0, 0]}
-    />
-  )
+  return <primitive object={group} />
 }
+
 
 export default function Fish({ creature, selected = false, hideSelectionSilhouette = false, debug = false, debugLayers = null, school = null, onClick, onReady }) {
   const ref = useRef()
@@ -756,12 +808,9 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
   const modelLods = useMemo(() => resolveModelLods(model), [model])
-  const [lodState, setLodState] = useState({ active: 0, previous: null, startedAt: 0 })
-  const activeLodOpacityRef = useRef(1)
-  const previousLodOpacityRef = useRef(0)
-  const lastLodSwitchAt = useRef(-Infinity)
   const animationClockRef = useRef(0)
   const lodDistanceRef = useRef(0)
+  const activeLodIndexRef = useRef(0)
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
@@ -890,25 +939,8 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
 
     const now = clock.getElapsedTime()
     animationClockRef.current += delta
-    if (modelLods.length > 1) {
-      const distance = camera.position.distanceTo(fish.position)
-      lodDistanceRef.current = distance
-      const targetLod = resolveLodIndex(modelLods, distance, lodState.active, selected)
-      const canSwitchLod = selected || now - lastLodSwitchAt.current >= LOD_MIN_SWITCH_SECONDS
-      if (targetLod !== lodState.active && canSwitchLod) {
-        lastLodSwitchAt.current = now
-        activeLodOpacityRef.current = 1
-        previousLodOpacityRef.current = 0
-        setLodState({ active: targetLod, previous: null, startedAt: now })
-      } else {
-        activeLodOpacityRef.current = 1
-        previousLodOpacityRef.current = 0
-      }
-    } else {
-      activeLodOpacityRef.current = 1
-      previousLodOpacityRef.current = 0
-      lodDistanceRef.current = camera.position.distanceTo(fish.position)
-    }
+    lodDistanceRef.current = camera.position.distanceTo(fish.position)
+    if (selected) activeLodIndexRef.current = 0
 
     if (isSchooling) {
       const noise = organicNoise.current
@@ -1105,7 +1137,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
       }
       if (lodLabelRef.current) {
         lodLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.36 + 0.18)
-        lodLabelRef.current.text = `LOD ${lodState.active} · ${lodDistanceRef.current.toFixed(1)}`
+        lodLabelRef.current.text = `LOD ${activeLodIndexRef.current} · ${lodDistanceRef.current.toFixed(1)}`
         lodLabelRef.current.lookAt(camera.position)
         lodLabelRef.current.visible = Boolean(debugLayers?.lod)
       }
@@ -1259,30 +1291,21 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
             <>
               {outlineColor && (
                 <FishModelOutline
-                  model={model}
+                  modelLods={modelLods}
                   animation={animation}
                   animationVariation={animationVariation}
                   color={outlineColor}
                   opacity={outlineOpacity}
+                  activeLodIndexRef={activeLodIndexRef}
                 />
               )}
-              {lodState.previous !== null && modelLods[lodState.previous] && (
-                <FishModel
-                  key={`previous-lod-${lodState.previous}`}
-                  model={modelLods[lodState.previous]}
-                  animation={animation}
-                  animationVariation={animationVariation}
-                  animationClockRef={animationClockRef}
-                  opacityRef={previousLodOpacityRef}
-                />
-              )}
-              <FishModel
-                key={`active-lod-${lodState.active}`}
-                model={modelLods[lodState.active] ?? model}
+              <FishLodModel
+                modelLods={modelLods}
                 animation={animation}
                 animationVariation={animationVariation}
                 animationClockRef={animationClockRef}
-                opacityRef={activeLodOpacityRef}
+                selected={selected}
+                activeLodIndexRef={activeLodIndexRef}
               />
             </>
           ) : (

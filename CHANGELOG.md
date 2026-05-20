@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.4 — UI audio polish
 
-Status: in progress as `v0.7.4-dev_06`.
+Status: accepted and promoted as clean `v0.7.4`.
 
 ### Button / control SFX
 

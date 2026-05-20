@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.4 — UI audio polish
 
-Status: in progress as `v0.7.4-dev_05`.
+Status: in progress as `v0.7.4-dev_06`.
 
 ### Button / control SFX
 
@@ -23,7 +23,8 @@ Status: in progress as `v0.7.4-dev_05`.
 - Routed visible `-dev_##` builds to Supabase `creatures_dev` while clean releases keep using `creatures`.
 - Hardened creature URL overrides so dev builds cannot accidentally stay pinned to the production `creatures` table.
 - Normalized Supabase species ids to display species names before filtering, so rows using `sardine` still render as Spotted Sardinella.
-- Added a dev-read empty fallback to production `creatures`, covering RLS/policy gaps where `creatures_dev` returns zero rows to the browser anon key.
+- `creatures_dev` has its own anon read policy; dev and production creature tables intentionally diverge.
+- Removed the temporary dev-read fallback to production `creatures` so staged testing reflects only `creatures_dev`.
 
 ## v0.7.3 — Public launch shell polish
 

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.5 — Sardine population staging
 
-Status: in progress as `v0.7.5-dev_04`.
+Status: in progress as `v0.7.5-dev_05`.
 
 ### Creature data
 
@@ -20,6 +20,7 @@ Status: in progress as `v0.7.5-dev_04`.
 - Added Jeremy's LOD1/LOD2 sardine models and smooth distance-based model transitions for mobile performance testing.
 - Added an LOD debug overlay toggle that labels each debug-visible fish with active LOD index and camera distance, and initialized LOD fade opacity before first paint to reduce transition flashes.
 - Tightened sardine LOD change distances to `4.0` / `6.8` WU with `0.7` WU hysteresis, and added live FPS to the debug card for phone testing.
+- Fixed close-range LOD hysteresis so sardines already in `LOD1`/`LOD2` can step back down when they move near the camera, using a tighter `0.35` WU deadband.
 - Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
 - Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
 

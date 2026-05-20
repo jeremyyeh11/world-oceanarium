@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.5 — Sardine population staging
 
-Status: in progress as `v0.7.5-dev_08`.
+Status: in progress as `v0.7.5-dev_09`.
 
 ### Creature data
 
@@ -24,6 +24,7 @@ Status: in progress as `v0.7.5-dev_08`.
 - Switched LOD transitions from transparent blended overlap to Three.js alpha-hash dither fading, keeping depth writes on to reduce dense-school sorting flicker.
 - Removed cross-fade overlap after mobile flashing persisted, rate-limited LOD swaps, and synchronized idle animation timing across LOD model mounts so lower LOD fish keep moving.
 - Replaced the hand-rolled React LOD swapper with `THREE.LOD`, removed overlapping previous-model rendering, and strengthened selected/leader silhouettes for visibility.
+- Hotfixed `THREE.LOD` mounting to use declarative R3F `<lOD>` children after `v0.7.5-dev_08` showed debug markers but no fish meshes on device.
 - Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
 - Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
 

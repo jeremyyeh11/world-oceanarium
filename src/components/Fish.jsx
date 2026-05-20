@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text, useGLTF } from '@react-three/drei'
+import { Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
@@ -664,135 +664,132 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   activeActionRef.current = nextAction
 }
 
-function FishLodModel({ modelLods, animation = 'idle', animationVariation, animationClockRef, selected = false, activeLodIndexRef }) {
-  const paths = useMemo(() => modelLods.map(model => model.path), [modelLods])
-  const gltfResult = useGLTF(paths)
-  const gltfs = Array.isArray(gltfResult) ? gltfResult : [gltfResult]
-  const activeActionRefs = useRef([])
+function FishLodLevel({ model, animation = 'idle', animationVariation, animationClockRef = null }) {
+  const gltf = useGLTF(model.path)
+  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
+  const { actions } = useAnimations(gltf.animations, object)
+  const activeActionRef = useRef(null)
 
-  const levels = useMemo(() => modelLods.map((model, index) => {
-    const gltf = gltfs[index]
-    const object = clone(gltf.scene)
+  useLayoutEffect(() => {
     applyModelMaterialSettings(object)
     object.scale.setScalar(model.scale ?? 1)
     if (model.rotation) object.rotation.set(...model.rotation)
     if (model.position) object.position.set(...model.position)
-    const mixer = new THREE.AnimationMixer(object)
-    const actions = Object.fromEntries((gltf.animations ?? []).map(clip => [clip.name, mixer.clipAction(clip)]))
-    object.userData.lodIndex = index
-    return { model, object, mixer, actions }
-  }), [gltfs, modelLods])
+  }, [object, model])
 
-  const lod = useMemo(() => {
-    const nextLod = new THREE.LOD()
-    nextLod.autoUpdate = false
-    levels.forEach((level, index) => {
+  useFrame(() => {
+    const activeAction = activeActionRef.current
+    if (!activeAction) return
+
+    const isVisible = object.visible
+    activeAction.enabled = isVisible
+    activeAction.paused = !isVisible
+    if (!isVisible) return
+
+    if (animation === 'idle') {
+      const duration = activeAction.getClip()?.duration ?? 0
+      const speed = animationVariation?.speeds?.idle ?? animationVariation?.speeds?.default ?? 1
+      const offset = animationVariation?.startOffset ?? 0
+      if (duration > 0) activeAction.time = ((animationClockRef?.current ?? 0) * speed + duration * offset) % duration
+    }
+    if (!activeAction.isRunning()) activeAction.play()
+  })
+
+  useEffect(() => {
+    playModelAction(actions, activeActionRef, animation, animationVariation, animationClockRef)
+  }, [actions, animation, animationVariation, animationClockRef])
+
+  return <primitive object={object} />
+}
+
+function FishLodModel({ modelLods, animation = 'idle', animationVariation, animationClockRef, selected = false, activeLodIndexRef }) {
+  const lodRef = useRef(null)
+
+  useLayoutEffect(() => {
+    const lod = lodRef.current
+    if (!lod) return
+    lod.autoUpdate = false
+    lod.levels.length = 0
+    lod.children.forEach((object, index) => {
       const distance = lodDistanceForIndex(modelLods, index)
-      nextLod.addLevel(level.object, distance, lodHysteresisForDistance(distance))
+      lod.levels.push({ object, distance, hysteresis: lodHysteresisForDistance(distance) })
     })
-    setLodLevelVisibility(nextLod, 0)
-    return nextLod
-  }, [levels, modelLods])
+    setLodLevelVisibility(lod, 0)
+  }, [modelLods])
 
-  useFrame(({ camera }, delta) => {
+  useFrame(({ camera }) => {
+    const lod = lodRef.current
+    if (!lod) return
     if (selected) {
       setLodLevelVisibility(lod, 0)
     } else {
       lod.update(camera)
     }
-
-    const activeIndex = selected ? 0 : lod.getCurrentLevel()
-    activeLodIndexRef.current = activeIndex
-
-    levels.forEach((level, index) => {
-      const activeAction = activeActionRefs.current[index]
-      const isActive = index === activeIndex
-      if (activeAction) {
-        activeAction.enabled = isActive
-        activeAction.paused = !isActive
-      }
-      if (!isActive || !activeAction) return
-      if (animation === 'idle') {
-        const duration = activeAction.getClip()?.duration ?? 0
-        const speed = animationVariation?.speeds?.idle ?? animationVariation?.speeds?.default ?? 1
-        const offset = animationVariation?.startOffset ?? 0
-        if (duration > 0) activeAction.time = ((animationClockRef?.current ?? 0) * speed + duration * offset) % duration
-      }
-      if (!activeAction.isRunning()) activeAction.play()
-      level.mixer.update(delta)
-    })
+    activeLodIndexRef.current = selected ? 0 : lod.getCurrentLevel()
   })
 
-  useEffect(() => {
-    levels.forEach((level, index) => {
-      playModelAction(level.actions, { current: activeActionRefs.current[index] }, animation, animationVariation, animationClockRef)
-      activeActionRefs.current[index] = level.actions[animation] ?? level.actions.idle ?? Object.values(level.actions)[0]
-      if (activeActionRefs.current[index]) {
-        activeActionRefs.current[index].enabled = index === activeLodIndexRef.current
-        activeActionRefs.current[index].paused = index !== activeLodIndexRef.current
-      }
-    })
-  }, [levels, animation, animationVariation, animationClockRef, activeLodIndexRef])
-
-  return <primitive object={lod} />
+  return (
+    <lOD ref={lodRef}>
+      {modelLods.map((lodModel, index) => (
+        <FishLodLevel
+          key={`${lodModel.path}:${index}`}
+          model={lodModel}
+          animation={animation}
+          animationVariation={animationVariation}
+          animationClockRef={animationClockRef}
+        />
+      ))}
+    </lOD>
+  )
 }
 
-function FishModelOutline({ modelLods, animation = 'idle', animationVariation, color, opacity = 0.24, activeLodIndexRef }) {
-  const paths = useMemo(() => modelLods.map(model => model.path), [modelLods])
-  const gltfResult = useGLTF(paths)
-  const gltfs = Array.isArray(gltfResult) ? gltfResult : [gltfResult]
-  const activeActionRefs = useRef([])
+function FishOutlineLevel({ model, animation = 'idle', animationVariation, color, opacity = 0.24, activeLodIndexRef, index }) {
+  const gltf = useGLTF(model.path)
+  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
+  const { actions } = useAnimations(gltf.animations, object)
+  const activeActionRef = useRef(null)
 
-  const levels = useMemo(() => modelLods.map((model, index) => {
-    const gltf = gltfs[index]
-    const object = clone(gltf.scene)
+  useLayoutEffect(() => {
     applyOutlineMaterialSettings(object, color, opacity)
     object.scale.setScalar((model.scale ?? 1) * 1.24)
     if (model.rotation) object.rotation.set(...model.rotation)
     if (model.position) object.position.set(...model.position)
-    const mixer = new THREE.AnimationMixer(object)
-    const actions = Object.fromEntries((gltf.animations ?? []).map(clip => [clip.name, mixer.clipAction(clip)]))
-    object.userData.lodIndex = index
-    object.visible = index === (activeLodIndexRef.current ?? 0)
-    return { object, mixer, actions }
-  }), [gltfs, modelLods, color, opacity, activeLodIndexRef])
+  }, [object, model, color, opacity])
 
-  const group = useMemo(() => {
-    const nextGroup = new THREE.Group()
-    levels.forEach(level => nextGroup.add(level.object))
-    return nextGroup
-  }, [levels])
-
-  useFrame((_, delta) => {
-    const activeIndex = activeLodIndexRef.current ?? 0
-    levels.forEach((level, index) => {
-      const isActive = index === activeIndex
-      level.object.visible = isActive
-      const activeAction = activeActionRefs.current[index]
-      if (activeAction) {
-        activeAction.enabled = isActive
-        activeAction.paused = !isActive
-      }
-      if (isActive && activeAction) {
-        if (!activeAction.isRunning()) activeAction.play()
-        level.mixer.update(delta)
-      }
-    })
+  useFrame(() => {
+    const isVisible = index === (activeLodIndexRef.current ?? 0)
+    object.visible = isVisible
+    const activeAction = activeActionRef.current
+    if (!activeAction) return
+    activeAction.enabled = isVisible
+    activeAction.paused = !isVisible
+    if (isVisible && !activeAction.isRunning()) activeAction.play()
   })
 
   useEffect(() => {
-    levels.forEach((level, index) => {
-      playModelAction(level.actions, { current: activeActionRefs.current[index] }, animation, animationVariation)
-      activeActionRefs.current[index] = level.actions[animation] ?? level.actions.idle ?? Object.values(level.actions)[0]
-      if (activeActionRefs.current[index]) {
-        const isActive = index === (activeLodIndexRef.current ?? 0)
-        activeActionRefs.current[index].enabled = isActive
-        activeActionRefs.current[index].paused = !isActive
-      }
-    })
-  }, [levels, animation, animationVariation, activeLodIndexRef])
+    playModelAction(actions, activeActionRef, animation, animationVariation)
+  }, [actions, animation, animationVariation])
 
-  return <primitive object={group} />
+  return <primitive object={object} />
+}
+
+function FishModelOutline({ modelLods, animation = 'idle', animationVariation, color, opacity = 0.24, activeLodIndexRef }) {
+  return (
+    <group>
+      {modelLods.map((lodModel, index) => (
+        <FishOutlineLevel
+          key={`${lodModel.path}:outline:${index}`}
+          model={lodModel}
+          animation={animation}
+          animationVariation={animationVariation}
+          color={color}
+          opacity={opacity}
+          activeLodIndexRef={activeLodIndexRef}
+          index={index}
+        />
+      ))}
+    </group>
+  )
 }
 
 

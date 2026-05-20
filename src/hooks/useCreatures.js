@@ -4,6 +4,7 @@ import { APP_VERSION } from '../version'
 
 const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+const SPECIES_NAME_BY_ID = new Map(SPECIES.map(species => [species.id, species.name]))
 const DEFAULT_SIZE_RANGE = [0.9, 1.1]
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -53,10 +54,14 @@ function withDefaultSize(creature) {
   }
 }
 
+function normalizeSpecies(value) {
+  return SPECIES_NAME_BY_ID.get(value) ?? value
+}
+
 function normalizeCreature(row) {
   return withDefaultSize({
     id: String(row.id),
-    species: row.species,
+    species: normalizeSpecies(row.species),
     biome: row.biome,
     depthZone: row.depthZone ?? row.depth_zone,
     bornAt: row.bornAt ?? row.born_at,
@@ -74,21 +79,25 @@ function creaturesFromRows(rows) {
     .filter(creature => creature.alive !== false && ACTIVE_SPECIES.has(creature.species))
 }
 
-function resolveCreaturesUrl() {
+function resolveCreaturesUrl(table = SUPABASE_CREATURES_TABLE) {
   if (SUPABASE_CREATURES_URL) {
     if (SUPABASE_CREATURES_URL.includes('{table}')) {
-      return SUPABASE_CREATURES_URL.replaceAll('{table}', SUPABASE_CREATURES_TABLE)
+      return SUPABASE_CREATURES_URL.replaceAll('{table}', table)
     }
 
-    if (SUPABASE_CREATURES_TABLE === 'creatures_dev') {
+    if (table === 'creatures_dev') {
       return SUPABASE_CREATURES_URL.replace(/\/creatures(?=\?|$)/, '/creatures_dev')
+    }
+
+    if (table === 'creatures') {
+      return SUPABASE_CREATURES_URL.replace(/\/creatures_dev(?=\?|$)/, '/creatures')
     }
 
     return SUPABASE_CREATURES_URL
   }
 
   if (!SUPABASE_URL) return null
-  return `${SUPABASE_URL}/rest/v1/${SUPABASE_CREATURES_TABLE}?select=*&alive=eq.true&order=id.asc`
+  return `${SUPABASE_URL}/rest/v1/${table}?select=*&alive=eq.true&order=id.asc`
 }
 
 const EMPTY_CREATURE_STATE = {
@@ -114,26 +123,44 @@ export function useCreatures() {
 
     const controller = new AbortController()
 
+    async function fetchCreatureRows(url) {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Supabase creatures fetch failed (${response.status})`)
+      }
+
+      const rows = await response.json()
+      return Array.isArray(rows) ? rows : []
+    }
+
     async function loadCreatures() {
       try {
-        const response = await fetch(creaturesUrl, {
-          signal: controller.signal,
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
+        let rows = await fetchCreatureRows(creaturesUrl)
+        let source = SUPABASE_CREATURES_TABLE === 'creatures_dev' ? 'supabase-dev' : 'supabase'
 
-        if (!response.ok) {
-          throw new Error(`Supabase creatures fetch failed (${response.status})`)
+        if (SUPABASE_CREATURES_TABLE === 'creatures_dev' && rows.length === 0) {
+          const productionCreaturesUrl = resolveCreaturesUrl('creatures')
+          if (productionCreaturesUrl && productionCreaturesUrl !== creaturesUrl) {
+            const productionRows = await fetchCreatureRows(productionCreaturesUrl)
+            if (productionRows.length > 0) {
+              rows = productionRows
+              source = 'supabase-dev-fallback'
+            }
+          }
         }
 
-        const rows = await response.json()
-        const creatures = creaturesFromRows(Array.isArray(rows) ? rows : [])
+        const creatures = creaturesFromRows(rows)
 
         setState({
           creatures,
-          source: SUPABASE_CREATURES_TABLE === 'creatures_dev' ? 'supabase-dev' : 'supabase',
+          source,
           error: null,
         })
       } catch (error) {

@@ -50,8 +50,9 @@ const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
-const SELECTED_OUTLINE_OPACITY = 0.68
-const LEADER_OUTLINE_OPACITY = 0.54
+const SELECTED_MARKER_OPACITY = 0.9
+const LEADER_MARKER_OPACITY = 0.78
+const LOD2_SWITCH_DISTANCE = 5.5
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -189,6 +190,21 @@ function resolveModelLods(model) {
   if (!model) return []
   if (!Array.isArray(model.lods) || model.lods.length === 0) return [model]
   return model.lods.map(lod => ({ ...model, ...lod }))
+}
+
+function resolveRenderableLods(modelLods) {
+  if (modelLods.length >= 3) {
+    return [
+      { ...modelLods[0], sourceLodIndex: 0, switchDistance: 0 },
+      { ...modelLods[2], sourceLodIndex: 2, switchDistance: LOD2_SWITCH_DISTANCE },
+    ]
+  }
+
+  return modelLods.map((lod, index) => ({
+    ...lod,
+    sourceLodIndex: index,
+    switchDistance: index === 0 ? 0 : LOD2_SWITCH_DISTANCE,
+  }))
 }
 
 function creatureBodyLength(creature, swim) {
@@ -585,8 +601,7 @@ function setLodLevelVisibility(lod, activeIndex) {
 }
 
 function lodDistanceForIndex(modelLods, index) {
-  if (index <= 0) return 0
-  return modelLods[index - 1]?.maxDistance ?? 0
+  return modelLods[index]?.switchDistance ?? (index <= 0 ? 0 : modelLods[index - 1]?.maxDistance ?? 0)
 }
 
 function lodHysteresisForDistance(distance) {
@@ -610,26 +625,6 @@ function animationVariationForCreature(creature) {
       default: baseSpeed,
     },
   }
-}
-
-function applyOutlineMaterialSettings(object, color, opacity) {
-  object.traverse(child => {
-    if (!child.isMesh) return
-    child.castShadow = false
-    child.receiveShadow = false
-    child.raycast = () => null
-    child.renderOrder = 100
-    child.material = new THREE.MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity,
-      side: THREE.BackSide,
-      depthTest: false,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      toneMapped: false,
-    })
-  })
 }
 
 function playModelAction(actions, activeActionRef, animation, animationVariation, animationClockRef = null) {
@@ -725,7 +720,8 @@ function FishLodModel({ modelLods, animation = 'idle', animationVariation, anima
     } else {
       lod.update(camera)
     }
-    activeLodIndexRef.current = selected ? 0 : lod.getCurrentLevel()
+    const activeLevel = selected ? 0 : lod.getCurrentLevel()
+    activeLodIndexRef.current = modelLods[activeLevel]?.sourceLodIndex ?? activeLevel
   })
 
   return (
@@ -743,51 +739,17 @@ function FishLodModel({ modelLods, animation = 'idle', animationVariation, anima
   )
 }
 
-function FishOutlineLevel({ model, animation = 'idle', animationVariation, color, opacity = 0.24, activeLodIndexRef, index }) {
-  const gltf = useGLTF(model.path)
-  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const { actions } = useAnimations(gltf.animations, object)
-  const activeActionRef = useRef(null)
-
-  useLayoutEffect(() => {
-    applyOutlineMaterialSettings(object, color, opacity)
-    object.scale.setScalar((model.scale ?? 1) * 1.24)
-    if (model.rotation) object.rotation.set(...model.rotation)
-    if (model.position) object.position.set(...model.position)
-  }, [object, model, color, opacity])
-
-  useFrame(() => {
-    const isVisible = index === (activeLodIndexRef.current ?? 0)
-    object.visible = isVisible
-    const activeAction = activeActionRef.current
-    if (!activeAction) return
-    activeAction.enabled = isVisible
-    activeAction.paused = !isVisible
-    if (isVisible && !activeAction.isRunning()) activeAction.play()
-  })
-
-  useEffect(() => {
-    playModelAction(actions, activeActionRef, animation, animationVariation)
-  }, [actions, animation, animationVariation])
-
-  return <primitive object={object} />
-}
-
-function FishModelOutline({ modelLods, animation = 'idle', animationVariation, color, opacity = 0.24, activeLodIndexRef }) {
+function SelectionMarker({ color, opacity = 0.8, selected = false }) {
   return (
-    <group>
-      {modelLods.map((lodModel, index) => (
-        <FishOutlineLevel
-          key={`${lodModel.path}:outline:${index}`}
-          model={lodModel}
-          animation={animation}
-          animationVariation={animationVariation}
-          color={color}
-          opacity={opacity}
-          activeLodIndexRef={activeLodIndexRef}
-          index={index}
-        />
-      ))}
+    <group scale={selected ? 1.1 : 0.82}>
+      <mesh raycast={() => null} renderOrder={110}>
+        <ringGeometry args={[0.18, 0.24, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={opacity} depthTest={false} depthWrite={false} toneMapped={false} />
+      </mesh>
+      <mesh raycast={() => null} renderOrder={111}>
+        <sphereGeometry args={[0.035, 10, 10]} />
+        <meshBasicMaterial color={color} transparent opacity={Math.min(1, opacity + 0.1)} depthTest={false} depthWrite={false} toneMapped={false} />
+      </mesh>
     </group>
   )
 }
@@ -802,9 +764,11 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const lodLabelRef = useRef()
   const leaderLabelRef = useRef()
   const followTargetMarkerRef = useRef()
+  const selectionMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
   const modelLods = useMemo(() => resolveModelLods(model), [model])
+  const renderLods = useMemo(() => resolveRenderableLods(modelLods), [modelLods])
   const animationClockRef = useRef(0)
   const lodDistanceRef = useRef(0)
   const activeLodIndexRef = useRef(0)
@@ -938,6 +902,12 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     animationClockRef.current += delta
     lodDistanceRef.current = camera.position.distanceTo(fish.position)
     if (selected) activeLodIndexRef.current = 0
+
+    if (selectionMarkerRef.current) {
+      const markerHeight = creatureBodyLength(creature, swim) * 0.34 + 0.12
+      selectionMarkerRef.current.position.copy(fish.position).addScaledVector(up, markerHeight)
+      selectionMarkerRef.current.lookAt(camera.position)
+    }
 
     if (isSchooling) {
       const noise = organicNoise.current
@@ -1198,8 +1168,8 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const showSelectedOutline = selected && !hideSelectionSilhouette
-  const outlineColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
-  const outlineOpacity = showSelectedOutline ? SELECTED_OUTLINE_OPACITY : LEADER_OUTLINE_OPACITY
+  const markerColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
+  const markerOpacity = showSelectedOutline ? SELECTED_MARKER_OPACITY : LEADER_MARKER_OPACITY
 
   const handleSelect = (event) => {
     event.stopPropagation()
@@ -1211,6 +1181,11 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
 
   return (
     <group>
+      {markerColor && (
+        <group ref={selectionMarkerRef}>
+          <SelectionMarker color={markerColor} opacity={markerOpacity} selected={showSelectedOutline} />
+        </group>
+      )}
       {debug && (
         <>
           {(debugLayers?.spline ?? true) && (!isSchooling || isSchoolLeader) && (
@@ -1286,18 +1261,8 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
         <group ref={modelRootRef}>
           {model ? (
             <>
-              {outlineColor && (
-                <FishModelOutline
-                  modelLods={modelLods}
-                  animation={animation}
-                  animationVariation={animationVariation}
-                  color={outlineColor}
-                  opacity={outlineOpacity}
-                  activeLodIndexRef={activeLodIndexRef}
-                />
-              )}
               <FishLodModel
-                modelLods={modelLods}
+                modelLods={renderLods}
                 animation={animation}
                 animationVariation={animationVariation}
                 animationClockRef={animationClockRef}
@@ -1307,12 +1272,6 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
             </>
           ) : (
             <>
-              {outlineColor && (
-                <mesh scale={1.1} raycast={() => null}>
-                  <boxGeometry args={[0.7, 0.28, 0.18]} />
-                  <meshBasicMaterial color={outlineColor} transparent opacity={outlineOpacity} side={THREE.BackSide} depthWrite={false} toneMapped={false} />
-                </mesh>
-              )}
               <mesh>
                 <boxGeometry args={[0.7, 0.28, 0.18]} />
                 <meshStandardMaterial

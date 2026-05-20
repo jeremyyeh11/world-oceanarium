@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { SPECIES } from '../data/species'
+import { APP_VERSION } from '../version'
 
 const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
@@ -7,6 +8,7 @@ const DEFAULT_SIZE_RANGE = [0.9, 1.1]
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_CREATURES_URL = import.meta.env.VITE_SUPABASE_CREATURES_URL
+const SUPABASE_CREATURES_TABLE = APP_VERSION.includes('-dev_') ? 'creatures_dev' : 'creatures'
 
 function hashString(value) {
   let hash = 2166136261
@@ -75,7 +77,7 @@ function creaturesFromRows(rows) {
 function resolveCreaturesUrl() {
   if (SUPABASE_CREATURES_URL) return SUPABASE_CREATURES_URL
   if (!SUPABASE_URL) return null
-  return `${SUPABASE_URL}/rest/v1/creatures?select=*&alive=eq.true&order=id.asc`
+  return `${SUPABASE_URL}/rest/v1/${SUPABASE_CREATURES_TABLE}?select=*&alive=eq.true&order=id.asc`
 }
 
 const EMPTY_CREATURE_STATE = {
@@ -120,7 +122,7 @@ export function useCreatures() {
 
         setState({
           creatures,
-          source: 'supabase',
+          source: SUPABASE_CREATURES_TABLE === 'creatures_dev' ? 'supabase-dev' : 'supabase',
           error: null,
         })
       } catch (error) {

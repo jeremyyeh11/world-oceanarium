@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import Environment from './Environment'
 import Fish from './Fish'
+import DenseSardineSchool, { isDenseSardineCreature, shouldUseDenseSardineRenderer } from './DenseSardineSchool'
 import OceanBubbles from './OceanBubbles'
 import { SPECIES } from '../data/species'
 
@@ -29,8 +30,20 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
     () => creatures.filter(c => c.biome === name && c.alive),
     [creatures, name],
   )
+  const useDenseSardines = useMemo(
+    () => shouldUseDenseSardineRenderer(visibleCreatures),
+    [visibleCreatures],
+  )
+  const denseSardines = useMemo(
+    () => (useDenseSardines ? visibleCreatures.filter(isDenseSardineCreature) : []),
+    [useDenseSardines, visibleCreatures],
+  )
+  const individuallyRenderedCreatures = useMemo(
+    () => (useDenseSardines ? visibleCreatures.filter(creature => !isDenseSardineCreature(creature)) : visibleCreatures),
+    [useDenseSardines, visibleCreatures],
+  )
   const schoolByCreatureId = useMemo(() => {
-    const schoolingGroups = visibleCreatures.reduce((groups, creature) => {
+    const schoolingGroups = individuallyRenderedCreatures.reduce((groups, creature) => {
       const species = SPECIES_BY_NAME.get(creature.species)
       if (!species?.schooling) return groups
 
@@ -59,13 +72,22 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
       }
     })
     return nextSchoolByCreatureId
-  }, [visibleCreatures, tankVisitSeed])
+  }, [individuallyRenderedCreatures, tankVisitSeed])
 
   return (
     <group>
       <Environment biome={name} />
       {name === 'ocean' && <OceanBubbles />}
-      {visibleCreatures.map(creature => {
+      {useDenseSardines && (
+        <DenseSardineSchool
+          creatures={denseSardines}
+          tankVisitSeed={tankVisitSeed}
+          selectedCreatureId={selectedCreatureId}
+          onCreatureClick={onCreatureClick}
+          onCreatureReady={onCreatureReady}
+        />
+      )}
+      {individuallyRenderedCreatures.map(creature => {
         const selected = creature.id === selectedCreatureId
         const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))
         return (

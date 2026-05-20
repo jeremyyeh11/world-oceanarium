@@ -10,12 +10,13 @@ Versioning convention notes:
 
 ## v0.7.5 — Sardine population staging
 
-Status: in progress as `v0.7.5-dev_01`.
+Status: in progress as `v0.7.5-dev_02`.
 
 ### Creature data
 
 - Started the next dev cycle after clean `v0.7.4` acceptance.
-- Increased `creatures_dev` to 200 live sardines for dense-school testing.
+- Increased `creatures_dev` to 800 live sardines for dense-school testing.
+- Added an instanced dense-sardine renderer for large schools, reducing hundreds of React/GLTF fish clones to batched instanced meshes during mobile stress tests.
 - Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
 - Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
 

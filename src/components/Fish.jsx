@@ -83,7 +83,7 @@ const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
 const LOD_FADE_SECONDS = 0.42
-const LOD_HYSTERESIS = 0.7
+const LOD_HYSTERESIS = 0.35
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -195,11 +195,11 @@ function resolveModelLods(model) {
 function resolveLodIndex(modelLods, distance, activeIndex = 0, selected = false) {
   if (selected || modelLods.length <= 1) return 0
   const active = modelLods[activeIndex]
-  if (active?.maxDistance && distance <= active.maxDistance + LOD_HYSTERESIS) return activeIndex
   if (activeIndex > 0) {
     const previous = modelLods[activeIndex - 1]
     if (previous?.maxDistance && distance < previous.maxDistance - LOD_HYSTERESIS) return activeIndex - 1
   }
+  if (active?.maxDistance && distance <= active.maxDistance + LOD_HYSTERESIS) return activeIndex
 
   const nextIndex = modelLods.findIndex(lod => !lod.maxDistance || distance <= lod.maxDistance)
   return nextIndex === -1 ? modelLods.length - 1 : nextIndex

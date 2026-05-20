@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const AUDIO_VOLUME_EVENT = 'world-oceanarium-audio-volume'
 const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
+const UI_CLICK_SFX_EVENT = 'world-oceanarium-ui-click-sfx'
 const LEVEL_FLOOR_DB = -72
 const LEVEL_FRAME_MS = 100
 const MOBILE_MASTER_TARGET_GAIN = 2.0 // Jeremy requested roughly 2x overall loudness on mobile.
@@ -12,6 +13,7 @@ const AUDIO_FADE_SECONDS = 0.45
 const AUDIO_SUSPEND_AFTER_FADE_MS = 560
 const FOLLOW_MODE_SFX_BOOST = 4.5
 const SFX_MIN_GAP_SECONDS = 0.09
+const UI_SFX_MIN_GAP_SECONDS = 0.035
 const FISH_SFX_ASSETS = {
   turn: [
     '/audio/fish-sfx/fish-small-movement-01.mp3',
@@ -22,6 +24,9 @@ const FISH_SFX_ASSETS = {
     '/audio/fish-sfx/fish-big-movement-01.mp3',
     '/audio/fish-sfx/fish-big-movement-02.mp3',
   ],
+}
+const UI_SFX_ASSETS = {
+  click: ['/audio/ui-sfx/ui-click-01.mp3'],
 }
 
 function hashString(value) {
@@ -224,6 +229,14 @@ async function loadFishSfxAssets(context) {
   return Object.fromEntries(entries)
 }
 
+async function loadUiSfxAssets(context) {
+  const entries = await Promise.all(Object.entries(UI_SFX_ASSETS).map(async ([type, urls]) => {
+    const buffers = await Promise.all(urls.map(url => loadAudioBuffer(context, url)))
+    return [type, buffers]
+  }))
+  return Object.fromEntries(entries)
+}
+
 function chooseSfxBuffer(graph, type, detail) {
   const buffers = graph.fishSfxBuffers?.[type]
   if (!buffers?.length) return null
@@ -322,9 +335,77 @@ function playFishSwimSfx(context, graph, detail = {}) {
   noise.onended = () => activeSfx.delete(sfxNodes)
 }
 
+
+function chooseUiSfxBuffer(graph, type = 'click') {
+  const buffers = graph.uiSfxBuffers?.[type] ?? graph.uiSfxBuffers?.click
+  if (!buffers?.length) return null
+  graph.uiSfxIndex = ((graph.uiSfxIndex ?? 0) + 1) % buffers.length
+  return buffers[graph.uiSfxIndex]
+}
+
+function playUiClickSfx(context, graph, detail = {}) {
+  if (!context || !graph) return
+
+  const now = context.currentTime
+  if (now - (graph.lastUiSfxAt ?? 0) < UI_SFX_MIN_GAP_SECONDS) return
+  graph.lastUiSfxAt = now
+
+  const buffer = chooseUiSfxBuffer(graph, detail.type)
+  const activeSfx = graph.activeSfx ?? new Set()
+  graph.activeSfx = activeSfx
+
+  if (buffer) {
+    const source = context.createBufferSource()
+    const filter = context.createBiquadFilter()
+    const gain = context.createGain()
+    const sfxNodes = { source, filter, gain }
+    activeSfx.add(sfxNodes)
+
+    source.buffer = buffer
+    source.playbackRate.value = 0.96 + ((graph.uiSfxIndex ?? 0) % 3) * 0.025
+    filter.type = 'lowpass'
+    filter.frequency.value = 2400
+    filter.Q.value = 0.34
+
+    const peak = detail.variant === 'confirm' ? 0.18 : 0.135
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.012)
+    gain.gain.setTargetAtTime(0.0001, now + 0.075, 0.035)
+
+    source.connect(filter)
+    filter.connect(gain)
+    gain.connect(graph.sfxGain)
+    source.start(now)
+    source.onended = () => activeSfx.delete(sfxNodes)
+    return
+  }
+
+  const oscillator = context.createOscillator()
+  const gain = context.createGain()
+  const sfxNodes = { oscillator, gain }
+  activeSfx.add(sfxNodes)
+
+  oscillator.type = 'triangle'
+  oscillator.frequency.setValueAtTime(520, now)
+  oscillator.frequency.exponentialRampToValueAtTime(250, now + 0.07)
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.025, now + 0.01)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09)
+  oscillator.connect(gain)
+  gain.connect(graph.sfxGain)
+  oscillator.start(now)
+  oscillator.stop(now + 0.11)
+  oscillator.onended = () => activeSfx.delete(sfxNodes)
+}
+
 export function triggerFishSwimSound(detail) {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new CustomEvent(FISH_SWIM_SFX_EVENT, { detail }))
+}
+
+export function triggerUiClickSound(detail = {}) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent(UI_CLICK_SFX_EVENT, { detail }))
 }
 
 export function useOceanAudio() {
@@ -379,6 +460,13 @@ export function useOceanAudio() {
       })
       .catch(error => {
         console.warn('Fish SFX assets unavailable; using synthesized fallback', error)
+      })
+    loadUiSfxAssets(context)
+      .then(buffers => {
+        graph.uiSfxBuffers = buffers
+      })
+      .catch(error => {
+        console.warn('UI SFX assets unavailable; using synthesized fallback', error)
       })
     startLevelMeter()
     return audioRef.current
@@ -466,6 +554,18 @@ export function useOceanAudio() {
 
     window.addEventListener(FISH_SWIM_SFX_EVENT, playSfx)
     return () => window.removeEventListener(FISH_SWIM_SFX_EVENT, playSfx)
+  }, [])
+
+  useEffect(() => {
+    const playSfx = (event) => {
+      if (mutedRef.current) return
+      const audio = audioRef.current
+      if (!audio || audio.context.state !== 'running') return
+      playUiClickSfx(audio.context, audio.graph, event.detail)
+    }
+
+    window.addEventListener(UI_CLICK_SFX_EVENT, playSfx)
+    return () => window.removeEventListener(UI_CLICK_SFX_EVENT, playSfx)
   }, [])
 
   useEffect(() => () => {

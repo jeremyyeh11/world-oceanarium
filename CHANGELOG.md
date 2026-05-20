@@ -10,13 +10,15 @@ Versioning convention notes:
 
 ## v0.7.5 — Sardine population staging
 
-Status: in progress as `v0.7.5-dev_02`.
+Status: in progress as `v0.7.5-dev_03`.
 
 ### Creature data
 
 - Started the next dev cycle after clean `v0.7.4` acceptance.
 - Increased `creatures_dev` to 800 live sardines for dense-school testing.
-- Added an instanced dense-sardine renderer for large schools, reducing hundreds of React/GLTF fish clones to batched instanced meshes during mobile stress tests.
+- Reverted the experimental instanced sardine renderer after mobile feel/regression feedback; dense schools are back on the normal animated GLTF fish path.
+- Skipped sardine-to-sardine avoidance scans for huge same-species school groups to remove the main O(n²) CPU hotspot while preserving formation offsets and drift.
+- Added debug FPS, rendered-creature count, school count, and largest-school-group readouts for mobile performance checks.
 - Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
 - Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
 

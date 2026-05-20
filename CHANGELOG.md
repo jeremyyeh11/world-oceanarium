@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.4 — UI audio polish
 
-Status: in progress as `v0.7.4-dev_02`.
+Status: in progress as `v0.7.4-dev_03`.
 
 ### Button / control SFX
 
@@ -20,6 +20,7 @@ Status: in progress as `v0.7.4-dev_02`.
 - Kept the hidden debug version-label tap silent to avoid noisy triple-tap debug access.
 - Replaced the first generated click with Jeremy's four uploaded UI-click assets.
 - Randomized UI click selection while preventing immediate repeat sounds.
+- Routed visible `-dev_##` builds to Supabase `creatures_dev` while clean releases keep using `creatures`.
 
 ## v0.7.3 — Public launch shell polish
 

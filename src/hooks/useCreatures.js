@@ -75,7 +75,18 @@ function creaturesFromRows(rows) {
 }
 
 function resolveCreaturesUrl() {
-  if (SUPABASE_CREATURES_URL) return SUPABASE_CREATURES_URL
+  if (SUPABASE_CREATURES_URL) {
+    if (SUPABASE_CREATURES_URL.includes('{table}')) {
+      return SUPABASE_CREATURES_URL.replaceAll('{table}', SUPABASE_CREATURES_TABLE)
+    }
+
+    if (SUPABASE_CREATURES_TABLE === 'creatures_dev') {
+      return SUPABASE_CREATURES_URL.replace(/\/creatures(?=\?|$)/, '/creatures_dev')
+    }
+
+    return SUPABASE_CREATURES_URL
+  }
+
   if (!SUPABASE_URL) return null
   return `${SUPABASE_URL}/rest/v1/${SUPABASE_CREATURES_TABLE}?select=*&alive=eq.true&order=id.asc`
 }

@@ -83,6 +83,11 @@ export const SPECIES = [
     model: {
       path: '/models/fish/sardine/sardine.glb',
       scale: 0.42,
+      lods: [
+        { path: '/models/fish/sardine/sardine.glb', scale: 0.42, maxDistance: 8.5 },
+        { path: '/models/fish/sardine/sardine-lod1.glb', scale: 0.42, maxDistance: 13.5 },
+        { path: '/models/fish/sardine/sardine-lod2.glb', scale: 0.42 },
+      ],
     },
   },
   {

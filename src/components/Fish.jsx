@@ -81,6 +81,8 @@ const AVOIDANCE_SMOOTHING = 3.4
 const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
+const LOD_FADE_SECONDS = 0.42
+const LOD_HYSTERESIS = 1.25
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -181,6 +183,25 @@ function resolveSwimProfile(creature) {
 function resolveModel(creature) {
   const species = resolveSpecies(creature)
   return species?.model ?? null
+}
+
+function resolveModelLods(model) {
+  if (!model) return []
+  if (!Array.isArray(model.lods) || model.lods.length === 0) return [model]
+  return model.lods.map(lod => ({ ...model, ...lod }))
+}
+
+function resolveLodIndex(modelLods, distance, activeIndex = 0, selected = false) {
+  if (selected || modelLods.length <= 1) return 0
+  const active = modelLods[activeIndex]
+  if (active?.maxDistance && distance <= active.maxDistance + LOD_HYSTERESIS) return activeIndex
+  if (activeIndex > 0) {
+    const previous = modelLods[activeIndex - 1]
+    if (previous?.maxDistance && distance < previous.maxDistance - LOD_HYSTERESIS) return activeIndex - 1
+  }
+
+  const nextIndex = modelLods.findIndex(lod => !lod.maxDistance || distance <= lod.maxDistance)
+  return nextIndex === -1 ? modelLods.length - 1 : nextIndex
 }
 
 function creatureBodyLength(creature, swim) {
@@ -553,15 +574,30 @@ function applyModelMaterialSettings(root) {
     child.castShadow = false
     child.receiveShadow = false
     const list = Array.isArray(child.material) ? child.material : [child.material]
-    list.filter(Boolean).forEach(material => {
-      material.transparent = false
-      material.opacity = 1
-      material.depthWrite = true
-      material.roughness = material.roughness ?? 0.5
-      materials.push(material)
+    const clonedMaterials = list.map(material => {
+      if (!material) return material
+      const cloneMaterial = material.clone()
+      cloneMaterial.transparent = false
+      cloneMaterial.opacity = 1
+      cloneMaterial.depthWrite = true
+      cloneMaterial.roughness = cloneMaterial.roughness ?? 0.5
+      materials.push(cloneMaterial)
+      return cloneMaterial
     })
+    child.material = Array.isArray(child.material) ? clonedMaterials : clonedMaterials[0]
   })
   return materials
+}
+
+function setModelMaterialOpacity(materials, opacity) {
+  const visible = opacity > 0.001
+  materials.forEach(material => {
+    material.visible = visible
+    material.opacity = opacity
+    material.transparent = opacity < 0.999
+    material.depthWrite = opacity >= 0.999
+    material.needsUpdate = true
+  })
 }
 
 function animationVariationForCreature(creature) {
@@ -629,15 +665,25 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   activeActionRef.current = nextAction
 }
 
-function FishModel({ model, animation = 'idle', animationVariation }) {
+function FishModel({ model, animation = 'idle', animationVariation, opacityRef = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
   const activeActionRef = useRef(null)
+  const materialsRef = useRef([])
+  const currentOpacityRef = useRef(null)
 
   useEffect(() => {
-    applyModelMaterialSettings(object)
+    materialsRef.current = applyModelMaterialSettings(object)
+    currentOpacityRef.current = null
   }, [object])
+
+  useFrame(() => {
+    const opacity = opacityRef?.current ?? 1
+    if (Math.abs((currentOpacityRef.current ?? -1) - opacity) < 0.01) return
+    currentOpacityRef.current = opacity
+    setModelMaterialOpacity(materialsRef.current, opacity)
+  })
 
   useEffect(() => {
     playModelAction(actions, activeActionRef, animation, animationVariation)
@@ -687,6 +733,10 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
+  const modelLods = useMemo(() => resolveModelLods(model), [model])
+  const [lodState, setLodState] = useState({ active: 0, previous: null, startedAt: 0 })
+  const activeLodOpacityRef = useRef(1)
+  const previousLodOpacityRef = useRef(0)
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
@@ -814,6 +864,27 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     if (!fish) return
 
     const now = clock.getElapsedTime()
+    if (modelLods.length > 1) {
+      const distance = camera.position.distanceTo(fish.position)
+      const targetLod = resolveLodIndex(modelLods, distance, lodState.active, selected)
+      if (targetLod !== lodState.active) {
+        activeLodOpacityRef.current = 0
+        previousLodOpacityRef.current = 1
+        setLodState({ active: targetLod, previous: lodState.active, startedAt: now })
+      } else if (lodState.previous !== null) {
+        const alpha = THREE.MathUtils.clamp((now - lodState.startedAt) / LOD_FADE_SECONDS, 0, 1)
+        activeLodOpacityRef.current = alpha
+        previousLodOpacityRef.current = 1 - alpha
+        if (alpha >= 1) setLodState({ active: lodState.active, previous: null, startedAt: now })
+      } else {
+        activeLodOpacityRef.current = 1
+        previousLodOpacityRef.current = 0
+      }
+    } else {
+      activeLodOpacityRef.current = 1
+      previousLodOpacityRef.current = 0
+    }
+
     if (isSchooling) {
       const noise = organicNoise.current
       const rand = organicRand.current
@@ -944,8 +1015,6 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
       const materials = Array.isArray(child.material) ? child.material : [child.material]
       materials.filter(Boolean).forEach(material => {
         if (model) {
-          material.transparent = false
-          material.opacity = 1
           if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.45, 0.95, fade)
           return
         }
@@ -1154,7 +1223,22 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
                   opacity={outlineOpacity}
                 />
               )}
-              <FishModel model={model} animation={animation} animationVariation={animationVariation} />
+              {lodState.previous !== null && modelLods[lodState.previous] && (
+                <FishModel
+                  key={`previous-lod-${lodState.previous}`}
+                  model={modelLods[lodState.previous]}
+                  animation={animation}
+                  animationVariation={animationVariation}
+                  opacityRef={previousLodOpacityRef}
+                />
+              )}
+              <FishModel
+                key={`active-lod-${lodState.active}`}
+                model={modelLods[lodState.active] ?? model}
+                animation={animation}
+                animationVariation={animationVariation}
+                opacityRef={activeLodOpacityRef}
+              />
             </>
           ) : (
             <>
@@ -1182,3 +1266,5 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
 }
 
 useGLTF.preload('/models/fish/sardine/sardine.glb')
+useGLTF.preload('/models/fish/sardine/sardine-lod1.glb')
+useGLTF.preload('/models/fish/sardine/sardine-lod2.glb')

@@ -27,6 +27,7 @@ const DEBUG_LAYER_BUTTONS = [
   { id: 'spline', icon: '〰', label: 'Spline' },
   { id: 'numbers', icon: '#', label: 'Numbers' },
   { id: 'vectors', icon: '↗', label: 'Vectors' },
+  { id: 'lod', icon: 'L', label: 'LOD' },
 ]
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
@@ -62,7 +63,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('all')
-  const [debugLayers, setDebugLayers] = useState({ spline: true, numbers: true, vectors: true })
+  const [debugLayers, setDebugLayers] = useState({ spline: true, numbers: true, vectors: true, lod: false })
   const [stagePan, setStagePan] = useState(0)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)

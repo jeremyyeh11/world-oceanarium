@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -66,6 +66,7 @@ const ORGANIC_NOISE_INTERVAL = [1.8, 3.8]
 const DEBUG_FORWARD_SPEED_SCALE = 0.625
 const DEBUG_FORWARD_MIN_LENGTH = 0.11
 const DEBUG_LABEL_SCALE = 0.0525
+const LOD_DEBUG_LABEL_SCALE = 0.0575
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
@@ -673,10 +674,11 @@ function FishModel({ model, animation = 'idle', animationVariation, opacityRef =
   const materialsRef = useRef([])
   const currentOpacityRef = useRef(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     materialsRef.current = applyModelMaterialSettings(object)
+    setModelMaterialOpacity(materialsRef.current, opacityRef?.current ?? 1)
     currentOpacityRef.current = null
-  }, [object])
+  }, [object, opacityRef])
 
   useFrame(() => {
     const opacity = opacityRef?.current ?? 1
@@ -729,6 +731,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const forwardLineRef = useRef()
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
+  const lodLabelRef = useRef()
   const leaderLabelRef = useRef()
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
@@ -737,6 +740,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const [lodState, setLodState] = useState({ active: 0, previous: null, startedAt: 0 })
   const activeLodOpacityRef = useRef(1)
   const previousLodOpacityRef = useRef(0)
+  const lodDistanceRef = useRef(0)
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
@@ -866,6 +870,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     const now = clock.getElapsedTime()
     if (modelLods.length > 1) {
       const distance = camera.position.distanceTo(fish.position)
+      lodDistanceRef.current = distance
       const targetLod = resolveLodIndex(modelLods, distance, lodState.active, selected)
       if (targetLod !== lodState.active) {
         activeLodOpacityRef.current = 0
@@ -883,6 +888,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     } else {
       activeLodOpacityRef.current = 1
       previousLodOpacityRef.current = 0
+      lodDistanceRef.current = camera.position.distanceTo(fish.position)
     }
 
     if (isSchooling) {
@@ -1078,6 +1084,12 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
         leaderLabelRef.current.lookAt(camera.position)
         leaderLabelRef.current.visible = isSchoolLeader && showNumbers
       }
+      if (lodLabelRef.current) {
+        lodLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.36 + 0.18)
+        lodLabelRef.current.text = `LOD ${lodState.active} · ${lodDistanceRef.current.toFixed(1)}`
+        lodLabelRef.current.lookAt(camera.position)
+        lodLabelRef.current.visible = Boolean(debugLayers?.lod)
+      }
     }
 
     if (model) {
@@ -1203,6 +1215,18 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
               leader
             </Text>
           )}
+          <Text
+            ref={lodLabelRef}
+            fontSize={LOD_DEBUG_LABEL_SCALE}
+            font={DEBUG_LABEL_FONT}
+            color="#7df9ff"
+            anchorX="center"
+            anchorY="middle"
+            depthTest={false}
+            raycast={() => null}
+          >
+            LOD 0 · 0.0
+          </Text>
         </>
       )}
       <group

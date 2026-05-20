@@ -10,13 +10,14 @@ Versioning convention notes:
 
 ## v0.7.5 — Sardine population staging
 
-Status: in progress as `v0.7.5-dev_11`.
+Status: in progress as `v0.7.5-dev_12`.
 
 ### Creature data
 
 - Started the next dev cycle after clean `v0.7.4` acceptance.
 - Increased `creatures_dev` to 800 live sardines for dense-school testing.
 - Reverted runtime rendering/LOD/debug changes back to the original `v0.7.5-dev_01` normal animated GLTF fish path after rejecting the LOD/marker experiments.
+- Added a live FPS readout to the debug card for mobile pan/orbit performance checks.
 - Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
 - Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
 

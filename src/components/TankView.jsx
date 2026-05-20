@@ -1,12 +1,12 @@
 import { Canvas } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Camera from './Camera'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { DEPTH_ZONES, SPECIES } from '../data/species'
+import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
 const MAX_FOLLOW_ORBIT = Math.PI / 6
@@ -29,23 +29,6 @@ const DEBUG_LAYER_BUTTONS = [
   { id: 'vectors', icon: '↗', label: 'Vectors' },
 ]
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
-const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
-const FPS_SAMPLE_MS = 500
-
-function summarizeScene(creatures, biomeId) {
-  const liveCreatures = creatures.filter(creature => creature.biome === biomeId && creature.alive !== false)
-  const schoolGroups = liveCreatures.reduce((groups, creature) => {
-    const species = SPECIES_BY_NAME.get(creature.species)
-    if (!species?.schooling) return groups
-    const key = `${creature.biome}:${creature.depthZone}:${creature.species}`
-    groups.set(key, (groups.get(key) ?? 0) + 1)
-    return groups
-  }, new Map())
-
-  const schoolCount = [...schoolGroups.values()].reduce((total, count) => total + Math.ceil(count / 64), 0)
-  const largestSchoolGroup = Math.max(0, ...schoolGroups.values())
-  return { renderedCreatures: liveCreatures.length, schoolCount, largestSchoolGroup }
-}
 
 function getPanLimits() {
   const viewportWidth = window.innerWidth
@@ -78,14 +61,13 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
-  const [debugView, setDebugView] = useState('none')
+  const [debugView, setDebugView] = useState('all')
   const [debugLayers, setDebugLayers] = useState({ spline: true, numbers: true, vectors: true })
   const [stagePan, setStagePan] = useState(0)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
   const [followScreenOffset, setFollowScreenOffset] = useState(0)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
-  const [performanceStats, setPerformanceStats] = useState({ fps: null })
   const audioLevels = useAudioLevels(debugMode)
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
@@ -94,7 +76,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const zoomActive = Boolean(selectedCreature)
   const visibleDebugMode = debugMode && !screenshotMode
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
-  const sceneStats = useMemo(() => summarizeScene(creatures, biome?.id), [creatures, biome?.id])
 
   const toggleDebugMode = () => {
     setDebugMode(current => !current)
@@ -113,30 +94,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     window.addEventListener('resize', updatePanLimits)
     return () => window.removeEventListener('resize', updatePanLimits)
   }, [])
-
-  useEffect(() => {
-    if (!visibleDebugMode) {
-      setPerformanceStats({ fps: null })
-      return undefined
-    }
-
-    let frameId = 0
-    let frames = 0
-    let sampleStartedAt = performance.now()
-    const tick = (now) => {
-      frames += 1
-      const elapsed = now - sampleStartedAt
-      if (elapsed >= FPS_SAMPLE_MS) {
-        setPerformanceStats({ fps: Math.round(frames * 1000 / elapsed) })
-        frames = 0
-        sampleStartedAt = now
-      }
-      frameId = window.requestAnimationFrame(tick)
-    }
-
-    frameId = window.requestAnimationFrame(tick)
-    return () => window.cancelAnimationFrame(frameId)
-  }, [visibleDebugMode])
 
   useEffect(() => {
     const toggleDebugOnShortcut = (event) => {
@@ -447,8 +404,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           creatureDataSource={creatureDataSource}
           creatureDataError={creatureDataError}
           creatureCount={creatures.length}
-          sceneStats={sceneStats}
-          performanceStats={performanceStats}
           debugView={debugView}
           debugLayers={debugLayers}
           audioLevels={audioLevels}
@@ -466,8 +421,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               creatureDataSource={creatureDataSource}
               creatureDataError={creatureDataError}
               creatureCount={creatures.length}
-              sceneStats={sceneStats}
-              performanceStats={performanceStats}
               debugView={debugView}
               debugLayers={debugLayers}
               audioLevels={audioLevels}
@@ -486,8 +439,6 @@ function DebugPanel({
   creatureDataSource,
   creatureDataError,
   creatureCount,
-  sceneStats,
-  performanceStats,
   debugView,
   debugLayers,
   audioLevels,
@@ -498,9 +449,6 @@ function DebugPanel({
     <div className={`debug-panel ${className}`}>
       <div>Data: {creatureDataSource}</div>
       <div>Creatures: {creatureCount}</div>
-      <div>Rendered: {sceneStats.renderedCreatures}</div>
-      <div>Schools: {sceneStats.schoolCount} · largest {sceneStats.largestSchoolGroup}</div>
-      <div>FPS: {performanceStats.fps ?? 'measuring'}</div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>
         {DEBUG_VIEW_MODES.map(mode => (

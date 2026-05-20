@@ -52,10 +52,8 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
         schoolGroup.forEach((creature, index) => {
           nextSchoolByCreatureId.set(creature.id, {
             id: schoolId,
-            familyId: key,
             index,
             count: schoolGroup.length,
-            groupCount: orderedGroup.length,
           })
         })
       }

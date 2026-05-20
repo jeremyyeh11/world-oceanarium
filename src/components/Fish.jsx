@@ -75,7 +75,6 @@ const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
 const DENSE_SCHOOL_MIN_COUNT = 12
-const HUGE_SCHOOL_AVOIDANCE_SKIP_COUNT = 128
 const DENSE_SCHOOL_RADIUS_SCALE = 0.58
 const DENSE_SCHOOL_PADDING_SCALE = 0.2
 const AVOIDANCE_SMOOTHING = 3.4
@@ -464,18 +463,12 @@ function avoidanceWeightForPair(creature, swim, school, other) {
   return bodyScale * density * denseScale
 }
 
-function shouldSkipAvoidancePair(school, other) {
-  if (!school?.familyId || other.schoolFamilyId !== school.familyId) return false
-  return (school.groupCount ?? school.count) >= HUGE_SCHOOL_AVOIDANCE_SKIP_COUNT
-}
-
 function computeSoftAvoidance(out, fish, creature, swim, school = null) {
   const radius = fishCollisionRadius(creature, swim, school)
   out.set(0, 0, 0)
 
   FISH_REGISTRY.forEach((other, id) => {
     if (id === creature.id || other.biome !== creature.biome) return
-    if (shouldSkipAvoidancePair(school, other)) return
     separationDelta.subVectors(fish.position, other.position)
     separationDelta.y *= 0.35
     const distanceSq = separationDelta.lengthSq()
@@ -517,14 +510,12 @@ function updateFishRegistry(fish, creature, swim, school = null) {
     entry.radius = radius
     entry.biome = creature.biome
     entry.schoolId = school?.id ?? null
-    entry.schoolFamilyId = school?.familyId ?? null
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
       radius,
       biome: creature.biome,
       schoolId: school?.id ?? null,
-      schoolFamilyId: school?.familyId ?? null,
     })
   }
 }

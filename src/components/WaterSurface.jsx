@@ -64,7 +64,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
     // Large Perlin mask makes the fake caustics occasional: bright streaks
     // appear mostly in mask-active regions, while inactive regions stay darker.
-    float largePerlin = perlinNoise(uv * vec2(6.4, 2.9) + vec2(uTime * 0.036, -uTime * 0.020));
+    float largePerlin = perlinNoise(uv * vec2(12.8, 5.8) + vec2(uTime * 0.036, -uTime * 0.020));
     float occasionMask = smoothstep(0.46, 0.64, largePerlin);
 
     // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,

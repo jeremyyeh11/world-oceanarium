@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_17`.
+Status: in progress as `v0.7.7-dev_18`.
 
 ### Environment direction
 
@@ -32,6 +32,7 @@ Status: in progress as `v0.7.7-dev_17`.
 - Adds a cross-panned procedural interference band: two different noise fields pan in opposing directions, multiply together, and drive the main cyan/white color lerp for a more water-like shimmer texture.
 - Removes the wireframe diagnostic and temporarily shows a large animated Perlin mask in obvious green/black before using it to make the fake caustics more occasional.
 - Reduces the visible Perlin-mask blob size by increasing the diagnostic mask frequency.
+- Sets the Perlin-mask diagnostic to exactly half the original blob size for easier visual approval.
 
 ## v0.7.6 — Instanced sardine optimization
 

@@ -64,7 +64,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
     // Diagnostic only: show the large Perlin mask in obvious green/black
     // before using it to make the caustics more occasional in the next pass.
-    float largePerlin = perlinNoise(uv * vec2(12.8, 5.8) + vec2(uTime * 0.018, -uTime * 0.010));
+    float largePerlin = perlinNoise(uv * vec2(6.4, 2.9) + vec2(uTime * 0.018, -uTime * 0.010));
     float mask = smoothstep(0.44, 0.60, largePerlin);
     float softAlpha = 0.82;
     vec3 maskColor = mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.12), mask);

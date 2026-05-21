@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_08`.
+Status: in progress as `v0.7.6-dev_09`.
 
 ### Rendering performance
 
@@ -26,6 +26,7 @@ Status: in progress as `v0.7.6-dev_08`.
 - Fixes an instanced-sardine fallback bug where hidden interaction proxy/fallback boxes were visibly rendering for far instanced model fish; model-backed instanced fish now render only the invisible click proxy plus the shared instanced visual.
 - Replaces the temporary procedural instanced impostor with Jeremy's uploaded `sardine_LOD2.glb`, using the same scale/orientation/material setup as the main sardine mesh but with a much lower-poly static instanced visual for far fish.
 - Simplifies the debug-card instancing readout to `LOD2`, moves the LOD2 switch farther from the camera at `8.0` world units so the lower-poly mesh is less noticeable, and tightens mobile debug-card margins so the floating panel stays inside the screen when not following a fish.
+- Extends normal tank-view LOD0 distance to `20.0` world units while keeping follow mode at the previous `8.0` world-unit LOD2 switch, so regular panning prioritizes full-detail sardines unless fish are truly far away.
 
 ## v0.7.5 — Sardine population staging
 

@@ -6,7 +6,7 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { getSardineInstances, SARDINE_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
+import { getSardineInstances, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
@@ -263,7 +263,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           sardineCandidates: getSardineInstances().size,
           instancedDrawn,
           instancingMode,
-          instancingDistance: SARDINE_INSTANCE_DISTANCE,
+          instancingDistance: selectedCreature ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE,
         })
         frameCount = 0
         sampleStartedAt = now

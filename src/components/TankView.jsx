@@ -475,8 +475,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             onCreatureClick={focusCreature}
             onCreatureReady={registerCreatureRef}
           />
-          {!zoomActive && <WaterSurface biome={biome.id} />}
-          {!zoomActive && <UnderwaterFX biome={biome.id} />}
+          <WaterSurface biome={biome.id} />
+          <UnderwaterFX biome={biome.id} />
         </Canvas>
       </div>
 

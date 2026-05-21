@@ -2,6 +2,9 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
+const GOD_RAY_DIAGNOSTIC_WIREFRAME = true
+const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
+
 const BASIC_VERTEX = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -101,7 +104,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uSeed: { value: seed },
-    uStrength: { value: strength },
+    uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 0.85 : strength },
   }), [seed, strength])
 
   useFrame(({ clock }) => {
@@ -111,7 +114,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
 
   return (
     <mesh position={[x, y, z]} rotation={[0, 0, rotation]} raycast={() => null}>
-      <planeGeometry args={[width, height, 1, 1]} />
+      <planeGeometry args={[width, height, 8, 8]} />
       <shaderMaterial
         ref={material}
         uniforms={uniforms}
@@ -122,6 +125,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
         depthTest
         blending={THREE.NormalBlending}
         side={THREE.DoubleSide}
+        wireframe={GOD_RAY_DIAGNOSTIC_WIREFRAME}
       />
     </mesh>
   )
@@ -129,8 +133,8 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-7.6, 4.9, -8.4, 9.8, 26.0, -0.10, 0.020, 1.1],
-    [3.2, 4.85, -8.8, 10.8, 27.5, 0.12, 0.018, 7.4],
+    [-7.6, 4.9, -8.4, 9.8, 26.0, GOD_RAY_LEFT_ANGLE, 0.020, 1.1],
+    [3.2, 4.85, -8.8, 10.8, 27.5, GOD_RAY_LEFT_ANGLE, 0.018, 7.4],
   ], [])
 
   return rays.map(([x, y, z, width, height, rotation, strength, seed]) => (

@@ -1146,10 +1146,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const showSelectedOutline = selected && !hideSelectionSilhouette
-  // Keep the normal GLTF visible while the instanced layer is validated. The first
-  // optimization spike should prove instances render/orient correctly before hiding
-  // source meshes; otherwise selected/followed fish can disappear silently.
-  const renderModel = model
+  const renderModel = model && !renderInstancedSardine
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
   const fresnelRim = useMemo(() => (

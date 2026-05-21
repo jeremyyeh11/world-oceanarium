@@ -97,8 +97,8 @@ const SURFACE_FRAGMENT = /* glsl */ `
     // This makes the source water feel less uniformly lit without adding geometry.
     float shadowNoiseA = fbm(uv * vec2(12.0, 4.2) + vec2(-uTime * 0.044, uTime * 0.018));
     float shadowNoiseB = noise(uv * vec2(28.0, 7.4) + vec2(uTime * 0.072, -uTime * 0.026));
-    float shadowBands = smoothstep(0.48, 0.76, shadowNoiseA * 0.72 + shadowNoiseB * 0.36);
-    float shadowMask = shadowBands * smoothstep(0.0, 0.18, uv.y) * (1.0 - smoothstep(0.58, 0.94, uv.y));
+    float shadowBands = smoothstep(0.38, 0.66, shadowNoiseA * 0.78 + shadowNoiseB * 0.42);
+    float shadowMask = shadowBands * smoothstep(0.0, 0.12, uv.y) * (1.0 - smoothstep(0.70, 0.98, uv.y));
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
     float farEdge = smoothstep(0.05, 0.20, uv.y);
@@ -113,10 +113,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
     vec3 color = mix(darkWater, deepCyan, 0.18 + occasionMask * 0.62);
     color = mix(color, brightCyan, clamp(maskedCaustic * 0.90 + maskedStreaks * 0.48, 0.0, 1.0));
     color = mix(color, whiteGlint, maskedGlints * 0.42 + maskedCaustic * 0.18);
-    color *= mix(1.0, 0.62, shadowMask);
+    color *= mix(1.0, 0.38, shadowMask);
     color *= 0.8;
 
-    float alpha = (0.035 + occasionMask * 0.09 + shimmer * 0.17 + maskedGlints * 0.055) * streakMask * mix(1.0, 0.74, shadowMask);
+    float alpha = (0.035 + occasionMask * 0.09 + shimmer * 0.17 + maskedGlints * 0.055) * streakMask * mix(1.0, 0.54, shadowMask);
     gl_FragColor = vec4(color, alpha);
   }
 `

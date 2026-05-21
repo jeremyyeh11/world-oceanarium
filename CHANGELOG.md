@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_45`.
+Status: in progress as `v0.7.7-dev_46`.
 
 ### Environment direction
 
@@ -59,6 +59,7 @@ Status: in progress as `v0.7.7-dev_45`.
 - Varies each god ray's fade length so some shafts die out high while others extend deeper into the tank.
 - Adds five more thin god rays, mostly farther back.
 - Reverts the surface-shadow band experiment because it did not add enough visually.
+- Adds sparse, shader-only white/cyan surface glint streaks as the next cheap surface-lighting layer after rejecting shadow bands.
 
 ## v0.7.6 — Instanced sardine optimization
 

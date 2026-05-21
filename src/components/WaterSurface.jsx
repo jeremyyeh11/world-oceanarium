@@ -88,10 +88,18 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float thinStreaks = smoothstep(0.46, 0.98, bandsB + bandsA * 0.18);
     float pinGlints = smoothstep(0.58, 1.08, fine + bandsB * 0.26);
     float maskDim = mix(0.34, 1.0, occasionMask);
+    // Sparse high-frequency glint slashes sit on top of the approved shimmer.
+    // They are deliberately gate-masked so they read as occasional surface
+    // sparkle, not a second shadow/stripe layer.
+    float glintLines = sin(uv.x * 92.0 + uv.y * 20.0 + uTime * 0.46) * 0.5 + 0.5;
+    float glintBreaker = noise(uv * vec2(18.0, 4.6) + vec2(-uTime * 0.075, uTime * 0.026));
+    float glintDepth = smoothstep(0.015, 0.090, uv.y) * (1.0 - smoothstep(0.36, 0.62, uv.y));
+    float surfaceGlints = smoothstep(0.66, 0.96, glintLines + glintBreaker * 0.38) * glintDepth * smoothstep(0.30, 0.66, largePerlin);
+
     float maskedCaustic = causticLerp * maskDim;
     float maskedStreaks = thinStreaks * mix(0.38, 1.0, occasionMask);
     float maskedGlints = pinGlints * mix(0.18, 1.0, occasionMask);
-    float shimmer = longBreaks * 0.12 + maskedStreaks * 0.50 + maskedCaustic * 0.58 + maskedGlints * 0.24;
+    float shimmer = longBreaks * 0.12 + maskedStreaks * 0.50 + maskedCaustic * 0.58 + maskedGlints * 0.24 + surfaceGlints * 0.88;
 
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
@@ -106,10 +114,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
     vec3 darkWater = vec3(0.0, 0.035, 0.065);
     vec3 color = mix(darkWater, deepCyan, 0.18 + occasionMask * 0.62);
     color = mix(color, brightCyan, clamp(maskedCaustic * 0.90 + maskedStreaks * 0.48, 0.0, 1.0));
-    color = mix(color, whiteGlint, maskedGlints * 0.42 + maskedCaustic * 0.18);
+    color = mix(color, whiteGlint, maskedGlints * 0.42 + maskedCaustic * 0.18 + surfaceGlints * 0.92);
     color *= 0.8;
 
-    float alpha = (0.035 + occasionMask * 0.09 + shimmer * 0.17 + maskedGlints * 0.055) * streakMask;
+    float alpha = (0.035 + occasionMask * 0.09 + shimmer * 0.17 + maskedGlints * 0.055 + surfaceGlints * 0.320) * streakMask;
     gl_FragColor = vec4(color, alpha);
   }
 `

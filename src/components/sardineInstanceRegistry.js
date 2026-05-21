@@ -1,7 +1,7 @@
 export const SARDINE_INSTANCE_DISTANCE = 8.0
-export const SARDINE_TANK_INSTANCE_DISTANCE = 25.0
+export const SARDINE_TANK_INSTANCE_DISTANCE = 13.5
 export const SARDINE_LOD1_DISTANCE = 5.0
-export const SARDINE_TANK_LOD1_DISTANCE = 16.0
+export const SARDINE_TANK_LOD1_DISTANCE = 10.5
 
 const sardineLod2Instances = new Map()
 const sardineLod1Instances = new Map()

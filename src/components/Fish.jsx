@@ -1227,15 +1227,13 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
         </mesh>
         <group ref={modelRootRef}>
           {renderModel ? (
-            <>
-              <FishModel
-                model={model}
-                animation={animation}
-                animationVariation={animationVariation}
-                rim={fresnelRim}
-              />
-            </>
-          ) : (
+            <FishModel
+              model={model}
+              animation={animation}
+              animationVariation={animationVariation}
+              rim={fresnelRim}
+            />
+          ) : !model ? (
             <>
               {rimColor && (
                 <mesh scale={1.02} raycast={() => null}>
@@ -1253,7 +1251,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
                 />
               </mesh>
             </>
-          )}
+          ) : null}
         </group>
       </group>
     </group>

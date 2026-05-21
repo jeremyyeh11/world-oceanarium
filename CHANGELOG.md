@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_05`.
+Status: in progress as `v0.7.6-dev_06`.
 
 ### Rendering performance
 
@@ -23,6 +23,7 @@ Status: in progress as `v0.7.6-dev_05`.
 - Adds debug-card render/performance counters for visible creature count, sardine count, FPS, instancing mode, drawn instance count, and far-sardine candidate count so mobile tests can tell whether instancing is actually active.
 - Opens debug with fish overlays off by default so the FPS/candidate readout itself does not tank performance; use the existing `◎` / `◉` buttons only when visual vectors/labels are needed.
 - Replaces the oversized cyan ellipsoid diagnostic instances with a smaller procedural fish-shaped instanced body/tail at sardine scale, so the instanced performance path is visible without the blob/pill artifact.
+- Fixes an instanced-sardine fallback bug where hidden interaction proxy/fallback boxes were visibly rendering for far instanced model fish; model-backed instanced fish now render only the invisible click proxy plus the shared instanced visual.
 
 ## v0.7.5 — Sardine population staging
 

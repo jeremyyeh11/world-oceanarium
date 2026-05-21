@@ -72,6 +72,9 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 `
 
+const SURFACE_PLANE_POSITION = [0, 5.2, -18]
+const SURFACE_PLANE_SIZE = [46, 16, 1, 1]
+
 export default function WaterSurface() {
   const group = useRef()
   const material = useRef()
@@ -89,8 +92,8 @@ export default function WaterSurface() {
 
   return (
     <group ref={group}>
-      <mesh position={[0, 5.2, -18]} raycast={() => null}>
-        <planeGeometry args={[46, 16, 1, 1]} />
+      <mesh position={SURFACE_PLANE_POSITION} raycast={() => null}>
+        <planeGeometry args={SURFACE_PLANE_SIZE} />
         <shaderMaterial
           ref={material}
           uniforms={uniforms}
@@ -101,6 +104,17 @@ export default function WaterSurface() {
           depthTest={false}
           blending={THREE.AdditiveBlending}
           side={THREE.DoubleSide}
+        />
+      </mesh>
+      <mesh position={SURFACE_PLANE_POSITION} raycast={() => null}>
+        <planeGeometry args={SURFACE_PLANE_SIZE} />
+        <meshBasicMaterial
+          color="#7ff4ff"
+          transparent
+          opacity={0.88}
+          wireframe
+          depthWrite={false}
+          depthTest={false}
         />
       </mesh>
     </group>

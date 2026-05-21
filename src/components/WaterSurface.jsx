@@ -72,7 +72,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 `
 
-const SURFACE_PLANE_POSITION = [0, 5.2, -18]
+const SURFACE_PLANE_POSITION = [0, 10.5, -18]
 const SURFACE_PLANE_SIZE = [46, 16, 1, 1]
 
 export default function WaterSurface() {

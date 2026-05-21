@@ -52,10 +52,19 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float bandsB = noise(bandUvB);
     float fine = noise(uv * vec2(354.0, 48.0) + vec2(uTime * 0.16, -uTime * 0.035));
 
+    // Cross-panned interference layer: two different procedural noise fields
+    // slide in opposing directions, then multiply into a sharper caustic mask.
+    // This mask drives the main color lerp so the surface reads less like one
+    // blob texture and more like moving water interference.
+    float crossNoiseA = noise(uv * vec2(96.0, 21.0) + vec2(uTime * 0.070, -uTime * 0.018));
+    float crossNoiseB = noise(uv * vec2(41.0, 33.0) + vec2(-uTime * 0.052, uTime * 0.034));
+    float interference = crossNoiseA * crossNoiseB;
+    float causticLerp = smoothstep(0.16, 0.58, interference);
+
     float longBreaks = smoothstep(0.38, 0.82, bandsA);
     float thinStreaks = smoothstep(0.46, 0.98, bandsB + bandsA * 0.18);
     float pinGlints = smoothstep(0.58, 1.08, fine + bandsB * 0.26);
-    float shimmer = longBreaks * 0.42 + thinStreaks * 0.54 + pinGlints * 0.22;
+    float shimmer = longBreaks * 0.32 + thinStreaks * 0.42 + causticLerp * 0.40 + pinGlints * 0.18;
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
     float farEdge = smoothstep(0.05, 0.20, uv.y);
@@ -66,10 +75,11 @@ const SURFACE_FRAGMENT = /* glsl */ `
     vec3 deepCyan = vec3(0.02, 0.26, 0.40);
     vec3 brightCyan = vec3(0.18, 0.82, 1.0);
     vec3 whiteGlint = vec3(0.92, 1.0, 0.96);
-    vec3 color = mix(deepCyan, brightCyan, clamp(longBreaks * 0.36 + thinStreaks * 0.54, 0.0, 1.0));
-    color = mix(color, whiteGlint, pinGlints * 0.42);
+    vec3 color = mix(deepCyan, brightCyan, causticLerp);
+    color = mix(color, brightCyan, clamp(longBreaks * 0.18 + thinStreaks * 0.32, 0.0, 1.0));
+    color = mix(color, whiteGlint, pinGlints * 0.34 + causticLerp * 0.12);
 
-    float alpha = (0.03 + shimmer * 0.14 + pinGlints * 0.05) * streakMask;
+    float alpha = (0.025 + shimmer * 0.13 + pinGlints * 0.04) * streakMask;
     gl_FragColor = vec4(color, alpha);
   }
 `

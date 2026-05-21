@@ -58,13 +58,16 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float foam = smoothstep(0.56, 0.84, broken);
     float glint = smoothstep(0.72, 0.94, chop + fine * 0.20);
 
-    // Keep the plane readable as a water ceiling, but avoid a hard near
-    // "horizon" edge by fading in close to camera and fading out into depth.
-    float edgeFade = smoothstep(0.0, 0.08, uv.y) * smoothstep(1.0, 0.16, uv.y);
+    // Keep the plane readable as a water ceiling, but hide the close edge hard.
+    // The first half of the plane now fades in by UV-depth, so the visible
+    // shimmer starts deeper in the tank instead of drawing a near horizon band.
+    float nearCeilingFade = smoothstep(0.24, 0.48, uv.y);
+    float farCeilingFade = 1.0 - smoothstep(0.88, 1.0, uv.y);
+    float edgeFade = nearCeilingFade * farCeilingFade;
     float xFade = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.05, 1.0 - uv.x);
     float distanceFromCamera = 12.0 - vWorldPosition.z;
     float nearFade = smoothstep(-4.0, 8.0, distanceFromCamera);
-    float farFade = 1.0 - smoothstep(46.0, 92.0, distanceFromCamera);
+    float farFade = 1.0 - smoothstep(86.0, 142.0, distanceFromCamera);
     float depthFade = nearFade * farFade;
     float band = edgeFade * xFade * depthFade;
 
@@ -74,7 +77,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
     vec3 color = mix(deepCyan, brightCyan, foam * 0.86);
     color = mix(color, whiteGlint, glint * 0.58);
 
-    float alpha = (0.18 + foam * 0.34 + glint * 0.16) * band;
+    float alpha = (0.23 + foam * 0.42 + glint * 0.22) * band;
     gl_FragColor = vec4(color, alpha);
   }
 `
@@ -88,8 +91,8 @@ export default function WaterSurface() {
   })
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, 3.5, -38]} raycast={() => null}>
-      <planeGeometry args={[260, 120, 1, 1]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, 3.65, -74]} raycast={() => null}>
+      <planeGeometry args={[320, 220, 1, 1]} />
       <shaderMaterial
         ref={material}
         uniforms={uniforms}

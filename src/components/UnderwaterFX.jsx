@@ -35,19 +35,19 @@ const RAY_FRAGMENT = /* glsl */ `
   }
 
   void main() {
-    // Plane UV top is visually inverted in the current camera/stage setup, so the
-    // ray source is vUv.y = 0. Keep rays brightest above the screen and fade down.
-    float fromSource = 1.0 - vUv.y;
-    float halfWidth = mix(0.28, 0.72, fromSource);
-    float feather = mix(0.72, 1.05, vUv.y);
+    // Keep rays strongest near the visible water surface and fade them deeper.
+    float fromSurface = vUv.y;
+    float depthFade = pow(fromSurface, 0.55);
+    float halfWidth = mix(0.28, 0.72, depthFade);
+    float feather = mix(0.72, 1.05, 1.0 - depthFade);
     float center = 1.0 - smoothstep(halfWidth, halfWidth + feather, abs(vUv.x - 0.5));
     float sideFade = smoothstep(0.0, 0.24, vUv.x) * smoothstep(1.0, 0.76, vUv.x);
-    float topFade = smoothstep(0.0, 0.26, fromSource);
-    float bottomFade = smoothstep(1.0, 0.28, vUv.y);
-    float vertical = pow(fromSource, 3.15) * topFade * bottomFade;
+    float surfaceFade = smoothstep(0.0, 0.16, fromSurface);
+    float deepFade = smoothstep(0.0, 0.82, fromSurface);
+    float vertical = depthFade * surfaceFade * deepFade;
     float shimmer = 0.78 + noise(vec2(vUv.x * 1.35 + uSeed, vUv.y * 2.4 - uTime * 0.06)) * 0.16;
-    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.18;
-    gl_FragColor = vec4(0.32, 0.62, 0.78, alpha);
+    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.34;
+    gl_FragColor = vec4(0.44, 0.82, 1.0, alpha);
   }
 `
 
@@ -104,7 +104,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uSeed: { value: seed },
-    uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 0.85 : strength },
+    uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 1.75 : strength },
   }), [seed, strength])
 
   useFrame(({ clock }) => {

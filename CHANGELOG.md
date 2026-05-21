@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_44`.
+Status: in progress as `v0.7.7-dev_45`.
 
 ### Environment direction
 
@@ -57,8 +57,8 @@ Status: in progress as `v0.7.7-dev_44`.
 - Adds shader-only god-ray motion: slow asynchronous brightness breathing, UV shimmer drift, and tiny top-weighted centerline wobble without moving the ray planes.
 - Keeps the procedural water surface and god rays mounted in follow mode so close-up fish inspection preserves the same top-water lighting context.
 - Varies each god ray's fade length so some shafts die out high while others extend deeper into the tank.
-- Adds five more thin god rays, mostly farther back, and adds soft animated surface-shadow bands to break up the top-water glow.
-- Strengthens the surface-shadow bands so the darker ripple occlusion is easier to see during phone review.
+- Adds five more thin god rays, mostly farther back.
+- Reverts the surface-shadow band experiment because it did not add enough visually.
 
 ## v0.7.6 — Instanced sardine optimization
 

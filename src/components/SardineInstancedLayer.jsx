@@ -16,6 +16,8 @@ const instanceQuaternion = new THREE.Quaternion()
 const instanceScale = new THREE.Vector3()
 const tempColor = new THREE.Color()
 const instancePhaseStride = 1
+const LOD1_DEBUG_COLOR = new THREE.Color('#ffd166')
+const LOD2_DEBUG_COLOR = new THREE.Color('#3dff7a')
 const fallbackGeometry = new THREE.BoxGeometry(0.18, 0.08, 0.72)
 const fallbackMaterial = new THREE.MeshBasicMaterial({
   color: '#9edfe8',
@@ -131,7 +133,7 @@ function phaseFromId(id) {
   return ((hash >>> 0) / 4294967295) * Math.PI * 2
 }
 
-function writeInstances(mesh, entries) {
+function writeInstances(mesh, entries, debugColor = null) {
   if (!mesh) return
   const phaseAttribute = mesh.geometry.getAttribute('instancePhase')
 
@@ -147,8 +149,9 @@ function writeInstances(mesh, entries) {
     }
     instanceMatrix.compose(instancePosition, instanceQuaternion, instanceScale)
     mesh.setMatrixAt(i, instanceMatrix)
-    const tint = entry.tint ?? 1
-    tempColor.setRGB(1 * tint, 1 * tint, 1 * tint)
+    const tint = debugColor ? 1 : (entry.tint ?? 1)
+    if (debugColor) tempColor.copy(debugColor)
+    else tempColor.setRGB(1 * tint, 1 * tint, 1 * tint)
     mesh.setColorAt(i, tempColor)
     if (phaseAttribute) phaseAttribute.array[i * instancePhaseStride] = phaseFromId(entry.id)
   }
@@ -175,7 +178,7 @@ function updateWiggleTime(material, elapsedTime) {
   if (uniforms?.uSardineWiggleTime) uniforms.uSardineWiggleTime.value = elapsedTime
 }
 
-export default function SardineInstancedLayer() {
+export default function SardineInstancedLayer({ debugLodView = false }) {
   const lod1Asset = useInstancedSardineAsset(SARDINE_LOD1_MODEL_PATH, 'sardine-lod1-glb')
   const lod2Asset = useInstancedSardineAsset(SARDINE_LOD2_MODEL_PATH, 'sardine-lod2-glb')
   const lod1MeshRef = useRef(null)
@@ -197,7 +200,7 @@ export default function SardineInstancedLayer() {
         available: rawLod1Entries.size + rawLod2Entries.size,
         buckets: [lod1Entries.length, lod2Entries.length],
         variants: 2,
-        mode: 'LOD1+LOD2',
+        mode: debugLodView ? 'LOD1+LOD2-LOD-COLOR' : 'LOD1+LOD2',
         asset: `${lod1Asset.source}+${lod2Asset.source}`,
         sample: lod2Entries[0] || lod1Entries[0] ? {
           position: [Number((lod2Entries[0] ?? lod1Entries[0]).position.x.toFixed(2)), Number((lod2Entries[0] ?? lod1Entries[0]).position.y.toFixed(2)), Number((lod2Entries[0] ?? lod1Entries[0]).position.z.toFixed(2))],
@@ -206,8 +209,8 @@ export default function SardineInstancedLayer() {
       }
     }
 
-    writeInstances(lod1MeshRef.current, lod1Entries)
-    writeInstances(lod2MeshRef.current, lod2Entries)
+    writeInstances(lod1MeshRef.current, lod1Entries, debugLodView ? LOD1_DEBUG_COLOR : null)
+    writeInstances(lod2MeshRef.current, lod2Entries, debugLodView ? LOD2_DEBUG_COLOR : null)
   })
 
   return (

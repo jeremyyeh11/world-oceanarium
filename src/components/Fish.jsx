@@ -51,6 +51,7 @@ const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
+const LOD0_DEBUG_COLOR = '#ff4b4b'
 const SELECTED_RIM_INTENSITY = 1.65
 const LEADER_RIM_INTENSITY = 0.8
 const RIM_POWER = 3.1
@@ -580,7 +581,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -594,6 +595,11 @@ function applyModelMaterialSettings(root, rim = null) {
       nextMaterial.opacity = 1
       nextMaterial.depthWrite = true
       nextMaterial.roughness = nextMaterial.roughness ?? 0.5
+      if (lodDebugColor && nextMaterial.color) nextMaterial.color.set(lodDebugColor)
+      if (lodDebugColor && nextMaterial.emissive) {
+        nextMaterial.emissive.set(lodDebugColor)
+        nextMaterial.emissiveIntensity = 0.32
+      }
       if (rim) applyFresnelRim(nextMaterial, rim.color, rim.intensity, rim.power)
       materials.push(nextMaterial)
       return nextMaterial
@@ -649,15 +655,15 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   activeActionRef.current = nextAction
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, rim = null }) {
+function FishModel({ model, animation = 'idle', animationVariation, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
   const activeActionRef = useRef(null)
 
   useEffect(() => {
-    applyModelMaterialSettings(object, rim)
-  }, [object, rim])
+    applyModelMaterialSettings(object, rim, lodDebugColor)
+  }, [object, rim, lodDebugColor])
 
   useEffect(() => {
     playModelAction(actions, activeActionRef, animation, animationVariation)
@@ -673,7 +679,7 @@ function FishModel({ model, animation = 'idle', animationVariation, rim = null }
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, hideSelectionSilhouette = false, debug = false, debugLayers = null, school = null, onClick, onReady }) {
+export default function Fish({ creature, selected = false, zoomActive = false, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -1085,7 +1091,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       window.__WO_SARDINE_DEBUG = stats
     }
 
-    if (canInstanceSardine && !selected && !debug) {
+    const forceDetailedForDebug = debug && !debugLodView
+    if (canInstanceSardine && !selected && !forceDetailedForDebug) {
       const distanceToCamera = camera.position.distanceTo(fish.position)
       const lod2Distance = zoomActive ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE
       const lod1Distance = zoomActive ? SARDINE_LOD1_DISTANCE : SARDINE_TANK_LOD1_DISTANCE
@@ -1195,6 +1202,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const showSelectedOutline = selected && !hideSelectionSilhouette
   const renderModel = model && !instancedSardineLod
+  const lodDebugColor = debugLodView && renderModel && canInstanceSardine ? LOD0_DEBUG_COLOR : null
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
   const fresnelRim = useMemo(() => (
@@ -1276,10 +1284,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         <group ref={modelRootRef}>
           {renderModel ? (
             <FishModel
+              key={`${model.path}:${lodDebugColor ?? 'normal'}:${rimColor ?? 'none'}`}
               model={model}
               animation={animation}
               animationVariation={animationVariation}
               rim={fresnelRim}
+              lodDebugColor={lodDebugColor}
             />
           ) : !model ? (
             <>

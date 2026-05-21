@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
-import { removeSardineInstance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, updateSardineInstance, updateSardineLod0Entry } from './sardineInstanceRegistry'
+import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -776,6 +776,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     return () => {
       removeSardineInstance(creature.id)
       removeSardineLod0Entry(creature.id)
+      removeSardineFrustumEntry(creature.id)
     }
   }, [creature.id])
 
@@ -1097,6 +1098,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         Math.abs(cullProjection.y) > SARDINE_VIEW_CULL_MARGIN_NDC
       )
       if (modelRootRef.current) modelRootRef.current.visible = !offscreenCulled
+      updateSardineFrustumEntry(creature.id, {
+        candidate: true,
+        culled: offscreenCulled,
+      })
       updateSardineLod0Entry(creature.id, {
         candidate: !shouldInstance,
         drawn: !shouldInstance && !offscreenCulled,
@@ -1118,6 +1123,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     } else {
       if (modelRootRef.current) modelRootRef.current.visible = true
       removeSardineLod0Entry(creature.id)
+      removeSardineFrustumEntry(creature.id)
       if (renderInstancedSardine) setRenderInstancedSardine(false)
       removeSardineInstance(creature.id)
     }

@@ -4,9 +4,12 @@ import * as THREE from 'three'
 
 const SURFACE_VERTEX = /* glsl */ `
   varying vec2 vUv;
+  varying vec3 vWorldPosition;
 
   void main() {
     vUv = uv;
+    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+    vWorldPosition = worldPosition.xyz;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `
@@ -14,6 +17,7 @@ const SURFACE_VERTEX = /* glsl */ `
 const SURFACE_FRAGMENT = /* glsl */ `
   uniform float uTime;
   varying vec2 vUv;
+  varying vec3 vWorldPosition;
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -54,11 +58,15 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float foam = smoothstep(0.56, 0.84, broken);
     float glint = smoothstep(0.72, 0.94, chop + fine * 0.20);
 
-    // Keep the plane readable as a water ceiling: bright near the visual band,
-    // feathered at its edges, never a hard rectangular debug card.
+    // Keep the plane readable as a water ceiling, but avoid a hard near
+    // "horizon" edge by fading in close to camera and fading out into depth.
     float edgeFade = smoothstep(0.0, 0.08, uv.y) * smoothstep(1.0, 0.16, uv.y);
     float xFade = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.05, 1.0 - uv.x);
-    float band = edgeFade * xFade;
+    float distanceFromCamera = 12.0 - vWorldPosition.z;
+    float nearFade = smoothstep(-4.0, 8.0, distanceFromCamera);
+    float farFade = 1.0 - smoothstep(46.0, 92.0, distanceFromCamera);
+    float depthFade = nearFade * farFade;
+    float band = edgeFade * xFade * depthFade;
 
     vec3 deepCyan = vec3(0.06, 0.48, 0.70);
     vec3 brightCyan = vec3(0.26, 0.92, 1.0);
@@ -80,8 +88,8 @@ export default function WaterSurface() {
   })
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, 3.5, 0]} raycast={() => null}>
-      <planeGeometry args={[240, 30, 1, 1]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, 3.5, -38]} raycast={() => null}>
+      <planeGeometry args={[260, 120, 1, 1]} />
       <shaderMaterial
         ref={material}
         uniforms={uniforms}

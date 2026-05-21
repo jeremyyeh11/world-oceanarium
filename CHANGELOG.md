@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_32`.
+Status: in progress as `v0.7.7-dev_33`.
 
 ### Environment direction
 
@@ -47,6 +47,7 @@ Status: in progress as `v0.7.7-dev_32`.
 - Corrects god-ray diagnostic opacity so beams are strongest near the visible water surface and fade deeper, while increasing diagnostic intensity for placement review.
 - Splits god-ray diagnostics into a real filled ray shader plus a separate wireframe overlay, so the beam fill remains visible while the grid shows placement.
 - Expands the god-ray diagnostic from two broad beams to five thinner, lower-intensity beams angled 15° left for composition review.
+- Hides god-ray wireframes and varies beam thickness across the five rays so the set reads less mechanically uniform.
 
 ## v0.7.6 — Instanced sardine optimization
 

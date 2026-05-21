@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_15`.
+Status: in progress as `v0.7.7-dev_16`.
 
 ### Environment direction
 
@@ -30,6 +30,7 @@ Status: in progress as `v0.7.7-dev_15`.
 - Scales the surface shader tiling down by `3x` so the shimmer pattern reads larger across the world-horizontal plane.
 - Corrects the surface shader tiling in the opposite direction and widens the shimmer thresholds so blob/streak edges dissolve more softly instead of cutting sharply.
 - Adds a cross-panned procedural interference band: two different noise fields pan in opposing directions, multiply together, and drive the main cyan/white color lerp for a more water-like shimmer texture.
+- Removes the wireframe diagnostic and temporarily shows a large animated Perlin mask in obvious green/black before using it to make the fake caustics more occasional.
 
 ## v0.7.6 — Instanced sardine optimization
 

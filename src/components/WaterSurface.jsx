@@ -46,15 +46,15 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
     // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,
     // not broad cloud blobs. Two offset bands slide against each other cheaply.
-    vec2 bandUvA = uv * vec2(8.67, 1.73) + vec2(uTime * 0.045, uTime * 0.010);
-    vec2 bandUvB = uv * vec2(19.33, 2.8) + vec2(-uTime * 0.085, uTime * 0.026);
+    vec2 bandUvA = uv * vec2(78.0, 15.6) + vec2(uTime * 0.045, uTime * 0.010);
+    vec2 bandUvB = uv * vec2(174.0, 25.2) + vec2(-uTime * 0.085, uTime * 0.026);
     float bandsA = fbm(bandUvA);
     float bandsB = noise(bandUvB);
-    float fine = noise(uv * vec2(39.33, 5.33) + vec2(uTime * 0.16, -uTime * 0.035));
+    float fine = noise(uv * vec2(354.0, 48.0) + vec2(uTime * 0.16, -uTime * 0.035));
 
-    float longBreaks = smoothstep(0.50, 0.64, bandsA);
-    float thinStreaks = smoothstep(0.70, 0.88, bandsB + bandsA * 0.18);
-    float pinGlints = smoothstep(0.82, 0.96, fine + bandsB * 0.26);
+    float longBreaks = smoothstep(0.38, 0.82, bandsA);
+    float thinStreaks = smoothstep(0.46, 0.98, bandsB + bandsA * 0.18);
+    float pinGlints = smoothstep(0.58, 1.08, fine + bandsB * 0.26);
     float shimmer = longBreaks * 0.42 + thinStreaks * 0.54 + pinGlints * 0.22;
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
@@ -66,10 +66,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
     vec3 deepCyan = vec3(0.02, 0.26, 0.40);
     vec3 brightCyan = vec3(0.18, 0.82, 1.0);
     vec3 whiteGlint = vec3(0.92, 1.0, 0.96);
-    vec3 color = mix(deepCyan, brightCyan, clamp(longBreaks * 0.38 + thinStreaks * 0.62, 0.0, 1.0));
-    color = mix(color, whiteGlint, pinGlints * 0.58);
+    vec3 color = mix(deepCyan, brightCyan, clamp(longBreaks * 0.36 + thinStreaks * 0.54, 0.0, 1.0));
+    color = mix(color, whiteGlint, pinGlints * 0.42);
 
-    float alpha = (0.035 + shimmer * 0.18 + pinGlints * 0.08) * streakMask;
+    float alpha = (0.03 + shimmer * 0.14 + pinGlints * 0.05) * streakMask;
     gl_FragColor = vec4(color, alpha);
   }
 `

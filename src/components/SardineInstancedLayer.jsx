@@ -94,7 +94,7 @@ export default function SardineInstancedLayer() {
         available: rawEntries.length,
         buckets: [entries.length],
         variants: 1,
-        mode: 'lod2-gltf-same-orientation',
+        mode: 'LOD2',
         asset: asset.source,
         sample: entries[0] ? {
           position: [Number(entries[0].position.x.toFixed(2)), Number(entries[0].position.y.toFixed(2)), Number(entries[0].position.z.toFixed(2))],

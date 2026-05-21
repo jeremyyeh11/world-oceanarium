@@ -484,6 +484,13 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   )
 }
 
+function formatInstancingMode(mode) {
+  if (!mode || mode === 'off') return 'off'
+  if (String(mode).toLowerCase().includes('lod2')) return 'LOD2'
+  if (String(mode).toLowerCase().includes('procedural')) return 'procedural'
+  return mode
+}
+
 function DebugPanel({
   className = '',
   creatureDataSource,
@@ -504,7 +511,7 @@ function DebugPanel({
       <div>Visible: {renderLoad?.visibleCreatures ?? '—'} · Sardines: {renderLoad?.sardines ?? '—'}</div>
       <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
       <div>
-        Instancing: {performanceStats?.instancingMode ?? 'off'} · drawn {performanceStats?.instancedDrawn ?? 0} · candidates {performanceStats?.sardineCandidates ?? 0}
+        Instancing: {formatInstancingMode(performanceStats?.instancingMode)} · drawn {performanceStats?.instancedDrawn ?? 0} · candidates {performanceStats?.sardineCandidates ?? 0}
       </div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>

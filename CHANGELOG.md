@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_28`.
+Status: in progress as `v0.7.7-dev_29`.
 
 ### Environment direction
 
@@ -43,6 +43,7 @@ Status: in progress as `v0.7.7-dev_28`.
 - Adds a first fake god-ray experiment: three subtle upper/back 3D shader planes with depth testing on, low additive alpha, and no raycasting.
 - Softens the fake god rays after phone review: two broader beams, stronger side/vertical fades, lower alpha, slower shimmer, and normal blending to remove sharp/out-of-place edges.
 - Turns on god-ray diagnostic wireframe and aligns both ray planes to the same 15° left angle for placement review.
+- Applies the widened/panning top exposure gradient to desktop as well as mobile, so the radial gradient spans the full scroll-stage width on all devices.
 
 ## v0.7.6 — Instanced sardine optimization
 

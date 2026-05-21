@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_04`.
+Status: in progress as `v0.7.6-dev_05`.
 
 ### Rendering performance
 
@@ -22,7 +22,7 @@ Status: in progress as `v0.7.6-dev_04`.
 - Temporarily disables the diagnostic instanced layer after local screenshots showed the layer blanked the scene even though creature data and GLTF meshes were loaded; this restores visible normal fish while preserving the registry/proxy code for the next isolated instancing fix.
 - Adds debug-card render/performance counters for visible creature count, sardine count, FPS, instancing mode, drawn instance count, and far-sardine candidate count so mobile tests can tell whether instancing is actually active.
 - Opens debug with fish overlays off by default so the FPS/candidate readout itself does not tank performance; use the existing `◎` / `◉` buttons only when visual vectors/labels are needed.
-- Re-enables the diagnostic `InstancedMesh` layer while keeping normal GLTF sardines visible, so performance work can resume without risking another blank-scene regression.
+- Replaces the oversized cyan ellipsoid diagnostic instances with a smaller procedural fish-shaped instanced body/tail at sardine scale, so the instanced performance path is visible without the blob/pill artifact.
 
 ## v0.7.5 — Sardine population staging
 

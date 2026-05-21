@@ -16,8 +16,8 @@ const instanceQuaternion = new THREE.Quaternion()
 const instanceScale = new THREE.Vector3()
 const tempColor = new THREE.Color()
 const instancePhaseStride = 1
-const LOD1_DEBUG_COLOR = new THREE.Color('#ffd166')
-const LOD2_DEBUG_COLOR = new THREE.Color('#3dff7a')
+const LOD1_DEBUG_COLOR = new THREE.Color('#8f8f00')
+const LOD2_DEBUG_COLOR = new THREE.Color('#ff2b1a')
 const fallbackGeometry = new THREE.BoxGeometry(0.18, 0.08, 0.72)
 const fallbackMaterial = new THREE.MeshBasicMaterial({
   color: '#9edfe8',

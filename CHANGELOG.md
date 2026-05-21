@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_37`.
+Status: in progress as `v0.7.7-dev_38`.
 
 ### Environment direction
 
@@ -52,6 +52,7 @@ Status: in progress as `v0.7.7-dev_37`.
 - Repositions god rays so every beam starts from the same surface Y anchor while varying X/Z depth, pushing several rays farther back into the tank instead of out toward the camera.
 - Moves the god-ray top/source edge up to Y=15 while preserving varied X/Z placement, thickness, and 15° left angle.
 - Flips god-ray Z positions from negative to positive values while preserving X positions, source height, thickness, intensity, and angle.
+- Moves god-ray Z positions back to the negative side but adds 8 world units to each original depth, placing them closer to the surface plane depth.
 
 ## v0.7.6 — Instanced sardine optimization
 

@@ -151,11 +151,11 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-11.4, GOD_RAY_SURFACE_START_Y, 12.8, 2.8, 18.5, GOD_RAY_LEFT_ANGLE, 0.24, 1.1],
-    [-6.6, GOD_RAY_SURFACE_START_Y, 10.6, 4.7, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
-    [-1.8, GOD_RAY_SURFACE_START_Y, 13.8, 3.3, 21.0, GOD_RAY_LEFT_ANGLE, 0.21, 7.4],
-    [3.4, GOD_RAY_SURFACE_START_Y, 11.6, 5.2, 19.5, GOD_RAY_LEFT_ANGLE, 0.16, 11.9],
-    [8.2, GOD_RAY_SURFACE_START_Y, 14.6, 2.5, 20.8, GOD_RAY_LEFT_ANGLE, 0.22, 16.2],
+    [-11.4, GOD_RAY_SURFACE_START_Y, -4.8, 2.8, 18.5, GOD_RAY_LEFT_ANGLE, 0.24, 1.1],
+    [-6.6, GOD_RAY_SURFACE_START_Y, -2.6, 4.7, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
+    [-1.8, GOD_RAY_SURFACE_START_Y, -5.8, 3.3, 21.0, GOD_RAY_LEFT_ANGLE, 0.21, 7.4],
+    [3.4, GOD_RAY_SURFACE_START_Y, -3.6, 5.2, 19.5, GOD_RAY_LEFT_ANGLE, 0.16, 11.9],
+    [8.2, GOD_RAY_SURFACE_START_Y, -6.6, 2.5, 20.8, GOD_RAY_LEFT_ANGLE, 0.22, 16.2],
   ], [])
 
   return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed]) => (

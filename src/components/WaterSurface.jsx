@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 const SURFACE_VERTEX = /* glsl */ `
@@ -54,8 +54,8 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float foam = smoothstep(0.55, 0.83, broken);
     float glint = smoothstep(0.73, 0.95, chop + fine * 0.18);
 
-    // Camera-facing top backdrop: strong at the top, dissolved before mid-screen.
-    // This avoids the 3D horizontal plane edge that read as a fake horizon stripe.
+    // World-horizontal water ceiling: strongest near its far/top UV edge,
+    // with a downward dissolve so the diagnostic plane can be positioned in tank space.
     float topGlow = smoothstep(0.00, 0.18, uv.y);
     float lowerFade = 1.0 - smoothstep(0.46, 0.88, uv.y);
     float sideFade = smoothstep(0.0, 0.10, uv.x) * smoothstep(1.0, 0.10, 1.0 - uv.x);
@@ -72,27 +72,21 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 `
 
-const SURFACE_PLANE_POSITION = [0, 10.5, -18]
-const SURFACE_PLANE_SIZE = [46, 16, 1, 1]
+const SURFACE_PLANE_POSITION = [0, 4.6, -4]
+const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
+const SURFACE_PLANE_SIZE = [46, 32, 1, 1]
 
 export default function WaterSurface() {
-  const group = useRef()
   const material = useRef()
-  const { camera } = useThree()
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
 
   useFrame(({ clock }) => {
     if (material.current) material.current.uniforms.uTime.value = clock.getElapsedTime()
-
-    if (group.current) {
-      group.current.position.copy(camera.position)
-      group.current.quaternion.copy(camera.quaternion)
-    }
   })
 
   return (
-    <group ref={group}>
-      <mesh position={SURFACE_PLANE_POSITION} raycast={() => null}>
+    <group>
+      <mesh position={SURFACE_PLANE_POSITION} rotation={SURFACE_PLANE_ROTATION} raycast={() => null}>
         <planeGeometry args={SURFACE_PLANE_SIZE} />
         <shaderMaterial
           ref={material}
@@ -106,7 +100,7 @@ export default function WaterSurface() {
           side={THREE.DoubleSide}
         />
       </mesh>
-      <mesh position={SURFACE_PLANE_POSITION} raycast={() => null}>
+      <mesh position={SURFACE_PLANE_POSITION} rotation={SURFACE_PLANE_ROTATION} raycast={() => null}>
         <planeGeometry args={SURFACE_PLANE_SIZE} />
         <meshBasicMaterial
           color="#7ff4ff"

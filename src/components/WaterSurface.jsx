@@ -99,15 +99,16 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float sideFade = smoothstep(0.0, 0.08, uv.x) * smoothstep(1.0, 0.08, 1.0 - uv.x);
     float streakMask = farEdge * bottomFade * sideFade;
 
-    vec3 deepCyan = vec3(0.0, 0.11, 0.20);
-    vec3 brightCyan = vec3(0.14, 0.74, 0.88);
-    vec3 whiteGlint = vec3(0.78, 0.92, 0.90);
-    vec3 darkWater = vec3(0.0, 0.018, 0.038);
-    vec3 color = mix(darkWater, deepCyan, 0.10 + occasionMask * 0.48);
-    color = mix(color, brightCyan, clamp(maskedCaustic * 0.66 + maskedStreaks * 0.34, 0.0, 1.0));
-    color = mix(color, whiteGlint, maskedGlints * 0.28 + maskedCaustic * 0.10);
+    vec3 deepCyan = vec3(0.01, 0.19, 0.30);
+    vec3 brightCyan = vec3(0.22, 0.92, 1.0);
+    vec3 whiteGlint = vec3(0.98, 1.0, 0.96);
+    vec3 darkWater = vec3(0.0, 0.035, 0.065);
+    vec3 color = mix(darkWater, deepCyan, 0.18 + occasionMask * 0.62);
+    color = mix(color, brightCyan, clamp(maskedCaustic * 0.90 + maskedStreaks * 0.48, 0.0, 1.0));
+    color = mix(color, whiteGlint, maskedGlints * 0.42 + maskedCaustic * 0.18);
+    color *= 0.8;
 
-    float alpha = (0.024 + occasionMask * 0.065 + shimmer * 0.12 + maskedGlints * 0.038) * streakMask;
+    float alpha = (0.035 + occasionMask * 0.09 + shimmer * 0.17 + maskedGlints * 0.055) * streakMask;
     gl_FragColor = vec4(color, alpha);
   }
 `

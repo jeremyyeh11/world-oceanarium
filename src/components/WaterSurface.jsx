@@ -87,9 +87,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float longBreaks = smoothstep(0.38, 0.82, bandsA);
     float thinStreaks = smoothstep(0.46, 0.98, bandsB + bandsA * 0.18);
     float pinGlints = smoothstep(0.58, 1.08, fine + bandsB * 0.26);
-    float maskedCaustic = causticLerp * occasionMask;
-    float maskedStreaks = thinStreaks * (0.22 + occasionMask * 0.78);
-    float maskedGlints = pinGlints * occasionMask;
+    float maskDim = mix(0.34, 1.0, occasionMask);
+    float maskedCaustic = causticLerp * maskDim;
+    float maskedStreaks = thinStreaks * mix(0.38, 1.0, occasionMask);
+    float maskedGlints = pinGlints * mix(0.18, 1.0, occasionMask);
     float shimmer = longBreaks * 0.12 + maskedStreaks * 0.50 + maskedCaustic * 0.58 + maskedGlints * 0.24;
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.

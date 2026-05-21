@@ -754,6 +754,9 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     const rand = mulberry32(hashString(`${creature.id}:sardine-instance`))
     return {
       matrix: new THREE.Matrix4(),
+      position: new THREE.Vector3(),
+      quaternion: new THREE.Quaternion(),
+      scale: 1,
       variant: Math.floor(randomRange(rand, 0, 4)),
       tint: randomRange(rand, 0.92, 1.08),
     }
@@ -1082,9 +1085,12 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
         : distanceToCamera > SARDINE_INSTANCE_DISTANCE + SARDINE_INSTANCE_HYSTERESIS
       if (shouldInstance !== renderInstancedSardine) setRenderInstancedSardine(shouldInstance)
       if (shouldInstance) {
+        instancedEntry.position.copy(fish.position)
+        instancedEntry.quaternion.copy(fish.quaternion).normalize()
+        instancedEntry.scale = size
         instancedEntry.matrix.compose(
           fish.position,
-          fish.quaternion,
+          instancedEntry.quaternion,
           tempScale.set(size, size, size),
         )
         updateSardineInstance(creature.id, instancedEntry)

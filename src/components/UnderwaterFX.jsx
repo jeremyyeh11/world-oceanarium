@@ -38,16 +38,16 @@ const RAY_FRAGMENT = /* glsl */ `
     // Keep rays strongest near the visible water surface and fade them deeper.
     float fromSurface = vUv.y;
     float depthFade = pow(fromSurface, 0.55);
-    float halfWidth = mix(0.28, 0.72, depthFade);
-    float feather = mix(0.72, 1.05, 1.0 - depthFade);
+    float halfWidth = mix(0.08, 0.28, depthFade);
+    float feather = mix(0.26, 0.52, 1.0 - depthFade);
     float center = 1.0 - smoothstep(halfWidth, halfWidth + feather, abs(vUv.x - 0.5));
     float sideFade = smoothstep(0.0, 0.24, vUv.x) * smoothstep(1.0, 0.76, vUv.x);
     float surfaceFade = smoothstep(0.0, 0.16, fromSurface);
     float deepFade = smoothstep(0.0, 0.82, fromSurface);
     float vertical = depthFade * surfaceFade * deepFade;
     float shimmer = 0.78 + noise(vec2(vUv.x * 1.35 + uSeed, vUv.y * 2.4 - uTime * 0.06)) * 0.16;
-    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.34;
-    gl_FragColor = vec4(0.44, 0.82, 1.0, alpha);
+    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.20;
+    gl_FragColor = vec4(0.34, 0.70, 0.90, alpha);
   }
 `
 
@@ -104,7 +104,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uSeed: { value: seed },
-    uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 1.75 : strength },
+    uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 1.05 : strength },
   }), [seed, strength])
 
   useFrame(({ clock }) => {
@@ -134,7 +134,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
           <meshBasicMaterial
             color="#8eeeff"
             transparent
-            opacity={0.28}
+            opacity={0.20}
             depthWrite={false}
             depthTest
             blending={THREE.NormalBlending}
@@ -149,8 +149,11 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-7.6, 4.9, -8.4, 9.8, 26.0, GOD_RAY_LEFT_ANGLE, 0.020, 1.1],
-    [3.2, 4.85, -8.8, 10.8, 27.5, GOD_RAY_LEFT_ANGLE, 0.018, 7.4],
+    [-10.8, 4.95, -8.9, 3.9, 27.0, GOD_RAY_LEFT_ANGLE, 0.014, 1.1],
+    [-6.2, 4.9, -8.4, 4.2, 26.0, GOD_RAY_LEFT_ANGLE, 0.013, 3.6],
+    [-1.5, 4.95, -9.1, 3.6, 28.0, GOD_RAY_LEFT_ANGLE, 0.012, 7.4],
+    [3.1, 4.85, -8.8, 4.0, 27.5, GOD_RAY_LEFT_ANGLE, 0.012, 11.9],
+    [7.6, 4.9, -8.6, 3.7, 26.5, GOD_RAY_LEFT_ANGLE, 0.011, 16.2],
   ], [])
 
   return rays.map(([x, y, z, width, height, rotation, strength, seed]) => (

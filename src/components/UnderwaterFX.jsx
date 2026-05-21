@@ -4,7 +4,7 @@ import * as THREE from 'three'
 
 const GOD_RAY_DIAGNOSTIC_WIREFRAME = false
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
-const GOD_RAY_SURFACE_START_Y = 4.6
+const GOD_RAY_SURFACE_START_Y = 15
 
 const BASIC_VERTEX = /* glsl */ `
   varying vec2 vUv;

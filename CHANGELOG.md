@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_35`.
+Status: in progress as `v0.7.7-dev_36`.
 
 ### Environment direction
 
@@ -50,6 +50,7 @@ Status: in progress as `v0.7.7-dev_35`.
 - Hides god-ray wireframes and varies beam thickness across the five rays so the set reads less mechanically uniform.
 - Raises non-diagnostic god-ray fill intensity after the wireframe-off build made the beams disappear on device.
 - Repositions god rays so every beam starts from the same surface Y anchor while varying X/Z depth, pushing several rays farther back into the tank instead of out toward the camera.
+- Moves the god-ray top/source edge up to Y=15 while preserving varied X/Z placement, thickness, and 15° left angle.
 
 ## v0.7.6 — Instanced sardine optimization
 

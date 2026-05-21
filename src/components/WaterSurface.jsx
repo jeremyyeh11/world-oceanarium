@@ -1,15 +1,12 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
 const SURFACE_VERTEX = /* glsl */ `
   varying vec2 vUv;
-  varying vec3 vWorldPosition;
 
   void main() {
     vUv = uv;
-    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-    vWorldPosition = worldPosition.xyz;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `
@@ -17,7 +14,6 @@ const SURFACE_VERTEX = /* glsl */ `
 const SURFACE_FRAGMENT = /* glsl */ `
   uniform float uTime;
   varying vec2 vUv;
-  varying vec3 vWorldPosition;
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -47,63 +43,66 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
   void main() {
     vec2 uv = vUv;
-    vec2 driftA = vec2(uTime * 0.035, uTime * 0.010);
-    vec2 driftB = vec2(-uTime * 0.090, uTime * 0.026);
+    vec2 driftA = vec2(uTime * 0.028, uTime * 0.010);
+    vec2 driftB = vec2(-uTime * 0.072, uTime * 0.022);
 
-    float broad = fbm(uv * vec2(4.5, 2.0) + driftA);
-    float chop = fbm(uv * vec2(17.0, 5.4) + driftB);
-    float fine = noise(uv * vec2(42.0, 10.0) + vec2(uTime * 0.16, -uTime * 0.04));
+    float broad = fbm(uv * vec2(3.4, 1.8) + driftA);
+    float chop = fbm(uv * vec2(14.0, 4.8) + driftB);
+    float fine = noise(uv * vec2(36.0, 8.0) + vec2(uTime * 0.13, -uTime * 0.035));
 
-    float broken = broad * 0.58 + chop * 0.34 + fine * 0.14;
-    float foam = smoothstep(0.56, 0.84, broken);
-    float glint = smoothstep(0.72, 0.94, chop + fine * 0.20);
+    float broken = broad * 0.60 + chop * 0.34 + fine * 0.12;
+    float foam = smoothstep(0.55, 0.83, broken);
+    float glint = smoothstep(0.73, 0.95, chop + fine * 0.18);
 
-    // Keep the plane readable as a water ceiling, but hide the close edge hard.
-    // The first half of the plane now fades in by UV-depth, so the visible
-    // shimmer starts deeper in the tank instead of drawing a near horizon band.
-    float nearCeilingFade = smoothstep(0.24, 0.48, uv.y);
-    float farCeilingFade = 1.0 - smoothstep(0.88, 1.0, uv.y);
-    float edgeFade = nearCeilingFade * farCeilingFade;
-    float xFade = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.05, 1.0 - uv.x);
-    float distanceFromCamera = 12.0 - vWorldPosition.z;
-    float nearFade = smoothstep(-4.0, 8.0, distanceFromCamera);
-    float farFade = 1.0 - smoothstep(86.0, 142.0, distanceFromCamera);
-    float depthFade = nearFade * farFade;
-    float band = edgeFade * xFade * depthFade;
+    // Camera-facing top backdrop: strong at the top, dissolved before mid-screen.
+    // This avoids the 3D horizontal plane edge that read as a fake horizon stripe.
+    float topGlow = smoothstep(0.00, 0.18, uv.y);
+    float lowerFade = 1.0 - smoothstep(0.46, 0.88, uv.y);
+    float sideFade = smoothstep(0.0, 0.10, uv.x) * smoothstep(1.0, 0.10, 1.0 - uv.x);
+    float softMask = topGlow * lowerFade * sideFade;
 
-    vec3 deepCyan = vec3(0.06, 0.48, 0.70);
-    vec3 brightCyan = vec3(0.26, 0.92, 1.0);
-    vec3 whiteGlint = vec3(0.86, 1.0, 0.96);
-    vec3 color = mix(deepCyan, brightCyan, foam * 0.86);
-    color = mix(color, whiteGlint, glint * 0.58);
+    vec3 deepCyan = vec3(0.04, 0.36, 0.52);
+    vec3 brightCyan = vec3(0.28, 0.86, 1.0);
+    vec3 whiteGlint = vec3(0.88, 1.0, 0.96);
+    vec3 color = mix(deepCyan, brightCyan, foam * 0.72);
+    color = mix(color, whiteGlint, glint * 0.44);
 
-    float alpha = (0.23 + foam * 0.42 + glint * 0.22) * band;
+    float alpha = (0.10 + foam * 0.24 + glint * 0.10) * softMask;
     gl_FragColor = vec4(color, alpha);
   }
 `
 
 export default function WaterSurface() {
+  const group = useRef()
   const material = useRef()
+  const { camera } = useThree()
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
 
   useFrame(({ clock }) => {
     if (material.current) material.current.uniforms.uTime.value = clock.getElapsedTime()
+
+    if (group.current) {
+      group.current.position.copy(camera.position)
+      group.current.quaternion.copy(camera.quaternion)
+    }
   })
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, 3.65, -74]} raycast={() => null}>
-      <planeGeometry args={[320, 220, 1, 1]} />
-      <shaderMaterial
-        ref={material}
-        uniforms={uniforms}
-        vertexShader={SURFACE_VERTEX}
-        fragmentShader={SURFACE_FRAGMENT}
-        transparent
-        depthWrite={false}
-        depthTest={false}
-        blending={THREE.AdditiveBlending}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <group ref={group}>
+      <mesh position={[0, 5.2, -18]} raycast={() => null}>
+        <planeGeometry args={[46, 16, 1, 1]} />
+        <shaderMaterial
+          ref={material}
+          uniforms={uniforms}
+          vertexShader={SURFACE_VERTEX}
+          fragmentShader={SURFACE_FRAGMENT}
+          transparent
+          depthWrite={false}
+          depthTest={false}
+          blending={THREE.AdditiveBlending}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </group>
   )
 }

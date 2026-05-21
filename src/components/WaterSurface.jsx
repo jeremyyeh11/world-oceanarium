@@ -43,31 +43,33 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
   void main() {
     vec2 uv = vUv;
-    vec2 driftA = vec2(uTime * 0.028, uTime * 0.010);
-    vec2 driftB = vec2(-uTime * 0.072, uTime * 0.022);
 
-    float broad = fbm(uv * vec2(3.4, 1.8) + driftA);
-    float chop = fbm(uv * vec2(14.0, 4.8) + driftB);
-    float fine = noise(uv * vec2(36.0, 8.0) + vec2(uTime * 0.13, -uTime * 0.035));
+    // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,
+    // not broad cloud blobs. Two offset bands slide against each other cheaply.
+    vec2 bandUvA = uv * vec2(26.0, 5.2) + vec2(uTime * 0.045, uTime * 0.010);
+    vec2 bandUvB = uv * vec2(58.0, 8.4) + vec2(-uTime * 0.085, uTime * 0.026);
+    float bandsA = fbm(bandUvA);
+    float bandsB = noise(bandUvB);
+    float fine = noise(uv * vec2(118.0, 16.0) + vec2(uTime * 0.16, -uTime * 0.035));
 
-    float broken = broad * 0.60 + chop * 0.34 + fine * 0.12;
-    float foam = smoothstep(0.55, 0.83, broken);
-    float glint = smoothstep(0.73, 0.95, chop + fine * 0.18);
+    float longBreaks = smoothstep(0.50, 0.64, bandsA);
+    float thinStreaks = smoothstep(0.70, 0.88, bandsB + bandsA * 0.18);
+    float pinGlints = smoothstep(0.82, 0.96, fine + bandsB * 0.26);
+    float shimmer = longBreaks * 0.42 + thinStreaks * 0.54 + pinGlints * 0.22;
 
-    // World-horizontal water ceiling: strongest near its far/top UV edge,
-    // with a downward dissolve so the diagnostic plane can be positioned in tank space.
-    float topGlow = smoothstep(0.00, 0.18, uv.y);
-    float lowerFade = 1.0 - smoothstep(0.46, 0.88, uv.y);
-    float sideFade = smoothstep(0.0, 0.10, uv.x) * smoothstep(1.0, 0.10, 1.0 - uv.x);
-    float softMask = topGlow * lowerFade * sideFade;
+    // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
+    float farEdge = smoothstep(0.05, 0.20, uv.y);
+    float bottomFade = 1.0 - smoothstep(0.34, 0.68, uv.y);
+    float sideFade = smoothstep(0.0, 0.08, uv.x) * smoothstep(1.0, 0.08, 1.0 - uv.x);
+    float streakMask = farEdge * bottomFade * sideFade;
 
-    vec3 deepCyan = vec3(0.04, 0.36, 0.52);
-    vec3 brightCyan = vec3(0.28, 0.86, 1.0);
-    vec3 whiteGlint = vec3(0.88, 1.0, 0.96);
-    vec3 color = mix(deepCyan, brightCyan, foam * 0.72);
-    color = mix(color, whiteGlint, glint * 0.44);
+    vec3 deepCyan = vec3(0.02, 0.26, 0.40);
+    vec3 brightCyan = vec3(0.18, 0.82, 1.0);
+    vec3 whiteGlint = vec3(0.92, 1.0, 0.96);
+    vec3 color = mix(deepCyan, brightCyan, clamp(longBreaks * 0.38 + thinStreaks * 0.62, 0.0, 1.0));
+    color = mix(color, whiteGlint, pinGlints * 0.58);
 
-    float alpha = (0.10 + foam * 0.24 + glint * 0.10) * softMask;
+    float alpha = (0.035 + shimmer * 0.18 + pinGlints * 0.08) * streakMask;
     gl_FragColor = vec4(color, alpha);
   }
 `

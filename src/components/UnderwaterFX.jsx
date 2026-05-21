@@ -151,11 +151,13 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-11.4, GOD_RAY_SURFACE_START_Y, -4.8, 2.8, 18.5, GOD_RAY_LEFT_ANGLE, 0.24, 1.1],
-    [-6.6, GOD_RAY_SURFACE_START_Y, -2.6, 4.7, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
-    [-1.8, GOD_RAY_SURFACE_START_Y, -5.8, 3.3, 21.0, GOD_RAY_LEFT_ANGLE, 0.21, 7.4],
-    [3.4, GOD_RAY_SURFACE_START_Y, -3.6, 5.2, 19.5, GOD_RAY_LEFT_ANGLE, 0.16, 11.9],
-    [8.2, GOD_RAY_SURFACE_START_Y, -6.6, 2.5, 20.8, GOD_RAY_LEFT_ANGLE, 0.22, 16.2],
+    [-11.4, GOD_RAY_SURFACE_START_Y, -4.8, 3.2, 18.5, GOD_RAY_LEFT_ANGLE, 0.22, 1.1],
+    [-6.6, GOD_RAY_SURFACE_START_Y, -2.6, 5.2, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
+    [-1.8, GOD_RAY_SURFACE_START_Y, -5.8, 2.8, 21.0, GOD_RAY_LEFT_ANGLE, 0.20, 7.4],
+    [3.4, GOD_RAY_SURFACE_START_Y, -3.6, 4.6, 19.5, GOD_RAY_LEFT_ANGLE, 0.17, 11.9],
+    [8.2, GOD_RAY_SURFACE_START_Y, -6.6, 2.3, 20.8, GOD_RAY_LEFT_ANGLE, 0.20, 16.2],
+    [-3.9, GOD_RAY_SURFACE_START_Y, -9.2, 1.8, 22.0, GOD_RAY_LEFT_ANGLE, 0.15, 21.7],
+    [5.8, GOD_RAY_SURFACE_START_Y, -11.4, 1.4, 22.6, GOD_RAY_LEFT_ANGLE, 0.13, 27.3],
   ], [])
 
   return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed]) => (

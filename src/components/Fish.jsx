@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
-import { removeSardineInstance, SARDINE_INSTANCE_DISTANCE, updateSardineInstance } from './sardineInstanceRegistry'
+import { removeSardineInstance, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, updateSardineInstance } from './sardineInstanceRegistry'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -671,7 +671,7 @@ function FishModel({ model, animation = 'idle', animationVariation, rim = null }
   )
 }
 
-export default function Fish({ creature, selected = false, hideSelectionSilhouette = false, debug = false, debugLayers = null, school = null, onClick, onReady }) {
+export default function Fish({ creature, selected = false, zoomActive = false, hideSelectionSilhouette = false, debug = false, debugLayers = null, school = null, onClick, onReady }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -1080,9 +1080,10 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
 
     if (canInstanceSardine && !selected && !debug) {
       const distanceToCamera = camera.position.distanceTo(fish.position)
+      const instanceDistance = zoomActive ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE
       const shouldInstance = renderInstancedSardine
-        ? distanceToCamera > SARDINE_INSTANCE_DISTANCE - SARDINE_INSTANCE_HYSTERESIS
-        : distanceToCamera > SARDINE_INSTANCE_DISTANCE + SARDINE_INSTANCE_HYSTERESIS
+        ? distanceToCamera > instanceDistance - SARDINE_INSTANCE_HYSTERESIS
+        : distanceToCamera > instanceDistance + SARDINE_INSTANCE_HYSTERESIS
       if (shouldInstance !== renderInstancedSardine) setRenderInstancedSardine(shouldInstance)
       if (shouldInstance) {
         instancedEntry.position.copy(fish.position)

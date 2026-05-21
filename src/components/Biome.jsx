@@ -76,6 +76,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
             key={creature.id}
             creature={creature}
             selected={selected}
+            zoomActive={zoomActive}
             hideSelectionSilhouette={hideSelectionSilhouette}
             debug={showDebug}
             debugLayers={debugLayers}

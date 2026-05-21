@@ -6,7 +6,7 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { getSardineInstances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
+import { getSardineFrustumStats, getSardineInstances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
@@ -259,12 +259,15 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         const instancingMode = instanceDebug?.mode ?? 'off'
         const instancedDrawn = Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0
         const lod0Stats = getSardineLod0Stats()
+        const frustumStats = getSardineFrustumStats()
         setPerformanceStats({
           fps: Math.round((frameCount * 1000) / elapsed),
           sardineCandidates: getSardineInstances().size,
           instancedDrawn,
           lod0Drawn: lod0Stats.drawn,
           lod0Candidates: lod0Stats.candidates,
+          frustumCulled: frustumStats.culled,
+          frustumCandidates: frustumStats.candidates,
           instancingMode,
           instancingDistance: selectedCreature ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE,
         })
@@ -509,6 +512,8 @@ function DebugPanel({
   const lod2Candidates = Math.max(lod2Drawn, clampDebugCount(performanceStats?.sardineCandidates))
   const lod0Candidates = clampDebugCount(performanceStats?.lod0Candidates) || Math.max(0, sardineCount - lod2Candidates)
   const lod0Drawn = Math.min(lod0Candidates, clampDebugCount(performanceStats?.lod0Drawn))
+  const frustumCandidates = clampDebugCount(performanceStats?.frustumCandidates)
+  const frustumCulled = Math.min(frustumCandidates, clampDebugCount(performanceStats?.frustumCulled))
 
   return (
     <div className={`debug-panel ${className}`}>
@@ -518,6 +523,7 @@ function DebugPanel({
       <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
       <div>LOD0: {lod0Drawn}/{lod0Candidates}</div>
       <div>LOD2: {lod2Drawn}/{lod2Candidates}</div>
+      <div>Frustum: {frustumCulled}/{frustumCandidates}</div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>
         {DEBUG_VIEW_MODES.map(mode => (

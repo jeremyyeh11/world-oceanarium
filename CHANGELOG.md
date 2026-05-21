@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_14`.
+Status: in progress as `v0.7.6-dev_15`.
 
 ### Rendering performance
 
@@ -29,6 +29,7 @@ Status: in progress as `v0.7.6-dev_14`.
 - Tunes normal tank-view LOD0 distance to `25.0` world units while keeping follow mode at the previous `8.0` world-unit LOD2 switch, balancing the previous `30.0` visual-quality setting with a little more LOD2 performance headroom.
 - Changes the debug card from the generic instancing line to compact `LOD0: drawn/candidates` and `LOD2: drawn/candidates` rows.
 - Adds conservative camera-frustum culling for non-selected, non-debug sardines in normal tank view; offscreen sardines now skip both LOD0 model draw and LOD2 instance registration while follow mode behavior stays unchanged.
+- Adds a compact `Frustum: culled/checked` debug row so phone tests can see how many sardines the tank-view culler is actually removing.
 
 ## v0.7.5 — Sardine population staging
 

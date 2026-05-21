@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
-import { removeSardineInstance, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, updateSardineInstance } from './sardineInstanceRegistry'
+import { removeSardineInstance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, updateSardineInstance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -55,6 +55,7 @@ const SELECTED_RIM_INTENSITY = 1.65
 const LEADER_RIM_INTENSITY = 0.8
 const RIM_POWER = 3.1
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
+const SARDINE_VIEW_CULL_MARGIN_NDC = 1.28
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -102,6 +103,7 @@ const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
+const cullProjection = new THREE.Vector3()
 const separationDelta = new THREE.Vector3()
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
@@ -771,7 +773,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   }, [creature.id])
 
   useEffect(() => {
-    return () => removeSardineInstance(creature.id)
+    return () => {
+      removeSardineInstance(creature.id)
+      removeSardineLod0Entry(creature.id)
+    }
   }, [creature.id])
 
   useEffect(() => {
@@ -1084,8 +1089,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const shouldInstance = renderInstancedSardine
         ? distanceToCamera > instanceDistance - SARDINE_INSTANCE_HYSTERESIS
         : distanceToCamera > instanceDistance + SARDINE_INSTANCE_HYSTERESIS
+      cullProjection.copy(fish.position).project(camera)
+      const offscreenCulled = !zoomActive && (
+        cullProjection.z < -1 ||
+        cullProjection.z > 1 ||
+        Math.abs(cullProjection.x) > SARDINE_VIEW_CULL_MARGIN_NDC ||
+        Math.abs(cullProjection.y) > SARDINE_VIEW_CULL_MARGIN_NDC
+      )
+      if (modelRootRef.current) modelRootRef.current.visible = !offscreenCulled
+      updateSardineLod0Entry(creature.id, {
+        candidate: !shouldInstance,
+        drawn: !shouldInstance && !offscreenCulled,
+      })
       if (shouldInstance !== renderInstancedSardine) setRenderInstancedSardine(shouldInstance)
-      if (shouldInstance) {
+      if (shouldInstance && !offscreenCulled) {
         instancedEntry.position.copy(fish.position)
         instancedEntry.quaternion.copy(fish.quaternion).normalize()
         instancedEntry.scale = size
@@ -1099,6 +1116,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         removeSardineInstance(creature.id)
       }
     } else {
+      if (modelRootRef.current) modelRootRef.current.visible = true
+      removeSardineLod0Entry(creature.id)
       if (renderInstancedSardine) setRenderInstancedSardine(false)
       removeSardineInstance(creature.id)
     }

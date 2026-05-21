@@ -6,7 +6,7 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { getSardineInstances, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
+import { getSardineInstances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
@@ -258,10 +258,13 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         const instanceDebug = window.__WO_SARDINE_INSTANCE_DEBUG
         const instancingMode = instanceDebug?.mode ?? 'off'
         const instancedDrawn = Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0
+        const lod0Stats = getSardineLod0Stats()
         setPerformanceStats({
           fps: Math.round((frameCount * 1000) / elapsed),
           sardineCandidates: getSardineInstances().size,
           instancedDrawn,
+          lod0Drawn: lod0Stats.drawn,
+          lod0Candidates: lod0Stats.candidates,
           instancingMode,
           instancingDistance: selectedCreature ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE,
         })
@@ -504,7 +507,8 @@ function DebugPanel({
   const sardineCount = clampDebugCount(renderLoad?.sardines)
   const lod2Drawn = clampDebugCount(performanceStats?.instancedDrawn)
   const lod2Candidates = Math.max(lod2Drawn, clampDebugCount(performanceStats?.sardineCandidates))
-  const lod0Drawn = Math.max(0, sardineCount - lod2Drawn)
+  const lod0Candidates = clampDebugCount(performanceStats?.lod0Candidates) || Math.max(0, sardineCount - lod2Candidates)
+  const lod0Drawn = Math.min(lod0Candidates, clampDebugCount(performanceStats?.lod0Drawn))
 
   return (
     <div className={`debug-panel ${className}`}>
@@ -512,7 +516,7 @@ function DebugPanel({
       <div>Creatures: {creatureCount}</div>
       <div>Visible: {renderLoad?.visibleCreatures ?? '—'} · Sardines: {renderLoad?.sardines ?? '—'}</div>
       <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
-      <div>LOD0: draw {lod0Drawn} / candidates {sardineCount}</div>
+      <div>LOD0: draw {lod0Drawn} / candidates {lod0Candidates}</div>
       <div>LOD2: draw {lod2Drawn} / candidates {lod2Candidates}</div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>

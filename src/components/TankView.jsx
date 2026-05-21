@@ -516,8 +516,8 @@ function DebugPanel({
       <div>Creatures: {creatureCount}</div>
       <div>Visible: {renderLoad?.visibleCreatures ?? '—'} · Sardines: {renderLoad?.sardines ?? '—'}</div>
       <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
-      <div>LOD0: draw {lod0Drawn} / candidates {lod0Candidates}</div>
-      <div>LOD2: draw {lod2Drawn} / candidates {lod2Candidates}</div>
+      <div>LOD0: {lod0Drawn}/{lod0Candidates}</div>
+      <div>LOD2: {lod2Drawn}/{lod2Candidates}</div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>
         {DEBUG_VIEW_MODES.map(mode => (

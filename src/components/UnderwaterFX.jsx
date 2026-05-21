@@ -4,6 +4,7 @@ import * as THREE from 'three'
 
 const GOD_RAY_DIAGNOSTIC_WIREFRAME = false
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
+const GOD_RAY_SURFACE_START_Y = 4.6
 
 const BASIC_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -99,8 +100,9 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 `
 
-function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
+function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rotation, strength, seed }) {
   const material = useRef()
+  const centerY = surfaceY - Math.cos(rotation) * height * 0.5
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uSeed: { value: seed },
@@ -113,7 +115,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
   })
 
   return (
-    <group position={[x, y, z]} rotation={[0, 0, rotation]}>
+    <group position={[x, centerY, z]} rotation={[0, 0, rotation]}>
       <mesh raycast={() => null}>
         <planeGeometry args={[width, height, 8, 8]} />
         <shaderMaterial
@@ -149,15 +151,15 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-10.8, 4.95, -8.9, 2.8, 27.0, GOD_RAY_LEFT_ANGLE, 0.24, 1.1],
-    [-6.2, 4.9, -8.4, 4.7, 26.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
-    [-1.5, 4.95, -9.1, 3.3, 28.0, GOD_RAY_LEFT_ANGLE, 0.21, 7.4],
-    [3.1, 4.85, -8.8, 5.2, 27.5, GOD_RAY_LEFT_ANGLE, 0.16, 11.9],
-    [7.6, 4.9, -8.6, 2.5, 26.5, GOD_RAY_LEFT_ANGLE, 0.22, 16.2],
+    [-11.4, GOD_RAY_SURFACE_START_Y, -12.8, 2.8, 18.5, GOD_RAY_LEFT_ANGLE, 0.24, 1.1],
+    [-6.6, GOD_RAY_SURFACE_START_Y, -10.6, 4.7, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
+    [-1.8, GOD_RAY_SURFACE_START_Y, -13.8, 3.3, 21.0, GOD_RAY_LEFT_ANGLE, 0.21, 7.4],
+    [3.4, GOD_RAY_SURFACE_START_Y, -11.6, 5.2, 19.5, GOD_RAY_LEFT_ANGLE, 0.16, 11.9],
+    [8.2, GOD_RAY_SURFACE_START_Y, -14.6, 2.5, 20.8, GOD_RAY_LEFT_ANGLE, 0.22, 16.2],
   ], [])
 
-  return rays.map(([x, y, z, width, height, rotation, strength, seed]) => (
-    <LightRay key={seed} x={x} y={y} z={z} width={width} height={height} rotation={rotation} strength={strength} seed={seed} />
+  return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed]) => (
+    <LightRay key={seed} x={x} surfaceY={surfaceY} z={z} width={width} height={height} rotation={rotation} strength={strength} seed={seed} />
   ))
 }
 

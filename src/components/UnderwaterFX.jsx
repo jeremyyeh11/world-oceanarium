@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const GOD_RAY_DIAGNOSTIC_WIREFRAME = true
+const GOD_RAY_DIAGNOSTIC_WIREFRAME = false
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
 
 const BASIC_VERTEX = /* glsl */ `
@@ -149,11 +149,11 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-10.8, 4.95, -8.9, 3.9, 27.0, GOD_RAY_LEFT_ANGLE, 0.014, 1.1],
-    [-6.2, 4.9, -8.4, 4.2, 26.0, GOD_RAY_LEFT_ANGLE, 0.013, 3.6],
-    [-1.5, 4.95, -9.1, 3.6, 28.0, GOD_RAY_LEFT_ANGLE, 0.012, 7.4],
-    [3.1, 4.85, -8.8, 4.0, 27.5, GOD_RAY_LEFT_ANGLE, 0.012, 11.9],
-    [7.6, 4.9, -8.6, 3.7, 26.5, GOD_RAY_LEFT_ANGLE, 0.011, 16.2],
+    [-10.8, 4.95, -8.9, 2.8, 27.0, GOD_RAY_LEFT_ANGLE, 0.014, 1.1],
+    [-6.2, 4.9, -8.4, 4.7, 26.0, GOD_RAY_LEFT_ANGLE, 0.012, 3.6],
+    [-1.5, 4.95, -9.1, 3.3, 28.0, GOD_RAY_LEFT_ANGLE, 0.013, 7.4],
+    [3.1, 4.85, -8.8, 5.2, 27.5, GOD_RAY_LEFT_ANGLE, 0.011, 11.9],
+    [7.6, 4.9, -8.6, 2.5, 26.5, GOD_RAY_LEFT_ANGLE, 0.012, 16.2],
   ], [])
 
   return rays.map(([x, y, z, width, height, rotation, strength, seed]) => (

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_10`.
+Status: in progress as `v0.7.7-dev_11`.
 
 ### Environment direction
 
@@ -25,6 +25,7 @@ Status: in progress as `v0.7.7-dev_10`.
 - Adds a visible cyan wireframe overlay to the current surface plane so its actual bounds and placement can be inspected directly.
 - Moves the diagnostic surface plane upward so its bottom wireframe edge sits near the requested upper-water reference line.
 - Converts the diagnostic surface from a camera-facing billboard to a real world-horizontal ceiling plane so placement can be judged in tank space.
+- Widens the world-horizontal diagnostic surface plane on the X axis from `46` to `70` so the left/right coverage can be checked with wireframe visible.
 
 ## v0.7.6 — Instanced sardine optimization
 

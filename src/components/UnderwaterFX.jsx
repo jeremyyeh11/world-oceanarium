@@ -113,21 +113,37 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
   })
 
   return (
-    <mesh position={[x, y, z]} rotation={[0, 0, rotation]} raycast={() => null}>
-      <planeGeometry args={[width, height, 8, 8]} />
-      <shaderMaterial
-        ref={material}
-        uniforms={uniforms}
-        vertexShader={BASIC_VERTEX}
-        fragmentShader={RAY_FRAGMENT}
-        transparent
-        depthWrite={false}
-        depthTest
-        blending={THREE.NormalBlending}
-        side={THREE.DoubleSide}
-        wireframe={GOD_RAY_DIAGNOSTIC_WIREFRAME}
-      />
-    </mesh>
+    <group position={[x, y, z]} rotation={[0, 0, rotation]}>
+      <mesh raycast={() => null}>
+        <planeGeometry args={[width, height, 8, 8]} />
+        <shaderMaterial
+          ref={material}
+          uniforms={uniforms}
+          vertexShader={BASIC_VERTEX}
+          fragmentShader={RAY_FRAGMENT}
+          transparent
+          depthWrite={false}
+          depthTest
+          blending={THREE.NormalBlending}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {GOD_RAY_DIAGNOSTIC_WIREFRAME && (
+        <mesh raycast={() => null}>
+          <planeGeometry args={[width, height, 8, 8]} />
+          <meshBasicMaterial
+            color="#8eeeff"
+            transparent
+            opacity={0.28}
+            depthWrite={false}
+            depthTest
+            blending={THREE.NormalBlending}
+            side={THREE.DoubleSide}
+            wireframe
+          />
+        </mesh>
+      )}
+    </group>
   )
 }
 

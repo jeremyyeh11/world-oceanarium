@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
+import { removeSardineInstance, SARDINE_INSTANCE_DISTANCE, updateSardineInstance } from './sardineInstanceRegistry'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -53,6 +54,7 @@ const LEADER_OUTLINE_COLOR = '#80ff72'
 const SELECTED_RIM_INTENSITY = 1.65
 const LEADER_RIM_INTENSITY = 0.8
 const RIM_POWER = 3.1
+const SARDINE_INSTANCE_HYSTERESIS = 0.65
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -99,6 +101,7 @@ const pitchedForward = new THREE.Vector3()
 const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
+const tempScale = new THREE.Vector3()
 const separationDelta = new THREE.Vector3()
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
@@ -679,6 +682,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const species = useMemo(() => resolveSpecies(creature), [creature])
   const model = useMemo(() => resolveModel(creature), [creature])
+  const canInstanceSardine = model?.path?.includes('/sardine/') && creature.species === 'Spotted Sardinella'
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
@@ -724,6 +728,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   })
   const animationRef = useRef('idle')
   const [animation, setAnimation] = useState('idle')
+  const [renderInstancedSardine, setRenderInstancedSardine] = useState(false)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(schoolState?.path ?? path)
   const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
@@ -745,6 +750,14 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
       metersPerWU: WORLD_UNIT_METERS,
     }
   }, [creature, swim, isSchooling, school?.id])
+  const instancedEntry = useMemo(() => {
+    const rand = mulberry32(hashString(`${creature.id}:sardine-instance`))
+    return {
+      matrix: new THREE.Matrix4(),
+      variant: Math.floor(randomRange(rand, 0, 4)),
+      tint: randomRange(rand, 0.92, 1.08),
+    }
+  }, [creature.id])
 
   useEffect(() => {
     onReady?.(creature, ref)
@@ -752,6 +765,10 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
 
   useEffect(() => {
     return () => FISH_REGISTRY.delete(creature.id)
+  }, [creature.id])
+
+  useEffect(() => {
+    return () => removeSardineInstance(creature.id)
   }, [creature.id])
 
   useEffect(() => {
@@ -932,7 +949,7 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
 
     const fade = depthFadeFromScreenZ(fish.position.z)
     fish.traverse(child => {
-      if (!child.isMesh) return
+      if (!child.isMesh || child.userData?.interactionProxy) return
       const materials = Array.isArray(child.material) ? child.material : [child.material]
       materials.filter(Boolean).forEach(material => {
         if (model) {
@@ -1017,6 +1034,68 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
     if (!model) fish.rotateZ(pitch)
     fish.up.lerp(up, 0.18)
 
+    if (canInstanceSardine && typeof window !== 'undefined') {
+      const stats = window.__WO_SARDINE_DEBUG ?? { frames: 0, samples: [] }
+      stats.frames += 1
+      if (stats.samples.length < 12 || selected) {
+        const projected = fish.position.clone().project(camera)
+        const meshDetails = []
+        if (selected) {
+          fish.traverse(child => {
+            if (!child.isMesh) return
+            const material = Array.isArray(child.material) ? child.material[0] : child.material
+            meshDetails.push({
+              name: child.name,
+              visible: child.visible,
+              proxy: Boolean(child.userData?.interactionProxy),
+              opacity: material?.opacity,
+              transparent: material?.transparent,
+              geometry: child.geometry?.attributes?.position?.count,
+              scale: [Number(child.scale.x.toFixed(3)), Number(child.scale.y.toFixed(3)), Number(child.scale.z.toFixed(3))],
+            })
+          })
+        }
+        const sample = {
+          id: creature.id,
+          selected,
+          debug,
+          renderInstancedSardine,
+          renderModel: Boolean(renderModel),
+          position: [Number(fish.position.x.toFixed(2)), Number(fish.position.y.toFixed(2)), Number(fish.position.z.toFixed(2))],
+          camera: [Number(camera.position.x.toFixed(2)), Number(camera.position.y.toFixed(2)), Number(camera.position.z.toFixed(2))],
+          ndc: [Number(projected.x.toFixed(2)), Number(projected.y.toFixed(2)), Number(projected.z.toFixed(2))],
+          distanceToCamera: Number(camera.position.distanceTo(fish.position).toFixed(2)),
+          children: fish.children.length,
+          meshDetails,
+        }
+        const index = stats.samples.findIndex(item => String(item.id) === String(creature.id))
+        if (index >= 0) stats.samples[index] = sample
+        else stats.samples.push(sample)
+      }
+      window.__WO_SARDINE_DEBUG = stats
+    }
+
+    if (canInstanceSardine && !selected && !debug) {
+      const distanceToCamera = camera.position.distanceTo(fish.position)
+      const shouldInstance = renderInstancedSardine
+        ? distanceToCamera > SARDINE_INSTANCE_DISTANCE - SARDINE_INSTANCE_HYSTERESIS
+        : distanceToCamera > SARDINE_INSTANCE_DISTANCE + SARDINE_INSTANCE_HYSTERESIS
+      if (shouldInstance !== renderInstancedSardine) setRenderInstancedSardine(shouldInstance)
+      if (shouldInstance) {
+        instancedEntry.matrix.compose(
+          fish.position,
+          fish.quaternion,
+          tempScale.set(size, size, size),
+        )
+        updateSardineInstance(creature.id, instancedEntry)
+      } else {
+        removeSardineInstance(creature.id)
+      }
+    } else {
+      if (renderInstancedSardine) setRenderInstancedSardine(false)
+      removeSardineInstance(creature.id)
+    }
+
     if (model) {
       let turn = 0
       if (previousTangent.current.lengthSq() > 0) {
@@ -1061,6 +1140,10 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const showSelectedOutline = selected && !hideSelectionSilhouette
+  // Keep the normal GLTF visible while the instanced layer is validated. The first
+  // optimization spike should prove instances render/orient correctly before hiding
+  // source meshes; otherwise selected/followed fish can disappear silently.
+  const renderModel = model
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
   const fresnelRim = useMemo(() => (
@@ -1135,8 +1218,12 @@ export default function Fish({ creature, selected = false, hideSelectionSilhouet
         onPointerUp={handleSelect}
         onClick={handleSelect}
       >
+        <mesh userData={{ interactionProxy: true }}>
+          <boxGeometry args={[0.72, 0.28, 0.22]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} color="#000000" />
+        </mesh>
         <group ref={modelRootRef}>
-          {model ? (
+          {renderModel ? (
             <>
               <FishModel
                 model={model}

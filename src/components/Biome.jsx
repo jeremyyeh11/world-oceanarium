@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import Environment from './Environment'
 import Fish from './Fish'
 import OceanBubbles from './OceanBubbles'
+import SardineInstancedLayer from './SardineInstancedLayer'
 import { SPECIES } from '../data/species'
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
@@ -65,8 +66,9 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
     <group>
       <Environment biome={name} />
       {name === 'ocean' && <OceanBubbles />}
+      {name === 'ocean' && <SardineInstancedLayer />}
       {visibleCreatures.map(creature => {
-        const selected = creature.id === selectedCreatureId
+        const selected = String(creature.id) === String(selectedCreatureId)
         const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))
         return (
           <Fish

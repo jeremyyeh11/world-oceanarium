@@ -15,6 +15,7 @@ const instancePosition = new THREE.Vector3()
 const instanceQuaternion = new THREE.Quaternion()
 const instanceScale = new THREE.Vector3()
 const tempColor = new THREE.Color()
+const instancePhaseStride = 1
 const fallbackGeometry = new THREE.BoxGeometry(0.18, 0.08, 0.72)
 const fallbackMaterial = new THREE.MeshBasicMaterial({
   color: '#9edfe8',
@@ -45,6 +46,38 @@ function cloneMainSardineMaterialSettings(material) {
   return nextMaterial
 }
 
+function addSardineWiggleMaterial(material, { amplitude = 0.018, frequency = 5.0, speed = 3.2 } = {}) {
+  const nextMaterial = cloneMainSardineMaterialSettings(material)
+  nextMaterial.userData.wiggleUniforms = null
+  nextMaterial.onBeforeCompile = shader => {
+    shader.uniforms.uSardineWiggleTime = { value: 0 }
+    shader.uniforms.uSardineWiggleAmplitude = { value: amplitude }
+    shader.uniforms.uSardineWiggleFrequency = { value: frequency }
+    shader.uniforms.uSardineWiggleSpeed = { value: speed }
+    nextMaterial.userData.wiggleUniforms = shader.uniforms
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+attribute float instancePhase;
+uniform float uSardineWiggleTime;
+uniform float uSardineWiggleAmplitude;
+uniform float uSardineWiggleFrequency;
+uniform float uSardineWiggleSpeed;`,
+      )
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+float sardineTailMask = smoothstep(-0.08, 0.82, abs(position.z));
+float sardineWave = sin((position.z * uSardineWiggleFrequency) + (uSardineWiggleTime * uSardineWiggleSpeed) + instancePhase);
+transformed.x += sardineWave * uSardineWiggleAmplitude * sardineTailMask;`,
+      )
+  }
+  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}`
+  nextMaterial.needsUpdate = true
+  return nextMaterial
+}
+
 function extractInstancedMeshAsset(scene, source) {
   let sourceMesh = null
   scene.updateMatrixWorld(true)
@@ -69,7 +102,9 @@ function extractInstancedMeshAsset(scene, source) {
 
   return {
     geometry,
-    material: cloneMainSardineMaterialSettings(sourceMesh.material),
+    material: addSardineWiggleMaterial(sourceMesh.material, source === 'sardine-lod1-glb'
+      ? { amplitude: 0.024, frequency: 5.6, speed: 3.4 }
+      : { amplitude: 0.012, frequency: 4.2, speed: 2.8 }),
     source,
   }
 }
@@ -80,13 +115,25 @@ function useInstancedSardineAsset(path, source) {
 }
 
 function collectEntries(entriesMap) {
-  return Array.from(entriesMap.values())
+  return Array.from(entriesMap.entries())
+    .map(([id, entry]) => ({ ...entry, id }))
     .filter(entry => isFiniteVector3(entry?.position) && Number.isFinite(entry?.scale ?? 1))
     .slice(0, MAX_INSTANCES_PER_VARIANT)
 }
 
+function phaseFromId(id) {
+  const text = String(id ?? '')
+  let hash = 2166136261
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return ((hash >>> 0) / 4294967295) * Math.PI * 2
+}
+
 function writeInstances(mesh, entries) {
   if (!mesh) return
+  const phaseAttribute = mesh.geometry.getAttribute('instancePhase')
 
   for (let i = 0; i < entries.length; i += 1) {
     const entry = entries[i]
@@ -103,19 +150,29 @@ function writeInstances(mesh, entries) {
     const tint = entry.tint ?? 1
     tempColor.setRGB(1 * tint, 1 * tint, 1 * tint)
     mesh.setColorAt(i, tempColor)
+    if (phaseAttribute) phaseAttribute.array[i * instancePhaseStride] = phaseFromId(entry.id)
   }
 
   mesh.count = entries.length
   mesh.instanceMatrix.needsUpdate = true
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+  if (phaseAttribute) phaseAttribute.needsUpdate = true
   mesh.frustumCulled = false
 }
 
 function prepareMesh(node) {
   if (!node) return
   node.count = 0
+  if (!node.geometry.getAttribute('instancePhase')) {
+    node.geometry.setAttribute('instancePhase', new THREE.InstancedBufferAttribute(new Float32Array(MAX_INSTANCES_PER_VARIANT), 1))
+  }
   for (let i = 0; i < MAX_INSTANCES_PER_VARIANT; i += 1) node.setMatrixAt(i, hiddenMatrix)
   node.instanceMatrix.needsUpdate = true
+}
+
+function updateWiggleTime(material, elapsedTime) {
+  const uniforms = material?.userData?.wiggleUniforms
+  if (uniforms?.uSardineWiggleTime) uniforms.uSardineWiggleTime.value = elapsedTime
 }
 
 export default function SardineInstancedLayer() {
@@ -124,7 +181,9 @@ export default function SardineInstancedLayer() {
   const lod1MeshRef = useRef(null)
   const lod2MeshRef = useRef(null)
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
+    updateWiggleTime(lod1Asset.material, clock.elapsedTime)
+    updateWiggleTime(lod2Asset.material, clock.elapsedTime)
     const rawLod1Entries = getSardineLod1Instances()
     const rawLod2Entries = getSardineInstances()
     const lod1Entries = collectEntries(rawLod1Entries)

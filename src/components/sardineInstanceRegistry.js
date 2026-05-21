@@ -1,4 +1,4 @@
-export const SARDINE_INSTANCE_DISTANCE = 6.0
+export const SARDINE_INSTANCE_DISTANCE = 8.0
 
 const sardineInstances = new Map()
 

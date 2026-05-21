@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_19`.
+Status: in progress as `v0.7.7-dev_20`.
 
 ### Environment direction
 
@@ -34,6 +34,7 @@ Status: in progress as `v0.7.7-dev_19`.
 - Reduces the visible Perlin-mask blob size by increasing the diagnostic mask frequency.
 - Sets the Perlin-mask diagnostic to exactly half the original blob size for easier visual approval.
 - Applies the approved Perlin mask to the surface shader so bright caustic streaks appear only in mask-active regions while inactive regions stay darker, and restores depth testing so fish can occlude the surface plane in 3D.
+- Doubles all active surface noise pan speeds and increases caustic contrast so mask-active regions are brighter while masked-out regions fall darker.
 
 ## v0.7.6 — Instanced sardine optimization
 

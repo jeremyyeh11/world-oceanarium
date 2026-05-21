@@ -64,23 +64,23 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
     // Large Perlin mask makes the fake caustics occasional: bright streaks
     // appear mostly in mask-active regions, while inactive regions stay darker.
-    float largePerlin = perlinNoise(uv * vec2(6.4, 2.9) + vec2(uTime * 0.018, -uTime * 0.010));
-    float occasionMask = smoothstep(0.44, 0.60, largePerlin);
+    float largePerlin = perlinNoise(uv * vec2(6.4, 2.9) + vec2(uTime * 0.036, -uTime * 0.020));
+    float occasionMask = smoothstep(0.46, 0.64, largePerlin);
 
     // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,
     // not broad cloud blobs. Two offset bands slide against each other cheaply.
-    vec2 bandUvA = uv * vec2(78.0, 15.6) + vec2(uTime * 0.045, uTime * 0.010);
-    vec2 bandUvB = uv * vec2(174.0, 25.2) + vec2(-uTime * 0.085, uTime * 0.026);
+    vec2 bandUvA = uv * vec2(78.0, 15.6) + vec2(uTime * 0.090, uTime * 0.020);
+    vec2 bandUvB = uv * vec2(174.0, 25.2) + vec2(-uTime * 0.170, uTime * 0.052);
     float bandsA = fbm(bandUvA);
     float bandsB = noise(bandUvB);
-    float fine = noise(uv * vec2(354.0, 48.0) + vec2(uTime * 0.16, -uTime * 0.035));
+    float fine = noise(uv * vec2(354.0, 48.0) + vec2(uTime * 0.320, -uTime * 0.070));
 
     // Cross-panned interference layer: two different procedural noise fields
     // slide in opposing directions, then multiply into a sharper caustic mask.
     // This mask drives the main color lerp so the surface reads less like one
     // blob texture and more like moving water interference.
-    float crossNoiseA = noise(uv * vec2(96.0, 21.0) + vec2(uTime * 0.070, -uTime * 0.018));
-    float crossNoiseB = noise(uv * vec2(41.0, 33.0) + vec2(-uTime * 0.052, uTime * 0.034));
+    float crossNoiseA = noise(uv * vec2(96.0, 21.0) + vec2(uTime * 0.140, -uTime * 0.036));
+    float crossNoiseB = noise(uv * vec2(41.0, 33.0) + vec2(-uTime * 0.104, uTime * 0.068));
     float interference = crossNoiseA * crossNoiseB;
     float causticLerp = smoothstep(0.16, 0.58, interference);
 
@@ -90,7 +90,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float maskedCaustic = causticLerp * occasionMask;
     float maskedStreaks = thinStreaks * (0.22 + occasionMask * 0.78);
     float maskedGlints = pinGlints * occasionMask;
-    float shimmer = longBreaks * 0.18 + maskedStreaks * 0.42 + maskedCaustic * 0.46 + maskedGlints * 0.16;
+    float shimmer = longBreaks * 0.12 + maskedStreaks * 0.50 + maskedCaustic * 0.58 + maskedGlints * 0.24;
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
     float farEdge = smoothstep(0.05, 0.20, uv.y);
@@ -98,15 +98,15 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float sideFade = smoothstep(0.0, 0.08, uv.x) * smoothstep(1.0, 0.08, 1.0 - uv.x);
     float streakMask = farEdge * bottomFade * sideFade;
 
-    vec3 deepCyan = vec3(0.02, 0.26, 0.40);
-    vec3 brightCyan = vec3(0.18, 0.82, 1.0);
-    vec3 whiteGlint = vec3(0.92, 1.0, 0.96);
-    vec3 darkWater = vec3(0.005, 0.08, 0.13);
-    vec3 color = mix(darkWater, deepCyan, 0.35 + occasionMask * 0.45);
-    color = mix(color, brightCyan, clamp(maskedCaustic * 0.72 + maskedStreaks * 0.36, 0.0, 1.0));
-    color = mix(color, whiteGlint, maskedGlints * 0.30 + maskedCaustic * 0.10);
+    vec3 deepCyan = vec3(0.01, 0.19, 0.30);
+    vec3 brightCyan = vec3(0.22, 0.92, 1.0);
+    vec3 whiteGlint = vec3(0.98, 1.0, 0.96);
+    vec3 darkWater = vec3(0.0, 0.035, 0.065);
+    vec3 color = mix(darkWater, deepCyan, 0.18 + occasionMask * 0.62);
+    color = mix(color, brightCyan, clamp(maskedCaustic * 0.90 + maskedStreaks * 0.48, 0.0, 1.0));
+    color = mix(color, whiteGlint, maskedGlints * 0.42 + maskedCaustic * 0.18);
 
-    float alpha = (0.055 + occasionMask * 0.05 + shimmer * 0.14 + maskedGlints * 0.035) * streakMask;
+    float alpha = (0.035 + occasionMask * 0.09 + shimmer * 0.17 + maskedGlints * 0.055) * streakMask;
     gl_FragColor = vec4(color, alpha);
   }
 `

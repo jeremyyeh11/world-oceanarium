@@ -41,13 +41,25 @@ const RAY_FRAGMENT = /* glsl */ `
     float depthFade = pow(fromSurface, 0.55);
     float halfWidth = mix(0.08, 0.28, depthFade);
     float feather = mix(0.26, 0.52, 1.0 - depthFade);
-    float center = 1.0 - smoothstep(halfWidth, halfWidth + feather, abs(vUv.x - 0.5));
+    float topInfluence = pow(fromSurface, 1.35);
+    float wobbleSpeed = 0.035 + fract(uSeed * 0.317) * 0.040;
+    float centerLine = 0.5
+      + sin(uTime * wobbleSpeed + uSeed * 1.73) * 0.026 * topInfluence
+      + sin(uTime * (wobbleSpeed * 0.57) + uSeed * 0.91) * 0.014 * topInfluence;
+    float widthPulse = 1.0 + sin(uTime * (wobbleSpeed * 0.82) + uSeed * 2.11) * 0.045 * topInfluence;
+    float center = 1.0 - smoothstep(halfWidth * widthPulse, halfWidth * widthPulse + feather, abs(vUv.x - centerLine));
     float sideFade = smoothstep(0.0, 0.24, vUv.x) * smoothstep(1.0, 0.76, vUv.x);
     float surfaceFade = smoothstep(0.0, 0.16, fromSurface);
     float deepFade = smoothstep(0.0, 0.82, fromSurface);
     float vertical = depthFade * surfaceFade * deepFade;
-    float shimmer = 0.78 + noise(vec2(vUv.x * 1.35 + uSeed, vUv.y * 2.4 - uTime * 0.06)) * 0.16;
-    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.28;
+    vec2 driftUv = vec2(vUv.x * 1.35 + uSeed + uTime * 0.018, vUv.y * 2.4 - uTime * 0.075);
+    float shimmer = 0.76 + noise(driftUv) * 0.24;
+    float breath = mix(
+      0.96 + sin(uTime * 0.040 + uSeed * 1.43) * 0.04,
+      0.88 + sin(uTime * 0.068 + uSeed * 1.17) * 0.12,
+      topInfluence
+    );
+    float alpha = center * sideFade * vertical * shimmer * breath * uStrength * 0.28;
     gl_FragColor = vec4(0.34, 0.70, 0.90, alpha);
   }
 `

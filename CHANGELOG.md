@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_39`.
+Status: in progress as `v0.7.7-dev_40`.
 
 ### Environment direction
 
@@ -54,6 +54,7 @@ Status: in progress as `v0.7.7-dev_39`.
 - Flips god-ray Z positions from negative to positive values while preserving X positions, source height, thickness, intensity, and angle.
 - Moves god-ray Z positions back to the negative side but adds 8 world units to each original depth, placing them closer to the surface plane depth.
 - Varies god-ray size by depth: nearer beams keep the current thick scale, while farther-back beams are thinner and a few extra rays sit deeper at more negative Z.
+- Adds shader-only god-ray motion: slow asynchronous brightness breathing, UV shimmer drift, and tiny top-weighted centerline wobble without moving the ray planes.
 
 ## v0.7.6 — Instanced sardine optimization
 

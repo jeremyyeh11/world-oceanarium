@@ -35,15 +35,15 @@ const RAY_FRAGMENT = /* glsl */ `
     // Plane UV top is visually inverted in the current camera/stage setup, so the
     // ray source is vUv.y = 0. Keep rays brightest above the screen and fade down.
     float fromSource = 1.0 - vUv.y;
-    float halfWidth = mix(0.20, 0.56, fromSource);
-    float feather = mix(0.30, 0.52, vUv.y);
+    float halfWidth = mix(0.12, 0.42, fromSource);
+    float feather = mix(0.34, 0.62, vUv.y);
     float center = 1.0 - smoothstep(halfWidth, halfWidth + feather, abs(vUv.x - 0.5));
     float topFade = smoothstep(0.02, 0.18, fromSource);
     float bottomFade = smoothstep(1.0, 0.46, vUv.y);
-    float vertical = pow(fromSource, 2.35) * topFade * bottomFade;
-    float shimmer = 0.76 + noise(vec2(vUv.x * 2.0 + uSeed, vUv.y * 4.0 - uTime * 0.18)) * 0.22;
-    float alpha = center * vertical * shimmer * uStrength * 0.58;
-    gl_FragColor = vec4(0.62, 0.86, 1.0, alpha);
+    float vertical = pow(fromSource, 2.8) * topFade * bottomFade;
+    float shimmer = 0.72 + noise(vec2(vUv.x * 2.0 + uSeed, vUv.y * 4.0 - uTime * 0.10)) * 0.20;
+    float alpha = center * vertical * shimmer * uStrength * 0.42;
+    gl_FragColor = vec4(0.42, 0.82, 1.0, alpha);
   }
 `
 
@@ -95,7 +95,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 `
 
-function LightRay({ x, z, width, height, rotation, strength, seed }) {
+function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
   const material = useRef()
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
@@ -109,7 +109,7 @@ function LightRay({ x, z, width, height, rotation, strength, seed }) {
   })
 
   return (
-    <mesh position={[x, 4.8, z]} rotation={[0, 0, rotation]} raycast={() => null}>
+    <mesh position={[x, y, z]} rotation={[0, 0, rotation]} raycast={() => null}>
       <planeGeometry args={[width, height, 1, 1]} />
       <shaderMaterial
         ref={material}
@@ -118,7 +118,7 @@ function LightRay({ x, z, width, height, rotation, strength, seed }) {
         fragmentShader={RAY_FRAGMENT}
         transparent
         depthWrite={false}
-        depthTest={false}
+        depthTest
         blending={THREE.AdditiveBlending}
         side={THREE.DoubleSide}
       />
@@ -128,16 +128,13 @@ function LightRay({ x, z, width, height, rotation, strength, seed }) {
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-9.2, -3.8, 5.8, 25.5, -0.18, 0.036, 1.1],
-    [-5.8, 1.8, 4.8, 23.5, 0.11, 0.026, 2.7],
-    [-2.2, -1.2, 6.4, 27.0, -0.08, 0.034, 4.3],
-    [1.2, 3.2, 5.1, 24.5, 0.16, 0.025, 5.9],
-    [4.7, -4.2, 6.0, 25.5, -0.14, 0.030, 7.4],
-    [8.4, 1.0, 5.4, 23.8, 0.09, 0.023, 8.6],
+    [-7.8, 4.9, -7.6, 5.2, 22.0, -0.16, 0.020, 1.1],
+    [-0.8, 4.75, -6.4, 4.6, 20.0, 0.08, 0.016, 4.3],
+    [6.4, 4.95, -8.2, 5.6, 23.5, 0.18, 0.018, 7.4],
   ], [])
 
-  return rays.map(([x, z, width, height, rotation, strength, seed]) => (
-    <LightRay key={seed} x={x} z={z} width={width} height={height} rotation={rotation} strength={strength} seed={seed} />
+  return rays.map(([x, y, z, width, height, rotation, strength, seed]) => (
+    <LightRay key={seed} x={x} y={y} z={z} width={width} height={height} rotation={rotation} strength={strength} seed={seed} />
   ))
 }
 
@@ -171,8 +168,8 @@ export default function UnderwaterFX({ biome = 'ocean' }) {
 
   return (
     <group>
+      <LightRays />
       {/* Surface shimmer now lives in WaterSurface; keep this disabled to avoid a duplicate mid-screen horizon band. */}
-      {/* Light rays hidden for now; keeping implementation here for later retuning. */}
     </group>
   )
 }

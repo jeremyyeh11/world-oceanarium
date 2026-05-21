@@ -35,15 +35,16 @@ const RAY_FRAGMENT = /* glsl */ `
     // Plane UV top is visually inverted in the current camera/stage setup, so the
     // ray source is vUv.y = 0. Keep rays brightest above the screen and fade down.
     float fromSource = 1.0 - vUv.y;
-    float halfWidth = mix(0.12, 0.42, fromSource);
-    float feather = mix(0.34, 0.62, vUv.y);
+    float halfWidth = mix(0.28, 0.72, fromSource);
+    float feather = mix(0.72, 1.05, vUv.y);
     float center = 1.0 - smoothstep(halfWidth, halfWidth + feather, abs(vUv.x - 0.5));
-    float topFade = smoothstep(0.02, 0.18, fromSource);
-    float bottomFade = smoothstep(1.0, 0.46, vUv.y);
-    float vertical = pow(fromSource, 2.8) * topFade * bottomFade;
-    float shimmer = 0.72 + noise(vec2(vUv.x * 2.0 + uSeed, vUv.y * 4.0 - uTime * 0.10)) * 0.20;
-    float alpha = center * vertical * shimmer * uStrength * 0.42;
-    gl_FragColor = vec4(0.42, 0.82, 1.0, alpha);
+    float sideFade = smoothstep(0.0, 0.24, vUv.x) * smoothstep(1.0, 0.76, vUv.x);
+    float topFade = smoothstep(0.0, 0.26, fromSource);
+    float bottomFade = smoothstep(1.0, 0.28, vUv.y);
+    float vertical = pow(fromSource, 3.15) * topFade * bottomFade;
+    float shimmer = 0.78 + noise(vec2(vUv.x * 1.35 + uSeed, vUv.y * 2.4 - uTime * 0.06)) * 0.16;
+    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.18;
+    gl_FragColor = vec4(0.32, 0.62, 0.78, alpha);
   }
 `
 
@@ -119,7 +120,7 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
         transparent
         depthWrite={false}
         depthTest
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -128,9 +129,8 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-7.8, 4.9, -7.6, 5.2, 22.0, -0.16, 0.020, 1.1],
-    [-0.8, 4.75, -6.4, 4.6, 20.0, 0.08, 0.016, 4.3],
-    [6.4, 4.95, -8.2, 5.6, 23.5, 0.18, 0.018, 7.4],
+    [-7.6, 4.9, -8.4, 9.8, 26.0, -0.10, 0.020, 1.1],
+    [3.2, 4.85, -8.8, 10.8, 27.5, 0.12, 0.018, 7.4],
   ], [])
 
   return rays.map(([x, y, z, width, height, rotation, strength, seed]) => (

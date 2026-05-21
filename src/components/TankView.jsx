@@ -445,10 +445,12 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   return (
-    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}>
+    <div
+      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}
+      style={{ '--stage-pan-x': `${stagePan}px` }}
+    >
       <div
         className="tank-stage"
-        style={{ '--stage-pan-x': `${stagePan}px` }}
         onPointerDown={startStageDrag}
         onPointerMove={moveStageDrag}
         onPointerUp={endStageDrag}

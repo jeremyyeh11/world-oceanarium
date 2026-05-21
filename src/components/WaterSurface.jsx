@@ -46,11 +46,11 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
     // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,
     // not broad cloud blobs. Two offset bands slide against each other cheaply.
-    vec2 bandUvA = uv * vec2(26.0, 5.2) + vec2(uTime * 0.045, uTime * 0.010);
-    vec2 bandUvB = uv * vec2(58.0, 8.4) + vec2(-uTime * 0.085, uTime * 0.026);
+    vec2 bandUvA = uv * vec2(8.67, 1.73) + vec2(uTime * 0.045, uTime * 0.010);
+    vec2 bandUvB = uv * vec2(19.33, 2.8) + vec2(-uTime * 0.085, uTime * 0.026);
     float bandsA = fbm(bandUvA);
     float bandsB = noise(bandUvB);
-    float fine = noise(uv * vec2(118.0, 16.0) + vec2(uTime * 0.16, -uTime * 0.035));
+    float fine = noise(uv * vec2(39.33, 5.33) + vec2(uTime * 0.16, -uTime * 0.035));
 
     float longBreaks = smoothstep(0.50, 0.64, bandsA);
     float thinStreaks = smoothstep(0.70, 0.88, bandsB + bandsA * 0.18);

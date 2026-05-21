@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_12`.
+Status: in progress as `v0.7.7-dev_13`.
 
 ### Environment direction
 
@@ -27,6 +27,7 @@ Status: in progress as `v0.7.7-dev_12`.
 - Converts the diagnostic surface from a camera-facing billboard to a real world-horizontal ceiling plane so placement can be judged in tank space.
 - Widens the world-horizontal diagnostic surface plane on the X axis from `46` to `70` so the left/right coverage can be checked with wireframe visible.
 - Retunes the surface shader from broad cloudy patches toward thinner broken cyan/white shimmer streaks with a stronger lower fade, while keeping the wireframe diagnostic visible.
+- Scales the surface shader tiling down by `3x` so the shimmer pattern reads larger across the world-horizontal plane.
 
 ## v0.7.6 — Instanced sardine optimization
 

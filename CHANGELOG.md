@@ -8,6 +8,15 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.7.7 — Surface and depth polish
+
+Status: in progress as `v0.7.7-dev_01`.
+
+### Environment direction
+
+- Starts the next dev bucket after clean `v0.7.6` acceptance.
+- Target: improve the tank's top water surface and strengthen depth cues so the ocean reads less flat while preserving current sardine LOD performance.
+
 ## v0.7.6 — Instanced sardine optimization
 
 Status: accepted and promoted as clean `v0.7.6`.

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_01`.
+Status: in progress as `v0.7.6-dev_02`.
 
 ### Rendering performance
 
@@ -19,6 +19,7 @@ Status: in progress as `v0.7.6-dev_01`.
 - Switches non-selected sardines beyond `6.0` world units to a batched `InstancedMesh` visual layer.
 - Keeps invisible per-creature proxy meshes in the normal fish path so individual identity, search/follow refs, and click handling remain intact.
 - Ships this first dev patch as a diagnostic/visibility build: real per-fish instance matrices are capped to 24 visible far sardines while the normal GLTF fish path remains visible, so Jeremy can inspect coordinate-space/orientation behavior on device before the shader-wiggle pass is re-enabled.
+- Temporarily disables the diagnostic instanced layer after local screenshots showed the layer blanked the scene even though creature data and GLTF meshes were loaded; this restores visible normal fish while preserving the registry/proxy code for the next isolated instancing fix.
 
 ## v0.7.5 — Sardine population staging
 

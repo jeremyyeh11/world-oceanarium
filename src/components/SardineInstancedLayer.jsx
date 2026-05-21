@@ -7,7 +7,19 @@ const VARIANT_COUNT = 1
 const MAX_INSTANCES_PER_VARIANT = 512
 const VALIDATION_INSTANCE_LIMIT = 24
 const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
+const instanceMatrix = new THREE.Matrix4()
+const instancePosition = new THREE.Vector3()
+const instanceQuaternion = new THREE.Quaternion()
+const instanceScale = new THREE.Vector3(1.65, 1.65, 1.65)
 const tempColor = new THREE.Color()
+
+function isFiniteVector3(value) {
+  return value && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z)
+}
+
+function isFiniteQuaternion(value) {
+  return value && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z) && Number.isFinite(value.w)
+}
 
 function makeProceduralSardineGeometry() {
   const geometry = new THREE.SphereGeometry(1, 14, 8)
@@ -29,14 +41,32 @@ export default function SardineInstancedLayer() {
   const meshRefs = useRef([])
 
   useFrame(() => {
-    const entries = Array.from(getSardineInstances().values()).filter(entry => entry?.matrix).slice(0, VALIDATION_INSTANCE_LIMIT)
+    const rawEntries = Array.from(getSardineInstances().values())
+    const entries = rawEntries
+      .filter(entry => isFiniteVector3(entry?.position) && isFiniteQuaternion(entry?.quaternion))
+      .slice(0, VALIDATION_INSTANCE_LIMIT)
     if (typeof window !== 'undefined') {
-      window.__WO_SARDINE_INSTANCE_DEBUG = { total: entries.length, available: getSardineInstances().size, buckets: [entries.length], variants: VARIANT_COUNT, mode: 'limited-real-matrices' }
+      window.__WO_SARDINE_INSTANCE_DEBUG = {
+        total: entries.length,
+        available: rawEntries.length,
+        buckets: [entries.length],
+        variants: VARIANT_COUNT,
+        mode: 'sanitized-position-quaternion',
+        sample: entries[0] ? {
+          position: [Number(entries[0].position.x.toFixed(2)), Number(entries[0].position.y.toFixed(2)), Number(entries[0].position.z.toFixed(2))],
+          scale: Number((entries[0].scale ?? 1).toFixed(2)),
+        } : null,
+      }
     }
     const mesh = meshRefs.current[0]
     if (!mesh) return
     for (let i = 0; i < entries.length; i += 1) {
-      mesh.setMatrixAt(i, entries[i].matrix)
+      instancePosition.copy(entries[i].position)
+      instanceQuaternion.copy(entries[i].quaternion).normalize()
+      const visualScale = THREE.MathUtils.clamp(entries[i].scale ?? 1, 0.45, 1.35)
+      instanceScale.setScalar(1.65 * visualScale)
+      instanceMatrix.compose(instancePosition, instanceQuaternion, instanceScale)
+      mesh.setMatrixAt(i, instanceMatrix)
       const tint = entries[i].tint ?? 1
       tempColor.setRGB(0.70 * tint, 0.92 * tint, 0.98 * tint)
       mesh.setColorAt(i, tempColor)

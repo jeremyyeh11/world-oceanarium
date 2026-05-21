@@ -171,7 +171,7 @@ export default function UnderwaterFX({ biome = 'ocean' }) {
 
   return (
     <group>
-      <SurfaceFoam />
+      {/* Surface shimmer now lives in WaterSurface; keep this disabled to avoid a duplicate mid-screen horizon band. */}
       {/* Light rays hidden for now; keeping implementation here for later retuning. */}
     </group>
   )

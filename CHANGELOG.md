@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_22`.
+Status: in progress as `v0.7.6-dev_23`.
 
 ### Rendering performance
 
@@ -36,7 +36,7 @@ Status: in progress as `v0.7.6-dev_22`.
 - Adds Jeremy's uploaded `sardine_LOD1.glb` as a mid-distance instanced mesh between full LOD0 and far LOD2; LOD1 eats into the LOD0 side so existing LOD2 thresholds/counts stay unchanged while farther LOD0 candidates move to the cheaper mid-poly path.
 - Retunes tank-view sardine LOD thresholds toward Jeremy's target mix of roughly `50` LOD0 / `70` LOD1 / `80` LOD2 on a 200-sardine tank: full GLTF now targets near fish inside `10.5` world units, LOD1 spans `10.5–13.5`, and LOD2 starts beyond `13.5`; follow-mode distances remain unchanged.
 - Adds a cheap procedural vertex wiggle shader to instanced LOD1/LOD2 sardines: LOD1 gets a stronger body/tail bend, LOD2 gets a subtler far-distance bend, and each instance gets a deterministic per-fish phase so the school does not animate in lockstep.
-- Adds a debug LOD color view toggle (`L`): LOD0/full GLTF renders red, LOD1 instances render amber, and LOD2 instances render green so Jeremy can visually inspect distance buckets without relying only on counts.
+- Adds a debug LOD color view toggle (`L`) using Jeremy's flipped spectrum: LOD0/full GLTF renders green, LOD1 instances render middle olive, and LOD2 instances render red so lower-detail buckets are visually hotter.
 
 ## v0.7.5 — Sardine population staging
 

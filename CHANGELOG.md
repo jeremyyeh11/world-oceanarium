@@ -10,34 +10,32 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_25`.
+Status: accepted and promoted as clean `v0.7.6`.
 
-### Rendering performance
+### Sardine LOD rendering
 
-- Started a dev-only distance-gated instancing pass for Spotted Sardinella.
-- Keeps nearby/selected/debug sardines on the normal animated GLTF path.
-- Switches non-selected sardines beyond `6.0` world units to a batched `InstancedMesh` visual layer.
-- Keeps invisible per-creature proxy meshes in the normal fish path so individual identity, search/follow refs, and click handling remain intact.
-- Ships this first dev patch as a diagnostic/visibility build: real per-fish instance matrices are capped to 24 visible far sardines while the normal GLTF fish path remains visible, so Jeremy can inspect coordinate-space/orientation behavior on device before the shader-wiggle pass is re-enabled.
-- Temporarily disables the diagnostic instanced layer after local screenshots showed the layer blanked the scene even though creature data and GLTF meshes were loaded; this restores visible normal fish while preserving the registry/proxy code for the next isolated instancing fix.
-- Adds debug-card render/performance counters for visible creature count, sardine count, FPS, instancing mode, drawn instance count, and far-sardine candidate count so mobile tests can tell whether instancing is actually active.
-- Opens debug with fish overlays off by default so the FPS/candidate readout itself does not tank performance; use the existing `◎` / `◉` buttons only when visual vectors/labels are needed.
-- Replaces the oversized cyan ellipsoid diagnostic instances with a smaller procedural fish-shaped instanced body/tail at sardine scale, so the instanced performance path is visible without the blob/pill artifact.
-- Fixes an instanced-sardine fallback bug where hidden interaction proxy/fallback boxes were visibly rendering for far instanced model fish; model-backed instanced fish now render only the invisible click proxy plus the shared instanced visual.
-- Replaces the temporary procedural instanced impostor with Jeremy's uploaded `sardine_LOD2.glb`, using the same scale/orientation/material setup as the main sardine mesh but with a much lower-poly static instanced visual for far fish.
-- Simplifies the debug-card instancing readout to `LOD2`, moves the LOD2 switch farther from the camera at `8.0` world units so the lower-poly mesh is less noticeable, and tightens mobile debug-card margins so the floating panel stays inside the screen when not following a fish.
-- Tunes normal tank-view LOD0 distance to `25.0` world units while keeping follow mode at the previous `8.0` world-unit LOD2 switch, balancing the previous `30.0` visual-quality setting with a little more LOD2 performance headroom.
-- Changes the debug card from the generic instancing line to compact `LOD0: drawn/candidates` and `LOD2: drawn/candidates` rows.
-- Adds conservative camera-frustum culling for non-selected, non-debug sardines in normal tank view; offscreen sardines now skip both LOD0 model draw and LOD2 instance registration while follow mode behavior stays unchanged.
-- Adds a compact `Frustum: culled/checked` debug row so phone tests can see how many sardines the tank-view culler is actually removing.
-- Fixes small-window desktop fish selection by delaying stage pan pointer capture until the cursor actually moves past a drag threshold; simple fish clicks now reach the canvas instead of being swallowed by pan mode.
-- Extends conservative frustum culling to follow mode for non-selected, non-debug sardines so the debug row reports real culling while following instead of always staying at `0/199`.
-- Reduces debug-on overhead so the panel is a better performance indicator: metrics sample at 1s cadence, skip unchanged React state updates, and throttle/round audio meter UI updates.
-- Adds Jeremy's uploaded `sardine_LOD1.glb` as a mid-distance instanced mesh between full LOD0 and far LOD2; LOD1 eats into the LOD0 side so existing LOD2 thresholds/counts stay unchanged while farther LOD0 candidates move to the cheaper mid-poly path.
-- Retunes tank-view sardine LOD thresholds toward Jeremy's target mix of roughly `50` LOD0 / `70` LOD1 / `80` LOD2 on a 200-sardine tank: full GLTF now targets near fish inside `10.5` world units, LOD1 spans `10.5–13.5`, and LOD2 starts beyond `13.5`; follow-mode distances remain unchanged.
-- Adds a cheap procedural vertex wiggle shader to instanced LOD1/LOD2 sardines: LOD1 gets a stronger body/tail bend, LOD2 gets a subtler far-distance bend, and each instance gets a deterministic per-fish phase so the school does not animate in lockstep.
-- Adds a debug LOD color view toggle (`L`) using Jeremy's flipped spectrum: LOD0/full GLTF renders green, LOD1 instances render middle olive, and LOD2 instances render red so lower-detail buckets are visually hotter.
-- Removes the far-LOD controller throttling experiment after phone feedback showed visible jitter/low-FPS motion; all sardine motion/controller updates are full-rate again while keeping the LOD1/LOD2 instanced mesh rendering, shader wiggle, frustum culling, and debug color tools.
+- Added distance-gated sardine LOD rendering for dense schools.
+- Keeps nearby, selected, focused, and debug sardines on the full animated GLTF path.
+- Renders mid/far non-selected sardines through real `THREE.InstancedMesh` layers using Jeremy's uploaded `sardine_LOD1.glb` and `sardine_LOD2.glb`.
+- Preserves per-creature identity, click, search, and follow behavior through invisible interaction proxies.
+
+### Visual feel
+
+- Matched low-LOD sardine scale, orientation, and material behavior to the full sardine mesh.
+- Added procedural vertex-shader wiggle to LOD1/LOD2 so instanced fish stay alive without per-fish skeletal animation.
+- Rejected far-LOD motion/controller throttling after phone feedback showed visible jitter; sardine motion updates remain full-rate.
+
+### Performance / culling
+
+- Added conservative frustum culling for non-selected, non-debug sardines in tank and follow modes.
+- Retuned tank-view thresholds to target a healthier full/mid/far LOD mix: LOD0 inside `10.5` world units, LOD1 from `10.5–13.5`, and LOD2 beyond `13.5`; follow mode remains LOD0 inside `5`, LOD1 `5–8`, LOD2 beyond `8`.
+- Reduced debug-panel overhead with slower sampling, unchanged-state skips, and throttled audio meter updates.
+
+### Debug / interaction
+
+- Added compact debug rows for `LOD0`, `LOD1`, `LOD2`, and `Frustum` counts.
+- Added `L` debug color view with Jeremy's spectrum: LOD0 green, LOD1 olive, LOD2 red.
+- Fixed small-window desktop fish clicks by delaying pan pointer capture until actual drag movement.
 
 ## v0.7.5 — Sardine population staging
 

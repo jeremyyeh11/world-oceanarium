@@ -18,6 +18,7 @@ const RAY_FRAGMENT = /* glsl */ `
   uniform float uTime;
   uniform float uSeed;
   uniform float uStrength;
+  uniform float uFadeLength;
   varying vec2 vUv;
 
   float hash(vec2 p) {
@@ -50,8 +51,9 @@ const RAY_FRAGMENT = /* glsl */ `
     float center = 1.0 - smoothstep(halfWidth * widthPulse, halfWidth * widthPulse + feather, abs(vUv.x - centerLine));
     float sideFade = smoothstep(0.0, 0.24, vUv.x) * smoothstep(1.0, 0.76, vUv.x);
     float surfaceFade = smoothstep(0.0, 0.16, fromSurface);
-    float deepFade = smoothstep(0.0, 0.82, fromSurface);
-    float vertical = depthFade * surfaceFade * deepFade;
+    float fadeStart = 1.0 - uFadeLength;
+    float lengthFade = smoothstep(fadeStart, min(0.98, fadeStart + 0.24), fromSurface);
+    float vertical = depthFade * surfaceFade * lengthFade;
     vec2 driftUv = vec2(vUv.x * 1.35 + uSeed + uTime * 0.018, vUv.y * 2.4 - uTime * 0.075);
     float shimmer = 0.76 + noise(driftUv) * 0.24;
     float breath = mix(
@@ -112,14 +114,15 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 `
 
-function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rotation, strength, seed }) {
+function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rotation, strength, seed, fadeLength }) {
   const material = useRef()
   const centerY = surfaceY - Math.cos(rotation) * height * 0.5
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uSeed: { value: seed },
     uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 1.05 : strength },
-  }), [seed, strength])
+    uFadeLength: { value: fadeLength },
+  }), [seed, strength, fadeLength])
 
   useFrame(({ clock }) => {
     if (!material.current) return
@@ -163,17 +166,17 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-11.4, GOD_RAY_SURFACE_START_Y, -4.8, 3.2, 18.5, GOD_RAY_LEFT_ANGLE, 0.22, 1.1],
-    [-6.6, GOD_RAY_SURFACE_START_Y, -2.6, 5.2, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
-    [-1.8, GOD_RAY_SURFACE_START_Y, -5.8, 2.8, 21.0, GOD_RAY_LEFT_ANGLE, 0.20, 7.4],
-    [3.4, GOD_RAY_SURFACE_START_Y, -3.6, 4.6, 19.5, GOD_RAY_LEFT_ANGLE, 0.17, 11.9],
-    [8.2, GOD_RAY_SURFACE_START_Y, -6.6, 2.3, 20.8, GOD_RAY_LEFT_ANGLE, 0.20, 16.2],
-    [-3.9, GOD_RAY_SURFACE_START_Y, -9.2, 1.8, 22.0, GOD_RAY_LEFT_ANGLE, 0.15, 21.7],
-    [5.8, GOD_RAY_SURFACE_START_Y, -11.4, 1.4, 22.6, GOD_RAY_LEFT_ANGLE, 0.13, 27.3],
+    [-11.4, GOD_RAY_SURFACE_START_Y, -4.8, 3.2, 18.5, GOD_RAY_LEFT_ANGLE, 0.22, 1.1, 0.78],
+    [-6.6, GOD_RAY_SURFACE_START_Y, -2.6, 5.2, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6, 0.94],
+    [-1.8, GOD_RAY_SURFACE_START_Y, -5.8, 2.8, 21.0, GOD_RAY_LEFT_ANGLE, 0.20, 7.4, 0.66],
+    [3.4, GOD_RAY_SURFACE_START_Y, -3.6, 4.6, 19.5, GOD_RAY_LEFT_ANGLE, 0.17, 11.9, 0.86],
+    [8.2, GOD_RAY_SURFACE_START_Y, -6.6, 2.3, 20.8, GOD_RAY_LEFT_ANGLE, 0.20, 16.2, 0.58],
+    [-3.9, GOD_RAY_SURFACE_START_Y, -9.2, 1.8, 22.0, GOD_RAY_LEFT_ANGLE, 0.15, 21.7, 0.72],
+    [5.8, GOD_RAY_SURFACE_START_Y, -11.4, 1.4, 22.6, GOD_RAY_LEFT_ANGLE, 0.13, 27.3, 0.50],
   ], [])
 
-  return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed]) => (
-    <LightRay key={seed} x={x} surfaceY={surfaceY} z={z} width={width} height={height} rotation={rotation} strength={strength} seed={seed} />
+  return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed, fadeLength]) => (
+    <LightRay key={seed} x={x} surfaceY={surfaceY} z={z} width={width} height={height} rotation={rotation} strength={strength} seed={seed} fadeLength={fadeLength} />
   ))
 }
 

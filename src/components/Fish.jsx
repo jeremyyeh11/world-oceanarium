@@ -57,6 +57,9 @@ const LEADER_RIM_INTENSITY = 0.8
 const RIM_POWER = 3.1
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
 const SARDINE_VIEW_CULL_MARGIN_NDC = 1.28
+const SARDINE_LOD1_CONTROLLER_INTERVAL = 1 / 30
+const SARDINE_LOD2_CONTROLLER_INTERVAL = 1 / 12
+const SARDINE_MAX_THROTTLED_DELTA = 0.16
 const SCHOOL_SPACING = 0.58
 const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
@@ -737,6 +740,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const animationRef = useRef('idle')
   const [animation, setAnimation] = useState('idle')
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
+  const controllerDeltaAccumulator = useRef(0)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(schoolState?.path ?? path)
   const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
@@ -839,6 +843,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     if (!fish) return
 
     const now = clock.getElapsedTime()
+    const controllerInterval = (!selected && !debug && canInstanceSardine && instancedSardineLod === 'lod2')
+      ? SARDINE_LOD2_CONTROLLER_INTERVAL
+      : ((!selected && !debug && canInstanceSardine && instancedSardineLod === 'lod1') ? SARDINE_LOD1_CONTROLLER_INTERVAL : 0)
+    if (controllerInterval > 0) {
+      controllerDeltaAccumulator.current += delta
+      if (controllerDeltaAccumulator.current < controllerInterval) return
+      delta = Math.min(controllerDeltaAccumulator.current, SARDINE_MAX_THROTTLED_DELTA)
+      controllerDeltaAccumulator.current = 0
+    } else {
+      controllerDeltaAccumulator.current = 0
+    }
+
     if (isSchooling) {
       const noise = organicNoise.current
       const rand = organicRand.current

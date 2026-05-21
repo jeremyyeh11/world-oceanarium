@@ -818,3 +818,15 @@ button { font: inherit; }
     linear-gradient(180deg, rgba(190, 245, 255, 0.16) 0%, rgba(92, 190, 235, 0.055) 22%, transparent 50%);
   mix-blend-mode: screen;
 }
+
+@media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .tank-top-exposure {
+    left: 50%;
+    right: auto;
+    width: max(100vw, calc(100dvh * 16 / 9));
+    transform: translateX(calc(-50% + var(--stage-pan-x, 0px)));
+    background:
+      radial-gradient(ellipse 170% 86% at 50% -10%, rgba(170, 235, 255, 0.30) 0%, rgba(76, 168, 220, 0.12) 31%, transparent 64%),
+      linear-gradient(180deg, rgba(190, 245, 255, 0.16) 0%, rgba(92, 190, 235, 0.055) 22%, transparent 50%);
+  }
+}

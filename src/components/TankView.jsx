@@ -28,6 +28,7 @@ const DEBUG_VIEW_MODES = [
 const DEBUG_LAYER_BUTTONS = [
   { id: 'direction', icon: '↗', label: 'Show direction' },
   { id: 'name', icon: '#', label: 'Show name' },
+  { id: 'lod', icon: 'L', label: 'Show LOD colors' },
 ]
 const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
@@ -73,7 +74,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('none')
-  const [debugLayers, setDebugLayers] = useState({ direction: true, name: true })
+  const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false })
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
@@ -468,6 +469,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debug={visibleDebugMode}
             debugView={debugView}
             debugLayers={debugLayers}
+            debugLodView={visibleDebugMode && Boolean(debugLayers.lod)}
             onCreatureClick={focusCreature}
             onCreatureReady={registerCreatureRef}
           />

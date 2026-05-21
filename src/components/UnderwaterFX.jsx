@@ -173,6 +173,11 @@ function LightRays() {
     [8.2, GOD_RAY_SURFACE_START_Y, -6.6, 2.3, 20.8, GOD_RAY_LEFT_ANGLE, 0.20, 16.2, 0.58],
     [-3.9, GOD_RAY_SURFACE_START_Y, -9.2, 1.8, 22.0, GOD_RAY_LEFT_ANGLE, 0.15, 21.7, 0.72],
     [5.8, GOD_RAY_SURFACE_START_Y, -11.4, 1.4, 22.6, GOD_RAY_LEFT_ANGLE, 0.13, 27.3, 0.50],
+    [-14.8, GOD_RAY_SURFACE_START_Y, -8.2, 1.7, 19.8, GOD_RAY_LEFT_ANGLE, 0.12, 31.6, 0.62],
+    [-8.8, GOD_RAY_SURFACE_START_Y, -12.8, 1.2, 23.2, GOD_RAY_LEFT_ANGLE, 0.10, 36.4, 0.54],
+    [-0.2, GOD_RAY_SURFACE_START_Y, -15.2, 1.0, 24.0, GOD_RAY_LEFT_ANGLE, 0.09, 42.1, 0.48],
+    [10.6, GOD_RAY_SURFACE_START_Y, -8.8, 1.6, 20.6, GOD_RAY_LEFT_ANGLE, 0.12, 47.8, 0.68],
+    [13.8, GOD_RAY_SURFACE_START_Y, -13.6, 1.1, 23.6, GOD_RAY_LEFT_ANGLE, 0.09, 53.2, 0.52],
   ], [])
 
   return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed, fadeLength]) => (

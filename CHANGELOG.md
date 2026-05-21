@@ -10,18 +10,18 @@ Versioning convention notes:
 
 ## v0.7.5 — Sardine population staging
 
-Status: in progress as `v0.7.5-dev_15`.
+Status: accepted and promoted as clean `v0.7.5`.
 
 ### Creature data
 
 - Started the next dev cycle after clean `v0.7.4` acceptance.
-- Increased `creatures_dev` to 800 live sardines for dense-school testing.
+- Used `creatures_dev` for dense-sardine stress testing while keeping the clean release on production `creatures`.
 - Reverted runtime rendering/LOD/debug changes back to the original `v0.7.5-dev_01` normal animated GLTF fish path after rejecting the LOD/marker experiments.
 - Added a live FPS readout to the debug card for mobile pan/orbit performance checks.
 - Replaced the selected/leader duplicate-mesh silhouette with a Fresnel rim shader on the fish material.
 - Rewired debug layer controls to two toggles: direction (`↗`) for spline/follow target/drift/velocity vectors and name (`#`) for close per-fish ID/species/scientific-name labels.
 - Tuned Fresnel selection rim thinner and brighter for a sharper mesh outline.
-- Removed live sardines from production `creatures`; clean/public builds now see zero live sardines until production data is intentionally repopulated.
+- Removed live sardines from production `creatures`; clean/public builds intentionally see zero live sardines until production data is repopulated.
 - Preserved the dev/prod split: `-dev_##` builds read `creatures_dev`, clean builds read `creatures`.
 
 ## v0.7.4 — UI audio polish

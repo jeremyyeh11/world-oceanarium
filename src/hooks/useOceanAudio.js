@@ -5,6 +5,8 @@ const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
 const UI_CLICK_SFX_EVENT = 'world-oceanarium-ui-click-sfx'
 const LEVEL_FLOOR_DB = -72
 const LEVEL_FRAME_MS = 100
+const DEBUG_AUDIO_UI_SAMPLE_MS = 1000
+const AUDIO_UI_DB_STEP = 2
 const MOBILE_MASTER_TARGET_GAIN = 2.0 // Jeremy requested roughly 2x overall loudness on mobile.
 const DESKTOP_MASTER_TARGET_GAIN = MOBILE_MASTER_TARGET_GAIN * 0.5
 const AMBIENT_VOLUME = 0.18
@@ -601,12 +603,22 @@ export function useOceanAudio() {
 
 export function useAudioLevels(active) {
   const [levels, setLevels] = useState({ overallDb: LEVEL_FLOOR_DB, ambientDb: LEVEL_FLOOR_DB, sfxDb: LEVEL_FLOOR_DB, muted: true })
+  const lastUiUpdateAt = useRef(0)
+  const lastUiLevels = useRef(levels)
 
   useEffect(() => {
     if (!active) return undefined
 
     const updateLevels = (event) => {
-      setLevels(event.detail)
+      const now = performance.now()
+      if (now - lastUiUpdateAt.current < DEBUG_AUDIO_UI_SAMPLE_MS) return
+
+      const nextLevels = normalizeAudioUiLevels(event.detail)
+      if (areAudioUiLevelsEqual(lastUiLevels.current, nextLevels)) return
+
+      lastUiUpdateAt.current = now
+      lastUiLevels.current = nextLevels
+      setLevels(nextLevels)
     }
 
     window.addEventListener(AUDIO_VOLUME_EVENT, updateLevels)
@@ -614,6 +626,27 @@ export function useAudioLevels(active) {
   }, [active])
 
   return levels
+}
+
+function normalizeAudioUiLevels(levels) {
+  return {
+    overallDb: roundAudioUiDb(levels?.overallDb),
+    ambientDb: roundAudioUiDb(levels?.ambientDb),
+    sfxDb: roundAudioUiDb(levels?.sfxDb),
+    muted: Boolean(levels?.muted),
+  }
+}
+
+function roundAudioUiDb(value) {
+  if (!Number.isFinite(value)) return LEVEL_FLOOR_DB
+  return Math.max(LEVEL_FLOOR_DB, Math.round(value / AUDIO_UI_DB_STEP) * AUDIO_UI_DB_STEP)
+}
+
+function areAudioUiLevelsEqual(left, right) {
+  return left?.overallDb === right?.overallDb &&
+    left?.ambientDb === right?.ambientDb &&
+    left?.sfxDb === right?.sfxDb &&
+    left?.muted === right?.muted
 }
 
 export { LEVEL_FLOOR_DB }

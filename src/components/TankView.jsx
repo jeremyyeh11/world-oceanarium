@@ -29,7 +29,7 @@ const DEBUG_LAYER_BUTTONS = [
   { id: 'direction', icon: '↗', label: 'Show direction' },
   { id: 'name', icon: '#', label: 'Show name' },
 ]
-const FPS_SAMPLE_MS = 500
+const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
 function summarizeRenderLoad(creatures, biomeId) {
@@ -81,6 +81,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [followScreenOffset, setFollowScreenOffset] = useState(0)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
+  const performanceStatsRef = useRef({ fps: null })
   const audioLevels = useAudioLevels(debugMode)
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
@@ -245,7 +246,9 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
   useEffect(() => {
     if (!visibleDebugMode) {
-      setPerformanceStats({ fps: null })
+      const resetStats = { fps: null }
+      performanceStatsRef.current = resetStats
+      setPerformanceStats(resetStats)
       return undefined
     }
 
@@ -262,7 +265,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         const instancedDrawn = Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0
         const lod0Stats = getSardineLod0Stats()
         const frustumStats = getSardineFrustumStats()
-        setPerformanceStats({
+        const nextStats = {
           fps: Math.round((frameCount * 1000) / elapsed),
           sardineCandidates: getSardineInstances().size,
           instancedDrawn,
@@ -272,7 +275,11 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           frustumCandidates: frustumStats.candidates,
           instancingMode,
           instancingDistance: selectedCreature ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE,
-        })
+        }
+        if (!arePerformanceStatsEqual(performanceStatsRef.current, nextStats)) {
+          performanceStatsRef.current = nextStats
+          setPerformanceStats(nextStats)
+        }
         frameCount = 0
         sampleStartedAt = now
       }
@@ -281,7 +288,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
     frameId = window.requestAnimationFrame(sampleFps)
     return () => window.cancelAnimationFrame(frameId)
-  }, [visibleDebugMode])
+  }, [visibleDebugMode, selectedCreature])
 
   useEffect(() => {
     const focusFromSearch = (event) => {
@@ -526,6 +533,18 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
 function clampDebugCount(value) {
   return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0
+}
+
+function arePerformanceStatsEqual(left, right) {
+  return left?.fps === right?.fps &&
+    left?.sardineCandidates === right?.sardineCandidates &&
+    left?.instancedDrawn === right?.instancedDrawn &&
+    left?.lod0Drawn === right?.lod0Drawn &&
+    left?.lod0Candidates === right?.lod0Candidates &&
+    left?.frustumCulled === right?.frustumCulled &&
+    left?.frustumCandidates === right?.frustumCandidates &&
+    left?.instancingMode === right?.instancingMode &&
+    left?.instancingDistance === right?.instancingDistance
 }
 
 function DebugPanel({

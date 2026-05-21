@@ -17,6 +17,7 @@ const MIN_FOLLOW_DISTANCE = 1.35
 const MAX_FOLLOW_DISTANCE = 8.5
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
+const PAN_DRAG_THRESHOLD_PX = 5
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const DEBUG_VIEW_MODES = [
@@ -74,6 +75,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [debugView, setDebugView] = useState('none')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true })
   const [stagePan, setStagePan] = useState(0)
+  const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
   const [followScreenOffset, setFollowScreenOffset] = useState(0)
@@ -331,8 +333,13 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     }
 
     if (!panLimits.enabled) return
-    dragRef.current = { mode: 'pan', pointerId: event.pointerId, startX: event.clientX, startPan: stagePan }
-    event.currentTarget.setPointerCapture(event.pointerId)
+    dragRef.current = {
+      mode: 'pan-pending',
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startPan: stagePan,
+      target: event.currentTarget,
+    }
   }
 
   const moveStageDrag = (event) => {
@@ -370,6 +377,17 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     }
 
     const nextPan = drag.startPan + event.clientX - drag.startX
+    if (drag.mode === 'pan-pending') {
+      const moved = Math.abs(event.clientX - drag.startX) > PAN_DRAG_THRESHOLD_PX
+      if (!moved) return
+      drag.mode = 'pan'
+      setStagePanning(true)
+      try {
+        drag.target?.setPointerCapture?.(event.pointerId)
+      } catch {
+        // Pointer may already be released by the browser; panning can still continue for this event.
+      }
+    }
     setStagePan(Math.max(-panLimits.maxPan, Math.min(panLimits.maxPan, nextPan)))
   }
 
@@ -378,12 +396,27 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (event.pointerType === 'touch') touchPointsRef.current.delete(event.pointerId)
 
     if (dragRef.current?.mode === 'pinch') {
+      setStagePanning(false)
       if (touchPointsRef.current.size < 2) dragRef.current = null
       return
     }
 
     if (dragRef.current?.pointerId !== event.pointerId) return
+    if (dragRef.current.mode === 'pan' || dragRef.current.mode === 'pan-pending') {
+      const drag = dragRef.current
+      dragRef.current = null
+      setStagePanning(false)
+      try {
+        if (drag.target?.hasPointerCapture?.(event.pointerId)) {
+          drag.target.releasePointerCapture(event.pointerId)
+        }
+      } catch {
+        // Ignore stale pointer-capture cleanup.
+      }
+      return
+    }
     if (dragRef.current.mode === 'orbit' || dragRef.current.mode === 'orbit-pending') {
+      setStagePanning(false)
       const drag = dragRef.current
       dragRef.current = null
       if (drag.mode === 'orbit') {
@@ -396,10 +429,11 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       return
     }
     dragRef.current = null
+    setStagePanning(false)
   }
 
   return (
-    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${zoomActive ? ' is-following-fish' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}>
+    <div className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}>
       <div
         className="tank-stage"
         style={{ '--stage-pan-x': `${stagePan}px` }}

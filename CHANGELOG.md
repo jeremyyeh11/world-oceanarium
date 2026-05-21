@@ -10,13 +10,14 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_02`.
+Status: in progress as `v0.7.7-dev_03`.
 
 ### Environment direction
 
 - Starts the next dev bucket after clean `v0.7.6` acceptance.
 - Target: improve the tank's top water surface and strengthen depth cues so the ocean reads less flat while preserving current sardine LOD performance.
 - Replaces the temporary flat water-surface plane material with a high-visibility cyan checker texture so the surface plane position, scale, and motion are easy to inspect before styling it into the final reference-like shimmer.
+- Step 1 of the reference-image pass: replaces the checker diagnostic with a cheap procedural additive surface shimmer shader, creating a brighter broken cyan/white water ceiling without real volumetrics or postprocessing.
 
 ## v0.7.6 — Instanced sardine optimization
 

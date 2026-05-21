@@ -1091,7 +1091,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         ? distanceToCamera > instanceDistance - SARDINE_INSTANCE_HYSTERESIS
         : distanceToCamera > instanceDistance + SARDINE_INSTANCE_HYSTERESIS
       cullProjection.copy(fish.position).project(camera)
-      const offscreenCulled = !zoomActive && (
+      const offscreenCulled = (
         cullProjection.z < -1 ||
         cullProjection.z > 1 ||
         Math.abs(cullProjection.x) > SARDINE_VIEW_CULL_MARGIN_NDC ||

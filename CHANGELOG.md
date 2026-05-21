@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_16`.
+Status: in progress as `v0.7.6-dev_17`.
 
 ### Rendering performance
 
@@ -31,6 +31,7 @@ Status: in progress as `v0.7.6-dev_16`.
 - Adds conservative camera-frustum culling for non-selected, non-debug sardines in normal tank view; offscreen sardines now skip both LOD0 model draw and LOD2 instance registration while follow mode behavior stays unchanged.
 - Adds a compact `Frustum: culled/checked` debug row so phone tests can see how many sardines the tank-view culler is actually removing.
 - Fixes small-window desktop fish selection by delaying stage pan pointer capture until the cursor actually moves past a drag threshold; simple fish clicks now reach the canvas instead of being swallowed by pan mode.
+- Extends conservative frustum culling to follow mode for non-selected, non-debug sardines so the debug row reports real culling while following instead of always staying at `0/199`.
 
 ## v0.7.5 — Sardine population staging
 

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_18`.
+Status: in progress as `v0.7.6-dev_19`.
 
 ### Rendering performance
 
@@ -33,6 +33,7 @@ Status: in progress as `v0.7.6-dev_18`.
 - Fixes small-window desktop fish selection by delaying stage pan pointer capture until the cursor actually moves past a drag threshold; simple fish clicks now reach the canvas instead of being swallowed by pan mode.
 - Extends conservative frustum culling to follow mode for non-selected, non-debug sardines so the debug row reports real culling while following instead of always staying at `0/199`.
 - Reduces debug-on overhead so the panel is a better performance indicator: metrics sample at 1s cadence, skip unchanged React state updates, and throttle/round audio meter UI updates.
+- Adds Jeremy's uploaded `sardine_LOD1.glb` as a mid-distance instanced mesh between full LOD0 and far LOD2; LOD1 eats into the LOD0 side so existing LOD2 thresholds/counts stay unchanged while farther LOD0 candidates move to the cheaper mid-poly path.
 
 ## v0.7.5 — Sardine population staging
 

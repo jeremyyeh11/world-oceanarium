@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_19`.
+Status: in progress as `v0.7.6-dev_20`.
 
 ### Rendering performance
 
@@ -34,6 +34,7 @@ Status: in progress as `v0.7.6-dev_19`.
 - Extends conservative frustum culling to follow mode for non-selected, non-debug sardines so the debug row reports real culling while following instead of always staying at `0/199`.
 - Reduces debug-on overhead so the panel is a better performance indicator: metrics sample at 1s cadence, skip unchanged React state updates, and throttle/round audio meter UI updates.
 - Adds Jeremy's uploaded `sardine_LOD1.glb` as a mid-distance instanced mesh between full LOD0 and far LOD2; LOD1 eats into the LOD0 side so existing LOD2 thresholds/counts stay unchanged while farther LOD0 candidates move to the cheaper mid-poly path.
+- Retunes tank-view sardine LOD thresholds toward Jeremy's target mix of roughly `50` LOD0 / `70` LOD1 / `80` LOD2 on a 200-sardine tank: full GLTF now targets near fish inside `10.5` world units, LOD1 spans `10.5–13.5`, and LOD2 starts beyond `13.5`; follow-mode distances remain unchanged.
 
 ## v0.7.5 — Sardine population staging
 

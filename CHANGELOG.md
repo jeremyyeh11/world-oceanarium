@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_06`.
+Status: in progress as `v0.7.6-dev_07`.
 
 ### Rendering performance
 
@@ -24,6 +24,7 @@ Status: in progress as `v0.7.6-dev_06`.
 - Opens debug with fish overlays off by default so the FPS/candidate readout itself does not tank performance; use the existing `◎` / `◉` buttons only when visual vectors/labels are needed.
 - Replaces the oversized cyan ellipsoid diagnostic instances with a smaller procedural fish-shaped instanced body/tail at sardine scale, so the instanced performance path is visible without the blob/pill artifact.
 - Fixes an instanced-sardine fallback bug where hidden interaction proxy/fallback boxes were visibly rendering for far instanced model fish; model-backed instanced fish now render only the invisible click proxy plus the shared instanced visual.
+- Replaces the temporary procedural instanced impostor with Jeremy's uploaded `sardine_LOD2.glb`, using the same scale/orientation/material setup as the main sardine mesh but with a much lower-poly static instanced visual for far fish.
 
 ## v0.7.5 — Sardine population staging
 

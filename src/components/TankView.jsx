@@ -6,6 +6,7 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
+import { getSardineInstances, SARDINE_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
@@ -29,6 +30,15 @@ const DEBUG_LAYER_BUTTONS = [
 ]
 const FPS_SAMPLE_MS = 500
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
+
+function summarizeRenderLoad(creatures, biomeId) {
+  const visibleCreatures = creatures.filter(creature => creature.alive && creature.biome === biomeId)
+  const sardines = visibleCreatures.filter(creature => creature.species === 'Spotted Sardinella')
+  return {
+    visibleCreatures: visibleCreatures.length,
+    sardines: sardines.length,
+  }
+}
 
 function getPanLimits() {
   const viewportWidth = window.innerWidth
@@ -61,7 +71,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
-  const [debugView, setDebugView] = useState('all')
+  const [debugView, setDebugView] = useState('none')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true })
   const [stagePan, setStagePan] = useState(0)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
@@ -77,6 +87,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const zoomActive = Boolean(selectedCreature)
   const visibleDebugMode = debugMode && !screenshotMode
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
+  const renderLoad = summarizeRenderLoad(creatures, biome?.id)
 
   const toggleDebugMode = () => {
     setDebugMode(current => !current)
@@ -244,7 +255,16 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       frameCount += 1
       const elapsed = now - sampleStartedAt
       if (elapsed >= FPS_SAMPLE_MS) {
-        setPerformanceStats({ fps: Math.round((frameCount * 1000) / elapsed) })
+        const instanceDebug = window.__WO_SARDINE_INSTANCE_DEBUG
+        const instancingMode = instanceDebug?.mode ?? 'off'
+        const instancedDrawn = Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0
+        setPerformanceStats({
+          fps: Math.round((frameCount * 1000) / elapsed),
+          sardineCandidates: getSardineInstances().size,
+          instancedDrawn,
+          instancingMode,
+          instancingDistance: SARDINE_INSTANCE_DISTANCE,
+        })
         frameCount = 0
         sampleStartedAt = now
       }
@@ -434,6 +454,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           debugLayers={debugLayers}
           audioLevels={audioLevels}
           performanceStats={performanceStats}
+          renderLoad={renderLoad}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
         />
@@ -452,6 +473,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               debugLayers={debugLayers}
               audioLevels={audioLevels}
               performanceStats={performanceStats}
+              renderLoad={renderLoad}
               onDebugViewChange={setDebugView}
               onDebugLayerToggle={toggleDebugLayer}
             />
@@ -471,6 +493,7 @@ function DebugPanel({
   debugLayers,
   audioLevels,
   performanceStats,
+  renderLoad,
   onDebugViewChange,
   onDebugLayerToggle,
 }) {
@@ -478,7 +501,11 @@ function DebugPanel({
     <div className={`debug-panel ${className}`}>
       <div>Data: {creatureDataSource}</div>
       <div>Creatures: {creatureCount}</div>
+      <div>Visible: {renderLoad?.visibleCreatures ?? '—'} · Sardines: {renderLoad?.sardines ?? '—'}</div>
       <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
+      <div>
+        Instancing: {performanceStats?.instancingMode ?? 'off'} · drawn {performanceStats?.instancedDrawn ?? 0} · candidates {performanceStats?.sardineCandidates ?? 0}
+      </div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>
         {DEBUG_VIEW_MODES.map(mode => (

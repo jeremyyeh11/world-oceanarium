@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_33`.
+Status: in progress as `v0.7.7-dev_34`.
 
 ### Environment direction
 
@@ -48,6 +48,7 @@ Status: in progress as `v0.7.7-dev_33`.
 - Splits god-ray diagnostics into a real filled ray shader plus a separate wireframe overlay, so the beam fill remains visible while the grid shows placement.
 - Expands the god-ray diagnostic from two broad beams to five thinner, lower-intensity beams angled 15° left for composition review.
 - Hides god-ray wireframes and varies beam thickness across the five rays so the set reads less mechanically uniform.
+- Raises non-diagnostic god-ray fill intensity after the wireframe-off build made the beams disappear on device.
 
 ## v0.7.6 — Instanced sardine optimization
 

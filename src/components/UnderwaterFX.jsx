@@ -46,7 +46,7 @@ const RAY_FRAGMENT = /* glsl */ `
     float deepFade = smoothstep(0.0, 0.82, fromSurface);
     float vertical = depthFade * surfaceFade * deepFade;
     float shimmer = 0.78 + noise(vec2(vUv.x * 1.35 + uSeed, vUv.y * 2.4 - uTime * 0.06)) * 0.16;
-    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.20;
+    float alpha = center * sideFade * vertical * shimmer * uStrength * 0.28;
     gl_FragColor = vec4(0.34, 0.70, 0.90, alpha);
   }
 `
@@ -149,11 +149,11 @@ function LightRay({ x, y = 4.9, z, width, height, rotation, strength, seed }) {
 
 function LightRays() {
   const rays = useMemo(() => [
-    [-10.8, 4.95, -8.9, 2.8, 27.0, GOD_RAY_LEFT_ANGLE, 0.014, 1.1],
-    [-6.2, 4.9, -8.4, 4.7, 26.0, GOD_RAY_LEFT_ANGLE, 0.012, 3.6],
-    [-1.5, 4.95, -9.1, 3.3, 28.0, GOD_RAY_LEFT_ANGLE, 0.013, 7.4],
-    [3.1, 4.85, -8.8, 5.2, 27.5, GOD_RAY_LEFT_ANGLE, 0.011, 11.9],
-    [7.6, 4.9, -8.6, 2.5, 26.5, GOD_RAY_LEFT_ANGLE, 0.012, 16.2],
+    [-10.8, 4.95, -8.9, 2.8, 27.0, GOD_RAY_LEFT_ANGLE, 0.24, 1.1],
+    [-6.2, 4.9, -8.4, 4.7, 26.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6],
+    [-1.5, 4.95, -9.1, 3.3, 28.0, GOD_RAY_LEFT_ANGLE, 0.21, 7.4],
+    [3.1, 4.85, -8.8, 5.2, 27.5, GOD_RAY_LEFT_ANGLE, 0.16, 11.9],
+    [7.6, 4.9, -8.6, 2.5, 26.5, GOD_RAY_LEFT_ANGLE, 0.22, 16.2],
   ], [])
 
   return rays.map(([x, y, z, width, height, rotation, strength, seed]) => (

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.6 — Instanced sardine optimization
 
-Status: in progress as `v0.7.6-dev_24`.
+Status: in progress as `v0.7.6-dev_25`.
 
 ### Rendering performance
 
@@ -37,7 +37,7 @@ Status: in progress as `v0.7.6-dev_24`.
 - Retunes tank-view sardine LOD thresholds toward Jeremy's target mix of roughly `50` LOD0 / `70` LOD1 / `80` LOD2 on a 200-sardine tank: full GLTF now targets near fish inside `10.5` world units, LOD1 spans `10.5–13.5`, and LOD2 starts beyond `13.5`; follow-mode distances remain unchanged.
 - Adds a cheap procedural vertex wiggle shader to instanced LOD1/LOD2 sardines: LOD1 gets a stronger body/tail bend, LOD2 gets a subtler far-distance bend, and each instance gets a deterministic per-fish phase so the school does not animate in lockstep.
 - Adds a debug LOD color view toggle (`L`) using Jeremy's flipped spectrum: LOD0/full GLTF renders green, LOD1 instances render middle olive, and LOD2 instances render red so lower-detail buckets are visually hotter.
-- Throttles far sardine controller updates while keeping near/selected/debug fish full-rate: LOD1 controller logic runs at roughly `30fps`, LOD2 at roughly `12fps`, and skipped frames reuse the last instance transform while the GPU vertex wiggle keeps far fish alive.
+- Removes the far-LOD controller throttling experiment after phone feedback showed visible jitter/low-FPS motion; all sardine motion/controller updates are full-rate again while keeping the LOD1/LOD2 instanced mesh rendering, shader wiggle, frustum culling, and debug color tools.
 
 ## v0.7.5 — Sardine population staging
 

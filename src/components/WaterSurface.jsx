@@ -62,14 +62,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
   void main() {
     vec2 uv = vUv;
 
-    // Diagnostic only: show the large Perlin mask in obvious green/black
-    // before using it to make the caustics more occasional in the next pass.
+    // Large Perlin mask makes the fake caustics occasional: bright streaks
+    // appear mostly in mask-active regions, while inactive regions stay darker.
     float largePerlin = perlinNoise(uv * vec2(6.4, 2.9) + vec2(uTime * 0.018, -uTime * 0.010));
-    float mask = smoothstep(0.44, 0.60, largePerlin);
-    float softAlpha = 0.82;
-    vec3 maskColor = mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.12), mask);
-    gl_FragColor = vec4(maskColor, softAlpha);
-    return;
+    float occasionMask = smoothstep(0.44, 0.60, largePerlin);
 
     // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,
     // not broad cloud blobs. Two offset bands slide against each other cheaply.
@@ -91,7 +87,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float longBreaks = smoothstep(0.38, 0.82, bandsA);
     float thinStreaks = smoothstep(0.46, 0.98, bandsB + bandsA * 0.18);
     float pinGlints = smoothstep(0.58, 1.08, fine + bandsB * 0.26);
-    float shimmer = longBreaks * 0.32 + thinStreaks * 0.42 + causticLerp * 0.40 + pinGlints * 0.18;
+    float maskedCaustic = causticLerp * occasionMask;
+    float maskedStreaks = thinStreaks * (0.22 + occasionMask * 0.78);
+    float maskedGlints = pinGlints * occasionMask;
+    float shimmer = longBreaks * 0.18 + maskedStreaks * 0.42 + maskedCaustic * 0.46 + maskedGlints * 0.16;
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
     float farEdge = smoothstep(0.05, 0.20, uv.y);
@@ -102,11 +101,12 @@ const SURFACE_FRAGMENT = /* glsl */ `
     vec3 deepCyan = vec3(0.02, 0.26, 0.40);
     vec3 brightCyan = vec3(0.18, 0.82, 1.0);
     vec3 whiteGlint = vec3(0.92, 1.0, 0.96);
-    vec3 color = mix(deepCyan, brightCyan, causticLerp);
-    color = mix(color, brightCyan, clamp(longBreaks * 0.18 + thinStreaks * 0.32, 0.0, 1.0));
-    color = mix(color, whiteGlint, pinGlints * 0.34 + causticLerp * 0.12);
+    vec3 darkWater = vec3(0.005, 0.08, 0.13);
+    vec3 color = mix(darkWater, deepCyan, 0.35 + occasionMask * 0.45);
+    color = mix(color, brightCyan, clamp(maskedCaustic * 0.72 + maskedStreaks * 0.36, 0.0, 1.0));
+    color = mix(color, whiteGlint, maskedGlints * 0.30 + maskedCaustic * 0.10);
 
-    float alpha = (0.025 + shimmer * 0.13 + pinGlints * 0.04) * streakMask;
+    float alpha = (0.055 + occasionMask * 0.05 + shimmer * 0.14 + maskedGlints * 0.035) * streakMask;
     gl_FragColor = vec4(color, alpha);
   }
 `
@@ -134,7 +134,7 @@ export default function WaterSurface() {
           fragmentShader={SURFACE_FRAGMENT}
           transparent
           depthWrite={false}
-          depthTest={false}
+          depthTest
           blending={THREE.NormalBlending}
           side={THREE.DoubleSide}
         />

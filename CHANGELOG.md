@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_18`.
+Status: in progress as `v0.7.7-dev_19`.
 
 ### Environment direction
 
@@ -33,6 +33,7 @@ Status: in progress as `v0.7.7-dev_18`.
 - Removes the wireframe diagnostic and temporarily shows a large animated Perlin mask in obvious green/black before using it to make the fake caustics more occasional.
 - Reduces the visible Perlin-mask blob size by increasing the diagnostic mask frequency.
 - Sets the Perlin-mask diagnostic to exactly half the original blob size for easier visual approval.
+- Applies the approved Perlin mask to the surface shader so bright caustic streaks appear only in mask-active regions while inactive regions stay darker, and restores depth testing so fish can occlude the surface plane in 3D.
 
 ## v0.7.6 — Instanced sardine optimization
 

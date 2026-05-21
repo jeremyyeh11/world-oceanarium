@@ -74,7 +74,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
 const SURFACE_PLANE_POSITION = [0, 4.6, -4]
 const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
-const SURFACE_PLANE_SIZE = [46, 32, 1, 1]
+const SURFACE_PLANE_SIZE = [70, 32, 1, 1]
 
 export default function WaterSurface() {
   const material = useRef()

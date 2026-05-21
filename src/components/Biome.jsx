@@ -7,7 +7,7 @@ import { SPECIES } from '../data/species'
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 const SCHOOL_MAX_SIZE = 64
-const ENABLE_SARDINE_INSTANCED_LAYER = false
+const ENABLE_SARDINE_INSTANCED_LAYER = true
 
 function hashString(value) {
   let hash = 2166136261

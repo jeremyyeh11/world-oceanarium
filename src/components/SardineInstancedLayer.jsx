@@ -4,21 +4,18 @@ import * as THREE from 'three'
 import { getSardineInstances } from './sardineInstanceRegistry'
 
 const VARIANT_COUNT = 1
-const MAX_INSTANCES_PER_VARIANT = 512
-const VALIDATION_INSTANCE_LIMIT = 24
+const MAX_INSTANCES_PER_VARIANT = 1024
+
 const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
 const instanceMatrix = new THREE.Matrix4()
 const instancePosition = new THREE.Vector3()
 const instanceQuaternion = new THREE.Quaternion()
-const instanceScale = new THREE.Vector3(1.65, 1.65, 1.65)
+const identityQuaternion = new THREE.Quaternion()
+const instanceScale = new THREE.Vector3(4, 4, 4)
 const tempColor = new THREE.Color()
 
 function isFiniteVector3(value) {
   return value && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z)
-}
-
-function isFiniteQuaternion(value) {
-  return value && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z) && Number.isFinite(value.w)
 }
 
 function makeProceduralSardineGeometry() {
@@ -32,7 +29,13 @@ function makeProceduralSardineGeometry() {
 function useInstancedSardineAsset() {
   return useMemo(() => [{
     geometry: makeProceduralSardineGeometry(),
-    material: new THREE.MeshBasicMaterial({ color: '#62f6ff', depthWrite: false, depthTest: true }),
+    material: new THREE.MeshBasicMaterial({
+      color: '#62f6ff',
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      depthTest: false,
+    }),
   }], [])
 }
 
@@ -43,15 +46,15 @@ export default function SardineInstancedLayer() {
   useFrame(() => {
     const rawEntries = Array.from(getSardineInstances().values())
     const entries = rawEntries
-      .filter(entry => isFiniteVector3(entry?.position) && isFiniteQuaternion(entry?.quaternion))
-      .slice(0, VALIDATION_INSTANCE_LIMIT)
+      .filter(entry => isFiniteVector3(entry?.position) && Number.isFinite(entry?.scale ?? 1))
+      .slice(0, MAX_INSTANCES_PER_VARIANT)
     if (typeof window !== 'undefined') {
       window.__WO_SARDINE_INSTANCE_DEBUG = {
         total: entries.length,
         available: rawEntries.length,
         buckets: [entries.length],
         variants: VARIANT_COUNT,
-        mode: 'sanitized-position-quaternion',
+        mode: 'candidate-position-fixed-orientation',
         sample: entries[0] ? {
           position: [Number(entries[0].position.x.toFixed(2)), Number(entries[0].position.y.toFixed(2)), Number(entries[0].position.z.toFixed(2))],
           scale: Number((entries[0].scale ?? 1).toFixed(2)),
@@ -62,9 +65,9 @@ export default function SardineInstancedLayer() {
     if (!mesh) return
     for (let i = 0; i < entries.length; i += 1) {
       instancePosition.copy(entries[i].position)
-      instanceQuaternion.copy(entries[i].quaternion).normalize()
       const visualScale = THREE.MathUtils.clamp(entries[i].scale ?? 1, 0.45, 1.35)
-      instanceScale.setScalar(1.65 * visualScale)
+      instanceScale.setScalar(4 * visualScale)
+      instanceQuaternion.copy(identityQuaternion)
       instanceMatrix.compose(instancePosition, instanceQuaternion, instanceScale)
       mesh.setMatrixAt(i, instanceMatrix)
       const tint = entries[i].tint ?? 1
@@ -75,7 +78,8 @@ export default function SardineInstancedLayer() {
     mesh.instanceMatrix.needsUpdate = true
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     mesh.frustumCulled = false
-  }, 1)
+    mesh.renderOrder = 999
+  })
 
   return (
     <instancedMesh
@@ -88,6 +92,7 @@ export default function SardineInstancedLayer() {
       }}
       args={[assets[0].geometry, assets[0].material, MAX_INSTANCES_PER_VARIANT]}
       frustumCulled={false}
+      renderOrder={999}
       raycast={() => null}
     />
   )

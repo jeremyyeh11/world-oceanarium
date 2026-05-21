@@ -484,11 +484,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   )
 }
 
-function formatInstancingMode(mode) {
-  if (!mode || mode === 'off') return 'off'
-  if (String(mode).toLowerCase().includes('lod2')) return 'LOD2'
-  if (String(mode).toLowerCase().includes('procedural')) return 'procedural'
-  return mode
+function clampDebugCount(value) {
+  return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0
 }
 
 function DebugPanel({
@@ -504,15 +501,19 @@ function DebugPanel({
   onDebugViewChange,
   onDebugLayerToggle,
 }) {
+  const sardineCount = clampDebugCount(renderLoad?.sardines)
+  const lod2Drawn = clampDebugCount(performanceStats?.instancedDrawn)
+  const lod2Candidates = Math.max(lod2Drawn, clampDebugCount(performanceStats?.sardineCandidates))
+  const lod0Drawn = Math.max(0, sardineCount - lod2Drawn)
+
   return (
     <div className={`debug-panel ${className}`}>
       <div>Data: {creatureDataSource}</div>
       <div>Creatures: {creatureCount}</div>
       <div>Visible: {renderLoad?.visibleCreatures ?? '—'} · Sardines: {renderLoad?.sardines ?? '—'}</div>
       <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
-      <div>
-        Instancing: {formatInstancingMode(performanceStats?.instancingMode)} · drawn {performanceStats?.instancedDrawn ?? 0} · candidates {performanceStats?.sardineCandidates ?? 0}
-      </div>
+      <div>LOD0: draw {lod0Drawn} / candidates {sardineCount}</div>
+      <div>LOD2: draw {lod2Drawn} / candidates {lod2Candidates}</div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>
         {DEBUG_VIEW_MODES.map(mode => (

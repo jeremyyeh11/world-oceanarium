@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_08`.
+Status: in progress as `v0.7.7-dev_09`.
 
 ### Environment direction
 
@@ -23,6 +23,7 @@ Status: in progress as `v0.7.7-dev_08`.
 - Replaces the wrong mid-screen horizon stripe with a camera-anchored top shimmer backdrop that stays near the upper water column and fades downward instead of intersecting the scene as a visible horizontal line.
 - Disables the old `UnderwaterFX` `SurfaceFoam` plane so only one surface shimmer plane is visible; this removes the duplicate halfway-down screen band.
 - Adds a visible cyan wireframe overlay to the current surface plane so its actual bounds and placement can be inspected directly.
+- Moves the diagnostic surface plane upward so its bottom wireframe edge sits near the requested upper-water reference line.
 
 ## v0.7.6 — Instanced sardine optimization
 

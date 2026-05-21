@@ -41,8 +41,35 @@ const SURFACE_FRAGMENT = /* glsl */ `
     return value;
   }
 
+  vec2 perlinGradient(vec2 p) {
+    float angle = hash(p) * 6.28318530718;
+    return vec2(cos(angle), sin(angle));
+  }
+
+  float perlinNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+
+    float a = dot(perlinGradient(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0));
+    float b = dot(perlinGradient(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0));
+    float c = dot(perlinGradient(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0));
+    float d = dot(perlinGradient(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0));
+
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 0.5 + 0.5;
+  }
+
   void main() {
     vec2 uv = vUv;
+
+    // Diagnostic only: show the large Perlin mask in obvious green/black
+    // before using it to make the caustics more occasional in the next pass.
+    float largePerlin = perlinNoise(uv * vec2(3.2, 1.45) + vec2(uTime * 0.018, -uTime * 0.010));
+    float mask = smoothstep(0.44, 0.60, largePerlin);
+    float softAlpha = 0.28 + mask * 0.42;
+    vec3 maskColor = mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.12), mask);
+    gl_FragColor = vec4(maskColor, softAlpha);
+    return;
 
     // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,
     // not broad cloud blobs. Two offset bands slide against each other cheaply.
@@ -108,19 +135,8 @@ export default function WaterSurface() {
           transparent
           depthWrite={false}
           depthTest={false}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
           side={THREE.DoubleSide}
-        />
-      </mesh>
-      <mesh position={SURFACE_PLANE_POSITION} rotation={SURFACE_PLANE_ROTATION} raycast={() => null}>
-        <planeGeometry args={SURFACE_PLANE_SIZE} />
-        <meshBasicMaterial
-          color="#7ff4ff"
-          transparent
-          opacity={0.88}
-          wireframe
-          depthWrite={false}
-          depthTest={false}
         />
       </mesh>
     </group>

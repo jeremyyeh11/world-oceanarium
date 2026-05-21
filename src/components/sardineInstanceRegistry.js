@@ -1,22 +1,40 @@
 export const SARDINE_INSTANCE_DISTANCE = 8.0
 export const SARDINE_TANK_INSTANCE_DISTANCE = 25.0
+export const SARDINE_LOD1_DISTANCE = 5.0
+export const SARDINE_TANK_LOD1_DISTANCE = 16.0
 
-const sardineInstances = new Map()
+const sardineLod2Instances = new Map()
+const sardineLod1Instances = new Map()
 const sardineLod0Entries = new Map()
 const sardineFrustumEntries = new Map()
 
 export function updateSardineInstance(id, entry) {
   if (!id || !entry) return
-  sardineInstances.set(String(id), entry)
+  sardineLod2Instances.set(String(id), entry)
 }
 
 export function removeSardineInstance(id) {
   if (!id) return
-  sardineInstances.delete(String(id))
+  sardineLod2Instances.delete(String(id))
 }
 
 export function getSardineInstances() {
-  return sardineInstances
+  return sardineLod2Instances
+}
+
+
+export function updateSardineLod1Instance(id, entry) {
+  if (!id || !entry) return
+  sardineLod1Instances.set(String(id), entry)
+}
+
+export function removeSardineLod1Instance(id) {
+  if (!id) return
+  sardineLod1Instances.delete(String(id))
+}
+
+export function getSardineLod1Instances() {
+  return sardineLod1Instances
 }
 
 export function updateSardineLod0Entry(id, entry) {

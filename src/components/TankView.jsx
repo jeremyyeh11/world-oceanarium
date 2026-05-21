@@ -6,7 +6,7 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { getSardineFrustumStats, getSardineInstances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE } from './sardineInstanceRegistry'
+import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
@@ -262,19 +262,23 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       if (elapsed >= FPS_SAMPLE_MS) {
         const instanceDebug = window.__WO_SARDINE_INSTANCE_DEBUG
         const instancingMode = instanceDebug?.mode ?? 'off'
-        const instancedDrawn = Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0
+        const lod1Drawn = Number.isFinite(instanceDebug?.lod1Total) ? instanceDebug.lod1Total : 0
+        const lod2Drawn = Number.isFinite(instanceDebug?.lod2Total) ? instanceDebug.lod2Total : (Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0)
         const lod0Stats = getSardineLod0Stats()
         const frustumStats = getSardineFrustumStats()
         const nextStats = {
           fps: Math.round((frameCount * 1000) / elapsed),
           sardineCandidates: getSardineInstances().size,
-          instancedDrawn,
+          lod1Candidates: getSardineLod1Instances().size,
+          lod1Drawn,
+          instancedDrawn: lod2Drawn,
           lod0Drawn: lod0Stats.drawn,
           lod0Candidates: lod0Stats.candidates,
           frustumCulled: frustumStats.culled,
           frustumCandidates: frustumStats.candidates,
           instancingMode,
           instancingDistance: selectedCreature ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE,
+          lod1Distance: selectedCreature ? SARDINE_LOD1_DISTANCE : SARDINE_TANK_LOD1_DISTANCE,
         }
         if (!arePerformanceStatsEqual(performanceStatsRef.current, nextStats)) {
           performanceStatsRef.current = nextStats
@@ -538,13 +542,16 @@ function clampDebugCount(value) {
 function arePerformanceStatsEqual(left, right) {
   return left?.fps === right?.fps &&
     left?.sardineCandidates === right?.sardineCandidates &&
+    left?.lod1Candidates === right?.lod1Candidates &&
+    left?.lod1Drawn === right?.lod1Drawn &&
     left?.instancedDrawn === right?.instancedDrawn &&
     left?.lod0Drawn === right?.lod0Drawn &&
     left?.lod0Candidates === right?.lod0Candidates &&
     left?.frustumCulled === right?.frustumCulled &&
     left?.frustumCandidates === right?.frustumCandidates &&
     left?.instancingMode === right?.instancingMode &&
-    left?.instancingDistance === right?.instancingDistance
+    left?.instancingDistance === right?.instancingDistance &&
+    left?.lod1Distance === right?.lod1Distance
 }
 
 function DebugPanel({
@@ -561,9 +568,11 @@ function DebugPanel({
   onDebugLayerToggle,
 }) {
   const sardineCount = clampDebugCount(renderLoad?.sardines)
+  const lod1Drawn = clampDebugCount(performanceStats?.lod1Drawn)
+  const lod1Candidates = Math.max(lod1Drawn, clampDebugCount(performanceStats?.lod1Candidates))
   const lod2Drawn = clampDebugCount(performanceStats?.instancedDrawn)
   const lod2Candidates = Math.max(lod2Drawn, clampDebugCount(performanceStats?.sardineCandidates))
-  const lod0Candidates = clampDebugCount(performanceStats?.lod0Candidates) || Math.max(0, sardineCount - lod2Candidates)
+  const lod0Candidates = clampDebugCount(performanceStats?.lod0Candidates) || Math.max(0, sardineCount - lod1Candidates - lod2Candidates)
   const lod0Drawn = Math.min(lod0Candidates, clampDebugCount(performanceStats?.lod0Drawn))
   const frustumCandidates = clampDebugCount(performanceStats?.frustumCandidates)
   const frustumCulled = Math.min(frustumCandidates, clampDebugCount(performanceStats?.frustumCulled))
@@ -575,6 +584,7 @@ function DebugPanel({
       <div>Visible: {renderLoad?.visibleCreatures ?? '—'} · Sardines: {renderLoad?.sardines ?? '—'}</div>
       <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
       <div>LOD0: {lod0Drawn}/{lod0Candidates}</div>
+      <div>LOD1: {lod1Drawn}/{lod1Candidates}</div>
       <div>LOD2: {lod2Drawn}/{lod2Candidates}</div>
       <div>Frustum: {frustumCulled}/{frustumCandidates}</div>
       <div className="debug-panel-row">

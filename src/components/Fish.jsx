@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
-import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod0Entry } from './sardineInstanceRegistry'
+import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -730,7 +730,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   })
   const animationRef = useRef('idle')
   const [animation, setAnimation] = useState('idle')
-  const [renderInstancedSardine, setRenderInstancedSardine] = useState(false)
+  const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(schoolState?.path ?? path)
   const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
@@ -774,6 +774,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 
   useEffect(() => {
     return () => {
+      removeSardineLod1Instance(creature.id)
       removeSardineInstance(creature.id)
       removeSardineLod0Entry(creature.id)
       removeSardineFrustumEntry(creature.id)
@@ -1068,7 +1069,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           id: creature.id,
           selected,
           debug,
-          renderInstancedSardine,
+          instancedSardineLod,
           renderModel: Boolean(renderModel),
           position: [Number(fish.position.x.toFixed(2)), Number(fish.position.y.toFixed(2)), Number(fish.position.z.toFixed(2))],
           camera: [Number(camera.position.x.toFixed(2)), Number(camera.position.y.toFixed(2)), Number(camera.position.z.toFixed(2))],
@@ -1086,10 +1087,23 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 
     if (canInstanceSardine && !selected && !debug) {
       const distanceToCamera = camera.position.distanceTo(fish.position)
-      const instanceDistance = zoomActive ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE
-      const shouldInstance = renderInstancedSardine
-        ? distanceToCamera > instanceDistance - SARDINE_INSTANCE_HYSTERESIS
-        : distanceToCamera > instanceDistance + SARDINE_INSTANCE_HYSTERESIS
+      const lod2Distance = zoomActive ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE
+      const lod1Distance = zoomActive ? SARDINE_LOD1_DISTANCE : SARDINE_TANK_LOD1_DISTANCE
+      const nextInstancedLod = (() => {
+        if (instancedSardineLod === 'lod2') {
+          if (distanceToCamera > lod2Distance - SARDINE_INSTANCE_HYSTERESIS) return 'lod2'
+        } else if (distanceToCamera > lod2Distance + SARDINE_INSTANCE_HYSTERESIS) {
+          return 'lod2'
+        }
+
+        if (instancedSardineLod === 'lod1') {
+          if (distanceToCamera > lod1Distance - SARDINE_INSTANCE_HYSTERESIS) return 'lod1'
+        } else if (distanceToCamera > lod1Distance + SARDINE_INSTANCE_HYSTERESIS) {
+          return 'lod1'
+        }
+
+        return null
+      })()
       cullProjection.copy(fish.position).project(camera)
       const offscreenCulled = (
         cullProjection.z < -1 ||
@@ -1103,11 +1117,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         culled: offscreenCulled,
       })
       updateSardineLod0Entry(creature.id, {
-        candidate: !shouldInstance,
-        drawn: !shouldInstance && !offscreenCulled,
+        candidate: !nextInstancedLod,
+        drawn: !nextInstancedLod && !offscreenCulled,
       })
-      if (shouldInstance !== renderInstancedSardine) setRenderInstancedSardine(shouldInstance)
-      if (shouldInstance && !offscreenCulled) {
+      if (nextInstancedLod !== instancedSardineLod) setInstancedSardineLod(nextInstancedLod)
+      if (nextInstancedLod && !offscreenCulled) {
         instancedEntry.position.copy(fish.position)
         instancedEntry.quaternion.copy(fish.quaternion).normalize()
         instancedEntry.scale = size
@@ -1116,15 +1130,23 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           instancedEntry.quaternion,
           tempScale.set(size, size, size),
         )
-        updateSardineInstance(creature.id, instancedEntry)
+        if (nextInstancedLod === 'lod1') {
+          updateSardineLod1Instance(creature.id, instancedEntry)
+          removeSardineInstance(creature.id)
+        } else {
+          updateSardineInstance(creature.id, instancedEntry)
+          removeSardineLod1Instance(creature.id)
+        }
       } else {
+        removeSardineLod1Instance(creature.id)
         removeSardineInstance(creature.id)
       }
     } else {
       if (modelRootRef.current) modelRootRef.current.visible = true
       removeSardineLod0Entry(creature.id)
       removeSardineFrustumEntry(creature.id)
-      if (renderInstancedSardine) setRenderInstancedSardine(false)
+      if (instancedSardineLod) setInstancedSardineLod(null)
+      removeSardineLod1Instance(creature.id)
       removeSardineInstance(creature.id)
     }
 
@@ -1172,7 +1194,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const focusScale = selected ? 1.08 : 1
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const showSelectedOutline = selected && !hideSelectionSilhouette
-  const renderModel = model && !renderInstancedSardine
+  const renderModel = model && !instancedSardineLod
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
   const fresnelRim = useMemo(() => (

@@ -3,7 +3,8 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { BokehDepthShader, BokehShader } from 'three/examples/jsm/shaders/BokehShader2.js'
 
-const DOF_PIXEL_RATIO_CAP = 1.25
+const DOF_PIXEL_RATIO_CAP = 2
+const DOF_COLOR_SAMPLES = 4
 const DOF_RINGS = 2
 const DOF_SAMPLES = 3
 const DOF_FSTOP = 9.5
@@ -38,7 +39,10 @@ export default function FollowDepthOfField({ focusTarget = null }) {
     const width = Math.max(1, Math.floor(size.width * pixelRatio))
     const height = Math.max(1, Math.floor(size.height * pixelRatio))
 
-    const colorTarget = new THREE.WebGLRenderTarget(width, height, { type: THREE.HalfFloatType })
+    const colorTarget = new THREE.WebGLRenderTarget(width, height, {
+      type: THREE.HalfFloatType,
+      samples: gl.capabilities.isWebGL2 ? DOF_COLOR_SAMPLES : 0,
+    })
     colorTarget.texture.name = 'FollowDepthOfField.color'
     const depthTarget = new THREE.WebGLRenderTarget(width, height, { type: THREE.HalfFloatType })
     depthTarget.texture.name = 'FollowDepthOfField.depth'
@@ -101,9 +105,12 @@ export default function FollowDepthOfField({ focusTarget = null }) {
       previousAutoClear: gl.autoClear,
     }
     gl.domElement.dataset.followDof = 'dof2'
+    gl.domElement.dataset.followDofResolution = `${width}x${height}`
 
     return () => {
       delete gl.domElement.dataset.followDof
+      delete gl.domElement.dataset.followDofFocus
+      delete gl.domElement.dataset.followDofResolution
       gl.autoClear = postRef.current?.previousAutoClear ?? gl.autoClear
       postRef.current = null
       colorTarget.dispose()

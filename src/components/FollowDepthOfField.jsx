@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 
 const DOF_APERTURE = 0.00018
 const DOF_MAX_BLUR = 0.006
@@ -29,6 +30,7 @@ export default function FollowDepthOfField({ focusTarget = null }) {
 
     composer.addPass(renderPass)
     composer.addPass(bokehPass)
+    composer.addPass(new OutputPass())
     composerRef.current = composer
     bokehPassRef.current = bokehPass
     gl.domElement.dataset.followDof = 'active'

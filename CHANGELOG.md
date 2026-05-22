@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_06`.
+Status: in progress as `v0.7.8-dev_07`.
 
 ### Screenshot / debug capture
 
@@ -22,6 +22,7 @@ Status: in progress as `v0.7.8-dev_06`.
 ### Follow camera
 
 - Adds a subtle depth-of-field pass in follow mode, active both inside and outside screenshot mode, with focus locked to the followed fish.
+- Keeps follow-mode depth of field on the normal output color/tone-mapping path so the postprocess composite does not darken the tank.
 
 ## v0.7.7 — Surface and depth polish
 

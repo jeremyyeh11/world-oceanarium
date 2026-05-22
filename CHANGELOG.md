@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_05`.
+Status: in progress as `v0.7.8-dev_06`.
 
 ### Screenshot / debug capture
 
@@ -18,6 +18,10 @@ Status: in progress as `v0.7.8-dev_05`.
 - Adds a debug-panel `Shot` option to hide or show the debug menu while screenshot mode is active.
 - Keeps debug overlays/LOD colors available during screenshot mode when debug is enabled, so diagnostic screenshots can hide the menu without losing the visual overlays.
 - Adds a screenshot-only procedural film-grain overlay without changing contrast, saturation, exposure, or fog.
+
+### Follow camera
+
+- Adds a subtle depth-of-field pass in follow mode, active both inside and outside screenshot mode, with focus locked to the followed fish.
 
 ## v0.7.7 — Surface and depth polish
 

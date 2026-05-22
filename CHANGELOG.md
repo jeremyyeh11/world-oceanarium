@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_51`.
+Status: in progress as `v0.7.7-dev_52`.
 
 ### Environment direction
 
@@ -65,6 +65,7 @@ Status: in progress as `v0.7.7-dev_51`.
 - Makes glints rarer and less intense, deepens ocean haze/distance grading, and adds a sparse suspended-particle layer near the upper water column.
 - Shrinks suspended-particle specks substantially and pushes the ocean haze darker/denser for stronger distance depth.
 - Makes suspended particles smaller/fainter again and changes motion from near-static bobbing to subtle upward water-column drift so they do not read as hanging ornaments.
+- Adds an intentionally obvious diagnostic fish light-mask shader to full GLTF fish, using animated world-space cyan/shadow bands to prove the fake light-function path before tasteful tuning.
 
 ## v0.7.6 — Instanced sardine optimization
 

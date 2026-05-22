@@ -55,6 +55,7 @@ const LOD0_DEBUG_COLOR = '#00ff28'
 const SELECTED_RIM_INTENSITY = 1.65
 const LEADER_RIM_INTENSITY = 0.8
 const RIM_POWER = 3.1
+const FISH_LIGHT_MASK_DIAGNOSTIC = true
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
 const SARDINE_VIEW_CULL_MARGIN_NDC = 1.28
 const SCHOOL_SPACING = 0.58
@@ -581,6 +582,59 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   material.needsUpdate = true
 }
 
+function applyFishLightMaskDiagnostic(material, rim = null) {
+  if (!FISH_LIGHT_MASK_DIAGNOSTIC && !rim) return
+  const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
+  const rimIntensity = rim?.intensity ?? 0
+  const rimPower = rim?.power ?? RIM_POWER
+  const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
+  const maskUniforms = { uTime: { value: 0 } }
+
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
+    shader.uniforms.uRimColor = { value: rimColor }
+    shader.uniforms.uRimIntensity = { value: rimIntensity }
+    shader.uniforms.uRimPower = { value: rimPower }
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+varying vec3 vFishWorldPosition;`
+      )
+      .replace(
+        '#include <worldpos_vertex>',
+        `#include <worldpos_vertex>
+vFishWorldPosition = worldPosition.xyz;`
+      )
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+uniform float uFishLightMaskTime;
+uniform vec3 uRimColor;
+uniform float uRimIntensity;
+uniform float uRimPower;
+varying vec3 vFishWorldPosition;`
+      )
+      .replace(
+        '#include <dithering_fragment>',
+        `${FISH_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vFishWorldPosition;
+float stripeA = sin(maskPos.x * 3.3 + maskPos.y * 1.6 + maskPos.z * 2.1 + uFishLightMaskTime * 0.75);
+float stripeB = sin(maskPos.x * -1.7 + maskPos.z * 4.2 - uFishLightMaskTime * 0.55);
+float diagnosticMask = smoothstep(0.05, 0.42, stripeA + stripeB * 0.35);
+float diagnosticShadow = smoothstep(0.15, 0.55, -stripeA + stripeB * 0.20);
+gl_FragColor.rgb *= mix(0.42, 1.0, diagnosticShadow);
+gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.08, 1.0, 0.95), diagnosticMask * 0.82);` : ''}
+float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), uRimPower);
+gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
+#include <dithering_fragment>`
+      )
+  }
+  material.customProgramCacheKey = () => `fish-light-mask-diagnostic:${FISH_LIGHT_MASK_DIAGNOSTIC ? 'on' : 'off'}:${rimKey}`
+  material.userData.fishLightMaskUniforms = maskUniforms
+  material.needsUpdate = true
+}
+
 function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
   const materials = []
   root.traverse(child => {
@@ -600,7 +654,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
         nextMaterial.emissive.set(lodDebugColor)
         nextMaterial.emissiveIntensity = 0.32
       }
-      if (rim) applyFresnelRim(nextMaterial, rim.color, rim.intensity, rim.power)
+      applyFishLightMaskDiagnostic(nextMaterial, rim)
       materials.push(nextMaterial)
       return nextMaterial
     })
@@ -660,10 +714,19 @@ function FishModel({ model, animation = 'idle', animationVariation, rim = null, 
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
   const activeActionRef = useRef(null)
+  const materialsRef = useRef([])
 
   useEffect(() => {
-    applyModelMaterialSettings(object, rim, lodDebugColor)
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
   }, [object, rim, lodDebugColor])
+
+  useFrame(({ clock }) => {
+    const elapsed = clock.getElapsedTime()
+    materialsRef.current.forEach(material => {
+      const uniforms = material?.userData?.fishLightMaskUniforms
+      if (uniforms) uniforms.uTime.value = elapsed
+    })
+  })
 
   useEffect(() => {
     playModelAction(actions, activeActionRef, animation, animationVariation)

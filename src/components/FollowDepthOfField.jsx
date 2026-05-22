@@ -7,10 +7,14 @@ const DOF_PIXEL_RATIO_CAP = 2
 const DOF_COLOR_SAMPLES = 4
 const DOF_RINGS = 2
 const DOF_SAMPLES = 3
-const DOF_FSTOP = 0.8
-const DOF_MAX_BLUR = 0.35
+const DOF_FSTOP = 2.8
+const DOF_MAX_BLUR = 0.2
 const DOF_FOCAL_LENGTH = 35
 const DOF_FOCUS_DAMPING = 8
+const DOF_NEAR_BLUR_START = 2.2
+const DOF_NEAR_BLUR_FALLOFF = 6
+const DOF_FAR_BLUR_START = 2.8
+const DOF_FAR_BLUR_FALLOFF = 8
 const targetPosition = new THREE.Vector3()
 const targetCameraPosition = new THREE.Vector3()
 const targetNdcPosition = new THREE.Vector3()
@@ -67,7 +71,7 @@ export default function FollowDepthOfField({ focusTarget = null }) {
     bokehUniforms.fstop.value = DOF_FSTOP
     bokehUniforms.maxblur.value = DOF_MAX_BLUR
     bokehUniforms.showFocus.value = false
-    bokehUniforms.manualdof.value = false
+    bokehUniforms.manualdof.value = true
     bokehUniforms.vignetting.value = false
     bokehUniforms.depthblur.value = false
     bokehUniforms.threshold.value = 0.8
@@ -80,10 +84,16 @@ export default function FollowDepthOfField({ focusTarget = null }) {
     bokehUniforms.shaderFocus.value = true
     bokehUniforms.focusCoords.value.set(0.5, 0.5)
 
+    const calibratedFragmentShader = BokehShader.fragmentShader
+      .replace('float ndofstart = 1.0; // near dof blur start', `float ndofstart = ${DOF_NEAR_BLUR_START.toFixed(1)}; // near dof blur start`)
+      .replace('float ndofdist = 2.0; // near dof blur falloff distance', `float ndofdist = ${DOF_NEAR_BLUR_FALLOFF.toFixed(1)}; // near dof blur falloff distance`)
+      .replace('float fdofstart = 1.0; // far dof blur start', `float fdofstart = ${DOF_FAR_BLUR_START.toFixed(1)}; // far dof blur start`)
+      .replace('float fdofdist = 3.0; // far dof blur falloff distance', `float fdofdist = ${DOF_FAR_BLUR_FALLOFF.toFixed(1)}; // far dof blur falloff distance`)
+
     const bokehMaterial = new THREE.ShaderMaterial({
       uniforms: bokehUniforms,
       vertexShader: BokehShader.vertexShader,
-      fragmentShader: BokehShader.fragmentShader,
+      fragmentShader: calibratedFragmentShader,
       defines: {
         RINGS: DOF_RINGS,
         SAMPLES: DOF_SAMPLES,
@@ -105,11 +115,15 @@ export default function FollowDepthOfField({ focusTarget = null }) {
       previousAutoClear: gl.autoClear,
     }
     gl.domElement.dataset.followDof = 'dof2'
+    gl.domElement.dataset.followDofFstop = `${DOF_FSTOP}`
+    gl.domElement.dataset.followDofRange = `${DOF_NEAR_BLUR_START}/${DOF_FAR_BLUR_START}`
     gl.domElement.dataset.followDofResolution = `${width}x${height}`
 
     return () => {
       delete gl.domElement.dataset.followDof
+      delete gl.domElement.dataset.followDofFstop
       delete gl.domElement.dataset.followDofFocus
+      delete gl.domElement.dataset.followDofRange
       delete gl.domElement.dataset.followDofResolution
       gl.autoClear = postRef.current?.previousAutoClear ?? gl.autoClear
       postRef.current = null

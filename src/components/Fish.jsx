@@ -621,10 +621,11 @@ varying vec3 vFishWorldPosition;`
         `${FISH_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vFishWorldPosition;
 float stripeA = sin(maskPos.x * 3.3 + maskPos.y * 1.6 + maskPos.z * 2.1 + uFishLightMaskTime * 0.75);
 float stripeB = sin(maskPos.x * -1.7 + maskPos.z * 4.2 - uFishLightMaskTime * 0.55);
-float diagnosticMask = smoothstep(0.05, 0.42, stripeA + stripeB * 0.35);
-float diagnosticShadow = smoothstep(0.15, 0.55, -stripeA + stripeB * 0.20);
-gl_FragColor.rgb *= mix(0.42, 1.0, diagnosticShadow);
-gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.08, 1.0, 0.95), diagnosticMask * 0.82);` : ''}
+float lightMask = smoothstep(0.10, 0.50, stripeA + stripeB * 0.30);
+float shadowMask = smoothstep(0.12, 0.56, -stripeA + stripeB * 0.18);
+float topWeight = smoothstep(-8.0, 3.0, maskPos.y);
+float lightFactor = mix(0.68, 1.04, lightMask) * mix(0.82, 1.0, shadowMask);
+gl_FragColor.rgb *= mix(1.0, lightFactor, 0.72 * topWeight);` : ''}
 float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), uRimPower);
 gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`

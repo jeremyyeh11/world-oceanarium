@@ -91,13 +91,13 @@ varying vec3 vSardineWorldPosition;`,
       .replace(
         '#include <dithering_fragment>',
         `${SARDINE_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vSardineWorldPosition;
-float stripeA = sin(maskPos.x * 3.3 + maskPos.y * 1.6 + maskPos.z * 2.1 + uSardineWiggleTime * 0.75);
-float stripeB = sin(maskPos.x * -1.7 + maskPos.z * 4.2 - uSardineWiggleTime * 0.55);
-float lightMask = smoothstep(0.10, 0.50, stripeA + stripeB * 0.30);
-float shadowMask = smoothstep(0.12, 0.56, -stripeA + stripeB * 0.18);
+float stripeA = sin(maskPos.x * 1.75 + maskPos.y * 0.85 + maskPos.z * 1.10 + uSardineWiggleTime * 0.46);
+float stripeB = sin(maskPos.x * -0.95 + maskPos.z * 2.15 - uSardineWiggleTime * 0.34);
+float lightMask = smoothstep(0.06, 0.46, stripeA + stripeB * 0.28);
+float shadowMask = smoothstep(0.08, 0.50, -stripeA + stripeB * 0.16);
 float topWeight = smoothstep(-8.0, 3.0, maskPos.y);
 float lightFactor = mix(0.68, 1.04, lightMask) * mix(0.82, 1.0, shadowMask);
-gl_FragColor.rgb *= mix(1.0, lightFactor, 0.72 * topWeight);` : ''}
+gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);` : ''}
 #include <dithering_fragment>`,
       )
   }

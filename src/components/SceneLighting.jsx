@@ -8,15 +8,15 @@ import * as THREE from 'three'
 const PALETTES = {
   ocean: {
     envTop: '#8bdcff',
-    envHorizon: '#0f6f9e',
-    envDeep: '#020916',
-    fog: '#061a2e',
+    envHorizon: '#0d648f',
+    envDeep: '#010712',
+    fog: '#041525',
     hemiSky: '#8edcff',
     hemiGround: '#020816',
     key: '#9ee5ff',
     fill: '#116b92',
-    density: 0.024,
-    exposure: 1.08,
+    density: 0.028,
+    exposure: 1.06,
   },
   'tropical-river': {
     envTop: '#d3ffd0',

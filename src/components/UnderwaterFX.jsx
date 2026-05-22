@@ -5,6 +5,7 @@ import * as THREE from 'three'
 const GOD_RAY_DIAGNOSTIC_WIREFRAME = false
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
 const GOD_RAY_SURFACE_START_Y = 15
+const SUSPENDED_PARTICLE_COUNT = 96
 
 const BASIC_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -63,6 +64,40 @@ const RAY_FRAGMENT = /* glsl */ `
     );
     float alpha = center * sideFade * vertical * shimmer * breath * uStrength * 0.28;
     gl_FragColor = vec4(0.34, 0.70, 0.90, alpha);
+  }
+`
+
+
+const PARTICLE_VERTEX = /* glsl */ `
+  uniform float uTime;
+  attribute float aSeed;
+  attribute float aSize;
+  varying float vAlpha;
+
+  void main() {
+    vec3 p = position;
+    p.x += sin(uTime * 0.055 + aSeed * 4.17) * 0.18;
+    p.y += sin(uTime * 0.040 + aSeed * 6.31) * 0.10;
+    p.z += cos(uTime * 0.046 + aSeed * 5.43) * 0.16;
+
+    vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+    float distanceFade = smoothstep(42.0, 8.0, -mvPosition.z);
+    vAlpha = distanceFade * (0.35 + fract(aSeed * 17.13) * 0.65);
+    gl_PointSize = aSize * (72.0 / max(8.0, -mvPosition.z));
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`
+
+const PARTICLE_FRAGMENT = /* glsl */ `
+  varying float vAlpha;
+
+  void main() {
+    vec2 p = gl_PointCoord - 0.5;
+    float r = dot(p, p) * 4.0;
+    float softDot = smoothstep(1.0, 0.0, r);
+    float core = smoothstep(0.20, 0.0, r);
+    float alpha = (softDot * 0.18 + core * 0.10) * vAlpha;
+    gl_FragColor = vec4(0.72, 0.96, 1.0, alpha);
   }
 `
 
@@ -185,6 +220,58 @@ function LightRays() {
   ))
 }
 
+
+function SuspendedParticles() {
+  const material = useRef()
+  const geometry = useMemo(() => {
+    const positions = new Float32Array(SUSPENDED_PARTICLE_COUNT * 3)
+    const seeds = new Float32Array(SUSPENDED_PARTICLE_COUNT)
+    const sizes = new Float32Array(SUSPENDED_PARTICLE_COUNT)
+
+    for (let index = 0; index < SUSPENDED_PARTICLE_COUNT; index += 1) {
+      const seed = (Math.sin(index * 91.73) * 43758.5453123) % 1
+      const seedA = seed < 0 ? seed + 1 : seed
+      const seedB = (Math.sin((index + 11.0) * 47.19) * 24634.6345) % 1
+      const seedC = (Math.sin((index + 29.0) * 18.87) * 13617.3437) % 1
+      const rx = seedA
+      const ry = seedB < 0 ? seedB + 1 : seedB
+      const rz = seedC < 0 ? seedC + 1 : seedC
+
+      positions[index * 3] = -22 + rx * 44
+      positions[index * 3 + 1] = 1.8 + ry * 10.8
+      positions[index * 3 + 2] = -18 + rz * 24
+      seeds[index] = seedA
+      sizes[index] = 9 + ((rx + ry * 0.7 + rz * 0.3) % 1) * 9
+    }
+
+    const nextGeometry = new THREE.BufferGeometry()
+    nextGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    nextGeometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1))
+    nextGeometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
+    return nextGeometry
+  }, [])
+  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
+
+  useFrame(({ clock }) => {
+    if (material.current) material.current.uniforms.uTime.value = clock.getElapsedTime()
+  })
+
+  return (
+    <points geometry={geometry} raycast={() => null} frustumCulled={false}>
+      <shaderMaterial
+        ref={material}
+        uniforms={uniforms}
+        vertexShader={PARTICLE_VERTEX}
+        fragmentShader={PARTICLE_FRAGMENT}
+        transparent
+        depthWrite={false}
+        depthTest
+        blending={THREE.NormalBlending}
+      />
+    </points>
+  )
+}
+
 function SurfaceFoam() {
   const material = useRef()
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
@@ -216,6 +303,7 @@ export default function UnderwaterFX({ biome = 'ocean' }) {
   return (
     <group>
       <LightRays />
+      <SuspendedParticles />
       {/* Surface shimmer now lives in WaterSurface; keep this disabled to avoid a duplicate mid-screen horizon band. */}
     </group>
   )

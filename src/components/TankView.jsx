@@ -484,6 +484,16 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
       <div className="tank-top-exposure" aria-hidden="true" />
 
+      {screenshotMode && (
+        <svg className="screenshot-grain" aria-hidden="true" focusable="false">
+          <filter id="screenshot-film-grain" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" seed="17" stitchTiles="no" />
+            <feColorMatrix type="saturate" values="0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#screenshot-film-grain)" />
+        </svg>
+      )}
+
       {!screenshotMode && !zoomActive && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
       {!screenshotMode && (

@@ -10,23 +10,13 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_16`.
+Status: in progress as `v0.7.8-dev_17`.
 
 ### Screenshot / debug capture
 
 - Starts the next dev bucket after clean `v0.7.7` acceptance.
 - Always hides the debug menu in screenshot mode while keeping debug overlays/LOD colors available when debug is enabled.
 - Adds a screenshot-only procedural film-grain overlay without changing contrast, saturation, exposure, or fog.
-
-### Follow camera
-
-- Adds a subtle depth-of-field pass in follow mode, active both inside and outside screenshot mode, with focus locked to the followed fish.
-- Keeps follow-mode depth of field on the normal output color/tone-mapping path so the postprocess composite does not darken the tank.
-- Softens the follow-mode DOF strength and focuses from the fish bounds center instead of the root object position, reducing whole-frame dark blur/smear.
-- Replaces the simple bokeh pass with the `webgl_postprocessing_dof2` shader path and sets focal depth from the followed fish's camera-space depth.
-- Uses the `dof2` shader autofocus path with focus coordinates projected from the followed fish center, so the shader samples depth exactly at the followed fish on screen.
-- Restores postprocess sharpness by rendering follow DOF at up to `2x` device pixel ratio and enabling 4x MSAA on the color target when WebGL2 is available.
-- Makes calibrated follow-mode DOF visibly stronger by tightening the manual near/far depth window and raising the blur cap while keeping the followed fish as the focus target.
 
 ## v0.7.7 — Surface and depth polish
 

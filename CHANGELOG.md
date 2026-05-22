@@ -10,13 +10,14 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_01`.
+Status: in progress as `v0.7.8-dev_02`.
 
 ### Screenshot / debug capture
 
 - Starts the next dev bucket after clean `v0.7.7` acceptance.
 - Adds a debug-panel `Shot` option to hide or show the debug menu while screenshot mode is active.
 - Keeps debug overlays/LOD colors available during screenshot mode when debug is enabled, so diagnostic screenshots can hide the menu without losing the visual overlays.
+- Adds a screenshot-only filmic pass: CSS contrast/saturation lift, subtle grain overlay, stronger top exposure wash, and increased Three.js fog/exposure for deeper capture haze.
 
 ## v0.7.7 — Surface and depth polish
 

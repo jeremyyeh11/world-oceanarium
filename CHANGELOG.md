@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_49`.
+Status: in progress as `v0.7.7-dev_50`.
 
 ### Environment direction
 
@@ -63,6 +63,7 @@ Status: in progress as `v0.7.7-dev_49`.
 - Breaks the surface glints out of uniform parallel bands by warping the line field and cross-cutting it into irregular patches.
 - Increases glint domain-warp strength and bends the sine phase so surface streaks curve instead of reading as straight broken lines.
 - Makes glints rarer and less intense, deepens ocean haze/distance grading, and adds a sparse suspended-particle layer near the upper water column.
+- Shrinks suspended-particle specks substantially and pushes the ocean haze darker/denser for stronger distance depth.
 
 ## v0.7.6 — Instanced sardine optimization
 

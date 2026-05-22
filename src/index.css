@@ -547,6 +547,14 @@ button { font: inherit; }
   padding: 0;
 }
 
+.debug-panel-button--wide {
+  width: auto;
+  min-width: 5.4rem;
+  padding: 0 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .debug-panel-button[aria-pressed="true"] {
   border-color: rgba(125,249,255,0.68);
   background: rgba(0,60,78,0.66);

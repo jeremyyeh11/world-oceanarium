@@ -6,10 +6,11 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 
-const DOF_APERTURE = 0.00018
-const DOF_MAX_BLUR = 0.006
+const DOF_APERTURE = 0.00009
+const DOF_MAX_BLUR = 0.0035
 const DOF_PIXEL_RATIO_CAP = 1.35
 const targetPosition = new THREE.Vector3()
+const targetBounds = new THREE.Box3()
 
 export default function FollowDepthOfField({ focusTarget = null }) {
   const { gl, scene, camera, size } = useThree()
@@ -49,7 +50,13 @@ export default function FollowDepthOfField({ focusTarget = null }) {
     const bokehPass = bokehPassRef.current
     if (!composer || !bokehPass || !focusTarget) return
 
-    focusTarget.getWorldPosition(targetPosition)
+    targetBounds.setFromObject(focusTarget)
+    if (!targetBounds.isEmpty()) {
+      targetBounds.getCenter(targetPosition)
+    } else {
+      focusTarget.getWorldPosition(targetPosition)
+    }
+
     bokehPass.uniforms.focus.value = camera.position.distanceTo(targetPosition)
     composer.render(delta)
   }, 1)

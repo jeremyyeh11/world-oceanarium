@@ -8,13 +8,13 @@ const DOF_COLOR_SAMPLES = 4
 const DOF_RINGS = 2
 const DOF_SAMPLES = 3
 const DOF_FSTOP = 2.8
-const DOF_MAX_BLUR = 0.2
+const DOF_MAX_BLUR = 0.32
 const DOF_FOCAL_LENGTH = 35
 const DOF_FOCUS_DAMPING = 8
-const DOF_NEAR_BLUR_START = 2.2
-const DOF_NEAR_BLUR_FALLOFF = 6
-const DOF_FAR_BLUR_START = 2.8
-const DOF_FAR_BLUR_FALLOFF = 8
+const DOF_NEAR_BLUR_START = 0.55
+const DOF_NEAR_BLUR_FALLOFF = 2.4
+const DOF_FAR_BLUR_START = 0.75
+const DOF_FAR_BLUR_FALLOFF = 3.2
 const targetPosition = new THREE.Vector3()
 const targetCameraPosition = new THREE.Vector3()
 const targetNdcPosition = new THREE.Vector3()
@@ -85,10 +85,10 @@ export default function FollowDepthOfField({ focusTarget = null }) {
     bokehUniforms.focusCoords.value.set(0.5, 0.5)
 
     const calibratedFragmentShader = BokehShader.fragmentShader
-      .replace('float ndofstart = 1.0; // near dof blur start', `float ndofstart = ${DOF_NEAR_BLUR_START.toFixed(1)}; // near dof blur start`)
-      .replace('float ndofdist = 2.0; // near dof blur falloff distance', `float ndofdist = ${DOF_NEAR_BLUR_FALLOFF.toFixed(1)}; // near dof blur falloff distance`)
-      .replace('float fdofstart = 1.0; // far dof blur start', `float fdofstart = ${DOF_FAR_BLUR_START.toFixed(1)}; // far dof blur start`)
-      .replace('float fdofdist = 3.0; // far dof blur falloff distance', `float fdofdist = ${DOF_FAR_BLUR_FALLOFF.toFixed(1)}; // far dof blur falloff distance`)
+      .replace('float ndofstart = 1.0; // near dof blur start', `float ndofstart = ${DOF_NEAR_BLUR_START.toFixed(2)}; // near dof blur start`)
+      .replace('float ndofdist = 2.0; // near dof blur falloff distance', `float ndofdist = ${DOF_NEAR_BLUR_FALLOFF.toFixed(2)}; // near dof blur falloff distance`)
+      .replace('float fdofstart = 1.0; // far dof blur start', `float fdofstart = ${DOF_FAR_BLUR_START.toFixed(2)}; // far dof blur start`)
+      .replace('float fdofdist = 3.0; // far dof blur falloff distance', `float fdofdist = ${DOF_FAR_BLUR_FALLOFF.toFixed(2)}; // far dof blur falloff distance`)
 
     const bokehMaterial = new THREE.ShaderMaterial({
       uniforms: bokehUniforms,

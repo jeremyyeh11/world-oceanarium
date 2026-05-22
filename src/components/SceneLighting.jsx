@@ -75,12 +75,10 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }) {
   return texture
 }
 
-export default function SceneLighting({ biome = 'ocean', screenshotMode = false }) {
+export default function SceneLighting({ biome = 'ocean' }) {
   const { scene, gl } = useThree()
   const palette = PALETTES[biome] ?? PALETTES.ocean
   const envTexture = useMemo(() => paintEquirectGradient(palette), [palette])
-  const exposure = screenshotMode ? palette.exposure * 1.08 : palette.exposure
-  const fogDensity = screenshotMode ? palette.density * 1.18 : palette.density
 
   useEffect(() => {
     const previousEnvironment = scene.environment
@@ -89,7 +87,7 @@ export default function SceneLighting({ biome = 'ocean', screenshotMode = false 
 
     scene.environment = envTexture
     gl.toneMapping = THREE.ACESFilmicToneMapping
-    gl.toneMappingExposure = exposure
+    gl.toneMappingExposure = palette.exposure
 
     return () => {
       scene.environment = previousEnvironment
@@ -97,12 +95,12 @@ export default function SceneLighting({ biome = 'ocean', screenshotMode = false 
       gl.toneMappingExposure = previousExposure
       envTexture.dispose()
     }
-  }, [envTexture, exposure, gl, scene])
+  }, [envTexture, gl, palette.exposure, scene])
 
   return (
     <>
       <color attach="background" args={[palette.fog]} />
-      <fogExp2 attach="fog" args={[palette.fog, fogDensity]} />
+      <fogExp2 attach="fog" args={[palette.fog, palette.density]} />
       <hemisphereLight args={[palette.hemiSky, palette.hemiGround, biome === 'tropical-river' ? 1.55 : 1.35]} />
       <directionalLight position={[-8, 12, 8]} intensity={biome === 'tropical-river' ? 1.9 : 1.65} color={palette.key} />
       <directionalLight position={[7, -2, 5]} intensity={0.55} color={palette.fill} />

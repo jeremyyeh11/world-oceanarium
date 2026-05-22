@@ -8,6 +8,7 @@ const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
 const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
 const MAX_INSTANCES_PER_VARIANT = 1024
 const SARDINE_MODEL_SCALE = 0.42
+const SARDINE_LIGHT_MASK_DIAGNOSTIC = true
 
 const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
 const instanceMatrix = new THREE.Matrix4()
@@ -65,7 +66,8 @@ attribute float instancePhase;
 uniform float uSardineWiggleTime;
 uniform float uSardineWiggleAmplitude;
 uniform float uSardineWiggleFrequency;
-uniform float uSardineWiggleSpeed;`,
+uniform float uSardineWiggleSpeed;
+varying vec3 vSardineWorldPosition;`,
       )
       .replace(
         '#include <begin_vertex>',
@@ -74,8 +76,31 @@ float sardineTailMask = smoothstep(-0.08, 0.82, abs(position.z));
 float sardineWave = sin((position.z * uSardineWiggleFrequency) + (uSardineWiggleTime * uSardineWiggleSpeed) + instancePhase);
 transformed.x += sardineWave * uSardineWiggleAmplitude * sardineTailMask;`,
       )
+      .replace(
+        '#include <worldpos_vertex>',
+        `#include <worldpos_vertex>
+vSardineWorldPosition = worldPosition.xyz;`,
+      )
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+uniform float uSardineWiggleTime;
+varying vec3 vSardineWorldPosition;`,
+      )
+      .replace(
+        '#include <dithering_fragment>',
+        `${SARDINE_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vSardineWorldPosition;
+float stripeA = sin(maskPos.x * 3.3 + maskPos.y * 1.6 + maskPos.z * 2.1 + uSardineWiggleTime * 0.75);
+float stripeB = sin(maskPos.x * -1.7 + maskPos.z * 4.2 - uSardineWiggleTime * 0.55);
+float diagnosticMask = smoothstep(0.05, 0.42, stripeA + stripeB * 0.35);
+float diagnosticShadow = smoothstep(0.15, 0.55, -stripeA + stripeB * 0.20);
+gl_FragColor.rgb *= mix(0.42, 1.0, diagnosticShadow);
+gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.08, 1.0, 0.95), diagnosticMask * 0.82);` : ''}
+#include <dithering_fragment>`,
+      )
   }
-  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}`
+  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}-light-mask-${SARDINE_LIGHT_MASK_DIAGNOSTIC ? 'on' : 'off'}`
   nextMaterial.needsUpdate = true
   return nextMaterial
 }

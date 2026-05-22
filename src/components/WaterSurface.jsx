@@ -88,13 +88,16 @@ const SURFACE_FRAGMENT = /* glsl */ `
     float thinStreaks = smoothstep(0.46, 0.98, bandsB + bandsA * 0.18);
     float pinGlints = smoothstep(0.58, 1.08, fine + bandsB * 0.26);
     float maskDim = mix(0.34, 1.0, occasionMask);
-    // Sparse glints sit on top of the approved shimmer. Warp and cross-cut
-    // the line field so it breaks into uneven patches instead of uniform bands.
+    // Sparse glints sit on top of the approved shimmer. Strong domain warp
+    // bends the line field so it breaks into uneven patches instead of straight
+    // uniform bands.
     float glintWarp = fbm(uv * vec2(7.4, 3.2) + vec2(uTime * 0.020, -uTime * 0.014));
     float glintBreaker = noise(uv * vec2(18.0, 4.6) + vec2(-uTime * 0.075, uTime * 0.026));
-    vec2 glintUv = uv + vec2((glintWarp - 0.5) * 0.070, (glintBreaker - 0.5) * 0.045);
-    float glintA = sin(glintUv.x * 82.0 + glintUv.y * 17.0 + uTime * 0.42) * 0.5 + 0.5;
-    float glintB = sin(glintUv.x * -37.0 + glintUv.y * 31.0 - uTime * 0.27) * 0.5 + 0.5;
+    float glintWarpB = fbm(uv * vec2(13.0, 6.8) + vec2(-uTime * 0.035, uTime * 0.022));
+    vec2 glintUv = uv + vec2((glintWarp - 0.5) * 0.165 + (glintBreaker - 0.5) * 0.055, (glintWarpB - 0.5) * 0.130 + (glintBreaker - 0.5) * 0.070);
+    float bendPhase = (glintWarp - 0.5) * 6.2 + (glintWarpB - 0.5) * 4.6 + (glintBreaker - 0.5) * 2.4;
+    float glintA = sin(glintUv.x * 82.0 + glintUv.y * 17.0 + bendPhase + uTime * 0.42) * 0.5 + 0.5;
+    float glintB = sin(glintUv.x * -37.0 + glintUv.y * 31.0 - bendPhase * 0.62 - uTime * 0.27) * 0.5 + 0.5;
     float glintDepth = smoothstep(0.015, 0.090, uv.y) * (1.0 - smoothstep(0.36, 0.62, uv.y));
     float glintPatches = smoothstep(0.56, 0.82, glintA) * smoothstep(0.22, 0.72, glintB + glintBreaker * 0.28);
     float surfaceGlints = glintPatches * glintDepth * smoothstep(0.30, 0.66, largePerlin);

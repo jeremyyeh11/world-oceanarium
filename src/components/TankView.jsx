@@ -76,7 +76,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('none')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false })
-  const [hideDebugPanelInScreenshot, setHideDebugPanelInScreenshot] = useState(true)
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
@@ -92,7 +91,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const fishRefsByCreatureId = useRef(new Map())
   const zoomActive = Boolean(selectedCreature)
   const visibleDebugVisuals = debugMode
-  const visibleDebugPanel = debugMode && (!screenshotMode || !hideDebugPanelInScreenshot)
+  const visibleDebugPanel = debugMode && !screenshotMode
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
   const renderLoad = summarizeRenderLoad(creatures, biome?.id)
 
@@ -524,10 +523,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           audioLevels={audioLevels}
           performanceStats={performanceStats}
           renderLoad={renderLoad}
-          hideDebugPanelInScreenshot={hideDebugPanelInScreenshot}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
-          onHideDebugPanelInScreenshotToggle={() => setHideDebugPanelInScreenshot(current => !current)}
         />
       )}
 
@@ -545,10 +542,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               audioLevels={audioLevels}
               performanceStats={performanceStats}
               renderLoad={renderLoad}
-              hideDebugPanelInScreenshot={hideDebugPanelInScreenshot}
               onDebugViewChange={setDebugView}
               onDebugLayerToggle={toggleDebugLayer}
-              onHideDebugPanelInScreenshotToggle={() => setHideDebugPanelInScreenshot(current => !current)}
             />
           )}
         </InfoCard>
@@ -586,10 +581,8 @@ function DebugPanel({
   audioLevels,
   performanceStats,
   renderLoad,
-  hideDebugPanelInScreenshot,
   onDebugViewChange,
   onDebugLayerToggle,
-  onHideDebugPanelInScreenshotToggle,
 }) {
   const sardineCount = clampDebugCount(renderLoad?.sardines)
   const lod1Drawn = clampDebugCount(performanceStats?.lod1Drawn)
@@ -641,19 +634,6 @@ function DebugPanel({
             {layer.icon}
           </button>
         ))}
-      </div>
-      <div className="debug-panel-row">
-        <span className="debug-panel-label">Shot</span>
-        <button
-          type="button"
-          title="Hide debug menu in screenshot mode"
-          aria-label="Hide debug menu in screenshot mode"
-          aria-pressed={hideDebugPanelInScreenshot}
-          className="debug-panel-button debug-panel-button--wide"
-          onClick={onHideDebugPanelInScreenshotToggle}
-        >
-          {hideDebugPanelInScreenshot ? 'hide menu' : 'show menu'}
-        </button>
       </div>
       <AudioDebugMeters levels={audioLevels} />
       {creatureDataError && (

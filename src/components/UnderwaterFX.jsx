@@ -76,14 +76,15 @@ const PARTICLE_VERTEX = /* glsl */ `
 
   void main() {
     vec3 p = position;
-    p.x += sin(uTime * 0.055 + aSeed * 4.17) * 0.18;
-    p.y += sin(uTime * 0.040 + aSeed * 6.31) * 0.10;
-    p.z += cos(uTime * 0.046 + aSeed * 5.43) * 0.16;
+    float lift = fract(aSeed * 13.71 + uTime * 0.018);
+    p.x += sin(uTime * 0.135 + aSeed * 4.17) * 0.105;
+    p.y += (lift - 0.5) * 1.15 + sin(uTime * 0.095 + aSeed * 6.31) * 0.035;
+    p.z += cos(uTime * 0.120 + aSeed * 5.43) * 0.090;
 
     vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
     float distanceFade = smoothstep(42.0, 8.0, -mvPosition.z);
     vAlpha = distanceFade * (0.35 + fract(aSeed * 17.13) * 0.65);
-    gl_PointSize = aSize * (44.0 / max(8.0, -mvPosition.z));
+    gl_PointSize = aSize * (36.0 / max(8.0, -mvPosition.z));
     gl_Position = projectionMatrix * mvPosition;
   }
 `
@@ -96,7 +97,7 @@ const PARTICLE_FRAGMENT = /* glsl */ `
     float r = dot(p, p) * 4.0;
     float softDot = smoothstep(1.0, 0.0, r);
     float core = smoothstep(0.20, 0.0, r);
-    float alpha = (softDot * 0.14 + core * 0.06) * vAlpha;
+    float alpha = (softDot * 0.10 + core * 0.035) * vAlpha;
     gl_FragColor = vec4(0.72, 0.96, 1.0, alpha);
   }
 `
@@ -241,7 +242,7 @@ function SuspendedParticles() {
       positions[index * 3 + 1] = 1.8 + ry * 10.8
       positions[index * 3 + 2] = -18 + rz * 24
       seeds[index] = seedA
-      sizes[index] = 2.5 + ((rx + ry * 0.7 + rz * 0.3) % 1) * 3.0
+      sizes[index] = 1.6 + ((rx + ry * 0.7 + rz * 0.3) % 1) * 1.9
     }
 
     const nextGeometry = new THREE.BufferGeometry()

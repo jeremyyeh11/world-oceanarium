@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.7 — Surface and depth polish
 
-Status: in progress as `v0.7.7-dev_55`.
+Status: accepted and promoted as clean `v0.7.7`.
 
 ### Environment direction
 

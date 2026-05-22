@@ -12,6 +12,7 @@ const DOF_FOCAL_LENGTH = 35
 const DOF_FOCUS_DAMPING = 8
 const targetPosition = new THREE.Vector3()
 const targetCameraPosition = new THREE.Vector3()
+const targetNdcPosition = new THREE.Vector3()
 const targetBounds = new THREE.Box3()
 
 function getFollowFocalDepth(camera, focusTarget) {
@@ -72,7 +73,7 @@ export default function FollowDepthOfField({ focusTarget = null }) {
     bokehUniforms.noise.value = true
     bokehUniforms.dithering.value = 0.0001
     bokehUniforms.pentagon.value = false
-    bokehUniforms.shaderFocus.value = false
+    bokehUniforms.shaderFocus.value = true
     bokehUniforms.focusCoords.value.set(0.5, 0.5)
 
     const bokehMaterial = new THREE.ShaderMaterial({
@@ -122,6 +123,10 @@ export default function FollowDepthOfField({ focusTarget = null }) {
       ? targetDepth
       : THREE.MathUtils.damp(focusDepthRef.current, targetDepth, DOF_FOCUS_DAMPING, delta)
     post.bokehUniforms.focalDepth.value = focusDepthRef.current
+    targetNdcPosition.copy(targetPosition).project(camera)
+    const focusX = THREE.MathUtils.clamp(targetNdcPosition.x * 0.5 + 0.5, 0, 1)
+    const focusY = THREE.MathUtils.clamp(targetNdcPosition.y * 0.5 + 0.5, 0, 1)
+    post.bokehUniforms.focusCoords.value.set(focusX, focusY)
     post.bokehUniforms.znear.value = camera.near
     post.bokehUniforms.zfar.value = camera.far
     post.depthMaterial.uniforms.mNear.value = camera.near
@@ -142,6 +147,7 @@ export default function FollowDepthOfField({ focusTarget = null }) {
     scene.overrideMaterial = previousOverrideMaterial
 
     gl.setRenderTarget(null)
+    gl.domElement.dataset.followDofFocus = `${focusX.toFixed(3)},${focusY.toFixed(3)}`
     gl.render(post.postScene, post.postCamera)
   }, 1)
 

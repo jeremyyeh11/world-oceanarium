@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_09`.
+Status: in progress as `v0.7.8-dev_10`.
 
 ### Screenshot / debug capture
 
@@ -25,6 +25,7 @@ Status: in progress as `v0.7.8-dev_09`.
 - Keeps follow-mode depth of field on the normal output color/tone-mapping path so the postprocess composite does not darken the tank.
 - Softens the follow-mode DOF strength and focuses from the fish bounds center instead of the root object position, reducing whole-frame dark blur/smear.
 - Replaces the simple bokeh pass with the `webgl_postprocessing_dof2` shader path and sets focal depth from the followed fish's camera-space depth.
+- Uses the `dof2` shader autofocus path with focus coordinates projected from the followed fish center, so the shader samples depth exactly at the followed fish on screen.
 
 ## v0.7.7 — Surface and depth polish
 

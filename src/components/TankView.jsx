@@ -460,7 +460,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         onWheel={zoomFollowWithWheel}
       >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
-          <SceneLighting biome={biome.id} screenshotMode={screenshotMode} />
+          <SceneLighting biome={biome.id} />
           <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} followOrbit={followOrbit} followDistance={followDistance} followScreenOffset={followScreenOffset} />
           <Biome
             key={biome.id}

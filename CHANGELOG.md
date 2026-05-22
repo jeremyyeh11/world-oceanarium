@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_12`.
+Status: in progress as `v0.7.8-dev_13`.
 
 ### Screenshot / debug capture
 
@@ -26,6 +26,7 @@ Status: in progress as `v0.7.8-dev_12`.
 - Replaces the simple bokeh pass with the `webgl_postprocessing_dof2` shader path and sets focal depth from the followed fish's camera-space depth.
 - Uses the `dof2` shader autofocus path with focus coordinates projected from the followed fish center, so the shader samples depth exactly at the followed fish on screen.
 - Restores postprocess sharpness by rendering follow DOF at up to `2x` device pixel ratio and enabling 4x MSAA on the color target when WebGL2 is available.
+- Sets follow-mode DOF aperture to `f/2.8`.
 
 ## v0.7.7 — Surface and depth polish
 

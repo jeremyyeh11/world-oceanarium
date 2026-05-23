@@ -10,14 +10,13 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_18`.
+Status: in progress as `v0.7.8-dev_19`.
 
 ### Screenshot / debug capture
 
 - Starts the next dev bucket after clean `v0.7.7` acceptance.
 - Always hides the debug menu in screenshot mode while keeping debug overlays/LOD colors available when debug is enabled.
 - Adds a screenshot-only procedural film-grain overlay without changing contrast, saturation, exposure, or fog.
-- Tries a screenshot-only bloom pass for soft highlights without reintroducing canvas filters or exposure/fog boosts.
 
 ## v0.7.7 — Surface and depth polish
 

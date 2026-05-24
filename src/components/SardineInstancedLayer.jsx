@@ -1,12 +1,11 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
 
 const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
 const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
-const SARDINE_ALBEDO_TEXTURE_PATH = '/models/fish/sardine/textures/sardine-albedo-v0789.png'
 const MAX_INSTANCES_PER_VARIANT = 1024
 const SARDINE_MODEL_SCALE = 0.42
 const SARDINE_LIGHT_MASK_DIAGNOSTIC = true
@@ -37,34 +36,21 @@ function isFiniteQuaternion(value) {
   return value && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z) && Number.isFinite(value.w)
 }
 
-function configureSardineAlbedoTexture(texture) {
-  if (!texture) return null
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.flipY = false
-  texture.needsUpdate = true
-  return texture
-}
-
-function cloneMainSardineMaterialSettings(material, albedoTexture = null) {
+function cloneMainSardineMaterialSettings(material) {
   if (!material) return fallbackMaterial.clone()
   const nextMaterial = material.clone()
-  const configuredAlbedoTexture = configureSardineAlbedoTexture(albedoTexture)
   nextMaterial.transparent = false
   nextMaterial.opacity = 1
   nextMaterial.depthWrite = true
   nextMaterial.depthTest = true
   nextMaterial.roughness = nextMaterial.roughness ?? 0.5
   nextMaterial.side = THREE.DoubleSide
-  if (configuredAlbedoTexture) {
-    nextMaterial.map = configuredAlbedoTexture
-    if (nextMaterial.color) nextMaterial.color.set('#ffffff')
-  }
   if ('skinning' in nextMaterial) nextMaterial.skinning = false
   return nextMaterial
 }
 
-function addSardineWiggleMaterial(material, albedoTexture = null, { amplitude = 0.018, frequency = 5.0, speed = 3.2 } = {}) {
-  const nextMaterial = cloneMainSardineMaterialSettings(material, albedoTexture)
+function addSardineWiggleMaterial(material, { amplitude = 0.018, frequency = 5.0, speed = 3.2 } = {}) {
+  const nextMaterial = cloneMainSardineMaterialSettings(material)
   nextMaterial.userData.wiggleUniforms = null
   nextMaterial.onBeforeCompile = shader => {
     shader.uniforms.uSardineWiggleTime = { value: 0 }
@@ -120,7 +106,7 @@ gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);` : ''}
   return nextMaterial
 }
 
-function extractInstancedMeshAsset(scene, source, albedoTexture = null) {
+function extractInstancedMeshAsset(scene, source) {
   let sourceMesh = null
   scene.updateMatrixWorld(true)
   scene.traverse(child => {
@@ -144,7 +130,7 @@ function extractInstancedMeshAsset(scene, source, albedoTexture = null) {
 
   return {
     geometry,
-    material: addSardineWiggleMaterial(sourceMesh.material, albedoTexture, source === 'sardine-lod1-glb'
+    material: addSardineWiggleMaterial(sourceMesh.material, source === 'sardine-lod1-glb'
       ? { amplitude: 0.024, frequency: 5.6, speed: 3.4 }
       : { amplitude: 0.012, frequency: 4.2, speed: 2.8 }),
     source,
@@ -153,8 +139,7 @@ function extractInstancedMeshAsset(scene, source, albedoTexture = null) {
 
 function useInstancedSardineAsset(path, source) {
   const gltf = useGLTF(path)
-  const sardineAlbedoTexture = useTexture(SARDINE_ALBEDO_TEXTURE_PATH)
-  return useMemo(() => extractInstancedMeshAsset(gltf.scene, source, sardineAlbedoTexture), [gltf.scene, source, sardineAlbedoTexture])
+  return useMemo(() => extractInstancedMeshAsset(gltf.scene, source), [gltf.scene, source])
 }
 
 function collectEntries(entriesMap) {
@@ -280,4 +265,3 @@ export default function SardineInstancedLayer({ debugLodView = false }) {
 
 useGLTF.preload(SARDINE_LOD1_MODEL_PATH)
 useGLTF.preload(SARDINE_LOD2_MODEL_PATH)
-useTexture.preload(SARDINE_ALBEDO_TEXTURE_PATH)

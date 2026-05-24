@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.7.9 — Sardine texture refresh
+
+Status: in progress as `v0.7.9-dev_01`.
+
+### Sardine visuals
+
+- Applies Jeremy's updated sardine albedo/base-color texture to all three sardine render paths: full GLTF, LOD1 instanced GLB, and LOD2 instanced GLB.
+
 ## v0.7.8 — Screenshotability polish
 
 Status: accepted and promoted as clean `v0.7.8`.

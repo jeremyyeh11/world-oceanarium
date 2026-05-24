@@ -8,6 +8,21 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.8.0 — Mola mola + solo-agent movement
+
+Status: in progress as `v0.8.0-dev_01`.
+
+### Creature behavior
+
+- Starts the Mola mola feature bucket after clean `v0.7.9` acceptance.
+- Target: add Ocean Sunfish as the first non-schooling agent-driven creature, with reusable solo-agent movement plus a species-specific Mola profile.
+- Planned signature behavior: near-surface sun basking with slow approach, surface clearance padding, lazy hold/drift, and eventual return to cruising.
+
+### Movement architecture
+
+- Planned architecture keeps sardines on the existing spline-school system while adding a generic solo-agent core for non-schooling species.
+- Species-specific behavior profiles will layer personality/state weights on top of reusable steering, target selection, bounds, debug, and animation-speed outputs.
+
 ## v0.7.9 — Sardine texture refresh
 
 Status: accepted and promoted as clean `v0.7.9`.

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.9 — Sardine texture refresh
 
-Status: in progress as `v0.7.9-dev_04`.
+Status: accepted and promoted as clean `v0.7.9`.
 
 ### Sardine visuals
 

@@ -8,6 +8,7 @@ const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
 const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
 const MAX_INSTANCES_PER_VARIANT = 1024
 const SARDINE_MODEL_SCALE = 0.42
+const SARDINE_MATERIAL_ROUGHNESS = 0.2
 const SARDINE_LIGHT_MASK_DIAGNOSTIC = true
 
 const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
@@ -43,7 +44,7 @@ function cloneMainSardineMaterialSettings(material) {
   nextMaterial.opacity = 1
   nextMaterial.depthWrite = true
   nextMaterial.depthTest = true
-  nextMaterial.roughness = nextMaterial.roughness ?? 0.5
+  nextMaterial.roughness = SARDINE_MATERIAL_ROUGHNESS
   nextMaterial.side = THREE.DoubleSide
   if ('skinning' in nextMaterial) nextMaterial.skinning = false
   return nextMaterial

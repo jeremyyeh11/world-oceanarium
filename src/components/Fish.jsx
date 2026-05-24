@@ -25,6 +25,7 @@ const SWIM_BOX = {
 }
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+const SARDINE_MATERIAL_ROUGHNESS = 0.2
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
   visualTimeScale: 0.45,
@@ -650,6 +651,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
       nextMaterial.opacity = 1
       nextMaterial.depthWrite = true
       nextMaterial.roughness = nextMaterial.roughness ?? 0.5
+      if (nextMaterial.name?.toLowerCase() === 'sardine') nextMaterial.roughness = SARDINE_MATERIAL_ROUGHNESS
       if (lodDebugColor && nextMaterial.color) nextMaterial.color.set(lodDebugColor)
       if (lodDebugColor && nextMaterial.emissive) {
         nextMaterial.emissive.set(lodDebugColor)

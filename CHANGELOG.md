@@ -10,12 +10,13 @@ Versioning convention notes:
 
 ## v0.7.9 — Sardine texture refresh
 
-Status: in progress as `v0.7.9-dev_03`.
+Status: in progress as `v0.7.9-dev_04`.
 
 ### Sardine visuals
 
 - Reverts the external sardine albedo override after phone review showed the uploaded image did not align with the GLB UVs; sardines are back on the embedded model textures while the next texture path is decided.
 - Replaces all three sardine GLB assets from Jeremy's updated zip: full `sardine.glb`, `sardine_LOD1.glb`, and `sardine_LOD2.glb`.
+- Overrides sardine material roughness to `0.2` for the full model and both instanced LOD models, while leaving metalness at the embedded GLB value.
 
 ## v0.7.8 — Screenshotability polish
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text, useAnimations, useGLTF } from '@react-three/drei'
+import { Text, useAnimations, useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
@@ -25,6 +25,7 @@ const SWIM_BOX = {
 }
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+const SARDINE_ALBEDO_TEXTURE_PATH = '/models/fish/sardine/textures/sardine-albedo-v0789.png'
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
   visualTimeScale: 0.45,
@@ -636,8 +637,17 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
+function configureSardineAlbedoTexture(texture) {
+  if (!texture) return null
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.flipY = false
+  texture.needsUpdate = true
+  return texture
+}
+
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, albedoTexture = null) {
   const materials = []
+  const configuredAlbedoTexture = configureSardineAlbedoTexture(albedoTexture)
   root.traverse(child => {
     if (!child.isMesh) return
     child.castShadow = false
@@ -650,6 +660,10 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
       nextMaterial.opacity = 1
       nextMaterial.depthWrite = true
       nextMaterial.roughness = nextMaterial.roughness ?? 0.5
+      if (configuredAlbedoTexture) {
+        nextMaterial.map = configuredAlbedoTexture
+        if (nextMaterial.color) nextMaterial.color.set('#ffffff')
+      }
       if (lodDebugColor && nextMaterial.color) nextMaterial.color.set(lodDebugColor)
       if (lodDebugColor && nextMaterial.emissive) {
         nextMaterial.emissive.set(lodDebugColor)
@@ -712,14 +726,16 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
 
 function FishModel({ model, animation = 'idle', animationVariation, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
+  const sardineAlbedoTexture = useTexture(SARDINE_ALBEDO_TEXTURE_PATH)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
-  }, [object, rim, lodDebugColor])
+    const albedoTexture = model.path?.includes('/models/fish/sardine/') ? sardineAlbedoTexture : null
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, albedoTexture)
+  }, [object, rim, lodDebugColor, model.path, sardineAlbedoTexture])
 
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime()
@@ -1381,3 +1397,4 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 }
 
 useGLTF.preload('/models/fish/sardine/sardine.glb')
+useTexture.preload(SARDINE_ALBEDO_TEXTURE_PATH)

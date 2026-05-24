@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.7.8 — Screenshotability polish
 
-Status: in progress as `v0.7.8-dev_19`.
+Status: accepted and promoted as clean `v0.7.8`.
 
 ### Screenshot / debug capture
 

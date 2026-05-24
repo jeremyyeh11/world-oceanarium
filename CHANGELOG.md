@@ -10,11 +10,11 @@ Versioning convention notes:
 
 ## v0.7.9 — Sardine texture refresh
 
-Status: in progress as `v0.7.9-dev_01`.
+Status: in progress as `v0.7.9-dev_02`.
 
 ### Sardine visuals
 
-- Applies Jeremy's updated sardine albedo/base-color texture to all three sardine render paths: full GLTF, LOD1 instanced GLB, and LOD2 instanced GLB.
+- Reverts the external sardine albedo override after phone review showed the uploaded image did not align with the GLB UVs; sardines are back on the embedded model textures while the next texture path is decided.
 
 ## v0.7.8 — Screenshotability polish
 

@@ -302,6 +302,30 @@ function clampToSwimBox(point, yMin, yMax, xLimit = SWIM_BOX.x - PATH_EDGE_PADDI
   return point
 }
 
+function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minDistance = Math.max(1.2, bodyLength * 0.8)
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    out.set(
+      randomRange(rand, -bounds.x, bounds.x),
+      randomRange(rand, bounds.yMin, bounds.yMax),
+      randomRange(rand, -bounds.z, bounds.z),
+    )
+    if (!from || out.distanceTo(from) >= minDistance) return out
+  }
+
+  if (from) {
+    out.subVectors(out, from)
+    if (out.lengthSq() < 0.0001) out.set(1, 0, 0)
+    out.normalize().multiplyScalar(minDistance).add(from)
+    clampToSwimBox(out, bounds.yMin, bounds.yMax, bounds.x, bounds.z)
+  }
+
+  return out
+}
+
 function limitPathYGradient(points, bounds, maxGradient = MAX_PATH_Y_GRADIENT) {
   for (let i = 1; i < points.length; i += 1) {
     const prev = points[i - 1]
@@ -836,6 +860,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
   const progress = useRef(0)
   const followTarget = useRef(new THREE.Vector3())
+  const agentTarget = useRef(new THREE.Vector3())
+  const agentRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`)))
+  const agentHasTarget = useRef(false)
+  const nextAgentRetargetAt = useRef(0)
+  const agentStatus = useRef('cruise-wander')
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -929,6 +958,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   }, [organicMotion.noiseSeed])
 
   useEffect(() => {
+    agentRand.current = mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`))
+    agentHasTarget.current = false
+    nextAgentRetargetAt.current = 0
+    agentStatus.current = 'cruise-wander'
+  }, [creature.id, creature.species])
+
+  useEffect(() => {
     if (!isSchoolLeader || !school?.id) return undefined
     return () => {
       if (SCHOOL_STATES.get(school.id) === schoolState) SCHOOL_STATES.delete(school.id)
@@ -999,13 +1035,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 
     if (isSchooling) {
       if (isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
-    } else {
+    } else if (!showAgentDebug) {
       progress.current += delta * velocity.current / pathLength
     }
 
     const pathProgress = isSchooling ? schoolState.progress : progress.current
     const shouldAdvanceSchoolPath = isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
-    if ((!isSchooling && progress.current >= 1) || shouldAdvanceSchoolPath) {
+    if ((!isSchooling && !showAgentDebug && progress.current >= 1) || shouldAdvanceSchoolPath) {
       const endPoint = activePath.getPointAt(1)
       const endTangent = activePath.getTangentAt(1).normalize()
 
@@ -1037,7 +1073,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 
     const t = THREE.MathUtils.clamp((isSchooling ? schoolState.progress : progress.current) + (schoolOffset?.phase ?? 0), 0, 1)
     const currentPath = pathRef.current
-    const position = isSchooling
+    let position = isSchooling
       ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now, organicNoise.current)
       : currentPath.getPointAt(t)
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
@@ -1047,6 +1083,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
       offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
+    } else if (showAgentDebug) {
+      if (!agentHasTarget.current) {
+        pickSoloAgentTarget(agentTarget.current, creature, swim, agentRand.current, position)
+        agentHasTarget.current = true
+        nextAgentRetargetAt.current = now + randomRange(agentRand.current, 10, 18)
+      }
+      const agentTargetDistance = (hasFollowPosition.current ? fish.position : position).distanceTo(agentTarget.current)
+      const bodyLength = creatureBodyLength(creature, swim)
+      if (agentTargetDistance < Math.max(1.0, bodyLength * 0.45) || now >= nextAgentRetargetAt.current) {
+        pickSoloAgentTarget(agentTarget.current, creature, swim, agentRand.current, hasFollowPosition.current ? fish.position : position)
+        nextAgentRetargetAt.current = now + randomRange(agentRand.current, 10, 18)
+      }
+      followTarget.current.copy(agentTarget.current)
+      position = hasFollowPosition.current ? fish.position : position
+      tangent.subVectors(followTarget.current, position).normalize()
     } else {
       currentPath.getPointAt(followTargetT, followTarget.current)
       followTarget.current.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
@@ -1071,11 +1122,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
         )
 
-        const catchup = THREE.MathUtils.clamp(
-          targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
-          0.50,
-          1.82,
-        )
+        const catchup = showAgentDebug
+          ? 1
+          : THREE.MathUtils.clamp(
+            targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
+            0.50,
+            1.82,
+          )
         fish.position.addScaledVector(
           desiredDirection.current,
           Math.min(targetDistance, velocity.current * organicMotion.speedScale * catchup * delta),
@@ -1087,6 +1140,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           tangent.copy(desiredDirection.current)
         }
       }
+    }
+
+    if (showAgentDebug) {
+      const agentBounds = swimBounds(creature.depthZone, swim, size)
+      const bodyLength = creatureBodyLength(creature, swim)
+      const wallClearance = Math.min(agentBounds.x - Math.abs(fish.position.x), agentBounds.z - Math.abs(fish.position.z))
+      const surfaceClearance = agentBounds.yMax - fish.position.y
+      agentStatus.current = wallClearance < bodyLength * 0.22 || surfaceClearance < bodyLength * 0.12
+        ? 'avoid-boundary'
+        : velocity.current > motion.idleSpeed * 1.22
+          ? 'burst'
+          : 'cruise-agent'
     }
 
     updateFishRegistry(fish, creature, swim, school)
@@ -1114,7 +1179,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
     horizontalForward.normalize()
 
-    currentPath.getTangentAt(t, splineVisualTangent).normalize()
+    if (showAgentDebug) {
+      splineVisualTangent.subVectors(followTarget.current, fish.position)
+      if (splineVisualTangent.lengthSq() < 0.0001) splineVisualTangent.copy(tangent)
+      else splineVisualTangent.normalize()
+    } else {
+      currentPath.getTangentAt(t, splineVisualTangent).normalize()
+    }
     setForwardWithPitch(rawVisualForward, horizontalForward, clampedVisualPitch(splineVisualTangent, pitchLimit))
 
     if (!hasVisualForward.current) {
@@ -1163,13 +1234,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         const bounds = swimBounds(creature.depthZone, swim, size)
         const wallClearance = Math.min(bounds.x - Math.abs(fish.position.x), bounds.z - Math.abs(fish.position.z))
         const surfaceClearance = bounds.yMax - fish.position.y
-        const status = targetDistance < Math.max(0.35, bodyLength * 0.08)
-          ? 'hold'
-          : velocity.current > motion.idleSpeed * 1.28
-            ? 'burst'
-            : wallClearance < bodyLength * 0.22 || surfaceClearance < bodyLength * 0.12
-              ? 'avoid-boundary'
-              : 'cruise-wander'
+        const status = agentStatus.current
         labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
         agentLabelRef.current.text = `agent ${status}\nspeed ${effectiveDebugVelocity.toFixed(2)} wu/s · ${targetDistance.toFixed(1)}wu to target\ndest ${followTarget.current.x.toFixed(1)}, ${followTarget.current.y.toFixed(1)}, ${followTarget.current.z.toFixed(1)}\nclear wall ${wallClearance.toFixed(1)} · surface ${surfaceClearance.toFixed(1)}`
@@ -1372,7 +1437,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     <group>
       {debug && (
         <>
-          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader) && (
+          {(debugLayers?.direction ?? true) && !showAgentDebug && (!isSchooling || isSchoolLeader) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>

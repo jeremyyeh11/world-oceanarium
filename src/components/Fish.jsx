@@ -90,9 +90,9 @@ const AVOIDANCE_SMOOTHING = 3.4
 const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
-const SOLO_AGENT_ARC_MIN_SPEED_SCALE = 0.22
-const SOLO_AGENT_ARC_ALIGNMENT_START = -0.35
-const SOLO_AGENT_ARC_ALIGNMENT_FULL = 0.65
+const SOLO_AGENT_ARC_MIN_SPEED_SCALE = 0.36
+const SOLO_AGENT_ARC_ALIGNMENT_START = -0.55
+const SOLO_AGENT_ARC_ALIGNMENT_FULL = 0.58
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
 
 const tangent = new THREE.Vector3()
@@ -1209,7 +1209,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     })
 
     const pitchLimit = maxVisualPitch(creature, swim)
-    horizontalForward.set(tangent.x, 0, tangent.z)
+    if (isSoloAgent && desiredDirection.current.lengthSq() > 0.0001) {
+      horizontalForward.set(desiredDirection.current.x, 0, desiredDirection.current.z)
+    } else {
+      horizontalForward.set(tangent.x, 0, tangent.z)
+    }
     if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
     horizontalForward.normalize()
 

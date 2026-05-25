@@ -433,9 +433,28 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
 }
 
 function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale, rotation, weavePhase) {
-  const normalized = pointCount <= 1 ? 0 : index / (pointCount - 1)
   const side = index % 2 === 0 ? -1 : 1
   const depthSide = Math.floor(index / 2) % 2 === 0 ? -1 : 1
+  const normalized = pointCount <= 1 ? 0 : index / (pointCount - 1)
+  const zRange = bounds.zMax - bounds.zMin
+  const hasExplicitBounds = ['boundsXMin', 'boundsXMax', 'boundsZMin', 'boundsZMax'].some(key => Number.isFinite(swim[key]))
+
+  if (hasExplicitBounds) {
+    const laneT = side < 0
+      ? randomRange(rand, 0.04, 0.22)
+      : randomRange(rand, 0.78, 0.96)
+    const depthT = depthSide < 0
+      ? randomRange(rand, 0.04, 0.30)
+      : randomRange(rand, 0.70, 0.96)
+    const weave = Math.sin(normalized * Math.PI * 2.35 + weavePhase) * zRange * 0.08
+
+    return clampToSwimBounds(new THREE.Vector3(
+      THREE.MathUtils.lerp(bounds.xMin, bounds.xMax, laneT),
+      traversalY(rand, bounds, swim, index, verticalScale, 0.62),
+      THREE.MathUtils.lerp(bounds.zMin, bounds.zMax, depthT) + weave,
+    ), bounds)
+  }
+
   const weave = Math.sin(normalized * Math.PI * 2.35 + weavePhase) * bounds.z * 0.26
   const localX = side * bounds.x * randomRange(rand, 0.54, 0.82) + randomRange(rand, -bounds.x * 0.14, bounds.x * 0.14)
   const localZ = depthSide * bounds.z * randomRange(rand, 0.36, 0.74) + weave + randomRange(rand, -bounds.z * 0.18, bounds.z * 0.18)
@@ -1492,7 +1511,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
   const showSelectedOutline = selected && !hideSelectionSilhouette
-  const agentBoundsForDebug = showAgentDebug ? swimBounds(creature.depthZone, swim, size) : null
+  const agentBoundsForDebug = (showAgentDebug || (debug && isSchoolLeader)) ? swimBounds(creature.depthZone, swim, size) : null
   const agentBoundaryCenter = agentBoundsForDebug
     ? [(agentBoundsForDebug.xMin + agentBoundsForDebug.xMax) / 2, (agentBoundsForDebug.yMin + agentBoundsForDebug.yMax) / 2, (agentBoundsForDebug.zMin + agentBoundsForDebug.zMax) / 2]
     : [0, 0, 0]
@@ -1526,7 +1545,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>
           )}
-          {(debugLayers?.direction ?? true) && showAgentDebug && agentBoundsForDebug && (
+          {(debugLayers?.direction ?? true) && agentBoundsForDebug && (showAgentDebug || isSchoolLeader) && (
             <mesh position={agentBoundaryCenter} raycast={() => null} renderOrder={6}>
               <boxGeometry args={agentBoundarySize} />
               <meshBasicMaterial color="#57c7e8" wireframe transparent opacity={0.28} depthTest={false} depthWrite={false} />

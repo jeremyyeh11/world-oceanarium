@@ -256,6 +256,31 @@ function debugForwardOffset(creature, swim, model) {
   return creatureBodyLength(creature, swim) * 0.42
 }
 
+function placeholderDimensions(species, swim) {
+  if (species?.placeholder?.type === 'mola-mola') {
+    return {
+      length: swim.bodyLengthWU,
+      height: swim.bodyLengthWU * 0.68,
+      thickness: swim.bodyLengthWU * 0.16,
+    }
+  }
+
+  return {
+    length: 0.7,
+    height: 0.28,
+    thickness: 0.18,
+  }
+}
+
+function interactionProxyDimensions(species, swim) {
+  if (species?.placeholder?.type === 'mola-mola') {
+    const dims = placeholderDimensions(species, swim)
+    return [dims.length * 1.04, dims.height * 1.02, Math.max(0.32, dims.thickness * 1.25)]
+  }
+
+  return [0.72, 0.28, 0.22]
+}
+
 function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const [rawYMin, rawYMax] = DEPTH_Y[depthZone] ?? DEPTH_Y.epipelagic
   const bodyLength = swim.bodyLengthWU * size
@@ -710,6 +735,40 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   if (previousAction) nextAction.crossFadeFrom(previousAction, 0.12, false)
 
   activeActionRef.current = nextAction
+}
+
+function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 }) {
+  const dims = placeholderDimensions(species, swim)
+  const bodyColor = species?.placeholder?.bodyColor ?? '#8fb8bc'
+  const finColor = species?.placeholder?.finColor ?? '#6f9fa4'
+  const rim = rimColor ?? '#000000'
+
+  return (
+    <group raycast={() => null}>
+      {rimColor && (
+        <mesh scale={[dims.length * 1.04, dims.height * 1.04, dims.thickness * 1.08]}>
+          <sphereGeometry args={[0.5, 36, 18]} />
+          <meshStandardMaterial color={bodyColor} emissive={rim} emissiveIntensity={rimIntensity} roughness={0.5} metalness={0.02} />
+        </mesh>
+      )}
+      <mesh scale={[dims.length, dims.height, dims.thickness]}>
+        <sphereGeometry args={[0.5, 48, 24]} />
+        <meshStandardMaterial color={bodyColor} roughness={0.46} metalness={0.02} envMapIntensity={0.9} />
+      </mesh>
+      <mesh position={[dims.length * -0.08, dims.height * 0.48, 0]} rotation={[0, 0, Math.PI]} scale={[dims.length * 0.08, dims.height * 0.34, dims.thickness * 0.58]}>
+        <coneGeometry args={[1, 1, 3]} />
+        <meshStandardMaterial color={finColor} roughness={0.56} metalness={0.01} envMapIntensity={0.75} />
+      </mesh>
+      <mesh position={[dims.length * -0.08, dims.height * -0.48, 0]} scale={[dims.length * 0.08, dims.height * 0.34, dims.thickness * 0.58]}>
+        <coneGeometry args={[1, 1, 3]} />
+        <meshStandardMaterial color={finColor} roughness={0.56} metalness={0.01} envMapIntensity={0.75} />
+      </mesh>
+      <mesh position={[dims.length * -0.50, 0, 0]} rotation={[0, 0, Math.PI / 2]} scale={[dims.thickness * 0.45, dims.height * 0.22, dims.thickness * 0.36]}>
+        <coneGeometry args={[1, 1, 3]} />
+        <meshStandardMaterial color={finColor} roughness={0.58} metalness={0.01} envMapIntensity={0.7} />
+      </mesh>
+    </group>
+  )
 }
 
 function FishModel({ model, animation = 'idle', animationVariation, rim = null, lodDebugColor = null }) {
@@ -1268,6 +1327,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const showSelectedOutline = selected && !hideSelectionSilhouette
   const renderModel = model && !instancedSardineLod
+  const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
+  const proxyDimensions = interactionProxyDimensions(species, swim)
   const lodDebugColor = debugLodView && renderModel && canInstanceSardine ? LOD0_DEBUG_COLOR : null
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
@@ -1344,7 +1405,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         onClick={handleSelect}
       >
         <mesh userData={{ interactionProxy: true }}>
-          <boxGeometry args={[0.72, 0.28, 0.22]} />
+          <boxGeometry args={proxyDimensions} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} color="#000000" />
         </mesh>
         <group ref={modelRootRef}>
@@ -1356,6 +1417,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
               animationVariation={animationVariation}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
+            />
+          ) : renderMolaPlaceholder ? (
+            <MolaMolaPlaceholder
+              species={species}
+              swim={swim}
+              rimColor={rimColor}
+              rimIntensity={rimIntensity}
             />
           ) : !model ? (
             <>

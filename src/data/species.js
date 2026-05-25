@@ -114,6 +114,44 @@ export const SPECIES = [
       exponent: 3,
     },
   },
+  {
+    id: 'mola-mola',
+    name: 'Ocean Sunfish',
+    scientificName: 'Mola mola',
+    family: 'Molidae',
+    alternateNames: ['Common mola', 'Mola'],
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    aggressive: false,
+    predator: false,
+    description: 'A huge, laterally flattened open-ocean sunfish that drifts through the upper water column and often basks near the surface. This placeholder uses real-scale length until Jeremy supplies the final GLB.',
+    swim: {
+      // World Oceanarium scale: 1 WU = 25 cm. 240 cm max total length = 9.6 WU.
+      bodyLengthWU: 9.6,
+      visualTimeScale: 0.22,
+      idleBLPerSec: [0.10, 0.18],
+      idleDriftBLPerSec: [0.025, 0.055],
+      snapBLPerSec: [0.28, 0.42],
+      burstBLPerSec: [0.38, 0.56],
+      burstInterval: [16.0, 26.0],
+      erraticness: 0.055,
+      turnRadius: 1.0,
+      speedMultiplier: 0.62,
+    },
+    // Normalized individual size maps to 180–240 cm total length.
+    sizeRange: [0.75, 1.0],
+    mass: {
+      // Broad placeholder estimate until curated species/body-condition data lands.
+      coefficient: 0.018,
+      exponent: 3,
+    },
+    placeholder: {
+      type: 'mola-mola',
+      bodyColor: '#8fb8bc',
+      finColor: '#6f9fa4',
+    },
+  },
 ]
 
 export const CREATURES = [

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_21`.
+Status: in progress as `v0.8.0-dev_22`.
 
 ### Creature behavior
 
@@ -43,6 +43,7 @@ Status: in progress as `v0.8.0-dev_21`.
 - Adds explicit in-scene Z min/max meter labels to movement-boundary debug so front/back bound shifts can be verified even when the wireframe projects similarly from the front camera.
 - Moves the Mola cruise volume away from the screen/front glass by placing it on negative Z: `[-30, -15]`.
 - Pushes the Mola cruise volume much farther into the tank to `[-55, -35]` after visual review showed the previous shift still read too close to the screen.
+- Anchors the Mola follow-camera default to the front-glass side of its deep negative-Z movement volume, so moving the volume deeper changes the visible screen-depth instead of the camera following the fish backward and canceling the visual difference.
 
 ## v0.7.9 — Sardine texture refresh
 

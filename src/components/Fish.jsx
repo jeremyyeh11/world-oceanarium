@@ -1458,6 +1458,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
   const showSelectedOutline = selected && !hideSelectionSilhouette
+  const agentBoundsForDebug = showAgentDebug ? swimBounds(creature.depthZone, swim, size) : null
+  const agentBoundaryCenter = agentBoundsForDebug ? [0, (agentBoundsForDebug.yMin + agentBoundsForDebug.yMax) / 2, 0] : [0, 0, 0]
+  const agentBoundarySize = agentBoundsForDebug ? [agentBoundsForDebug.x * 2, agentBoundsForDebug.yMax - agentBoundsForDebug.yMin, agentBoundsForDebug.z * 2] : [1, 1, 1]
   const renderModel = model && !instancedSardineLod
   const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
   const proxyDimensions = interactionProxyDimensions(species, swim)
@@ -1484,6 +1487,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>
+          )}
+          {(debugLayers?.direction ?? true) && showAgentDebug && agentBoundsForDebug && (
+            <mesh position={agentBoundaryCenter} raycast={() => null} renderOrder={6}>
+              <boxGeometry args={agentBoundarySize} />
+              <meshBasicMaterial color="#57c7e8" wireframe transparent opacity={0.28} depthTest={false} depthWrite={false} />
+            </mesh>
           )}
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />

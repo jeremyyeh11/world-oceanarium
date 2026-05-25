@@ -748,7 +748,7 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
       {rimColor && (
         <mesh scale={[dims.length * 1.04, dims.height * 1.04, dims.thickness * 1.08]}>
           <sphereGeometry args={[0.5, 36, 18]} />
-          <meshStandardMaterial color={bodyColor} emissive={rim} emissiveIntensity={rimIntensity} roughness={0.5} metalness={0.02} />
+          <meshBasicMaterial color={rim} transparent opacity={0.34} depthWrite={false} depthTest side={THREE.BackSide} />
         </mesh>
       )}
       <mesh scale={[dims.length, dims.height, dims.thickness]}>

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_19`.
+Status: in progress as `v0.8.0-dev_20`.
 
 ### Creature behavior
 
@@ -41,6 +41,7 @@ Status: in progress as `v0.8.0-dev_19`.
 - Flips the explicit Z movement volumes after review: sardines now expand toward positive Z up to `+8`, and Mola now cruises in positive-Z space from `+6` to `+20` instead of the prior negative-Z volume.
 - Pushes the Mola positive-Z cruise volume farther forward to `[15, 30]` for review.
 - Adds explicit in-scene Z min/max meter labels to movement-boundary debug so front/back bound shifts can be verified even when the wireframe projects similarly from the front camera.
+- Moves the Mola cruise volume away from the screen/front glass by placing it on negative Z: `[-30, -15]`.
 
 ## v0.7.9 — Sardine texture refresh
 

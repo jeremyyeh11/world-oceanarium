@@ -7,14 +7,15 @@ import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
-import { DEPTH_ZONES } from '../data/species'
+import { DEPTH_ZONES, SPECIES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
 const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
 const DEFAULT_FOLLOW_DISTANCE = 3.2
 const MIN_FOLLOW_DISTANCE = 1.35
-const MAX_FOLLOW_DISTANCE = 8.5
+const MAX_FOLLOW_DISTANCE = 18
+const LARGE_CREATURE_FOLLOW_BODY_LENGTHS = 1.65
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
@@ -32,6 +33,7 @@ const DEBUG_LAYER_BUTTONS = [
 ]
 const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
+const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 
 function summarizeRenderLoad(creatures, biomeId) {
   const visibleCreatures = creatures.filter(creature => creature.alive && creature.biome === biomeId)
@@ -59,6 +61,12 @@ function getTouchDistance(points) {
 
 function clampFollowDistance(distance) {
   return Math.max(MIN_FOLLOW_DISTANCE, Math.min(MAX_FOLLOW_DISTANCE, distance))
+}
+
+function defaultFollowDistanceForCreature(creature) {
+  const species = SPECIES_BY_NAME.get(creature?.species)
+  const bodyLength = (species?.swim?.bodyLengthWU ?? 1) * (creature?.size ?? 1)
+  return clampFollowDistance(Math.max(DEFAULT_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_FOLLOW_BODY_LENGTHS))
 }
 
 function eventStartedInInfoCard(event) {
@@ -222,6 +230,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
     setFollowOrbit({ yaw: 0, pitch: 0 })
+    setFollowDistance(defaultFollowDistanceForCreature(creature))
   }
 
   const registerCreatureRef = (creature, fishRef) => {

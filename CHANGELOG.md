@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_02`.
+Status: in progress as `v0.8.0-dev_03`.
 
 ### Creature behavior
 
@@ -25,6 +25,7 @@ Status: in progress as `v0.8.0-dev_02`.
 - Planned architecture keeps sardines on the existing spline-school system while adding a generic solo-agent core for non-schooling species.
 - Species-specific behavior profiles will layer personality/state weights on top of reusable steering, target selection, bounds, debug, and animation-speed outputs.
 - Keeps the Mola GLB path unwired for now; the placeholder path is data-driven through the species profile so the final asset can replace the geometry later without blocking behavior tuning.
+- Scales follow-camera default distance by focused creature body length for large solo animals, so clicking the real-scale Mola starts farther back instead of zooming inside the fish while sardines keep the existing close inspection distance.
 
 ## v0.7.9 — Sardine texture refresh
 

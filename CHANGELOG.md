@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_17`.
+Status: in progress as `v0.8.0-dev_18`.
 
 ### Creature behavior
 
@@ -39,6 +39,7 @@ Status: in progress as `v0.8.0-dev_17`.
 - Expands sardine X bounds to `[-12, 12]` and moves the Mola movement volume deeper/back to Z `[-20, -6]`.
 - Makes explicit asymmetric bounds visually affect school paths by sampling school control points from the actual `xMin/xMax/zMin/zMax` faces instead of the old symmetric rotated radius proxy, and shows the boundary wireframe for school leaders in direction debug.
 - Flips the explicit Z movement volumes after review: sardines now expand toward positive Z up to `+8`, and Mola now cruises in positive-Z space from `+6` to `+20` instead of the prior negative-Z volume.
+- Pushes the Mola positive-Z cruise volume farther forward to `[15, 30]` for review.
 
 ## v0.7.9 — Sardine texture refresh
 

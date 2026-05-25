@@ -72,9 +72,6 @@ export const SPECIES = [
       burstInterval: [5.5, 9.5],
       erraticness: 0.24,
       turnRadius: 0.78,
-      boundsXMin: -12,
-      boundsXMax: 12,
-      boundsZMax: 8,
     },
     // Normalized individual size maps to roughly 15–27 cm total length for Amblygaster sirm.
     sizeRange: [0.55, 1.0],
@@ -142,11 +139,7 @@ export const SPECIES = [
       erraticness: 0.055,
       turnRadius: 1.0,
       speedMultiplier: 1.0,
-      boundsBodyLengthWU: 1.08,
-      boundsUseSpeciesSize: false,
-      boundsScaleX: 1.1,
-      boundsZMin: -55,
-      boundsZMax: -35,
+      movementBoundsScale: 1.35,
     },
     // Normalized individual size maps to 180–240 cm total length.
     sizeRange: [0.75, 1.0],

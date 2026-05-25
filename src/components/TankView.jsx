@@ -72,11 +72,15 @@ function depthAnchoredFollowOffset(species) {
   return Math.max(0, -boundsCenterZ)
 }
 
-function defaultFollowDistanceForCreature(creature) {
+function minimumFollowDistanceForCreature(creature) {
   const species = SPECIES_BY_NAME.get(creature?.species)
   const bodyLength = (species?.swim?.bodyLengthWU ?? 1) * (creature?.size ?? 1)
   const inspectionDistance = Math.max(DEFAULT_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_FOLLOW_BODY_LENGTHS)
   return clampFollowDistance(inspectionDistance + depthAnchoredFollowOffset(species))
+}
+
+function defaultFollowDistanceForCreature(creature) {
+  return minimumFollowDistanceForCreature(creature)
 }
 
 function eventStartedInInfoCard(event) {
@@ -258,7 +262,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   const adjustFollowDistance = (delta) => {
-    setFollowDistance(current => clampFollowDistance(current + delta))
+    const minForCreature = selectedCreature ? minimumFollowDistanceForCreature(selectedCreature) : MIN_FOLLOW_DISTANCE
+    setFollowDistance(current => Math.max(minForCreature, clampFollowDistance(current + delta)))
   }
 
   const toggleDebugLayer = (layerId) => {

@@ -502,7 +502,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         </svg>
       )}
 
-      {!screenshotMode && !zoomActive && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
+      {!screenshotMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
       {!screenshotMode && (
         <div style={{

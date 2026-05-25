@@ -90,7 +90,9 @@ const AVOIDANCE_SMOOTHING = 3.4
 const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
-const SOLO_AGENT_TURN_FIRST_ALIGNMENT = 0.25
+const SOLO_AGENT_ARC_MIN_SPEED_SCALE = 0.22
+const SOLO_AGENT_ARC_ALIGNMENT_START = -0.35
+const SOLO_AGENT_ARC_ALIGNMENT_FULL = 0.65
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
 
 const tangent = new THREE.Vector3()
@@ -862,7 +864,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     }
   }, [creature, isSchooling, school?.id])
   const isSchoolLeader = isSchooling && school.index === 0
-  const showAgentDebug = Boolean(species && species.schooling === false && !isSchooling)
+  const isSoloAgent = Boolean(species && species.schooling === false && !isSchooling)
+  const showAgentDebug = isSoloAgent
   const schoolState = useMemo(() => (isSchooling ? getSchoolState(school, creature, swim) : null), [isSchooling, school, creature, swim])
   const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
   const progress = useRef(0)
@@ -1042,13 +1045,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 
     if (isSchooling) {
       if (isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
-    } else if (!showAgentDebug) {
+    } else if (!isSoloAgent) {
       progress.current += delta * velocity.current / pathLength
     }
 
     const pathProgress = isSchooling ? schoolState.progress : progress.current
     const shouldAdvanceSchoolPath = isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
-    if ((!isSchooling && !showAgentDebug && progress.current >= 1) || shouldAdvanceSchoolPath) {
+    if ((!isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath) {
       const endPoint = activePath.getPointAt(1)
       const endTangent = activePath.getTangentAt(1).normalize()
 
@@ -1090,7 +1093,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
       offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
-    } else if (showAgentDebug) {
+    } else if (isSoloAgent) {
       if (!agentHasTarget.current) {
         pickSoloAgentTarget(agentTarget.current, creature, swim, agentRand.current, position)
         agentHasTarget.current = true
@@ -1129,7 +1132,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
         )
 
-        const catchup = showAgentDebug
+        const catchup = isSoloAgent
           ? 1
           : THREE.MathUtils.clamp(
             targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
@@ -1137,13 +1140,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
             1.82,
           )
         let movementScale = velocity.current * organicMotion.speedScale * catchup * delta
-        if (showAgentDebug && hasVisualForward.current) {
+        if (isSoloAgent && hasVisualForward.current) {
           agentForwardFlat.set(visualForward.current.x, 0, visualForward.current.z)
           if (agentForwardFlat.lengthSq() > 0.0001) {
             agentForwardFlat.normalize()
             const alignment = THREE.MathUtils.clamp(agentForwardFlat.dot(desiredDirection.current), -1, 1)
-            const turnFirstScale = THREE.MathUtils.smoothstep(alignment, SOLO_AGENT_TURN_FIRST_ALIGNMENT, 1)
-            movementScale *= turnFirstScale
+            const arcSpeedScale = THREE.MathUtils.lerp(
+              SOLO_AGENT_ARC_MIN_SPEED_SCALE,
+              1,
+              THREE.MathUtils.smoothstep(alignment, SOLO_AGENT_ARC_ALIGNMENT_START, SOLO_AGENT_ARC_ALIGNMENT_FULL),
+            )
+            movementScale *= arcSpeedScale
             agentMoveDirection.copy(agentForwardFlat)
           } else {
             agentMoveDirection.copy(desiredDirection.current)
@@ -1169,11 +1176,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const bodyLength = creatureBodyLength(creature, swim)
       const wallClearance = Math.min(agentBounds.x - Math.abs(fish.position.x), agentBounds.z - Math.abs(fish.position.z))
       const surfaceClearance = agentBounds.yMax - fish.position.y
+      const agentAlignment = agentMoveDirection.lengthSq() > 0.0001 && desiredDirection.current.lengthSq() > 0.0001
+        ? THREE.MathUtils.clamp(agentMoveDirection.dot(desiredDirection.current), -1, 1)
+        : 1
       agentStatus.current = wallClearance < bodyLength * 0.22 || surfaceClearance < bodyLength * 0.12
         ? 'avoid-boundary'
-        : velocity.current > motion.idleSpeed * 1.22
-          ? 'burst'
-          : 'cruise-agent'
+        : agentAlignment < SOLO_AGENT_ARC_ALIGNMENT_FULL
+          ? 'turning-arc'
+          : velocity.current > motion.idleSpeed * 1.22
+            ? 'burst'
+            : 'cruise-agent'
     }
 
     updateFishRegistry(fish, creature, swim, school)

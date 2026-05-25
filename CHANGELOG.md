@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_15`.
+Status: in progress as `v0.8.0-dev_16`.
 
 ### Creature behavior
 
@@ -37,6 +37,7 @@ Status: in progress as `v0.8.0-dev_15`.
 - Retunes swim bounds: sardines get 1.1x wider X and deeper back travel to Z=-8, while Mola reuses the sardine X/Y boundary and gets asymmetric Z travel from -12 to +4.
 - Fixes the runtime blank-screen regression from the asymmetric-bounds patch by converting the remaining school-path clamp call to the new min/max bounds helper.
 - Expands sardine X bounds to `[-12, 12]` and moves the Mola movement volume deeper/back to Z `[-20, -6]`.
+- Makes explicit asymmetric bounds visually affect school paths by sampling school control points from the actual `xMin/xMax/zMin/zMax` faces instead of the old symmetric rotated radius proxy, and shows the boundary wireframe for school leaders in direction debug.
 
 ## v0.7.9 — Sardine texture refresh
 

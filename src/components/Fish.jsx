@@ -442,11 +442,11 @@ function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale
   const cos = Math.cos(rotation)
   const sin = Math.sin(rotation)
 
-  return clampToSwimBox(new THREE.Vector3(
+  return clampToSwimBounds(new THREE.Vector3(
     localX * cos - localZ * sin,
     traversalY(rand, bounds, swim, index, verticalScale, 0.62),
     localX * sin + localZ * cos,
-  ), bounds.yMin, bounds.yMax, bounds.x, bounds.z)
+  ), bounds)
 }
 
 function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school'), start = null, exitTangent = null) {

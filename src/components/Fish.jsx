@@ -1170,7 +1170,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
             : wallClearance < bodyLength * 0.22 || surfaceClearance < bodyLength * 0.12
               ? 'avoid-boundary'
               : 'cruise-wander'
-        labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.18 + Math.min(0.44, bodyLength * 0.045))
+        labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
         agentLabelRef.current.text = `agent ${status}\nspeed ${effectiveDebugVelocity.toFixed(2)} wu/s · ${targetDistance.toFixed(1)}wu to target\ndest ${followTarget.current.x.toFixed(1)}, ${followTarget.current.y.toFixed(1)}, ${followTarget.current.z.toFixed(1)}\nclear wall ${wallClearance.toFixed(1)} · surface ${surfaceClearance.toFixed(1)}`
         agentLabelRef.current.lookAt(camera.position)
@@ -1346,7 +1346,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   })
 
   const focusScale = selected ? 1.08 : 1
+  const bodyLength = creatureBodyLength(creature, swim)
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
+  const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
   const showSelectedOutline = selected && !hideSelectionSilhouette
   const renderModel = model && !instancedSardineLod
   const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
@@ -1409,12 +1411,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           {showAgentDebug && (
             <Text
               ref={agentLabelRef}
-              fontSize={DEBUG_AGENT_LABEL_SCALE}
+              fontSize={agentDebugLabelScale}
               font={DEBUG_LABEL_FONT}
               color="#9af7ff"
               anchorX="center"
               anchorY="middle"
               depthTest={false}
+              renderOrder={20}
               raycast={() => null}
             >
               agent cruise-wander

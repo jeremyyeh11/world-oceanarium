@@ -289,22 +289,34 @@ function interactionProxyDimensions(species, swim) {
 
 function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const [rawYMin, rawYMax] = DEPTH_Y[depthZone] ?? DEPTH_Y.epipelagic
-  const bodyLength = swim.bodyLengthWU * size
+  const boundsBodyLengthWU = swim.boundsBodyLengthWU ?? swim.bodyLengthWU
+  const boundsSize = swim.boundsUseSpeciesSize === false ? 1 : size
+  const bodyLength = boundsBodyLengthWU * boundsSize
   const movementScale = swim.movementBoundsScale ?? 1
   const bodyMargin = Math.max(PATH_EDGE_PADDING, Math.min(2.2, bodyLength * 0.35))
   const verticalMargin = Math.min((rawYMax - rawYMin) * 0.16, Math.max(PATH_VERTICAL_PADDING, Math.min(0.58, bodyLength * 0.16)))
+  const xBase = Math.max(1.5, SWIM_BOX.x * movementScale - bodyMargin) * (swim.boundsScaleX ?? 1)
+  const zBase = Math.max(1.5, SWIM_BOX.z * movementScale - bodyMargin) * (swim.boundsScaleZ ?? 1)
+  const xMin = swim.boundsXMin ?? -xBase
+  const xMax = swim.boundsXMax ?? xBase
+  const zMin = swim.boundsZMin ?? -zBase
+  const zMax = swim.boundsZMax ?? zBase
   return {
-    x: Math.max(1.5, SWIM_BOX.x * movementScale - bodyMargin),
-    z: Math.max(1.5, SWIM_BOX.z * movementScale - bodyMargin),
+    x: Math.max(Math.abs(xMin), Math.abs(xMax)),
+    z: Math.max(Math.abs(zMin), Math.abs(zMax)),
+    xMin,
+    xMax,
+    zMin,
+    zMax,
     yMin: rawYMin + verticalMargin,
     yMax: rawYMax - verticalMargin,
   }
 }
 
-function clampToSwimBox(point, yMin, yMax, xLimit = SWIM_BOX.x - PATH_EDGE_PADDING, zLimit = SWIM_BOX.z - PATH_EDGE_PADDING) {
-  point.x = THREE.MathUtils.clamp(point.x, -xLimit, xLimit)
-  point.y = THREE.MathUtils.clamp(point.y, yMin, yMax)
-  point.z = THREE.MathUtils.clamp(point.z, -zLimit, zLimit)
+function clampToSwimBounds(point, bounds) {
+  point.x = THREE.MathUtils.clamp(point.x, bounds.xMin, bounds.xMax)
+  point.y = THREE.MathUtils.clamp(point.y, bounds.yMin, bounds.yMax)
+  point.z = THREE.MathUtils.clamp(point.z, bounds.zMin, bounds.zMax)
   return point
 }
 
@@ -315,12 +327,20 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
-    const xSign = from ? (from.x >= 0 ? -1 : 1) : (rand() < 0.5 ? -1 : 1)
-    const zSign = from ? (from.z >= 0 ? -1 : 1) : (rand() < 0.5 ? -1 : 1)
+    const xMid = (bounds.xMin + bounds.xMax) / 2
+    const zMid = (bounds.zMin + bounds.zMax) / 2
+    const xRange = bounds.xMax - bounds.xMin
+    const zRange = bounds.zMax - bounds.zMin
+    const targetLeft = !from ? rand() < 0.5 : from.x >= xMid
+    const targetBack = !from ? rand() < 0.5 : from.z >= zMid
     out.set(
-      wideTarget ? xSign * randomRange(rand, bounds.x * 0.58, bounds.x) : randomRange(rand, -bounds.x, bounds.x),
+      wideTarget
+        ? randomRange(rand, targetLeft ? bounds.xMin : bounds.xMax - xRange * 0.42, targetLeft ? bounds.xMin + xRange * 0.42 : bounds.xMax)
+        : randomRange(rand, bounds.xMin, bounds.xMax),
       randomRange(rand, bounds.yMin, bounds.yMax),
-      wideTarget ? zSign * randomRange(rand, bounds.z * 0.48, bounds.z) : randomRange(rand, -bounds.z, bounds.z),
+      wideTarget
+        ? randomRange(rand, targetBack ? bounds.zMin : bounds.zMax - zRange * 0.52, targetBack ? bounds.zMin + zRange * 0.52 : bounds.zMax)
+        : randomRange(rand, bounds.zMin, bounds.zMax),
     )
     if (!from || out.distanceTo(from) >= minDistance) return out
   }
@@ -329,7 +349,7 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
     out.subVectors(out, from)
     if (out.lengthSq() < 0.0001) out.set(1, 0, 0)
     out.normalize().multiplyScalar(minDistance).add(from)
-    clampToSwimBox(out, bounds.yMin, bounds.yMax, bounds.x, bounds.z)
+    clampToSwimBounds(out, bounds)
   }
 
   return out
@@ -352,7 +372,7 @@ function limitPathYGradient(points, bounds, maxGradient = MAX_PATH_Y_GRADIENT) {
 
 function clampFishPosition(point, creature, swim) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  return clampToSwimBox(point, bounds.yMin, bounds.yMax, bounds.x, bounds.z)
+  return clampToSwimBounds(point, bounds)
 }
 
 function traversalY(rand, bounds, swim, index = 0, verticalScale = 1, rangeFloor = 0.42) {
@@ -371,12 +391,16 @@ function traversalY(rand, bounds, swim, index = 0, verticalScale = 1, rangeFloor
 
 function randomPoint(rand, bounds, swim, index = 0, verticalScale = 1) {
   const side = index % 2 === 0 ? -1 : 1
-  const laneJitter = bounds.x * 0.12
+  const xRange = bounds.xMax - bounds.xMin
+  const laneJitter = xRange * 0.06
+  const laneX = side < 0
+    ? THREE.MathUtils.lerp(bounds.xMin, bounds.xMax, 0.14)
+    : THREE.MathUtils.lerp(bounds.xMin, bounds.xMax, 0.86)
 
   return new THREE.Vector3(
-    side * bounds.x * 0.72 + randomRange(rand, -laneJitter, laneJitter),
+    laneX + randomRange(rand, -laneJitter, laneJitter),
     traversalY(rand, bounds, swim, index, verticalScale, 0.52),
-    randomRange(rand, -bounds.z, bounds.z),
+    randomRange(rand, bounds.zMin, bounds.zMax),
   )
 }
 
@@ -396,7 +420,7 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
     const verticalKick = THREE.MathUtils.lerp(0.12, 0.85, swim.erraticness) * verticalScale
     lead.y += randomRange(rand, -verticalKick, verticalKick)
     lead.z += randomRange(rand, -0.55, 0.55)
-    points.push(clampToSwimBox(lead, bounds.yMin, bounds.yMax, bounds.x, bounds.z))
+    points.push(clampToSwimBounds(lead, bounds))
 
     for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i, verticalScale))
   } else {
@@ -441,7 +465,7 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
     const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
     lead.y = THREE.MathUtils.lerp(lead.y, traversalY(rand, bounds, swim, 1, verticalScale, 0.62), 0.58)
     lead.z += randomRange(rand, -0.7, 0.7)
-    points.push(clampToSwimBox(lead, bounds.yMin, bounds.yMax, bounds.x, bounds.z))
+    points.push(clampToSwimBounds(lead, bounds))
   }
 
   for (let i = points.length; i < pointCount; i += 1) {
@@ -1174,7 +1198,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     if (showAgentDebug) {
       const agentBounds = swimBounds(creature.depthZone, swim, size)
       const bodyLength = creatureBodyLength(creature, swim)
-      const wallClearance = Math.min(agentBounds.x - Math.abs(fish.position.x), agentBounds.z - Math.abs(fish.position.z))
+      const wallClearance = Math.min(
+        fish.position.x - agentBounds.xMin,
+        agentBounds.xMax - fish.position.x,
+        fish.position.z - agentBounds.zMin,
+        agentBounds.zMax - fish.position.z,
+      )
       const surfaceClearance = agentBounds.yMax - fish.position.y
       const agentAlignment = agentMoveDirection.lengthSq() > 0.0001 && desiredDirection.current.lengthSq() > 0.0001
         ? THREE.MathUtils.clamp(agentMoveDirection.dot(desiredDirection.current), -1, 1)
@@ -1271,7 +1300,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         const bodyLength = creatureBodyLength(creature, swim)
         const targetDistance = fish.position.distanceTo(followTarget.current)
         const bounds = swimBounds(creature.depthZone, swim, size)
-        const wallClearance = Math.min(bounds.x - Math.abs(fish.position.x), bounds.z - Math.abs(fish.position.z))
+        const wallClearance = Math.min(
+          fish.position.x - bounds.xMin,
+          bounds.xMax - fish.position.x,
+          fish.position.z - bounds.zMin,
+          bounds.zMax - fish.position.z,
+        )
         const surfaceClearance = bounds.yMax - fish.position.y
         const targetDistanceMeters = targetDistance * WORLD_UNIT_METERS
         const targetMeters = followTarget.current.clone().multiplyScalar(WORLD_UNIT_METERS)
@@ -1459,8 +1493,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
   const showSelectedOutline = selected && !hideSelectionSilhouette
   const agentBoundsForDebug = showAgentDebug ? swimBounds(creature.depthZone, swim, size) : null
-  const agentBoundaryCenter = agentBoundsForDebug ? [0, (agentBoundsForDebug.yMin + agentBoundsForDebug.yMax) / 2, 0] : [0, 0, 0]
-  const agentBoundarySize = agentBoundsForDebug ? [agentBoundsForDebug.x * 2, agentBoundsForDebug.yMax - agentBoundsForDebug.yMin, agentBoundsForDebug.z * 2] : [1, 1, 1]
+  const agentBoundaryCenter = agentBoundsForDebug
+    ? [(agentBoundsForDebug.xMin + agentBoundsForDebug.xMax) / 2, (agentBoundsForDebug.yMin + agentBoundsForDebug.yMax) / 2, (agentBoundsForDebug.zMin + agentBoundsForDebug.zMax) / 2]
+    : [0, 0, 0]
+  const agentBoundarySize = agentBoundsForDebug
+    ? [agentBoundsForDebug.xMax - agentBoundsForDebug.xMin, agentBoundsForDebug.yMax - agentBoundsForDebug.yMin, agentBoundsForDebug.zMax - agentBoundsForDebug.zMin]
+    : [1, 1, 1]
   const renderModel = model && !instancedSardineLod
   const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
   const proxyDimensions = interactionProxyDimensions(species, swim)

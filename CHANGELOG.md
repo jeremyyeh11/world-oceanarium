@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_12`.
+Status: in progress as `v0.8.0-dev_13`.
 
 ### Creature behavior
 
@@ -34,6 +34,7 @@ Status: in progress as `v0.8.0-dev_12`.
 - Smooths Mola target turns into broad forward arcs instead of on-the-spot pivots, so opposite-direction retargets keep moving along the face direction while turning toward the destination.
 - Fixes the arc-turn stall by steering the visual facing toward the actual destination while translating along the current forward vector, with a higher minimum arc speed so the Mola keeps making progress during opposite-direction turns.
 - Adds a cyan wireframe movement-boundary box to Mola direction debug so the padded solo-agent target volume is visible in the tank.
+- Retunes swim bounds: sardines get 1.1x wider X and deeper back travel to Z=-8, while Mola reuses the sardine X/Y boundary and gets asymmetric Z travel from -12 to +4.
 
 ## v0.7.9 — Sardine texture refresh
 

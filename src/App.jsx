@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import Landing from './components/Landing'
-import BiomeMenu from './components/BiomeMenu'
 import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import { BIOMES } from './data/species'
@@ -46,9 +44,9 @@ function createTankVisitSeed() {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState('landing')
-  const [activeBiome, setActiveBiome] = useState(DEFAULT_BIOME_ID)
-  const [tankVisitSeed, setTankVisitSeed] = useState(() => createTankVisitSeed())
+  const [screen] = useState('tank')
+  const [activeBiome] = useState(DEFAULT_BIOME_ID)
+  const [tankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
   const [screenshotMode, setScreenshotMode] = useState(false)
@@ -292,25 +290,6 @@ export default function App() {
     debugTapTimer.current = window.setTimeout(resetDebugTaps, DEBUG_TAP_WINDOW_MS)
   }
 
-  const enterSite = () => {
-    startAudio()
-    setActiveBiome(DEFAULT_BIOME_ID)
-    setTankVisitSeed(createTankVisitSeed())
-    setScreen('tank')
-  }
-  const selectBiome = (biomeId) => {
-    startAudio()
-    setActiveBiome(biomeId)
-    setTankVisitSeed(createTankVisitSeed())
-    setScreen('tank')
-  }
-  const backToLanding = () => {
-    setScreenshotMode(false)
-    setScreenshotHelpVisible(false)
-    stopAudio()
-    setActiveBiome(DEFAULT_BIOME_ID)
-    setScreen('landing')
-  }
   const enterScreenshotMode = () => {
     setTopMenuOpen(false)
     setScreenshotMode(true)
@@ -323,14 +302,9 @@ export default function App() {
 
   let page = null
 
-  if (screen === 'landing') {
-    page = <Landing onEnter={enterSite} />
-  } else if (screen === 'menu') {
-    // Kept intact for future multi-tank work, but hidden while Ocean is the only active tank.
-    page = <BiomeMenu biomes={ACTIVE_BIOMES} onSelect={selectBiome} />
-  } else if (screen === 'tank' && activeBiome) {
+  if (screen === 'tank' && activeBiome) {
     const biome = ACTIVE_BIOMES.find(b => b.id === activeBiome) ?? ACTIVE_BIOMES[0]
-    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onBack={backToLanding} />
+    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} />
   }
 
   return (

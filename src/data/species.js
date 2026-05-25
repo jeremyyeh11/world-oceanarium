@@ -148,8 +148,8 @@ export const SPECIES = [
       boundsXMin: -12,
       boundsXMax: 12,
       boundsYMin: -3.4,
-      boundsZMin: -22,
-      boundsZMax: -6,
+      boundsZMin: -110,
+      boundsZMax: -30,
     },
     // Normalized individual size maps to 180–240 cm total length.
     sizeRange: [0.75, 1.0],

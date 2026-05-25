@@ -436,9 +436,12 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
-function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale, rotation, weavePhase) {
-  const side = index % 2 === 0 ? -1 : 1
-  const depthSide = Math.floor(index / 2) % 2 === 0 ? -1 : 1
+function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale, rotation, weavePhase, pattern = {}) {
+  const sideIndex = index + (pattern.laneFlip ?? 0)
+  const depthIndex = Math.floor(index / 2) + (pattern.depthFlip ?? 0)
+  const yIndex = index + (pattern.yFlip ?? 0)
+  const side = sideIndex % 2 === 0 ? -1 : 1
+  const depthSide = depthIndex % 2 === 0 ? -1 : 1
   const normalized = pointCount <= 1 ? 0 : index / (pointCount - 1)
   const zRange = bounds.zMax - bounds.zMin
   const hasExplicitBounds = ['boundsXMin', 'boundsXMax', 'boundsZMin', 'boundsZMax'].some(key => Number.isFinite(swim[key]))
@@ -454,7 +457,7 @@ function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale
 
     return clampToSwimBounds(new THREE.Vector3(
       THREE.MathUtils.lerp(bounds.xMin, bounds.xMax, laneT),
-      traversalY(rand, bounds, swim, index, verticalScale, 0.62),
+      traversalY(rand, bounds, swim, yIndex, verticalScale, 0.62),
       THREE.MathUtils.lerp(bounds.zMin, bounds.zMax, depthT) + weave,
     ), bounds)
   }
@@ -467,7 +470,7 @@ function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale
 
   return clampToSwimBounds(new THREE.Vector3(
     localX * cos - localZ * sin,
-    traversalY(rand, bounds, swim, index, verticalScale, 0.62),
+    traversalY(rand, bounds, swim, yIndex, verticalScale, 0.62),
     localX * sin + localZ * cos,
   ), bounds)
 }
@@ -480,6 +483,11 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
   const verticalScale = verticalPathScale(creature, swim)
   const rotation = randomRange(rand, -Math.PI, Math.PI)
   const weavePhase = randomRange(rand, 0, Math.PI * 2)
+  const pattern = {
+    laneFlip: rand() < 0.5 ? 0 : 1,
+    depthFlip: rand() < 0.5 ? 0 : 1,
+    yFlip: rand() < 0.5 ? 0 : 1,
+  }
   const points = []
 
   if (start && exitTangent) {
@@ -492,7 +500,7 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
   }
 
   for (let i = points.length; i < pointCount; i += 1) {
-    points.push(rotatedSchoolPoint(rand, bounds, swim, i, pointCount, verticalScale, rotation, weavePhase))
+    points.push(rotatedSchoolPoint(rand, bounds, swim, i, pointCount, verticalScale, rotation, weavePhase, pattern))
   }
 
   limitPathYGradient(points, bounds)

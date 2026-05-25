@@ -15,6 +15,7 @@ const DEFAULT_POSITION_DAMPING = 4.0
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const framedFocus = new THREE.Vector3()
+const initialFollowLookTarget = new THREE.Vector3()
 const followOffset = new THREE.Vector3()
 const followRight = new THREE.Vector3()
 const desiredCameraPosition = new THREE.Vector3()
@@ -44,13 +45,15 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       focusPosition.y = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
 
       if (!hasSmoothedFocus.current) {
-        smoothedFocus.current.copy(focusPosition)
+        initialFollowLookTarget.set(camera.position.x, camera.position.y, 0)
+        initialFollowLookTarget.y = THREE.MathUtils.clamp(initialFollowLookTarget.y, limits.min, limits.max)
+        smoothedFocus.current.copy(initialFollowLookTarget)
         hasSmoothedFocus.current = true
-      } else {
-        smoothedFocus.current.x = THREE.MathUtils.damp(smoothedFocus.current.x, focusPosition.x, FOLLOW_TARGET_DAMPING, delta)
-        smoothedFocus.current.y = THREE.MathUtils.damp(smoothedFocus.current.y, focusPosition.y, FOLLOW_TARGET_DAMPING, delta)
-        smoothedFocus.current.z = THREE.MathUtils.damp(smoothedFocus.current.z, focusPosition.z, FOLLOW_TARGET_DAMPING, delta)
       }
+
+      smoothedFocus.current.x = THREE.MathUtils.damp(smoothedFocus.current.x, focusPosition.x, FOLLOW_TARGET_DAMPING, delta)
+      smoothedFocus.current.y = THREE.MathUtils.damp(smoothedFocus.current.y, focusPosition.y, FOLLOW_TARGET_DAMPING, delta)
+      smoothedFocus.current.z = THREE.MathUtils.damp(smoothedFocus.current.z, focusPosition.z, FOLLOW_TARGET_DAMPING, delta)
 
       followOffset.set(0, FOLLOW_HEIGHT, followDistance)
 

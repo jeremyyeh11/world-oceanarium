@@ -888,6 +888,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
   const agentLabelRef = useRef()
+  const boundaryZMinLabelRef = useRef()
+  const boundaryZMaxLabelRef = useRef()
   const nameLabelRef = useRef()
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
@@ -1337,6 +1339,24 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         agentLabelRef.current.lookAt(camera.position)
         agentLabelRef.current.visible = showDirection
       }
+      if (agentBoundsForDebug) {
+        const zMinMeters = agentBoundsForDebug.zMin * WORLD_UNIT_METERS
+        const zMaxMeters = agentBoundsForDebug.zMax * WORLD_UNIT_METERS
+        const yTop = agentBoundsForDebug.yMax + 0.28
+        const xEdge = agentBoundsForDebug.xMax
+        if (boundaryZMinLabelRef.current) {
+          boundaryZMinLabelRef.current.position.set(xEdge, yTop, agentBoundsForDebug.zMin)
+          boundaryZMinLabelRef.current.text = `Z min ${zMinMeters.toFixed(2)}m`
+          boundaryZMinLabelRef.current.lookAt(camera.position)
+          boundaryZMinLabelRef.current.visible = showDirection
+        }
+        if (boundaryZMaxLabelRef.current) {
+          boundaryZMaxLabelRef.current.position.set(xEdge, yTop, agentBoundsForDebug.zMax)
+          boundaryZMaxLabelRef.current.text = `Z max ${zMaxMeters.toFixed(2)}m`
+          boundaryZMaxLabelRef.current.lookAt(camera.position)
+          boundaryZMaxLabelRef.current.visible = showDirection
+        }
+      }
       if (nameLabelRef.current) {
         nameLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.16 + 0.045)
         nameLabelRef.current.lookAt(camera.position)
@@ -1550,6 +1570,36 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
               <boxGeometry args={agentBoundarySize} />
               <meshBasicMaterial color="#57c7e8" wireframe transparent opacity={0.28} depthTest={false} depthWrite={false} />
             </mesh>
+          )}
+          {(debugLayers?.direction ?? true) && agentBoundsForDebug && (showAgentDebug || isSchoolLeader) && (
+            <>
+              <Text
+                ref={boundaryZMinLabelRef}
+                fontSize={agentDebugLabelScale * 0.75}
+                font={DEBUG_LABEL_FONT}
+                color="#ffcc66"
+                anchorX="center"
+                anchorY="middle"
+                depthTest={false}
+                renderOrder={21}
+                raycast={() => null}
+              >
+                Z min
+              </Text>
+              <Text
+                ref={boundaryZMaxLabelRef}
+                fontSize={agentDebugLabelScale * 0.75}
+                font={DEBUG_LABEL_FONT}
+                color="#80ff72"
+                anchorX="center"
+                anchorY="middle"
+                depthTest={false}
+                renderOrder={21}
+                raycast={() => null}
+              >
+                Z max
+              </Text>
+            </>
           )}
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />

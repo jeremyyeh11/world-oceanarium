@@ -128,16 +128,17 @@ export const SPECIES = [
     description: 'A huge, laterally flattened open-ocean sunfish that drifts through the upper water column and often basks near the surface. This placeholder uses real-scale length until Jeremy supplies the final GLB.',
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. 240 cm max total length = 9.6 WU.
+      // Reported Mola cruising: 3.2 km/h ≈ 0.89 m/s ≈ 3.56 WU/s ≈ 0.37 body lengths/s.
       bodyLengthWU: 9.6,
-      visualTimeScale: 0.22,
-      idleBLPerSec: [0.10, 0.18],
-      idleDriftBLPerSec: [0.025, 0.055],
-      snapBLPerSec: [0.28, 0.42],
-      burstBLPerSec: [0.38, 0.56],
-      burstInterval: [16.0, 26.0],
+      visualTimeScale: 0.9,
+      idleBLPerSec: [0.34, 0.44],
+      idleDriftBLPerSec: [0.04, 0.085],
+      snapBLPerSec: [0.48, 0.64],
+      burstBLPerSec: [0.62, 0.82],
+      burstInterval: [14.0, 22.0],
       erraticness: 0.055,
       turnRadius: 1.0,
-      speedMultiplier: 0.62,
+      speedMultiplier: 0.95,
     },
     // Normalized individual size maps to 180–240 cm total length.
     sizeRange: [0.75, 1.0],

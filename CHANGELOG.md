@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_06`.
+Status: in progress as `v0.8.0-dev_07`.
 
 ### Creature behavior
 
@@ -29,6 +29,7 @@ Status: in progress as `v0.8.0-dev_06`.
 - Restores smooth camera entry into follow mode by damping the focus point from the current tank view before tracking the selected creature, and keeps the placeholder Mola base material color stable when selected by rendering the selection rim as a back-face shell instead of tinting the body.
 - Adds focused debug readouts for solo agent-style individuals such as the Ocean Sunfish: current movement status, speed, destination coordinates, distance to target, wall clearance, and surface clearance.
 - Moves and scales the solo-agent debug readout for large creatures so the Mola label sits above the body at follow-camera distance instead of being tiny or visually buried near the target marker.
+- Retunes the Mola swim profile toward the reported 3.2 km/h cruising speed: roughly 3.56 WU/s at project scale, with faster cruise/snap/burst speeds while keeping low erraticness and broad turns.
 
 ## v0.7.9 — Sardine texture refresh
 

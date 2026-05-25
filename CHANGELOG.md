@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_05`.
+Status: in progress as `v0.8.0-dev_06`.
 
 ### Creature behavior
 
@@ -28,6 +28,7 @@ Status: in progress as `v0.8.0-dev_05`.
 - Scales follow-camera default distance by focused creature body length for large solo animals, so clicking the real-scale Mola starts farther back instead of zooming inside the fish while sardines keep the existing close inspection distance.
 - Restores smooth camera entry into follow mode by damping the focus point from the current tank view before tracking the selected creature, and keeps the placeholder Mola base material color stable when selected by rendering the selection rim as a back-face shell instead of tinting the body.
 - Adds focused debug readouts for solo agent-style individuals such as the Ocean Sunfish: current movement status, speed, destination coordinates, distance to target, wall clearance, and surface clearance.
+- Moves and scales the solo-agent debug readout for large creatures so the Mola label sits above the body at follow-camera distance instead of being tiny or visually buried near the target marker.
 
 ## v0.7.9 — Sardine texture refresh
 

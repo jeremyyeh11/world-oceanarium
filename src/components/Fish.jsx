@@ -74,6 +74,7 @@ const DEBUG_FORWARD_SPEED_SCALE = 0.625
 const DEBUG_FORWARD_MIN_LENGTH = 0.11
 const DEBUG_LABEL_SCALE = 0.0525
 const DEBUG_NAME_LABEL_SCALE = 0.034
+const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
@@ -810,6 +811,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const forwardLineRef = useRef()
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
+  const agentLabelRef = useRef()
   const nameLabelRef = useRef()
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
@@ -829,6 +831,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     }
   }, [creature, isSchooling, school?.id])
   const isSchoolLeader = isSchooling && school.index === 0
+  const showAgentDebug = Boolean(species && species.schooling === false && !isSchooling)
   const schoolState = useMemo(() => (isSchooling ? getSchoolState(school, creature, swim) : null), [isSchooling, school, creature, swim])
   const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
   const progress = useRef(0)
@@ -1152,7 +1155,26 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         driftLabelRef.current.position.copy(labelPosition.current)
         driftLabelRef.current.text = `drift ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}`
         driftLabelRef.current.lookAt(camera.position)
-        driftLabelRef.current.visible = showDirection
+        driftLabelRef.current.visible = showDirection && !showAgentDebug
+      }
+      if (agentLabelRef.current) {
+        const bodyLength = creatureBodyLength(creature, swim)
+        const targetDistance = fish.position.distanceTo(followTarget.current)
+        const bounds = swimBounds(creature.depthZone, swim, size)
+        const wallClearance = Math.min(bounds.x - Math.abs(fish.position.x), bounds.z - Math.abs(fish.position.z))
+        const surfaceClearance = bounds.yMax - fish.position.y
+        const status = targetDistance < Math.max(0.35, bodyLength * 0.08)
+          ? 'hold'
+          : velocity.current > motion.idleSpeed * 1.28
+            ? 'burst'
+            : wallClearance < bodyLength * 0.22 || surfaceClearance < bodyLength * 0.12
+              ? 'avoid-boundary'
+              : 'cruise-wander'
+        labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.18 + Math.min(0.44, bodyLength * 0.045))
+        agentLabelRef.current.position.copy(labelPosition.current)
+        agentLabelRef.current.text = `agent ${status}\nspeed ${effectiveDebugVelocity.toFixed(2)} wu/s · ${targetDistance.toFixed(1)}wu to target\ndest ${followTarget.current.x.toFixed(1)}, ${followTarget.current.y.toFixed(1)}, ${followTarget.current.z.toFixed(1)}\nclear wall ${wallClearance.toFixed(1)} · surface ${surfaceClearance.toFixed(1)}`
+        agentLabelRef.current.lookAt(camera.position)
+        agentLabelRef.current.visible = showDirection
       }
       if (nameLabelRef.current) {
         nameLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.16 + 0.045)
@@ -1384,6 +1406,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           >
             drift +0.00
           </Text>
+          {showAgentDebug && (
+            <Text
+              ref={agentLabelRef}
+              fontSize={DEBUG_AGENT_LABEL_SCALE}
+              font={DEBUG_LABEL_FONT}
+              color="#9af7ff"
+              anchorX="center"
+              anchorY="middle"
+              depthTest={false}
+              raycast={() => null}
+            >
+              agent cruise-wander
+            </Text>
+          )}
           <Text
             ref={nameLabelRef}
             fontSize={DEBUG_NAME_LABEL_SCALE}

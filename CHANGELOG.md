@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_23`.
+Status: in progress as `v0.8.0-dev_12`.
 
 ### Creature behavior
 
@@ -34,17 +34,6 @@ Status: in progress as `v0.8.0-dev_23`.
 - Smooths Mola target turns into broad forward arcs instead of on-the-spot pivots, so opposite-direction retargets keep moving along the face direction while turning toward the destination.
 - Fixes the arc-turn stall by steering the visual facing toward the actual destination while translating along the current forward vector, with a higher minimum arc speed so the Mola keeps making progress during opposite-direction turns.
 - Adds a cyan wireframe movement-boundary box to Mola direction debug so the padded solo-agent target volume is visible in the tank.
-- Retunes swim bounds: sardines get 1.1x wider X and deeper back travel to Z=-8, while Mola reuses the sardine X/Y boundary and gets asymmetric Z travel from -12 to +4.
-- Fixes the runtime blank-screen regression from the asymmetric-bounds patch by converting the remaining school-path clamp call to the new min/max bounds helper.
-- Expands sardine X bounds to `[-12, 12]` and moves the Mola movement volume deeper/back to Z `[-20, -6]`.
-- Makes explicit asymmetric bounds visually affect school paths by sampling school control points from the actual `xMin/xMax/zMin/zMax` faces instead of the old symmetric rotated radius proxy, and shows the boundary wireframe for school leaders in direction debug.
-- Flips the explicit Z movement volumes after review: sardines now expand toward positive Z up to `+8`, and Mola now cruises in positive-Z space from `+6` to `+20` instead of the prior negative-Z volume.
-- Pushes the Mola positive-Z cruise volume farther forward to `[15, 30]` for review.
-- Adds explicit in-scene Z min/max meter labels to movement-boundary debug so front/back bound shifts can be verified even when the wireframe projects similarly from the front camera.
-- Moves the Mola cruise volume away from the screen/front glass by placing it on negative Z: `[-30, -15]`.
-- Pushes the Mola cruise volume much farther into the tank to `[-55, -35]` after visual review showed the previous shift still read too close to the screen.
-- Anchors the Mola follow-camera default to the front-glass side of its deep negative-Z movement volume, so moving the volume deeper changes the visible screen-depth instead of the camera following the fish backward and canceling the visual difference.
-- Prevents focused Mola review from zooming back into the old close-up framing by making the depth-anchored distance the minimum follow distance for explicit deep solo-agent bounds.
 
 ## v0.7.9 — Sardine texture refresh
 

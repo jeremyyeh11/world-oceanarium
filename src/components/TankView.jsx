@@ -14,7 +14,7 @@ const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
 const DEFAULT_FOLLOW_DISTANCE = 3.2
 const MIN_FOLLOW_DISTANCE = 1.35
-const MAX_FOLLOW_DISTANCE = 72
+const MAX_FOLLOW_DISTANCE = 18
 const LARGE_CREATURE_FOLLOW_BODY_LENGTHS = 1.65
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
@@ -63,24 +63,10 @@ function clampFollowDistance(distance) {
   return Math.max(MIN_FOLLOW_DISTANCE, Math.min(MAX_FOLLOW_DISTANCE, distance))
 }
 
-function depthAnchoredFollowOffset(species) {
-  const swim = species?.swim
-  if (!swim || species?.schooling !== false) return 0
-  if (!Number.isFinite(swim.boundsZMin) || !Number.isFinite(swim.boundsZMax)) return 0
-
-  const boundsCenterZ = (swim.boundsZMin + swim.boundsZMax) / 2
-  return Math.max(0, -boundsCenterZ)
-}
-
-function minimumFollowDistanceForCreature(creature) {
+function defaultFollowDistanceForCreature(creature) {
   const species = SPECIES_BY_NAME.get(creature?.species)
   const bodyLength = (species?.swim?.bodyLengthWU ?? 1) * (creature?.size ?? 1)
-  const inspectionDistance = Math.max(DEFAULT_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_FOLLOW_BODY_LENGTHS)
-  return clampFollowDistance(inspectionDistance + depthAnchoredFollowOffset(species))
-}
-
-function defaultFollowDistanceForCreature(creature) {
-  return minimumFollowDistanceForCreature(creature)
+  return clampFollowDistance(Math.max(DEFAULT_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_FOLLOW_BODY_LENGTHS))
 }
 
 function eventStartedInInfoCard(event) {
@@ -262,8 +248,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   const adjustFollowDistance = (delta) => {
-    const minForCreature = selectedCreature ? minimumFollowDistanceForCreature(selectedCreature) : MIN_FOLLOW_DISTANCE
-    setFollowDistance(current => Math.max(minForCreature, clampFollowDistance(current + delta)))
+    setFollowDistance(current => clampFollowDistance(current + delta))
   }
 
   const toggleDebugLayer = (layerId) => {

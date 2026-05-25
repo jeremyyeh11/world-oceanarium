@@ -90,6 +90,8 @@ const AVOIDANCE_SMOOTHING = 3.4
 const AVOIDANCE_MAX_WEIGHT = 0.28
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
+const SOLO_AGENT_TURN_FIRST_ALIGNMENT = 0.25
+const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -105,6 +107,8 @@ const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
 const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
+const agentMoveDirection = new THREE.Vector3()
+const agentForwardFlat = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -252,8 +256,7 @@ function enforceForwardPitchLimit(direction, pitchLimit) {
 function debugForwardOffset(creature, swim, model) {
   if (model?.debugForwardOrigin === 'head') return 0
   if (Number.isFinite(model?.debugForwardOffsetWU)) return model.debugForwardOffsetWU
-  const size = creature.size ?? 1
-  if (!model) return 0.35 * size
+  if (!model) return creatureBodyLength(creature, swim) * 0.52
   return creatureBodyLength(creature, swim) * 0.42
 }
 
@@ -285,11 +288,12 @@ function interactionProxyDimensions(species, swim) {
 function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const [rawYMin, rawYMax] = DEPTH_Y[depthZone] ?? DEPTH_Y.epipelagic
   const bodyLength = swim.bodyLengthWU * size
+  const movementScale = swim.movementBoundsScale ?? 1
   const bodyMargin = Math.max(PATH_EDGE_PADDING, Math.min(2.2, bodyLength * 0.35))
   const verticalMargin = Math.min((rawYMax - rawYMin) * 0.16, Math.max(PATH_VERTICAL_PADDING, Math.min(0.58, bodyLength * 0.16)))
   return {
-    x: Math.max(1.5, SWIM_BOX.x - bodyMargin),
-    z: Math.max(1.5, SWIM_BOX.z - bodyMargin),
+    x: Math.max(1.5, SWIM_BOX.x * movementScale - bodyMargin),
+    z: Math.max(1.5, SWIM_BOX.z * movementScale - bodyMargin),
     yMin: rawYMin + verticalMargin,
     yMax: rawYMax - verticalMargin,
   }
@@ -308,10 +312,13 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   const minDistance = Math.max(1.2, bodyLength * 0.8)
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
+    const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
+    const xSign = from ? (from.x >= 0 ? -1 : 1) : (rand() < 0.5 ? -1 : 1)
+    const zSign = from ? (from.z >= 0 ? -1 : 1) : (rand() < 0.5 ? -1 : 1)
     out.set(
-      randomRange(rand, -bounds.x, bounds.x),
+      wideTarget ? xSign * randomRange(rand, bounds.x * 0.58, bounds.x) : randomRange(rand, -bounds.x, bounds.x),
       randomRange(rand, bounds.yMin, bounds.yMax),
-      randomRange(rand, -bounds.z, bounds.z),
+      wideTarget ? zSign * randomRange(rand, bounds.z * 0.48, bounds.z) : randomRange(rand, -bounds.z, bounds.z),
     )
     if (!from || out.distanceTo(from) >= minDistance) return out
   }
@@ -1129,9 +1136,24 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
             0.50,
             1.82,
           )
+        let movementScale = velocity.current * organicMotion.speedScale * catchup * delta
+        if (showAgentDebug && hasVisualForward.current) {
+          agentForwardFlat.set(visualForward.current.x, 0, visualForward.current.z)
+          if (agentForwardFlat.lengthSq() > 0.0001) {
+            agentForwardFlat.normalize()
+            const alignment = THREE.MathUtils.clamp(agentForwardFlat.dot(desiredDirection.current), -1, 1)
+            const turnFirstScale = THREE.MathUtils.smoothstep(alignment, SOLO_AGENT_TURN_FIRST_ALIGNMENT, 1)
+            movementScale *= turnFirstScale
+            agentMoveDirection.copy(agentForwardFlat)
+          } else {
+            agentMoveDirection.copy(desiredDirection.current)
+          }
+        } else {
+          agentMoveDirection.copy(desiredDirection.current)
+        }
         fish.position.addScaledVector(
-          desiredDirection.current,
-          Math.min(targetDistance, velocity.current * organicMotion.speedScale * catchup * delta),
+          agentMoveDirection,
+          Math.min(targetDistance, movementScale),
         )
         tangent.subVectors(fish.position, previousPosition.current)
         if (tangent.lengthSq() > 0.000001) {
@@ -1205,6 +1227,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const showDirection = debugLayers?.direction ?? true
       const showName = debugLayers?.name ?? true
       const effectiveDebugVelocity = velocity.current * organicMotion.speedScale
+      const effectiveDebugSpeedMeters = effectiveDebugVelocity * WORLD_UNIT_METERS
       const debugVectorLength = DEBUG_FORWARD_MIN_LENGTH + effectiveDebugVelocity * DEBUG_FORWARD_SPEED_SCALE
       const drift = currentSchoolDrift(schoolOffset, now)
       debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
@@ -1217,7 +1240,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       }
       if (speedLabelRef.current) {
         speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
-        speedLabelRef.current.text = `${effectiveDebugVelocity.toFixed(2)} wu/s`
+        speedLabelRef.current.text = `${effectiveDebugSpeedMeters.toFixed(2)} m/s`
         speedLabelRef.current.lookAt(camera.position)
         speedLabelRef.current.visible = showDirection
       }
@@ -1234,10 +1257,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         const bounds = swimBounds(creature.depthZone, swim, size)
         const wallClearance = Math.min(bounds.x - Math.abs(fish.position.x), bounds.z - Math.abs(fish.position.z))
         const surfaceClearance = bounds.yMax - fish.position.y
+        const targetDistanceMeters = targetDistance * WORLD_UNIT_METERS
+        const targetMeters = followTarget.current.clone().multiplyScalar(WORLD_UNIT_METERS)
+        const wallClearanceMeters = wallClearance * WORLD_UNIT_METERS
+        const surfaceClearanceMeters = surfaceClearance * WORLD_UNIT_METERS
         const status = agentStatus.current
         labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
-        agentLabelRef.current.text = `agent ${status}\nspeed ${effectiveDebugVelocity.toFixed(2)} wu/s · ${targetDistance.toFixed(1)}wu to target\ndest ${followTarget.current.x.toFixed(1)}, ${followTarget.current.y.toFixed(1)}, ${followTarget.current.z.toFixed(1)}\nclear wall ${wallClearance.toFixed(1)} · surface ${surfaceClearance.toFixed(1)}`
+        agentLabelRef.current.text = `agent ${status}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s · ${targetDistanceMeters.toFixed(1)}m to target\ndest ${targetMeters.x.toFixed(1)}, ${targetMeters.y.toFixed(1)}, ${targetMeters.z.toFixed(1)}m\nclear wall ${wallClearanceMeters.toFixed(1)}m · surface ${surfaceClearanceMeters.toFixed(1)}m`
         agentLabelRef.current.lookAt(camera.position)
         agentLabelRef.current.visible = showDirection
       }
@@ -1459,7 +1486,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
             depthTest={false}
             raycast={() => null}
           >
-            0.00 wu/s
+            0.00 m/s
           </Text>
           <Text
             ref={driftLabelRef}

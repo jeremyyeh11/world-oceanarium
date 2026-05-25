@@ -139,6 +139,7 @@ export const SPECIES = [
       erraticness: 0.055,
       turnRadius: 1.0,
       speedMultiplier: 1.0,
+      movementBoundsScale: 1.35,
     },
     // Normalized individual size maps to 180–240 cm total length.
     sizeRange: [0.75, 1.0],

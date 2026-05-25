@@ -179,9 +179,11 @@ function resolveSpecies(creature) {
 
 function resolveSwimProfile(creature) {
   const species = resolveSpecies(creature)
-  const speciesSwim = species?.swim ?? DEFAULT_SWIM
+  const speciesSwim = species?.swim ?? {}
 
   return {
+    ...DEFAULT_SWIM,
+    ...speciesSwim,
     bodyLengthWU: speciesSwim.bodyLengthWU ?? DEFAULT_SWIM.bodyLengthWU,
     visualTimeScale: speciesSwim.visualTimeScale ?? DEFAULT_SWIM.visualTimeScale,
     idleBLPerSec: speciesSwim.idleBLPerSec ?? DEFAULT_SWIM.idleBLPerSec,

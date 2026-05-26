@@ -188,7 +188,8 @@ export const SPECIES = [
       layeredBaseAnimation: 'slow_cruise',
       layeredOverlayAnimations: ['idle_drift', 'bank_l', 'bank_r', 'burst', 'sun_bask_l', 'sun_bask_r'],
       layeredBaseWeight: 0.62,
-      layeredOverlayWeight: 1.0,
+      layeredOverlayWeight: 0.72,
+      animationFadeDuration: 0.55,
       loopAnimations: ['idle_drift', 'slow_cruise', 'sun_bask_l', 'sun_bask_r'],
     },
     placeholder: {

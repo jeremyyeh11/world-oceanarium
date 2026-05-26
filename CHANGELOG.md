@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_24`.
+Status: in progress as `v0.8.0-dev_25`.
 
 ### Creature behavior
 
@@ -40,6 +40,7 @@ Status: in progress as `v0.8.0-dev_24`.
 - Restores audio unlock after direct tank entry: since there is no landing `DIVE IN` gesture anymore, the first pointer/touch/key gesture in the tank now starts the Web Audio graph before UI/fish SFX fire.
 - Retriggers the deployment pipeline after Vercel did not create/report a deployment for `v0.8.0-dev_22`; no gameplay or audio behavior changes beyond the audio-unlock fix.
 - Makes the audio control reflect actual Web Audio unlock state, not just the mute flag: it now appears off until audio has really started, and tapping the audio button before unlock starts sound instead of accidentally muting it.
+- Narrows tank-view X movement bounds for both Spotted Sardinella and Mola mola from `[-25, 25]` to `[-18, 18]`; Y/Z bounds and follow-mode mechanics are unchanged.
 
 ## v0.7.9 — Sardine texture refresh
 

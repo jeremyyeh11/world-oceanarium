@@ -49,7 +49,8 @@ export const BIOMES = [
 
 export const SPECIES = [
   {
-    id: 'sardine',
+    id: 'amblygaster-sirm',
+    legacyIds: ['sardine'],
     name: 'Spotted Sardinella',
     scientificName: 'Amblygaster sirm',
     family: 'Clupeidae',
@@ -192,7 +193,7 @@ export const SPECIES = [
 export const CREATURES = [
   {
     id: 1,
-    species: 'Spotted Sardinella',
+    species: 'amblygaster-sirm',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-13T00:00:00Z',
@@ -200,7 +201,7 @@ export const CREATURES = [
   },
   {
     id: 2,
-    species: 'Spotted Sardinella',
+    species: 'amblygaster-sirm',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -208,7 +209,7 @@ export const CREATURES = [
   },
   {
     id: 3,
-    species: 'Spotted Sardinella',
+    species: 'amblygaster-sirm',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -216,7 +217,7 @@ export const CREATURES = [
   },
   {
     id: 4,
-    species: 'Spotted Sardinella',
+    species: 'amblygaster-sirm',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -224,7 +225,7 @@ export const CREATURES = [
   },
   {
     id: 5,
-    species: 'Spotted Sardinella',
+    species: 'amblygaster-sirm',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',
@@ -232,7 +233,7 @@ export const CREATURES = [
   },
   {
     id: 6,
-    species: 'Spotted Sardinella',
+    species: 'amblygaster-sirm',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-17T00:00:00Z',

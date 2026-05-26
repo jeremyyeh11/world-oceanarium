@@ -52,6 +52,7 @@ Status: in progress as `v0.8.0-dev_31`.
 - Converts Mola solo-agent travel from direct target steering to wide-radius cubic splines: each destination rebuilds a curve from current position and visual-forward tangent, movement advances by curve arc length, banking follows curve tangent deltas, and avoidance is applied as a soft offset instead of replacing the route.
 - Fixes Mola spline continuity so each new solo-agent route departs along the prior route's exit tangent and timed retargets wait until the fish is near the spline end, preventing backwards-looking traversal on route rebuilds.
 - Moves the Mola solo-agent follow/debug lookahead target to a body-length-scaled point ahead on the active spline, matching the sardine follow-target pattern so the target no longer sits inside the large body.
+- Tightens Mola visual-forward tracking against the active spline tangent, using faster tangent catch-up for solo agents so the body stays close to parallel with the curve instead of sliding sideways/backward along it.
 - Adds size-biased avoidance so smaller creatures yield more strongly to larger creatures while larger creatures are minimally disturbed by smaller ones; species dominance overrides are left as an explicit future movement-system TODO.
 
 ## v0.7.9 — Sardine texture refresh

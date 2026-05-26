@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_23`.
+Status: in progress as `v0.8.0-dev_24`.
 
 ### Creature behavior
 
@@ -39,6 +39,7 @@ Status: in progress as `v0.8.0-dev_23`.
 - Hides the landing/biome-entry step while there is only one active tank: app boot now opens directly into the Ocean tank and suppresses the tank back button until multi-tank navigation returns.
 - Restores audio unlock after direct tank entry: since there is no landing `DIVE IN` gesture anymore, the first pointer/touch/key gesture in the tank now starts the Web Audio graph before UI/fish SFX fire.
 - Retriggers the deployment pipeline after Vercel did not create/report a deployment for `v0.8.0-dev_22`; no gameplay or audio behavior changes beyond the audio-unlock fix.
+- Makes the audio control reflect actual Web Audio unlock state, not just the mute flag: it now appears off until audio has really started, and tapping the audio button before unlock starts sound instead of accidentally muting it.
 
 ## v0.7.9 — Sardine texture refresh
 

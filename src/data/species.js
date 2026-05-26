@@ -152,7 +152,7 @@ export const SPECIES = [
       boundsXMin: -18,
       boundsXMax: 18,
       boundsYMin: -7,
-      boundsZMin: -35,
+      boundsZMin: -25,
       boundsZMax: -10,
     },
     // Current review scale maps normalized individual size to 180–240 cm total length; revisit if we want full giant-sunfish adult maximums after the GLB lands.

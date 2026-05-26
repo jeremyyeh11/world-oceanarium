@@ -52,7 +52,8 @@ export default function App() {
   const [screenshotMode, setScreenshotMode] = useState(false)
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
-  const { muted: audioMuted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
+  const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
+  const audioEnabled = audioStarted && !audioMuted
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const screenshotExitHold = useRef(null)
@@ -103,12 +104,13 @@ export default function App() {
     const playButtonSfx = (event) => {
       const button = event.target?.closest?.('button')
       if (!button || button.disabled || button.classList.contains('app-version-footnote')) return
-      window.setTimeout(() => triggerUiClickSound({ type: 'click' }), 0)
+      if (!audioMuted && !audioStarted) startAudio()
+      window.setTimeout(() => triggerUiClickSound({ type: 'click' }), 80)
     }
 
     document.addEventListener('click', playButtonSfx)
     return () => document.removeEventListener('click', playButtonSfx)
-  }, [])
+  }, [audioMuted, audioStarted, startAudio])
 
   useEffect(() => {
     if (screen !== 'tank') return undefined
@@ -121,7 +123,7 @@ export default function App() {
     // Direct tank entry removed the landing-page DIVE IN gesture. Browsers still
     // require user activation before Web Audio can produce sound, so arm the
     // existing gesture unlock on initial tank load as well as after backgrounding.
-    audioNeedsGestureResume.current = true
+    if (!audioStarted) audioNeedsGestureResume.current = true
 
     const pauseWhenBackgrounded = () => {
       clearAudioResumeTimers()
@@ -130,11 +132,11 @@ export default function App() {
     }
 
     const resumeWhenForegrounded = () => {
-      if (document.visibilityState === 'hidden' || audioMuted) return
+      if (document.visibilityState === 'hidden' || audioMuted || !audioStarted) return
       clearAudioResumeTimers()
       AUDIO_FOREGROUND_RESUME_DELAYS_MS.forEach(delay => {
         const timer = window.setTimeout(() => {
-          if (document.visibilityState === 'hidden' || audioMuted) return
+          if (document.visibilityState === 'hidden' || audioMuted || !audioStarted) return
           startAudio()
         }, delay)
         audioResumeTimers.current.push(timer)
@@ -168,7 +170,7 @@ export default function App() {
 
     const audioSession = navigator?.audioSession
     const recoverInterruptedAudio = () => {
-      if (document.visibilityState === 'hidden' || audioMuted) return
+      if (document.visibilityState === 'hidden' || audioMuted || !audioStarted) return
       const state = audioSession?.state
       if (state && state !== 'active') {
         startAudio()
@@ -197,7 +199,7 @@ export default function App() {
       window.removeEventListener('touchstart', resumeOnNextGesture, { capture: true })
       window.removeEventListener('keydown', resumeOnNextGesture, { capture: true })
     }
-  }, [audioMuted, pauseAudio, screen, startAudio, stopAudio])
+  }, [audioMuted, audioStarted, pauseAudio, screen, startAudio, stopAudio])
 
   useEffect(() => {
     if (!screenshotMode) return undefined
@@ -348,17 +350,17 @@ export default function App() {
                 </svg>
               </button>
               <button
-                className={`audio-toggle${audioMuted ? '' : ' is-active'}`}
+                className={`audio-toggle${audioEnabled ? ' is-active' : ''}`}
                 type="button"
                 role="menuitem"
-                aria-label={audioMuted ? 'Unmute audio' : 'Mute audio'}
-                aria-pressed={!audioMuted}
+                aria-label={audioEnabled ? 'Mute audio' : 'Unmute audio'}
+                aria-pressed={audioEnabled}
                 title={audioSupported ? undefined : 'Audio unavailable'}
                 disabled={!audioSupported}
                 onClick={toggleAudioMuted}
               >
                 <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                  {audioMuted ? (
+                  {!audioEnabled ? (
                     <>
                       <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
                       <path d="m17 9 4 6m0-6-4 6" />

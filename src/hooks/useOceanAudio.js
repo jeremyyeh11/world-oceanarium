@@ -428,7 +428,9 @@ export function useOceanAudio() {
   const levelTimerRef = useRef(null)
   const suspendTimerRef = useRef(null)
   const mutedRef = useRef(false)
+  const startedRef = useRef(false)
   const [muted, setMuted] = useState(false)
+  const [started, setStarted] = useState(false)
   const [supported, setSupported] = useState(true)
 
   const stopLevelMeter = useCallback(() => {
@@ -512,6 +514,8 @@ export function useOceanAudio() {
     unlockAudioContext(audio.context)
 
     mutedRef.current = false
+    startedRef.current = true
+    setStarted(true)
     setMuted(false)
     setMasterMuted(false)
     return true
@@ -522,6 +526,8 @@ export function useOceanAudio() {
     if (!audio) return
 
     clearSuspendTimer()
+    startedRef.current = false
+    setStarted(false)
     setMasterMuted(true)
     releaseMediaPlaybackSession()
     suspendTimerRef.current = window.setTimeout(() => {
@@ -545,6 +551,15 @@ export function useOceanAudio() {
 
     clearSuspendTimer()
     unlockAudioContext(audio.context)
+
+    if (!startedRef.current) {
+      startedRef.current = true
+      setStarted(true)
+      mutedRef.current = false
+      setMuted(false)
+      setMasterMuted(false)
+      return
+    }
 
     setMuted(current => {
       const nextMuted = !current
@@ -588,6 +603,8 @@ export function useOceanAudio() {
     stopLevelMeter()
     const audio = audioRef.current
     if (!audio) return
+    startedRef.current = false
+    setStarted(false)
     audio.graph.nodes.forEach(node => {
       try {
         node.stop()
@@ -598,7 +615,7 @@ export function useOceanAudio() {
     audio.context.close?.()
   }, [clearSuspendTimer, stopLevelMeter])
 
-  return { muted, supported, startAudio, pauseAudio, stopAudio, toggleMuted }
+  return { muted, started, supported, startAudio, pauseAudio, stopAudio, toggleMuted }
 }
 
 export function useAudioLevels(active) {

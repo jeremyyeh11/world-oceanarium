@@ -836,37 +836,94 @@ function shouldLoopModelAnimation(model, animation, resolvedAnimation) {
   return model?.loopAnimations?.includes(resolvedAnimation) ?? false
 }
 
+function modelAnimationSpeed(animationVariation, animation, resolvedAnimation) {
+  return animationVariation?.speeds?.[resolvedAnimation]
+    ?? animationVariation?.speeds?.[animation]
+    ?? animationVariation?.speeds?.default
+    ?? 1
+}
+
+function configureModelAction(action, model, animation, resolvedAnimation, speed, offset) {
+  action.enabled = true
+  action.userData.baseTimeScale = speed
+  action.setEffectiveTimeScale(speed)
+
+  if (shouldLoopModelAnimation(model, animation, resolvedAnimation)) {
+    action.setLoop(THREE.LoopRepeat, Infinity)
+    action.clampWhenFinished = false
+    action.time = (action.getClip()?.duration ?? 0) * offset
+  } else {
+    action.setLoop(THREE.LoopOnce, 1)
+    action.clampWhenFinished = true
+    action.time = 0
+  }
+}
+
 function playModelAction(actions, activeActionRef, model, animation, animationVariation) {
   const resolvedAnimation = resolveModelAnimation(model, animation)
   const nextAction = actions[resolvedAnimation] ?? actions[animation] ?? actions.idle ?? Object.values(actions)[0]
   if (!nextAction || activeActionRef.current === nextAction) return
 
-  const speed = animationVariation?.speeds?.[resolvedAnimation]
-    ?? animationVariation?.speeds?.[animation]
-    ?? animationVariation?.speeds?.default
-    ?? 1
+  const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
   const offset = animationVariation?.startOffset ?? 0
 
   nextAction.reset()
-  nextAction.enabled = true
   nextAction.setEffectiveWeight(1)
-  nextAction.userData.baseTimeScale = speed
-  nextAction.setEffectiveTimeScale(speed)
-
-  if (shouldLoopModelAnimation(model, animation, resolvedAnimation)) {
-    nextAction.setLoop(THREE.LoopRepeat, Infinity)
-    nextAction.clampWhenFinished = false
-    nextAction.time = (nextAction.getClip()?.duration ?? 0) * offset
-  } else {
-    nextAction.setLoop(THREE.LoopOnce, 1)
-    nextAction.clampWhenFinished = true
-    nextAction.time = 0
-  }
+  configureModelAction(nextAction, model, animation, resolvedAnimation, speed, offset)
 
   const previousAction = activeActionRef.current
   nextAction.play()
   if (previousAction) nextAction.crossFadeFrom(previousAction, 0.12, false)
 
+  activeActionRef.current = nextAction
+}
+
+function layeredAnimationClips(gltfAnimations, model) {
+  if (!model?.layeredAnimations) return gltfAnimations
+
+  const baseAnimation = model.layeredBaseAnimation ?? model.moveset?.cruise
+  const additiveAnimations = new Set(model.additiveAnimations ?? [])
+  return gltfAnimations.map(clip => {
+    if (clip.name === baseAnimation || !additiveAnimations.has(clip.name)) return clip
+    const additiveClip = clip.clone()
+    THREE.AnimationUtils.makeClipAdditive(additiveClip)
+    additiveClip.blendMode = THREE.AdditiveAnimationBlendMode
+    return additiveClip
+  })
+}
+
+function playLayeredModelAction(actions, activeActionRef, model, animation, animationVariation) {
+  const baseAnimation = model.layeredBaseAnimation ?? resolveMoveAnimation(model, 'cruise')
+  const baseAction = actions[baseAnimation]
+  const offset = animationVariation?.startOffset ?? 0
+
+  if (baseAction && !baseAction.isRunning()) {
+    const speed = modelAnimationSpeed(animationVariation, baseAnimation, baseAnimation)
+    baseAction.reset()
+    baseAction.setEffectiveWeight(1)
+    configureModelAction(baseAction, model, baseAnimation, baseAnimation, speed, offset)
+    baseAction.play()
+  }
+
+  const resolvedAnimation = resolveModelAnimation(model, animation)
+  if (resolvedAnimation === baseAnimation) {
+    const previousOverlay = activeActionRef.current
+    if (previousOverlay) previousOverlay.fadeOut(0.18)
+    activeActionRef.current = null
+    return
+  }
+
+  const nextAction = actions[resolvedAnimation] ?? actions[animation]
+  if (!nextAction || activeActionRef.current === nextAction) return
+
+  const previousOverlay = activeActionRef.current
+  const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
+  nextAction.reset()
+  nextAction.setEffectiveWeight(model.layeredOverlayWeight ?? 1)
+  configureModelAction(nextAction, model, animation, resolvedAnimation, speed, offset)
+  nextAction.play()
+  nextAction.fadeIn(0.18)
+  if (previousOverlay) previousOverlay.fadeOut(0.18)
   activeActionRef.current = nextAction
 }
 
@@ -907,7 +964,8 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
 function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const { actions } = useAnimations(gltf.animations, object)
+  const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
+  const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
 
@@ -929,6 +987,10 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   })
 
   useEffect(() => {
+    if (model?.layeredAnimations) {
+      playLayeredModelAction(actions, activeActionRef, model, animation, animationVariation)
+      return
+    }
     playModelAction(actions, activeActionRef, model, animation, animationVariation)
   }, [actions, model, animation, animationVariation])
 

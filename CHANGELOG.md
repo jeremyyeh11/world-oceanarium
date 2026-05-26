@@ -49,6 +49,8 @@ Status: in progress as `v0.8.0-dev_31`.
 - Adds a static dev-creature safety net for `-dev_` builds when Supabase env vars are missing or `creatures_dev` returns no active supported creatures, preventing the tank from rendering as an empty blue scene during review/deploy smoke tests.
 - Fixes the Mola layered-animation crash by initializing `AnimationAction.userData` before storing per-action time-scale metadata.
 - Corrects Mola turn-sign detection so left turns trigger `bank_l` and right turns trigger `bank_r`, then softens solo-agent steering plus Mola animation crossfades/overlay weight to reduce visible jitter between movement states.
+- Converts Mola solo-agent travel from direct target steering to wide-radius cubic splines: each destination rebuilds a curve from current position and visual-forward tangent, movement advances by curve arc length, banking follows curve tangent deltas, and avoidance is applied as a soft offset instead of replacing the route.
+- Adds size-biased avoidance so smaller creatures yield more strongly to larger creatures while larger creatures are minimally disturbed by smaller ones; species dominance overrides are left as an explicit future movement-system TODO.
 
 ## v0.7.9 — Sardine texture refresh
 

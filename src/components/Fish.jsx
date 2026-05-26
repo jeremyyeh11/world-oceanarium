@@ -110,9 +110,11 @@ const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
 const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
-const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [1.15, 1.85]
-const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.22
-const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.48
+const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [2.1, 3.1]
+const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.38
+const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.68
+const SOLO_AGENT_MAX_TANGENT_DELTA = THREE.MathUtils.degToRad(8)
+const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
 
 const tangent = new THREE.Vector3()
@@ -416,8 +418,8 @@ function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
   // When target is behind the animal, keep the departure tangent dominant so the
   // first half of the route becomes a broad loop instead of a snap-turn hook.
   const alignment = THREE.MathUtils.clamp(agentCurveStartForward.dot(agentCurveEndForward), -1, 1)
-  if (alignment < 0.25) {
-    agentCurveEndForward.lerp(agentCurveStartForward, THREE.MathUtils.lerp(0.38, 0.16, (alignment + 1) * 0.5)).normalize()
+  if (alignment < 0.45) {
+    agentCurveEndForward.lerp(agentCurveStartForward, THREE.MathUtils.lerp(0.68, 0.30, (alignment + 1) / 1.45)).normalize()
   }
 
   agentCurveControlA.copy(start).addScaledVector(agentCurveStartForward, leadDistance)
@@ -1410,8 +1412,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       hasFollowPosition.current = true
     } else if (isSoloAgent && agentPath.current) {
       previousPosition.current.copy(fish.position)
+      agentPath.current.getTangentAt(agentPathProgress.current, agentPathTangent).normalize()
+      agentPath.current.getTangentAt(
+        THREE.MathUtils.clamp(agentPathProgress.current + followDistance / agentPathLength.current, 0, 1),
+        agentPathLookaheadPoint,
+      ).normalize()
+      const tangentDelta = agentPathTangent.angleTo(agentPathLookaheadPoint)
+      const curveSpeedScale = THREE.MathUtils.lerp(
+        1,
+        SOLO_AGENT_CURVE_MIN_SPEED_SCALE,
+        THREE.MathUtils.clamp(tangentDelta / SOLO_AGENT_MAX_TANGENT_DELTA, 0, 1),
+      )
       agentPathProgress.current = THREE.MathUtils.clamp(
-        agentPathProgress.current + delta * velocity.current * organicMotion.speedScale / agentPathLength.current,
+        agentPathProgress.current + delta * velocity.current * organicMotion.speedScale * curveSpeedScale / agentPathLength.current,
         0,
         1,
       )

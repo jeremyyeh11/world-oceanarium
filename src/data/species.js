@@ -164,8 +164,9 @@ export const SPECIES = [
     },
     model: {
       path: '/models/fish/mola-alexandrini/mola-alexandrini.glb',
-      // GLB length axis is local Y; rotate it so the head-facing -Y axis becomes the app's forward -Z axis.
-      rotation: [Math.PI / 2, 0, 0],
+      // Blender export axes: local +Y is forward and +Z is up. The fish root uses local +Z as swim-forward,
+      // so rotate +Y → +Z while preserving +Z → +Y instead of rolling the model upside down.
+      rotation: [Math.PI / 2, Math.PI, 0],
       // Source body length is ~20.69 model units; scale to the existing 9.6 WU max review length.
       scale: 0.464,
       animationMap: {

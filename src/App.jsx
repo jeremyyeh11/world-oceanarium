@@ -118,6 +118,11 @@ export default function App() {
       audioResumeTimers.current = []
     }
 
+    // Direct tank entry removed the landing-page DIVE IN gesture. Browsers still
+    // require user activation before Web Audio can produce sound, so arm the
+    // existing gesture unlock on initial tank load as well as after backgrounding.
+    audioNeedsGestureResume.current = true
+
     const pauseWhenBackgrounded = () => {
       clearAudioResumeTimers()
       audioNeedsGestureResume.current = true

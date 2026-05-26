@@ -106,6 +106,9 @@ const SOLO_AGENT_ARC_ALIGNMENT_START = -0.55
 const SOLO_AGENT_ARC_ALIGNMENT_FULL = 0.58
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
 const SOLO_AGENT_DESIRED_DIRECTION_RESPONSE = 1.8
+const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
+const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
+const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
 const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [1.15, 1.85]
 const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.22
@@ -1531,10 +1534,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       visualForward.current.copy(rawVisualForward)
       hasVisualForward.current = true
     } else {
+      const visualAlignment = visualForward.current.dot(rawVisualForward)
+      const visualTurnRate = isSoloAgent
+        ? (visualAlignment < SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT
+          ? SOLO_AGENT_TANGENT_CATCHUP_RATE
+          : SOLO_AGENT_TANGENT_TURN_RATE)
+        : turnRateForCreature(creature, swim)
       rotateDirectionToward(
         visualForward.current,
         rawVisualForward,
-        turnRateForCreature(creature, swim) * delta,
+        visualTurnRate * delta,
       )
       enforceForwardPitchLimit(visualForward.current, pitchLimit)
     }

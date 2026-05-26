@@ -48,6 +48,17 @@ const PATH_VERTICAL_TRAVERSAL_JITTER = 0.16
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
+const DEFAULT_BURST_ACTION_DURATION = 0.5
+const DEFAULT_TURN_ACTION_DURATION = 0.34
+const DEFAULT_DRIFT_INTERVAL = [18, 30]
+const DEFAULT_DRIFT_DURATION = [7, 12]
+const DEFAULT_MOVESET = {
+  cruise: 'idle',
+  drift: 'idle',
+  turnLeft: 'snap_left',
+  turnRight: 'snap_right',
+  burst: 'burst',
+}
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
@@ -194,6 +205,11 @@ function resolveSwimProfile(creature) {
     speedMultiplier: speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
     erraticness: speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
     turnRadius: speciesSwim.turnRadius ?? DEFAULT_SWIM.turnRadius,
+    driftInterval: speciesSwim.driftInterval ?? DEFAULT_DRIFT_INTERVAL,
+    driftDuration: speciesSwim.driftDuration ?? DEFAULT_DRIFT_DURATION,
+    burstActionDuration: speciesSwim.burstActionDuration ?? DEFAULT_BURST_ACTION_DURATION,
+    turnActionDuration: speciesSwim.turnActionDuration ?? DEFAULT_TURN_ACTION_DURATION,
+    turnTriggerThreshold: speciesSwim.turnTriggerThreshold ?? SNAP_TURN_THRESHOLD,
   }
 }
 
@@ -795,12 +811,20 @@ function animationVariationForCreature(creature) {
     startOffset: randomRange(rand, 0, 1),
     speeds: {
       idle: idleSpeed,
-      burst: actionSpeed * randomRange(rand, 1.04, 1.16),
+      slow_cruise: idleSpeed,
+      idle_drift: idleSpeed * randomRange(rand, 0.82, 0.96),
+      burst: actionSpeed * randomRange(rand, 0.98, 1.08),
       snap_left: actionSpeed * randomRange(rand, 0.96, 1.12),
       snap_right: actionSpeed * randomRange(rand, 0.96, 1.12),
+      bank_l: actionSpeed * randomRange(rand, 0.96, 1.06),
+      bank_r: actionSpeed * randomRange(rand, 0.96, 1.06),
       default: baseSpeed,
     },
   }
+}
+
+function resolveMoveAnimation(model, move) {
+  return model?.moveset?.[move] ?? DEFAULT_MOVESET[move] ?? move
 }
 
 function resolveModelAnimation(model, animation) {
@@ -826,6 +850,7 @@ function playModelAction(actions, activeActionRef, model, animation, animationVa
   nextAction.reset()
   nextAction.enabled = true
   nextAction.setEffectiveWeight(1)
+  nextAction.userData.baseTimeScale = speed
   nextAction.setEffectiveTimeScale(speed)
 
   if (shouldLoopModelAnimation(model, animation, resolvedAnimation)) {
@@ -879,7 +904,7 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
   )
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, rim = null, lodDebugColor = null }) {
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const { actions } = useAnimations(gltf.animations, object)
@@ -892,6 +917,11 @@ function FishModel({ model, animation = 'idle', animationVariation, rim = null, 
 
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime()
+    const activeAction = activeActionRef.current
+    if (activeAction) {
+      const baseTimeScale = activeAction.userData?.baseTimeScale ?? 1
+      activeAction.setEffectiveTimeScale(baseTimeScale * (animationSpeedScaleRef?.current ?? 1))
+    }
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms
       if (uniforms) uniforms.uTime.value = elapsed
@@ -964,6 +994,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
   const nextBurstAt = useRef(0)
+  const nextDriftAt = useRef(0)
+  const driftUntil = useRef(0)
   const lastSwimSfxAt = useRef(0)
   const organicRand = useRef(mulberry32(organicMotion.noiseSeed))
   const organicNoise = useRef({
@@ -975,8 +1007,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     targetLongitudinal: 0,
     nextAt: 0,
   })
-  const animationRef = useRef('idle')
-  const [animation, setAnimation] = useState('idle')
+  const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
+  const animationSpeedScaleRef = useRef(1)
+  const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(schoolState?.path ?? path)
@@ -992,8 +1025,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       idlePeriod: randomRange(rand, 4.5, 8.5),
       snapSpeed: randomRangeFromPair(rand, swim.snapBLPerSec, DEFAULT_SWIM.snapBLPerSec) * velocityScale,
       burstSpeed: randomRangeFromPair(rand, swim.burstBLPerSec, DEFAULT_SWIM.burstBLPerSec) * velocityScale,
+      driftSpeed: randomRangeFromPair(rand, swim.idleDriftBLPerSec, DEFAULT_SWIM.idleDriftBLPerSec) * velocityScale,
       burstInterval: randomRangeFromPair(rand, swim.burstInterval, DEFAULT_SWIM.burstInterval),
+      driftInterval: randomRangeFromPair(rand, swim.driftInterval, DEFAULT_DRIFT_INTERVAL),
+      driftDuration: randomRangeFromPair(rand, swim.driftDuration, DEFAULT_DRIFT_DURATION),
+      burstActionDuration: swim.burstActionDuration ?? DEFAULT_BURST_ACTION_DURATION,
+      turnActionDuration: swim.turnActionDuration ?? DEFAULT_TURN_ACTION_DURATION,
+      turnTriggerThreshold: swim.turnTriggerThreshold ?? SNAP_TURN_THRESHOLD,
       burstPhase: randomRange(rand, 0, 3.5),
+      driftPhase: randomRange(rand, 5, 11),
       bobPhase: randomRange(rand, 0, Math.PI * 2),
       bobAmount: randomRange(rand, 0.035, 0.11) * THREE.MathUtils.lerp(0.45, 1.35, swim.erraticness),
       metersPerWU: WORLD_UNIT_METERS,
@@ -1058,6 +1098,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   useEffect(() => {
     velocity.current = motion.idleSpeed
     nextBurstAt.current = motion.burstPhase + motion.burstInterval
+    nextDriftAt.current = motion.driftPhase
+    driftUntil.current = 0
     rawAvoidance.current.set(0, 0, 0)
     smoothedAvoidance.current.set(0, 0, 0)
     hasVisualForward.current = false
@@ -1108,8 +1150,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       0.08,
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
     )
-    const targetVelocity = now < actionSpeedUntil.current ? actionSpeedTarget.current : idleVelocity
-    const velocityResponse = now < actionSpeedUntil.current ? 8 : 2.4
+    const driftMove = resolveMoveAnimation(model, 'drift')
+    const hasDriftMove = Boolean(model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'))
+    const isActionMoveActive = now < actionSpeedUntil.current
+    const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current
+    const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
+    const velocityResponse = isActionMoveActive ? 8 : (isDrifting ? 1.2 : 2.4)
 
     velocity.current = THREE.MathUtils.lerp(
       velocity.current,
@@ -1362,9 +1408,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         const wallClearanceMeters = wallClearance * WORLD_UNIT_METERS
         const surfaceClearanceMeters = surfaceClearance * WORLD_UNIT_METERS
         const status = agentStatus.current
+        const activeMove = animationRef.current
         labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
-        agentLabelRef.current.text = `agent ${status}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s · ${targetDistanceMeters.toFixed(1)}m to target\ndest ${targetMeters.x.toFixed(1)}, ${targetMeters.y.toFixed(1)}, ${targetMeters.z.toFixed(1)}m\nclear wall ${wallClearanceMeters.toFixed(1)}m · surface ${surfaceClearanceMeters.toFixed(1)}m`
+        agentLabelRef.current.text = `moveset ${activeMove}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s · ${targetDistanceMeters.toFixed(1)}m to target\ndest ${targetMeters.x.toFixed(1)}, ${targetMeters.y.toFixed(1)}, ${targetMeters.z.toFixed(1)}m\nclear wall ${wallClearanceMeters.toFixed(1)}m · surface ${surfaceClearanceMeters.toFixed(1)}m\nagent ${status}`
         agentLabelRef.current.lookAt(camera.position)
         agentLabelRef.current.visible = showDirection
       }
@@ -1502,31 +1549,56 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         turn = previousTangent.current.x * pitchedForward.z - previousTangent.current.z * pitchedForward.x
       }
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
-        if (turn > SNAP_TURN_THRESHOLD) {
-          playAnimation('snap_left')
-          playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 24, 0.34, 0.82), now)
-          actionSpeedUntil.current = now + 0.34
+        if (turn > motion.turnTriggerThreshold) {
+          const turnDuration = motion.turnActionDuration
+          playAnimation(resolveMoveAnimation(model, 'turnLeft'))
+          playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
+          actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
-          animationHoldUntil.current = now + 0.32
-          animationCooldown.current = now + 0.7
-        } else if (turn < -SNAP_TURN_THRESHOLD) {
-          playAnimation('snap_right')
-          playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 24, 0.34, 0.82), now)
-          actionSpeedUntil.current = now + 0.34
+          animationHoldUntil.current = now + turnDuration
+          animationCooldown.current = now + Math.max(0.7, turnDuration * 0.72)
+          driftUntil.current = 0
+        } else if (turn < -motion.turnTriggerThreshold) {
+          const turnDuration = motion.turnActionDuration
+          playAnimation(resolveMoveAnimation(model, 'turnRight'))
+          playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
+          actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
-          animationHoldUntil.current = now + 0.32
-          animationCooldown.current = now + 0.7
+          animationHoldUntil.current = now + turnDuration
+          animationCooldown.current = now + Math.max(0.7, turnDuration * 0.72)
+          driftUntil.current = 0
         } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
-          playAnimation('burst')
+          const burstDuration = motion.burstActionDuration
+          playAnimation(resolveMoveAnimation(model, 'burst'))
           playSwimSfx('burst', THREE.MathUtils.clamp(motion.burstSpeed / Math.max(0.001, motion.idleSpeed) * 0.18, 0.42, 1), now)
-          actionSpeedUntil.current = now + 0.5
+          actionSpeedUntil.current = now + burstDuration
           actionSpeedTarget.current = motion.burstSpeed
-          animationHoldUntil.current = now + 0.46
-          animationCooldown.current = now + 1.0
+          animationHoldUntil.current = now + burstDuration
+          animationCooldown.current = now + Math.max(1.0, burstDuration * 0.65)
           nextBurstAt.current = now + motion.burstInterval
+          driftUntil.current = 0
         }
       } else if (now > animationHoldUntil.current) {
-        playAnimation('idle')
+        if (hasDriftMove) {
+          if (now >= nextDriftAt.current) {
+            driftUntil.current = now + motion.driftDuration
+            nextDriftAt.current = driftUntil.current + motion.driftInterval
+          }
+          playAnimation(now < driftUntil.current ? driftMove : resolveMoveAnimation(model, 'cruise'))
+        } else {
+          playAnimation(resolveMoveAnimation(model, 'cruise'))
+        }
+      }
+
+      const activeAnimation = animationRef.current
+      if (activeAnimation === resolveMoveAnimation(model, 'burst')) {
+        animationSpeedScaleRef.current = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0.72, 1.18)
+      } else if (activeAnimation === resolveMoveAnimation(model, 'cruise')) {
+        animationSpeedScaleRef.current = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.idleSpeed), 0.62, 1.32)
+      } else if (activeAnimation === driftMove) {
+        animationSpeedScaleRef.current = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.idleSpeed), 0.28, 0.62)
+      } else {
+        animationSpeedScaleRef.current = 1
       }
 
       const bank = THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
@@ -1659,6 +1731,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
               model={model}
               animation={animation}
               animationVariation={animationVariation}
+              animationSpeedScaleRef={animationSpeedScaleRef}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
             />

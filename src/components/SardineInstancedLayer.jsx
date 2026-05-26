@@ -80,7 +80,12 @@ transformed.x += sardineWave * uSardineWiggleAmplitude * sardineTailMask;`,
       .replace(
         '#include <worldpos_vertex>',
         `#include <worldpos_vertex>
-vSardineWorldPosition = worldPosition.xyz;`,
+vec4 sardineWorldPosition = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+sardineWorldPosition = instanceMatrix * sardineWorldPosition;
+#endif
+sardineWorldPosition = modelMatrix * sardineWorldPosition;
+vSardineWorldPosition = sardineWorldPosition.xyz;`,
       )
     shader.fragmentShader = shader.fragmentShader
       .replace(

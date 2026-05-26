@@ -48,6 +48,7 @@ Status: in progress as `v0.8.0-dev_31`.
 - Canonicalizes creature species storage around scientific-name slugs: `mola-alexandrini` for Giant Sunfish and `amblygaster-sirm` for Spotted Sardinella, while keeping legacy aliases for older `mola-mola`, `sardine`, and display-name rows.
 - Adds a static dev-creature safety net for `-dev_` builds when Supabase env vars are missing or `creatures_dev` returns no active supported creatures, preventing the tank from rendering as an empty blue scene during review/deploy smoke tests.
 - Fixes the Mola layered-animation crash by initializing `AnimationAction.userData` before storing per-action time-scale metadata.
+- Corrects Mola turn-sign detection so left turns trigger `bank_l` and right turns trigger `bank_r`, then softens solo-agent steering plus Mola animation crossfades/overlay weight to reduce visible jitter between movement states.
 
 ## v0.7.9 — Sardine texture refresh
 

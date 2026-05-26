@@ -105,6 +105,7 @@ const SOLO_AGENT_ARC_MIN_SPEED_SCALE = 0.36
 const SOLO_AGENT_ARC_ALIGNMENT_START = -0.55
 const SOLO_AGENT_ARC_ALIGNMENT_FULL = 0.58
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
+const SOLO_AGENT_DESIRED_DIRECTION_RESPONSE = 1.8
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -122,6 +123,7 @@ const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
 const agentMoveDirection = new THREE.Vector3()
 const agentForwardFlat = new THREE.Vector3()
+const targetDesiredDirection = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -836,6 +838,10 @@ function shouldLoopModelAnimation(model, animation, resolvedAnimation) {
   return model?.loopAnimations?.includes(resolvedAnimation) ?? false
 }
 
+function modelFadeDuration(model, fallback = 0.18) {
+  return model?.animationFadeDuration ?? fallback
+}
+
 function modelAnimationSpeed(animationVariation, animation, resolvedAnimation) {
   return animationVariation?.speeds?.[resolvedAnimation]
     ?? animationVariation?.speeds?.[animation]
@@ -874,7 +880,7 @@ function playModelAction(actions, activeActionRef, model, animation, animationVa
 
   const previousAction = activeActionRef.current
   nextAction.play()
-  if (previousAction) nextAction.crossFadeFrom(previousAction, 0.12, false)
+  if (previousAction) nextAction.crossFadeFrom(previousAction, modelFadeDuration(model, 0.12), false)
 
   activeActionRef.current = nextAction
 }
@@ -903,7 +909,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   const resolvedAnimation = resolveModelAnimation(model, animation)
   if (resolvedAnimation === baseAnimation) {
     const previousOverlay = activeActionRef.current
-    if (previousOverlay) previousOverlay.fadeOut(0.18)
+    if (previousOverlay) previousOverlay.fadeOut(modelFadeDuration(model))
     activeActionRef.current = null
     return
   }
@@ -917,8 +923,8 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   nextAction.setEffectiveWeight(model.layeredOverlayWeight ?? 1)
   configureModelAction(nextAction, model, animation, resolvedAnimation, speed, offset)
   nextAction.play()
-  nextAction.fadeIn(0.18)
-  if (previousOverlay) previousOverlay.fadeOut(0.18)
+  nextAction.fadeIn(modelFadeDuration(model))
+  if (previousOverlay) previousOverlay.fadeOut(modelFadeDuration(model))
   activeActionRef.current = nextAction
 }
 
@@ -1302,12 +1308,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         schoolFollowDirection.normalize()
         computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
         smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
-        desiredDirection.current.copy(schoolFollowDirection).add(smoothedAvoidance.current)
+        targetDesiredDirection.copy(schoolFollowDirection).add(smoothedAvoidance.current)
         limitAvoidanceAngle(
-          desiredDirection.current,
+          targetDesiredDirection,
           schoolFollowDirection,
           school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
         )
+        if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
+        if (isSoloAgent && desiredDirection.current.lengthSq() > 0.0001) {
+          desiredDirection.current.lerp(
+            targetDesiredDirection,
+            1 - Math.exp(-delta * SOLO_AGENT_DESIRED_DIRECTION_RESPONSE),
+          ).normalize()
+        } else {
+          desiredDirection.current.copy(targetDesiredDirection)
+        }
 
         const catchup = isSoloAgent
           ? 1
@@ -1603,7 +1618,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     if (model) {
       let turn = 0
       if (previousTangent.current.lengthSq() > 0) {
-        turn = previousTangent.current.x * pitchedForward.z - previousTangent.current.z * pitchedForward.x
+        turn = previousTangent.current.z * pitchedForward.x - previousTangent.current.x * pitchedForward.z
       }
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
         if (turn > motion.turnTriggerThreshold) {

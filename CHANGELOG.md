@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_30`.
+Status: in progress as `v0.8.0-dev_31`.
 
 ### Creature behavior
 
@@ -45,6 +45,7 @@ Status: in progress as `v0.8.0-dev_30`.
 - Makes the audio control reflect actual Web Audio unlock state, not just the mute flag: it now appears off until audio has really started, and tapping the audio button before unlock starts sound instead of accidentally muting it.
 - Narrows tank-view X movement bounds for both Spotted Sardinella and Mola mola from `[-25, 25]` to `[-18, 18]`; Y/Z bounds and follow-mode mechanics are unchanged.
 - Pulls Mola tank-view depth forward by changing its Z range from `[-35, -10]` to `[-25, -10]`; sardine bounds and follow-mode mechanics are unchanged.
+- Canonicalizes creature species storage around scientific-name slugs: `mola-alexandrini` for Giant Sunfish and `amblygaster-sirm` for Spotted Sardinella, while keeping legacy aliases for older `mola-mola`, `sardine`, and display-name rows.
 
 ## v0.7.9 — Sardine texture refresh
 

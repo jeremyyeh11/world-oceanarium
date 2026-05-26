@@ -248,5 +248,13 @@ export const CREATURES = [
     bornAt: '2026-05-17T00:00:00Z',
     alive: true,
   },
+  {
+    id: 7,
+    species: 'mola-alexandrini',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    bornAt: '2026-05-26T00:00:00Z',
+    alive: true,
+  },
 ]
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SPECIES } from '../data/species'
+import { CREATURES, SPECIES } from '../data/species'
 import { APP_VERSION } from '../version'
 
 const SPECIES_ALIASES = SPECIES.flatMap(species => [
@@ -16,6 +16,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_CREATURES_URL = import.meta.env.VITE_SUPABASE_CREATURES_URL
 const SUPABASE_CREATURES_TABLE = APP_VERSION.includes('-dev_') ? 'creatures_dev' : 'creatures'
+const ALLOW_STATIC_DEV_CREATURES = APP_VERSION.includes('-dev_')
 
 function hashString(value) {
   let hash = 2166136261
@@ -108,6 +109,10 @@ const EMPTY_CREATURE_STATE = {
   error: null,
 }
 
+function staticDevCreatures() {
+  return creaturesFromRows(CREATURES)
+}
+
 export function useCreatures() {
   const [state, setState] = useState(EMPTY_CREATURE_STATE)
 
@@ -116,8 +121,8 @@ export function useCreatures() {
 
     if (!creaturesUrl || !SUPABASE_ANON_KEY) {
       setState({
-        creatures: [],
-        source: 'supabase-not-configured',
+        creatures: ALLOW_STATIC_DEV_CREATURES ? staticDevCreatures() : [],
+        source: ALLOW_STATIC_DEV_CREATURES ? 'static-dev' : 'supabase-not-configured',
         error: 'Supabase creature env vars are not configured.',
       })
       return undefined
@@ -146,6 +151,15 @@ export function useCreatures() {
       try {
         const rows = await fetchCreatureRows(creaturesUrl)
         const creatures = creaturesFromRows(rows)
+
+        if (ALLOW_STATIC_DEV_CREATURES && creatures.length === 0) {
+          setState({
+            creatures: staticDevCreatures(),
+            source: 'static-dev-empty-supabase',
+            error: null,
+          })
+          return
+        }
 
         setState({
           creatures,

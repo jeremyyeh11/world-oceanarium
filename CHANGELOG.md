@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola mola + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_21`.
+Status: in progress as `v0.8.0-dev_22`.
 
 ### Creature behavior
 
@@ -37,6 +37,7 @@ Status: in progress as `v0.8.0-dev_21`.
 - Retunes tank-view movement bounds only: sardines and Mola get wider horizontal X travel and deeper negative-Y travel, while the Mola target volume moves farther back on negative Z. Follow mode mechanics are unchanged.
 - Tunes active tank movement bounds to give sardines and Mola much wider horizontal travel (`X [-25, 25]`), lowers both movement volumes to `Y min -7`, and gives sardines explicit asymmetric depth travel (`Z [-15, 8]`). Mola depth stays at the current review range (`Z [-35, -10]`). Keeps the randomized school startup feel visible under explicit min/max bounds by varying each visit's school lane/depth/vertical traversal phase, instead of always starting the shared spline from the same left/back/down pattern.
 - Hides the landing/biome-entry step while there is only one active tank: app boot now opens directly into the Ocean tank and suppresses the tank back button until multi-tank navigation returns.
+- Restores audio unlock after direct tank entry: since there is no landing `DIVE IN` gesture anymore, the first pointer/touch/key gesture in the tank now starts the Web Audio graph before UI/fish SFX fire.
 
 ## v0.7.9 — Sardine texture refresh
 

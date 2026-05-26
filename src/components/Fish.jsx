@@ -1114,6 +1114,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const agentPath = useRef(null)
   const agentPathProgress = useRef(0)
   const agentPathLength = useRef(1)
+  const agentPathExitTangent = useRef(new THREE.Vector3())
   const agentRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`)))
   const agentHasTarget = useRef(false)
   const nextAgentRetargetAt = useRef(0)
@@ -1225,6 +1226,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     agentPath.current = null
     agentPathProgress.current = 0
     agentPathLength.current = 1
+    agentPathExitTangent.current.set(0, 0, 0)
     agentHasTarget.current = false
     nextAgentRetargetAt.current = 0
     agentStatus.current = 'cruise-wander'
@@ -1358,16 +1360,27 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     } else if (isSoloAgent) {
       position = hasFollowPosition.current ? fish.position : position
       const bodyLength = creatureBodyLength(creature, swim)
+      const agentReachedTarget = position.distanceTo(agentTarget.current) < Math.max(1.0, bodyLength * 0.42)
+      const agentPathComplete = agentPathProgress.current >= 1 - SOLO_AGENT_PATH_REBUILD_EPSILON
+      const agentRetargetReady = now >= nextAgentRetargetAt.current && agentPathProgress.current >= 0.92
       const needsAgentPath = !agentHasTarget.current
         || !agentPath.current
-        || agentPathProgress.current >= 1 - SOLO_AGENT_PATH_REBUILD_EPSILON
-        || position.distanceTo(agentTarget.current) < Math.max(1.0, bodyLength * 0.42)
-        || now >= nextAgentRetargetAt.current
+        || agentPathComplete
+        || agentReachedTarget
+        || agentRetargetReady
 
       if (needsAgentPath) {
+        const previousAgentPath = agentPath.current
+        agentPathExitTangent.current.set(0, 0, 0)
+        if (previousAgentPath) {
+          const exitT = (agentPathComplete || agentReachedTarget || agentRetargetReady) ? 1 : agentPathProgress.current
+          previousAgentPath.getTangentAt(THREE.MathUtils.clamp(exitT, 0, 1), agentPathExitTangent.current).normalize()
+        }
+        if (agentPathExitTangent.current.lengthSq() < 0.0001) {
+          agentPathExitTangent.current.copy(hasVisualForward.current ? visualForward.current : tangent)
+        }
         pickSoloAgentTarget(agentTarget.current, creature, swim, agentRand.current, position)
-        const startForward = hasVisualForward.current ? visualForward.current : tangent
-        agentPath.current = makeSoloAgentPath(creature, swim, position, startForward, agentTarget.current, agentRand.current)
+        agentPath.current = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentTarget.current, agentRand.current)
         agentPathProgress.current = 0
         agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
         agentHasTarget.current = true

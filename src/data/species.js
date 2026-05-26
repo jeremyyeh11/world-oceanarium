@@ -162,6 +162,24 @@ export const SPECIES = [
       coefficient: 0.018,
       exponent: 3,
     },
+    model: {
+      path: '/models/fish/mola-alexandrini/mola-alexandrini.glb',
+      // GLB length axis is local Y; rotate it so the head-facing -Y axis becomes the app's forward -Z axis.
+      rotation: [Math.PI / 2, 0, 0],
+      // Source body length is ~20.69 model units; scale to the existing 9.6 WU max review length.
+      scale: 0.464,
+      animationMap: {
+        idle: 'slow_cruise',
+        idle_drift: 'idle_drift',
+        slow_cruise: 'slow_cruise',
+        snap_left: 'bank_l',
+        snap_right: 'bank_r',
+        burst: 'burst',
+        sun_bask_l: 'sun_bask_l',
+        sun_bask_r: 'sun_bask_r',
+      },
+      loopAnimations: ['idle_drift', 'slow_cruise', 'sun_bask_l', 'sun_bask_r'],
+    },
     placeholder: {
       type: 'mola-mola',
       bodyColor: '#8fb8bc',

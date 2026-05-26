@@ -719,7 +719,12 @@ varying vec3 vFishWorldPosition;`
       .replace(
         '#include <worldpos_vertex>',
         `#include <worldpos_vertex>
-vFishWorldPosition = worldPosition.xyz;`
+vec4 fishWorldPosition = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+fishWorldPosition = instanceMatrix * fishWorldPosition;
+#endif
+fishWorldPosition = modelMatrix * fishWorldPosition;
+vFishWorldPosition = fishWorldPosition.xyz;`
       )
     shader.fragmentShader = shader.fragmentShader
       .replace(
@@ -798,11 +803,24 @@ function animationVariationForCreature(creature) {
   }
 }
 
-function playModelAction(actions, activeActionRef, animation, animationVariation) {
-  const nextAction = actions[animation] ?? actions.idle ?? Object.values(actions)[0]
+function resolveModelAnimation(model, animation) {
+  return model?.animationMap?.[animation] ?? animation
+}
+
+function shouldLoopModelAnimation(model, animation, resolvedAnimation) {
+  if (animation === 'idle') return true
+  return model?.loopAnimations?.includes(resolvedAnimation) ?? false
+}
+
+function playModelAction(actions, activeActionRef, model, animation, animationVariation) {
+  const resolvedAnimation = resolveModelAnimation(model, animation)
+  const nextAction = actions[resolvedAnimation] ?? actions[animation] ?? actions.idle ?? Object.values(actions)[0]
   if (!nextAction || activeActionRef.current === nextAction) return
 
-  const speed = animationVariation?.speeds?.[animation] ?? animationVariation?.speeds?.default ?? 1
+  const speed = animationVariation?.speeds?.[resolvedAnimation]
+    ?? animationVariation?.speeds?.[animation]
+    ?? animationVariation?.speeds?.default
+    ?? 1
   const offset = animationVariation?.startOffset ?? 0
 
   nextAction.reset()
@@ -810,8 +828,9 @@ function playModelAction(actions, activeActionRef, animation, animationVariation
   nextAction.setEffectiveWeight(1)
   nextAction.setEffectiveTimeScale(speed)
 
-  if (animation === 'idle') {
+  if (shouldLoopModelAnimation(model, animation, resolvedAnimation)) {
     nextAction.setLoop(THREE.LoopRepeat, Infinity)
+    nextAction.clampWhenFinished = false
     nextAction.time = (nextAction.getClip()?.duration ?? 0) * offset
   } else {
     nextAction.setLoop(THREE.LoopOnce, 1)
@@ -880,8 +899,8 @@ function FishModel({ model, animation = 'idle', animationVariation, rim = null, 
   })
 
   useEffect(() => {
-    playModelAction(actions, activeActionRef, animation, animationVariation)
-  }, [actions, animation, animationVariation])
+    playModelAction(actions, activeActionRef, model, animation, animationVariation)
+  }, [actions, model, animation, animationVariation])
 
   return (
     <primitive
@@ -1676,3 +1695,4 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 }
 
 useGLTF.preload('/models/fish/sardine/sardine.glb')
+useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')

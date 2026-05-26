@@ -184,6 +184,10 @@ export const SPECIES = [
         sunBaskLeft: 'sun_bask_l',
         sunBaskRight: 'sun_bask_r',
       },
+      layeredAnimations: true,
+      layeredBaseAnimation: 'slow_cruise',
+      additiveAnimations: ['idle_drift', 'bank_l', 'bank_r', 'burst', 'sun_bask_l', 'sun_bask_r'],
+      layeredOverlayWeight: 1.0,
       loopAnimations: ['idle_drift', 'slow_cruise', 'sun_bask_l', 'sun_bask_r'],
     },
     placeholder: {

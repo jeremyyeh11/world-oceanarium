@@ -845,6 +845,7 @@ function modelAnimationSpeed(animationVariation, animation, resolvedAnimation) {
 
 function configureModelAction(action, model, animation, resolvedAnimation, speed, offset) {
   action.enabled = true
+  action.userData ??= {}
   action.userData.baseTimeScale = speed
   action.setEffectiveTimeScale(speed)
 

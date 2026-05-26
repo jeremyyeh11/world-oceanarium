@@ -46,6 +46,8 @@ Status: in progress as `v0.8.0-dev_31`.
 - Narrows tank-view X movement bounds for both Spotted Sardinella and Mola mola from `[-25, 25]` to `[-18, 18]`; Y/Z bounds and follow-mode mechanics are unchanged.
 - Pulls Mola tank-view depth forward by changing its Z range from `[-35, -10]` to `[-25, -10]`; sardine bounds and follow-mode mechanics are unchanged.
 - Canonicalizes creature species storage around scientific-name slugs: `mola-alexandrini` for Giant Sunfish and `amblygaster-sirm` for Spotted Sardinella, while keeping legacy aliases for older `mola-mola`, `sardine`, and display-name rows.
+- Adds a static dev-creature safety net for `-dev_` builds when Supabase env vars are missing or `creatures_dev` returns no active supported creatures, preventing the tank from rendering as an empty blue scene during review/deploy smoke tests.
+- Fixes the Mola layered-animation crash by initializing `AnimationAction.userData` before storing per-action time-scale metadata.
 
 ## v0.7.9 — Sardine texture refresh
 

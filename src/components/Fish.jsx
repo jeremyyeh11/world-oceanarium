@@ -879,17 +879,11 @@ function playModelAction(actions, activeActionRef, model, animation, animationVa
 }
 
 function layeredAnimationClips(gltfAnimations, model) {
+  // Keep the authored clips intact. The Mola clips are exported without root
+  // displacement, so normal layered actions are safer than runtime additive
+  // conversion and still let slow_cruise continue underneath overlays.
   if (!model?.layeredAnimations) return gltfAnimations
-
-  const baseAnimation = model.layeredBaseAnimation ?? model.moveset?.cruise
-  const additiveAnimations = new Set(model.additiveAnimations ?? [])
-  return gltfAnimations.map(clip => {
-    if (clip.name === baseAnimation || !additiveAnimations.has(clip.name)) return clip
-    const additiveClip = clip.clone()
-    THREE.AnimationUtils.makeClipAdditive(additiveClip)
-    additiveClip.blendMode = THREE.AdditiveAnimationBlendMode
-    return additiveClip
-  })
+  return gltfAnimations
 }
 
 function playLayeredModelAction(actions, activeActionRef, model, animation, animationVariation) {
@@ -900,7 +894,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   if (baseAction && !baseAction.isRunning()) {
     const speed = modelAnimationSpeed(animationVariation, baseAnimation, baseAnimation)
     baseAction.reset()
-    baseAction.setEffectiveWeight(1)
+    baseAction.setEffectiveWeight(model.layeredBaseWeight ?? 1)
     configureModelAction(baseAction, model, baseAnimation, baseAnimation, speed, offset)
     baseAction.play()
   }

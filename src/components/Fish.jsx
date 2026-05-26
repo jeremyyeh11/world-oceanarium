@@ -106,7 +106,6 @@ const SOLO_AGENT_ARC_ALIGNMENT_START = -0.55
 const SOLO_AGENT_ARC_ALIGNMENT_FULL = 0.58
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
 const SOLO_AGENT_DESIRED_DIRECTION_RESPONSE = 1.8
-const SOLO_AGENT_PATH_LOOKAHEAD = 0.035
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
 const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [1.15, 1.85]
 const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.22
@@ -1390,7 +1389,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         setPath(agentPath.current)
       }
 
-      const agentLookaheadT = THREE.MathUtils.clamp(agentPathProgress.current + SOLO_AGENT_PATH_LOOKAHEAD, 0, 1)
+      const agentLookaheadT = THREE.MathUtils.clamp(
+        agentPathProgress.current + followDistance / agentPathLength.current,
+        0,
+        1,
+      )
       agentPath.current.getPointAt(agentLookaheadT, followTarget.current)
       agentPath.current.getTangentAt(agentPathProgress.current, tangent).normalize()
     } else {
@@ -1411,6 +1414,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       )
       agentPath.current.getPointAt(agentPathProgress.current, agentPathPoint)
       agentPath.current.getTangentAt(agentPathProgress.current, agentPathTangent).normalize()
+      const agentMoveLookaheadT = THREE.MathUtils.clamp(
+        agentPathProgress.current + followDistance / agentPathLength.current,
+        0,
+        1,
+      )
+      agentPath.current.getPointAt(agentMoveLookaheadT, followTarget.current)
       computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
       smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
       agentPathOffset.copy(smoothedAvoidance.current).multiplyScalar(creatureBodyLength(creature, swim) * SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS)

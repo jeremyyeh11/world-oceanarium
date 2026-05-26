@@ -120,20 +120,22 @@ export const SPECIES = [
     },
   },
   {
-    id: 'mola-mola',
-    name: 'Ocean Sunfish',
-    scientificName: 'Mola mola',
+    id: 'mola-alexandrini',
+    legacyIds: ['mola-mola'],
+    legacyNames: ['Ocean Sunfish'],
+    name: 'Giant Sunfish',
+    scientificName: 'Mola alexandrini',
     family: 'Molidae',
-    alternateNames: ['Common mola', 'Mola'],
+    alternateNames: ["Bumphead sunfish", "Bump-head sunfish", "Ramsay's sunfish", 'Southern ocean sunfish', 'Southern sunfish', 'Short sunfish'],
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
     aggressive: false,
     predator: false,
-    description: 'A huge, laterally flattened open-ocean sunfish that drifts through the upper water column and often basks near the surface. This placeholder uses real-scale length until Jeremy supplies the final GLB.',
+    description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds. Adults have a distinctive head bump, chin bump, rectangular body scales, and rounded clavus that separate them from other sunfish.',
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. 240 cm max total length = 9.6 WU.
-      // Target review speed: 0.5–0.8 WU/s = roughly 0.05–0.08 body lengths/s at max length.
+      // World Oceanarium scale: 1 WU = 25 cm. Current review scale keeps adults at 180–240 cm = 7.2–9.6 WU until the final GLB scale is approved.
+      // Target review speed: 0.5–0.8 WU/s = roughly 0.05–0.08 body lengths/s at review max length.
       bodyLengthWU: 9.6,
       visualTimeScale: 1.0,
       idleBLPerSec: [0.055, 0.085],
@@ -153,7 +155,7 @@ export const SPECIES = [
       boundsZMin: -35,
       boundsZMax: -10,
     },
-    // Normalized individual size maps to 180–240 cm total length.
+    // Current review scale maps normalized individual size to 180–240 cm total length; revisit if we want full giant-sunfish adult maximums after the GLB lands.
     sizeRange: [0.75, 1.0],
     mass: {
       // Broad placeholder estimate until curated species/body-condition data lands.

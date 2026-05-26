@@ -8,15 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.8.0 — Mola mola + solo-agent movement
+## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_25`.
+Status: in progress as `v0.8.0-dev_26`.
 
 ### Creature behavior
 
-- Starts the Mola mola feature bucket after clean `v0.7.9` acceptance.
-- Target: add Ocean Sunfish as the first non-schooling agent-driven creature, with reusable solo-agent movement plus a species-specific Mola profile.
-- Adds the Ocean Sunfish species profile at real scale: 180–240 cm total length, using the project scale of 1 WU = 25 cm, so individuals render at 7.2–9.6 WU.
+- Starts the Mola alexandrini feature bucket after clean `v0.7.9` acceptance.
+- Target: add Giant Sunfish as the first non-schooling agent-driven creature, with reusable solo-agent movement plus a species-specific Mola profile.
+- Adds the Giant Sunfish (`Mola alexandrini`) species profile at current review scale: 180–240 cm total length, using the project scale of 1 WU = 25 cm, so individuals render at 7.2–9.6 WU.
+- Updates the Mola species metadata and info-card description toward behavior-first `Mola alexandrini` facts: fin-rowing swimming, deep-diving soft-bodied prey, sideways surface basking for warmth/oxygen/parasite relief, and head/chin/clavus traits; legacy `mola-mola` / `Ocean Sunfish` creature rows still resolve to Giant Sunfish.
 - Adds a large flattened placeholder Mola geometry with dorsal/anal/tail fin hints so movement and scale can be reviewed before Jeremy supplies the final GLB.
 - Planned signature behavior: near-surface sun basking with slow approach, surface clearance padding, lazy hold/drift, and eventual return to cruising.
 
@@ -27,7 +28,7 @@ Status: in progress as `v0.8.0-dev_25`.
 - Keeps the Mola GLB path unwired for now; the placeholder path is data-driven through the species profile so the final asset can replace the geometry later without blocking behavior tuning.
 - Scales follow-camera default distance by focused creature body length for large solo animals, so clicking the real-scale Mola starts farther back instead of zooming inside the fish while sardines keep the existing close inspection distance.
 - Restores smooth camera entry into follow mode by damping the focus point from the current tank view before tracking the selected creature, and keeps the placeholder Mola base material color stable when selected by rendering the selection rim as a back-face shell instead of tinting the body.
-- Adds focused debug readouts for solo agent-style individuals such as the Ocean Sunfish: current movement status, speed, destination coordinates, distance to target, wall clearance, and surface clearance.
+- Adds focused debug readouts for solo agent-style individuals such as the Giant Sunfish: current movement status, speed, destination coordinates, distance to target, wall clearance, and surface clearance.
 - Moves and scales the solo-agent debug readout for large creatures so the Mola label sits above the body at follow-camera distance instead of being tiny or visually buried near the target marker.
 - Corrects the Mola review speed target down to 0.5–0.8 WU/s and starts replacing the old solo spline-follow behavior with a real target-seeking solo-agent movement path for non-schooling individuals, hiding the old cyan spline debug for Mola.
 - Makes Mola movement forward-facing: opposite-side targets now require the animal to rotate before it translates, debug speed/distance labels use meters, the forward vector starts at the mesh front, and Mola target sampling uses wider movement bounds so it explores more of the tank volume.

@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react'
 import { SPECIES } from '../data/species'
 import { APP_VERSION } from '../version'
 
+const SPECIES_ALIASES = SPECIES.flatMap(species => [
+  [species.id, species.name],
+  [species.name, species.name],
+  ...(species.legacyIds ?? []).map(id => [id, species.name]),
+  ...(species.legacyNames ?? []).map(name => [name, species.name]),
+])
 const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
-const SPECIES_NAME_BY_ID = new Map(SPECIES.map(species => [species.id, species.name]))
+const SPECIES_NAME_BY_ID = new Map(SPECIES_ALIASES)
 const DEFAULT_SIZE_RANGE = [0.9, 1.1]
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY

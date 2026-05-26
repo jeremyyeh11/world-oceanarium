@@ -164,9 +164,9 @@ export const SPECIES = [
     },
     model: {
       path: '/models/fish/mola-alexandrini/mola-alexandrini.glb',
-      // Blender export axes: local +Y is forward and +Z is up. The fish root uses local +Z as swim-forward,
-      // so rotate +Y → +Z while preserving +Z → +Y instead of rolling the model upside down.
-      rotation: [Math.PI / 2, Math.PI, 0],
+      // Blender +Z exports as GLB +Y, so this asset's GLB axes are +Y up and +Z forward.
+      // The fish root also uses +Y up and +Z swim-forward, so no extra child rotation is needed.
+      rotation: [0, 0, 0],
       // Source body length is ~20.69 model units; scale to the existing 9.6 WU max review length.
       scale: 0.464,
       animationMap: {

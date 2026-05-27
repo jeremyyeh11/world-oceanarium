@@ -111,9 +111,9 @@ const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
 const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
-const SOLO_AGENT_TARGET_ATTEMPTS = 32
+const SOLO_AGENT_TARGET_ATTEMPTS = 16
 const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 3.0
-const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 18
+const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 8
 const SOLO_AGENT_CURVE_SAMPLE_COUNT = 56
 const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(3)
 const SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR = THREE.MathUtils.degToRad(0.5)
@@ -124,6 +124,9 @@ const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.24
 const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.52
 const SOLO_AGENT_MAX_TANGENT_DELTA = THREE.MathUtils.degToRad(8)
 const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
+const SOLO_AGENT_RETARGET_PROGRESS = 0.82
+const SOLO_AGENT_RETARGET_COOLDOWN = [2.8, 5.2]
+const SOLO_AGENT_RETRY_COOLDOWN = 1.2
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
 
 const tangent = new THREE.Vector3()
@@ -1618,11 +1621,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const bodyLength = creatureBodyLength(creature, swim)
       const agentReachedTarget = position.distanceTo(agentTarget.current) < Math.max(1.0, bodyLength * 0.42)
       const agentPathComplete = agentPathProgress.current >= 1 - SOLO_AGENT_PATH_REBUILD_EPSILON
-      const agentRetargetReady = agentPathProgress.current >= 0.82
+      const agentEndpointReady = now >= nextAgentRetargetAt.current && (agentPathComplete || agentReachedTarget)
+      const agentRetargetReady = now >= nextAgentRetargetAt.current && agentPathProgress.current >= SOLO_AGENT_RETARGET_PROGRESS
       const needsAgentPath = !agentHasTarget.current
         || !agentPath.current
-        || agentPathComplete
-        || agentReachedTarget
+        || agentEndpointReady
         || agentRetargetReady
 
       if (needsAgentPath) {
@@ -1698,12 +1701,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           agentPathProgress.current = 0
           agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
           agentHasTarget.current = true
-          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 10, 18)
+          nextAgentRetargetAt.current = now + randomRangeFromPair(agentRand.current, SOLO_AGENT_RETARGET_COOLDOWN, [2.8, 5.2])
           pathRef.current = agentPath.current
           pathLengthRef.current = agentPathLength.current
           setPath(agentPath.current)
         } else {
-          nextAgentRetargetAt.current = now + 1.2
+          nextAgentRetargetAt.current = now + SOLO_AGENT_RETRY_COOLDOWN
         }
       }
 

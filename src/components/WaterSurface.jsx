@@ -128,7 +128,9 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 `
 
-const SURFACE_PLANE_POSITION = [0, 4.6, -4]
+export const SURFACE_PLANE_Y = 4.6
+
+const SURFACE_PLANE_POSITION = [0, SURFACE_PLANE_Y, -4]
 const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
 const SURFACE_PLANE_SIZE = [70, 32, 1, 1]
 

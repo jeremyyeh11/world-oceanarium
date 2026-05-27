@@ -1,6 +1,7 @@
 import { useThree, useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { SURFACE_PLANE_Y } from './WaterSurface'
 
 export const CAMERA_LIMITS = {
   ocean: { min: -50, max: 3 },
@@ -9,6 +10,7 @@ export const CAMERA_LIMITS = {
 
 const DEFAULT_CAMERA_Z = 12
 const FOLLOW_HEIGHT = 0.85
+const FOLLOW_SURFACE_CLEARANCE = 0.35
 const FOLLOW_TARGET_DAMPING = 2.8
 const FOLLOW_POSITION_DAMPING = 4.0
 const DEFAULT_POSITION_DAMPING = 4.0
@@ -22,6 +24,8 @@ const desiredCameraPosition = new THREE.Vector3()
 const focusBounds = new THREE.Box3()
 const yawQuaternion = new THREE.Quaternion()
 const pitchQuaternion = new THREE.Quaternion()
+
+const MAX_FOLLOW_CAMERA_Y = SURFACE_PLANE_Y - FOLLOW_SURFACE_CLEARANCE
 
 export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0 }) {
   const { camera } = useThree()
@@ -86,9 +90,11 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       framedFocus.copy(smoothedFocus.current).addScaledVector(THREE.Object3D.DEFAULT_UP, -visibleHeightAtFocus * followFramingShift)
 
       desiredCameraPosition.copy(framedFocus).add(followOffset)
+      desiredCameraPosition.y = Math.min(desiredCameraPosition.y, MAX_FOLLOW_CAMERA_Y)
       camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredCameraPosition.x, FOLLOW_POSITION_DAMPING, delta)
       camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredCameraPosition.y, FOLLOW_POSITION_DAMPING, delta)
       camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredCameraPosition.z, FOLLOW_POSITION_DAMPING, delta)
+      camera.position.y = Math.min(camera.position.y, MAX_FOLLOW_CAMERA_Y)
 
       lookTarget.copy(framedFocus)
       camera.lookAt(lookTarget)

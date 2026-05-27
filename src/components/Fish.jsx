@@ -6,6 +6,7 @@ import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
+import { SURFACE_PLANE_Y } from './WaterSurface'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -152,6 +153,9 @@ const MOLA_SUN_BASK_EXIT_BODY_LENGTHS = 3.0
 const MOLA_SUN_BASK_ROLL_DURATION = 6
 const MOLA_SUN_BASK_EXIT_ROLL_DURATION = 5
 const MOLA_SUN_BASK_DRIFT_AMPLITUDE = 0.08
+const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.24
+const MOLA_SURFACE_CENTER_CLEARANCE_MIN = 1.35
+const MOLA_SURFACE_CENTER_CLEARANCE_MAX = 2.45
 const SOLO_AGENT_RETRY_COOLDOWN = 1.2
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
 const AGENT_FORWARD_DESTINATION_MAX_ANGLE = Math.PI / 2
@@ -550,6 +554,7 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
   const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+  const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
 
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -563,7 +568,7 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
     const targetX = wideTarget
       ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
       : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
-    out.set(targetX, randomRange(rand, bounds.yMin, bounds.yMax), targetZ)
+    out.set(targetX, randomRange(rand, bounds.yMin, targetYMax), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out
@@ -580,6 +585,7 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
   const modeZMax = depthMode === 'deep' ? Math.min(bounds.zMax, MOLA_DEEP_ZONE_Z_MAX) : bounds.zMax
   const zMin = Math.min(modeZMin, modeZMax)
   const zMax = Math.max(modeZMin, modeZMax)
+  const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
 
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -593,7 +599,7 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
     const targetX = wideTarget
       ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
       : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
-    out.set(targetX, randomRange(rand, bounds.yMin, bounds.yMax), targetZ)
+    out.set(targetX, randomRange(rand, bounds.yMin, targetYMax), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out
@@ -608,6 +614,29 @@ function isMolaCreature(creature) {
   return creature.species === 'mola-alexandrini' || creature.species === 'mola-mola'
 }
 
+function molaSurfaceCenterYMax(creature, swim, bounds) {
+  if (!isMolaCreature(creature)) return bounds.yMax
+  const bodyLength = creatureBodyLength(creature, swim)
+  const clearance = THREE.MathUtils.clamp(
+    bodyLength * MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS,
+    MOLA_SURFACE_CENTER_CLEARANCE_MIN,
+    MOLA_SURFACE_CENTER_CLEARANCE_MAX,
+  )
+  return Math.min(bounds.yMax, SURFACE_PLANE_Y - clearance)
+}
+
+function clampToMolaSurfaceCeiling(point, creature, swim, bounds, direction = null) {
+  if (!isMolaCreature(creature)) return false
+  const maxY = molaSurfaceCenterYMax(creature, swim, bounds)
+  if (point.y <= maxY) return false
+  point.y = maxY
+  if (direction && direction.y > 0) {
+    direction.y = 0
+    if (direction.lengthSq() > 0.0001) direction.normalize()
+  }
+  return true
+}
+
 function pickMolaSunBaskTarget(out, creature, swim, rand, from, forward) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
@@ -618,7 +647,7 @@ function pickMolaSunBaskTarget(out, creature, swim, rand, from, forward) {
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const targetZ = randomRange(rand, Math.min(zMin, zMax), Math.max(zMin, zMax))
     const targetX = randomXInSwimBoundsAtZ(rand, bounds, targetZ, 0.18, 0.82)
-    out.set(targetX, bounds.yMax, targetZ)
+    out.set(targetX, molaSurfaceCenterYMax(creature, swim, bounds), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out
@@ -2237,7 +2266,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_AMPLITUDE * delta
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         velocity.current = THREE.MathUtils.damp(velocity.current, 0, 1.4, delta)
-        fish.position.y = THREE.MathUtils.damp(fish.position.y, bounds.yMax, 1.2, delta)
+        fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSurfaceCenterYMax(creature, swim, bounds), 1.2, delta)
+        clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection)
         agentBehaviorDistance.current = 0
       } else {
         if (agentHasTarget.current) {
@@ -2251,6 +2281,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         const movementScale = soloAgentSpeed * organicMotion.speedScale * delta
         fish.position.addScaledVector(agentMoveDirection, movementScale)
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection)
         if (clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength)) {
           agentRuntimeClamp.copy(fish.position)
           clampToSwimBounds(agentRuntimeClamp, bounds)

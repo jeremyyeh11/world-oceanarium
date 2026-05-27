@@ -587,6 +587,37 @@ function makeSoloAgentRecoveryArc(creature, swim, start, startForward) {
   return bestPath
 }
 
+function makeSoloAgentForwardFallbackPath(creature, swim, start, startForward) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  agentContinuationForward.copy(startForward)
+  if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
+  agentContinuationForward.normalize()
+
+  agentRecoveryEnd.copy(start).addScaledVector(agentContinuationForward, Math.max(2.4, bodyLength * 1.1))
+  agentRecoveryEnd.y = THREE.MathUtils.clamp(agentRecoveryEnd.y, bounds.yMin, bounds.yMax)
+  if (!pointInsideSwimBounds(agentRecoveryEnd, bounds)) {
+    const center = agentRecoveryRadial.set(0, THREE.MathUtils.clamp(start.y, bounds.yMin, bounds.yMax), (bounds.zMin + bounds.zMax) * 0.5)
+    agentContinuationForward.subVectors(center, start)
+    if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
+    agentContinuationForward.normalize()
+    agentRecoveryEnd.copy(start).addScaledVector(agentContinuationForward, Math.max(2.4, bodyLength * 1.1))
+    clampToSwimBounds(agentRecoveryEnd, bounds)
+  }
+
+  const path = new THREE.LineCurve3(start.clone(), agentRecoveryEnd.clone())
+  path.userData = {
+    ...(path.userData ?? {}),
+    curvatureAccepted: true,
+    fallbackReason: 'forward-fallback',
+    minTurnRadius: Infinity,
+    maxSampleTangentDelta: 0,
+    startTangentDelta: 0,
+    hasTangentReversal: false,
+  }
+  return path
+}
+
 function soloAgentPathMeetsEndpointGate(path, creature, swim) {
   const bodyLength = creatureBodyLength(creature, swim)
   const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
@@ -1731,7 +1762,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           if (nextAgentPath) agentTarget.current.copy(nextAgentPath.getPointAt(1))
         }
 
-        if (nextAgentPath && (nextAgentPath.userData?.curvatureAccepted || soloAgentPathMeetsEndpointGate(nextAgentPath, creature, swim) || agentBehavior.current?.type === 'turn')) {
+        const pathAccepted = nextAgentPath && (
+          nextAgentPath.userData?.curvatureAccepted
+          || soloAgentPathMeetsEndpointGate(nextAgentPath, creature, swim)
+          || agentBehavior.current?.type === 'turn'
+        )
+        if (!pathAccepted) {
+          agentBehavior.current = { type: 'turn', completion: 'path' }
+          nextAgentPath = makeSoloAgentRecoveryArc(creature, swim, position, currentForward)
+            ?? makeSoloAgentForwardFallbackPath(creature, swim, position, currentForward)
+          if (nextAgentPath) agentTarget.current.copy(nextAgentPath.getPointAt(1))
+        }
+
+        if (nextAgentPath) {
           agentPath.current = nextAgentPath
           agentPathProgress.current = 0
           const nextPathLength = agentPath.current.getLength()

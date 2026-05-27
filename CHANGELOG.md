@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_75`.
+Status: in progress as `v0.8.0-dev_76`.
 
 ### Creature behavior
 
@@ -89,6 +89,7 @@ Status: in progress as `v0.8.0-dev_75`.
 - Smooths selected-follow camera rotation by seeding a look target from the current camera forward vector and damping it toward the framed creature focus, avoiding the raw `lookAt` target jump that could create an initial lateral snap before position damping was visible.
 - Applies the same smoothed-look-target transition when exiting follow mode back to tank view, so rotation eases from the current follow-facing direction instead of snapping immediately to the default tank `lookAt`.
 - Adds a Mola sun-basking behavior lifecycle: occasional front/surface approach, gradual side-up roll, 30s stationary bask hold with tiny drift and left/right bask animation, then an exit target that rolls back down before normal solo-agent behavior resumes.
+- Adds a Mola-specific hard surface ceiling for body-center motion and destination sampling, so X/Z maneuver leniency remains but upward runtime overshoot slides along a safe center height below the water surface instead of letting the body clip through the surface plane.
 
 ## v0.7.9 — Sardine texture refresh
 

@@ -16,6 +16,7 @@ const DEFAULT_FOLLOW_DISTANCE = 3.2
 const MIN_FOLLOW_DISTANCE = 1.35
 const MAX_FOLLOW_DISTANCE = 18
 const LARGE_CREATURE_FOLLOW_BODY_LENGTHS = 1.65
+const LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS = 4.0
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
@@ -58,14 +59,23 @@ function getTouchDistance(points) {
   return Math.hypot(values[0].x - values[1].x, values[0].y - values[1].y)
 }
 
-function clampFollowDistance(distance) {
-  return Math.max(MIN_FOLLOW_DISTANCE, Math.min(MAX_FOLLOW_DISTANCE, distance))
+function creatureBodyLength(creature) {
+  const species = SPECIES_BY_NAME.get(creature?.species)
+  return (species?.swim?.bodyLengthWU ?? 1) * (creature?.size ?? 1)
+}
+
+function maxFollowDistanceForCreature(creature) {
+  const bodyLength = creatureBodyLength(creature)
+  return Math.max(MAX_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS)
+}
+
+function clampFollowDistance(distance, creature = null) {
+  return Math.max(MIN_FOLLOW_DISTANCE, Math.min(maxFollowDistanceForCreature(creature), distance))
 }
 
 function defaultFollowDistanceForCreature(creature) {
-  const species = SPECIES_BY_NAME.get(creature?.species)
-  const bodyLength = (species?.swim?.bodyLengthWU ?? 1) * (creature?.size ?? 1)
-  return clampFollowDistance(Math.max(DEFAULT_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_FOLLOW_BODY_LENGTHS))
+  const bodyLength = creatureBodyLength(creature)
+  return clampFollowDistance(Math.max(DEFAULT_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_FOLLOW_BODY_LENGTHS), creature)
 }
 
 function eventStartedInInfoCard(event) {
@@ -247,7 +257,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   const adjustFollowDistance = (delta) => {
-    setFollowDistance(current => clampFollowDistance(current + delta))
+    setFollowDistance(current => clampFollowDistance(current + delta, selectedCreature))
   }
 
   const toggleDebugLayer = (layerId) => {
@@ -377,7 +387,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       const pinchDistance = getTouchDistance(touchPointsRef.current)
       if (!pinchDistance || !drag.startDistance) return
       const pinchDelta = drag.startDistance - pinchDistance
-      setFollowDistance(clampFollowDistance(drag.startFollowDistance + pinchDelta * FOLLOW_PINCH_ZOOM_SPEED))
+      setFollowDistance(clampFollowDistance(drag.startFollowDistance + pinchDelta * FOLLOW_PINCH_ZOOM_SPEED, selectedCreature))
       return
     }
 

@@ -54,6 +54,7 @@ Status: in progress as `v0.8.0-dev_31`.
 - Moves the Mola solo-agent follow/debug lookahead target to a body-length-scaled point ahead on the active spline, matching the sardine follow-target pattern so the target no longer sits inside the large body.
 - Tightens Mola visual-forward tracking against the active spline tangent, using faster tangent catch-up for solo agents so the body stays close to parallel with the curve instead of sliding sideways/backward along it.
 - Increases Mola solo-agent spline turning radius by lengthening cubic control leads, blending sharp destination approaches more strongly toward the current route tangent, and slowing arc-length progress when local spline tangent delta exceeds the lower curvature cap.
+- Enforces broad Mola spline routes at generation time: candidate targets/curves are sampled for horizontal tangent delta, only curves under the curvature cap are accepted when possible, close targets are rejected, and fallback picks the smoothest candidate instead of the first random target.
 - Doubles global GLTF animation time scales, increases Mola idle movement speed by `1.2x`, and increases Mola burst movement speed by `1.5x` for a more active fin/body read against the widened path arcs.
 - Adds size-biased avoidance so smaller creatures yield more strongly to larger creatures while larger creatures are minimally disturbed by smaller ones; species dominance overrides are left as an explicit future movement-system TODO.
 

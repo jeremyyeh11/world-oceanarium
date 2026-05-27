@@ -111,9 +111,14 @@ const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
 const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
-const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [2.1, 3.1]
-const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.38
-const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.68
+const SOLO_AGENT_TARGET_ATTEMPTS = 10
+const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 1.65
+const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 8
+const SOLO_AGENT_CURVE_SAMPLE_COUNT = 40
+const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(4)
+const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [2.8, 4.2]
+const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.52
+const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.92
 const SOLO_AGENT_MAX_TANGENT_DELTA = THREE.MathUtils.degToRad(8)
 const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
@@ -139,10 +144,14 @@ const agentPathPoint = new THREE.Vector3()
 const agentPathLookaheadPoint = new THREE.Vector3()
 const agentPathTangent = new THREE.Vector3()
 const agentPathOffset = new THREE.Vector3()
+const agentCandidateTarget = new THREE.Vector3()
+const agentBestTarget = new THREE.Vector3()
 const agentCurveControlA = new THREE.Vector3()
 const agentCurveControlB = new THREE.Vector3()
 const agentCurveEndForward = new THREE.Vector3()
 const agentCurveStartForward = new THREE.Vector3()
+const agentCurvePrevTangent = new THREE.Vector3()
+const agentCurveNextTangent = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -364,7 +373,7 @@ function clampToSwimBounds(point, bounds) {
 function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
-  const minDistance = Math.max(1.2, bodyLength * 0.8)
+  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -396,15 +405,32 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   return out
 }
 
-function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
+function horizontalTangentDelta(path) {
+  let maxDelta = 0
+  let hasPrevious = false
+  for (let i = 0; i <= SOLO_AGENT_CURVE_SAMPLE_COUNT; i += 1) {
+    path.getTangentAt(i / SOLO_AGENT_CURVE_SAMPLE_COUNT, agentCurveNextTangent)
+    agentCurveNextTangent.y = 0
+    if (agentCurveNextTangent.lengthSq() < 0.0001) continue
+    agentCurveNextTangent.normalize()
+    if (hasPrevious) {
+      maxDelta = Math.max(maxDelta, agentCurvePrevTangent.angleTo(agentCurveNextTangent))
+    }
+    agentCurvePrevTangent.copy(agentCurveNextTangent)
+    hasPrevious = true
+  }
+  return maxDelta
+}
+
+function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, leadScale = 1) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
   const distance = Math.max(0.001, start.distanceTo(target))
-  const leadByBody = bodyLength * randomRange(rand, SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[0], SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[1])
+  const leadByBody = bodyLength * randomRange(rand, SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[0], SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[1]) * leadScale
   const leadDistance = THREE.MathUtils.clamp(
     leadByBody,
     distance * SOLO_AGENT_CURVE_MIN_LEAD_SCALE,
-    distance * SOLO_AGENT_CURVE_MAX_LEAD_SCALE,
+    distance * Math.min(1.25, SOLO_AGENT_CURVE_MAX_LEAD_SCALE * leadScale),
   )
 
   agentCurveStartForward.copy(startForward)
@@ -440,6 +466,29 @@ function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
     agentCurveControlB.clone(),
     target.clone(),
   )
+}
+
+function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
+  let bestPath = null
+  let bestDelta = Infinity
+
+  for (let attempt = 0; attempt < SOLO_AGENT_CURVE_BUILD_ATTEMPTS; attempt += 1) {
+    const leadScale = 1 + attempt * 0.28
+    const path = makeSoloAgentBezier(creature, swim, start, startForward, target, rand, leadScale)
+    const maxDelta = horizontalTangentDelta(path)
+    path.userData = {
+      ...(path.userData ?? {}),
+      maxSampleTangentDelta: maxDelta,
+      curvatureAccepted: maxDelta <= SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA,
+    }
+    if (maxDelta < bestDelta) {
+      bestDelta = maxDelta
+      bestPath = path
+    }
+    if (path.userData.curvatureAccepted) return path
+  }
+
+  return bestPath
 }
 
 function limitPathYGradient(points, bounds, maxGradient = MAX_PATH_Y_GRADIENT) {
@@ -1385,8 +1434,29 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         if (agentPathExitTangent.current.lengthSq() < 0.0001) {
           agentPathExitTangent.current.copy(hasVisualForward.current ? visualForward.current : tangent)
         }
-        pickSoloAgentTarget(agentTarget.current, creature, swim, agentRand.current, position)
-        agentPath.current = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentTarget.current, agentRand.current)
+        let nextAgentPath = null
+        let bestAgentPath = null
+        let bestAgentDelta = Infinity
+        for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
+          pickSoloAgentTarget(agentCandidateTarget, creature, swim, agentRand.current, position)
+          const candidatePath = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentCandidateTarget, agentRand.current)
+          const candidateDelta = candidatePath?.userData?.maxSampleTangentDelta ?? Infinity
+          if (candidateDelta < bestAgentDelta) {
+            bestAgentDelta = candidateDelta
+            bestAgentPath = candidatePath
+            agentBestTarget.copy(agentCandidateTarget)
+          }
+          if (candidatePath?.userData?.curvatureAccepted) {
+            nextAgentPath = candidatePath
+            agentTarget.current.copy(agentCandidateTarget)
+            break
+          }
+        }
+        if (!nextAgentPath) {
+          nextAgentPath = bestAgentPath
+          agentTarget.current.copy(agentBestTarget)
+        }
+        agentPath.current = nextAgentPath
         agentPathProgress.current = 0
         agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
         agentHasTarget.current = true

@@ -111,16 +111,17 @@ const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
 const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
-const SOLO_AGENT_TARGET_ATTEMPTS = 24
+const SOLO_AGENT_TARGET_ATTEMPTS = 32
 const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 3.0
-const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 14
+const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 18
 const SOLO_AGENT_CURVE_SAMPLE_COUNT = 56
 const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(3)
 const SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR = THREE.MathUtils.degToRad(0.5)
 const SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS = 1.2
-const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [3.8, 6.2]
-const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.85
-const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 1.35
+const SOLO_AGENT_CURVE_TWIST_EPSILON = THREE.MathUtils.degToRad(0.35)
+const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [1.1, 2.4]
+const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.24
+const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.52
 const SOLO_AGENT_MAX_TANGENT_DELTA = THREE.MathUtils.degToRad(8)
 const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
@@ -413,6 +414,8 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
   let maxDelta = 0
   let minRadius = Infinity
   let hasPrevious = false
+  let turnSign = 0
+  let hasTangentReversal = false
 
   path.getTangentAt(0, agentCurveNextTangent).normalize()
   const startTangentDelta = expectedStartTangent.lengthSq() > 0.0001
@@ -430,6 +433,12 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
       const tangentDelta = agentCurvePrevTangent.angleTo(agentCurveNextTangent)
       const segmentLength = Math.max(0.001, agentCurvePrevPoint.distanceTo(agentCurveNextPoint))
       const radius = tangentDelta > 0.0001 ? segmentLength / tangentDelta : Infinity
+      const signedTurn = agentCurvePrevTangent.x * agentCurveNextTangent.z - agentCurvePrevTangent.z * agentCurveNextTangent.x
+      if (tangentDelta > SOLO_AGENT_CURVE_TWIST_EPSILON && Math.abs(signedTurn) > 0.0001) {
+        const sampleSign = Math.sign(signedTurn)
+        if (turnSign === 0) turnSign = sampleSign
+        else if (sampleSign !== turnSign) hasTangentReversal = true
+      }
       maxDelta = Math.max(maxDelta, tangentDelta)
       minRadius = Math.min(minRadius, radius)
     }
@@ -444,10 +453,12 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
     maxDelta,
     minRadius,
     startTangentDelta,
+    hasTangentReversal,
     accepted: startTangentDelta <= SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR
       && maxDelta <= SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA
-      && minRadius >= minTurnRadius,
-    score: startTangentDelta * 120 + maxDelta * 20 + radiusShortfall,
+      && minRadius >= minTurnRadius
+      && !hasTangentReversal,
+    score: startTangentDelta * 120 + maxDelta * 20 + radiusShortfall + (hasTangentReversal ? 1000 : 0),
   }
 }
 
@@ -458,7 +469,7 @@ function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, 
   const leadDistance = THREE.MathUtils.clamp(
     leadByBody,
     distance * SOLO_AGENT_CURVE_MIN_LEAD_SCALE,
-    distance * Math.min(1.25, SOLO_AGENT_CURVE_MAX_LEAD_SCALE * leadScale),
+    distance * Math.min(0.72, SOLO_AGENT_CURVE_MAX_LEAD_SCALE * leadScale),
   )
 
   agentCurveStartForward.copy(startForward)
@@ -505,7 +516,7 @@ function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
   let bestScore = Infinity
 
   for (let attempt = 0; attempt < SOLO_AGENT_CURVE_BUILD_ATTEMPTS; attempt += 1) {
-    const leadScale = 1 + attempt * 0.34
+    const leadScale = 0.72 + attempt * 0.04
     const path = makeSoloAgentBezier(creature, swim, start, agentCurveStartForward, target, rand, leadScale)
     const measure = measureSoloAgentCurve(path, agentCurveStartForward, minTurnRadius)
     path.userData = {
@@ -513,6 +524,7 @@ function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
       maxSampleTangentDelta: measure.maxDelta,
       minTurnRadius: measure.minRadius,
       startTangentDelta: measure.startTangentDelta,
+      hasTangentReversal: measure.hasTangentReversal,
       curvatureAccepted: measure.accepted,
     }
     if (measure.score < bestScore) {

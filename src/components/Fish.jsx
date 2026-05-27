@@ -452,7 +452,6 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
 }
 
 function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, leadScale = 1) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
   const distance = Math.max(0.001, start.distanceTo(target))
   const leadByBody = bodyLength * randomRange(rand, SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[0], SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[1]) * leadScale
@@ -481,11 +480,9 @@ function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, 
   agentCurveControlA.copy(start).addScaledVector(agentCurveStartForward, leadDistance)
   agentCurveControlB.copy(target).addScaledVector(agentCurveEndForward, -leadDistance)
 
-  // Do not clamp control A: the cubic derivative at t=0 must stay exactly
-  // aligned with the previous path's 3D exit tangent, or spline swaps jitter.
-  // Control B can clamp because the next route will inherit whatever endpoint
-  // tangent this curve actually produces.
-  clampToSwimBounds(agentCurveControlB, bounds)
+  // Do not clamp Bezier handles. Destinations stay inside the swim bounds, but
+  // handles must be free to leave the target box so broad edge turns do not get
+  // kinked by a clipped control point.
 
   return new THREE.CubicBezierCurve3(
     start.clone(),

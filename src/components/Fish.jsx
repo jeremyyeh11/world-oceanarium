@@ -2246,7 +2246,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         const scientificName = species?.scientificName ?? '—'
         labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
-        agentLabelRef.current.text = `id ${creature.id ?? '?'}\n${commonName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\nbehavior ${status}`
+        const currentAnimation = animationRef.current ?? '—'
+        agentLabelRef.current.text = `id ${creature.id ?? '?'}\n${commonName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\nbehavior ${status}\nanimation ${currentAnimation}`
         agentLabelRef.current.lookAt(camera.position)
         agentLabelRef.current.visible = showDirection && showAgentDebug
       }

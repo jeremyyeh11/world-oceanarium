@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_56`.
+Status: in progress as `v0.8.0-dev_57`.
 
 ### Creature behavior
 
@@ -71,6 +71,7 @@ Status: in progress as `v0.8.0-dev_56`.
 - Removes the debug-panel `None` view mode so debug visuals are always either `View all` or `Selected fish`; debug now defaults to `View all` when enabled.
 - Revamps movement bounds so species only define Y/Z ranges while global X range is derived from tank camera projection at each destination depth: near-front destinations get narrow X travel and farther negative-Z destinations get wider X travel. Removes the debug movement-boundary box.
 - Rebuilds Mola solo-agent movement around explicit behavior lifecycles: destinations are sampled once per behavior inside the forward 180° cone, behind/failed destinations fall back to a broad turn behavior, route swaps happen only after behavior completion, runtime boundary avoidance is disabled for solo paths, and Mola debug labels now show id, common/scientific name, move speed, and active behavior.
+- Narrows Mola debug output to only the requested identity/speed/behavior label, hides solo-agent spline/target/speed/name debug extras, and hardens solo-agent path advancement against invalid path-length or speed values so an accepted visible route always advances position.
 
 ## v0.7.9 — Sardine texture refresh
 

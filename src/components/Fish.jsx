@@ -1734,7 +1734,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         if (nextAgentPath && (nextAgentPath.userData?.curvatureAccepted || soloAgentPathMeetsEndpointGate(nextAgentPath, creature, swim) || agentBehavior.current?.type === 'turn')) {
           agentPath.current = nextAgentPath
           agentPathProgress.current = 0
-          agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
+          const nextPathLength = agentPath.current.getLength()
+          agentPathLength.current = Number.isFinite(nextPathLength) && nextPathLength > 0.001 ? nextPathLength : 1
           agentHasTarget.current = true
           pathRef.current = agentPath.current
           pathLengthRef.current = agentPathLength.current
@@ -1777,8 +1778,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         THREE.MathUtils.clamp(tangentDelta / SOLO_AGENT_MAX_TANGENT_DELTA, 0, 1),
       )
       const previousProgress = agentPathProgress.current
+      const soloAgentSpeed = Number.isFinite(velocity.current) && velocity.current > 0
+        ? velocity.current
+        : motion.idleSpeed
+      const soloAgentPathLength = Number.isFinite(agentPathLength.current) && agentPathLength.current > 0.001
+        ? agentPathLength.current
+        : Math.max(0.001, agentPath.current.getLength())
       agentPathProgress.current = THREE.MathUtils.clamp(
-        agentPathProgress.current + delta * velocity.current * organicMotion.speedScale * curveSpeedScale / agentPathLength.current,
+        agentPathProgress.current + delta * soloAgentSpeed * organicMotion.speedScale * curveSpeedScale / soloAgentPathLength,
         0,
         1,
       )
@@ -1913,16 +1920,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
-      if (forwardLineRef.current) forwardLineRef.current.visible = showDirection
+      if (forwardLineRef.current) forwardLineRef.current.visible = showDirection && !showAgentDebug
       if (followTargetMarkerRef.current) {
         followTargetMarkerRef.current.position.copy(followTarget.current)
-        followTargetMarkerRef.current.visible = showDirection
+        followTargetMarkerRef.current.visible = showDirection && !showAgentDebug
       }
       if (speedLabelRef.current) {
         speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
         speedLabelRef.current.text = `${effectiveDebugSpeedMeters.toFixed(2)} m/s`
         speedLabelRef.current.lookAt(camera.position)
-        speedLabelRef.current.visible = showDirection
+        speedLabelRef.current.visible = showDirection && !showAgentDebug
       }
       if (driftLabelRef.current) {
         labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.10 + size * 0.04)
@@ -1933,32 +1940,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       }
       if (agentLabelRef.current) {
         const bodyLength = creatureBodyLength(creature, swim)
-        const targetDistance = fish.position.distanceTo(followTarget.current)
-        const bounds = swimBounds(creature.depthZone, swim, size)
-        const xRangeAtZ = swimXRangeAtZ(bounds, fish.position.z)
-        const wallClearance = Math.min(
-          fish.position.x - xRangeAtZ.xMin,
-          xRangeAtZ.xMax - fish.position.x,
-          fish.position.z - bounds.zMin,
-          bounds.zMax - fish.position.z,
-        )
-        const surfaceClearance = bounds.yMax - fish.position.y
-        const targetDistanceMeters = targetDistance * WORLD_UNIT_METERS
-        const targetMeters = followTarget.current.clone().multiplyScalar(WORLD_UNIT_METERS)
-        const wallClearanceMeters = wallClearance * WORLD_UNIT_METERS
-        const surfaceClearanceMeters = surfaceClearance * WORLD_UNIT_METERS
         const status = agentStatus.current
-        const activeMove = animationRef.current
+        const commonName = species?.name ?? creature.species ?? 'Unknown'
+        const scientificName = species?.scientificName ?? '—'
         labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
-        agentLabelRef.current.text = `moveset ${activeMove}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s · ${targetDistanceMeters.toFixed(1)}m to target\ndest ${targetMeters.x.toFixed(1)}, ${targetMeters.y.toFixed(1)}, ${targetMeters.z.toFixed(1)}m\nclear wall ${wallClearanceMeters.toFixed(1)}m · surface ${surfaceClearanceMeters.toFixed(1)}m\nagent ${status}`
+        agentLabelRef.current.text = `id ${creature.id ?? '?'}\n${commonName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\nbehavior ${status}`
         agentLabelRef.current.lookAt(camera.position)
-        agentLabelRef.current.visible = showDirection
+        agentLabelRef.current.visible = showDirection && showAgentDebug
       }
       if (nameLabelRef.current) {
         nameLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.16 + 0.045)
         nameLabelRef.current.lookAt(camera.position)
-        nameLabelRef.current.visible = showName
+        nameLabelRef.current.visible = showName && !showAgentDebug
       }
     }
 
@@ -2179,7 +2173,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     <group>
       {debug && (
         <>
-          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug) && (
+          {(debugLayers?.direction ?? true) && !showAgentDebug && (!isSchooling || isSchoolLeader) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>

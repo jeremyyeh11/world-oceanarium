@@ -111,13 +111,13 @@ const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
 const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
-const SOLO_AGENT_TARGET_ATTEMPTS = 10
+const SOLO_AGENT_TARGET_ATTEMPTS = 24
 const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 3.0
-const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 10
+const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 14
 const SOLO_AGENT_CURVE_SAMPLE_COUNT = 56
 const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(3)
 const SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR = THREE.MathUtils.degToRad(0.5)
-const SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS = 4.5
+const SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS = 1.2
 const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [3.8, 6.2]
 const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.85
 const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 1.35
@@ -527,7 +527,7 @@ function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
     bestPath.userData = {
       ...(bestPath.userData ?? {}),
       curvatureAccepted: false,
-      fallbackReason: 'smoothest-candidate',
+      fallbackReason: 'rejected-min-radius',
     }
   }
   return bestPath
@@ -1491,18 +1491,25 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
             break
           }
         }
-        if (!nextAgentPath) {
+        if (!nextAgentPath && !previousAgentPath) {
+          // Initial spawn safety only. Once an agent already has a route, never
+          // replace it with a curve that failed the radius gate; wait and retry
+          // target generation instead of showing a sharp fallback corner.
           nextAgentPath = bestAgentPath
           agentTarget.current.copy(agentBestTarget)
         }
-        agentPath.current = nextAgentPath
-        agentPathProgress.current = 0
-        agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
-        agentHasTarget.current = true
-        nextAgentRetargetAt.current = now + randomRange(agentRand.current, 10, 18)
-        pathRef.current = agentPath.current
-        pathLengthRef.current = agentPathLength.current
-        setPath(agentPath.current)
+        if (nextAgentPath?.userData?.curvatureAccepted || (!previousAgentPath && nextAgentPath)) {
+          agentPath.current = nextAgentPath
+          agentPathProgress.current = 0
+          agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
+          agentHasTarget.current = true
+          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 10, 18)
+          pathRef.current = agentPath.current
+          pathLengthRef.current = agentPathLength.current
+          setPath(agentPath.current)
+        } else {
+          nextAgentRetargetAt.current = now + 1.2
+        }
       }
 
       const agentLookaheadT = THREE.MathUtils.clamp(

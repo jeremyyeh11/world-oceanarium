@@ -1588,7 +1588,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const bodyLength = creatureBodyLength(creature, swim)
       const agentReachedTarget = position.distanceTo(agentTarget.current) < Math.max(1.0, bodyLength * 0.42)
       const agentPathComplete = agentPathProgress.current >= 1 - SOLO_AGENT_PATH_REBUILD_EPSILON
-      const agentRetargetReady = now >= nextAgentRetargetAt.current && agentPathProgress.current >= 0.92
+      const agentRetargetReady = agentPathProgress.current >= 0.82
       const needsAgentPath = !agentHasTarget.current
         || !agentPath.current
         || agentPathComplete
@@ -1655,6 +1655,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
               agentTarget.current.copy(nextAgentPath.getPointAt(1))
             }
           }
+        }
+        if (!nextAgentPath && previousAgentPath && agentPathComplete && bestAgentPath) {
+          // Absolute endpoint safety: never leave the solo agent pinned at t=1.
+          // This is only reachable after strict random continuation and the
+          // deterministic recovery arc both fail.
+          nextAgentPath = bestAgentPath
+          nextAgentPath.userData = {
+            ...(nextAgentPath.userData ?? {}),
+            curvatureAccepted: true,
+            fallbackReason: 'endpoint-unstick-best-candidate',
+          }
+          agentTarget.current.copy(agentBestTarget)
         }
         if (!nextAgentPath && !previousAgentPath) {
           // Initial spawn safety only. Once an agent already has a route, never

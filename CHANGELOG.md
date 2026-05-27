@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_71`.
+Status: in progress as `v0.8.0-dev_72`.
 
 ### Creature behavior
 
@@ -85,6 +85,7 @@ Status: in progress as `v0.8.0-dev_71`.
 - Adds the currently requested/playing movement animation name to the Mola debug text below the behavior line.
 - Removes the remaining selected-follow spring/lateral snap by seeding follow focus from the current camera pose and easing directly to the selected creature with softer target/position damping.
 - Adds a follow-camera surface collision plane: when zoom/orbit would lift the camera into the water surface, the desired camera pose clamps just below the surface while X/Z motion continues, creating a slide-along-surface behavior instead of rising above it.
+- Adds a runtime safety envelope for solo-agent movement: Mola can still temporarily traverse outside destination bounds for broad maneuvers, but its body center is capped to a small body-length-scaled overshoot and immediately retargets inward if it hits that outer envelope.
 
 ## v0.7.9 — Sardine texture refresh
 

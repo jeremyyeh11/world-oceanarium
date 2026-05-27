@@ -588,12 +588,6 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
 function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, leadScale = 1) {
   const bodyLength = creatureBodyLength(creature, swim)
   const distance = Math.max(0.001, start.distanceTo(target))
-  const leadByBody = bodyLength * randomRange(rand, SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[0], SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS[1]) * leadScale
-  const leadDistance = THREE.MathUtils.clamp(
-    leadByBody,
-    distance * SOLO_AGENT_CURVE_MIN_LEAD_SCALE,
-    distance * Math.min(0.72, SOLO_AGENT_CURVE_MAX_LEAD_SCALE * leadScale),
-  )
 
   agentCurveStartForward.copy(startForward)
   if (agentCurveStartForward.lengthSq() < 0.0001) agentCurveStartForward.subVectors(target, start)
@@ -604,26 +598,62 @@ function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, 
   if (agentCurveEndForward.lengthSq() < 0.0001) agentCurveEndForward.copy(agentCurveStartForward)
   else agentCurveEndForward.normalize()
 
-  // When target is behind the animal, keep the departure tangent dominant so the
-  // first half of the route becomes a broad loop instead of a snap-turn hook.
   const alignment = THREE.MathUtils.clamp(agentCurveStartForward.dot(agentCurveEndForward), -1, 1)
-  if (alignment < 0.45) {
-    agentCurveEndForward.lerp(agentCurveStartForward, THREE.MathUtils.lerp(0.68, 0.30, (alignment + 1) / 1.45)).normalize()
+  if (alignment < 0.35) {
+    agentCurveEndForward.lerp(agentCurveStartForward, THREE.MathUtils.lerp(0.72, 0.22, (alignment + 1) / 1.35)).normalize()
   }
 
-  agentCurveControlA.copy(start).addScaledVector(agentCurveStartForward, leadDistance)
-  agentCurveControlB.copy(target).addScaledVector(agentCurveEndForward, -leadDistance)
+  agentRecoverySide.set(-agentCurveStartForward.z, 0, agentCurveStartForward.x)
+  if (agentRecoverySide.lengthSq() < 0.0001) agentRecoverySide.set(1, 0, 0)
+  agentRecoverySide.normalize()
+  const targetSide = Math.sign(agentRecoverySide.dot(agentCurveEndForward)) || (rand() < 0.5 ? -1 : 1)
+  const lateralOffset = distance * THREE.MathUtils.clamp((1 - alignment) * 0.16, 0.035, 0.24) * targetSide
 
-  // Do not clamp Bezier handles. Destinations stay inside the swim bounds, but
-  // handles must be free to leave the target box so broad edge turns do not get
-  // kinked by a clipped control point.
-
-  return new THREE.CubicBezierCurve3(
+  const points = [
     start.clone(),
-    agentCurveControlA.clone(),
-    agentCurveControlB.clone(),
+    start.clone().addScaledVector(agentCurveStartForward, distance * 0.24),
+    start.clone().lerp(target, 0.52).addScaledVector(agentRecoverySide, lateralOffset),
+    target.clone().addScaledVector(agentCurveEndForward, -distance * 0.22),
     target.clone(),
-  )
+  ]
+  points[1].y = THREE.MathUtils.lerp(start.y, target.y, 0.18)
+  points[2].y = THREE.MathUtils.lerp(start.y, target.y, 0.52)
+  points[3].y = THREE.MathUtils.lerp(start.y, target.y, 0.82)
+
+  const tangents = points.map((point, index) => {
+    if (index === 0) return agentCurveStartForward.clone()
+    if (index === points.length - 1) return agentCurveEndForward.clone()
+    const prev = points[index - 1]
+    const next = points[index + 1]
+    const tangentAtPoint = next.clone().sub(prev)
+    if (tangentAtPoint.lengthSq() < 0.0001) tangentAtPoint.copy(agentCurveStartForward)
+    return tangentAtPoint.normalize()
+  })
+
+  const path = new THREE.CurvePath()
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const segmentStart = points[i]
+    const segmentEnd = points[i + 1]
+    const segmentLength = Math.max(0.001, segmentStart.distanceTo(segmentEnd))
+    const handleLength = Math.min(
+      segmentLength * THREE.MathUtils.lerp(0.20, 0.32, THREE.MathUtils.clamp(leadScale, 0, 1.4)),
+      bodyLength * 1.15,
+    )
+    agentCurveControlA.copy(segmentStart).addScaledVector(tangents[i], handleLength)
+    agentCurveControlB.copy(segmentEnd).addScaledVector(tangents[i + 1], -handleLength)
+    path.add(new THREE.CubicBezierCurve3(
+      segmentStart.clone(),
+      agentCurveControlA.clone(),
+      agentCurveControlB.clone(),
+      segmentEnd.clone(),
+    ))
+  }
+
+  path.userData = {
+    ...(path.userData ?? {}),
+    segmentCount: points.length - 1,
+  }
+  return path
 }
 
 function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
@@ -1655,18 +1685,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
               agentTarget.current.copy(nextAgentPath.getPointAt(1))
             }
           }
-        }
-        if (!nextAgentPath && previousAgentPath && agentPathComplete && bestAgentPath) {
-          // Absolute endpoint safety: never leave the solo agent pinned at t=1.
-          // This is only reachable after strict random continuation and the
-          // deterministic recovery arc both fail.
-          nextAgentPath = bestAgentPath
-          nextAgentPath.userData = {
-            ...(nextAgentPath.userData ?? {}),
-            curvatureAccepted: true,
-            fallbackReason: 'endpoint-unstick-best-candidate',
-          }
-          agentTarget.current.copy(agentBestTarget)
         }
         if (!nextAgentPath && !previousAgentPath) {
           // Initial spawn safety only. Once an agent already has a route, never

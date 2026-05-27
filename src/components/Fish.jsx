@@ -144,6 +144,14 @@ const MOLA_DEEP_ZONE_Z_MAX = -10
 const MOLA_FRONT_EXCURSION_CHANCE = 0.24
 const MOLA_FRONT_TARGET_COUNT = [1, 2]
 const MOLA_DEEP_TARGET_COUNT = [4, 7]
+const MOLA_SUN_BASK_CHANCE = 0.16
+const MOLA_SUN_BASK_COOLDOWN = 75
+const MOLA_SUN_BASK_DURATION = 30
+const MOLA_SUN_BASK_APPROACH_Z = [-6, 0]
+const MOLA_SUN_BASK_EXIT_BODY_LENGTHS = 3.0
+const MOLA_SUN_BASK_ROLL_DURATION = 6
+const MOLA_SUN_BASK_EXIT_ROLL_DURATION = 5
+const MOLA_SUN_BASK_DRIFT_AMPLITUDE = 0.08
 const SOLO_AGENT_RETRY_COOLDOWN = 1.2
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
 const AGENT_FORWARD_DESTINATION_MAX_ANGLE = Math.PI / 2
@@ -202,6 +210,7 @@ const agentBoundaryInward = new THREE.Vector3()
 const agentBoundaryGlideMid = new THREE.Vector3()
 const agentBoundaryGlideEnd = new THREE.Vector3()
 const agentRuntimeClamp = new THREE.Vector3()
+const agentBaskExitTarget = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -593,6 +602,40 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
   const fallback = pickSoloAgentTarget(out, creature, swim, rand, from)
   if (fallback) out.z = THREE.MathUtils.clamp(out.z, zMin, zMax)
   return fallback
+}
+
+function isMolaCreature(creature) {
+  return creature.species === 'mola-alexandrini' || creature.species === 'mola-mola'
+}
+
+function pickMolaSunBaskTarget(out, creature, swim, rand, from, forward) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minDistance = Math.max(1.2, bodyLength * 1.4)
+  const zMin = Math.max(bounds.zMin, MOLA_SUN_BASK_APPROACH_Z[0])
+  const zMax = Math.min(bounds.zMax, MOLA_SUN_BASK_APPROACH_Z[1])
+
+  for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
+    const targetZ = randomRange(rand, Math.min(zMin, zMax), Math.max(zMin, zMax))
+    const targetX = randomXInSwimBoundsAtZ(rand, bounds, targetZ, 0.18, 0.82)
+    out.set(targetX, bounds.yMax, targetZ)
+    if (from && out.distanceTo(from) < minDistance) continue
+    if (from && forward && !destinationInForwardCone(out, from, forward)) continue
+    return out
+  }
+
+  return null
+}
+
+function pickMolaSunBaskExitTarget(out, creature, swim, from, forward) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  out.copy(from)
+    .addScaledVector(forward, Math.max(1.2, bodyLength * MOLA_SUN_BASK_EXIT_BODY_LENGTHS))
+  out.y = THREE.MathUtils.lerp(bounds.yMax, bounds.yMin, 0.42)
+  out.z = Math.min(out.z - bodyLength * 0.75, MOLA_DEEP_ZONE_Z_MAX)
+  clampToSwimBounds(out, bounds)
+  return out
 }
 
 function shapeSoloAgentSteeringDesired(out, position, target, forward, creature, swim) {
@@ -1799,6 +1842,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const agentBehaviorDistance = useRef(0)
   const agentDepthMode = useRef('deep')
   const agentDepthTargetsRemaining = useRef(0)
+  const lastSunBaskAt = useRef(-Infinity)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -1915,6 +1959,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     agentBehaviorDistance.current = 0
     agentDepthMode.current = 'deep'
     agentDepthTargetsRemaining.current = 0
+    lastSunBaskAt.current = -Infinity
   }, [creature.id, creature.species])
 
   useEffect(() => {
@@ -2054,39 +2099,51 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const reachedDistance = Math.max(0.7, bodyLength * SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
       if (agentBehavior.current && targetDistance <= reachedDistance) {
-        agentBehavior.current = null
-        agentHasTarget.current = false
-        agentBehaviorDistance.current = 0
-        nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
+        if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
+          agentBehavior.current = {
+            ...agentBehavior.current,
+            stage: 'hold',
+            stageStartedAt: now,
+            holdUntil: now + MOLA_SUN_BASK_DURATION,
+          }
+          agentHasTarget.current = false
+          agentBehaviorDistance.current = 0
+          driftUntil.current = 0
+          animationHoldUntil.current = now + MOLA_SUN_BASK_DURATION
+          animationCooldown.current = now + MOLA_SUN_BASK_DURATION
+          playAnimation(resolveMoveAnimation(model, agentBehavior.current.side < 0 ? 'sunBaskLeft' : 'sunBaskRight'))
+        } else if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'exit') {
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          agentBehaviorDistance.current = 0
+          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
+        } else {
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          agentBehaviorDistance.current = 0
+          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
+        }
       }
 
       if (!agentBehavior.current && now >= nextAgentRetargetAt.current) {
-        const usesDepthResidency = creature.species === 'mola-alexandrini' || creature.species === 'mola-mola'
-        if (usesDepthResidency && agentDepthTargetsRemaining.current <= 0) {
-          const nextMode = agentDepthMode.current === 'deep' && agentRand.current() < MOLA_FRONT_EXCURSION_CHANCE ? 'front' : 'deep'
-          agentDepthMode.current = nextMode
-          agentDepthTargetsRemaining.current = Math.floor(randomRange(
-            agentRand.current,
-            nextMode === 'front' ? MOLA_FRONT_TARGET_COUNT[0] : MOLA_DEEP_TARGET_COUNT[0],
-            (nextMode === 'front' ? MOLA_FRONT_TARGET_COUNT[1] : MOLA_DEEP_TARGET_COUNT[1]) + 1,
-          ))
-        }
-        const destination = pickSoloAgentSteeringDestination(
-          agentCandidateTarget,
-          creature,
-          swim,
-          agentRand.current,
-          position,
-          currentForward,
-          usesDepthResidency ? agentDepthMode.current : 'any',
-        )
-        if (destination) {
-          if (usesDepthResidency) agentDepthTargetsRemaining.current = Math.max(0, agentDepthTargetsRemaining.current - 1)
-          agentBehavior.current = { type: 'steer', completion: 'arrival' }
+        const usesDepthResidency = isMolaCreature(creature)
+        const canSunBask = usesDepthResidency
+          && now - lastSunBaskAt.current >= MOLA_SUN_BASK_COOLDOWN
+          && agentRand.current() < MOLA_SUN_BASK_CHANCE
+        const sunBaskDestination = canSunBask
+          ? pickMolaSunBaskTarget(agentCandidateTarget, creature, swim, agentRand.current, position, currentForward)
+          : null
+
+        if (sunBaskDestination) {
+          const side = agentRand.current() < 0.5 ? -1 : 1
+          agentBehavior.current = { type: 'sun-bask', stage: 'approach', side, stageStartedAt: now, holdUntil: 0 }
           agentBehaviorStartedAt.current = now
           agentBehaviorDistance.current = 0
-          agentTarget.current.copy(destination)
+          lastSunBaskAt.current = now
+          agentTarget.current.copy(sunBaskDestination)
           agentHasTarget.current = true
+          agentDepthMode.current = 'front'
+          agentDepthTargetsRemaining.current = 0
           agentPath.current = makeSoloAgentSteeringDebugPath(creature, swim, position, currentForward, agentTarget.current)
           agentPathProgress.current = 0
           agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
@@ -2094,10 +2151,63 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           pathLengthRef.current = agentPathLength.current
           setPath(agentPath.current)
         } else {
-          agentBehavior.current = null
-          agentHasTarget.current = false
-          nextAgentRetargetAt.current = now + AGENT_BEHAVIOR_RETRY_COOLDOWN
+          if (usesDepthResidency && agentDepthTargetsRemaining.current <= 0) {
+            const nextMode = agentDepthMode.current === 'deep' && agentRand.current() < MOLA_FRONT_EXCURSION_CHANCE ? 'front' : 'deep'
+            agentDepthMode.current = nextMode
+            agentDepthTargetsRemaining.current = Math.floor(randomRange(
+              agentRand.current,
+              nextMode === 'front' ? MOLA_FRONT_TARGET_COUNT[0] : MOLA_DEEP_TARGET_COUNT[0],
+              (nextMode === 'front' ? MOLA_FRONT_TARGET_COUNT[1] : MOLA_DEEP_TARGET_COUNT[1]) + 1,
+            ))
+          }
+          const destination = pickSoloAgentSteeringDestination(
+            agentCandidateTarget,
+            creature,
+            swim,
+            agentRand.current,
+            position,
+            currentForward,
+            usesDepthResidency ? agentDepthMode.current : 'any',
+          )
+          if (destination) {
+            if (usesDepthResidency) agentDepthTargetsRemaining.current = Math.max(0, agentDepthTargetsRemaining.current - 1)
+            agentBehavior.current = { type: 'steer', completion: 'arrival' }
+            agentBehaviorStartedAt.current = now
+            agentBehaviorDistance.current = 0
+            agentTarget.current.copy(destination)
+            agentHasTarget.current = true
+            agentPath.current = makeSoloAgentSteeringDebugPath(creature, swim, position, currentForward, agentTarget.current)
+            agentPathProgress.current = 0
+            agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
+            pathRef.current = agentPath.current
+            pathLengthRef.current = agentPathLength.current
+            setPath(agentPath.current)
+          } else {
+            agentBehavior.current = null
+            agentHasTarget.current = false
+            nextAgentRetargetAt.current = now + AGENT_BEHAVIOR_RETRY_COOLDOWN
+          }
         }
+      }
+
+      if (agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold' && now >= agentBehavior.current.holdUntil) {
+        pickMolaSunBaskExitTarget(agentBaskExitTarget, creature, swim, fish.position, currentForward)
+        agentTarget.current.copy(agentBaskExitTarget)
+        agentHasTarget.current = true
+        agentBehavior.current = {
+          ...agentBehavior.current,
+          stage: 'exit',
+          stageStartedAt: now,
+        }
+        agentBehaviorDistance.current = 0
+        animationHoldUntil.current = now + MOLA_SUN_BASK_EXIT_ROLL_DURATION
+        animationCooldown.current = now + MOLA_SUN_BASK_EXIT_ROLL_DURATION
+        agentPath.current = makeSoloAgentSteeringDebugPath(creature, swim, position, currentForward, agentTarget.current)
+        agentPathProgress.current = 0
+        agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
+        pathRef.current = agentPath.current
+        pathLengthRef.current = agentPathLength.current
+        setPath(agentPath.current)
       }
 
       if (agentHasTarget.current) {
@@ -2118,28 +2228,41 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       if (tangent.lengthSq() < 0.0001) tangent.set(0, 0, -1)
       tangent.normalize()
 
-      if (agentHasTarget.current) {
-        shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-        rotateDirectionToward(tangent, agentMoveDirection, SOLO_AGENT_STEERING_MAX_TURN_RATE * delta)
-      }
-
-      desiredDirection.current.copy(tangent)
-      agentMoveDirection.copy(tangent)
-      const soloAgentSpeed = Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed
-      const movementScale = soloAgentSpeed * organicMotion.speedScale * delta
-      fish.position.addScaledVector(agentMoveDirection, movementScale)
-      const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-      if (clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength)) {
-        agentRuntimeClamp.copy(fish.position)
-        clampToSwimBounds(agentRuntimeClamp, bounds)
-        agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
-        if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
-        agentBehavior.current = null
-        agentHasTarget.current = false
+      const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
+      if (sunBaskHolding) {
+        desiredDirection.current.copy(tangent)
+        agentMoveDirection.copy(tangent)
+        const driftPhase = (now - agentBehavior.current.stageStartedAt) * 0.45 + motion.bobPhase
+        fish.position.x += Math.sin(driftPhase) * MOLA_SUN_BASK_DRIFT_AMPLITUDE * delta
+        fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_AMPLITUDE * delta
+        const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        velocity.current = THREE.MathUtils.damp(velocity.current, 0, 1.4, delta)
+        fish.position.y = THREE.MathUtils.damp(fish.position.y, bounds.yMax, 1.2, delta)
         agentBehaviorDistance.current = 0
-        nextAgentRetargetAt.current = now
+      } else {
+        if (agentHasTarget.current) {
+          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
+          rotateDirectionToward(tangent, agentMoveDirection, SOLO_AGENT_STEERING_MAX_TURN_RATE * delta)
+        }
+
+        desiredDirection.current.copy(tangent)
+        agentMoveDirection.copy(tangent)
+        const soloAgentSpeed = Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed
+        const movementScale = soloAgentSpeed * organicMotion.speedScale * delta
+        fish.position.addScaledVector(agentMoveDirection, movementScale)
+        const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        if (clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength)) {
+          agentRuntimeClamp.copy(fish.position)
+          clampToSwimBounds(agentRuntimeClamp, bounds)
+          agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
+          if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          agentBehaviorDistance.current = 0
+          nextAgentRetargetAt.current = now
+        }
+        agentBehaviorDistance.current += movementScale
       }
-      agentBehaviorDistance.current += movementScale
       followTarget.current.copy(fish.position).addScaledVector(agentMoveDirection, followDistance)
       tangent.subVectors(fish.position, previousPosition.current)
       if (tangent.lengthSq() > 0.000001) tangent.normalize()
@@ -2182,7 +2305,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     }
 
     if (showAgentDebug) {
-      agentStatus.current = agentBehavior.current?.type ?? 'choose-behavior'
+      const behavior = agentBehavior.current
+      agentStatus.current = behavior?.type === 'sun-bask'
+        ? `sun-bask ${behavior.stage}`
+        : (behavior?.type ?? 'choose-behavior')
     }
 
     updateFishRegistry(fish, creature, swim, school)
@@ -2293,6 +2419,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       fish.up.copy(up)
       lookTarget.copy(fish.position).addScaledVector(pitchedForward, -1)
       fish.lookAt(lookTarget)
+      if (agentBehavior.current?.type === 'sun-bask') {
+        const behavior = agentBehavior.current
+        const stageElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))
+        const rollAlpha = behavior.stage === 'approach'
+          ? THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_ROLL_DURATION, 0, 1)
+          : (behavior.stage === 'exit'
+            ? 1 - THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
+            : 1)
+        bankQuaternion.setFromAxisAngle(pitchedForward, (behavior.side ?? 1) * Math.PI * 0.5 * rollAlpha)
+        fish.quaternion.premultiply(bankQuaternion)
+      }
     } else {
       lookTarget.copy(fish.position).add(pitchedForward)
       fish.lookAt(lookTarget)

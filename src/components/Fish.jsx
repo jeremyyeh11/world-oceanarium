@@ -551,11 +551,6 @@ function limitPathYGradient(points, bounds, maxGradient = MAX_PATH_Y_GRADIENT) {
   return points
 }
 
-function clampFishPosition(point, creature, swim) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  return clampToSwimBounds(point, bounds)
-}
-
 function traversalY(rand, bounds, swim, index = 0, verticalScale = 1, rangeFloor = 0.42) {
   const midY = (bounds.yMin + bounds.yMax) / 2
   const halfY = (bounds.yMax - bounds.yMin) / 2
@@ -813,7 +808,6 @@ function limitAvoidanceAngle(out, followDirection, maxAngle) {
 
 function updateFishRegistry(fish, creature, swim, school = null) {
   const radius = fishCollisionRadius(creature, swim, school)
-  clampFishPosition(fish.position, creature, swim)
   const entry = FISH_REGISTRY.get(creature.id)
   if (entry) {
     entry.position.copy(fish.position)
@@ -1560,7 +1554,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
       agentPathOffset.copy(smoothedAvoidance.current).multiplyScalar(creatureBodyLength(creature, swim) * SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS)
       fish.position.copy(agentPathPoint).add(agentPathOffset)
-      clampFishPosition(fish.position, creature, swim)
       desiredDirection.current.copy(agentPathTangent)
       agentMoveDirection.copy(agentPathTangent)
       tangent.subVectors(fish.position, previousPosition.current)
@@ -1604,25 +1597,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     }
 
     if (showAgentDebug) {
-      const agentBounds = swimBounds(creature.depthZone, swim, size)
-      const bodyLength = creatureBodyLength(creature, swim)
-      const wallClearance = Math.min(
-        fish.position.x - agentBounds.xMin,
-        agentBounds.xMax - fish.position.x,
-        fish.position.z - agentBounds.zMin,
-        agentBounds.zMax - fish.position.z,
-      )
-      const surfaceClearance = agentBounds.yMax - fish.position.y
       const agentAlignment = agentMoveDirection.lengthSq() > 0.0001 && desiredDirection.current.lengthSq() > 0.0001
         ? THREE.MathUtils.clamp(agentMoveDirection.dot(desiredDirection.current), -1, 1)
         : 1
-      agentStatus.current = wallClearance < bodyLength * 0.22 || surfaceClearance < bodyLength * 0.12
-        ? 'avoid-boundary'
-        : agentAlignment < SOLO_AGENT_ARC_ALIGNMENT_FULL
-          ? 'turning-arc'
-          : velocity.current > motion.idleSpeed * 1.22
-            ? 'burst'
-            : 'cruise-agent'
+      agentStatus.current = agentAlignment < SOLO_AGENT_ARC_ALIGNMENT_FULL
+        ? 'turning-arc'
+        : velocity.current > motion.idleSpeed * 1.22
+          ? 'burst'
+          : 'cruise-agent'
     }
 
     updateFishRegistry(fish, creature, swim, school)

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_31`.
+Status: in progress as `v0.8.0-dev_45`.
 
 ### Creature behavior
 
@@ -58,6 +58,7 @@ Status: in progress as `v0.8.0-dev_31`.
 - Preserves route-swap tangent continuity on all axes by keeping the new Bezier's first control point on the previous spline tangent instead of flattening control-point Y, and by sampling the current path tangent for early/reached-target retargets instead of snapping to the old endpoint tangent.
 - Doubles global GLTF animation time scales, increases Mola idle movement speed by `1.2x`, and increases Mola burst movement speed by `1.5x` for a more active fin/body read against the widened path arcs.
 - Adds size-biased avoidance so smaller creatures yield more strongly to larger creatures while larger creatures are minimally disturbed by smaller ones; species dominance overrides are left as an explicit future movement-system TODO.
+- Removes boundary-avoidance/clamping from runtime fish movement: destinations are still generated inside the swim bounds, but agents can temporarily traverse outside the target box while completing broad maneuvers near an edge.
 
 ## v0.7.9 — Sardine texture refresh
 

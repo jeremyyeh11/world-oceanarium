@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_70`.
+Status: in progress as `v0.8.0-dev_71`.
 
 ### Creature behavior
 
@@ -84,6 +84,7 @@ Status: in progress as `v0.8.0-dev_70`.
 - Reduces the global projected X destination range to `90%` of the previous width, giving fish more screen-edge buffer when steering/animation carries them outside their destination bounds.
 - Adds the currently requested/playing movement animation name to the Mola debug text below the behavior line.
 - Removes the remaining selected-follow spring/lateral snap by seeding follow focus from the current camera pose and easing directly to the selected creature with softer target/position damping.
+- Adds a follow-camera surface collision plane: when zoom/orbit would lift the camera into the water surface, the desired camera pose clamps just below the surface while X/Z motion continues, creating a slide-along-surface behavior instead of rising above it.
 
 ## v0.7.9 — Sardine texture refresh
 

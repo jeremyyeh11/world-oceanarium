@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_51`.
+Status: in progress as `v0.8.0-dev_52`.
 
 ### Creature behavior
 
@@ -64,7 +64,9 @@ Status: in progress as `v0.8.0-dev_51`.
 - Reduces Mola Bezier handle length to prevent stretched-control S-bends, caps handle length as a smaller route-distance fraction, and rejects sampled curves whose XZ tangent changes turn direction mid-route.
 - Fixes the post-initial spline-end stall by adding a strict-gated forward continuation target when broad random retargets all fail after a route completes, so the Mola keeps moving without reintroducing rejected fallback curves.
 - Adds a deterministic endpoint recovery arc for the completed-route case when all random retargets fail: the arc is generated at `1.25x` the required turn radius, ends inside bounds, and is accepted only if it still passes the start-tangent, minimum-radius, and no-tangent-reversal gates.
-- Starts Mola spline handoff much earlier at `82%` route progress and adds an absolute endpoint unstick fallback to the best available candidate, so the fish cannot remain pinned at a completed spline even if every strict endpoint recovery candidate fails.
+- Starts Mola spline handoff much earlier at `82%` route progress so the next route is generated before the fish parks at a completed spline endpoint.
+- Replaces the single long-handle Mola route cubic with a multi-segment cubic path: modest per-segment handles, controlled intermediate waypoints, and per-point tangent directions shape rotation gradually across the route instead of concentrating curvature into one Bezier span.
+- Removes the unsafe completed-endpoint best-candidate override that could reintroduce sharp turns; endpoint recovery now has to pass the radius/no-reversal gate again.
 
 ## v0.7.9 — Sardine texture refresh
 

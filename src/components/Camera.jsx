@@ -9,8 +9,10 @@ export const CAMERA_LIMITS = {
 
 const DEFAULT_CAMERA_Z = 12
 const FOLLOW_HEIGHT = 0.85
+const FOLLOW_ZOOM_IN_DELAY = 0.28
 const FOLLOW_TARGET_DAMPING = 4.8
 const FOLLOW_POSITION_DAMPING = 6.2
+const FOLLOW_DISTANCE_DAMPING = 3.0
 const DEFAULT_POSITION_DAMPING = 4.0
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -27,13 +29,16 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
   const hasSmoothedFocus = useRef(false)
+  const previousFocusTarget = useRef(null)
+  const smoothedFollowDistance = useRef(followDistance)
+  const followZoomInAt = useRef(0)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
 
   useEffect(() => {
     camera.position.set(0, 0, DEFAULT_CAMERA_Z)
   }, [camera, biome])
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (focusTarget) {
       focusBounds.setFromObject(focusTarget)
       if (!focusBounds.isEmpty()) {
@@ -43,6 +48,12 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       }
 
       focusPosition.y = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
+
+      if (previousFocusTarget.current !== focusTarget) {
+        previousFocusTarget.current = focusTarget
+        followZoomInAt.current = clock.elapsedTime + FOLLOW_ZOOM_IN_DELAY
+        smoothedFollowDistance.current = Math.max(followDistance, camera.position.distanceTo(focusPosition))
+      }
 
       if (!hasSmoothedFocus.current) {
         initialFollowLookTarget.set(camera.position.x, camera.position.y, 0)
@@ -55,7 +66,12 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       smoothedFocus.current.y = THREE.MathUtils.damp(smoothedFocus.current.y, focusPosition.y, FOLLOW_TARGET_DAMPING, delta)
       smoothedFocus.current.z = THREE.MathUtils.damp(smoothedFocus.current.z, focusPosition.z, FOLLOW_TARGET_DAMPING, delta)
 
-      followOffset.set(0, FOLLOW_HEIGHT, followDistance)
+      if (clock.elapsedTime >= followZoomInAt.current || followDistance > smoothedFollowDistance.current) {
+        smoothedFollowDistance.current = THREE.MathUtils.damp(smoothedFollowDistance.current, followDistance, FOLLOW_DISTANCE_DAMPING, delta)
+      }
+      const activeFollowDistance = smoothedFollowDistance.current
+
+      followOffset.set(0, FOLLOW_HEIGHT, activeFollowDistance)
 
       yawQuaternion.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, followOrbit.yaw)
       followOffset.applyQuaternion(yawQuaternion)
@@ -65,7 +81,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       followOffset.applyQuaternion(pitchQuaternion)
 
       const followFramingShift = THREE.MathUtils.clamp(followScreenOffset, 0, 0.4) * 0.5
-      const visibleHeightAtFocus = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5) * followDistance
+      const visibleHeightAtFocus = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5) * activeFollowDistance
       framedFocus.copy(smoothedFocus.current).addScaledVector(THREE.Object3D.DEFAULT_UP, -visibleHeightAtFocus * followFramingShift)
 
       desiredCameraPosition.copy(framedFocus).add(followOffset)
@@ -78,6 +94,8 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       return
     }
 
+    previousFocusTarget.current = null
+    smoothedFollowDistance.current = followDistance
     hasSmoothedFocus.current = false
     camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, DEFAULT_POSITION_DAMPING, delta)
     camera.position.y = THREE.MathUtils.damp(camera.position.y, 0, DEFAULT_POSITION_DAMPING, delta)

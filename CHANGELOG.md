@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_59`.
+Status: in progress as `v0.8.0-dev_60`.
 
 ### Creature behavior
 
@@ -74,6 +74,7 @@ Status: in progress as `v0.8.0-dev_59`.
 - Narrows Mola debug output to only the requested identity/speed/behavior label, hides solo-agent spline/target/speed/name debug extras, and hardens solo-agent path advancement against invalid path-length or speed values so an accepted visible route always advances position.
 - Fixes the Mola `choose-behavior` stall by replacing failed over-strict cruise route rejection with an immediate turn-route fallback, plus a last-resort forward fallback path, so solo agents always receive an active behavior/path instead of waiting in retry cooldown.
 - Restores the Mola debug spline while keeping Mola debug text limited to the requested identity/speed/behavior fields, and defaults debug view to selected fish only.
+- Adds boundary-aware solo-agent spline generation: endpoint tangents near X/Y/Z bounds are shaped and gated to glide within 15° of the boundary plane, and failed near-boundary routes now use a boundary-glide recovery path before any inward fallback so Mola does not sharply reverse off the edge.
 
 ## v0.7.9 — Sardine texture refresh
 

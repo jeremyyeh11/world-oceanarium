@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_49`.
+Status: in progress as `v0.8.0-dev_50`.
 
 ### Creature behavior
 
@@ -63,6 +63,7 @@ Status: in progress as `v0.8.0-dev_49`.
 - Hard-gates Mola solo-agent route swaps on a minimum sampled turn radius of `1.2x` body length, increases target/curve retries, and stops using rejected “smoothest fallback” curves after a route already exists.
 - Reduces Mola Bezier handle length to prevent stretched-control S-bends, caps handle length as a smaller route-distance fraction, and rejects sampled curves whose XZ tangent changes turn direction mid-route.
 - Fixes the post-initial spline-end stall by adding a strict-gated forward continuation target when broad random retargets all fail after a route completes, so the Mola keeps moving without reintroducing rejected fallback curves.
+- Adds a deterministic endpoint recovery arc for the completed-route case when all random retargets fail: the arc is generated at `1.25x` the required turn radius, ends inside bounds, and is accepted only if it still passes the start-tangent, minimum-radius, and no-tangent-reversal gates.
 
 ## v0.7.9 — Sardine texture refresh
 

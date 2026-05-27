@@ -160,6 +160,11 @@ const agentCurveNextPoint = new THREE.Vector3()
 const agentContinuationForward = new THREE.Vector3()
 const agentContinuationCenter = new THREE.Vector3()
 const agentContinuationDirection = new THREE.Vector3()
+const agentRecoverySide = new THREE.Vector3()
+const agentRecoveryRadial = new THREE.Vector3()
+const agentRecoveryEndRadial = new THREE.Vector3()
+const agentRecoveryEndForward = new THREE.Vector3()
+const agentRecoveryEnd = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -371,6 +376,15 @@ function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   }
 }
 
+function pointInsideSwimBounds(point, bounds) {
+  return point.x >= bounds.xMin
+    && point.x <= bounds.xMax
+    && point.y >= bounds.yMin
+    && point.y <= bounds.yMax
+    && point.z >= bounds.zMin
+    && point.z <= bounds.zMax
+}
+
 function clampToSwimBounds(point, bounds) {
   point.x = THREE.MathUtils.clamp(point.x, bounds.xMin, bounds.xMax)
   point.y = THREE.MathUtils.clamp(point.y, bounds.yMin, bounds.yMax)
@@ -442,6 +456,81 @@ function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startF
 
   out.copy(from).addScaledVector(agentContinuationCenter, minDistance)
   return clampToSwimBounds(out, bounds)
+}
+
+function makeSoloAgentRecoveryArc(creature, swim, start, startForward) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
+  const radius = minTurnRadius * 1.25
+  const handleScale = 4 / 3
+
+  agentContinuationForward.copy(startForward)
+  if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
+  agentContinuationForward.normalize()
+
+  agentRecoverySide.set(-agentContinuationForward.z, 0, agentContinuationForward.x)
+  if (agentRecoverySide.lengthSq() < 0.0001) agentRecoverySide.set(1, 0, 0)
+  agentRecoverySide.normalize()
+
+  let bestPath = null
+  let bestMeasure = null
+  let bestScore = Infinity
+  for (const turnSign of [-1, 1]) {
+    for (let angleDeg = 28; angleDeg <= 145; angleDeg += 7) {
+      const angle = THREE.MathUtils.degToRad(angleDeg) * turnSign
+      agentCurveControlA.copy(start).addScaledVector(agentContinuationForward, radius * handleScale * Math.tan(Math.abs(angle) / 4))
+      agentRecoveryRadial.copy(agentRecoverySide).multiplyScalar(turnSign * radius)
+      agentRecoveryEndRadial.copy(agentRecoveryRadial).applyAxisAngle(up, angle)
+      agentRecoveryEnd.copy(start).sub(agentRecoveryRadial).add(agentRecoveryEndRadial)
+      agentRecoveryEnd.y = THREE.MathUtils.clamp(start.y, bounds.yMin, bounds.yMax)
+      if (!pointInsideSwimBounds(agentRecoveryEnd, bounds)) continue
+
+      agentRecoveryEndForward.copy(agentContinuationForward).applyAxisAngle(up, angle).normalize()
+      agentCurveControlB.copy(agentRecoveryEnd).addScaledVector(
+        agentRecoveryEndForward,
+        -radius * handleScale * Math.tan(Math.abs(angle) / 4),
+      )
+      const path = new THREE.CubicBezierCurve3(
+        start.clone(),
+        agentCurveControlA.clone(),
+        agentCurveControlB.clone(),
+        agentRecoveryEnd.clone(),
+      )
+      const measure = measureSoloAgentCurve(path, agentContinuationForward, minTurnRadius)
+      path.userData = {
+        ...(path.userData ?? {}),
+        maxSampleTangentDelta: measure.maxDelta,
+        minTurnRadius: measure.minRadius,
+        startTangentDelta: measure.startTangentDelta,
+        hasTangentReversal: measure.hasTangentReversal,
+        curvatureAccepted: measure.accepted,
+        fallbackReason: 'endpoint-recovery-arc',
+      }
+      if (measure.score < bestScore) {
+        bestScore = measure.score
+        bestMeasure = measure
+        bestPath = path
+      }
+      if (measure.accepted) return path
+    }
+  }
+
+  if (bestPath && bestMeasure) {
+    bestPath.userData = {
+      ...(bestPath.userData ?? {}),
+      curvatureAccepted: false,
+    }
+  }
+  return bestPath
+}
+
+function soloAgentPathMeetsEndpointGate(path, creature, swim) {
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
+  return (path?.userData?.startTangentDelta ?? Infinity) <= SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR
+    && (path?.userData?.minTurnRadius ?? 0) >= minTurnRadius
+    && !path?.userData?.hasTangentReversal
 }
 
 function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
@@ -1544,10 +1633,26 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
             pickSoloAgentContinuationTarget(agentCandidateTarget, creature, swim, agentRand.current, position, agentPathExitTangent.current)
             const candidatePath = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentCandidateTarget, agentRand.current)
-            if (candidatePath?.userData?.curvatureAccepted) {
+            if (candidatePath?.userData?.curvatureAccepted || soloAgentPathMeetsEndpointGate(candidatePath, creature, swim)) {
               nextAgentPath = candidatePath
+              nextAgentPath.userData = {
+                ...(nextAgentPath.userData ?? {}),
+                curvatureAccepted: true,
+                fallbackReason: 'endpoint-continuation-radius-gated',
+              }
               agentTarget.current.copy(agentCandidateTarget)
               break
+            }
+          }
+          if (!nextAgentPath) {
+            const recoveryPath = makeSoloAgentRecoveryArc(creature, swim, position, agentPathExitTangent.current)
+            if (recoveryPath?.userData?.curvatureAccepted || soloAgentPathMeetsEndpointGate(recoveryPath, creature, swim)) {
+              nextAgentPath = recoveryPath
+              nextAgentPath.userData = {
+                ...(nextAgentPath.userData ?? {}),
+                curvatureAccepted: true,
+              }
+              agentTarget.current.copy(nextAgentPath.getPointAt(1))
             }
           }
         }

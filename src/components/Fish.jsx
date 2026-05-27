@@ -157,6 +157,9 @@ const agentCurvePrevTangent = new THREE.Vector3()
 const agentCurveNextTangent = new THREE.Vector3()
 const agentCurvePrevPoint = new THREE.Vector3()
 const agentCurveNextPoint = new THREE.Vector3()
+const agentContinuationForward = new THREE.Vector3()
+const agentContinuationCenter = new THREE.Vector3()
+const agentContinuationDirection = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -408,6 +411,37 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   }
 
   return out
+}
+
+function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startForward) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+
+  agentContinuationForward.copy(startForward)
+  if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
+  agentContinuationForward.normalize()
+
+  agentContinuationCenter.set(
+    (bounds.xMin + bounds.xMax) * 0.5,
+    THREE.MathUtils.clamp(from.y, bounds.yMin, bounds.yMax),
+    (bounds.zMin + bounds.zMax) * 0.5,
+  ).sub(from)
+  if (agentContinuationCenter.lengthSq() < 0.0001) agentContinuationCenter.copy(agentContinuationForward)
+  agentContinuationCenter.normalize()
+
+  for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
+    const centerBlend = THREE.MathUtils.clamp(attempt / Math.max(1, SOLO_AGENT_TARGET_ATTEMPTS - 1), 0, 1) * 0.78
+    agentContinuationDirection.copy(agentContinuationForward).lerp(agentContinuationCenter, centerBlend).normalize()
+    const distance = bodyLength * randomRange(rand, 3.2, 6.2)
+    out.copy(from).addScaledVector(agentContinuationDirection, distance)
+    out.y += randomRange(rand, -bodyLength * 0.18, bodyLength * 0.18)
+    clampToSwimBounds(out, bounds)
+    if (out.distanceTo(from) >= minDistance) return out
+  }
+
+  out.copy(from).addScaledVector(agentContinuationCenter, minDistance)
+  return clampToSwimBounds(out, bounds)
 }
 
 function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
@@ -1501,6 +1535,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
             nextAgentPath = candidatePath
             agentTarget.current.copy(agentCandidateTarget)
             break
+          }
+        }
+        if (!nextAgentPath && previousAgentPath && agentPathComplete) {
+          // If a route reaches its endpoint but the broad random targets all fail
+          // the strict curvature gates, keep the animal moving with a forward-ish
+          // continuation target inside bounds instead of leaving progress pinned at 1.
+          for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
+            pickSoloAgentContinuationTarget(agentCandidateTarget, creature, swim, agentRand.current, position, agentPathExitTangent.current)
+            const candidatePath = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentCandidateTarget, agentRand.current)
+            if (candidatePath?.userData?.curvatureAccepted) {
+              nextAgentPath = candidatePath
+              agentTarget.current.copy(agentCandidateTarget)
+              break
+            }
           }
         }
         if (!nextAgentPath && !previousAgentPath) {

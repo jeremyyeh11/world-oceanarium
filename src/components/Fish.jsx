@@ -136,6 +136,10 @@ const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
 const SOLO_AGENT_STEERING_DEBUG_STEPS = 72
 const SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS = 0.18
+const MOLA_DEEP_ZONE_Z_MAX = -10
+const MOLA_FRONT_EXCURSION_CHANCE = 0.24
+const MOLA_FRONT_TARGET_COUNT = [1, 2]
+const MOLA_DEEP_TARGET_COUNT = [4, 7]
 const SOLO_AGENT_RETRY_COOLDOWN = 1.2
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
 const AGENT_FORWARD_DESTINATION_MAX_ANGLE = Math.PI / 2
@@ -538,9 +542,36 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
   return null
 }
 
-function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forward) {
-  return pickSoloAgentDestination(out, creature, swim, rand, from, forward)
-    ?? pickSoloAgentTarget(out, creature, swim, rand, from)
+function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forward, depthMode = 'any') {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+  const modeZMin = depthMode === 'front' ? Math.max(bounds.zMin, MOLA_DEEP_ZONE_Z_MAX) : bounds.zMin
+  const modeZMax = depthMode === 'deep' ? Math.min(bounds.zMax, MOLA_DEEP_ZONE_Z_MAX) : bounds.zMax
+  const zMin = Math.min(modeZMin, modeZMax)
+  const zMax = Math.max(modeZMin, modeZMax)
+
+  for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
+    const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
+    const zRange = zMax - zMin
+    const zMid = (zMin + zMax) / 2
+    const targetLeft = !from ? rand() < 0.5 : from.x >= 0
+    const targetBack = !from ? rand() < 0.5 : from.z >= zMid
+    const targetZ = wideTarget && zRange > 0.001
+      ? randomRange(rand, targetBack ? zMin : zMax - zRange * 0.52, targetBack ? zMin + zRange * 0.52 : zMax)
+      : randomRange(rand, zMin, zMax)
+    const targetX = wideTarget
+      ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
+      : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
+    out.set(targetX, randomRange(rand, bounds.yMin, bounds.yMax), targetZ)
+    if (from && out.distanceTo(from) < minDistance) continue
+    if (from && forward && !destinationInForwardCone(out, from, forward)) continue
+    return out
+  }
+
+  const fallback = pickSoloAgentTarget(out, creature, swim, rand, from)
+  if (fallback) out.z = THREE.MathUtils.clamp(out.z, zMin, zMax)
+  return fallback
 }
 
 function shapeSoloAgentSteeringDesired(out, position, target, forward, creature, swim) {
@@ -1745,6 +1776,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const agentBehavior = useRef(null)
   const agentBehaviorStartedAt = useRef(0)
   const agentBehaviorDistance = useRef(0)
+  const agentDepthMode = useRef('deep')
+  const agentDepthTargetsRemaining = useRef(0)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -1859,6 +1892,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     agentBehavior.current = null
     agentBehaviorStartedAt.current = 0
     agentBehaviorDistance.current = 0
+    agentDepthMode.current = 'deep'
+    agentDepthTargetsRemaining.current = 0
   }, [creature.id, creature.species])
 
   useEffect(() => {
@@ -2005,8 +2040,27 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       }
 
       if (!agentBehavior.current && now >= nextAgentRetargetAt.current) {
-        const destination = pickSoloAgentSteeringDestination(agentCandidateTarget, creature, swim, agentRand.current, position, currentForward)
+        const usesDepthResidency = creature.species === 'mola-alexandrini' || creature.species === 'mola-mola'
+        if (usesDepthResidency && agentDepthTargetsRemaining.current <= 0) {
+          const nextMode = agentDepthMode.current === 'deep' && agentRand.current() < MOLA_FRONT_EXCURSION_CHANCE ? 'front' : 'deep'
+          agentDepthMode.current = nextMode
+          agentDepthTargetsRemaining.current = Math.floor(randomRange(
+            agentRand.current,
+            nextMode === 'front' ? MOLA_FRONT_TARGET_COUNT[0] : MOLA_DEEP_TARGET_COUNT[0],
+            (nextMode === 'front' ? MOLA_FRONT_TARGET_COUNT[1] : MOLA_DEEP_TARGET_COUNT[1]) + 1,
+          ))
+        }
+        const destination = pickSoloAgentSteeringDestination(
+          agentCandidateTarget,
+          creature,
+          swim,
+          agentRand.current,
+          position,
+          currentForward,
+          usesDepthResidency ? agentDepthMode.current : 'any',
+        )
         if (destination) {
+          if (usesDepthResidency) agentDepthTargetsRemaining.current = Math.max(0, agentDepthTargetsRemaining.current - 1)
           agentBehavior.current = { type: 'steer', completion: 'arrival' }
           agentBehaviorStartedAt.current = now
           agentBehaviorDistance.current = 0

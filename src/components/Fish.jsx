@@ -2216,7 +2216,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     <group>
       {debug && (
         <>
-          {(debugLayers?.direction ?? true) && !showAgentDebug && (!isSchooling || isSchoolLeader) && (
+          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>

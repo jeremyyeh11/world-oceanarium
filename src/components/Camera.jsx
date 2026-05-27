@@ -9,7 +9,6 @@ export const CAMERA_LIMITS = {
 
 const DEFAULT_CAMERA_Z = 12
 const FOLLOW_HEIGHT = 0.85
-const FOLLOW_ZOOM_IN_DELAY = 0.28
 const FOLLOW_TARGET_DAMPING = 4.8
 const FOLLOW_POSITION_DAMPING = 6.2
 const FOLLOW_DISTANCE_DAMPING = 3.0
@@ -31,14 +30,13 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   const hasSmoothedFocus = useRef(false)
   const previousFocusTarget = useRef(null)
   const smoothedFollowDistance = useRef(followDistance)
-  const followZoomInAt = useRef(0)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
 
   useEffect(() => {
     camera.position.set(0, 0, DEFAULT_CAMERA_Z)
   }, [camera, biome])
 
-  useFrame(({ clock }, delta) => {
+  useFrame((_, delta) => {
     if (focusTarget) {
       focusBounds.setFromObject(focusTarget)
       if (!focusBounds.isEmpty()) {
@@ -51,8 +49,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
 
       if (previousFocusTarget.current !== focusTarget) {
         previousFocusTarget.current = focusTarget
-        followZoomInAt.current = clock.elapsedTime + FOLLOW_ZOOM_IN_DELAY
-        smoothedFollowDistance.current = Math.max(followDistance, camera.position.distanceTo(focusPosition))
+        smoothedFollowDistance.current = camera.position.distanceTo(focusPosition)
       }
 
       if (!hasSmoothedFocus.current) {
@@ -66,9 +63,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       smoothedFocus.current.y = THREE.MathUtils.damp(smoothedFocus.current.y, focusPosition.y, FOLLOW_TARGET_DAMPING, delta)
       smoothedFocus.current.z = THREE.MathUtils.damp(smoothedFocus.current.z, focusPosition.z, FOLLOW_TARGET_DAMPING, delta)
 
-      if (clock.elapsedTime >= followZoomInAt.current || followDistance > smoothedFollowDistance.current) {
-        smoothedFollowDistance.current = THREE.MathUtils.damp(smoothedFollowDistance.current, followDistance, FOLLOW_DISTANCE_DAMPING, delta)
-      }
+      smoothedFollowDistance.current = THREE.MathUtils.damp(smoothedFollowDistance.current, followDistance, FOLLOW_DISTANCE_DAMPING, delta)
       const activeFollowDistance = smoothedFollowDistance.current
 
       followOffset.set(0, FOLLOW_HEIGHT, activeFollowDistance)

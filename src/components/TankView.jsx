@@ -23,8 +23,7 @@ const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const DEBUG_VIEW_MODES = [
   { id: 'all', icon: '◎', label: 'View all' },
-  { id: 'focused', icon: '◉', label: 'Focused' },
-  { id: 'none', icon: '○', label: 'None' },
+  { id: 'focused', icon: '◉', label: 'Selected fish' },
 ]
 const DEBUG_LAYER_BUTTONS = [
   { id: 'direction', icon: '↗', label: 'Show direction' },
@@ -81,7 +80,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
-  const [debugView, setDebugView] = useState('none')
+  const [debugView, setDebugView] = useState('all')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false })
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)

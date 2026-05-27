@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_46`.
+Status: in progress as `v0.8.0-dev_47`.
 
 ### Creature behavior
 
@@ -60,6 +60,7 @@ Status: in progress as `v0.8.0-dev_46`.
 - Adds size-biased avoidance so smaller creatures yield more strongly to larger creatures while larger creatures are minimally disturbed by smaller ones; species dominance overrides are left as an explicit future movement-system TODO.
 - Removes boundary-avoidance/clamping from runtime fish movement: destinations are still generated inside the swim bounds, but agents can temporarily traverse outside the target box while completing broad maneuvers near an edge.
 - Keeps Mola solo-agent Bezier handles unclamped as well as runtime positions, so near-boundary routes can bend outside the target box instead of forming a clipped control-point corner while still ending at an in-bounds destination.
+- Hard-gates Mola solo-agent route swaps on a minimum sampled turn radius of `1.2x` body length, increases target/curve retries, and stops using rejected “smoothest fallback” curves after a route already exists.
 
 ## v0.7.9 — Sardine texture refresh
 

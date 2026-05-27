@@ -12,12 +12,14 @@ const DEFAULT_CAMERA_Z = 12
 const FOLLOW_HEIGHT = 0.85
 const FOLLOW_SURFACE_CLEARANCE = 0.35
 const FOLLOW_TARGET_DAMPING = 2.8
+const FOLLOW_LOOK_DAMPING = 3.2
 const FOLLOW_POSITION_DAMPING = 4.0
 const DEFAULT_POSITION_DAMPING = 4.0
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const framedFocus = new THREE.Vector3()
 const initialFollowLookTarget = new THREE.Vector3()
+const currentCameraForward = new THREE.Vector3()
 const followOffset = new THREE.Vector3()
 const followRight = new THREE.Vector3()
 const desiredCameraPosition = new THREE.Vector3()
@@ -30,7 +32,9 @@ const MAX_FOLLOW_CAMERA_Y = SURFACE_PLANE_Y - FOLLOW_SURFACE_CLEARANCE
 export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0 }) {
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
+  const smoothedLookTarget = useRef(new THREE.Vector3())
   const hasSmoothedFocus = useRef(false)
+  const hasSmoothedLookTarget = useRef(false)
   const previousFocusTarget = useRef(null)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
 
@@ -52,6 +56,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       if (previousFocusTarget.current !== focusTarget) {
         previousFocusTarget.current = focusTarget
         hasSmoothedFocus.current = false
+        hasSmoothedLookTarget.current = false
       }
 
       if (!hasSmoothedFocus.current) {
@@ -96,13 +101,25 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredCameraPosition.z, FOLLOW_POSITION_DAMPING, delta)
       camera.position.y = Math.min(camera.position.y, MAX_FOLLOW_CAMERA_Y)
 
-      lookTarget.copy(framedFocus)
+      if (!hasSmoothedLookTarget.current) {
+        camera.getWorldDirection(currentCameraForward)
+        const initialLookDistance = Math.max(1, camera.position.distanceTo(framedFocus))
+        smoothedLookTarget.current.copy(camera.position).addScaledVector(currentCameraForward, initialLookDistance)
+        hasSmoothedLookTarget.current = true
+      }
+
+      smoothedLookTarget.current.x = THREE.MathUtils.damp(smoothedLookTarget.current.x, framedFocus.x, FOLLOW_LOOK_DAMPING, delta)
+      smoothedLookTarget.current.y = THREE.MathUtils.damp(smoothedLookTarget.current.y, framedFocus.y, FOLLOW_LOOK_DAMPING, delta)
+      smoothedLookTarget.current.z = THREE.MathUtils.damp(smoothedLookTarget.current.z, framedFocus.z, FOLLOW_LOOK_DAMPING, delta)
+
+      lookTarget.copy(smoothedLookTarget.current)
       camera.lookAt(lookTarget)
       return
     }
 
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
+    hasSmoothedLookTarget.current = false
     camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, DEFAULT_POSITION_DAMPING, delta)
     camera.position.y = THREE.MathUtils.damp(camera.position.y, 0, DEFAULT_POSITION_DAMPING, delta)
     camera.position.z = THREE.MathUtils.damp(camera.position.z, DEFAULT_CAMERA_Z, DEFAULT_POSITION_DAMPING, delta)

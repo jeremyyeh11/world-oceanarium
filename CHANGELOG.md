@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_63`.
+Status: in progress as `v0.8.0-dev_64`.
 
 ### Creature behavior
 
@@ -78,6 +78,7 @@ Status: in progress as `v0.8.0-dev_63`.
 - Tightens Mola route validation against rare boundary S-curves by tracking cumulative turn, meaningful opposite-direction curvature, and a lower total-turn budget for boundary-glide recovery; boundary-glide now keeps its end tangent boundary-parallel with less inward bias so edge recovery remains one broad glide instead of left-right snaking.
 - Extends Mola spline smoothness validation to all axes by detecting opposite-direction curvature in XZ, XY, and YZ planes, so vertical/depth S-curves are rejected along with horizontal wiggles while preserving full 3D tangent continuity.
 - Replaces Mola's committed spline-follow movement with continuous steering: destinations remain inside bounds, but the body turns toward them under a fixed max turn rate, applies boundary-plane glancing bias near edges, and moves forward from its own heading so smoothness comes from the controller instead of repeatedly accepting/rejecting generated splines. The cyan debug line is now a predicted steering trail, not the movement source.
+- Extends Mola's destination Z range forward to `[-25, 0]`, but adds stateful depth residency so it usually chains several deep targets at `Z <= -10` and only occasionally enters short front excursions. This biases time spent in the back without independently biasing every destination sample and causing constant front/back swings.
 
 ## v0.7.9 — Sardine texture refresh
 

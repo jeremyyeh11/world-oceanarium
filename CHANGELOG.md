@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_61`.
+Status: in progress as `v0.8.0-dev_62`.
 
 ### Creature behavior
 
@@ -76,6 +76,7 @@ Status: in progress as `v0.8.0-dev_61`.
 - Restores the Mola debug spline while keeping Mola debug text limited to the requested identity/speed/behavior fields, and defaults debug view to selected fish only.
 - Adds boundary-aware solo-agent spline generation: endpoint tangents near X/Y/Z bounds are shaped and gated to glide within 15° of the boundary plane, and failed near-boundary routes now use a boundary-glide recovery path before any inward fallback so Mola does not sharply reverse off the edge.
 - Tightens Mola route validation against rare boundary S-curves by tracking cumulative turn, meaningful opposite-direction curvature, and a lower total-turn budget for boundary-glide recovery; boundary-glide now keeps its end tangent boundary-parallel with less inward bias so edge recovery remains one broad glide instead of left-right snaking.
+- Extends Mola spline smoothness validation to all axes by detecting opposite-direction curvature in XZ, XY, and YZ planes, so vertical/depth S-curves are rejected along with horizontal wiggles while preserving full 3D tangent continuity.
 
 ## v0.7.9 — Sardine texture refresh
 

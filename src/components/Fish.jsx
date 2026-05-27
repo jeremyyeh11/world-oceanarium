@@ -121,6 +121,7 @@ const SOLO_AGENT_CURVE_SAMPLE_COUNT = 56
 const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(3)
 const SOLO_AGENT_CURVE_MAX_TOTAL_TURN = THREE.MathUtils.degToRad(165)
 const SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN = THREE.MathUtils.degToRad(7)
+const SOLO_AGENT_CURVE_PLANE_TWIST_EPSILON = THREE.MathUtils.degToRad(0.25)
 const SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR = THREE.MathUtils.degToRad(0.5)
 const SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS = 1.2
 const SOLO_AGENT_CURVE_TWIST_EPSILON = THREE.MathUtils.degToRad(0.35)
@@ -655,6 +656,7 @@ function makeSoloAgentBoundaryGlidePath(creature, swim, start, startForward) {
     startTangentDelta: measure.startTangentDelta,
     totalTurn: measure.totalTurn,
     hasTangentReversal: measure.hasTangentReversal,
+    hasAxisTangentReversal: measure.hasAxisTangentReversal,
     curvatureAccepted: measure.accepted,
     fallbackReason: 'boundary-glide',
   }
@@ -707,6 +709,8 @@ function makeSoloAgentRecoveryArc(creature, swim, start, startForward) {
         minTurnRadius: measure.minRadius,
         startTangentDelta: measure.startTangentDelta,
         hasTangentReversal: measure.hasTangentReversal,
+        hasAxisTangentReversal: measure.hasAxisTangentReversal,
+        totalTurn: measure.totalTurn,
         curvatureAccepted: measure.accepted,
         fallbackReason: 'endpoint-recovery-arc',
       }
@@ -766,6 +770,7 @@ function soloAgentPathMeetsEndpointGate(path, creature, swim) {
     && (path?.userData?.minTurnRadius ?? 0) >= minTurnRadius
     && path?.userData?.boundaryTangentAccepted !== false
     && !path?.userData?.hasTangentReversal
+    && !path?.userData?.hasAxisTangentReversal
 }
 
 function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius, maxTotalTurn = SOLO_AGENT_CURVE_MAX_TOTAL_TURN) {
@@ -774,9 +779,16 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius, maxTot
   let totalTurn = 0
   let positiveTurn = 0
   let negativeTurn = 0
+  let xzPositiveTurn = 0
+  let xzNegativeTurn = 0
+  let xyPositiveTurn = 0
+  let xyNegativeTurn = 0
+  let yzPositiveTurn = 0
+  let yzNegativeTurn = 0
   let hasPrevious = false
   let turnSign = 0
   let hasTangentReversal = false
+  let hasAxisTangentReversal = false
 
   path.getTangentAt(0, agentCurveNextTangent).normalize()
   const startTangentDelta = expectedStartTangent.lengthSq() > 0.0001
@@ -795,6 +807,8 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius, maxTot
       const segmentLength = Math.max(0.001, agentCurvePrevPoint.distanceTo(agentCurveNextPoint))
       const radius = tangentDelta > 0.0001 ? segmentLength / tangentDelta : Infinity
       const signedTurn = agentCurvePrevTangent.x * agentCurveNextTangent.z - agentCurvePrevTangent.z * agentCurveNextTangent.x
+      const signedTurnXY = agentCurvePrevTangent.x * agentCurveNextTangent.y - agentCurvePrevTangent.y * agentCurveNextTangent.x
+      const signedTurnYZ = agentCurvePrevTangent.y * agentCurveNextTangent.z - agentCurvePrevTangent.z * agentCurveNextTangent.y
       if (tangentDelta > SOLO_AGENT_CURVE_TWIST_EPSILON && Math.abs(signedTurn) > 0.0001) {
         const sampleSign = Math.sign(signedTurn)
         const signedDelta = tangentDelta * sampleSign
@@ -803,8 +817,29 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius, maxTot
         if (turnSign === 0) turnSign = sampleSign
         else if (sampleSign !== turnSign) hasTangentReversal = true
       }
+      if (tangentDelta > SOLO_AGENT_CURVE_PLANE_TWIST_EPSILON) {
+        if (Math.abs(signedTurn) > 0.0001) {
+          if (signedTurn > 0) xzPositiveTurn += tangentDelta
+          else xzNegativeTurn += tangentDelta
+        }
+        if (Math.abs(signedTurnXY) > 0.0001) {
+          if (signedTurnXY > 0) xyPositiveTurn += tangentDelta
+          else xyNegativeTurn += tangentDelta
+        }
+        if (Math.abs(signedTurnYZ) > 0.0001) {
+          if (signedTurnYZ > 0) yzPositiveTurn += tangentDelta
+          else yzNegativeTurn += tangentDelta
+        }
+      }
       if (positiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && negativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN) {
         hasTangentReversal = true
+      }
+      if (
+        (xzPositiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && xzNegativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN)
+        || (xyPositiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && xyNegativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN)
+        || (yzPositiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && yzNegativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN)
+      ) {
+        hasAxisTangentReversal = true
       }
       totalTurn += tangentDelta
       maxDelta = Math.max(maxDelta, tangentDelta)
@@ -825,18 +860,27 @@ function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius, maxTot
     totalTurn,
     positiveTurn,
     negativeTurn,
+    xzPositiveTurn,
+    xzNegativeTurn,
+    xyPositiveTurn,
+    xyNegativeTurn,
+    yzPositiveTurn,
+    yzNegativeTurn,
     hasTangentReversal,
+    hasAxisTangentReversal,
     accepted: startTangentDelta <= SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR
       && maxDelta <= SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA
       && minRadius >= minTurnRadius
       && totalTurn <= maxTotalTurn
-      && !hasTangentReversal,
+      && !hasTangentReversal
+      && !hasAxisTangentReversal,
     score: startTangentDelta * 120
       + maxDelta * 20
       + totalTurn * 1.8
       + totalTurnOverflow * 140
       + radiusShortfall
-      + (hasTangentReversal ? 1000 : 0),
+      + (hasTangentReversal ? 1000 : 0)
+      + (hasAxisTangentReversal ? 1000 : 0),
   }
 }
 
@@ -938,6 +982,8 @@ function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
       minTurnRadius: measure.minRadius,
       startTangentDelta: measure.startTangentDelta,
       hasTangentReversal: measure.hasTangentReversal,
+      hasAxisTangentReversal: measure.hasAxisTangentReversal,
+      totalTurn: measure.totalTurn,
       boundaryTangentAccepted,
       curvatureAccepted: accepted,
     }

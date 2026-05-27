@@ -136,13 +136,13 @@ export const SPECIES = [
     description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds. Adults have a distinctive head bump, chin bump, rectangular body scales, and rounded clavus that separate them from other sunfish.',
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Current review scale keeps adults at 180–240 cm = 7.2–9.6 WU until the final GLB scale is approved.
-      // Target review speed: 0.5–0.8 WU/s = roughly 0.05–0.08 body lengths/s at review max length.
+      // Target review speed: ~0.6–1.1 WU/s after the latest 1.2x idle movement tuning.
       bodyLengthWU: 9.6,
       visualTimeScale: 1.0,
-      idleBLPerSec: [0.052, 0.092],
+      idleBLPerSec: [0.0624, 0.1104],
       idleDriftBLPerSec: [0.010, 0.020],
       snapBLPerSec: [0.085, 0.12],
-      burstBLPerSec: [0.10, 0.145],
+      burstBLPerSec: [0.15, 0.2175],
       burstInterval: [13.0, 20.0],
       driftInterval: [20.0, 34.0],
       driftDuration: [7.0, 12.0],

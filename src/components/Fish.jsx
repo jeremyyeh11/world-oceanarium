@@ -61,6 +61,7 @@ const DEFAULT_MOVESET = {
 }
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
+const GLOBAL_ANIMATION_TIME_SCALE = 2
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
 const LOD0_DEBUG_COLOR = '#00ff28'
@@ -920,10 +921,11 @@ function modelFadeDuration(model, fallback = 0.18) {
 }
 
 function modelAnimationSpeed(animationVariation, animation, resolvedAnimation) {
-  return animationVariation?.speeds?.[resolvedAnimation]
+  const speed = animationVariation?.speeds?.[resolvedAnimation]
     ?? animationVariation?.speeds?.[animation]
     ?? animationVariation?.speeds?.default
     ?? 1
+  return speed * GLOBAL_ANIMATION_TIME_SCALE
 }
 
 function configureModelAction(action, model, animation, resolvedAnimation, speed, offset) {

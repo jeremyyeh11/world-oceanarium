@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_52`.
+Status: in progress as `v0.8.0-dev_53`.
 
 ### Creature behavior
 
@@ -67,6 +67,7 @@ Status: in progress as `v0.8.0-dev_52`.
 - Starts Mola spline handoff much earlier at `82%` route progress so the next route is generated before the fish parks at a completed spline endpoint.
 - Replaces the single long-handle Mola route cubic with a multi-segment cubic path: modest per-segment handles, controlled intermediate waypoints, and per-point tangent directions shape rotation gradually across the route instead of concentrating curvature into one Bezier span.
 - Removes the unsafe completed-endpoint best-candidate override that could reintroduce sharp turns; endpoint recovery now has to pass the radius/no-reversal gate again.
+- Fixes retarget-generation frame spikes by restoring the retarget cooldown gate, applying the same cooldown to completed/reached endpoints, and reducing Mola route candidate search from `32x18` to `16x8` attempts now that segmented paths need less brute force.
 
 ## v0.7.9 — Sardine texture refresh
 

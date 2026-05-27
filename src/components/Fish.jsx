@@ -131,6 +131,9 @@ const SOLO_AGENT_RETARGET_PROGRESS = 0.82
 const SOLO_AGENT_RETARGET_COOLDOWN = [2.8, 5.2]
 const SOLO_AGENT_RETRY_COOLDOWN = 1.2
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
+const AGENT_FORWARD_DESTINATION_MAX_ANGLE = Math.PI / 2
+const AGENT_BEHAVIOR_RETRY_COOLDOWN = 1.2
+
 
 const tangent = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
@@ -171,6 +174,7 @@ const agentRecoveryRadial = new THREE.Vector3()
 const agentRecoveryEndRadial = new THREE.Vector3()
 const agentRecoveryEndForward = new THREE.Vector3()
 const agentRecoveryEnd = new THREE.Vector3()
+const agentDestinationDirection = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -414,6 +418,40 @@ function clampToSwimBounds(point, bounds) {
   point.x = THREE.MathUtils.clamp(point.x, xMin, xMax)
   point.y = THREE.MathUtils.clamp(point.y, bounds.yMin, bounds.yMax)
   return point
+}
+
+
+function destinationInForwardCone(destination, position, forward, maxAngle = AGENT_FORWARD_DESTINATION_MAX_ANGLE) {
+  agentDestinationDirection.subVectors(destination, position)
+  if (agentDestinationDirection.lengthSq() < 0.0001) return false
+  agentDestinationDirection.normalize()
+  return forward.angleTo(agentDestinationDirection) <= maxAngle
+}
+
+function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+
+  for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
+    const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
+    const zMid = (bounds.zMin + bounds.zMax) / 2
+    const zRange = bounds.zMax - bounds.zMin
+    const targetLeft = !from ? rand() < 0.5 : from.x >= 0
+    const targetBack = !from ? rand() < 0.5 : from.z >= zMid
+    const targetZ = wideTarget
+      ? randomRange(rand, targetBack ? bounds.zMin : bounds.zMax - zRange * 0.52, targetBack ? bounds.zMin + zRange * 0.52 : bounds.zMax)
+      : randomRange(rand, bounds.zMin, bounds.zMax)
+    const targetX = wideTarget
+      ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
+      : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
+    out.set(targetX, randomRange(rand, bounds.yMin, bounds.yMax), targetZ)
+    if (from && out.distanceTo(from) < minDistance) continue
+    if (from && forward && !destinationInForwardCone(out, from, forward)) continue
+    return out
+  }
+
+  return null
 }
 
 function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
@@ -1401,7 +1439,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const agentRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`)))
   const agentHasTarget = useRef(false)
   const nextAgentRetargetAt = useRef(0)
-  const agentStatus = useRef('cruise-wander')
+  const agentStatus = useRef('cruise')
+  const agentBehavior = useRef(null)
+  const agentBehaviorStartedAt = useRef(0)
+  const agentBehaviorDistance = useRef(0)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -1512,7 +1553,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     agentPathExitTangent.current.set(0, 0, 0)
     agentHasTarget.current = false
     nextAgentRetargetAt.current = 0
-    agentStatus.current = 'cruise-wander'
+    agentStatus.current = 'cruise'
+    agentBehavior.current = null
+    agentBehaviorStartedAt.current = 0
+    agentBehaviorDistance.current = 0
   }, [creature.id, creature.species])
 
   useEffect(() => {
@@ -1642,105 +1686,74 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
     } else if (isSoloAgent) {
       position = hasFollowPosition.current ? fish.position : position
-      const bodyLength = creatureBodyLength(creature, swim)
-      const agentReachedTarget = position.distanceTo(agentTarget.current) < Math.max(1.0, bodyLength * 0.42)
-      const agentPathComplete = agentPathProgress.current >= 1 - SOLO_AGENT_PATH_REBUILD_EPSILON
-      const agentEndpointReady = now >= nextAgentRetargetAt.current && (agentPathComplete || agentReachedTarget)
-      const agentRetargetReady = now >= nextAgentRetargetAt.current && agentPathProgress.current >= SOLO_AGENT_RETARGET_PROGRESS
-      const needsAgentPath = !agentHasTarget.current
-        || !agentPath.current
-        || agentEndpointReady
-        || agentRetargetReady
+      const currentForward = hasVisualForward.current ? visualForward.current : tangent
+      if (currentForward.lengthSq() < 0.0001) currentForward.set(0, 0, -1)
+      currentForward.normalize()
 
-      if (needsAgentPath) {
-        const previousAgentPath = agentPath.current
-        agentPathExitTangent.current.set(0, 0, 0)
-        if (previousAgentPath) {
-          const exitT = agentPathComplete ? 1 : agentPathProgress.current
-          previousAgentPath.getTangentAt(THREE.MathUtils.clamp(exitT, 0, 1), agentPathExitTangent.current).normalize()
+      const behaviorComplete = agentBehavior.current && agentPath.current && agentPathProgress.current >= 1 - SOLO_AGENT_PATH_REBUILD_EPSILON
+      if (behaviorComplete) {
+        agentBehavior.current = null
+        agentHasTarget.current = false
+        agentPath.current = null
+        agentPathProgress.current = 0
+        agentBehaviorDistance.current = 0
+      }
+
+      if (!agentBehavior.current && now >= nextAgentRetargetAt.current) {
+        const destination = pickSoloAgentDestination(agentCandidateTarget, creature, swim, agentRand.current, position, currentForward)
+        if (destination) {
+          agentBehavior.current = { type: 'cruise', completion: 'path' }
+          agentBehaviorStartedAt.current = now
+          agentBehaviorDistance.current = 0
+          agentTarget.current.copy(destination)
+        } else {
+          agentBehavior.current = { type: 'turn', completion: 'path' }
+          agentBehaviorStartedAt.current = now
+          agentBehaviorDistance.current = 0
         }
-        if (agentPathExitTangent.current.lengthSq() < 0.0001) {
-          agentPathExitTangent.current.copy(hasVisualForward.current ? visualForward.current : tangent)
-        }
+      }
+
+      if (agentBehavior.current && !agentPath.current) {
         let nextAgentPath = null
-        let bestAgentPath = null
-        let bestAgentDelta = Infinity
-        for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
-          pickSoloAgentTarget(agentCandidateTarget, creature, swim, agentRand.current, position)
-          const candidatePath = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentCandidateTarget, agentRand.current)
-          const candidateDelta = candidatePath?.userData?.maxSampleTangentDelta ?? Infinity
-          const candidateRadius = candidatePath?.userData?.minTurnRadius ?? 0
-          const candidateStartError = candidatePath?.userData?.startTangentDelta ?? Infinity
-          const candidateScore = candidateStartError * 120 + candidateDelta * 20 + 1 / Math.max(0.001, candidateRadius)
-          if (candidateScore < bestAgentDelta) {
-            bestAgentDelta = candidateScore
-            bestAgentPath = candidatePath
-            agentBestTarget.copy(agentCandidateTarget)
-          }
-          if (candidatePath?.userData?.curvatureAccepted) {
-            nextAgentPath = candidatePath
-            agentTarget.current.copy(agentCandidateTarget)
-            break
+        if (agentBehavior.current.type === 'cruise') {
+          const destinationDirection = agentDestinationDirection.subVectors(agentTarget.current, position)
+          const destinationAhead = destinationDirection.lengthSq() > 0.0001
+            && destinationDirection.normalize().angleTo(currentForward) <= AGENT_FORWARD_DESTINATION_MAX_ANGLE
+          if (destinationAhead) {
+            nextAgentPath = makeSoloAgentPath(creature, swim, position, currentForward, agentTarget.current, agentRand.current)
+          } else {
+            agentBehavior.current = { type: 'turn', completion: 'path' }
           }
         }
-        if (!nextAgentPath && previousAgentPath && agentPathComplete) {
-          // If a route reaches its endpoint but the broad random targets all fail
-          // the strict curvature gates, keep the animal moving with a forward-ish
-          // continuation target inside bounds instead of leaving progress pinned at 1.
-          for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
-            pickSoloAgentContinuationTarget(agentCandidateTarget, creature, swim, agentRand.current, position, agentPathExitTangent.current)
-            const candidatePath = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentCandidateTarget, agentRand.current)
-            if (candidatePath?.userData?.curvatureAccepted || soloAgentPathMeetsEndpointGate(candidatePath, creature, swim)) {
-              nextAgentPath = candidatePath
-              nextAgentPath.userData = {
-                ...(nextAgentPath.userData ?? {}),
-                curvatureAccepted: true,
-                fallbackReason: 'endpoint-continuation-radius-gated',
-              }
-              agentTarget.current.copy(agentCandidateTarget)
-              break
-            }
-          }
-          if (!nextAgentPath) {
-            const recoveryPath = makeSoloAgentRecoveryArc(creature, swim, position, agentPathExitTangent.current)
-            if (recoveryPath?.userData?.curvatureAccepted || soloAgentPathMeetsEndpointGate(recoveryPath, creature, swim)) {
-              nextAgentPath = recoveryPath
-              nextAgentPath.userData = {
-                ...(nextAgentPath.userData ?? {}),
-                curvatureAccepted: true,
-              }
-              agentTarget.current.copy(nextAgentPath.getPointAt(1))
-            }
-          }
+
+        if (agentBehavior.current?.type === 'turn') {
+          nextAgentPath = makeSoloAgentRecoveryArc(creature, swim, position, currentForward)
+          if (nextAgentPath) agentTarget.current.copy(nextAgentPath.getPointAt(1))
         }
-        if (!nextAgentPath && !previousAgentPath) {
-          // Initial spawn safety only. Once an agent already has a route, never
-          // replace it with a curve that failed the radius gate; wait and retry
-          // target generation instead of showing a sharp fallback corner.
-          nextAgentPath = bestAgentPath
-          agentTarget.current.copy(agentBestTarget)
-        }
-        if (nextAgentPath?.userData?.curvatureAccepted || (!previousAgentPath && nextAgentPath)) {
+
+        if (nextAgentPath && (nextAgentPath.userData?.curvatureAccepted || soloAgentPathMeetsEndpointGate(nextAgentPath, creature, swim) || agentBehavior.current?.type === 'turn')) {
           agentPath.current = nextAgentPath
           agentPathProgress.current = 0
           agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
           agentHasTarget.current = true
-          nextAgentRetargetAt.current = now + randomRangeFromPair(agentRand.current, SOLO_AGENT_RETARGET_COOLDOWN, [2.8, 5.2])
           pathRef.current = agentPath.current
           pathLengthRef.current = agentPathLength.current
           setPath(agentPath.current)
         } else {
-          nextAgentRetargetAt.current = now + SOLO_AGENT_RETRY_COOLDOWN
+          agentBehavior.current = null
+          nextAgentRetargetAt.current = now + AGENT_BEHAVIOR_RETRY_COOLDOWN
         }
       }
 
-      const agentLookaheadT = THREE.MathUtils.clamp(
-        agentPathProgress.current + followDistance / agentPathLength.current,
-        0,
-        1,
-      )
-      agentPath.current.getPointAt(agentLookaheadT, followTarget.current)
-      agentPath.current.getTangentAt(agentPathProgress.current, tangent).normalize()
+      if (agentPath.current) {
+        const agentLookaheadT = THREE.MathUtils.clamp(
+          agentPathProgress.current + followDistance / agentPathLength.current,
+          0,
+          1,
+        )
+        agentPath.current.getPointAt(agentLookaheadT, followTarget.current)
+        agentPath.current.getTangentAt(agentPathProgress.current, tangent).normalize()
+      }
     } else {
       currentPath.getPointAt(followTargetT, followTarget.current)
       followTarget.current.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
@@ -1763,11 +1776,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         SOLO_AGENT_CURVE_MIN_SPEED_SCALE,
         THREE.MathUtils.clamp(tangentDelta / SOLO_AGENT_MAX_TANGENT_DELTA, 0, 1),
       )
+      const previousProgress = agentPathProgress.current
       agentPathProgress.current = THREE.MathUtils.clamp(
         agentPathProgress.current + delta * velocity.current * organicMotion.speedScale * curveSpeedScale / agentPathLength.current,
         0,
         1,
       )
+      agentBehaviorDistance.current += Math.max(0, agentPathProgress.current - previousProgress) * agentPathLength.current
       agentPath.current.getPointAt(agentPathProgress.current, agentPathPoint)
       agentPath.current.getTangentAt(agentPathProgress.current, agentPathTangent).normalize()
       const agentMoveLookaheadT = THREE.MathUtils.clamp(
@@ -1776,15 +1791,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         1,
       )
       agentPath.current.getPointAt(agentMoveLookaheadT, followTarget.current)
-      computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
-      smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
-      agentPathOffset.copy(smoothedAvoidance.current).multiplyScalar(creatureBodyLength(creature, swim) * SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS)
-      fish.position.copy(agentPathPoint).add(agentPathOffset)
+      smoothedAvoidance.current.set(0, 0, 0)
+      fish.position.copy(agentPathPoint)
       desiredDirection.current.copy(agentPathTangent)
       agentMoveDirection.copy(agentPathTangent)
       tangent.subVectors(fish.position, previousPosition.current)
       if (tangent.lengthSq() > 0.000001) tangent.normalize()
       else tangent.copy(agentPathTangent)
+    } else if (isSoloAgent) {
+      previousPosition.current.copy(fish.position)
+      tangent.copy(hasVisualForward.current ? visualForward.current : desiredDirection.current)
+      if (tangent.lengthSq() < 0.0001) tangent.set(0, 0, -1)
+      tangent.normalize()
+      desiredDirection.current.copy(tangent)
+      agentMoveDirection.copy(tangent)
     } else {
       previousPosition.current.copy(fish.position)
       schoolFollowDirection.subVectors(followTarget.current, fish.position)
@@ -1823,14 +1843,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     }
 
     if (showAgentDebug) {
-      const agentAlignment = agentMoveDirection.lengthSq() > 0.0001 && desiredDirection.current.lengthSq() > 0.0001
-        ? THREE.MathUtils.clamp(agentMoveDirection.dot(desiredDirection.current), -1, 1)
-        : 1
-      agentStatus.current = agentAlignment < SOLO_AGENT_ARC_ALIGNMENT_FULL
-        ? 'turning-arc'
-        : velocity.current > motion.idleSpeed * 1.22
-          ? 'burst'
-          : 'cruise-agent'
+      agentStatus.current = agentBehavior.current?.type ?? 'choose-behavior'
     }
 
     updateFishRegistry(fish, creature, swim, school)

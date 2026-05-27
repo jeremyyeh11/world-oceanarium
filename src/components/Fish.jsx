@@ -112,13 +112,15 @@ const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
 const SOLO_AGENT_TARGET_ATTEMPTS = 10
-const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 1.65
-const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 8
-const SOLO_AGENT_CURVE_SAMPLE_COUNT = 40
-const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(4)
-const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [2.8, 4.2]
-const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.52
-const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.92
+const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 3.0
+const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 10
+const SOLO_AGENT_CURVE_SAMPLE_COUNT = 56
+const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(3)
+const SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR = THREE.MathUtils.degToRad(0.5)
+const SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS = 4.5
+const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [3.8, 6.2]
+const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.85
+const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 1.35
 const SOLO_AGENT_MAX_TANGENT_DELTA = THREE.MathUtils.degToRad(8)
 const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
@@ -152,6 +154,8 @@ const agentCurveEndForward = new THREE.Vector3()
 const agentCurveStartForward = new THREE.Vector3()
 const agentCurvePrevTangent = new THREE.Vector3()
 const agentCurveNextTangent = new THREE.Vector3()
+const agentCurvePrevPoint = new THREE.Vector3()
+const agentCurveNextPoint = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -375,7 +379,7 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   const bodyLength = creatureBodyLength(creature, swim)
   const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
 
-  for (let attempt = 0; attempt < 8; attempt += 1) {
+  for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
     const xMid = (bounds.xMin + bounds.xMax) / 2
     const zMid = (bounds.zMin + bounds.zMax) / 2
@@ -405,21 +409,46 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   return out
 }
 
-function horizontalTangentDelta(path) {
+function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius) {
   let maxDelta = 0
+  let minRadius = Infinity
   let hasPrevious = false
+
+  path.getTangentAt(0, agentCurveNextTangent).normalize()
+  const startTangentDelta = expectedStartTangent.lengthSq() > 0.0001
+    ? agentCurveNextTangent.angleTo(expectedStartTangent)
+    : 0
+
   for (let i = 0; i <= SOLO_AGENT_CURVE_SAMPLE_COUNT; i += 1) {
-    path.getTangentAt(i / SOLO_AGENT_CURVE_SAMPLE_COUNT, agentCurveNextTangent)
-    agentCurveNextTangent.y = 0
+    const sampleT = i / SOLO_AGENT_CURVE_SAMPLE_COUNT
+    path.getTangentAt(sampleT, agentCurveNextTangent)
     if (agentCurveNextTangent.lengthSq() < 0.0001) continue
     agentCurveNextTangent.normalize()
+    path.getPointAt(sampleT, agentCurveNextPoint)
+
     if (hasPrevious) {
-      maxDelta = Math.max(maxDelta, agentCurvePrevTangent.angleTo(agentCurveNextTangent))
+      const tangentDelta = agentCurvePrevTangent.angleTo(agentCurveNextTangent)
+      const segmentLength = Math.max(0.001, agentCurvePrevPoint.distanceTo(agentCurveNextPoint))
+      const radius = tangentDelta > 0.0001 ? segmentLength / tangentDelta : Infinity
+      maxDelta = Math.max(maxDelta, tangentDelta)
+      minRadius = Math.min(minRadius, radius)
     }
+
     agentCurvePrevTangent.copy(agentCurveNextTangent)
+    agentCurvePrevPoint.copy(agentCurveNextPoint)
     hasPrevious = true
   }
-  return maxDelta
+
+  const radiusShortfall = minTurnRadius / Math.max(0.001, minRadius)
+  return {
+    maxDelta,
+    minRadius,
+    startTangentDelta,
+    accepted: startTangentDelta <= SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR
+      && maxDelta <= SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA
+      && minRadius >= minTurnRadius,
+    score: startTangentDelta * 120 + maxDelta * 20 + radiusShortfall,
+  }
 }
 
 function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, leadScale = 1) {
@@ -452,12 +481,10 @@ function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, 
   agentCurveControlA.copy(start).addScaledVector(agentCurveStartForward, leadDistance)
   agentCurveControlB.copy(target).addScaledVector(agentCurveEndForward, -leadDistance)
 
-  // Keep vertical curvature tame; big solo fish should glide, not corkscrew.
-  const yDelta = target.y - start.y
-  agentCurveControlA.y = start.y + yDelta * 0.22
-  agentCurveControlB.y = target.y - yDelta * 0.22
-
-  clampToSwimBounds(agentCurveControlA, bounds)
+  // Do not clamp control A: the cubic derivative at t=0 must stay exactly
+  // aligned with the previous path's 3D exit tangent, or spline swaps jitter.
+  // Control B can clamp because the next route will inherit whatever endpoint
+  // tangent this curve actually produces.
   clampToSwimBounds(agentCurveControlB, bounds)
 
   return new THREE.CubicBezierCurve3(
@@ -469,25 +496,43 @@ function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, 
 }
 
 function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
+  const bodyLength = creatureBodyLength(creature, swim)
+  const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
+  agentCurveStartForward.copy(startForward)
+  if (agentCurveStartForward.lengthSq() < 0.0001) agentCurveStartForward.subVectors(target, start)
+  if (agentCurveStartForward.lengthSq() < 0.0001) agentCurveStartForward.set(0, 0, -1)
+  agentCurveStartForward.normalize()
+
   let bestPath = null
-  let bestDelta = Infinity
+  let bestMeasure = null
+  let bestScore = Infinity
 
   for (let attempt = 0; attempt < SOLO_AGENT_CURVE_BUILD_ATTEMPTS; attempt += 1) {
-    const leadScale = 1 + attempt * 0.28
-    const path = makeSoloAgentBezier(creature, swim, start, startForward, target, rand, leadScale)
-    const maxDelta = horizontalTangentDelta(path)
+    const leadScale = 1 + attempt * 0.34
+    const path = makeSoloAgentBezier(creature, swim, start, agentCurveStartForward, target, rand, leadScale)
+    const measure = measureSoloAgentCurve(path, agentCurveStartForward, minTurnRadius)
     path.userData = {
       ...(path.userData ?? {}),
-      maxSampleTangentDelta: maxDelta,
-      curvatureAccepted: maxDelta <= SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA,
+      maxSampleTangentDelta: measure.maxDelta,
+      minTurnRadius: measure.minRadius,
+      startTangentDelta: measure.startTangentDelta,
+      curvatureAccepted: measure.accepted,
     }
-    if (maxDelta < bestDelta) {
-      bestDelta = maxDelta
+    if (measure.score < bestScore) {
+      bestScore = measure.score
+      bestMeasure = measure
       bestPath = path
     }
-    if (path.userData.curvatureAccepted) return path
+    if (measure.accepted) return path
   }
 
+  if (bestPath && bestMeasure) {
+    bestPath.userData = {
+      ...(bestPath.userData ?? {}),
+      curvatureAccepted: false,
+      fallbackReason: 'smoothest-candidate',
+    }
+  }
   return bestPath
 }
 
@@ -1428,7 +1473,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         const previousAgentPath = agentPath.current
         agentPathExitTangent.current.set(0, 0, 0)
         if (previousAgentPath) {
-          const exitT = (agentPathComplete || agentReachedTarget || agentRetargetReady) ? 1 : agentPathProgress.current
+          const exitT = agentPathComplete ? 1 : agentPathProgress.current
           previousAgentPath.getTangentAt(THREE.MathUtils.clamp(exitT, 0, 1), agentPathExitTangent.current).normalize()
         }
         if (agentPathExitTangent.current.lengthSq() < 0.0001) {
@@ -1441,8 +1486,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
           pickSoloAgentTarget(agentCandidateTarget, creature, swim, agentRand.current, position)
           const candidatePath = makeSoloAgentPath(creature, swim, position, agentPathExitTangent.current, agentCandidateTarget, agentRand.current)
           const candidateDelta = candidatePath?.userData?.maxSampleTangentDelta ?? Infinity
-          if (candidateDelta < bestAgentDelta) {
-            bestAgentDelta = candidateDelta
+          const candidateRadius = candidatePath?.userData?.minTurnRadius ?? 0
+          const candidateStartError = candidatePath?.userData?.startTangentDelta ?? Infinity
+          const candidateScore = candidateStartError * 120 + candidateDelta * 20 + 1 / Math.max(0.001, candidateRadius)
+          if (candidateScore < bestAgentDelta) {
+            bestAgentDelta = candidateScore
             bestAgentPath = candidatePath
             agentBestTarget.copy(agentCandidateTarget)
           }

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_64`.
+Status: in progress as `v0.8.0-dev_65`.
 
 ### Creature behavior
 
@@ -79,6 +79,7 @@ Status: in progress as `v0.8.0-dev_64`.
 - Extends Mola spline smoothness validation to all axes by detecting opposite-direction curvature in XZ, XY, and YZ planes, so vertical/depth S-curves are rejected along with horizontal wiggles while preserving full 3D tangent continuity.
 - Replaces Mola's committed spline-follow movement with continuous steering: destinations remain inside bounds, but the body turns toward them under a fixed max turn rate, applies boundary-plane glancing bias near edges, and moves forward from its own heading so smoothness comes from the controller instead of repeatedly accepting/rejecting generated splines. The cyan debug line is now a predicted steering trail, not the movement source.
 - Extends Mola's destination Z range forward to `[-25, 0]`, but adds stateful depth residency so it usually chains several deep targets at `Z <= -10` and only occasionally enters short front excursions. This biases time spent in the back without independently biasing every destination sample and causing constant front/back swings.
+- Increases selected-creature zoom-out capacity for large animals by scaling max follow distance from body length, so selected Mola can pull back far enough to show surrounding water and neighbors. Normal selection no longer adds Fresnel/outline or body scale changes; selection Fresnel is debug-only.
 
 ## v0.7.9 — Sardine texture refresh
 

@@ -2446,11 +2446,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     }
   })
 
-  const focusScale = selected ? 1.08 : 1
+  const focusScale = 1
   const bodyLength = creatureBodyLength(creature, swim)
   const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
-  const showSelectedOutline = selected && !hideSelectionSilhouette
+  const showSelectedOutline = selected && debug && !hideSelectionSilhouette
   const renderModel = model && !instancedSardineLod
   const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
   const proxyDimensions = interactionProxyDimensions(species, swim)

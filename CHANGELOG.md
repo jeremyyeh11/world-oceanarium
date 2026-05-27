@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_66`.
+Status: in progress as `v0.8.0-dev_67`.
 
 ### Creature behavior
 
@@ -81,6 +81,7 @@ Status: in progress as `v0.8.0-dev_66`.
 - Extends Mola's destination Z range forward to `[-25, 0]`, but adds stateful depth residency so it usually chains several deep targets at `Z <= -10` and only occasionally enters short front excursions. This biases time spent in the back without independently biasing every destination sample and causing constant front/back swings.
 - Increases selected-creature zoom-out capacity for large animals by scaling max follow distance from body length, so selected Mola can pull back far enough to show surrounding water and neighbors. Normal selection no longer adds Fresnel/outline or body scale changes; selection Fresnel is debug-only.
 - Smooths selected-creature camera entry by holding the current tank-view follow distance for a brief beat before easing into the creature-specific follow distance, preventing the camera from immediately rushing/zooming into the selected fish.
+- Reduces the global projected X destination range to `90%` of the previous width, giving fish more screen-edge buffer when steering/animation carries them outside their destination bounds.
 
 ## v0.7.9 — Sardine texture refresh
 

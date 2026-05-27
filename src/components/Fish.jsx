@@ -26,6 +26,7 @@ const TANK_CAMERA_Z = 12
 const TANK_CAMERA_FOV_DEG = 60
 const TANK_CAMERA_ASPECT = 16 / 9
 const SCREEN_X_SAFE_FRACTION = 0.78
+const GLOBAL_X_DESTINATION_RANGE_SCALE = 0.9
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 const SARDINE_MATERIAL_ROUGHNESS = 0.2
@@ -383,7 +384,7 @@ function interactionProxyDimensions(species, swim) {
 function projectedScreenHalfXAtZ(z) {
   const distanceFromCamera = Math.max(0.5, TANK_CAMERA_Z - z)
   const visibleHalfX = Math.tan(THREE.MathUtils.degToRad(TANK_CAMERA_FOV_DEG) * 0.5) * TANK_CAMERA_ASPECT * distanceFromCamera
-  return Math.max(1.5, visibleHalfX * SCREEN_X_SAFE_FRACTION)
+  return Math.max(1.5, visibleHalfX * SCREEN_X_SAFE_FRACTION * GLOBAL_X_DESTINATION_RANGE_SCALE)
 }
 
 function swimXRangeAtZ(bounds, z) {

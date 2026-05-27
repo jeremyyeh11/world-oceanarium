@@ -137,6 +137,9 @@ const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
 const SOLO_AGENT_STEERING_DEBUG_STEPS = 72
 const SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS = 0.18
+const SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS = 0.55
+const SOLO_AGENT_RUNTIME_OVERSHOOT_MIN = 2.0
+const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
 const MOLA_DEEP_ZONE_Z_MAX = -10
 const MOLA_FRONT_EXCURSION_CHANCE = 0.24
 const MOLA_FRONT_TARGET_COUNT = [1, 2]
@@ -198,6 +201,7 @@ const agentBoundaryPlaneTangent = new THREE.Vector3()
 const agentBoundaryInward = new THREE.Vector3()
 const agentBoundaryGlideMid = new THREE.Vector3()
 const agentBoundaryGlideEnd = new THREE.Vector3()
+const agentRuntimeClamp = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -441,6 +445,22 @@ function clampToSwimBounds(point, bounds) {
   point.x = THREE.MathUtils.clamp(point.x, xMin, xMax)
   point.y = THREE.MathUtils.clamp(point.y, bounds.yMin, bounds.yMax)
   return point
+}
+
+function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength) {
+  const margin = THREE.MathUtils.clamp(
+    bodyLength * SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS,
+    SOLO_AGENT_RUNTIME_OVERSHOOT_MIN,
+    SOLO_AGENT_RUNTIME_OVERSHOOT_MAX,
+  )
+  agentRuntimeClamp.copy(point)
+  agentRuntimeClamp.z = THREE.MathUtils.clamp(agentRuntimeClamp.z, bounds.zMin - margin, bounds.zMax + margin)
+  const { xMin, xMax } = swimXRangeAtZ(bounds, agentRuntimeClamp.z)
+  agentRuntimeClamp.x = THREE.MathUtils.clamp(agentRuntimeClamp.x, xMin - margin, xMax + margin)
+  agentRuntimeClamp.y = THREE.MathUtils.clamp(agentRuntimeClamp.y, bounds.yMin - margin, bounds.yMax + margin)
+  const clamped = agentRuntimeClamp.distanceToSquared(point) > 0.000001
+  if (clamped) point.copy(agentRuntimeClamp)
+  return clamped
 }
 
 
@@ -2108,6 +2128,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const soloAgentSpeed = Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed
       const movementScale = soloAgentSpeed * organicMotion.speedScale * delta
       fish.position.addScaledVector(agentMoveDirection, movementScale)
+      const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+      if (clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength)) {
+        agentRuntimeClamp.copy(fish.position)
+        clampToSwimBounds(agentRuntimeClamp, bounds)
+        agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
+        if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
+        agentBehavior.current = null
+        agentHasTarget.current = false
+        agentBehaviorDistance.current = 0
+        nextAgentRetargetAt.current = now
+      }
       agentBehaviorDistance.current += movementScale
       followTarget.current.copy(fish.position).addScaledVector(agentMoveDirection, followDistance)
       tangent.subVectors(fish.position, previousPosition.current)

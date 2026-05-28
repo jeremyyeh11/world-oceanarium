@@ -170,6 +170,8 @@ const MOLA_SUN_BASK_REACHED_BODY_LENGTHS = 0.08
 const MOLA_SUN_BASK_REACHED_MAX = 0.75
 const MOLA_SUN_BASK_APPROACH_MIN_SPEED_SCALE = 0.22
 const MOLA_SUN_BASK_APPROACH_DECEL_START = 0.45
+const MOLA_SUN_BASK_ROLL_PROGRESS_START = 0.62
+const MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA = 0.92
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
@@ -2554,7 +2556,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
                 ? 1 - (remainingDistance / plannedDistance)
                 : agentBehaviorDistance.current / Math.max(0.001, agentBehaviorDistance.current + remainingDistance)
               const progress = THREE.MathUtils.clamp(distanceProgress, 0, 1)
-              return progress * progress * (3 - 2 * progress)
+              const delayedProgress = THREE.MathUtils.clamp(
+                (progress - MOLA_SUN_BASK_ROLL_PROGRESS_START) / Math.max(0.001, 1 - MOLA_SUN_BASK_ROLL_PROGRESS_START),
+                0,
+                1,
+              )
+              const easedProgress = delayedProgress * delayedProgress * delayedProgress * (delayedProgress * (delayedProgress * 6 - 15) + 10)
+              return easedProgress * MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA
             })()
           : (behavior.stage === 'hold'
             ? 1

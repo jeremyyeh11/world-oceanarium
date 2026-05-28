@@ -33,6 +33,10 @@ const DEBUG_LAYER_BUTTONS = [
 ]
 const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
+
+function isSunfishCreature(creature) {
+  return creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
+}
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 
 function summarizeRenderLoad(creatures, biomeId) {
@@ -97,6 +101,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
   const [followScreenOffset, setFollowScreenOffset] = useState(0)
+  const [debugSunBaskRequestId, setDebugSunBaskRequestId] = useState(0)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
   const performanceStatsRef = useRef({ fps: null })
@@ -139,6 +144,18 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     window.addEventListener('keydown', toggleDebugOnShortcut)
     return () => window.removeEventListener('keydown', toggleDebugOnShortcut)
   }, [debugMode])
+
+  useEffect(() => {
+    const queueSunBaskOnShortcut = (event) => {
+      if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.key.toLowerCase() !== 's') return
+      if (!debugMode || !selectedCreature || !isSunfishCreature(selectedCreature)) return
+      event.preventDefault()
+      setDebugSunBaskRequestId(current => current + 1)
+    }
+
+    window.addEventListener('keydown', queueSunBaskOnShortcut)
+    return () => window.removeEventListener('keydown', queueSunBaskOnShortcut)
+  }, [debugMode, selectedCreature])
 
   useEffect(() => {
     window.addEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
@@ -486,6 +503,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             tankVisitSeed={tankVisitSeed}
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
+            debugSunBaskRequestId={debugSunBaskRequestId}
             hideSelectionSilhouette={screenshotMode}
             debug={visibleDebugVisuals}
             debugView={debugView}

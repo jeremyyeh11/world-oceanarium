@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_78`.
+Status: in progress as `v0.8.0-dev_79`.
 
 ### Creature behavior
 
@@ -92,6 +92,7 @@ Status: in progress as `v0.8.0-dev_78`.
 - Adds a Mola-specific hard surface ceiling for body-center motion and destination sampling, so X/Z maneuver leniency remains but upward runtime overshoot slides along a safe center height below the water surface instead of letting the body clip through the surface plane.
 - Expands the Mola runtime safety envelope on X/Z only, moving any hard outer-cap recovery well past the screen edge while keeping the existing vertical/surface protections unchanged.
 - Disables solo-agent hard outer-envelope recovery while any creature is in follow mode, then waits 1 second after exiting follow before allowing recovery again; surface-ceiling protection remains active.
+- Adds a debug-only sunfish follow shortcut: while debug mode is on and a Mola is selected/followed, `Ctrl+Shift+S` queues sun-basking as the next solo-agent behavior after the current behavior completes.
 
 ## v0.7.9 — Sardine texture refresh
 

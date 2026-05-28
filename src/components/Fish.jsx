@@ -1836,7 +1836,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -1883,6 +1883,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const agentDepthMode = useRef('deep')
   const agentDepthTargetsRemaining = useRef(0)
   const lastSunBaskAt = useRef(-Infinity)
+  const sunBaskQueued = useRef(false)
+  const queuedSunBaskRequestId = useRef(0)
   const wasZoomActive = useRef(false)
   const runtimeRecoveryResumeAt = useRef(0)
   const rawAvoidance = useRef(new THREE.Vector3())
@@ -1962,6 +1964,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   }, [creature, onReady])
 
   useEffect(() => {
+    if (!debugSunBaskRequestId || debugSunBaskRequestId === queuedSunBaskRequestId.current) return
+    queuedSunBaskRequestId.current = debugSunBaskRequestId
+    if (!debug || !selected || !zoomActive || !isMolaCreature(creature)) return
+    sunBaskQueued.current = true
+  }, [creature, debug, debugSunBaskRequestId, selected, zoomActive])
+
+  useEffect(() => {
     return () => FISH_REGISTRY.delete(creature.id)
   }, [creature.id])
 
@@ -2002,6 +2011,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     agentDepthMode.current = 'deep'
     agentDepthTargetsRemaining.current = 0
     lastSunBaskAt.current = -Infinity
+    sunBaskQueued.current = false
+    queuedSunBaskRequestId.current = 0
   }, [creature.id, creature.species])
 
   useEffect(() => {
@@ -2176,9 +2187,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
 
       if (!agentBehavior.current && now >= nextAgentRetargetAt.current) {
         const usesDepthResidency = isMolaCreature(creature)
+        const forceSunBask = usesDepthResidency && sunBaskQueued.current
         const canSunBask = usesDepthResidency
-          && now - lastSunBaskAt.current >= MOLA_SUN_BASK_COOLDOWN
-          && agentRand.current() < MOLA_SUN_BASK_CHANCE
+          && (forceSunBask || (now - lastSunBaskAt.current >= MOLA_SUN_BASK_COOLDOWN
+            && agentRand.current() < MOLA_SUN_BASK_CHANCE))
         const sunBaskDestination = canSunBask
           ? pickMolaSunBaskTarget(agentCandidateTarget, creature, swim, agentRand.current, position, currentForward)
           : null
@@ -2186,6 +2198,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         if (sunBaskDestination) {
           const side = agentRand.current() < 0.5 ? -1 : 1
           agentBehavior.current = { type: 'sun-bask', stage: 'approach', side, stageStartedAt: now, holdUntil: 0 }
+          sunBaskQueued.current = false
           agentBehaviorStartedAt.current = now
           agentBehaviorDistance.current = 0
           lastSunBaskAt.current = now
@@ -2360,7 +2373,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
       const behavior = agentBehavior.current
       agentStatus.current = behavior?.type === 'sun-bask'
         ? `sun-bask ${behavior.stage}`
-        : (behavior?.type ?? 'choose-behavior')
+        : (behavior?.type ? `${behavior.type}${sunBaskQueued.current ? ' + queued sun-bask' : ''}` : (sunBaskQueued.current ? 'queued sun-bask' : 'choose-behavior'))
     }
 
     updateFishRegistry(fish, creature, swim, school)

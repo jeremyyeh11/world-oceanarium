@@ -2382,7 +2382,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const behavior = agentBehavior.current
       agentStatus.current = behavior?.type === 'sun-bask'
         ? `sun-bask ${behavior.stage}`
-        : (behavior?.type ? `${behavior.type}${sunBaskQueued.current ? ' + queued sun-bask' : ''}` : (sunBaskQueued.current ? 'queued sun-bask' : 'choose-behavior'))
+        : (behavior?.type ?? 'choose-behavior')
     }
 
     updateFishRegistry(fish, creature, swim, school)
@@ -2478,7 +2478,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
         const currentAnimation = animationRef.current ?? '—'
-        agentLabelRef.current.text = `id ${creature.id ?? '?'}\n${commonName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\nbehavior ${status}\nanimation ${currentAnimation}`
+        const queuedAction = sunBaskQueued.current ? 'sun-bask' : 'none'
+        agentLabelRef.current.text = `id ${creature.id ?? '?'}\n${commonName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\nbehavior ${status}\nqueue ${queuedAction}\nanimation ${currentAnimation}`
         agentLabelRef.current.lookAt(camera.position)
         agentLabelRef.current.visible = showDirection && showAgentDebug
       }

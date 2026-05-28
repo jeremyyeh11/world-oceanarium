@@ -230,6 +230,7 @@ const agentBoundaryInward = new THREE.Vector3()
 const agentBoundaryGlideMid = new THREE.Vector3()
 const agentBoundaryGlideEnd = new THREE.Vector3()
 const agentRuntimeClamp = new THREE.Vector3()
+const agentRuntimeEnvelopeProbe = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
@@ -1856,7 +1857,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -1905,6 +1906,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const lastSunBaskAt = useRef(-Infinity)
   const sunBaskQueued = useRef(false)
   const queuedSunBaskRequestId = useRef(0)
+  const lastFollowRecoveryExitAt = useRef(-Infinity)
   const wasZoomActive = useRef(false)
   const runtimeRecoveryResumeAt = useRef(0)
   const rawAvoidance = useRef(new THREE.Vector3())
@@ -2335,6 +2337,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         fish.position.addScaledVector(agentMoveDirection, movementScale)
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection)
+        const recoveryNeeded = clampToSoloAgentRuntimeEnvelope(agentRuntimeEnvelopeProbe.copy(fish.position), bounds, bodyLength, creature)
+        if (zoomActive && selected && recoveryNeeded && now - lastFollowRecoveryExitAt.current > 1.0) {
+          lastFollowRecoveryExitAt.current = now
+          onRuntimeRecoveryNeeded?.(creature)
+        }
         const runtimeRecoveryEnabled = !zoomActive && now >= runtimeRecoveryResumeAt.current
         if (runtimeRecoveryEnabled && clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)) {
           agentRuntimeClamp.copy(fish.position)

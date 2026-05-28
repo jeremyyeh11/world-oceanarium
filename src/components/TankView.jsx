@@ -283,6 +283,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const releaseFocus = () => {
     focusChangeAtRef.current = performance.now()
     touchPointsRef.current.clear()
+    dragRef.current = null
+    setStagePanning(false)
     setSelectedCreature(null)
     setFocusedFishRef(null)
     setFollowOrbit({ yaw: 0, pitch: 0 })
@@ -527,6 +529,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
             onCreatureClick={focusCreature}
             onCreatureReady={registerCreatureRef}
+            onRuntimeRecoveryNeeded={releaseFocus}
           />
           <WaterSurface biome={biome.id} />
           <UnderwaterFX biome={biome.id} />

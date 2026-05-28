@@ -132,6 +132,12 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const visibleDebugPanel = debugMode && !screenshotMode
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
   const renderLoad = summarizeRenderLoad(creatures, biome?.id)
+  const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isSunfishCreature(selectedCreature)
+
+  const queueDebugSunBask = () => {
+    if (!canQueueDebugSunBask) return
+    setDebugSunBaskRequestId(current => current + 1)
+  }
 
   const toggleDebugMode = () => {
     setDebugMode(current => !current)
@@ -586,8 +592,10 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           audioLevels={audioLevels}
           performanceStats={performanceStats}
           renderLoad={renderLoad}
+          canQueueSunBask={canQueueDebugSunBask}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
+          onQueueSunBask={queueDebugSunBask}
         />
       )}
 
@@ -605,8 +613,10 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               audioLevels={audioLevels}
               performanceStats={performanceStats}
               renderLoad={renderLoad}
+              canQueueSunBask={canQueueDebugSunBask}
               onDebugViewChange={setDebugView}
               onDebugLayerToggle={toggleDebugLayer}
+              onQueueSunBask={queueDebugSunBask}
             />
           )}
         </InfoCard>
@@ -644,8 +654,10 @@ function DebugPanel({
   audioLevels,
   performanceStats,
   renderLoad,
+  canQueueSunBask = false,
   onDebugViewChange,
   onDebugLayerToggle,
+  onQueueSunBask,
 }) {
   const sardineCount = clampDebugCount(renderLoad?.sardines)
   const lod1Drawn = clampDebugCount(performanceStats?.lod1Drawn)
@@ -697,6 +709,19 @@ function DebugPanel({
             {layer.icon}
           </button>
         ))}
+      </div>
+      <div className="debug-panel-row debug-panel-row--wrap">
+        <span className="debug-panel-label">Actions</span>
+        <button
+          type="button"
+          title={canQueueSunBask ? 'Queue Mola sun-bask' : 'Follow Mola in debug mode to queue sun-bask'}
+          aria-label="Queue Mola sun-bask"
+          className="debug-panel-button debug-panel-button--wide"
+          disabled={!canQueueSunBask}
+          onClick={onQueueSunBask}
+        >
+          bask
+        </button>
       </div>
       <AudioDebugMeters levels={audioLevels} />
       {creatureDataError && (

@@ -156,7 +156,6 @@ const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
 const MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS = 1.75
 const MOLA_RUNTIME_OVERSHOOT_XZ_MIN = 9.0
 const MOLA_RUNTIME_OVERSHOOT_XZ_MAX = 18.0
-const SOLO_AGENT_RUNTIME_RECOVERY_AFTER_FOLLOW_DELAY = 1.0
 const MOLA_DEEP_ZONE_Z_MAX = -10
 const MOLA_FRONT_EXCURSION_CHANCE = 0.24
 const MOLA_FRONT_TARGET_COUNT = [1, 2]
@@ -1871,7 +1870,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -1921,8 +1920,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const sunBaskQueued = useRef(false)
   const queuedSunBaskRequestId = useRef(0)
   const lastFollowRecoveryExitAt = useRef(-Infinity)
-  const wasZoomActive = useRef(false)
-  const runtimeRecoveryResumeAt = useRef(0)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -2092,12 +2089,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (!fish) return
 
     const now = clock.getElapsedTime()
-    if (zoomActive) {
-      runtimeRecoveryResumeAt.current = Infinity
-    } else if (wasZoomActive.current) {
-      runtimeRecoveryResumeAt.current = now + SOLO_AGENT_RUNTIME_RECOVERY_AFTER_FOLLOW_DELAY
-    }
-    wasZoomActive.current = zoomActive
 
     if (isSchooling) {
       const noise = organicNoise.current
@@ -2359,7 +2350,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           lastFollowRecoveryExitAt.current = now
           onRuntimeRecoveryNeeded?.(creature)
         }
-        const runtimeRecoveryEnabled = !zoomActive && now >= runtimeRecoveryResumeAt.current
+        const runtimeRecoveryEnabled = !zoomActive && soloRuntimeRecoveryEnabled
         if (runtimeRecoveryEnabled && clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)) {
           agentRuntimeClamp.copy(fish.position)
           clampToSwimBounds(agentRuntimeClamp, bounds)

@@ -136,6 +136,8 @@ const SOLO_AGENT_RETARGET_PROGRESS = 0.82
 const SOLO_AGENT_RETARGET_COOLDOWN = [2.8, 5.2]
 const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
+const MOLA_STEERING_REACHED_BODY_LENGTHS = 0.32
+const MOLA_STEERING_REACHED_MAX = 3.0
 const SOLO_AGENT_STEERING_DEBUG_STEPS = 72
 const SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS = 0.18
 const SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS = 0.55
@@ -648,6 +650,11 @@ function clampToMolaSurfaceCeiling(point, creature, swim, bounds, direction = nu
   return true
 }
 
+function soloAgentReachedDistance(creature, bodyLength) {
+  if (!isMolaCreature(creature)) return Math.max(0.7, bodyLength * SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS)
+  return Math.max(1.4, Math.min(MOLA_STEERING_REACHED_MAX, bodyLength * MOLA_STEERING_REACHED_BODY_LENGTHS))
+}
+
 function pickMolaSunBaskTarget(out, creature, swim, rand, from, forward) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
@@ -685,6 +692,8 @@ function shapeSoloAgentSteeringDesired(out, position, target, forward, creature,
   if (out.lengthSq() < 0.0001) out.copy(forward)
   if (out.lengthSq() < 0.0001) out.set(0, 0, -1)
   out.normalize()
+
+  if (isMolaCreature(creature)) return out
 
   const proximity = nearestSwimBoundaryNormal(agentBoundaryNormal, position, bounds, bodyLength)
   if (proximity > 0) {
@@ -2156,7 +2165,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       currentForward.normalize()
 
       const bodyLength = creatureBodyLength(creature, swim)
-      const reachedDistance = Math.max(0.7, bodyLength * SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS)
+      const reachedDistance = soloAgentReachedDistance(creature, bodyLength)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
       if (agentBehavior.current && targetDistance <= reachedDistance) {
         if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {

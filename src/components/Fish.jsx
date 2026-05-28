@@ -172,6 +172,9 @@ const MOLA_SUN_BASK_APPROACH_MIN_SPEED_SCALE = 0.22
 const MOLA_SUN_BASK_APPROACH_DECEL_START = 0.45
 const MOLA_SUN_BASK_ROLL_PROGRESS_START = 0.62
 const MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA = 0.92
+const MOLA_SUN_BASK_HOLD_ROLL_COMPLETE_DURATION = 5
+const MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE = THREE.MathUtils.degToRad(4)
+const MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE = THREE.MathUtils.degToRad(3)
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
@@ -2195,11 +2198,24 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
       if (agentBehavior.current && targetDistance <= reachedDistance) {
         if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
+          const plannedDistance = Math.max(0.001, agentBehavior.current.approachDistance ?? 0)
+          const distanceProgress = plannedDistance > 0.001
+            ? 1 - (targetDistance / plannedDistance)
+            : 1
+          const progress = THREE.MathUtils.clamp(distanceProgress, 0, 1)
+          const delayedProgress = THREE.MathUtils.clamp(
+            (progress - MOLA_SUN_BASK_ROLL_PROGRESS_START) / Math.max(0.001, 1 - MOLA_SUN_BASK_ROLL_PROGRESS_START),
+            0,
+            1,
+          )
+          const easedRoll = delayedProgress * delayedProgress * delayedProgress * (delayedProgress * (delayedProgress * 6 - 15) + 10)
+          const holdStartRollAlpha = easedRoll * MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA
           agentBehavior.current = {
             ...agentBehavior.current,
             stage: 'hold',
             stageStartedAt: now,
             holdUntil: now + MOLA_SUN_BASK_DURATION,
+            holdStartRollAlpha,
           }
           agentHasTarget.current = false
           agentBehaviorDistance.current = 0
@@ -2565,12 +2581,25 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               return easedProgress * MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA
             })()
           : (behavior.stage === 'hold'
-            ? 1
+            ? (() => {
+                const completionAlpha = THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_HOLD_ROLL_COMPLETE_DURATION, 0, 1)
+                const easedCompletion = completionAlpha * completionAlpha * (3 - 2 * completionAlpha)
+                return THREE.MathUtils.lerp(behavior.holdStartRollAlpha ?? MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA, 1, easedCompletion)
+              })()
             : (behavior.stage === 'exit'
               ? 1 - THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
               : 0))
         bankQuaternion.setFromAxisAngle(pitchedForward, (behavior.side ?? 1) * Math.PI * 0.5 * rollAlpha)
         fish.quaternion.premultiply(bankQuaternion)
+        if (behavior.stage === 'hold') {
+          const driftElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))
+          const yawDrift = Math.sin(driftElapsed * 0.19 + motion.bobPhase * 1.7) * MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE
+          const rollDrift = Math.sin(driftElapsed * 0.27 + motion.bobPhase * 2.3 + 1.1) * MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE
+          bankQuaternion.setFromAxisAngle(up, yawDrift)
+          fish.quaternion.premultiply(bankQuaternion)
+          bankQuaternion.setFromAxisAngle(pitchedForward, rollDrift)
+          fish.quaternion.premultiply(bankQuaternion)
+        }
       }
     } else {
       lookTarget.copy(fish.position).add(pitchedForward)

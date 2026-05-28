@@ -2224,10 +2224,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + MOLA_SUN_BASK_DURATION
           playAnimation(resolveMoveAnimation(model, agentBehavior.current.side < 0 ? 'sunBaskLeft' : 'sunBaskRight'))
         } else if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'exit') {
-          agentBehavior.current = null
-          agentHasTarget.current = false
-          agentBehaviorDistance.current = 0
-          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
+          const exitElapsed = Math.max(0, now - (agentBehavior.current.stageStartedAt ?? agentBehaviorStartedAt.current))
+          if (exitElapsed >= MOLA_SUN_BASK_EXIT_ROLL_DURATION) {
+            agentBehavior.current = null
+            agentHasTarget.current = false
+            agentBehaviorDistance.current = 0
+            nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
+          } else {
+            agentBehavior.current = {
+              ...agentBehavior.current,
+              exitArrivedAt: agentBehavior.current.exitArrivedAt ?? now,
+            }
+            agentHasTarget.current = false
+            agentBehaviorDistance.current = 0
+          }
         } else {
           agentBehavior.current = null
           agentHasTarget.current = false
@@ -2301,6 +2311,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             agentHasTarget.current = false
             nextAgentRetargetAt.current = now + AGENT_BEHAVIOR_RETRY_COOLDOWN
           }
+        }
+      }
+
+      if (agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'exit') {
+        const exitElapsed = Math.max(0, now - (agentBehavior.current.stageStartedAt ?? agentBehaviorStartedAt.current))
+        if (exitElapsed >= MOLA_SUN_BASK_EXIT_ROLL_DURATION && !agentHasTarget.current) {
+          agentBehavior.current = null
+          agentBehaviorDistance.current = 0
+          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
         }
       }
 
@@ -2796,7 +2815,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         animationSpeedScaleRef.current = 1
       }
 
-      const bank = THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
+      const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask'
+      const bank = suppressProceduralBank ? 0 : THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
       bankQuaternion.setFromAxisAngle(pitchedForward, -bank)
       fish.quaternion.premultiply(bankQuaternion)
 

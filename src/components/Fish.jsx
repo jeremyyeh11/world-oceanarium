@@ -144,6 +144,7 @@ const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
 const MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS = 1.75
 const MOLA_RUNTIME_OVERSHOOT_XZ_MIN = 9.0
 const MOLA_RUNTIME_OVERSHOOT_XZ_MAX = 18.0
+const SOLO_AGENT_RUNTIME_RECOVERY_AFTER_FOLLOW_DELAY = 1.0
 const MOLA_DEEP_ZONE_Z_MAX = -10
 const MOLA_FRONT_EXCURSION_CHANCE = 0.24
 const MOLA_FRONT_TARGET_COUNT = [1, 2]
@@ -1882,6 +1883,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
   const agentDepthMode = useRef('deep')
   const agentDepthTargetsRemaining = useRef(0)
   const lastSunBaskAt = useRef(-Infinity)
+  const wasZoomActive = useRef(false)
+  const runtimeRecoveryResumeAt = useRef(0)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -2042,6 +2045,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
     if (!fish) return
 
     const now = clock.getElapsedTime()
+    if (zoomActive) {
+      runtimeRecoveryResumeAt.current = Infinity
+    } else if (wasZoomActive.current) {
+      runtimeRecoveryResumeAt.current = now + SOLO_AGENT_RUNTIME_RECOVERY_AFTER_FOLLOW_DELAY
+    }
+    wasZoomActive.current = zoomActive
+
     if (isSchooling) {
       const noise = organicNoise.current
       const rand = organicRand.current
@@ -2292,7 +2302,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         fish.position.addScaledVector(agentMoveDirection, movementScale)
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection)
-        if (clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)) {
+        const runtimeRecoveryEnabled = !zoomActive && now >= runtimeRecoveryResumeAt.current
+        if (runtimeRecoveryEnabled && clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)) {
           agentRuntimeClamp.copy(fish.position)
           clampToSwimBounds(agentRuntimeClamp, bounds)
           agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)

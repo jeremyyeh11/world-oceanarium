@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_92`.
+Status: in progress as `v0.8.0-dev_93`.
 
 ### Creature behavior
 
@@ -104,6 +104,7 @@ Status: in progress as `v0.8.0-dev_92`.
 - Flips the Mola left/right sun-bask clip mapping so the side-up roll uses the visually matching `sun_bask_l` / `sun_bask_r` animation.
 - Starts the Mola side-up sun-bask roll during the swimming approach instead of after it stops, slows roll-in/roll-out, tightens approach arrival so it reaches the near-surface target before holding, doubles bask hold time to `60s`, and adds small independent XYZ ocean-drift motion during the stationary bask pose.
 - Adds a mobile-friendly debug action button: while debug mode is on and a Mola is selected/followed, tap `bask` in the debug panel to queue the same natural sun-bask behavior as `Ctrl+Shift+X`.
+- Retimes the Mola sun-bask approach roll from elapsed-time based to distance-progress based with eased-in interpolation, so it only reaches the full side-up pose as the fish arrives and starts basking instead of rotating fully too early mid-approach.
 
 ## v0.7.9 — Sardine texture refresh
 

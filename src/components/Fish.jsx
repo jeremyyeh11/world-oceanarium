@@ -165,7 +165,6 @@ const MOLA_SUN_BASK_COOLDOWN = 75
 const MOLA_SUN_BASK_DURATION = 60
 const MOLA_SUN_BASK_APPROACH_Z = [-6, 0]
 const MOLA_SUN_BASK_EXIT_BODY_LENGTHS = 3.0
-const MOLA_SUN_BASK_ROLL_DURATION = 12
 const MOLA_SUN_BASK_EXIT_ROLL_DURATION = 10
 const MOLA_SUN_BASK_REACHED_BODY_LENGTHS = 0.08
 const MOLA_SUN_BASK_REACHED_MAX = 0.75
@@ -2229,7 +2228,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
         if (sunBaskDestination) {
           const side = agentRand.current() < 0.5 ? -1 : 1
-          agentBehavior.current = { type: 'sun-bask', stage: 'approach', side, stageStartedAt: now, holdUntil: 0 }
+          const approachDistance = Math.max(0.001, position.distanceTo(sunBaskDestination))
+          agentBehavior.current = { type: 'sun-bask', stage: 'approach', side, stageStartedAt: now, holdUntil: 0, approachDistance }
           sunBaskQueued.current = false
           agentBehaviorStartedAt.current = now
           agentBehaviorDistance.current = 0
@@ -2531,7 +2531,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const behavior = agentBehavior.current
         const stageElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))
         const rollAlpha = behavior.stage === 'approach'
-          ? THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_ROLL_DURATION, 0, 1)
+          ? (() => {
+              const plannedDistance = Math.max(0.001, behavior.approachDistance ?? 0)
+              const remainingDistance = agentHasTarget.current ? fish.position.distanceTo(agentTarget.current) : 0
+              const distanceProgress = plannedDistance > 0.001
+                ? 1 - (remainingDistance / plannedDistance)
+                : agentBehaviorDistance.current / Math.max(0.001, agentBehaviorDistance.current + remainingDistance)
+              const progress = THREE.MathUtils.clamp(distanceProgress, 0, 1)
+              return progress * progress * (3 - 2 * progress)
+            })()
           : (behavior.stage === 'hold'
             ? 1
             : (behavior.stage === 'exit'

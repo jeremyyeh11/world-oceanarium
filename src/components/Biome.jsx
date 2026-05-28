@@ -36,7 +36,7 @@ function deterministicSchoolOrder(creature) {
   return hashString(`${creature.species}:${creature.biome}:${creature.depthZone}:${creature.id}`)
 }
 
-export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, onCreatureClick, onCreatureReady }) {
+export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   const visibleCreatures = useMemo(
     () => creatures.filter(c => c.biome === name && c.alive),
     [creatures, name],
@@ -95,6 +95,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
             school={schoolByCreatureId.get(creature.id) ?? null}
             onClick={onCreatureClick}
             onReady={onCreatureReady}
+            onRuntimeRecoveryNeeded={onRuntimeRecoveryNeeded}
           />
         )
       })}

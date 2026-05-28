@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_84`.
+Status: in progress as `v0.8.0-dev_85`.
 
 ### Creature behavior
 
@@ -97,6 +97,7 @@ Status: in progress as `v0.8.0-dev_84`.
 - Adds a debug-only sunfish follow shortcut: while debug mode is on and a Mola is selected/followed, `Ctrl+Shift+X` queues sun-basking as the next solo-agent behavior after the current behavior completes.
 - Adds an explicit solo-agent debug `queue` line between `behavior` and `animation`, showing `none` or the queued next action.
 - Removes the remaining Mola boundary-tangent steering near destination bounds and tightens Mola behavior completion from nearly one body length to a small center-distance threshold, preventing visible mid-route retargets/sharp turns near screen edges.
+- When the selected solo agent hits the offscreen hard-recovery envelope during follow mode, exits follow mode first, then lets the existing delayed outer-envelope correction/retarget happen in tank view so the hard correction is hidden from the user.
 
 ## v0.7.9 — Sardine texture refresh
 

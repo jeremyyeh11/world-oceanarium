@@ -141,6 +141,9 @@ const SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS = 0.18
 const SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS = 0.55
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MIN = 2.0
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
+const MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS = 1.75
+const MOLA_RUNTIME_OVERSHOOT_XZ_MIN = 9.0
+const MOLA_RUNTIME_OVERSHOOT_XZ_MAX = 18.0
 const MOLA_DEEP_ZONE_Z_MAX = -10
 const MOLA_FRONT_EXCURSION_CHANCE = 0.24
 const MOLA_FRONT_TARGET_COUNT = [1, 2]
@@ -460,17 +463,24 @@ function clampToSwimBounds(point, bounds) {
   return point
 }
 
-function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength) {
-  const margin = THREE.MathUtils.clamp(
+function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength, creature) {
+  const verticalMargin = THREE.MathUtils.clamp(
     bodyLength * SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS,
     SOLO_AGENT_RUNTIME_OVERSHOOT_MIN,
     SOLO_AGENT_RUNTIME_OVERSHOOT_MAX,
   )
+  const horizontalMargin = isMolaCreature(creature)
+    ? THREE.MathUtils.clamp(
+      bodyLength * MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS,
+      MOLA_RUNTIME_OVERSHOOT_XZ_MIN,
+      MOLA_RUNTIME_OVERSHOOT_XZ_MAX,
+    )
+    : verticalMargin
   agentRuntimeClamp.copy(point)
-  agentRuntimeClamp.z = THREE.MathUtils.clamp(agentRuntimeClamp.z, bounds.zMin - margin, bounds.zMax + margin)
+  agentRuntimeClamp.z = THREE.MathUtils.clamp(agentRuntimeClamp.z, bounds.zMin - horizontalMargin, bounds.zMax + horizontalMargin)
   const { xMin, xMax } = swimXRangeAtZ(bounds, agentRuntimeClamp.z)
-  agentRuntimeClamp.x = THREE.MathUtils.clamp(agentRuntimeClamp.x, xMin - margin, xMax + margin)
-  agentRuntimeClamp.y = THREE.MathUtils.clamp(agentRuntimeClamp.y, bounds.yMin - margin, bounds.yMax + margin)
+  agentRuntimeClamp.x = THREE.MathUtils.clamp(agentRuntimeClamp.x, xMin - horizontalMargin, xMax + horizontalMargin)
+  agentRuntimeClamp.y = THREE.MathUtils.clamp(agentRuntimeClamp.y, bounds.yMin - verticalMargin, bounds.yMax + verticalMargin)
   const clamped = agentRuntimeClamp.distanceToSquared(point) > 0.000001
   if (clamped) point.copy(agentRuntimeClamp)
   return clamped
@@ -2282,7 +2292,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, h
         fish.position.addScaledVector(agentMoveDirection, movementScale)
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection)
-        if (clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength)) {
+        if (clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)) {
           agentRuntimeClamp.copy(fish.position)
           clampToSwimBounds(agentRuntimeClamp, bounds)
           agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)

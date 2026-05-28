@@ -163,7 +163,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
   useEffect(() => {
     const queueSunBaskOnShortcut = (event) => {
-      if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.key.toLowerCase() !== 'x') return
+      const isSunBaskShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && (event.code === 'KeyX' || event.key?.toLowerCase() === 'x')
+      if (!isSunBaskShortcut) return
       if (!debugMode || !selectedCreature || !isSunfishCreature(selectedCreature)) return
       event.preventDefault()
       setDebugSunBaskRequestId(current => current + 1)

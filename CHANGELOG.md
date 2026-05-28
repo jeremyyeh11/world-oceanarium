@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_85`.
+Status: in progress as `v0.8.0-dev_86`.
 
 ### Creature behavior
 
@@ -98,6 +98,7 @@ Status: in progress as `v0.8.0-dev_85`.
 - Adds an explicit solo-agent debug `queue` line between `behavior` and `animation`, showing `none` or the queued next action.
 - Removes the remaining Mola boundary-tangent steering near destination bounds and tightens Mola behavior completion from nearly one body length to a small center-distance threshold, preventing visible mid-route retargets/sharp turns near screen edges.
 - When the selected solo agent hits the offscreen hard-recovery envelope during follow mode, exits follow mode first, then lets the existing delayed outer-envelope correction/retarget happen in tank view so the hard correction is hidden from the user.
+- Makes the debug Mola sun-bask shortcut immediate instead of queued behind the current behavior: `Ctrl+Shift+X` now interrupts the active solo-agent behavior, forces a near-surface sun-bask approach target with a fallback if the normal forward-cone sampler rejects, then enters the side-up bask hold with the mapped `sun_bask_l` / `sun_bask_r` clip.
 
 ## v0.7.9 — Sardine texture refresh
 

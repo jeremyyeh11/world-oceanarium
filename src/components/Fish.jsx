@@ -686,6 +686,25 @@ function pickMolaSunBaskTarget(out, creature, swim, rand, from, forward) {
   return null
 }
 
+function forceMolaSunBaskTarget(out, creature, swim, rand, from, forward) {
+  const normalTarget = pickMolaSunBaskTarget(out, creature, swim, rand, from, forward)
+  if (normalTarget) return normalTarget
+
+  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const zMin = Math.max(bounds.zMin, MOLA_SUN_BASK_APPROACH_Z[0])
+  const zMax = Math.min(bounds.zMax, MOLA_SUN_BASK_APPROACH_Z[1])
+  const minZ = Math.min(zMin, zMax)
+  const maxZ = Math.max(zMin, zMax)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const forwardZ = Number.isFinite(forward?.z) ? forward.z : 0
+  const candidateZ = (from?.z ?? (minZ + maxZ) * 0.5) + forwardZ * Math.max(1.2, bodyLength * 0.8)
+  const targetZ = THREE.MathUtils.clamp(candidateZ, minZ, maxZ)
+  const { xMin, xMax } = swimXRangeAtZ(bounds, targetZ)
+  const targetX = THREE.MathUtils.clamp(from?.x ?? 0, xMin, xMax)
+  out.set(targetX, molaSurfaceCenterYMax(creature, swim, bounds), targetZ)
+  return out
+}
+
 function pickMolaSunBaskExitTarget(out, creature, swim, from, forward) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
@@ -1906,6 +1925,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const lastSunBaskAt = useRef(-Infinity)
   const sunBaskQueued = useRef(false)
   const queuedSunBaskRequestId = useRef(0)
+  const pendingSunBaskForceRequestId = useRef(0)
   const lastFollowRecoveryExitAt = useRef(-Infinity)
   const wasZoomActive = useRef(false)
   const runtimeRecoveryResumeAt = useRef(0)
@@ -1989,6 +2009,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (!debugSunBaskRequestId || debugSunBaskRequestId === queuedSunBaskRequestId.current) return
     if (!debug || !selected || !zoomActive || !isMolaCreature(creature)) return
     queuedSunBaskRequestId.current = debugSunBaskRequestId
+    pendingSunBaskForceRequestId.current = debugSunBaskRequestId
     sunBaskQueued.current = true
   }, [creature, debug, debugSunBaskRequestId, selected, zoomActive])
 
@@ -2035,6 +2056,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     lastSunBaskAt.current = -Infinity
     sunBaskQueued.current = false
     queuedSunBaskRequestId.current = 0
+    pendingSunBaskForceRequestId.current = 0
   }, [creature.id, creature.species])
 
   useEffect(() => {
@@ -2178,6 +2200,29 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       currentForward.normalize()
 
       const bodyLength = creatureBodyLength(creature, swim)
+      if (pendingSunBaskForceRequestId.current && isMolaCreature(creature)) {
+        const sunBaskDestination = forceMolaSunBaskTarget(agentCandidateTarget, creature, swim, agentRand.current, position, currentForward)
+        const side = agentRand.current() < 0.5 ? -1 : 1
+        agentBehavior.current = { type: 'sun-bask', stage: 'approach', side, stageStartedAt: now, holdUntil: 0, forced: true }
+        agentBehaviorStartedAt.current = now
+        agentBehaviorDistance.current = 0
+        lastSunBaskAt.current = now
+        sunBaskQueued.current = false
+        pendingSunBaskForceRequestId.current = 0
+        agentTarget.current.copy(sunBaskDestination)
+        agentHasTarget.current = true
+        agentDepthMode.current = 'front'
+        agentDepthTargetsRemaining.current = 0
+        driftUntil.current = 0
+        animationHoldUntil.current = 0
+        animationCooldown.current = 0
+        agentPath.current = makeSoloAgentSteeringDebugPath(creature, swim, position, currentForward, agentTarget.current)
+        agentPathProgress.current = 0
+        agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
+        pathRef.current = agentPath.current
+        pathLengthRef.current = agentPathLength.current
+        setPath(agentPath.current)
+      }
       const reachedDistance = soloAgentReachedDistance(creature, bodyLength)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
       if (agentBehavior.current && targetDistance <= reachedDistance) {

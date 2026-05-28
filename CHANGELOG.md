@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_101`.
+Status: in progress as `v0.8.0-dev_102`.
 
 ### Creature behavior
 
@@ -113,6 +113,7 @@ Status: in progress as `v0.8.0-dev_101`.
 - Smooths the sun-bask exit transition by preserving the current drift yaw/roll offsets at exit start and fading them out over the exit roll-down, while also easing the roll-down curve instead of linearly dropping from the side-up pose.
 - Replaces the Mola GLB with Jeremy's refreshed upload after verifying GLB header/chunks, buffer bounds, mesh/material/skin counts, and all seven expected animation clips (`slow_cruise`, `bank_l`, `bank_r`, `burst`, `idle_drift`, `sun_bask_l`, `sun_bask_r`).
 - Fixes first-tap mobile audio enable: the audio button now treats the pre-unlocked state as “start audio” even if the global gesture unlock already ran on `pointerdown`, and the audio UI only marks the graph started once the `AudioContext` reports `running` so failed mobile unlock attempts do not show a false-on mute button.
+- Removes the remaining Mola sun-bask exit snap by keeping the exit behavior alive until roll-down finishes even if the exit destination is reached early, and suppresses generic procedural turn banking while any sun-bask stage owns the side-up pose.
 
 ## v0.7.9 — Sardine texture refresh
 

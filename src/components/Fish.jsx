@@ -29,7 +29,17 @@ const TANK_CAMERA_ASPECT = 16 / 9
 const SCREEN_X_SAFE_FRACTION = 0.78
 const GLOBAL_X_DESTINATION_RANGE_SCALE = 0.9
 
-const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+function speciesLookupKeys(species) {
+  return [
+    species.id,
+    species.name,
+    species.scientificName,
+    ...(species.legacyIds ?? []),
+    ...(species.legacyNames ?? []),
+  ].filter(Boolean)
+}
+
+const SPECIES_BY_KEY = new Map(SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])))
 const SARDINE_MATERIAL_ROUGHNESS = 0.2
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
@@ -284,7 +294,7 @@ function randomRangeFromPair(rand, pair, fallback) {
 }
 
 function resolveSpecies(creature) {
-  return SPECIES_BY_NAME.get(creature.species)
+  return SPECIES_BY_KEY.get(creature?.species)
 }
 
 function resolveSwimProfile(creature) {
@@ -624,7 +634,8 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
 }
 
 function isMolaCreature(creature) {
-  return creature.species === 'mola-alexandrini' || creature.species === 'mola-mola'
+  const species = resolveSpecies(creature)
+  return species?.id === 'mola-alexandrini' || creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
 }
 
 function molaSurfaceCenterYMax(creature, swim, bounds) {
@@ -1974,8 +1985,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
   useEffect(() => {
     if (!debugSunBaskRequestId || debugSunBaskRequestId === queuedSunBaskRequestId.current) return
-    queuedSunBaskRequestId.current = debugSunBaskRequestId
     if (!debug || !selected || !zoomActive || !isMolaCreature(creature)) return
+    queuedSunBaskRequestId.current = debugSunBaskRequestId
     sunBaskQueued.current = true
   }, [creature, debug, debugSunBaskRequestId, selected, zoomActive])
 

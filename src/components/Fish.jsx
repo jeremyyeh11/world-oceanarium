@@ -162,12 +162,15 @@ const MOLA_FRONT_TARGET_COUNT = [1, 2]
 const MOLA_DEEP_TARGET_COUNT = [4, 7]
 const MOLA_SUN_BASK_CHANCE = 0.16
 const MOLA_SUN_BASK_COOLDOWN = 75
-const MOLA_SUN_BASK_DURATION = 30
+const MOLA_SUN_BASK_DURATION = 60
 const MOLA_SUN_BASK_APPROACH_Z = [-6, 0]
 const MOLA_SUN_BASK_EXIT_BODY_LENGTHS = 3.0
-const MOLA_SUN_BASK_ROLL_DURATION = 6
-const MOLA_SUN_BASK_EXIT_ROLL_DURATION = 5
-const MOLA_SUN_BASK_DRIFT_AMPLITUDE = 0.08
+const MOLA_SUN_BASK_ROLL_DURATION = 12
+const MOLA_SUN_BASK_EXIT_ROLL_DURATION = 10
+const MOLA_SUN_BASK_REACHED_BODY_LENGTHS = 0.08
+const MOLA_SUN_BASK_REACHED_MAX = 0.75
+const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
+const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
 const MOLA_SURFACE_CENTER_CLEARANCE_MIN = 3.6
 const MOLA_SURFACE_CENTER_CLEARANCE_MAX = 4.85
@@ -2183,7 +2186,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       currentForward.normalize()
 
       const bodyLength = creatureBodyLength(creature, swim)
-      const reachedDistance = soloAgentReachedDistance(creature, bodyLength)
+      const reachedDistance = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'approach'
+        ? Math.min(bodyLength * MOLA_SUN_BASK_REACHED_BODY_LENGTHS, MOLA_SUN_BASK_REACHED_MAX)
+        : soloAgentReachedDistance(creature, bodyLength)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
       if (agentBehavior.current && targetDistance <= reachedDistance) {
         if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
@@ -2321,12 +2326,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (sunBaskHolding) {
         desiredDirection.current.copy(tangent)
         agentMoveDirection.copy(tangent)
-        const driftPhase = (now - agentBehavior.current.stageStartedAt) * 0.45 + motion.bobPhase
-        fish.position.x += Math.sin(driftPhase) * MOLA_SUN_BASK_DRIFT_AMPLITUDE * delta
-        fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_AMPLITUDE * delta
+        const driftElapsed = now - agentBehavior.current.stageStartedAt
+        const driftPhase = driftElapsed * 0.45 + motion.bobPhase
+        fish.position.x += Math.sin(driftPhase) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * delta
+        fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * delta
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         velocity.current = THREE.MathUtils.damp(velocity.current, 0, 1.4, delta)
-        fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSunBaskSurfaceCenterYMax(creature, swim, bounds), 1.2, delta)
+        const driftY = Math.sin(driftPhase * 0.57 + 1.7) * MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE
+        fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSunBaskSurfaceCenterYMax(creature, swim, bounds) + driftY, 1.2, delta)
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
         agentBehaviorDistance.current = 0
       } else {
@@ -2523,11 +2530,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (agentBehavior.current?.type === 'sun-bask') {
         const behavior = agentBehavior.current
         const stageElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))
-        const rollAlpha = behavior.stage === 'hold'
+        const rollAlpha = behavior.stage === 'approach'
           ? THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_ROLL_DURATION, 0, 1)
-          : (behavior.stage === 'exit'
-            ? 1 - THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
-            : 0)
+          : (behavior.stage === 'hold'
+            ? 1
+            : (behavior.stage === 'exit'
+              ? 1 - THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
+              : 0))
         bankQuaternion.setFromAxisAngle(pitchedForward, (behavior.side ?? 1) * Math.PI * 0.5 * rollAlpha)
         fish.quaternion.premultiply(bankQuaternion)
       }

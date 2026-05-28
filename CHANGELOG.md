@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_89`.
+Status: in progress as `v0.8.0-dev_90`.
 
 ### Creature behavior
 
@@ -100,7 +100,7 @@ Status: in progress as `v0.8.0-dev_89`.
 - When the selected solo agent hits the offscreen hard-recovery envelope during follow mode, exits follow mode first, then waits until the tank camera has returned to its original default pose before allowing the hard outer-envelope correction/retarget, so the hard correction happens only after the follow-return camera motion is complete.
 - Keeps the debug Mola sun-bask shortcut naturalistic: while debug mode is on and a Mola is selected/followed, `Ctrl+Shift+X` queues sun-basking as the next solo-agent behavior instead of interrupting the current behavior.
 - Adjusts the Mola basking pose lifecycle so the approach stays normal/upright, then the Mola rolls side-up during the surface hold while playing `sun_bask_l` / `sun_bask_r`, and rolls back down during exit.
-- Moves Mola sun-bask targets/holds closer to the surface with a separate basking surface clearance (`0.32x` body length, clamped to `2.45–3.25 WU`) while preserving the larger normal Mola surface ceiling for cruise motion.
+- Moves Mola sun-bask targets/holds closer to the surface with a separate basking surface clearance (`0.12x` body length, clamped to `0.85–1.25 WU`) while preserving the larger normal Mola surface ceiling for cruise motion.
 - Flips the Mola left/right sun-bask clip mapping so the side-up roll uses the visually matching `sun_bask_l` / `sun_bask_r` animation.
 
 ## v0.7.9 — Sardine texture refresh

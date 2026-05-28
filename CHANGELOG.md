@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_94`.
+Status: in progress as `v0.8.0-dev_95`.
 
 ### Creature behavior
 
@@ -106,6 +106,7 @@ Status: in progress as `v0.8.0-dev_94`.
 - Adds a mobile-friendly debug action button: while debug mode is on and a Mola is selected/followed, tap `bask` in the debug panel to queue the same natural sun-bask behavior as `Ctrl+Shift+X`.
 - Retimes the Mola sun-bask approach roll from elapsed-time based to distance-progress based with eased-in interpolation, so it only reaches the full side-up pose as the fish arrives and starts basking instead of rotating fully too early mid-approach.
 - Clamps follow-camera X/Z inside the water-surface plane footprint, matching the existing Y ceiling, so zooming/orbiting out during follow mode cannot pull the camera beyond the surface card and reveal space above/outside the water.
+- Expands the water-surface plane width by `3x` while scaling the procedural surface UVs in X by the same factor, preserving shimmer/glint density instead of stretching the texture across the wider top surface.
 
 ## v0.7.9 — Sardine texture refresh
 

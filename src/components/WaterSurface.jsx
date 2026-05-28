@@ -61,26 +61,27 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
   void main() {
     vec2 uv = vUv;
+    vec2 patternUv = vec2(uv.x * 3.0, uv.y);
 
     // Large Perlin mask makes the fake caustics occasional: bright streaks
     // appear mostly in mask-active regions, while inactive regions stay darker.
-    float largePerlin = perlinNoise(uv * vec2(12.8, 5.8) + vec2(uTime * 0.036, -uTime * 0.020));
+    float largePerlin = perlinNoise(patternUv * vec2(12.8, 5.8) + vec2(uTime * 0.036, -uTime * 0.020));
     float occasionMask = smoothstep(0.46, 0.64, largePerlin);
 
     // Stretch noise horizontally so the ceiling reads as broken shimmer streaks,
     // not broad cloud blobs. Two offset bands slide against each other cheaply.
-    vec2 bandUvA = uv * vec2(78.0, 15.6) + vec2(uTime * 0.090, uTime * 0.020);
-    vec2 bandUvB = uv * vec2(174.0, 25.2) + vec2(-uTime * 0.170, uTime * 0.052);
+    vec2 bandUvA = patternUv * vec2(78.0, 15.6) + vec2(uTime * 0.090, uTime * 0.020);
+    vec2 bandUvB = patternUv * vec2(174.0, 25.2) + vec2(-uTime * 0.170, uTime * 0.052);
     float bandsA = fbm(bandUvA);
     float bandsB = noise(bandUvB);
-    float fine = noise(uv * vec2(354.0, 48.0) + vec2(uTime * 0.320, -uTime * 0.070));
+    float fine = noise(patternUv * vec2(354.0, 48.0) + vec2(uTime * 0.320, -uTime * 0.070));
 
     // Cross-panned interference layer: two different procedural noise fields
     // slide in opposing directions, then multiply into a sharper caustic mask.
     // This mask drives the main color lerp so the surface reads less like one
     // blob texture and more like moving water interference.
-    float crossNoiseA = noise(uv * vec2(96.0, 21.0) + vec2(uTime * 0.140, -uTime * 0.036));
-    float crossNoiseB = noise(uv * vec2(41.0, 33.0) + vec2(-uTime * 0.104, uTime * 0.068));
+    float crossNoiseA = noise(patternUv * vec2(96.0, 21.0) + vec2(uTime * 0.140, -uTime * 0.036));
+    float crossNoiseB = noise(patternUv * vec2(41.0, 33.0) + vec2(-uTime * 0.104, uTime * 0.068));
     float interference = crossNoiseA * crossNoiseB;
     float causticLerp = smoothstep(0.16, 0.58, interference);
 
@@ -91,10 +92,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
     // Sparse glints sit on top of the approved shimmer. Strong domain warp
     // bends the line field so it breaks into uneven patches instead of straight
     // uniform bands.
-    float glintWarp = fbm(uv * vec2(7.4, 3.2) + vec2(uTime * 0.020, -uTime * 0.014));
-    float glintBreaker = noise(uv * vec2(18.0, 4.6) + vec2(-uTime * 0.075, uTime * 0.026));
-    float glintWarpB = fbm(uv * vec2(13.0, 6.8) + vec2(-uTime * 0.035, uTime * 0.022));
-    vec2 glintUv = uv + vec2((glintWarp - 0.5) * 0.165 + (glintBreaker - 0.5) * 0.055, (glintWarpB - 0.5) * 0.130 + (glintBreaker - 0.5) * 0.070);
+    float glintWarp = fbm(patternUv * vec2(7.4, 3.2) + vec2(uTime * 0.020, -uTime * 0.014));
+    float glintBreaker = noise(patternUv * vec2(18.0, 4.6) + vec2(-uTime * 0.075, uTime * 0.026));
+    float glintWarpB = fbm(patternUv * vec2(13.0, 6.8) + vec2(-uTime * 0.035, uTime * 0.022));
+    vec2 glintUv = patternUv + vec2((glintWarp - 0.5) * 0.165 + (glintBreaker - 0.5) * 0.055, (glintWarpB - 0.5) * 0.130 + (glintBreaker - 0.5) * 0.070);
     float bendPhase = (glintWarp - 0.5) * 6.2 + (glintWarpB - 0.5) * 4.6 + (glintBreaker - 0.5) * 2.4;
     float glintA = sin(glintUv.x * 82.0 + glintUv.y * 17.0 + bendPhase + uTime * 0.42) * 0.5 + 0.5;
     float glintB = sin(glintUv.x * -37.0 + glintUv.y * 31.0 - bendPhase * 0.62 - uTime * 0.27) * 0.5 + 0.5;
@@ -131,7 +132,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
 export const SURFACE_PLANE_Y = 4.6
 export const SURFACE_PLANE_X = 0
 export const SURFACE_PLANE_Z = -4
-export const SURFACE_PLANE_WIDTH = 70
+export const SURFACE_PLANE_WIDTH = 210
 export const SURFACE_PLANE_DEPTH = 32
 
 const SURFACE_PLANE_POSITION = [SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z]

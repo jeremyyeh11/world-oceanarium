@@ -34,10 +34,26 @@ const DEBUG_LAYER_BUTTONS = [
 const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
-function isSunfishCreature(creature) {
-  return creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
+function speciesLookupKeys(species) {
+  return [
+    species.id,
+    species.name,
+    species.scientificName,
+    ...(species.legacyIds ?? []),
+    ...(species.legacyNames ?? []),
+  ].filter(Boolean)
 }
-const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+
+const SPECIES_BY_KEY = new Map(SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])))
+
+function resolveSpecies(creature) {
+  return SPECIES_BY_KEY.get(creature?.species)
+}
+
+function isSunfishCreature(creature) {
+  const species = resolveSpecies(creature)
+  return species?.id === 'mola-alexandrini' || creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
+}
 
 function summarizeRenderLoad(creatures, biomeId) {
   const visibleCreatures = creatures.filter(creature => creature.alive && creature.biome === biomeId)
@@ -64,7 +80,7 @@ function getTouchDistance(points) {
 }
 
 function creatureBodyLength(creature) {
-  const species = SPECIES_BY_NAME.get(creature?.species)
+  const species = resolveSpecies(creature)
   return (species?.swim?.bodyLengthWU ?? 1) * (creature?.size ?? 1)
 }
 

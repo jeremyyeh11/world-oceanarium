@@ -5,7 +5,17 @@ import OceanBubbles from './OceanBubbles'
 import SardineInstancedLayer from './SardineInstancedLayer'
 import { SPECIES } from '../data/species'
 
-const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+function speciesLookupKeys(species) {
+  return [
+    species.id,
+    species.name,
+    species.scientificName,
+    ...(species.legacyIds ?? []),
+    ...(species.legacyNames ?? []),
+  ].filter(Boolean)
+}
+
+const SPECIES_BY_KEY = new Map(SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])))
 const SCHOOL_MAX_SIZE = 64
 const ENABLE_SARDINE_INSTANCED_LAYER = true
 
@@ -33,7 +43,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
   )
   const schoolByCreatureId = useMemo(() => {
     const schoolingGroups = visibleCreatures.reduce((groups, creature) => {
-      const species = SPECIES_BY_NAME.get(creature.species)
+      const species = SPECIES_BY_KEY.get(creature.species)
       if (!species?.schooling) return groups
 
       const key = schoolKeyForCreature(creature)

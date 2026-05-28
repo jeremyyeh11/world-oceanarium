@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_100`.
+Status: in progress as `v0.8.0-dev_101`.
 
 ### Creature behavior
 
@@ -112,6 +112,7 @@ Status: in progress as `v0.8.0-dev_100`.
 - Adds subtle procedural yaw and extra roll drift during Mola sun-bask hold, layered over the side-up pose so basking feels like ocean drift rather than a fixed frozen orientation.
 - Smooths the sun-bask exit transition by preserving the current drift yaw/roll offsets at exit start and fading them out over the exit roll-down, while also easing the roll-down curve instead of linearly dropping from the side-up pose.
 - Replaces the Mola GLB with Jeremy's refreshed upload after verifying GLB header/chunks, buffer bounds, mesh/material/skin counts, and all seven expected animation clips (`slow_cruise`, `bank_l`, `bank_r`, `burst`, `idle_drift`, `sun_bask_l`, `sun_bask_r`).
+- Fixes first-tap mobile audio enable: the audio button now treats the pre-unlocked state as “start audio” even if the global gesture unlock already ran on `pointerdown`, and the audio UI only marks the graph started once the `AudioContext` reports `running` so failed mobile unlock attempts do not show a false-on mute button.
 
 ## v0.7.9 — Sardine texture refresh
 

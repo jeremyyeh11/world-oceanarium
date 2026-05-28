@@ -85,7 +85,7 @@ function getMasterTargetGain() {
 }
 
 function unlockAudioContext(context) {
-  if (!context) return
+  if (!context) return Promise.resolve(false)
 
   try {
     const buffer = context.createBuffer(1, 1, context.sampleRate)
@@ -97,9 +97,11 @@ function unlockAudioContext(context) {
     // Unlock pulse is best-effort for iOS Safari.
   }
 
-  if (context.state !== 'running') {
-    context.resume?.()
-  }
+  if (context.state === 'running') return Promise.resolve(true)
+
+  return Promise.resolve(context.resume?.())
+    .then(() => context.state === 'running')
+    .catch(() => false)
 }
 
 function createNoiseBuffer(context, seconds = 8) {
@@ -511,13 +513,24 @@ export function useOceanAudio() {
     if (!audio) return false
 
     clearSuspendTimer()
-    unlockAudioContext(audio.context)
+    const markStarted = () => {
+      mutedRef.current = false
+      startedRef.current = true
+      setStarted(true)
+      setMuted(false)
+      setMasterMuted(false)
+    }
 
-    mutedRef.current = false
-    startedRef.current = true
-    setStarted(true)
-    setMuted(false)
-    setMasterMuted(false)
+    unlockAudioContext(audio.context).then(unlocked => {
+      if (unlocked || audio.context.state === 'running') markStarted()
+    })
+
+    if (audio.context.state === 'running') markStarted()
+    else {
+      mutedRef.current = false
+      setMuted(false)
+      setMasterMuted(false)
+    }
     return true
   }, [clearSuspendTimer, ensureAudio, setMasterMuted])
 
@@ -550,16 +563,30 @@ export function useOceanAudio() {
     if (!audio) return
 
     clearSuspendTimer()
-    unlockAudioContext(audio.context)
 
     if (!startedRef.current) {
-      startedRef.current = true
-      setStarted(true)
-      mutedRef.current = false
-      setMuted(false)
-      setMasterMuted(false)
+      const markStarted = () => {
+        startedRef.current = true
+        setStarted(true)
+        mutedRef.current = false
+        setMuted(false)
+        setMasterMuted(false)
+      }
+
+      unlockAudioContext(audio.context).then(unlocked => {
+        if (unlocked || audio.context.state === 'running') markStarted()
+      })
+
+      if (audio.context.state === 'running') markStarted()
+      else {
+        mutedRef.current = false
+        setMuted(false)
+        setMasterMuted(false)
+      }
       return
     }
+
+    unlockAudioContext(audio.context)
 
     setMuted(current => {
       const nextMuted = !current

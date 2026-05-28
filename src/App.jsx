@@ -303,6 +303,15 @@ export default function App() {
     setScreenshotHelpVisible(true)
   }
 
+  const handleAudioToggle = () => {
+    if (!audioStarted) {
+      startAudio()
+      return
+    }
+
+    toggleAudioMuted()
+  }
+
   const toggleTopMenu = () => {
     setTopMenuOpen(current => !current)
   }
@@ -357,7 +366,7 @@ export default function App() {
                 aria-pressed={audioEnabled}
                 title={audioSupported ? undefined : 'Audio unavailable'}
                 disabled={!audioSupported}
-                onClick={toggleAudioMuted}
+                onClick={handleAudioToggle}
               >
                 <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
                   {!audioEnabled ? (

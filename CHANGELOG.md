@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_90`.
+Status: in progress as `v0.8.0-dev_91`.
 
 ### Creature behavior
 
@@ -102,6 +102,7 @@ Status: in progress as `v0.8.0-dev_90`.
 - Adjusts the Mola basking pose lifecycle so the approach stays normal/upright, then the Mola rolls side-up during the surface hold while playing `sun_bask_l` / `sun_bask_r`, and rolls back down during exit.
 - Moves Mola sun-bask targets/holds closer to the surface with a separate basking surface clearance (`0.12x` body length, clamped to `0.85–1.25 WU`) while preserving the larger normal Mola surface ceiling for cruise motion.
 - Flips the Mola left/right sun-bask clip mapping so the side-up roll uses the visually matching `sun_bask_l` / `sun_bask_r` animation.
+- Starts the Mola side-up sun-bask roll during the swimming approach instead of after it stops, slows roll-in/roll-out, tightens approach arrival so it reaches the near-surface target before holding, doubles bask hold time to `60s`, and adds small independent XYZ ocean-drift motion during the stationary bask pose.
 
 ## v0.7.9 — Sardine texture refresh
 

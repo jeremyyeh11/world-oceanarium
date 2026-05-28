@@ -15,9 +15,12 @@ const FOLLOW_TARGET_DAMPING = 2.8
 const FOLLOW_LOOK_DAMPING = 3.2
 const FOLLOW_POSITION_DAMPING = 4.0
 const DEFAULT_POSITION_DAMPING = 4.0
+const DEFAULT_CAMERA_SETTLED_POSITION_EPSILON = 0.06
+const DEFAULT_CAMERA_SETTLED_LOOK_EPSILON = 0.08
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 const defaultLookTarget = new THREE.Vector3()
+const defaultCameraPosition = new THREE.Vector3()
 const framedFocus = new THREE.Vector3()
 const initialFollowLookTarget = new THREE.Vector3()
 const currentCameraForward = new THREE.Vector3()
@@ -30,7 +33,7 @@ const pitchQuaternion = new THREE.Quaternion()
 
 const MAX_FOLLOW_CAMERA_Y = SURFACE_PLANE_Y - FOLLOW_SURFACE_CLEARANCE
 
-export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0 }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, onDefaultCameraSettledChange = null }) {
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
   const smoothedLookTarget = useRef(new THREE.Vector3())
@@ -39,7 +42,14 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   const hasSmoothedLookTarget = useRef(false)
   const hasSmoothedDefaultLookTarget = useRef(false)
   const previousFocusTarget = useRef(null)
+  const defaultCameraSettled = useRef(true)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
+
+  const setDefaultCameraSettled = (settled) => {
+    if (defaultCameraSettled.current === settled) return
+    defaultCameraSettled.current = settled
+    onDefaultCameraSettledChange?.(settled)
+  }
 
   useEffect(() => {
     camera.position.set(0, 0, DEFAULT_CAMERA_Z)
@@ -47,6 +57,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
 
   useFrame((_, delta) => {
     if (focusTarget) {
+      setDefaultCameraSettled(false)
       focusBounds.setFromObject(focusTarget)
       if (!focusBounds.isEmpty()) {
         focusBounds.getCenter(focusPosition)
@@ -138,6 +149,11 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     smoothedDefaultLookTarget.current.y = THREE.MathUtils.damp(smoothedDefaultLookTarget.current.y, defaultLookTarget.y, FOLLOW_LOOK_DAMPING, delta)
     smoothedDefaultLookTarget.current.z = THREE.MathUtils.damp(smoothedDefaultLookTarget.current.z, defaultLookTarget.z, FOLLOW_LOOK_DAMPING, delta)
     camera.lookAt(smoothedDefaultLookTarget.current)
+    defaultCameraPosition.set(0, 0, DEFAULT_CAMERA_Z)
+    setDefaultCameraSettled(
+      camera.position.distanceTo(defaultCameraPosition) <= DEFAULT_CAMERA_SETTLED_POSITION_EPSILON
+      && smoothedDefaultLookTarget.current.distanceTo(defaultLookTarget) <= DEFAULT_CAMERA_SETTLED_LOOK_EPSILON,
+    )
   })
 
   return null

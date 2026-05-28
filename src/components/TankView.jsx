@@ -118,6 +118,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
   const [followScreenOffset, setFollowScreenOffset] = useState(0)
   const [debugSunBaskRequestId, setDebugSunBaskRequestId] = useState(0)
+  const [defaultCameraSettled, setDefaultCameraSettled] = useState(true)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
   const performanceStatsRef = useRef({ fps: null })
@@ -514,7 +515,14 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <SceneLighting biome={biome.id} />
-          <Camera biome={biome.id} focusTarget={focusedFishRef?.current ?? null} followOrbit={followOrbit} followDistance={followDistance} followScreenOffset={followScreenOffset} />
+          <Camera
+            biome={biome.id}
+            focusTarget={focusedFishRef?.current ?? null}
+            followOrbit={followOrbit}
+            followDistance={followDistance}
+            followScreenOffset={followScreenOffset}
+            onDefaultCameraSettledChange={setDefaultCameraSettled}
+          />
           <Biome
             key={biome.id}
             name={biome.id}
@@ -523,6 +531,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
             debugSunBaskRequestId={debugSunBaskRequestId}
+            soloRuntimeRecoveryEnabled={!zoomActive && defaultCameraSettled}
             hideSelectionSilhouette={screenshotMode}
             debug={visibleDebugVisuals}
             debugView={debugView}

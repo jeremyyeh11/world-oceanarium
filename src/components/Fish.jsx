@@ -172,6 +172,9 @@ const MOLA_SUN_BASK_DRIFT_AMPLITUDE = 0.08
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
 const MOLA_SURFACE_CENTER_CLEARANCE_MIN = 3.6
 const MOLA_SURFACE_CENTER_CLEARANCE_MAX = 4.85
+const MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.32
+const MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_MIN = 2.45
+const MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_MAX = 3.25
 const SOLO_AGENT_RETRY_COOLDOWN = 1.2
 const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
 const AGENT_FORWARD_DESTINATION_MAX_ANGLE = Math.PI / 2
@@ -650,9 +653,20 @@ function molaSurfaceCenterYMax(creature, swim, bounds) {
   return Math.min(bounds.yMax, SURFACE_PLANE_Y - clearance)
 }
 
-function clampToMolaSurfaceCeiling(point, creature, swim, bounds, direction = null) {
+function molaSunBaskSurfaceCenterYMax(creature, swim, bounds) {
+  if (!isMolaCreature(creature)) return bounds.yMax
+  const bodyLength = creatureBodyLength(creature, swim)
+  const clearance = THREE.MathUtils.clamp(
+    bodyLength * MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS,
+    MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_MIN,
+    MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_MAX,
+  )
+  return Math.min(bounds.yMax, SURFACE_PLANE_Y - clearance)
+}
+
+function clampToMolaSurfaceCeiling(point, creature, swim, bounds, direction = null, yMaxOverride = null) {
   if (!isMolaCreature(creature)) return false
-  const maxY = molaSurfaceCenterYMax(creature, swim, bounds)
+  const maxY = Number.isFinite(yMaxOverride) ? yMaxOverride : molaSurfaceCenterYMax(creature, swim, bounds)
   if (point.y <= maxY) return false
   point.y = maxY
   if (direction && direction.y > 0) {
@@ -677,7 +691,7 @@ function pickMolaSunBaskTarget(out, creature, swim, rand, from, forward) {
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const targetZ = randomRange(rand, Math.min(zMin, zMax), Math.max(zMin, zMax))
     const targetX = randomXInSwimBoundsAtZ(rand, bounds, targetZ, 0.18, 0.82)
-    out.set(targetX, molaSurfaceCenterYMax(creature, swim, bounds), targetZ)
+    out.set(targetX, molaSunBaskSurfaceCenterYMax(creature, swim, bounds), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out
@@ -2321,8 +2335,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_AMPLITUDE * delta
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         velocity.current = THREE.MathUtils.damp(velocity.current, 0, 1.4, delta)
-        fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSurfaceCenterYMax(creature, swim, bounds), 1.2, delta)
-        clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection)
+        fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSunBaskSurfaceCenterYMax(creature, swim, bounds), 1.2, delta)
+        clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
         agentBehaviorDistance.current = 0
       } else {
         if (agentHasTarget.current) {
@@ -2336,7 +2350,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const movementScale = soloAgentSpeed * organicMotion.speedScale * delta
         fish.position.addScaledVector(agentMoveDirection, movementScale)
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-        clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection)
+        const surfaceYMax = agentBehavior.current?.type === 'sun-bask'
+          ? molaSunBaskSurfaceCenterYMax(creature, swim, bounds)
+          : null
+        clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
         const recoveryNeeded = clampToSoloAgentRuntimeEnvelope(agentRuntimeEnvelopeProbe.copy(fish.position), bounds, bodyLength, creature)
         if (zoomActive && selected && recoveryNeeded && now - lastFollowRecoveryExitAt.current > 1.0) {
           lastFollowRecoveryExitAt.current = now

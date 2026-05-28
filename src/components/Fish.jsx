@@ -168,6 +168,8 @@ const MOLA_SUN_BASK_EXIT_BODY_LENGTHS = 3.0
 const MOLA_SUN_BASK_EXIT_ROLL_DURATION = 10
 const MOLA_SUN_BASK_REACHED_BODY_LENGTHS = 0.08
 const MOLA_SUN_BASK_REACHED_MAX = 0.75
+const MOLA_SUN_BASK_APPROACH_MIN_SPEED_SCALE = 0.22
+const MOLA_SUN_BASK_APPROACH_DECEL_START = 0.45
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
@@ -2345,7 +2347,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         desiredDirection.current.copy(tangent)
         agentMoveDirection.copy(tangent)
         const soloAgentSpeed = Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed
-        const movementScale = soloAgentSpeed * organicMotion.speedScale * delta
+        const sunBaskApproaching = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'approach'
+        let approachSpeedScale = 1
+        if (sunBaskApproaching) {
+          const plannedDistance = Math.max(0.001, agentBehavior.current.approachDistance ?? 0)
+          const remainingDistance = agentHasTarget.current ? fish.position.distanceTo(agentTarget.current) : 0
+          const progressToBask = THREE.MathUtils.clamp(1 - (remainingDistance / plannedDistance), 0, 1)
+          const decelAlpha = THREE.MathUtils.clamp(
+            (progressToBask - MOLA_SUN_BASK_APPROACH_DECEL_START) / Math.max(0.001, 1 - MOLA_SUN_BASK_APPROACH_DECEL_START),
+            0,
+            1,
+          )
+          const easedDecel = decelAlpha * decelAlpha * (3 - 2 * decelAlpha)
+          approachSpeedScale = THREE.MathUtils.lerp(1, MOLA_SUN_BASK_APPROACH_MIN_SPEED_SCALE, easedDecel)
+        }
+        const movementScale = soloAgentSpeed * approachSpeedScale * organicMotion.speedScale * delta
         fish.position.addScaledVector(agentMoveDirection, movementScale)
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         const surfaceYMax = agentBehavior.current?.type === 'sun-bask'

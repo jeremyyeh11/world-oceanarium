@@ -1,7 +1,7 @@
 import { useThree, useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
-import { SURFACE_PLANE_Y } from './WaterSurface'
+import { SURFACE_PLANE_DEPTH, SURFACE_PLANE_WIDTH, SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z } from './WaterSurface'
 
 export const CAMERA_LIMITS = {
   ocean: { min: -50, max: 3 },
@@ -32,6 +32,11 @@ const yawQuaternion = new THREE.Quaternion()
 const pitchQuaternion = new THREE.Quaternion()
 
 const MAX_FOLLOW_CAMERA_Y = SURFACE_PLANE_Y - FOLLOW_SURFACE_CLEARANCE
+const FOLLOW_SURFACE_XZ_CLEARANCE = 1.25
+const MIN_FOLLOW_CAMERA_X = SURFACE_PLANE_X - SURFACE_PLANE_WIDTH * 0.5 + FOLLOW_SURFACE_XZ_CLEARANCE
+const MAX_FOLLOW_CAMERA_X = SURFACE_PLANE_X + SURFACE_PLANE_WIDTH * 0.5 - FOLLOW_SURFACE_XZ_CLEARANCE
+const MIN_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z - SURFACE_PLANE_DEPTH * 0.5 + FOLLOW_SURFACE_XZ_CLEARANCE
+const MAX_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z + SURFACE_PLANE_DEPTH * 0.5 - FOLLOW_SURFACE_XZ_CLEARANCE
 
 export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, onDefaultCameraSettledChange = null }) {
   const { camera } = useThree()
@@ -110,11 +115,15 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       framedFocus.copy(smoothedFocus.current).addScaledVector(THREE.Object3D.DEFAULT_UP, -visibleHeightAtFocus * followFramingShift)
 
       desiredCameraPosition.copy(framedFocus).add(followOffset)
+      desiredCameraPosition.x = THREE.MathUtils.clamp(desiredCameraPosition.x, MIN_FOLLOW_CAMERA_X, MAX_FOLLOW_CAMERA_X)
       desiredCameraPosition.y = Math.min(desiredCameraPosition.y, MAX_FOLLOW_CAMERA_Y)
+      desiredCameraPosition.z = THREE.MathUtils.clamp(desiredCameraPosition.z, MIN_FOLLOW_CAMERA_Z, MAX_FOLLOW_CAMERA_Z)
       camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredCameraPosition.x, FOLLOW_POSITION_DAMPING, delta)
       camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredCameraPosition.y, FOLLOW_POSITION_DAMPING, delta)
       camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredCameraPosition.z, FOLLOW_POSITION_DAMPING, delta)
+      camera.position.x = THREE.MathUtils.clamp(camera.position.x, MIN_FOLLOW_CAMERA_X, MAX_FOLLOW_CAMERA_X)
       camera.position.y = Math.min(camera.position.y, MAX_FOLLOW_CAMERA_Y)
+      camera.position.z = THREE.MathUtils.clamp(camera.position.z, MIN_FOLLOW_CAMERA_Z, MAX_FOLLOW_CAMERA_Z)
 
       if (!hasSmoothedLookTarget.current) {
         camera.getWorldDirection(currentCameraForward)

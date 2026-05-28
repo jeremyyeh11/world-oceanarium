@@ -2308,10 +2308,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         pickMolaSunBaskExitTarget(agentBaskExitTarget, creature, swim, fish.position, currentForward)
         agentTarget.current.copy(agentBaskExitTarget)
         agentHasTarget.current = true
+        const driftElapsed = Math.max(0, now - (agentBehavior.current.stageStartedAt ?? agentBehaviorStartedAt.current))
+        const exitStartYawDrift = Math.sin(driftElapsed * 0.19 + motion.bobPhase * 1.7) * MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE
+        const exitStartRollDrift = Math.sin(driftElapsed * 0.27 + motion.bobPhase * 2.3 + 1.1) * MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE
         agentBehavior.current = {
           ...agentBehavior.current,
           stage: 'exit',
           stageStartedAt: now,
+          exitStartRollAlpha: 1,
+          exitStartYawDrift,
+          exitStartRollDrift,
         }
         agentBehaviorDistance.current = 0
         animationHoldUntil.current = now + MOLA_SUN_BASK_EXIT_ROLL_DURATION
@@ -2587,14 +2593,25 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
                 return THREE.MathUtils.lerp(behavior.holdStartRollAlpha ?? MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA, 1, easedCompletion)
               })()
             : (behavior.stage === 'exit'
-              ? 1 - THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
+              ? (() => {
+                  const exitAlpha = THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
+                  const easedExit = exitAlpha * exitAlpha * (3 - 2 * exitAlpha)
+                  return THREE.MathUtils.lerp(behavior.exitStartRollAlpha ?? 1, 0, easedExit)
+                })()
               : 0))
         bankQuaternion.setFromAxisAngle(pitchedForward, (behavior.side ?? 1) * Math.PI * 0.5 * rollAlpha)
         fish.quaternion.premultiply(bankQuaternion)
-        if (behavior.stage === 'hold') {
+        if (behavior.stage === 'hold' || behavior.stage === 'exit') {
           const driftElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))
-          const yawDrift = Math.sin(driftElapsed * 0.19 + motion.bobPhase * 1.7) * MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE
-          const rollDrift = Math.sin(driftElapsed * 0.27 + motion.bobPhase * 2.3 + 1.1) * MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE
+          const driftFade = behavior.stage === 'exit'
+            ? 1 - THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
+            : 1
+          const yawDrift = behavior.stage === 'exit'
+            ? (behavior.exitStartYawDrift ?? 0) * driftFade
+            : Math.sin(driftElapsed * 0.19 + motion.bobPhase * 1.7) * MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE
+          const rollDrift = behavior.stage === 'exit'
+            ? (behavior.exitStartRollDrift ?? 0) * driftFade
+            : Math.sin(driftElapsed * 0.27 + motion.bobPhase * 2.3 + 1.1) * MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE
           bankQuaternion.setFromAxisAngle(up, yawDrift)
           fish.quaternion.premultiply(bankQuaternion)
           bankQuaternion.setFromAxisAngle(pitchedForward, rollDrift)

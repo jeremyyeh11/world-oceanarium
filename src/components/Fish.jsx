@@ -2597,7 +2597,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               clampToSwimBounds(agentRuntimeClamp, bounds)
             }
             agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
-            if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
+            if (!isMolaCreature(creature) && agentMoveDirection.lengthSq() > 0.0001) {
+              desiredDirection.current.copy(agentMoveDirection.normalize())
+            }
             fish.position.copy(agentRuntimeClamp)
             agentBehavior.current = null
             agentHasTarget.current = false

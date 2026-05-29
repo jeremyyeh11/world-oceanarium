@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_126`.
+Status: accepted and promoted as clean `v0.8.0`.
 
 ### Creature behavior
 

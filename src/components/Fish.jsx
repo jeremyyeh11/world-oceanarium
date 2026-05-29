@@ -7,6 +7,7 @@ import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
+import { removeSelectionOutlineTarget, setSelectionOutlineTarget } from './selectionOutlineRegistry'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -77,12 +78,7 @@ const DEFAULT_MOVESET = {
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
 const GLOBAL_ANIMATION_TIME_SCALE = 2
-const SELECTED_OUTLINE_COLOR = '#57c7e8'
-const LEADER_OUTLINE_COLOR = '#80ff72'
 const LOD0_DEBUG_COLOR = '#00ff28'
-const SELECTED_RIM_INTENSITY = 1.65
-const LEADER_RIM_INTENSITY = 0.8
-const RIM_POWER = 3.1
 const FISH_LIGHT_MASK_DIAGNOSTIC = true
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
 const SARDINE_VIEW_CULL_MARGIN_NDC = 1.28
@@ -1564,46 +1560,12 @@ function depthFadeFromScreenZ(z) {
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
 }
 
-function applyFresnelRim(material, color, intensity, power = RIM_POWER) {
-  const rimColor = new THREE.Color(color)
-  const rimKey = `${rimColor.getHexString()}:${intensity}:${power}`
-
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uRimColor = { value: rimColor }
-    shader.uniforms.uRimIntensity = { value: intensity }
-    shader.uniforms.uRimPower = { value: power }
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        `#include <common>
-uniform vec3 uRimColor;
-uniform float uRimIntensity;
-uniform float uRimPower;`
-      )
-      .replace(
-        '#include <dithering_fragment>',
-        `float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), uRimPower);
-gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
-#include <dithering_fragment>`
-      )
-  }
-  material.customProgramCacheKey = () => `fresnel-rim:${rimKey}`
-  material.needsUpdate = true
-}
-
-function applyFishLightMaskDiagnostic(material, rim = null) {
-  if (!FISH_LIGHT_MASK_DIAGNOSTIC && !rim) return
-  const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
-  const rimIntensity = rim?.intensity ?? 0
-  const rimPower = rim?.power ?? RIM_POWER
-  const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
+function applyFishLightMaskDiagnostic(material) {
+  if (!FISH_LIGHT_MASK_DIAGNOSTIC) return
   const maskUniforms = { uTime: { value: 0 } }
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
-    shader.uniforms.uRimColor = { value: rimColor }
-    shader.uniforms.uRimIntensity = { value: rimIntensity }
-    shader.uniforms.uRimPower = { value: rimPower }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -1625,32 +1587,27 @@ vFishWorldPosition = fishWorldPosition.xyz;`
         '#include <common>',
         `#include <common>
 uniform float uFishLightMaskTime;
-uniform vec3 uRimColor;
-uniform float uRimIntensity;
-uniform float uRimPower;
 varying vec3 vFishWorldPosition;`
       )
       .replace(
         '#include <dithering_fragment>',
-        `${FISH_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vFishWorldPosition;
+        `vec3 maskPos = vFishWorldPosition;
 float stripeA = sin(maskPos.x * 1.75 + maskPos.y * 0.85 + maskPos.z * 1.10 + uFishLightMaskTime * 0.46);
 float stripeB = sin(maskPos.x * -0.95 + maskPos.z * 2.15 - uFishLightMaskTime * 0.34);
 float lightMask = smoothstep(0.06, 0.46, stripeA + stripeB * 0.28);
 float shadowMask = smoothstep(0.08, 0.50, -stripeA + stripeB * 0.16);
 float topWeight = smoothstep(-8.0, 3.0, maskPos.y);
 float lightFactor = mix(0.68, 1.04, lightMask) * mix(0.82, 1.0, shadowMask);
-gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);` : ''}
-float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), uRimPower);
-gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
+gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);
 #include <dithering_fragment>`
       )
   }
-  material.customProgramCacheKey = () => `fish-light-mask-diagnostic:${FISH_LIGHT_MASK_DIAGNOSTIC ? 'on' : 'off'}:${rimKey}`
+  material.customProgramCacheKey = () => `fish-light-mask-diagnostic:${FISH_LIGHT_MASK_DIAGNOSTIC ? 'on' : 'off'}`
   material.userData.fishLightMaskUniforms = maskUniforms
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
+function applyModelMaterialSettings(root, lodDebugColor = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -1670,7 +1627,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
         nextMaterial.emissive.set(lodDebugColor)
         nextMaterial.emissiveIntensity = 0.32
       }
-      applyFishLightMaskDiagnostic(nextMaterial, rim)
+      applyFishLightMaskDiagnostic(nextMaterial)
       materials.push(nextMaterial)
       return nextMaterial
     })
@@ -1830,20 +1787,13 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   activeActionRef.current = nextAction
 }
 
-function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 }) {
+function MolaMolaPlaceholder({ species, swim }) {
   const dims = placeholderDimensions(species, swim)
   const bodyColor = species?.placeholder?.bodyColor ?? '#8fb8bc'
   const finColor = species?.placeholder?.finColor ?? '#6f9fa4'
-  const rim = rimColor ?? '#000000'
 
   return (
     <group raycast={() => null}>
-      {rimColor && (
-        <mesh scale={[dims.length * 1.04, dims.height * 1.04, dims.thickness * 1.08]}>
-          <sphereGeometry args={[0.5, 36, 18]} />
-          <meshBasicMaterial color={rim} transparent opacity={0.34} depthWrite={false} depthTest side={THREE.BackSide} />
-        </mesh>
-      )}
       <mesh scale={[dims.length, dims.height, dims.thickness]}>
         <sphereGeometry args={[0.5, 48, 24]} />
         <meshStandardMaterial color={bodyColor} roughness={0.46} metalness={0.02} envMapIntensity={0.9} />
@@ -1864,7 +1814,7 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
   )
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, rim = null, lodDebugColor = null }) {
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
@@ -1873,8 +1823,8 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   const materialsRef = useRef([])
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
-  }, [object, rim, lodDebugColor])
+    materialsRef.current = applyModelMaterialSettings(object, lodDebugColor)
+  }, [object, lodDebugColor])
 
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime()
@@ -2865,11 +2815,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
   const proxyDimensions = interactionProxyDimensions(species, swim)
   const lodDebugColor = debugLodView && renderModel && canInstanceSardine ? LOD0_DEBUG_COLOR : null
-  const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
-  const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
-  const fresnelRim = useMemo(() => (
-    rimColor ? { color: rimColor, intensity: rimIntensity, power: RIM_POWER } : null
-  ), [rimColor, rimIntensity])
+  const screenOutlineActive = showSelectedOutline || (debug && isSchoolLeader && !hideSelectionSilhouette)
+
+  useEffect(() => {
+    const key = `${creature.id ?? creature.species}:outline`
+    setSelectionOutlineTarget(key, modelRootRef.current, screenOutlineActive)
+    return () => removeSelectionOutlineTarget(key)
+  }, [creature.id, creature.species, screenOutlineActive, renderModel, renderMolaPlaceholder, instancedSardineLod])
 
   const handleSelect = (event) => {
     event.stopPropagation()
@@ -2961,29 +2913,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         <group ref={modelRootRef}>
           {renderModel ? (
             <FishModel
-              key={`${model.path}:${lodDebugColor ?? 'normal'}:${rimColor ?? 'none'}`}
+              key={`${model.path}:${lodDebugColor ?? 'normal'}`}
               model={model}
               animation={animation}
               animationVariation={animationVariation}
               animationSpeedScaleRef={animationSpeedScaleRef}
-              rim={fresnelRim}
               lodDebugColor={lodDebugColor}
             />
           ) : renderMolaPlaceholder ? (
             <MolaMolaPlaceholder
               species={species}
               swim={swim}
-              rimColor={rimColor}
-              rimIntensity={rimIntensity}
             />
           ) : !model ? (
             <>
-              {rimColor && (
-                <mesh scale={1.02} raycast={() => null}>
-                  <boxGeometry args={[0.7, 0.28, 0.18]} />
-                  <meshStandardMaterial color="#7ab8c0" emissive={rimColor} emissiveIntensity={rimIntensity} roughness={0.42} metalness={0.02} />
-                </mesh>
-              )}
               <mesh>
                 <boxGeometry args={[0.7, 0.28, 0.18]} />
                 <meshStandardMaterial

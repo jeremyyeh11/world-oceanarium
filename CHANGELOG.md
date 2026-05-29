@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_106`.
+Status: in progress as `v0.8.0-dev_107`.
 
 ### Creature behavior
 
@@ -118,6 +118,7 @@ Status: in progress as `v0.8.0-dev_106`.
 - Fades Mola sun-bask ocean drift in over the first hold seconds so non-zero yaw/roll/position drift cannot appear as a one-frame snap on approach → hold.
 - Removes authored `root` transform tracks from Mola sun-bask animation overlays and lengthens the bask overlay blend, leaving runtime root roll as the only whole-animal bask pose owner.
 - Replaces the Mola GLB with Jeremy's latest refreshed upload (`mola alexnadrini.glb`), preserving the expected scene shape, material/skin counts, and all seven movement/sun-bask animation clips while adding the updated mesh data.
+- Replaces debug selection/leader Fresnel and inflated duplicate-mesh highlights with a screen-space outline pass, so focus outlines sit on the visible silhouette without washing over creature materials or changing body geometry.
 
 ## v0.7.9 — Sardine texture refresh
 

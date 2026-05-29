@@ -13,7 +13,27 @@ Status labels:
 
 ## Current release bucket
 
-No active release bucket after clean `v0.8.0` publication.
+`v0.8.1` — Mola recovery polish.
+
+Current dev build reference: `v0.8.1-dev_1`.
+
+### 1. Mola recovery fade axis gating
+
+Status: `Current in development`
+
+Reference:
+- Jeremy report after clean `v0.8.0`: Mola fade-out/fade-in recovery also triggers on hard recovery at `-X` / `+X`, but it should only occur when exceeding the far `-Z` runtime envelope.
+- Jeremy also reports some cases where the sunfish does not reappear and remains transparent for a long time.
+- Implemented in `v0.8.1-dev_1`: only negative-Z runtime envelope exits start the slow depth fade; X-axis exits clamp/retarget immediately, and fade-out has a watchdog transition into fade-in so opacity cannot get stuck at zero.
+
+Subtasks:
+- [x] Gate Mola slow fade recovery to far negative-Z runtime exit only.
+- [x] Restore immediate recovery path for `-X` / `+X` runtime exits.
+- [x] Add fade-out watchdog so Mola always fades back in.
+- [ ] Jeremy/YK visual pass: verify X-axis recovery no longer fades and negative-Z fade still reads as swimming away/returning.
+
+Release impact: blocker until visual pass.
+
 
 ## Released / archived
 

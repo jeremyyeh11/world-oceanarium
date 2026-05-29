@@ -499,7 +499,7 @@ function clampToSwimBounds(point, bounds) {
   return point
 }
 
-function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength, creature) {
+function soloAgentRuntimeMargins(bodyLength, creature) {
   const verticalMargin = THREE.MathUtils.clamp(
     bodyLength * SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS,
     SOLO_AGENT_RUNTIME_OVERSHOOT_MIN,
@@ -512,6 +512,16 @@ function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength, creature) {
       MOLA_RUNTIME_OVERSHOOT_XZ_MAX,
     )
     : verticalMargin
+  return { verticalMargin, horizontalMargin }
+}
+
+function isNegativeZRuntimeEnvelopeExit(point, bounds, bodyLength, creature) {
+  const { horizontalMargin } = soloAgentRuntimeMargins(bodyLength, creature)
+  return point.z < bounds.zMin - horizontalMargin
+}
+
+function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength, creature) {
+  const { verticalMargin, horizontalMargin } = soloAgentRuntimeMargins(bodyLength, creature)
   agentRuntimeClamp.copy(point)
   agentRuntimeClamp.z = THREE.MathUtils.clamp(agentRuntimeClamp.z, bounds.zMin - horizontalMargin, bounds.zMax + horizontalMargin)
   const { xMin, xMax } = swimXRangeAtZ(bounds, agentRuntimeClamp.z)
@@ -2518,32 +2528,39 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           onRuntimeRecoveryNeeded?.(creature)
         }
         const runtimeRecoveryEnabled = !zoomActive && soloRuntimeRecoveryEnabled
-        if (runtimeRecoveryEnabled && recoveryNeeded) {
-          if (isMolaCreature(creature)) {
-            const fadeState = runtimeRecoveryFade.current
-            if (fadeState.phase !== 'fade-out') {
+        const fadeState = runtimeRecoveryFade.current
+        const molaFadeOutReady = runtimeRecoveryEnabled
+          && isMolaCreature(creature)
+          && fadeState.phase === 'fade-out'
+          && now - fadeState.startedAt >= MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION
+        if (molaFadeOutReady) {
+          agentRuntimeClamp.copy(fish.position)
+          clampToSwimBounds(agentRuntimeClamp, bounds)
+          agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
+          if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
+          fish.position.copy(agentRuntimeClamp)
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          agentBehaviorDistance.current = 0
+          nextAgentRetargetAt.current = now
+          runtimeRecoveryFade.current = { phase: 'fade-in', startedAt: now }
+        } else if (runtimeRecoveryEnabled && recoveryNeeded) {
+          const negativeZRecoveryNeeded = isNegativeZRuntimeEnvelopeExit(fish.position, bounds, bodyLength, creature)
+          if (isMolaCreature(creature) && negativeZRecoveryNeeded) {
+            if (fadeState.phase !== 'fade-out' && fadeState.phase !== 'fade-in') {
               runtimeRecoveryFade.current = { phase: 'fade-out', startedAt: now }
-            } else if (now - fadeState.startedAt >= MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION) {
-              agentRuntimeClamp.copy(fish.position)
-              clampToSwimBounds(agentRuntimeClamp, bounds)
-              agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
-              if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
-              fish.position.copy(agentRuntimeClamp)
-              agentBehavior.current = null
-              agentHasTarget.current = false
-              agentBehaviorDistance.current = 0
-              nextAgentRetargetAt.current = now
-              runtimeRecoveryFade.current = { phase: 'fade-in', startedAt: now }
             }
           } else {
             agentRuntimeClamp.copy(fish.position)
             clampToSwimBounds(agentRuntimeClamp, bounds)
             agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
             if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
+            fish.position.copy(agentRuntimeClamp)
             agentBehavior.current = null
             agentHasTarget.current = false
             agentBehaviorDistance.current = 0
             nextAgentRetargetAt.current = now
+            if (isMolaCreature(creature)) runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
           }
         }
         agentBehaviorDistance.current += movementScale
@@ -2599,7 +2616,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     updateFishRegistry(fish, creature, swim, school)
 
     let runtimeRecoveryOpacity = 1
-    const recoveryFadeState = runtimeRecoveryFade.current
+    let recoveryFadeState = runtimeRecoveryFade.current
+    if (recoveryFadeState.phase === 'fade-out' && now - recoveryFadeState.startedAt >= MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION + 0.25) {
+      runtimeRecoveryFade.current = { phase: 'fade-in', startedAt: now }
+      recoveryFadeState = runtimeRecoveryFade.current
+    }
     if (recoveryFadeState.phase === 'fade-out') {
       runtimeRecoveryOpacity = 1 - THREE.MathUtils.smoothstep(
         now - recoveryFadeState.startedAt,

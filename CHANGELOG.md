@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.1 — Mola recovery polish
 
-Status: in progress as `v0.8.1-dev_3`.
+Status: in progress as `v0.8.1-dev_4`.
 
 ### Creature behavior
 
@@ -20,6 +20,7 @@ Status: in progress as `v0.8.1-dev_3`.
 - Adds a fade-out watchdog so a Mola that started the negative-Z recovery fade cannot remain transparent if recovery state changes before the fade-out completes.
 - `v0.8.1-dev_2` gives the Mola a much larger positive-Z runtime buffer, so front/offscreen hard recovery happens farther past the camera instead of popping visibly near the tank front.
 - `v0.8.1-dev_3` keeps non-negative-Z Mola runtime recovery at the expanded runtime-envelope edge instead of snapping all the way back to swim bounds, fixing bottom-right/front X-boundary exits that read as teleporting and spinning near the camera.
+- `v0.8.1-dev_4` adds a debug-only simulation speed control (`1x`, `4x`, `10x`) so chance-based Mola behaviors and recovery cases can be reviewed without waiting at real time.
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 

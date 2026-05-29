@@ -33,6 +33,7 @@ const DEBUG_LAYER_BUTTONS = [
   { id: 'name', icon: '#', label: 'Show name' },
   { id: 'lod', icon: 'L', label: 'Show LOD colors' },
 ]
+const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
@@ -127,6 +128,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('focused')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false })
+  const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
@@ -577,6 +579,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debugView={debugView}
             debugLayers={debugLayers}
             debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
+            debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
             onCreatureClick={focusCreature}
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
@@ -623,12 +626,14 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           creatureCount={creatures.length}
           debugView={debugView}
           debugLayers={debugLayers}
+          debugSimulationSpeed={debugSimulationSpeed}
           audioLevels={audioLevels}
           performanceStats={performanceStats}
           renderLoad={renderLoad}
           canQueueSunBask={canQueueDebugSunBask}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
+          onDebugSimulationSpeedChange={setDebugSimulationSpeed}
           onQueueSunBask={queueDebugSunBask}
         />
       )}
@@ -649,12 +654,14 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
               creatureCount={creatures.length}
               debugView={debugView}
               debugLayers={debugLayers}
+              debugSimulationSpeed={debugSimulationSpeed}
               audioLevels={audioLevels}
               performanceStats={performanceStats}
               renderLoad={renderLoad}
               canQueueSunBask={canQueueDebugSunBask}
               onDebugViewChange={setDebugView}
               onDebugLayerToggle={toggleDebugLayer}
+              onDebugSimulationSpeedChange={setDebugSimulationSpeed}
               onQueueSunBask={queueDebugSunBask}
             />
           )}
@@ -690,12 +697,14 @@ function DebugPanel({
   creatureCount,
   debugView,
   debugLayers,
+  debugSimulationSpeed = 1,
   audioLevels,
   performanceStats,
   renderLoad,
   canQueueSunBask = false,
   onDebugViewChange,
   onDebugLayerToggle,
+  onDebugSimulationSpeedChange,
   onQueueSunBask,
 }) {
   const sardineCount = clampDebugCount(renderLoad?.sardines)
@@ -746,6 +755,22 @@ function DebugPanel({
             onClick={() => onDebugLayerToggle(layer.id)}
           >
             {layer.icon}
+          </button>
+        ))}
+      </div>
+      <div className="debug-panel-row debug-panel-row--wrap">
+        <span className="debug-panel-label">Sim</span>
+        {DEBUG_SIMULATION_SPEEDS.map(speed => (
+          <button
+            key={speed}
+            type="button"
+            title={`Simulation speed ${speed}x`}
+            aria-label={`Simulation speed ${speed}x`}
+            aria-pressed={debugSimulationSpeed === speed}
+            className="debug-panel-button"
+            onClick={() => onDebugSimulationSpeedChange(speed)}
+          >
+            {speed}x
           </button>
         ))}
       </div>

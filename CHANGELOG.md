@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.1 — Mola recovery polish
 
-Status: in progress as `v0.8.1-dev_6`.
+Status: accepted and promoted as clean `v0.8.1` from `v0.8.1-dev_6` after Jeremy approval.
 
 ### Creature behavior
 

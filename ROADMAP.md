@@ -15,7 +15,7 @@ Status labels:
 
 `v0.8.1` — Mola recovery polish.
 
-Current dev build reference: `v0.8.1-dev_5`.
+Current dev build reference: `v0.8.1-dev_6`.
 
 ### 1. Mola recovery fade axis gating
 
@@ -33,6 +33,8 @@ Reference:
 - Implemented in `v0.8.1-dev_4`: debug panel simulation speed buttons (`1x`, `4x`, `10x`) accelerate fish behavior ticks and model animations while debug mode is enabled.
 - Jeremy reported after `v0.8.1-dev_4` that the Mola visibly snap-turns on X recovery; root cause was the visible recovery clamp overwriting heading with the sideways clamp vector.
 - Implemented in `v0.8.1-dev_5`: Mola visible X/front recovery preserves its current heading and lets the next steering target turn it naturally instead of forcing an instant sideways orientation.
+- Jeremy accepted `v0.8.1-dev_5` and separately suspected remaining snaps from forced look-at updates during behavior transitions.
+- Implemented in `v0.8.1-dev_6`: Mola solo-agent model look-at is quaternion-smoothed, with extra easing immediately after behavior/stage changes.
 
 Subtasks:
 - [x] Gate Mola slow fade recovery to far negative-Z runtime exit only.
@@ -42,6 +44,7 @@ Subtasks:
 - [x] Keep non-negative-Z Mola recovery staged at the runtime envelope edge instead of snapping to core swim bounds.
 - [x] Add debug-only simulation speed controls for faster behavior review.
 - [x] Preserve Mola heading during visible X/front runtime recovery so the clamp does not become a snap-turn.
+- [x] Smooth Mola look-at/root orientation across behavior transitions.
 - [ ] Jeremy/YK visual pass: verify X-axis recovery no longer fades, +Z/bottom-right hard recovery is hidden offscreen, and negative-Z fade still reads as swimming away/returning.
 
 Release impact: blocker until visual pass.

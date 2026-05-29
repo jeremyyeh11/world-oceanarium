@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_110`.
+Status: in progress as `v0.8.0-dev_111`.
 
 ### Creature behavior
 
@@ -21,7 +21,7 @@ Status: in progress as `v0.8.0-dev_110`.
 - Adds the uploaded `Mola alexandrini` GLB with embedded clips: `idle_drift`, `slow_cruise`, `bank_l`, `bank_r`, `burst`, `sun_bask_l`, and `sun_bask_r`. The current movement system maps cruise to `slow_cruise`, turn actions to the bank clips, and speedups to `burst`; during sun-bask hold, playback isolates the complete authored `sun_bask_l/r` clip with no slow-cruise base layer and no appendage-only overlay slicing. Refreshes the canonical Mola GLB in `v0.8.0-dev_108` from Jeremy's replacement archive while preserving scene, mesh/material/skin counts, embedded texture shape, scale bounds, and expected animation names.
 - Corrects the uploaded Mola GLB axis conversion for Jeremy's Blender-to-GLB setup: Blender `+Z` becomes GLB `+Y`, so the runtime asset is GLB `+Y` up and `+Z` forward. The model now uses identity child rotation to match the fish root's `+Y` up / `+Z` swim-forward axes.
 - Fixes the instanced/model fish light-mask shader world-position injection so the uploaded Mola and sardine instanced layers compile cleanly in browser dogfood.
-- Planned signature behavior: near-surface sun basking with slow approach, surface clearance padding, lazy translational hold drift, and eventual return to cruising. Removed procedural yaw/roll ocean-drift rotation during bask hold/exit in `v0.8.0-dev_110` to isolate the remaining occasional snap; translation drift remains.
+- Planned signature behavior: near-surface sun basking with slow approach, surface clearance padding, lazy hold/drift, and eventual return to cruising. `v0.8.0-dev_110` tested removing procedural yaw/roll ocean-drift rotation; snapping persisted, so `v0.8.0-dev_111` restored rotational drift and kept the investigation focused elsewhere.
 
 ### Movement architecture
 

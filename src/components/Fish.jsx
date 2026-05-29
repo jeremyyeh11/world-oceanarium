@@ -1957,7 +1957,7 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
   )
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, rim = null, lodDebugColor = null }) {
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
@@ -1974,7 +1974,12 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
     const activeAction = activeActionRef.current
     if (activeAction) {
       const baseTimeScale = activeAction.userData?.baseTimeScale ?? 1
-      activeAction.setEffectiveTimeScale(baseTimeScale * (animationSpeedScaleRef?.current ?? 1))
+      const simulationSpeed = THREE.MathUtils.clamp(
+        Number.isFinite(debugSimulationSpeed) ? debugSimulationSpeed : 1,
+        1,
+        10,
+      )
+      activeAction.setEffectiveTimeScale(baseTimeScale * (animationSpeedScaleRef?.current ?? 1) * simulationSpeed)
     }
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms
@@ -2000,7 +2005,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -2051,6 +2056,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const queuedSunBaskRequestId = useRef(0)
   const lastFollowRecoveryExitAt = useRef(-Infinity)
   const runtimeRecoveryFade = useRef({ phase: 'idle', startedAt: 0 })
+  const simulationTime = useRef(null)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -2216,11 +2222,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     })
   }
 
-  useFrame(({ clock, camera }, delta) => {
+  useFrame(({ clock, camera }, rawDelta) => {
     const fish = ref.current
     if (!fish) return
 
-    const now = clock.getElapsedTime()
+    const rawNow = clock.getElapsedTime()
+    const simulationSpeed = THREE.MathUtils.clamp(
+      Number.isFinite(debugSimulationSpeed) ? debugSimulationSpeed : 1,
+      1,
+      10,
+    )
+    const delta = rawDelta * simulationSpeed
+    if (simulationTime.current === null) simulationTime.current = rawNow
+    simulationTime.current += delta
+    const now = simulationTime.current
 
     if (isSchooling) {
       const noise = organicNoise.current
@@ -3138,6 +3153,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               animation={animation}
               animationVariation={animationVariation}
               animationSpeedScaleRef={animationSpeedScaleRef}
+              debugSimulationSpeed={debugSimulationSpeed}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
             />

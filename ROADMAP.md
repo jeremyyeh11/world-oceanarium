@@ -15,7 +15,7 @@ Status labels:
 
 `v0.8.1` — Mola recovery polish.
 
-Current dev build reference: `v0.8.1-dev_3`.
+Current dev build reference: `v0.8.1-dev_4`.
 
 ### 1. Mola recovery fade axis gating
 
@@ -29,6 +29,8 @@ Reference:
 - Implemented in `v0.8.1-dev_2`: Mola positive-Z runtime margin is now separate from X/-Z and expands to 18–30 WU, while X and -Z margins stay unchanged.
 - Jeremy report after `v0.8.1-dev_2`: bottom-right positive-Z cases still show teleporting then spinning, likely from X-boundary hard recovery snapping back into swim bounds too close to camera.
 - Implemented in `v0.8.1-dev_3`: non-negative-Z Mola runtime recovery now clamps to the expanded runtime envelope edge instead of the core swim bounds, preserving offscreen staging before retargeting.
+- Jeremy asked after `v0.8.1-dev_3` for a temporary way to speed up chance behavior review.
+- Implemented in `v0.8.1-dev_4`: debug panel simulation speed buttons (`1x`, `4x`, `10x`) accelerate fish behavior ticks and model animations while debug mode is enabled.
 
 Subtasks:
 - [x] Gate Mola slow fade recovery to far negative-Z runtime exit only.
@@ -36,6 +38,7 @@ Subtasks:
 - [x] Add fade-out watchdog so Mola always fades back in.
 - [x] Give +Z/front hard recovery more offscreen buffer.
 - [x] Keep non-negative-Z Mola recovery staged at the runtime envelope edge instead of snapping to core swim bounds.
+- [x] Add debug-only simulation speed controls for faster behavior review.
 - [ ] Jeremy/YK visual pass: verify X-axis recovery no longer fades, +Z/bottom-right hard recovery is hidden offscreen, and negative-Z fade still reads as swimming away/returning.
 
 Release impact: blocker until visual pass.

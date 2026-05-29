@@ -18,6 +18,9 @@ const FOLLOW_SURFACE_CLEARANCE = 0.35
 const FOLLOW_TARGET_DAMPING = 2.8
 const FOLLOW_LOOK_DAMPING = 3.2
 const FOLLOW_POSITION_DAMPING = 4.0
+const FOLLOW_CAMERA_CLIP_RADIUS_FRACTION = 0.72
+const FOLLOW_CAMERA_CLIP_GRACE_SECONDS = 0.18
+const FOLLOW_CAMERA_CLIP_COOLDOWN_SECONDS = 1.0
 const DEFAULT_POSITION_DAMPING = 4.0
 const DEFAULT_CAMERA_SETTLED_POSITION_EPSILON = 0.06
 const DEFAULT_CAMERA_SETTLED_LOOK_EPSILON = 0.08
@@ -43,7 +46,7 @@ const MAX_FOLLOW_CAMERA_X = SURFACE_PLANE_X + SURFACE_PLANE_WIDTH * 0.5 - FOLLOW
 const MIN_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z - SURFACE_PLANE_DEPTH * 0.5 + FOLLOW_SURFACE_XZ_CLEARANCE
 const MAX_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z + SURFACE_PLANE_DEPTH * 0.5 - FOLLOW_SURFACE_XZ_CLEARANCE
 
-export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, onDefaultCameraSettledChange = null }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
   const smoothedLookTarget = useRef(new THREE.Vector3())
@@ -53,6 +56,8 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   const hasSmoothedDefaultLookTarget = useRef(false)
   const previousFocusTarget = useRef(null)
   const defaultCameraSettled = useRef(true)
+  const cameraClipStartedAt = useRef(null)
+  const lastCameraClipExitAt = useRef(-Infinity)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
 
   const setDefaultCameraSettled = (settled) => {
@@ -65,7 +70,8 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     camera.position.set(0, 0, DEFAULT_CAMERA_Z)
   }, [camera, biome])
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
+    const now = clock.getElapsedTime()
     if (focusTarget) {
       setDefaultCameraSettled(false)
       focusBounds.setFromObject(focusTarget)
@@ -163,9 +169,24 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
 
       lookTarget.copy(smoothedLookTarget.current)
       camera.lookAt(lookTarget)
+
+      const clipPlaneReached = focusRadius > 0
+        && actualFocusDistance - focusRadius * FOLLOW_CAMERA_CLIP_RADIUS_FRACTION <= Math.max(camera.near + 0.12, 0.22)
+      if (clipPlaneReached) {
+        if (cameraClipStartedAt.current === null) cameraClipStartedAt.current = now
+        const clipHeld = now - cameraClipStartedAt.current >= FOLLOW_CAMERA_CLIP_GRACE_SECONDS
+        const cooldownElapsed = now - lastCameraClipExitAt.current >= FOLLOW_CAMERA_CLIP_COOLDOWN_SECONDS
+        if (clipHeld && cooldownElapsed) {
+          lastCameraClipExitAt.current = now
+          onFollowCameraClip?.()
+        }
+      } else {
+        cameraClipStartedAt.current = null
+      }
       return
     }
 
+    cameraClipStartedAt.current = null
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
     hasSmoothedLookTarget.current = false

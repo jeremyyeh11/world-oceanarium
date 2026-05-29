@@ -313,6 +313,11 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     releaseFocus()
   }
 
+  const releaseFollowForCameraClip = () => {
+    if (!selectedCreature || !isSunfishCreature(selectedCreature)) return
+    releaseFocusForRuntimeRecovery(selectedCreature)
+  }
+
   useEffect(() => {
     if (!recoveryNotice) return undefined
     const timeout = window.setTimeout(() => setRecoveryNotice(null), RECOVERY_NOTICE_DURATION_MS)
@@ -548,6 +553,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             followDistance={followDistance}
             followScreenOffset={followScreenOffset}
             onDefaultCameraSettledChange={setDefaultCameraSettled}
+            onFollowCameraClip={releaseFollowForCameraClip}
           />
           <Biome
             key={biome.id}

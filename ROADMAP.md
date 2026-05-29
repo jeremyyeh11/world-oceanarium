@@ -13,47 +13,38 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_119`.
+Current dev build reference: `v0.8.0-dev_120`.
 
-### 1. Mobile follow-camera zoom/framing
+### 1. Follow recovery notice on mobile
 
-Status: `Current in development` / `Blocked waiting Jeremy mobile review`
+Status: `Current in development`
+
+Reference:
+- Implemented in `v0.8.0-dev_115`: auto-exit follow mode on selected solo-agent runtime recovery and show `{name} will be back in a bit!`.
+- Jeremy report after `v0.8.0-dev_117`: message not seen on mobile.
+- Jeremy request after `v0.8.0-dev_119`: with current zoom logic, kick the user out of Mola follow mode when hard recovery is pending or the Mola clips into the camera, then display the recovery message.
+- Implemented in `v0.8.0-dev_120`: Mola follow mode exits with the same recovery notice when the camera gets close enough for camera clipping; the existing pending hard-recovery path continues to use the same notice.
+
+Subtasks:
+- [x] Reproduce/inspect selected Mola hard-recovery pending path and confirm it calls the recovery-notice follow exit before hard recovery runs.
+- [x] Add camera-clip follow bailout for selected Mola, using the same centered recovery notice.
+- [x] Verify notice only appears for automatic recovery/clip follow exits, not manual close/tap-away exits.
+- [ ] Jeremy/YK mobile pass: force Mola close/front, confirm follow exits and `{name} will be back in a bit!` is visible above mobile UI.
+
+Release impact: blocker until mobile review passes.
+
+### 2. Mobile follow-camera zoom/framing
+
+Status: `Archive candidate` / Jeremy says zoom is good
 
 Reference:
 - Reported after `v0.8.0-dev_117`: when Mola swims close to screen on mobile, zoom-out can feel stuck; whole-fish visibility should be equal priority with hiding surface plane edges/fake effects.
 - Implemented in `v0.8.0-dev_118`: adaptive selected-creature framing.
 - Reported after `v0.8.0-dev_118`: Mola follow default should be a bit more zoomed out, and manual pinch/scroll should allow both zoom in and zoom out instead of feeling locked.
 - Implemented in `v0.8.0-dev_119`: farther large-creature default plus restored manual zoom authority.
+- Jeremy review after `v0.8.0-dev_119`: zoom is good.
 
-Subtasks:
-- [x] Add bounds-based follow framing for selected creatures.
-- [x] Auto-back follow camera distance for large/near subjects like Mola.
-- [x] If surface-card X/Z clamps prevent more physical pullback, gently widen follow-only FOV up to a capped limit.
-- [x] Ease FOV back to normal in default tank view.
-- [x] Validate build/browser smoke/CI/Vercel for `v0.8.0-dev_118`.
-- [x] Move Mola default follow distance a bit farther back in `v0.8.0-dev_119`.
-- [x] Restore manual pinch/scroll zoom authority so zoom-in and zoom-out both visibly change framing.
-- [ ] Jeremy/YK mobile pass: follow Mola near front/screen, pinch zoom in/out, orbit, confirm whole body can recover without ugly surface-plane reveal.
-- [ ] Tune if review finds FOV too wide, still too close, or surface edges too exposed.
-
-Release impact: blocker until mobile review passes.
-
-### 2. Follow recovery notice on mobile
-
-Status: `Next`
-
-Reference:
-- Implemented in `v0.8.0-dev_115`: auto-exit follow mode on selected solo-agent runtime recovery and show `{name} will be back in a bit!`.
-- Jeremy report after `v0.8.0-dev_117`: message not seen on mobile.
-
-Subtasks:
-- [ ] Reproduce on mobile or mobile emulation: selected/followed Mola reaches hard-recovery condition, follow exits automatically.
-- [ ] Verify notice DOM renders above canvas/info card and is not hidden by mobile layout/screenshot/debug states.
-- [ ] Verify notice only appears for automatic runtime-recovery follow exit, not manual close/tap-away exits.
-- [ ] If hard to trigger naturally, add/use debug-only forced recovery path for QA, then remove or keep strictly debug-gated.
-- [ ] Ship fix in next dev patch if needed.
-
-Release impact: smaller blocker; important because it explains sudden disappearance/recovery.
+Release impact: keep as archive candidate until clean public release.
 
 ### 3. Final `reju` pass for `v0.8.0`
 
@@ -61,7 +52,8 @@ Status: `Next`
 
 Reference:
 - `v0.8.0-dev_117`: Mola bask animation + approach/hold/exit transitions visually approved by Jeremy.
-- `v0.8.0-dev_119`: mobile zoom/framing fix deployed; awaiting phone review.
+- `v0.8.0-dev_119`: mobile zoom/framing fix approved by Jeremy.
+- `v0.8.0-dev_120`: Mola follow recovery now exits on pending hard recovery or camera clipping and shows the centered recovery message.
 - Mobile audio works per Jeremy report after `v0.8.0-dev_117`.
 
 Subtasks:

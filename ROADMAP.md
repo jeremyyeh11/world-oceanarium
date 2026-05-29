@@ -13,11 +13,11 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_123`.
+Current dev build reference: `v0.8.0-dev_124`.
 
 ### 1. Mola hard-recovery visibility
 
-Status: `Current in development`
+Status: `Archive candidate` / Jeremy says fade-out recovery is good
 
 Reference:
 - Jeremy report after `v0.8.0-dev_121`: when Mola hard-recovers at the Z boundary, the hard turn is still visible in the far distance.
@@ -25,13 +25,13 @@ Reference:
 
 Subtasks:
 - [x] Hide Mola outer-envelope recovery with fade-out/reposition/fade-in.
-- [ ] Jeremy/YK phone/visual pass: confirm boundary recovery reads like Mola swam far away and returned, not a hard turn.
+- [x] Jeremy/YK phone/visual pass: Jeremy says fade-out recovery is good.
 
-Release impact: visual polish blocker until reviewed.
+Release impact: accepted; archive after clean public release.
 
 ### 2. Mola fake-lighting banding
 
-Status: `Current in development`
+Status: `Archive candidate` / Jeremy says lighting banding is good
 
 Reference:
 - Jeremy screenshot/report after `v0.8.0-dev_122`: fake lighting on Mola is too obvious as banding.
@@ -39,13 +39,13 @@ Reference:
 
 Subtasks:
 - [x] Break up fake-lighting bands on Mola/material shader.
-- [ ] Jeremy/YK visual pass: confirm lighting variation feels organic and not obviously striped.
+- [x] Jeremy/YK visual pass: Jeremy says lighting banding is good.
 
-Release impact: visual polish blocker until reviewed.
+Release impact: accepted; archive after clean public release.
 
 ### 3. Follow recovery notice on mobile
 
-Status: `Blocked / waiting review`
+Status: `Archive candidate` / Jeremy says mobile notice is good
 
 Reference:
 - Implemented in `v0.8.0-dev_115`: auto-exit follow mode on selected solo-agent runtime recovery and show `{name} will be back in a bit!`.
@@ -59,9 +59,9 @@ Subtasks:
 - [x] Add camera-clip follow bailout for selected Mola, using the same centered recovery notice.
 - [x] Clamp manual Mola zoom-in so pinch/scroll cannot drive the camera into the body.
 - [x] Verify notice only appears for automatic recovery/clip follow exits, not manual close/tap-away exits.
-- [ ] Jeremy/YK mobile pass: force Mola close/front, confirm follow exits and `{name} will be back in a bit!` is visible above mobile UI.
+- [x] Jeremy/YK mobile pass: Jeremy says mobile notice is good.
 
-Release impact: blocker until mobile review passes.
+Release impact: accepted; archive after clean public release.
 
 ### 4. Mobile follow-camera zoom/framing
 
@@ -76,7 +76,21 @@ Reference:
 
 Release impact: keep as archive candidate until clean public release.
 
-### 5. Final `reju` pass for `v0.8.0`
+### 5. Mobile audio unlock gesture
+
+Status: `Current in development`
+
+Reference:
+- Jeremy report after `v0.8.0-dev_123`: mobile audio only turns on after clicking a UI element, not from general tank/canvas interaction.
+- Implemented in `v0.8.0-dev_124`: audio unlock now listens on both window and document for pointerdown/touchstart/touchend/click gestures so canvas/tank touches can satisfy the mobile Web Audio user-activation gate.
+
+Subtasks:
+- [x] Add broader mobile gesture unlock path beyond UI buttons.
+- [ ] Jeremy/YK mobile pass: confirm audio starts from ordinary tank/canvas tap/gesture, without needing a UI button.
+
+Release impact: blocker until mobile audio review passes.
+
+### 6. Final `reju` pass for `v0.8.0`
 
 Status: `Next`
 
@@ -87,11 +101,12 @@ Reference:
 - `v0.8.0-dev_121`: manual Mola zoom-in is limited before the camera can clip into the body.
 - `v0.8.0-dev_122`: Mola outer-envelope hard recovery fades out/in to hide the boundary correction.
 - `v0.8.0-dev_123`: Mola fake-lighting mask is warped/noise-broken to reduce obvious banding.
-- Mobile audio works per Jeremy report after `v0.8.0-dev_117`.
+- Jeremy accepted lighting banding, fade-out recovery, and mobile notice after `v0.8.0-dev_123`.
+- `v0.8.0-dev_124`: mobile audio unlock listens to tank/canvas gestures, not just UI clicks.
 
 Subtasks:
 - [ ] Technical gates: `npm run build`, GitHub Actions Build, Vercel status, browser smoke, no console errors.
-- [ ] Phone pass: audio unlock, follow Mola, pinch/orbit/zoom, recovery notice, bask behavior, no obvious layout/control issues.
+- [ ] Phone pass: audio unlock from tank/canvas tap, follow Mola, pinch/orbit/zoom, recovery notice, bask behavior, no obvious layout/control issues.
 - [ ] Visual/feel pass: Mola scale/read, follow framing, sun-bask smoothness, surface clearance, no fake surface edge exposure that breaks the scene.
 - [ ] Decide `ship` or `hold`.
 - [ ] If ship: promote from `v0.8.0-dev_##` to clean `v0.8.0`, update changelog status, verify production deployment.

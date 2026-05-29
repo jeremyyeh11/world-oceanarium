@@ -177,6 +177,8 @@ const MOLA_SUN_BASK_APPROACH_DECEL_START = 0.45
 const MOLA_SUN_BASK_ROLL_PROGRESS_START = 0.62
 const MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA = 0.92
 const MOLA_SUN_BASK_HOLD_ROLL_COMPLETE_DURATION = 5
+const MOLA_SUN_BASK_HOLD_COAST_DURATION = 1.2
+const MOLA_SUN_BASK_EXIT_SPEED_RAMP_DURATION = 2.5
 const MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE = THREE.MathUtils.degToRad(4)
 const MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE = THREE.MathUtils.degToRad(3)
 const MOLA_SUN_BASK_DRIFT_INTRO_DURATION = 4
@@ -1807,7 +1809,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
 
     const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation) * MOLA_SUN_BASK_ANIMATION_SPEED_SCALE
     sunBaskAction.reset()
-    sunBaskAction.setEffectiveWeight(shouldEaseEntry ? 0 : 1)
+    sunBaskAction.setEffectiveWeight(1)
     configureModelAction(sunBaskAction, model, animation, resolvedAnimation, speed, 0)
     sunBaskAction.play()
     if (shouldEaseEntry) {
@@ -1821,17 +1823,23 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
     return
   }
 
+  const previousOverlay = activeActionRef.current
+  const previousWasSunBask = previousOverlay
+    && previousOverlay !== baseAction
+    && isSunBaskAnimationName(previousOverlay.getClip?.()?.name)
+  const sunBaskExitFadeDuration = modelFadeDuration(model, MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION)
+
   if (baseAction && !baseAction.isRunning()) {
     const speed = modelAnimationSpeed(animationVariation, baseAnimation, baseAnimation)
     baseAction.reset()
     baseAction.setEffectiveWeight(model.layeredBaseWeight ?? 1)
     configureModelAction(baseAction, model, baseAnimation, baseAnimation, speed, offset)
     baseAction.play()
+    if (previousWasSunBask) baseAction.fadeIn(sunBaskExitFadeDuration)
   }
 
   if (resolvedAnimation === baseAnimation) {
-    const previousOverlay = activeActionRef.current
-    if (previousOverlay && previousOverlay !== baseAction) previousOverlay.fadeOut(modelFadeDuration(model))
+    if (previousOverlay && previousOverlay !== baseAction) previousOverlay.fadeOut(previousWasSunBask ? sunBaskExitFadeDuration : modelFadeDuration(model))
     activeActionRef.current = null
     return
   }
@@ -1839,7 +1847,6 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   const nextAction = actions[resolvedAnimation] ?? actions[animation]
   if (!nextAction || activeActionRef.current === nextAction) return
 
-  const previousOverlay = activeActionRef.current
   const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
   nextAction.reset()
   nextAction.setEffectiveWeight(model.layeredOverlayWeight ?? 1)
@@ -2423,6 +2430,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const driftElapsed = now - agentBehavior.current.stageStartedAt
         const driftPhase = driftElapsed * 0.45 + motion.bobPhase
         const driftIntroAlpha = THREE.MathUtils.smoothstep(driftElapsed, 0, MOLA_SUN_BASK_DRIFT_INTRO_DURATION)
+        const coastAlpha = 1 - THREE.MathUtils.smoothstep(driftElapsed, 0, MOLA_SUN_BASK_HOLD_COAST_DURATION)
+        if (coastAlpha > 0.001 && velocity.current > 0.001) {
+          fish.position.addScaledVector(agentMoveDirection, velocity.current * coastAlpha * organicMotion.speedScale * delta)
+        }
         fish.position.x += Math.sin(driftPhase) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * driftIntroAlpha * delta
         fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * driftIntroAlpha * delta
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
@@ -2453,6 +2464,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           )
           const easedDecel = decelAlpha * decelAlpha * (3 - 2 * decelAlpha)
           approachSpeedScale = THREE.MathUtils.lerp(1, MOLA_SUN_BASK_APPROACH_MIN_SPEED_SCALE, easedDecel)
+        } else if (agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'exit') {
+          const exitElapsed = Math.max(0, now - (agentBehavior.current.stageStartedAt ?? agentBehaviorStartedAt.current))
+          approachSpeedScale = THREE.MathUtils.smoothstep(exitElapsed, 0, MOLA_SUN_BASK_EXIT_SPEED_RAMP_DURATION)
         }
         const movementScale = soloAgentSpeed * approachSpeedScale * organicMotion.speedScale * delta
         fish.position.addScaledVector(agentMoveDirection, movementScale)

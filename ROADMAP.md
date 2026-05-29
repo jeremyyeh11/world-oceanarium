@@ -13,7 +13,7 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_118`.
+Current dev build reference: `v0.8.0-dev_119`.
 
 ### 1. Mobile follow-camera zoom/framing
 
@@ -22,6 +22,8 @@ Status: `Current in development` / `Blocked waiting Jeremy mobile review`
 Reference:
 - Reported after `v0.8.0-dev_117`: when Mola swims close to screen on mobile, zoom-out can feel stuck; whole-fish visibility should be equal priority with hiding surface plane edges/fake effects.
 - Implemented in `v0.8.0-dev_118`: adaptive selected-creature framing.
+- Reported after `v0.8.0-dev_118`: Mola follow default should be a bit more zoomed out, and manual pinch/scroll should allow both zoom in and zoom out instead of feeling locked.
+- Implemented in `v0.8.0-dev_119`: farther large-creature default plus restored manual zoom authority.
 
 Subtasks:
 - [x] Add bounds-based follow framing for selected creatures.
@@ -29,7 +31,9 @@ Subtasks:
 - [x] If surface-card X/Z clamps prevent more physical pullback, gently widen follow-only FOV up to a capped limit.
 - [x] Ease FOV back to normal in default tank view.
 - [x] Validate build/browser smoke/CI/Vercel for `v0.8.0-dev_118`.
-- [ ] Jeremy/YK mobile pass: follow Mola near front/screen, pinch zoom, orbit, confirm whole body can recover without ugly surface-plane reveal.
+- [x] Move Mola default follow distance a bit farther back in `v0.8.0-dev_119`.
+- [x] Restore manual pinch/scroll zoom authority so zoom-in and zoom-out both visibly change framing.
+- [ ] Jeremy/YK mobile pass: follow Mola near front/screen, pinch zoom in/out, orbit, confirm whole body can recover without ugly surface-plane reveal.
 - [ ] Tune if review finds FOV too wide, still too close, or surface edges too exposed.
 
 Release impact: blocker until mobile review passes.
@@ -57,7 +61,7 @@ Status: `Next`
 
 Reference:
 - `v0.8.0-dev_117`: Mola bask animation + approach/hold/exit transitions visually approved by Jeremy.
-- `v0.8.0-dev_118`: mobile zoom/framing fix deployed; awaiting phone review.
+- `v0.8.0-dev_119`: mobile zoom/framing fix deployed; awaiting phone review.
 - Mobile audio works per Jeremy report after `v0.8.0-dev_117`.
 
 Subtasks:

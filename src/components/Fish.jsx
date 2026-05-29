@@ -189,6 +189,9 @@ const MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE = THREE.MathUtils.degToRad(3)
 const MOLA_SUN_BASK_DRIFT_INTRO_DURATION = 4
 const MOLA_SUN_BASK_LOOK_AT_ENTER_BLEND_DURATION = 1.5
 const MOLA_SUN_BASK_LOOK_AT_EXIT_BLEND_DURATION = 6
+const MOLA_BEHAVIOR_LOOK_AT_RESPONSE = 2.2
+const MOLA_BEHAVIOR_LOOK_AT_TRANSITION_RESPONSE = 1.15
+const MOLA_BEHAVIOR_LOOK_AT_TRANSITION_DURATION = 1.5
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
@@ -257,6 +260,7 @@ const agentBoundaryGlideEnd = new THREE.Vector3()
 const agentRuntimeClamp = new THREE.Vector3()
 const agentRuntimeEnvelopeProbe = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
+const targetLookQuaternion = new THREE.Quaternion()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -2066,6 +2070,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const previousTangent = useRef(new THREE.Vector3())
   const visualForward = useRef(new THREE.Vector3())
   const hasVisualForward = useRef(false)
+  const baseLookQuaternion = useRef(new THREE.Quaternion())
+  const hasBaseLookQuaternion = useRef(false)
+  const lookBehaviorKey = useRef('')
+  const lookBehaviorTransitionStartedAt = useRef(-Infinity)
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
   const velocity = useRef(0)
@@ -2201,6 +2209,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     rawAvoidance.current.set(0, 0, 0)
     smoothedAvoidance.current.set(0, 0, 0)
     hasVisualForward.current = false
+    hasBaseLookQuaternion.current = false
+    lookBehaviorKey.current = ''
+    lookBehaviorTransitionStartedAt.current = -Infinity
   }, [motion])
 
   const playAnimation = (name) => {
@@ -2801,9 +2812,39 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
 
     if (model) {
+      const smoothMolaLookAt = isSoloAgent && isMolaCreature(creature)
+      const currentLookBehaviorKey = smoothMolaLookAt
+        ? `${agentBehavior.current?.type ?? 'idle'}:${agentBehavior.current?.stage ?? agentBehavior.current?.completion ?? 'none'}`
+        : ''
+      if (currentLookBehaviorKey !== lookBehaviorKey.current) {
+        lookBehaviorKey.current = currentLookBehaviorKey
+        lookBehaviorTransitionStartedAt.current = now
+      }
+
       fish.up.copy(up)
       lookTarget.copy(fish.position).addScaledVector(pitchedForward, -1)
       fish.lookAt(lookTarget)
+      targetLookQuaternion.copy(fish.quaternion)
+      if (!hasBaseLookQuaternion.current) {
+        baseLookQuaternion.current.copy(targetLookQuaternion)
+        hasBaseLookQuaternion.current = true
+      } else if (smoothMolaLookAt) {
+        const transitionElapsed = now - lookBehaviorTransitionStartedAt.current
+        const transitionAlpha = 1 - THREE.MathUtils.smoothstep(
+          transitionElapsed,
+          0,
+          MOLA_BEHAVIOR_LOOK_AT_TRANSITION_DURATION,
+        )
+        const lookResponse = THREE.MathUtils.lerp(
+          MOLA_BEHAVIOR_LOOK_AT_RESPONSE,
+          MOLA_BEHAVIOR_LOOK_AT_TRANSITION_RESPONSE,
+          transitionAlpha,
+        )
+        baseLookQuaternion.current.slerp(targetLookQuaternion, 1 - Math.exp(-delta * lookResponse))
+      } else {
+        baseLookQuaternion.current.copy(targetLookQuaternion)
+      }
+      fish.quaternion.copy(baseLookQuaternion.current)
       if (agentBehavior.current?.type === 'sun-bask') {
         const behavior = agentBehavior.current
         const stageElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))

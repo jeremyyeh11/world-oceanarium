@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+
+## v0.8.1 — Mola recovery polish
+
+Status: in progress as `v0.8.1-dev_1`.
+
+### Creature behavior
+
+- Starts the post-`v0.8.0` patch bucket for Mola runtime recovery polish.
+- `v0.8.1-dev_1` restricts the slow Mola fade-out/fade-in recovery to only the far negative-Z hard-recovery envelope. X-axis runtime envelope recovery now uses immediate hidden retarget/clamp behavior instead of the depth-disappearance fade.
+- Adds a fade-out watchdog so a Mola that started the negative-Z recovery fade cannot remain transparent if recovery state changes before the fade-out completes.
+
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
 Status: accepted and promoted as clean `v0.8.0`.

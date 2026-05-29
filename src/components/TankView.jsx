@@ -5,6 +5,7 @@ import Biome from './Biome'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
+import SelectionOutline from './SelectionOutline'
 import InfoCard from './InfoCard'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES, SPECIES } from '../data/species'
@@ -549,6 +550,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           />
           <WaterSurface biome={biome.id} />
           <UnderwaterFX biome={biome.id} />
+          {visibleDebugVisuals && !screenshotMode && <SelectionOutline />}
         </Canvas>
       </div>
 

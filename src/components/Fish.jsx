@@ -160,6 +160,9 @@ const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
 const MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS = 1.75
 const MOLA_RUNTIME_OVERSHOOT_XZ_MIN = 9.0
 const MOLA_RUNTIME_OVERSHOOT_XZ_MAX = 18.0
+const MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_BODY_LENGTHS = 3.0
+const MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MIN = 18.0
+const MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MAX = 30.0
 const MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION = 8
 const MOLA_RUNTIME_RECOVERY_FADE_IN_DURATION = 3.5
 const MOLA_DEEP_ZONE_Z_MAX = -10
@@ -505,27 +508,45 @@ function soloAgentRuntimeMargins(bodyLength, creature) {
     SOLO_AGENT_RUNTIME_OVERSHOOT_MIN,
     SOLO_AGENT_RUNTIME_OVERSHOOT_MAX,
   )
-  const horizontalMargin = isMolaCreature(creature)
-    ? THREE.MathUtils.clamp(
-      bodyLength * MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS,
-      MOLA_RUNTIME_OVERSHOOT_XZ_MIN,
-      MOLA_RUNTIME_OVERSHOOT_XZ_MAX,
-    )
-    : verticalMargin
-  return { verticalMargin, horizontalMargin }
+  if (!isMolaCreature(creature)) {
+    return {
+      verticalMargin,
+      xMargin: verticalMargin,
+      zMinMargin: verticalMargin,
+      zMaxMargin: verticalMargin,
+    }
+  }
+
+  const xzMargin = THREE.MathUtils.clamp(
+    bodyLength * MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS,
+    MOLA_RUNTIME_OVERSHOOT_XZ_MIN,
+    MOLA_RUNTIME_OVERSHOOT_XZ_MAX,
+  )
+  const positiveZMargin = THREE.MathUtils.clamp(
+    bodyLength * MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_BODY_LENGTHS,
+    MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MIN,
+    MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MAX,
+  )
+
+  return {
+    verticalMargin,
+    xMargin: xzMargin,
+    zMinMargin: xzMargin,
+    zMaxMargin: positiveZMargin,
+  }
 }
 
 function isNegativeZRuntimeEnvelopeExit(point, bounds, bodyLength, creature) {
-  const { horizontalMargin } = soloAgentRuntimeMargins(bodyLength, creature)
-  return point.z < bounds.zMin - horizontalMargin
+  const { zMinMargin } = soloAgentRuntimeMargins(bodyLength, creature)
+  return point.z < bounds.zMin - zMinMargin
 }
 
 function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength, creature) {
-  const { verticalMargin, horizontalMargin } = soloAgentRuntimeMargins(bodyLength, creature)
+  const { verticalMargin, xMargin, zMinMargin, zMaxMargin } = soloAgentRuntimeMargins(bodyLength, creature)
   agentRuntimeClamp.copy(point)
-  agentRuntimeClamp.z = THREE.MathUtils.clamp(agentRuntimeClamp.z, bounds.zMin - horizontalMargin, bounds.zMax + horizontalMargin)
+  agentRuntimeClamp.z = THREE.MathUtils.clamp(agentRuntimeClamp.z, bounds.zMin - zMinMargin, bounds.zMax + zMaxMargin)
   const { xMin, xMax } = swimXRangeAtZ(bounds, agentRuntimeClamp.z)
-  agentRuntimeClamp.x = THREE.MathUtils.clamp(agentRuntimeClamp.x, xMin - horizontalMargin, xMax + horizontalMargin)
+  agentRuntimeClamp.x = THREE.MathUtils.clamp(agentRuntimeClamp.x, xMin - xMargin, xMax + xMargin)
   agentRuntimeClamp.y = THREE.MathUtils.clamp(agentRuntimeClamp.y, bounds.yMin - verticalMargin, bounds.yMax + verticalMargin)
   const clamped = agentRuntimeClamp.distanceToSquared(point) > 0.000001
   if (clamped) point.copy(agentRuntimeClamp)

@@ -11,13 +11,14 @@ Versioning convention notes:
 
 ## v0.8.1 — Mola recovery polish
 
-Status: in progress as `v0.8.1-dev_1`.
+Status: in progress as `v0.8.1-dev_2`.
 
 ### Creature behavior
 
 - Starts the post-`v0.8.0` patch bucket for Mola runtime recovery polish.
 - `v0.8.1-dev_1` restricts the slow Mola fade-out/fade-in recovery to only the far negative-Z hard-recovery envelope. X-axis runtime envelope recovery now uses immediate hidden retarget/clamp behavior instead of the depth-disappearance fade.
 - Adds a fade-out watchdog so a Mola that started the negative-Z recovery fade cannot remain transparent if recovery state changes before the fade-out completes.
+- `v0.8.1-dev_2` gives the Mola a much larger positive-Z runtime buffer, so front/offscreen hard recovery happens farther past the camera instead of popping visibly near the tank front.
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 

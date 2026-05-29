@@ -160,6 +160,8 @@ const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
 const MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS = 1.75
 const MOLA_RUNTIME_OVERSHOOT_XZ_MIN = 9.0
 const MOLA_RUNTIME_OVERSHOOT_XZ_MAX = 18.0
+const MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION = 8
+const MOLA_RUNTIME_RECOVERY_FADE_IN_DURATION = 3.5
 const MOLA_DEEP_ZONE_Z_MAX = -10
 const MOLA_FRONT_EXCURSION_CHANCE = 0.24
 const MOLA_FRONT_TARGET_COUNT = [1, 2]
@@ -1984,6 +1986,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const sunBaskQueued = useRef(false)
   const queuedSunBaskRequestId = useRef(0)
   const lastFollowRecoveryExitAt = useRef(-Infinity)
+  const runtimeRecoveryFade = useRef({ phase: 'idle', startedAt: 0 })
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -2110,6 +2113,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     lastSunBaskAt.current = -Infinity
     sunBaskQueued.current = false
     queuedSunBaskRequestId.current = 0
+    runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
   }, [creature.id, creature.species])
 
   useEffect(() => {
@@ -2481,15 +2485,33 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           onRuntimeRecoveryNeeded?.(creature)
         }
         const runtimeRecoveryEnabled = !zoomActive && soloRuntimeRecoveryEnabled
-        if (runtimeRecoveryEnabled && clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)) {
-          agentRuntimeClamp.copy(fish.position)
-          clampToSwimBounds(agentRuntimeClamp, bounds)
-          agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
-          if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
-          agentBehavior.current = null
-          agentHasTarget.current = false
-          agentBehaviorDistance.current = 0
-          nextAgentRetargetAt.current = now
+        if (runtimeRecoveryEnabled && recoveryNeeded) {
+          if (isMolaCreature(creature)) {
+            const fadeState = runtimeRecoveryFade.current
+            if (fadeState.phase !== 'fade-out') {
+              runtimeRecoveryFade.current = { phase: 'fade-out', startedAt: now }
+            } else if (now - fadeState.startedAt >= MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION) {
+              agentRuntimeClamp.copy(fish.position)
+              clampToSwimBounds(agentRuntimeClamp, bounds)
+              agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
+              if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
+              fish.position.copy(agentRuntimeClamp)
+              agentBehavior.current = null
+              agentHasTarget.current = false
+              agentBehaviorDistance.current = 0
+              nextAgentRetargetAt.current = now
+              runtimeRecoveryFade.current = { phase: 'fade-in', startedAt: now }
+            }
+          } else {
+            agentRuntimeClamp.copy(fish.position)
+            clampToSwimBounds(agentRuntimeClamp, bounds)
+            agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
+            if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
+            agentBehavior.current = null
+            agentHasTarget.current = false
+            agentBehaviorDistance.current = 0
+            nextAgentRetargetAt.current = now
+          }
         }
         agentBehaviorDistance.current += movementScale
       }
@@ -2543,20 +2565,42 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     updateFishRegistry(fish, creature, swim, school)
 
+    let runtimeRecoveryOpacity = 1
+    const recoveryFadeState = runtimeRecoveryFade.current
+    if (recoveryFadeState.phase === 'fade-out') {
+      runtimeRecoveryOpacity = 1 - THREE.MathUtils.smoothstep(
+        now - recoveryFadeState.startedAt,
+        0,
+        MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION,
+      )
+    } else if (recoveryFadeState.phase === 'fade-in') {
+      runtimeRecoveryOpacity = THREE.MathUtils.smoothstep(
+        now - recoveryFadeState.startedAt,
+        0,
+        MOLA_RUNTIME_RECOVERY_FADE_IN_DURATION,
+      )
+      if (now - recoveryFadeState.startedAt >= MOLA_RUNTIME_RECOVERY_FADE_IN_DURATION) {
+        runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
+        runtimeRecoveryOpacity = 1
+      }
+    }
+
     const fade = depthFadeFromScreenZ(fish.position.z)
     fish.traverse(child => {
       if (!child.isMesh || child.userData?.interactionProxy) return
       const materials = Array.isArray(child.material) ? child.material : [child.material]
       materials.filter(Boolean).forEach(material => {
         if (model) {
-          material.transparent = false
-          material.opacity = 1
+          material.transparent = runtimeRecoveryOpacity < 0.999
+          material.opacity = runtimeRecoveryOpacity
+          if ('depthWrite' in material) material.depthWrite = runtimeRecoveryOpacity >= 0.999
           if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.45, 0.95, fade)
           return
         }
 
-        material.transparent = false
-        material.opacity = 1
+        material.transparent = runtimeRecoveryOpacity < 0.999
+        material.opacity = runtimeRecoveryOpacity
+        if ('depthWrite' in material) material.depthWrite = runtimeRecoveryOpacity >= 0.999
         if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)
       })
     })

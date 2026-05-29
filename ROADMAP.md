@@ -13,11 +13,25 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_121`.
+Current dev build reference: `v0.8.0-dev_122`.
 
-### 1. Follow recovery notice on mobile
+### 1. Mola hard-recovery visibility
 
 Status: `Current in development`
+
+Reference:
+- Jeremy report after `v0.8.0-dev_121`: when Mola hard-recovers at the Z boundary, the hard turn is still visible in the far distance.
+- Implemented in `v0.8.0-dev_122`: when Mola reaches the outer runtime envelope outside follow mode, fade it out over 8 seconds, perform hard recovery while hidden, then fade it back in.
+
+Subtasks:
+- [x] Hide Mola outer-envelope recovery with fade-out/reposition/fade-in.
+- [ ] Jeremy/YK phone/visual pass: confirm boundary recovery reads like Mola swam far away and returned, not a hard turn.
+
+Release impact: visual polish blocker until reviewed.
+
+### 2. Follow recovery notice on mobile
+
+Status: `Blocked / waiting review`
 
 Reference:
 - Implemented in `v0.8.0-dev_115`: auto-exit follow mode on selected solo-agent runtime recovery and show `{name} will be back in a bit!`.
@@ -35,7 +49,7 @@ Subtasks:
 
 Release impact: blocker until mobile review passes.
 
-### 2. Mobile follow-camera zoom/framing
+### 3. Mobile follow-camera zoom/framing
 
 Status: `Archive candidate` / Jeremy says zoom is good
 
@@ -48,7 +62,7 @@ Reference:
 
 Release impact: keep as archive candidate until clean public release.
 
-### 3. Final `reju` pass for `v0.8.0`
+### 4. Final `reju` pass for `v0.8.0`
 
 Status: `Next`
 
@@ -57,6 +71,7 @@ Reference:
 - `v0.8.0-dev_119`: mobile zoom/framing fix approved by Jeremy.
 - `v0.8.0-dev_120`: Mola follow recovery now exits on pending hard recovery or camera clipping and shows the centered recovery message.
 - `v0.8.0-dev_121`: manual Mola zoom-in is limited before the camera can clip into the body.
+- `v0.8.0-dev_122`: Mola outer-envelope hard recovery fades out/in to hide the boundary correction.
 - Mobile audio works per Jeremy report after `v0.8.0-dev_117`.
 
 Subtasks:

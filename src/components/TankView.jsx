@@ -14,6 +14,7 @@ const MAX_FOLLOW_ORBIT = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
 const DEFAULT_FOLLOW_DISTANCE = 3.2
 const MIN_FOLLOW_DISTANCE = 1.35
+const MOLA_MIN_FOLLOW_BODY_LENGTHS = 1.05
 const MAX_FOLLOW_DISTANCE = 18
 const LARGE_CREATURE_FOLLOW_BODY_LENGTHS = 1.9
 const LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS = 4.0
@@ -96,8 +97,15 @@ function maxFollowDistanceForCreature(creature) {
   return Math.max(MAX_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS)
 }
 
+function minFollowDistanceForCreature(creature) {
+  const bodyLength = creatureBodyLength(creature)
+  return isSunfishCreature(creature)
+    ? Math.max(MIN_FOLLOW_DISTANCE, bodyLength * MOLA_MIN_FOLLOW_BODY_LENGTHS)
+    : MIN_FOLLOW_DISTANCE
+}
+
 function clampFollowDistance(distance, creature = null) {
-  return Math.max(MIN_FOLLOW_DISTANCE, Math.min(maxFollowDistanceForCreature(creature), distance))
+  return Math.max(minFollowDistanceForCreature(creature), Math.min(maxFollowDistanceForCreature(creature), distance))
 }
 
 function defaultFollowDistanceForCreature(creature) {

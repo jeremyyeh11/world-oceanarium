@@ -13,7 +13,7 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_120`.
+Current dev build reference: `v0.8.0-dev_121`.
 
 ### 1. Follow recovery notice on mobile
 
@@ -24,10 +24,12 @@ Reference:
 - Jeremy report after `v0.8.0-dev_117`: message not seen on mobile.
 - Jeremy request after `v0.8.0-dev_119`: with current zoom logic, kick the user out of Mola follow mode when hard recovery is pending or the Mola clips into the camera, then display the recovery message.
 - Implemented in `v0.8.0-dev_120`: Mola follow mode exits with the same recovery notice when the camera gets close enough for camera clipping; the existing pending hard-recovery path continues to use the same notice.
+- Implemented in `v0.8.0-dev_121`: manual Mola zoom-in is clamped to a body-length-based minimum distance before the camera can clip into the Mola.
 
 Subtasks:
 - [x] Reproduce/inspect selected Mola hard-recovery pending path and confirm it calls the recovery-notice follow exit before hard recovery runs.
 - [x] Add camera-clip follow bailout for selected Mola, using the same centered recovery notice.
+- [x] Clamp manual Mola zoom-in so pinch/scroll cannot drive the camera into the body.
 - [x] Verify notice only appears for automatic recovery/clip follow exits, not manual close/tap-away exits.
 - [ ] Jeremy/YK mobile pass: force Mola close/front, confirm follow exits and `{name} will be back in a bit!` is visible above mobile UI.
 
@@ -54,6 +56,7 @@ Reference:
 - `v0.8.0-dev_117`: Mola bask animation + approach/hold/exit transitions visually approved by Jeremy.
 - `v0.8.0-dev_119`: mobile zoom/framing fix approved by Jeremy.
 - `v0.8.0-dev_120`: Mola follow recovery now exits on pending hard recovery or camera clipping and shows the centered recovery message.
+- `v0.8.0-dev_121`: manual Mola zoom-in is limited before the camera can clip into the body.
 - Mobile audio works per Jeremy report after `v0.8.0-dev_117`.
 
 Subtasks:

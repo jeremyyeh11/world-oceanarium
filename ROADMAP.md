@@ -13,7 +13,7 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_125`.
+Current dev build reference: `v0.8.0-dev_126`.
 
 ### 1. Mola hard-recovery visibility
 
@@ -85,11 +85,14 @@ Reference:
 - Implemented in `v0.8.0-dev_124`: audio unlock now listens on both window and document for pointerdown/touchstart/touchend/click gestures so canvas/tank touches can satisfy the mobile Web Audio user-activation gate.
 - Jeremy request after `v0.8.0-dev_124`: audio should be enabled the moment the page is opened, for all platforms.
 - Implemented in `v0.8.0-dev_125`: tank page now attempts immediate audio startup on page open and foreground return, with gesture unlock retained only as fallback if the browser blocks audible autoplay.
+- Jeremy report after `v0.8.0-dev_125`: works on PC but not Mobile Safari.
+- Implemented in `v0.8.0-dev_126`: harden Mobile Safari fallback by preserving gesture retry until Web Audio really starts, adding pointerup/cancel + touchcancel unlock hooks, using a silent source pulse during unlock, and falling back from unsupported AudioContext constructor options.
 
 Subtasks:
 - [x] Add broader mobile gesture unlock path beyond UI buttons.
 - [x] Attempt audio startup immediately on tank page open and foreground return.
-- [ ] Jeremy/YK all-platform pass: confirm audio is enabled as soon as the page opens; note any browser/device that still blocks audible autoplay.
+- [x] PC pass: Jeremy says `v0.8.0-dev_125` works on PC.
+- [ ] Mobile Safari pass: confirm either page-open audio works where allowed or first tank/canvas touch unlocks audio without using the UI audio button.
 
 Release impact: blocker until mobile audio review passes.
 
@@ -107,6 +110,7 @@ Reference:
 - Jeremy accepted lighting banding, fade-out recovery, and mobile notice after `v0.8.0-dev_123`.
 - `v0.8.0-dev_124`: mobile audio unlock listens to tank/canvas gestures, not just UI clicks.
 - `v0.8.0-dev_125`: audio start is attempted immediately on tank page open and foreground return across platforms.
+- `v0.8.0-dev_126`: Mobile Safari audio fallback is hardened with persistent gesture retry, extra touch/pointer end/cancel hooks, silent source unlock pulses, and AudioContext constructor fallback.
 
 Subtasks:
 - [ ] Technical gates: `npm run build`, GitHub Actions Build, Vercel status, browser smoke, no console errors.

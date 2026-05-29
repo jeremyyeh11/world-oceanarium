@@ -48,7 +48,13 @@ function hashString(value) {
 function createAudioContext() {
   const AudioContextClass = window.AudioContext ?? window.webkitAudioContext
   if (!AudioContextClass) return null
-  return new AudioContextClass({ latencyHint: 'interactive' })
+  try {
+    return new AudioContextClass({ latencyHint: 'interactive' })
+  } catch {
+    // Older iOS Safari builds can reject constructor options even when
+    // webkitAudioContext itself is available.
+    return new AudioContextClass()
+  }
 }
 
 function setAudioSessionType(type) {
@@ -87,20 +93,36 @@ function getMasterTargetGain() {
 function unlockAudioContext(context) {
   if (!context) return Promise.resolve(false)
 
-  try {
+  const playSilentPulse = () => {
     const buffer = context.createBuffer(1, 1, context.sampleRate)
     const source = context.createBufferSource()
+    const gain = context.createGain()
     source.buffer = buffer
-    source.connect(context.destination)
+    gain.gain.value = 0.000001
+    source.connect(gain)
+    gain.connect(context.destination)
     source.start(0)
+  }
+
+  try {
+    // iOS Safari is most reliable when a source node is started during the
+    // actual touch event, not only when resume() is requested.
+    playSilentPulse()
   } catch {
-    // Unlock pulse is best-effort for iOS Safari.
+    // Unlock pulse is best-effort.
   }
 
   if (context.state === 'running') return Promise.resolve(true)
 
   return Promise.resolve(context.resume?.())
-    .then(() => context.state === 'running')
+    .then(() => {
+      try {
+        playSilentPulse()
+      } catch {
+        // Best-effort second pulse after resume.
+      }
+      return context.state === 'running'
+    })
     .catch(() => false)
 }
 

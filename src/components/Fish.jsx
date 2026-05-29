@@ -2565,13 +2565,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (agentLabelRef.current) {
         const bodyLength = creatureBodyLength(creature, swim)
         const status = agentStatus.current
-        const commonName = species?.name ?? creature.species ?? 'Unknown'
+        const displayName = creature.customName?.trim() || species?.name || creature.species || 'Unknown'
         const scientificName = species?.scientificName ?? '—'
         labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
         agentLabelRef.current.position.copy(labelPosition.current)
         const currentAnimation = animationRef.current ?? '—'
         const queuedAction = sunBaskQueued.current ? 'sun-bask' : 'none'
-        agentLabelRef.current.text = `id ${creature.id ?? '?'}\n${commonName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\nbehavior ${status}\nqueue ${queuedAction}\nanimation ${currentAnimation}`
+        agentLabelRef.current.text = `${creature.id ?? '?'} • ${displayName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\n${status} • ${currentAnimation}\nqueue ${queuedAction}`
         agentLabelRef.current.lookAt(camera.position)
         agentLabelRef.current.visible = showDirection && showAgentDebug
       }

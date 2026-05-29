@@ -104,6 +104,8 @@ const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
+const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
+const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
 const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
@@ -1760,12 +1762,37 @@ function playModelAction(actions, activeActionRef, model, animation, animationVa
   activeActionRef.current = nextAction
 }
 
+function isSunBaskAnimationName(name) {
+  return SUN_BASK_ANIMATION_NAMES.has(name)
+}
+
+function isRootTransformTrack(track) {
+  const name = track?.name ?? ''
+  return name === 'root.position'
+    || name === 'root.quaternion'
+    || name === 'root.scale'
+    || name.startsWith('root.')
+    || name.startsWith('root/')
+}
+
+function sunBaskAnimationFadeDuration(model, animation, resolvedAnimation) {
+  if (isSunBaskAnimationName(animation) || isSunBaskAnimationName(resolvedAnimation)) {
+    return modelFadeDuration(model, MOLA_SUN_BASK_ANIMATION_FADE_DURATION)
+  }
+  return modelFadeDuration(model)
+}
+
 function layeredAnimationClips(gltfAnimations, model) {
-  // Keep the authored clips intact. The Mola clips are exported without root
-  // displacement, so normal layered actions are safer than runtime additive
-  // conversion and still let slow_cruise continue underneath overlays.
+  // Keep authored clips intact by default. For Mola sun-bask, runtime owns the
+  // whole-animal side-up roll; authored root tracks in the bask clips can fight
+  // that procedural pose and create a snap exactly when basking starts.
   if (!model?.layeredAnimations) return gltfAnimations
-  return gltfAnimations
+  return gltfAnimations.map(clip => {
+    if (!isSunBaskAnimationName(clip.name)) return clip
+    const tracks = clip.tracks.filter(track => !isRootTransformTrack(track))
+    if (tracks.length === clip.tracks.length) return clip
+    return new THREE.AnimationClip(clip.name, clip.duration, tracks)
+  })
 }
 
 function playLayeredModelAction(actions, activeActionRef, model, animation, animationVariation) {
@@ -1798,8 +1825,8 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   nextAction.setEffectiveWeight(model.layeredOverlayWeight ?? 1)
   configureModelAction(nextAction, model, animation, resolvedAnimation, speed, offset)
   nextAction.play()
-  nextAction.fadeIn(modelFadeDuration(model))
-  if (previousOverlay) previousOverlay.fadeOut(modelFadeDuration(model))
+  nextAction.fadeIn(sunBaskAnimationFadeDuration(model, animation, resolvedAnimation))
+  if (previousOverlay) previousOverlay.fadeOut(sunBaskAnimationFadeDuration(model, animation, resolvedAnimation))
   activeActionRef.current = nextAction
 }
 

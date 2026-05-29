@@ -2246,6 +2246,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             stageStartedAt: now,
             holdUntil: now + MOLA_SUN_BASK_DURATION,
             holdStartRollAlpha,
+            holdForward: (hasVisualForward.current ? visualForward.current : currentForward).clone().normalize(),
           }
           agentHasTarget.current = false
           agentBehaviorDistance.current = 0
@@ -2564,6 +2565,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       enforceForwardPitchLimit(visualForward.current, pitchLimit)
     }
     pitchedForward.copy(visualForward.current)
+    if (agentBehavior.current?.type === 'sun-bask'
+      && agentBehavior.current.stage === 'hold'
+      && agentBehavior.current.holdForward?.lengthSq?.() > 0.0001) {
+      pitchedForward.copy(agentBehavior.current.holdForward).normalize()
+      visualForward.current.copy(pitchedForward)
+    }
 
     if (debug) {
       const showDirection = debugLayers?.direction ?? true

@@ -178,6 +178,8 @@ const MOLA_SUN_BASK_HOLD_ROLL_COMPLETE_DURATION = 5
 const MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE = THREE.MathUtils.degToRad(4)
 const MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE = THREE.MathUtils.degToRad(3)
 const MOLA_SUN_BASK_DRIFT_INTRO_DURATION = 4
+const MOLA_SUN_BASK_LOOK_AT_ENTER_BLEND_DURATION = 1.5
+const MOLA_SUN_BASK_LOOK_AT_EXIT_BLEND_DURATION = 6
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
@@ -2566,9 +2568,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
     pitchedForward.copy(visualForward.current)
     if (agentBehavior.current?.type === 'sun-bask'
-      && agentBehavior.current.stage === 'hold'
+      && (agentBehavior.current.stage === 'hold' || agentBehavior.current.stage === 'exit')
       && agentBehavior.current.holdForward?.lengthSq?.() > 0.0001) {
-      pitchedForward.copy(agentBehavior.current.holdForward).normalize()
+      const behavior = agentBehavior.current
+      const stageElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))
+      const freezeAlpha = behavior.stage === 'hold'
+        ? THREE.MathUtils.smoothstep(stageElapsed, 0, MOLA_SUN_BASK_LOOK_AT_ENTER_BLEND_DURATION)
+        : 1 - THREE.MathUtils.smoothstep(stageElapsed, 0, MOLA_SUN_BASK_LOOK_AT_EXIT_BLEND_DURATION)
+      pitchedForward.lerpVectors(visualForward.current, behavior.holdForward, freezeAlpha).normalize()
       visualForward.current.copy(pitchedForward)
     }
 

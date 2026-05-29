@@ -106,6 +106,7 @@ const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
+const MOLA_SUN_BASK_ANIMATION_SPEED_SCALE = 0.5
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
 const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
@@ -1796,7 +1797,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
       if (action && action !== sunBaskAction) action.stop()
     })
 
-    const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
+    const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation) * MOLA_SUN_BASK_ANIMATION_SPEED_SCALE
     sunBaskAction.reset()
     sunBaskAction.setEffectiveWeight(1)
     configureModelAction(sunBaskAction, model, animation, resolvedAnimation, speed, 0)

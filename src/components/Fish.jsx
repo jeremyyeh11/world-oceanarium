@@ -105,7 +105,6 @@ const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
-const MOLA_SUN_BASK_BODY_TRACK_ROOTS = new Set(['root', 'butt', 'face', 'shoulder.l', 'shoulder.r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
@@ -1767,18 +1766,6 @@ function isSunBaskAnimationName(name) {
   return SUN_BASK_ANIMATION_NAMES.has(name)
 }
 
-function animationTrackRootName(track) {
-  const name = track?.name ?? ''
-  const propertyIndex = name.search(/[./](position|quaternion|scale|translation|rotation)$/)
-  if (propertyIndex >= 0) return name.slice(0, propertyIndex)
-  const separatorIndex = Math.max(name.lastIndexOf('.'), name.lastIndexOf('/'))
-  return separatorIndex >= 0 ? name.slice(0, separatorIndex) : name
-}
-
-function isMolaSunBaskBodyTrack(track) {
-  return MOLA_SUN_BASK_BODY_TRACK_ROOTS.has(animationTrackRootName(track))
-}
-
 function sunBaskAnimationFadeDuration(model, animation, resolvedAnimation) {
   if (isSunBaskAnimationName(animation) || isSunBaskAnimationName(resolvedAnimation)) {
     return modelFadeDuration(model, MOLA_SUN_BASK_ANIMATION_FADE_DURATION)
@@ -1787,23 +1774,34 @@ function sunBaskAnimationFadeDuration(model, animation, resolvedAnimation) {
 }
 
 function layeredAnimationClips(gltfAnimations, model) {
-  // Keep authored clips intact by default. For Mola sun-bask, runtime owns the
-  // whole-animal side-up pose; the clip should only add appendage/fins motion.
-  // Body-ish tracks can pop the rig from cruise to the authored bask pose even
-  // when root transforms are stripped, so remove them from the bask overlays.
-  if (!model?.layeredAnimations) return gltfAnimations
-  return gltfAnimations.map(clip => {
-    if (!isSunBaskAnimationName(clip.name)) return clip
-    const tracks = clip.tracks.filter(track => !isMolaSunBaskBodyTrack(track))
-    if (tracks.length === clip.tracks.length) return clip
-    return new THREE.AnimationClip(clip.name, clip.duration, tracks)
-  })
+  // Keep authored clips intact. Sun-bask playback is isolated at action time so
+  // the complete authored bask clip plays alone, with no cruise base or overlay
+  // surgery that can introduce partial-rig conflicts.
+  return gltfAnimations
 }
 
 function playLayeredModelAction(actions, activeActionRef, model, animation, animationVariation) {
   const baseAnimation = model.layeredBaseAnimation ?? resolveMoveAnimation(model, 'cruise')
   const baseAction = actions[baseAnimation]
   const offset = animationVariation?.startOffset ?? 0
+  const resolvedAnimation = resolveModelAnimation(model, animation)
+
+  if (isSunBaskAnimationName(animation) || isSunBaskAnimationName(resolvedAnimation)) {
+    const sunBaskAction = actions[resolvedAnimation] ?? actions[animation]
+    if (!sunBaskAction || activeActionRef.current === sunBaskAction) return
+
+    Object.values(actions).forEach(action => {
+      if (action && action !== sunBaskAction) action.stop()
+    })
+
+    const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
+    sunBaskAction.reset()
+    sunBaskAction.setEffectiveWeight(1)
+    configureModelAction(sunBaskAction, model, animation, resolvedAnimation, speed, 0)
+    sunBaskAction.play()
+    activeActionRef.current = sunBaskAction
+    return
+  }
 
   if (baseAction && !baseAction.isRunning()) {
     const speed = modelAnimationSpeed(animationVariation, baseAnimation, baseAnimation)
@@ -1813,10 +1811,9 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
     baseAction.play()
   }
 
-  const resolvedAnimation = resolveModelAnimation(model, animation)
   if (resolvedAnimation === baseAnimation) {
     const previousOverlay = activeActionRef.current
-    if (previousOverlay) previousOverlay.fadeOut(modelFadeDuration(model))
+    if (previousOverlay && previousOverlay !== baseAction) previousOverlay.fadeOut(modelFadeDuration(model))
     activeActionRef.current = null
     return
   }

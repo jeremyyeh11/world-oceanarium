@@ -164,9 +164,19 @@ export default function App() {
     window.addEventListener('blur', pauseWhenBackgrounded)
     window.addEventListener('pageshow', resumeWhenForegrounded)
     window.addEventListener('focus', resumeWhenForegrounded)
-    window.addEventListener('pointerdown', resumeOnNextGesture, { capture: true })
+    // Mobile Safari is pickier than desktop: canvas pointer/touch starts can be
+    // swallowed by gesture controls, while UI clicks still unlock audio. Listen
+    // at both window/document and include touchend/click so any intentional tank
+    // interaction can satisfy the Web Audio user-activation gate.
+    window.addEventListener('pointerdown', resumeOnNextGesture, { capture: true, passive: true })
     window.addEventListener('touchstart', resumeOnNextGesture, { capture: true, passive: true })
+    window.addEventListener('touchend', resumeOnNextGesture, { capture: true, passive: true })
+    window.addEventListener('click', resumeOnNextGesture, { capture: true })
     window.addEventListener('keydown', resumeOnNextGesture, { capture: true })
+    document.addEventListener('pointerdown', resumeOnNextGesture, { capture: true, passive: true })
+    document.addEventListener('touchstart', resumeOnNextGesture, { capture: true, passive: true })
+    document.addEventListener('touchend', resumeOnNextGesture, { capture: true, passive: true })
+    document.addEventListener('click', resumeOnNextGesture, { capture: true })
 
     const audioSession = navigator?.audioSession
     const recoverInterruptedAudio = () => {
@@ -197,7 +207,13 @@ export default function App() {
       window.removeEventListener('focus', resumeWhenForegrounded)
       window.removeEventListener('pointerdown', resumeOnNextGesture, { capture: true })
       window.removeEventListener('touchstart', resumeOnNextGesture, { capture: true })
+      window.removeEventListener('touchend', resumeOnNextGesture, { capture: true })
+      window.removeEventListener('click', resumeOnNextGesture, { capture: true })
       window.removeEventListener('keydown', resumeOnNextGesture, { capture: true })
+      document.removeEventListener('pointerdown', resumeOnNextGesture, { capture: true })
+      document.removeEventListener('touchstart', resumeOnNextGesture, { capture: true })
+      document.removeEventListener('touchend', resumeOnNextGesture, { capture: true })
+      document.removeEventListener('click', resumeOnNextGesture, { capture: true })
     }
   }, [audioMuted, audioStarted, pauseAudio, screen, startAudio, stopAudio])
 

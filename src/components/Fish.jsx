@@ -175,6 +175,7 @@ const MOLA_SUN_BASK_APPROACH_MAX_ROLL_ALPHA = 0.92
 const MOLA_SUN_BASK_HOLD_ROLL_COMPLETE_DURATION = 5
 const MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE = THREE.MathUtils.degToRad(4)
 const MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE = THREE.MathUtils.degToRad(3)
+const MOLA_SUN_BASK_DRIFT_INTRO_DURATION = 4
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const MOLA_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.50
@@ -2373,11 +2374,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         agentMoveDirection.copy(tangent)
         const driftElapsed = now - agentBehavior.current.stageStartedAt
         const driftPhase = driftElapsed * 0.45 + motion.bobPhase
-        fish.position.x += Math.sin(driftPhase) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * delta
-        fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * delta
+        const driftIntroAlpha = THREE.MathUtils.smoothstep(driftElapsed, 0, MOLA_SUN_BASK_DRIFT_INTRO_DURATION)
+        fish.position.x += Math.sin(driftPhase) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * driftIntroAlpha * delta
+        fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * driftIntroAlpha * delta
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         velocity.current = THREE.MathUtils.damp(velocity.current, 0, 1.4, delta)
-        const driftY = Math.sin(driftPhase * 0.57 + 1.7) * MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE
+        const driftY = Math.sin(driftPhase * 0.57 + 1.7) * MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE * driftIntroAlpha
         fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSunBaskSurfaceCenterYMax(creature, swim, bounds) + driftY, 1.2, delta)
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
         agentBehaviorDistance.current = 0
@@ -2622,15 +2624,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         fish.quaternion.premultiply(bankQuaternion)
         if (behavior.stage === 'hold' || behavior.stage === 'exit') {
           const driftElapsed = Math.max(0, now - (behavior.stageStartedAt ?? agentBehaviorStartedAt.current))
+          const driftIntroAlpha = behavior.stage === 'hold'
+            ? THREE.MathUtils.smoothstep(driftElapsed, 0, MOLA_SUN_BASK_DRIFT_INTRO_DURATION)
+            : 1
           const driftFade = behavior.stage === 'exit'
             ? 1 - THREE.MathUtils.clamp(stageElapsed / MOLA_SUN_BASK_EXIT_ROLL_DURATION, 0, 1)
-            : 1
+            : driftIntroAlpha
           const yawDrift = behavior.stage === 'exit'
             ? (behavior.exitStartYawDrift ?? 0) * driftFade
-            : Math.sin(driftElapsed * 0.19 + motion.bobPhase * 1.7) * MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE
+            : Math.sin(driftElapsed * 0.19 + motion.bobPhase * 1.7) * MOLA_SUN_BASK_DRIFT_YAW_AMPLITUDE * driftFade
           const rollDrift = behavior.stage === 'exit'
             ? (behavior.exitStartRollDrift ?? 0) * driftFade
-            : Math.sin(driftElapsed * 0.27 + motion.bobPhase * 2.3 + 1.1) * MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE
+            : Math.sin(driftElapsed * 0.27 + motion.bobPhase * 2.3 + 1.1) * MOLA_SUN_BASK_DRIFT_ROLL_AMPLITUDE * driftFade
           bankQuaternion.setFromAxisAngle(up, yawDrift)
           fish.quaternion.premultiply(bankQuaternion)
           bankQuaternion.setFromAxisAngle(pitchedForward, rollDrift)

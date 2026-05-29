@@ -2573,7 +2573,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             }
           } else {
             agentRuntimeClamp.copy(fish.position)
-            clampToSwimBounds(agentRuntimeClamp, bounds)
+            if (isMolaCreature(creature)) {
+              // Keep visible-edge/front Mola recovery at the expanded runtime envelope edge.
+              // Snapping all the way back to swim bounds is what made bottom-right +Z/X
+              // exits read as a teleport + spin near the camera.
+              clampToSoloAgentRuntimeEnvelope(agentRuntimeClamp, bounds, bodyLength, creature)
+            } else {
+              clampToSwimBounds(agentRuntimeClamp, bounds)
+            }
             agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
             if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
             fish.position.copy(agentRuntimeClamp)

@@ -9,6 +9,10 @@ export const CAMERA_LIMITS = {
 }
 
 const DEFAULT_CAMERA_Z = 12
+const DEFAULT_CAMERA_FOV = 60
+const MAX_FOLLOW_CAMERA_FOV = 76
+const FOLLOW_FOV_DAMPING = 3.4
+const FOLLOW_FRAME_MARGIN = 1.32
 const FOLLOW_HEIGHT = 0.85
 const FOLLOW_SURFACE_CLEARANCE = 0.35
 const FOLLOW_TARGET_DAMPING = 2.8
@@ -28,6 +32,7 @@ const followOffset = new THREE.Vector3()
 const followRight = new THREE.Vector3()
 const desiredCameraPosition = new THREE.Vector3()
 const focusBounds = new THREE.Box3()
+const focusSphere = new THREE.Sphere()
 const yawQuaternion = new THREE.Quaternion()
 const pitchQuaternion = new THREE.Quaternion()
 
@@ -64,8 +69,11 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     if (focusTarget) {
       setDefaultCameraSettled(false)
       focusBounds.setFromObject(focusTarget)
+      let focusRadius = 0
       if (!focusBounds.isEmpty()) {
         focusBounds.getCenter(focusPosition)
+        focusBounds.getBoundingSphere(focusSphere)
+        focusRadius = Math.max(0, focusSphere.radius)
       } else {
         focusTarget.getWorldPosition(focusPosition)
       }
@@ -99,7 +107,15 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       smoothedFocus.current.y = THREE.MathUtils.damp(smoothedFocus.current.y, focusPosition.y, FOLLOW_TARGET_DAMPING, delta)
       smoothedFocus.current.z = THREE.MathUtils.damp(smoothedFocus.current.z, focusPosition.z, FOLLOW_TARGET_DAMPING, delta)
 
-      const activeFollowDistance = followDistance
+      const baseHalfFov = THREE.MathUtils.degToRad(DEFAULT_CAMERA_FOV) * 0.5
+      const aspect = Math.max(0.1, camera.aspect ?? 1)
+      const fitDistance = focusRadius > 0
+        ? Math.max(
+          focusRadius * FOLLOW_FRAME_MARGIN / Math.tan(baseHalfFov),
+          focusRadius * FOLLOW_FRAME_MARGIN / (Math.tan(baseHalfFov) * aspect),
+        )
+        : followDistance
+      const activeFollowDistance = Math.max(followDistance, fitDistance)
 
       followOffset.set(0, FOLLOW_HEIGHT, activeFollowDistance)
 
@@ -125,6 +141,20 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       camera.position.y = Math.min(camera.position.y, MAX_FOLLOW_CAMERA_Y)
       camera.position.z = THREE.MathUtils.clamp(camera.position.z, MIN_FOLLOW_CAMERA_Z, MAX_FOLLOW_CAMERA_Z)
 
+      const actualFocusDistance = Math.max(0.1, camera.position.distanceTo(framedFocus))
+      const requiredVerticalHalfFov = focusRadius > 0 ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / actualFocusDistance) : baseHalfFov
+      const requiredHorizontalHalfFov = focusRadius > 0 ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / (actualFocusDistance * aspect)) : baseHalfFov
+      const targetFov = THREE.MathUtils.clamp(
+        THREE.MathUtils.radToDeg(Math.max(baseHalfFov, requiredVerticalHalfFov, requiredHorizontalHalfFov) * 2),
+        DEFAULT_CAMERA_FOV,
+        MAX_FOLLOW_CAMERA_FOV,
+      )
+      const nextFov = THREE.MathUtils.damp(camera.fov, targetFov, FOLLOW_FOV_DAMPING, delta)
+      if (Math.abs(nextFov - camera.fov) > 0.01) {
+        camera.fov = nextFov
+        camera.updateProjectionMatrix()
+      }
+
       if (!hasSmoothedLookTarget.current) {
         camera.getWorldDirection(currentCameraForward)
         const initialLookDistance = Math.max(1, camera.position.distanceTo(framedFocus))
@@ -144,6 +174,11 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
     hasSmoothedLookTarget.current = false
+    const nextDefaultFov = THREE.MathUtils.damp(camera.fov, DEFAULT_CAMERA_FOV, FOLLOW_FOV_DAMPING, delta)
+    if (Math.abs(nextDefaultFov - camera.fov) > 0.01) {
+      camera.fov = nextDefaultFov
+      camera.updateProjectionMatrix()
+    }
     camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, DEFAULT_POSITION_DAMPING, delta)
     camera.position.y = THREE.MathUtils.damp(camera.position.y, 0, DEFAULT_POSITION_DAMPING, delta)
     camera.position.z = THREE.MathUtils.damp(camera.position.z, DEFAULT_CAMERA_Z, DEFAULT_POSITION_DAMPING, delta)

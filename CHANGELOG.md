@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_104`.
+Status: in progress as `v0.8.0-dev_105`.
 
 ### Creature behavior
 
@@ -116,6 +116,7 @@ Status: in progress as `v0.8.0-dev_104`.
 - Removes the remaining Mola sun-bask exit snap by keeping the exit behavior alive until roll-down finishes even if the exit destination is reached early, and suppresses generic procedural turn banking while any sun-bask stage owns the side-up pose.
 - Reformats the Mola solo-agent debug label to match the sardine debug label shape: `id • name`, scientific name, speed, `behavior • animation`, and queue.
 - Fades Mola sun-bask ocean drift in over the first hold seconds so non-zero yaw/roll/position drift cannot appear as a one-frame snap on approach → hold.
+- Removes authored `root` transform tracks from Mola sun-bask animation overlays and lengthens the bask overlay blend, leaving runtime root roll as the only whole-animal bask pose owner.
 
 ## v0.7.9 — Sardine texture refresh
 

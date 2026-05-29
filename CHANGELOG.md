@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_117`.
+Status: in progress as `v0.8.0-dev_118`.
 
 ### Creature behavior
 
@@ -106,7 +106,7 @@ Status: in progress as `v0.8.0-dev_117`.
 - Starts the Mola side-up sun-bask roll during the swimming approach instead of after it stops, slows roll-in/roll-out, tightens approach arrival so it reaches the near-surface target before holding, doubles bask hold time to `60s`, and adds small independent XYZ ocean-drift motion during the stationary bask pose.
 - Adds a mobile-friendly debug action button: while debug mode is on and a Mola is selected/followed, tap `bask` in the debug panel to queue the same natural sun-bask behavior as `Ctrl+Shift+X`.
 - Retimes the Mola sun-bask approach roll from elapsed-time based to distance-progress based with eased-in interpolation, so it only reaches the full side-up pose as the fish arrives and starts basking instead of rotating fully too early mid-approach.
-- Clamps follow-camera X/Z inside the water-surface plane footprint, matching the existing Y ceiling, so zooming/orbiting out during follow mode cannot pull the camera beyond the surface card and reveal space above/outside the water.
+- Clamps follow-camera X/Z inside the water-surface plane footprint, matching the existing Y ceiling, so zooming/orbiting out during follow mode cannot pull the camera beyond the surface card and reveal space above/outside the water. `v0.8.0-dev_118` adds adaptive selected-creature framing: large/near subjects such as Mola automatically back the follow distance out to fit their bounds, and if the surface-card clamp prevents more physical pullback the camera gently widens FOV up to a capped follow-only limit so mobile can still see the whole fish without freely exposing plane edges.
 - Expands the water-surface plane width by `3x` while scaling the procedural surface UVs in X by the same factor, preserving shimmer/glint density instead of stretching the texture across the wider top surface.
 - Adds eased deceleration during the Mola sun-bask approach, ramping down forward movement over the final approach distance instead of switching from cruise speed to stationary hold abruptly.
 - Delays Mola side-up roll pacing until late in the sun-bask approach: roll now starts after about `62%` route progress and caps at `92%` while still approaching, then completes to the full 90° pose gradually during the bask hold instead of snapping at the stage transition.

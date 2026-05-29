@@ -36,6 +36,7 @@ Important paths:
 - `src/data/species.js` — species templates, model metadata, biological facts
 - `src/version.js` — visible bottom-right version label
 - `CHANGELOG.md` — categorized release-bucket notes
+- `ROADMAP.md` — active TODOs, release blockers, and review follow-ups ordered by current work, priority, then chronology
 - `public/models/` and `public/audio/` — shipped assets
 
 ## Working style
@@ -57,6 +58,15 @@ Visible versions use a target-release plus dev-suffix model:
 - Keep `package.json` at the stable target semver; do not churn npm version for every dev suffix.
 - Update `CHANGELOG.md` in categorized release buckets, not raw commit diaries.
 - For doc-only changes that do not affect the app build or deployment, do not bump the visible app version unless asked.
+
+## Roadmap workflow
+
+- Keep `ROADMAP.md` as the source of truth for active TODOs, release blockers, and review follow-ups that come up in chat.
+- Add new TODO lists and release blockers to `ROADMAP.md` with relevant dev patch/bucket version numbers for reference.
+- Order roadmap items by current work first, then priority, then chronological discovery order unless Jeremy/YK explicitly asks to reorder.
+- When work starts on a roadmap item, mark it `Current in development` and add subtasks when useful.
+- When an item is completed and pushed to a clean public release, remove it from active roadmap sections or archive it away.
+- Do not bump `src/version.js` for roadmap-only/doc-only edits unless asked.
 
 ## Validation
 

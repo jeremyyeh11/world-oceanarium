@@ -105,6 +105,7 @@ const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
+const MOLA_SUN_BASK_BODY_TRACK_ROOTS = new Set(['root', 'butt', 'face', 'shoulder.l', 'shoulder.r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
@@ -1766,13 +1767,16 @@ function isSunBaskAnimationName(name) {
   return SUN_BASK_ANIMATION_NAMES.has(name)
 }
 
-function isRootTransformTrack(track) {
+function animationTrackRootName(track) {
   const name = track?.name ?? ''
-  return name === 'root.position'
-    || name === 'root.quaternion'
-    || name === 'root.scale'
-    || name.startsWith('root.')
-    || name.startsWith('root/')
+  const propertyIndex = name.search(/[./](position|quaternion|scale|translation|rotation)$/)
+  if (propertyIndex >= 0) return name.slice(0, propertyIndex)
+  const separatorIndex = Math.max(name.lastIndexOf('.'), name.lastIndexOf('/'))
+  return separatorIndex >= 0 ? name.slice(0, separatorIndex) : name
+}
+
+function isMolaSunBaskBodyTrack(track) {
+  return MOLA_SUN_BASK_BODY_TRACK_ROOTS.has(animationTrackRootName(track))
 }
 
 function sunBaskAnimationFadeDuration(model, animation, resolvedAnimation) {
@@ -1784,12 +1788,13 @@ function sunBaskAnimationFadeDuration(model, animation, resolvedAnimation) {
 
 function layeredAnimationClips(gltfAnimations, model) {
   // Keep authored clips intact by default. For Mola sun-bask, runtime owns the
-  // whole-animal side-up roll; authored root tracks in the bask clips can fight
-  // that procedural pose and create a snap exactly when basking starts.
+  // whole-animal side-up pose; the clip should only add appendage/fins motion.
+  // Body-ish tracks can pop the rig from cruise to the authored bask pose even
+  // when root transforms are stripped, so remove them from the bask overlays.
   if (!model?.layeredAnimations) return gltfAnimations
   return gltfAnimations.map(clip => {
     if (!isSunBaskAnimationName(clip.name)) return clip
-    const tracks = clip.tracks.filter(track => !isRootTransformTrack(track))
+    const tracks = clip.tracks.filter(track => !isMolaSunBaskBodyTrack(track))
     if (tracks.length === clip.tracks.length) return clip
     return new THREE.AnimationClip(clip.name, clip.duration, tracks)
   })

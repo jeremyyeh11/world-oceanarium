@@ -140,6 +140,8 @@ export default function App() {
     if (!audioStarted) {
       audioNeedsGestureResume.current = true
       queuePageOpenAudioStart()
+    } else {
+      audioNeedsGestureResume.current = false
     }
 
     const pauseWhenBackgrounded = () => {
@@ -167,7 +169,6 @@ export default function App() {
 
     const resumeOnNextGesture = () => {
       if (!audioNeedsGestureResume.current || document.visibilityState === 'hidden' || audioMuted) return
-      audioNeedsGestureResume.current = false
       clearAudioResumeTimers()
       startAudio()
     }
@@ -191,13 +192,19 @@ export default function App() {
     // at both window/document and include touchend/click so any intentional tank
     // interaction can satisfy the Web Audio user-activation gate.
     window.addEventListener('pointerdown', resumeOnNextGesture, { capture: true, passive: true })
+    window.addEventListener('pointerup', resumeOnNextGesture, { capture: true, passive: true })
+    window.addEventListener('pointercancel', resumeOnNextGesture, { capture: true, passive: true })
     window.addEventListener('touchstart', resumeOnNextGesture, { capture: true, passive: true })
     window.addEventListener('touchend', resumeOnNextGesture, { capture: true, passive: true })
+    window.addEventListener('touchcancel', resumeOnNextGesture, { capture: true, passive: true })
     window.addEventListener('click', resumeOnNextGesture, { capture: true })
     window.addEventListener('keydown', resumeOnNextGesture, { capture: true })
     document.addEventListener('pointerdown', resumeOnNextGesture, { capture: true, passive: true })
+    document.addEventListener('pointerup', resumeOnNextGesture, { capture: true, passive: true })
+    document.addEventListener('pointercancel', resumeOnNextGesture, { capture: true, passive: true })
     document.addEventListener('touchstart', resumeOnNextGesture, { capture: true, passive: true })
     document.addEventListener('touchend', resumeOnNextGesture, { capture: true, passive: true })
+    document.addEventListener('touchcancel', resumeOnNextGesture, { capture: true, passive: true })
     document.addEventListener('click', resumeOnNextGesture, { capture: true })
 
     const audioSession = navigator?.audioSession
@@ -228,13 +235,19 @@ export default function App() {
       window.removeEventListener('pageshow', resumeWhenForegrounded)
       window.removeEventListener('focus', resumeWhenForegrounded)
       window.removeEventListener('pointerdown', resumeOnNextGesture, { capture: true })
+      window.removeEventListener('pointerup', resumeOnNextGesture, { capture: true })
+      window.removeEventListener('pointercancel', resumeOnNextGesture, { capture: true })
       window.removeEventListener('touchstart', resumeOnNextGesture, { capture: true })
       window.removeEventListener('touchend', resumeOnNextGesture, { capture: true })
+      window.removeEventListener('touchcancel', resumeOnNextGesture, { capture: true })
       window.removeEventListener('click', resumeOnNextGesture, { capture: true })
       window.removeEventListener('keydown', resumeOnNextGesture, { capture: true })
       document.removeEventListener('pointerdown', resumeOnNextGesture, { capture: true })
+      document.removeEventListener('pointerup', resumeOnNextGesture, { capture: true })
+      document.removeEventListener('pointercancel', resumeOnNextGesture, { capture: true })
       document.removeEventListener('touchstart', resumeOnNextGesture, { capture: true })
       document.removeEventListener('touchend', resumeOnNextGesture, { capture: true })
+      document.removeEventListener('touchcancel', resumeOnNextGesture, { capture: true })
       document.removeEventListener('click', resumeOnNextGesture, { capture: true })
     }
   }, [audioMuted, audioStarted, pauseAudio, screen, startAudio, stopAudio])

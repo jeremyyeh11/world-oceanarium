@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.8.0 — Mola alexandrini + solo-agent movement
 
-Status: in progress as `v0.8.0-dev_122`.
+Status: in progress as `v0.8.0-dev_123`.
 
 ### Creature behavior
 
@@ -29,7 +29,7 @@ Status: in progress as `v0.8.0-dev_122`.
 - Species-specific behavior profiles will layer personality/state weights on top of reusable steering, target selection, bounds, debug, and animation-speed outputs.
 - Keeps the Mola GLB path unwired for now; the placeholder path is data-driven through the species profile so the final asset can replace the geometry later without blocking behavior tuning.
 - Scales follow-camera default distance by focused creature body length for large solo animals, so clicking the real-scale Mola starts farther back instead of zooming inside the fish while sardines keep the existing close inspection distance.
-- Adds a small centered follow-camera recovery notice when an automatically followed creature leaves the runtime boundary and the camera exits to let hard recovery happen, using the custom name when present or the common species name otherwise. `v0.8.0-dev_120` also exits Mola follow mode with the same notice if the follow camera gets close enough for the Mola to clip into the camera, so runtime recovery and camera-clip bailouts share one clear player-facing explanation. `v0.8.0-dev_121` limits manual Mola zoom-in before that clip zone so pinch/scroll cannot intentionally drive the camera into the body. `v0.8.0-dev_122` fades Mola out over 8 seconds before outer-envelope hard recovery, performs the recovery while hidden, then fades back in so boundary correction reads like swimming away and returning.
+- Adds a small centered follow-camera recovery notice when an automatically followed creature leaves the runtime boundary and the camera exits to let hard recovery happen, using the custom name when present or the common species name otherwise. `v0.8.0-dev_120` also exits Mola follow mode with the same notice if the follow camera gets close enough for the Mola to clip into the camera, so runtime recovery and camera-clip bailouts share one clear player-facing explanation. `v0.8.0-dev_121` limits manual Mola zoom-in before that clip zone so pinch/scroll cannot intentionally drive the camera into the body. `v0.8.0-dev_122` fades Mola out over 8 seconds before outer-envelope hard recovery, performs the recovery while hidden, then fades back in so boundary correction reads like swimming away and returning. `v0.8.0-dev_123` breaks up the fake fish-lighting mask with warped procedural noise and softer contrast so Mola no longer shows obvious straight light bands.
 - Restores smooth camera entry into follow mode by damping the focus point from the current tank view before tracking the selected creature, and keeps the placeholder Mola base material color stable when selected by rendering the selection rim as a back-face shell instead of tinting the body.
 - Adds focused debug readouts for solo agent-style individuals such as the Giant Sunfish: current movement status, speed, destination coordinates, distance to target, wall clearance, and surface clearance.
 - Moves and scales the solo-agent debug readout for large creatures so the Mola label sits above the body at follow-camera distance instead of being tiny or visually buried near the target marker.

@@ -1636,18 +1636,51 @@ uniform float uFishLightMaskTime;
 uniform vec3 uRimColor;
 uniform float uRimIntensity;
 uniform float uRimPower;
-varying vec3 vFishWorldPosition;`
+varying vec3 vFishWorldPosition;
+float fishMaskHash(vec3 p) {
+  p = fract(p * 0.3183099 + vec3(0.17, 0.31, 0.47));
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+float fishMaskNoise(vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(fishMaskHash(i + vec3(0.0, 0.0, 0.0)), fishMaskHash(i + vec3(1.0, 0.0, 0.0)), f.x),
+        mix(fishMaskHash(i + vec3(0.0, 1.0, 0.0)), fishMaskHash(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+    mix(mix(fishMaskHash(i + vec3(0.0, 0.0, 1.0)), fishMaskHash(i + vec3(1.0, 0.0, 1.0)), f.x),
+        mix(fishMaskHash(i + vec3(0.0, 1.0, 1.0)), fishMaskHash(i + vec3(1.0, 1.0, 1.0)), f.x), f.y),
+    f.z
+  );
+}
+float fishMaskFbm(vec3 p) {
+  float value = 0.0;
+  float amplitude = 0.5;
+  for (int i = 0; i < 3; i++) {
+    value += fishMaskNoise(p) * amplitude;
+    p = p * 2.03 + vec3(7.1, 3.7, 5.3);
+    amplitude *= 0.5;
+  }
+  return value;
+}`
       )
       .replace(
         '#include <dithering_fragment>',
         `${FISH_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vFishWorldPosition;
-float stripeA = sin(maskPos.x * 1.75 + maskPos.y * 0.85 + maskPos.z * 1.10 + uFishLightMaskTime * 0.46);
-float stripeB = sin(maskPos.x * -0.95 + maskPos.z * 2.15 - uFishLightMaskTime * 0.34);
-float lightMask = smoothstep(0.06, 0.46, stripeA + stripeB * 0.28);
-float shadowMask = smoothstep(0.08, 0.50, -stripeA + stripeB * 0.16);
+float t = uFishLightMaskTime;
+vec3 warpedPos = maskPos;
+warpedPos.x += (fishMaskFbm(maskPos * vec3(0.18, 0.28, 0.16) + vec3(t * 0.018, -t * 0.010, 1.7)) - 0.5) * 4.8;
+warpedPos.y += (fishMaskFbm(maskPos * vec3(0.14, 0.22, 0.20) + vec3(3.1, t * 0.014, -t * 0.012)) - 0.5) * 2.6;
+warpedPos.z += (fishMaskFbm(maskPos * vec3(0.20, 0.14, 0.18) + vec3(-t * 0.012, 2.4, t * 0.016)) - 0.5) * 4.2;
+float broad = fishMaskFbm(warpedPos * vec3(0.34, 0.24, 0.30) + vec3(t * 0.020, 0.0, -t * 0.015));
+float mottled = fishMaskFbm(warpedPos * vec3(0.88, 0.52, 0.74) + vec3(4.2, -t * 0.025, t * 0.018));
+float softStripeA = sin(warpedPos.x * 0.62 + warpedPos.y * 0.38 + warpedPos.z * 0.42 + t * 0.18);
+float softStripeB = sin(warpedPos.x * -0.34 + warpedPos.y * 0.46 + warpedPos.z * 0.72 - t * 0.13);
+float brokenLight = broad * 0.58 + mottled * 0.32 + (softStripeA + softStripeB) * 0.05 + 0.05;
 float topWeight = smoothstep(-8.0, 3.0, maskPos.y);
-float lightFactor = mix(0.68, 1.04, lightMask) * mix(0.82, 1.0, shadowMask);
-gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);` : ''}
+float lightFactor = mix(0.82, 1.08, smoothstep(0.22, 0.82, brokenLight));
+gl_FragColor.rgb *= mix(1.0, lightFactor, 0.58 * topWeight);` : ''}
 float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), uRimPower);
 gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`

@@ -13,7 +13,7 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_122`.
+Current dev build reference: `v0.8.0-dev_123`.
 
 ### 1. Mola hard-recovery visibility
 
@@ -29,7 +29,21 @@ Subtasks:
 
 Release impact: visual polish blocker until reviewed.
 
-### 2. Follow recovery notice on mobile
+### 2. Mola fake-lighting banding
+
+Status: `Current in development`
+
+Reference:
+- Jeremy screenshot/report after `v0.8.0-dev_122`: fake lighting on Mola is too obvious as banding.
+- Implemented in `v0.8.0-dev_123`: replace straight sine stripe weighting with a warped procedural noise mask, lower contrast, and slower drift so lighting reads like broken water variation instead of bands.
+
+Subtasks:
+- [x] Break up fake-lighting bands on Mola/material shader.
+- [ ] Jeremy/YK visual pass: confirm lighting variation feels organic and not obviously striped.
+
+Release impact: visual polish blocker until reviewed.
+
+### 3. Follow recovery notice on mobile
 
 Status: `Blocked / waiting review`
 
@@ -49,7 +63,7 @@ Subtasks:
 
 Release impact: blocker until mobile review passes.
 
-### 3. Mobile follow-camera zoom/framing
+### 4. Mobile follow-camera zoom/framing
 
 Status: `Archive candidate` / Jeremy says zoom is good
 
@@ -62,7 +76,7 @@ Reference:
 
 Release impact: keep as archive candidate until clean public release.
 
-### 4. Final `reju` pass for `v0.8.0`
+### 5. Final `reju` pass for `v0.8.0`
 
 Status: `Next`
 
@@ -72,6 +86,7 @@ Reference:
 - `v0.8.0-dev_120`: Mola follow recovery now exits on pending hard recovery or camera clipping and shows the centered recovery message.
 - `v0.8.0-dev_121`: manual Mola zoom-in is limited before the camera can clip into the body.
 - `v0.8.0-dev_122`: Mola outer-envelope hard recovery fades out/in to hide the boundary correction.
+- `v0.8.0-dev_123`: Mola fake-lighting mask is warped/noise-broken to reduce obvious banding.
 - Mobile audio works per Jeremy report after `v0.8.0-dev_117`.
 
 Subtasks:

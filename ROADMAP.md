@@ -13,44 +13,31 @@ Status labels:
 
 ## Current release bucket
 
-`v0.8.1` — Mola recovery polish.
-
-Current dev build reference: `v0.8.1-dev_6`.
-
-### 1. Mola recovery fade axis gating
-
-Status: `Current in development`
-
-Reference:
-- Jeremy report after clean `v0.8.0`: Mola fade-out/fade-in recovery also triggers on hard recovery at `-X` / `+X`, but it should only occur when exceeding the far `-Z` runtime envelope.
-- Jeremy also reports some cases where the sunfish does not reappear and remains transparent for a long time.
-- Implemented in `v0.8.1-dev_1`: only negative-Z runtime envelope exits start the slow depth fade; X-axis exits clamp/retarget immediately, and fade-out has a watchdog transition into fade-in so opacity cannot get stuck at zero.
-- Jeremy report after `v0.8.1-dev_1`: +Z/front hard recovery is still visible; give it more buffer.
-- Implemented in `v0.8.1-dev_2`: Mola positive-Z runtime margin is now separate from X/-Z and expands to 18–30 WU, while X and -Z margins stay unchanged.
-- Jeremy report after `v0.8.1-dev_2`: bottom-right positive-Z cases still show teleporting then spinning, likely from X-boundary hard recovery snapping back into swim bounds too close to camera.
-- Implemented in `v0.8.1-dev_3`: non-negative-Z Mola runtime recovery now clamps to the expanded runtime envelope edge instead of the core swim bounds, preserving offscreen staging before retargeting.
-- Jeremy asked after `v0.8.1-dev_3` for a temporary way to speed up chance behavior review.
-- Implemented in `v0.8.1-dev_4`: debug panel simulation speed buttons (`1x`, `4x`, `10x`) accelerate fish behavior ticks and model animations while debug mode is enabled.
-- Jeremy reported after `v0.8.1-dev_4` that the Mola visibly snap-turns on X recovery; root cause was the visible recovery clamp overwriting heading with the sideways clamp vector.
-- Implemented in `v0.8.1-dev_5`: Mola visible X/front recovery preserves its current heading and lets the next steering target turn it naturally instead of forcing an instant sideways orientation.
-- Jeremy accepted `v0.8.1-dev_5` and separately suspected remaining snaps from forced look-at updates during behavior transitions.
-- Implemented in `v0.8.1-dev_6`: Mola solo-agent model look-at is quaternion-smoothed, with extra easing immediately after behavior/stage changes.
-
-Subtasks:
-- [x] Gate Mola slow fade recovery to far negative-Z runtime exit only.
-- [x] Restore immediate recovery path for `-X` / `+X` runtime exits.
-- [x] Add fade-out watchdog so Mola always fades back in.
-- [x] Give +Z/front hard recovery more offscreen buffer.
-- [x] Keep non-negative-Z Mola recovery staged at the runtime envelope edge instead of snapping to core swim bounds.
-- [x] Add debug-only simulation speed controls for faster behavior review.
-- [x] Preserve Mola heading during visible X/front runtime recovery so the clamp does not become a snap-turn.
-- [x] Smooth Mola look-at/root orientation across behavior transitions.
-- [ ] Jeremy/YK visual pass: verify X-axis recovery no longer fades, +Z/bottom-right hard recovery is hidden offscreen, and negative-Z fade still reads as swimming away/returning.
-
-Release impact: blocker until visual pass.
-
+No active dev bucket. Clean `v0.8.1` is ready for public release review/deploy.
 
 ## Released / archived
+
+### v0.8.1 — Mola recovery polish
+
+Status: accepted and promoted as clean `v0.8.1` after Jeremy approval.
+
+Released from: `v0.8.1-dev_6`.
+
+Accepted gates:
+- Mola slow fade recovery restricted to far negative-Z runtime exits.
+- X-axis and positive-Z/front hard recovery no longer fade or snap visibly near the camera.
+- Mola cannot remain hidden after a recovery fade.
+- Debug-only simulation speed controls accepted as a review aid.
+- Mola look-at/root orientation transition smoothing accepted.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Gates depth fade recovery to negative-Z exits, with an opacity watchdog and immediate retarget/clamp recovery for X/front runtime exits.
+- Expands and stages positive-Z/front recovery farther offscreen so boundary correction stays hidden.
+- Preserves current heading during visible X/front recovery, avoiding sideways clamp-vector snap-turns.
+- Adds debug-only simulation speed controls (`1x`, `4x`, `10x`) for faster chance/timer review.
+- Smooths Mola solo-agent look-at orientation with quaternion interpolation and extra easing after behavior/stage changes.
+
 
 ### v0.8.0 — Mola alexandrini + solo-agent movement
 

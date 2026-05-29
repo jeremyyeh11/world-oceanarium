@@ -13,7 +13,7 @@ Status labels:
 
 ## Current release bucket: `v0.8.0` — Mola alexandrini + solo-agent movement
 
-Current dev build reference: `v0.8.0-dev_124`.
+Current dev build reference: `v0.8.0-dev_125`.
 
 ### 1. Mola hard-recovery visibility
 
@@ -76,17 +76,20 @@ Reference:
 
 Release impact: keep as archive candidate until clean public release.
 
-### 5. Mobile audio unlock gesture
+### 5. Immediate audio startup
 
 Status: `Current in development`
 
 Reference:
 - Jeremy report after `v0.8.0-dev_123`: mobile audio only turns on after clicking a UI element, not from general tank/canvas interaction.
 - Implemented in `v0.8.0-dev_124`: audio unlock now listens on both window and document for pointerdown/touchstart/touchend/click gestures so canvas/tank touches can satisfy the mobile Web Audio user-activation gate.
+- Jeremy request after `v0.8.0-dev_124`: audio should be enabled the moment the page is opened, for all platforms.
+- Implemented in `v0.8.0-dev_125`: tank page now attempts immediate audio startup on page open and foreground return, with gesture unlock retained only as fallback if the browser blocks audible autoplay.
 
 Subtasks:
 - [x] Add broader mobile gesture unlock path beyond UI buttons.
-- [ ] Jeremy/YK mobile pass: confirm audio starts from ordinary tank/canvas tap/gesture, without needing a UI button.
+- [x] Attempt audio startup immediately on tank page open and foreground return.
+- [ ] Jeremy/YK all-platform pass: confirm audio is enabled as soon as the page opens; note any browser/device that still blocks audible autoplay.
 
 Release impact: blocker until mobile audio review passes.
 
@@ -103,10 +106,11 @@ Reference:
 - `v0.8.0-dev_123`: Mola fake-lighting mask is warped/noise-broken to reduce obvious banding.
 - Jeremy accepted lighting banding, fade-out recovery, and mobile notice after `v0.8.0-dev_123`.
 - `v0.8.0-dev_124`: mobile audio unlock listens to tank/canvas gestures, not just UI clicks.
+- `v0.8.0-dev_125`: audio start is attempted immediately on tank page open and foreground return across platforms.
 
 Subtasks:
 - [ ] Technical gates: `npm run build`, GitHub Actions Build, Vercel status, browser smoke, no console errors.
-- [ ] Phone pass: audio unlock from tank/canvas tap, follow Mola, pinch/orbit/zoom, recovery notice, bask behavior, no obvious layout/control issues.
+- [ ] Phone pass: immediate audio-on-open behavior, follow Mola, pinch/orbit/zoom, recovery notice, bask behavior, no obvious layout/control issues.
 - [ ] Visual/feel pass: Mola scale/read, follow framing, sun-bask smoothness, surface clearance, no fake surface edge exposure that breaks the scene.
 - [ ] Decide `ship` or `hold`.
 - [ ] If ship: promote from `v0.8.0-dev_##` to clean `v0.8.0`, update changelog status, verify production deployment.

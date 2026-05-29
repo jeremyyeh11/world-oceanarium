@@ -11,6 +11,7 @@ const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
 const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
+const AUDIO_BOOT_START_DELAYS_MS = [0, 60, 180, 500, 1200, 2500]
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 const AUDIO_SESSION_RECOVERY_MS = 2500
 const SCREENSHOT_EXIT_HOLD_MS = 900
@@ -120,10 +121,26 @@ export default function App() {
       audioResumeTimers.current = []
     }
 
-    // Direct tank entry removed the landing-page DIVE IN gesture. Browsers still
-    // require user activation before Web Audio can produce sound, so arm the
-    // existing gesture unlock on initial tank load as well as after backgrounding.
-    if (!audioStarted) audioNeedsGestureResume.current = true
+    const attemptAudioStartNow = () => {
+      if (document.visibilityState === 'hidden' || audioMuted) return
+      startAudio()
+    }
+
+    const queuePageOpenAudioStart = () => {
+      clearAudioResumeTimers()
+      AUDIO_BOOT_START_DELAYS_MS.forEach(delay => {
+        const timer = window.setTimeout(attemptAudioStartNow, delay)
+        audioResumeTimers.current.push(timer)
+      })
+    }
+
+    // Product direction: audio should be enabled immediately when the tank page opens,
+    // not only after a UI/canvas gesture. Browsers may still reject audible autoplay,
+    // so keep the broad gesture path as a fallback, but always attempt page-open start first.
+    if (!audioStarted) {
+      audioNeedsGestureResume.current = true
+      queuePageOpenAudioStart()
+    }
 
     const pauseWhenBackgrounded = () => {
       clearAudioResumeTimers()
@@ -132,11 +149,16 @@ export default function App() {
     }
 
     const resumeWhenForegrounded = () => {
-      if (document.visibilityState === 'hidden' || audioMuted || !audioStarted) return
+      if (document.visibilityState === 'hidden' || audioMuted) return
+      if (!audioStarted) {
+        audioNeedsGestureResume.current = true
+        queuePageOpenAudioStart()
+        return
+      }
       clearAudioResumeTimers()
       AUDIO_FOREGROUND_RESUME_DELAYS_MS.forEach(delay => {
         const timer = window.setTimeout(() => {
-          if (document.visibilityState === 'hidden' || audioMuted || !audioStarted) return
+          if (document.visibilityState === 'hidden' || audioMuted) return
           startAudio()
         }, delay)
         audioResumeTimers.current.push(timer)

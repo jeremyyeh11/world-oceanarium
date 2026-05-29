@@ -22,6 +22,7 @@ const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
+const RECOVERY_NOTICE_DURATION_MS = 4200
 const DEBUG_VIEW_MODES = [
   { id: 'all', icon: '◎', label: 'View all' },
   { id: 'focused', icon: '◉', label: 'Selected fish' },
@@ -53,6 +54,12 @@ function resolveSpecies(creature) {
 function isSunfishCreature(creature) {
   const species = resolveSpecies(creature)
   return species?.id === 'mola-alexandrini' || creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
+}
+
+function creatureDisplayName(creature) {
+  const customName = creature?.customName?.trim()
+  if (customName) return customName
+  return resolveSpecies(creature)?.name ?? creature?.species ?? 'This fish'
 }
 
 function summarizeRenderLoad(creatures, biomeId) {
@@ -121,6 +128,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [defaultCameraSettled, setDefaultCameraSettled] = useState(true)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
+  const [recoveryNotice, setRecoveryNotice] = useState(null)
   const performanceStatsRef = useRef({ fps: null })
   const audioLevels = useAudioLevels(debugMode)
   const dragRef = useRef(null)
@@ -298,6 +306,18 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     setFollowOrbit({ yaw: 0, pitch: 0 })
     setFollowDistance(DEFAULT_FOLLOW_DISTANCE)
   }
+
+  const releaseFocusForRuntimeRecovery = (creature) => {
+    const name = creatureDisplayName(creature)
+    setRecoveryNotice({ id: `${creature?.id ?? name}-${performance.now()}`, text: `${name} will be back in a bit!` })
+    releaseFocus()
+  }
+
+  useEffect(() => {
+    if (!recoveryNotice) return undefined
+    const timeout = window.setTimeout(() => setRecoveryNotice(null), RECOVERY_NOTICE_DURATION_MS)
+    return () => window.clearTimeout(timeout)
+  }, [recoveryNotice])
 
   const adjustFollowDistance = (delta) => {
     setFollowDistance(current => clampFollowDistance(current + delta, selectedCreature))
@@ -545,7 +565,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
             onCreatureClick={focusCreature}
             onCreatureReady={registerCreatureRef}
-            onRuntimeRecoveryNeeded={releaseFocus}
+            onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />
           <WaterSurface biome={biome.id} />
           <UnderwaterFX biome={biome.id} />
@@ -600,6 +620,11 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       )}
 
       {!screenshotMode && selectedCreature && <FocusHint />}
+      {!screenshotMode && recoveryNotice && (
+        <div key={recoveryNotice.id} className="runtime-recovery-notice" role="status" aria-live="polite">
+          {recoveryNotice.text}
+        </div>
+      )}
       {!screenshotMode && selectedCreature && (
         <InfoCard creature={selectedCreature} onClose={releaseFocus}>
           {visibleDebugPanel && (

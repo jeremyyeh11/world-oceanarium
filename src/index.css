@@ -674,6 +674,42 @@ button { font: inherit; }
   fill: rgba(255,255,255,0.5);
 }
 
+.runtime-recovery-notice {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 64;
+  transform: translate(-50%, -50%);
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(2, 18, 34, 0.42);
+  color: rgba(236, 252, 255, 0.78);
+  font: 0.74rem/1.25 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.06em;
+  text-align: center;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  animation: runtime-recovery-notice-fade 4.2s ease forwards;
+}
+
+@keyframes runtime-recovery-notice-fade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.985);
+  }
+
+  14%, 58% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -52%) scale(0.985);
+  }
+}
+
 .focus-hint {
   display: flex !important;
   flex-direction: column !important;

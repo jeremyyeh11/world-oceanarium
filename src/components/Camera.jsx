@@ -109,13 +109,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
 
       const baseHalfFov = THREE.MathUtils.degToRad(DEFAULT_CAMERA_FOV) * 0.5
       const aspect = Math.max(0.1, camera.aspect ?? 1)
-      const fitDistance = focusRadius > 0
-        ? Math.max(
-          focusRadius * FOLLOW_FRAME_MARGIN / Math.tan(baseHalfFov),
-          focusRadius * FOLLOW_FRAME_MARGIN / (Math.tan(baseHalfFov) * aspect),
-        )
-        : followDistance
-      const activeFollowDistance = Math.max(followDistance, fitDistance)
+      const activeFollowDistance = followDistance
 
       followOffset.set(0, FOLLOW_HEIGHT, activeFollowDistance)
 
@@ -142,8 +136,9 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       camera.position.z = THREE.MathUtils.clamp(camera.position.z, MIN_FOLLOW_CAMERA_Z, MAX_FOLLOW_CAMERA_Z)
 
       const actualFocusDistance = Math.max(0.1, camera.position.distanceTo(framedFocus))
-      const requiredVerticalHalfFov = focusRadius > 0 ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / actualFocusDistance) : baseHalfFov
-      const requiredHorizontalHalfFov = focusRadius > 0 ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / (actualFocusDistance * aspect)) : baseHalfFov
+      const clampedShortOfRequestedDistance = activeFollowDistance - actualFocusDistance > focusRadius * 0.25
+      const requiredVerticalHalfFov = focusRadius > 0 && clampedShortOfRequestedDistance ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / actualFocusDistance) : baseHalfFov
+      const requiredHorizontalHalfFov = focusRadius > 0 && clampedShortOfRequestedDistance ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / (actualFocusDistance * aspect)) : baseHalfFov
       const targetFov = THREE.MathUtils.clamp(
         THREE.MathUtils.radToDeg(Math.max(baseHalfFov, requiredVerticalHalfFov, requiredHorizontalHalfFov) * 2),
         DEFAULT_CAMERA_FOV,

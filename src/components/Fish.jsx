@@ -106,6 +106,7 @@ const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
+const MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION = 0.55
 const MOLA_SUN_BASK_ANIMATION_SPEED_SCALE = 0.5
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
@@ -1793,15 +1794,29 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
     const sunBaskAction = actions[resolvedAnimation] ?? actions[animation]
     if (!sunBaskAction || activeActionRef.current === sunBaskAction) return
 
+    const entryFadeDuration = modelFadeDuration(model, MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION)
+    const previousActions = Object.values(actions).filter(action => (
+      action && action !== sunBaskAction && action.isRunning()
+    ))
+    const shouldEaseEntry = entryFadeDuration > 0 && previousActions.length > 0
     Object.values(actions).forEach(action => {
-      if (action && action !== sunBaskAction) action.stop()
+      if (!action || action === sunBaskAction) return
+      if (shouldEaseEntry && action.isRunning()) action.fadeOut(entryFadeDuration)
+      else action.stop()
     })
 
     const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation) * MOLA_SUN_BASK_ANIMATION_SPEED_SCALE
     sunBaskAction.reset()
-    sunBaskAction.setEffectiveWeight(1)
+    sunBaskAction.setEffectiveWeight(shouldEaseEntry ? 0 : 1)
     configureModelAction(sunBaskAction, model, animation, resolvedAnimation, speed, 0)
     sunBaskAction.play()
+    if (shouldEaseEntry) {
+      sunBaskAction.fadeIn(entryFadeDuration)
+      globalThis.setTimeout?.(() => {
+        if (!sunBaskAction.isRunning()) return
+        previousActions.forEach(action => action.stop())
+      }, entryFadeDuration * 1000 + 50)
+    }
     activeActionRef.current = sunBaskAction
     return
   }

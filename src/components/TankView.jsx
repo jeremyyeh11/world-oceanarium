@@ -10,7 +10,8 @@ import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, g
 import { DEPTH_ZONES, SPECIES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 
-const MAX_FOLLOW_ORBIT = Math.PI / 6
+const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
+const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
 const DEFAULT_FOLLOW_DISTANCE = 3.2
 const MIN_FOLLOW_DISTANCE = 1.35
@@ -479,8 +480,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       drag.mode = 'orbit'
       drag.moved = true
       setFollowOrbit({
-        yaw: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED)),
-        pitch: Math.max(-MAX_FOLLOW_ORBIT, Math.min(MAX_FOLLOW_ORBIT, drag.startOrbit.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED)),
+        yaw: Math.max(-MAX_FOLLOW_ORBIT_YAW, Math.min(MAX_FOLLOW_ORBIT_YAW, drag.startOrbit.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED)),
+        pitch: Math.max(-MAX_FOLLOW_ORBIT_PITCH, Math.min(MAX_FOLLOW_ORBIT_PITCH, drag.startOrbit.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED)),
       })
       return
     }
@@ -528,10 +529,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       setStagePanning(false)
       const drag = dragRef.current
       dragRef.current = null
-      if (drag.mode === 'orbit') {
-        setFollowOrbit({ yaw: 0, pitch: 0 })
-        return
-      }
+      if (drag.mode === 'orbit') return
       window.setTimeout(() => {
         if (focusChangeAtRef.current === drag.startFocusChangeAt) releaseFocus()
       }, 0)

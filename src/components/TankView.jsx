@@ -25,6 +25,11 @@ const PAN_DRAG_THRESHOLD_PX = 5
 const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const RECOVERY_NOTICE_DURATION_MS = 4200
+
+const clampFollowOrbit = ({ yaw, pitch }) => ({
+  yaw: Math.max(-MAX_FOLLOW_ORBIT_YAW, Math.min(MAX_FOLLOW_ORBIT_YAW, yaw)),
+  pitch: Math.max(-MAX_FOLLOW_ORBIT_PITCH, Math.min(MAX_FOLLOW_ORBIT_PITCH, pitch)),
+})
 const DEBUG_VIEW_MODES = [
   { id: 'all', icon: '◎', label: 'View all' },
   { id: 'focused', icon: '◉', label: 'Selected fish' },
@@ -436,7 +441,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
-        startOrbit: followOrbit,
+        lastX: event.clientX,
+        lastY: event.clientY,
         startFocusChangeAt: focusChangeAtRef.current,
       }
       return
@@ -473,16 +479,23 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (drag.pointerId !== event.pointerId) return
 
     if (drag.mode === 'orbit' || drag.mode === 'orbit-pending') {
-      const deltaX = event.clientX - drag.startX
-      const deltaY = event.clientY - drag.startY
-      const moved = Math.hypot(deltaX, deltaY) > 5
+      const totalDeltaX = event.clientX - drag.startX
+      const totalDeltaY = event.clientY - drag.startY
+      const moved = Math.hypot(totalDeltaX, totalDeltaY) > 5
       if (!moved && drag.mode === 'orbit-pending') return
+
+      const lastX = drag.lastX ?? drag.startX
+      const lastY = drag.lastY ?? drag.startY
+      const deltaX = event.clientX - lastX
+      const deltaY = event.clientY - lastY
+      drag.lastX = event.clientX
+      drag.lastY = event.clientY
       drag.mode = 'orbit'
       drag.moved = true
-      setFollowOrbit({
-        yaw: Math.max(-MAX_FOLLOW_ORBIT_YAW, Math.min(MAX_FOLLOW_ORBIT_YAW, drag.startOrbit.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED)),
-        pitch: Math.max(-MAX_FOLLOW_ORBIT_PITCH, Math.min(MAX_FOLLOW_ORBIT_PITCH, drag.startOrbit.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED)),
-      })
+      setFollowOrbit(current => clampFollowOrbit({
+        yaw: current.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED,
+        pitch: current.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED,
+      }))
       return
     }
 

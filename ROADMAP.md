@@ -15,7 +15,7 @@ Status labels:
 
 `v0.8.2` — Follow-camera orbit polish.
 
-Current dev build reference: `v0.8.2-dev_1`.
+Current dev build reference: `v0.8.2-dev_2`.
 
 ### 1. Persistent limited follow-camera orbit
 
@@ -24,10 +24,12 @@ Status: `Current in development`
 Reference:
 - Jeremy asked after clean `v0.8.1`: “allow camera orbiting with limits but no snapback.”
 - Implemented in `v0.8.2-dev_1`: follow-camera drag orbit remains at the released yaw/pitch after the drag ends instead of snapping back to centered follow framing.
+- Follow-up in `v0.8.2-dev_2`: follow-orbit drags now use incremental pointer deltas so dragging again from an already-clamped yaw/pitch limit does not snap back toward center.
 
 Subtasks:
 - [x] Keep drag-to-orbit constrained by yaw/pitch limits.
 - [x] Remove post-drag orbit reset/snapback.
+- [x] Use incremental follow-orbit drags so clamped-limit restarts do not jump toward center.
 - [x] Preserve tap-to-exit follow mode when the pointer does not become an orbit drag.
 - [ ] Jeremy/YK visual pass: confirm the held orbit angle feels intentional and does not fight fish-follow framing.
 

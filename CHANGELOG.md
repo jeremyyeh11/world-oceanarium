@@ -11,12 +11,13 @@ Versioning convention notes:
 
 ## v0.8.2 — Follow-camera orbit polish
 
-Status: in progress as `v0.8.2-dev_1`.
+Status: in progress as `v0.8.2-dev_2`.
 
 ### Camera / controls
 
 - Starts the post-`v0.8.1` patch bucket for follow-camera orbit polish.
 - `v0.8.2-dev_1` keeps drag-to-orbit constrained but persistent after pointer release, removing the snapback to centered follow framing.
+- `v0.8.2-dev_2` changes follow-orbit dragging to incremental pointer deltas, so starting a new drag while already clamped at the yaw/pitch limit does not jump back toward center.
 - Widens horizontal follow orbit slightly to ±36° while keeping vertical pitch at ±30° for safer surface/body framing.
 
 ## v0.8.1 — Mola recovery polish

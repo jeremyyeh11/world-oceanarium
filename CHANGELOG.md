@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.2 — Follow-camera orbit polish
 
-Status: in progress as `v0.8.2-dev_2`.
+Status: accepted and promoted as clean `v0.8.2` from `v0.8.2-dev_2` after Jeremy approval.
 
 ### Camera / controls
 

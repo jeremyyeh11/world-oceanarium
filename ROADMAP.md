@@ -13,29 +13,29 @@ Status labels:
 
 ## Current release bucket
 
-`v0.8.2` — Follow-camera orbit polish.
-
-Current dev build reference: `v0.8.2-dev_2`.
-
-### 1. Persistent limited follow-camera orbit
-
-Status: `Current in development`
-
-Reference:
-- Jeremy asked after clean `v0.8.1`: “allow camera orbiting with limits but no snapback.”
-- Implemented in `v0.8.2-dev_1`: follow-camera drag orbit remains at the released yaw/pitch after the drag ends instead of snapping back to centered follow framing.
-- Follow-up in `v0.8.2-dev_2`: follow-orbit drags now use incremental pointer deltas so dragging again from an already-clamped yaw/pitch limit does not snap back toward center.
-
-Subtasks:
-- [x] Keep drag-to-orbit constrained by yaw/pitch limits.
-- [x] Remove post-drag orbit reset/snapback.
-- [x] Use incremental follow-orbit drags so clamped-limit restarts do not jump toward center.
-- [x] Preserve tap-to-exit follow mode when the pointer does not become an orbit drag.
-- [ ] Jeremy/YK visual pass: confirm the held orbit angle feels intentional and does not fight fish-follow framing.
-
-Release impact: blocker until visual pass.
+No active dev bucket.
 
 ## Released / archived
+
+### v0.8.2 — Follow-camera orbit polish
+
+Status: accepted and promoted as clean `v0.8.2` after Jeremy approval.
+
+Released from: `v0.8.2-dev_2`.
+
+Accepted gates:
+- Follow-camera orbit stays constrained by yaw/pitch limits.
+- Drag release preserves the held orbit angle instead of snapping back to centered follow framing.
+- Restarting a drag from a clamped yaw/pitch limit stays smooth instead of jumping toward center.
+- Tap-to-exit follow mode remains preserved when the pointer does not become an orbit drag.
+- Jeremy visual pass accepted the held-orbit feel.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Adds persistent limited follow-camera orbit after Jeremy asked for camera orbiting with limits but no snapback.
+- Adds incremental pointer-delta dragging for follow orbit, using the current clamped orbit as the baseline for each move instead of recalculating from the original drag start.
+- Keeps horizontal follow orbit at ±36° and vertical pitch at ±30° for safer surface/body framing.
+
 
 ### v0.8.1 — Mola recovery polish
 

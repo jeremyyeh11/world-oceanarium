@@ -17,7 +17,7 @@ function deterministicSchoolOrder(creature) {
   return hashString(`${creature.species}:${creature.biome}:${creature.depthZone}:${creature.id}`)
 }
 
-export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
+export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   const visibleCreatures = useMemo(
     () => creatures.filter(c => c.biome === name && c.alive),
     [creatures, name],
@@ -58,7 +58,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
     <group>
       <Environment biome={name} />
       {name === 'ocean' && <OceanBubbles />}
-      {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} />}
+      {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} debugStatsEnabled={debugStatsEnabled} />}
       {visibleCreatures.map(creature => {
         const selected = String(creature.id) === String(selectedCreatureId)
         const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))

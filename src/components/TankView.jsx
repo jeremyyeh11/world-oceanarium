@@ -284,6 +284,13 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const focusCreature = (creature, fishRef) => {
     dragRef.current = null
     touchPointsRef.current.clear()
+    const sameCreatureFocused = selectedCreature && String(selectedCreature.id) === String(creature?.id)
+    if (sameCreatureFocused) {
+      setSelectedCreature(creature)
+      setFocusedFishRef(fishRef)
+      return
+    }
+
     focusChangeAtRef.current = performance.now()
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)

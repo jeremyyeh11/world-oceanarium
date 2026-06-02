@@ -563,10 +563,33 @@ button { font: inherit; }
 
 .debug-panel-section--load {
   display: grid;
-  grid-auto-flow: row;
-  grid-template-columns: 1fr;
+  grid-template-columns: auto auto auto;
   align-content: center;
+  align-items: start;
+  gap: 0.72rem;
+}
+
+.debug-load-column {
+  display: grid;
   gap: 0.18rem;
+  align-content: start;
+  white-space: nowrap;
+}
+
+.debug-load-column > strong {
+  color: rgba(245,255,255,0.94);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+}
+
+.debug-load-stack {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.debug-load-stack .debug-panel-stat {
+  grid-template-columns: 3rem auto;
 }
 
 .debug-panel-section--controls {

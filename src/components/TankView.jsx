@@ -725,11 +725,22 @@ function DebugPanel({
         <div className="debug-panel-stat"><span aria-hidden="true">◆</span><span className="debug-panel-label">Data</span><strong>{creatureDataSource}</strong></div>
       </div>
       <div className="debug-panel-section debug-panel-section--load" aria-label="Creature render load">
-        <div className="debug-panel-stat"><span aria-hidden="true">🐟</span><span className="debug-panel-label">Creatures</span><strong>{visibleCreatureCount}/{creatureCount}</strong></div>
-        <div className="debug-panel-stat"><span aria-hidden="true">◉</span><span className="debug-panel-label">LOD0</span><strong>{lod0Drawn}/{lod0Candidates}</strong></div>
-        <div className="debug-panel-stat"><span aria-hidden="true">◌</span><span className="debug-panel-label">LOD1</span><strong>{lod1Drawn}/{lod1Candidates}</strong></div>
-        <div className="debug-panel-stat"><span aria-hidden="true">·</span><span className="debug-panel-label">LOD2</span><strong>{lod2Drawn}/{lod2Candidates}</strong></div>
-        <div className="debug-panel-stat"><span aria-hidden="true">▢</span><span className="debug-panel-label">Frustum</span><strong>{frustumCulled}/{frustumCandidates}</strong></div>
+        <div className="debug-load-column">
+          <div className="debug-panel-label">Creatures</div>
+          <strong>{visibleCreatureCount}/{creatureCount}</strong>
+        </div>
+        <div className="debug-load-column debug-load-column--lod">
+          <div className="debug-panel-label">LOD</div>
+          <div className="debug-load-stack">
+            <div className="debug-panel-stat"><span className="debug-panel-label">LOD 0</span><strong>{lod0Drawn}/{lod0Candidates}</strong></div>
+            <div className="debug-panel-stat"><span className="debug-panel-label">LOD 1</span><strong>{lod1Drawn}/{lod1Candidates}</strong></div>
+            <div className="debug-panel-stat"><span className="debug-panel-label">LOD 2</span><strong>{lod2Drawn}/{lod2Candidates}</strong></div>
+          </div>
+        </div>
+        <div className="debug-load-column">
+          <div className="debug-panel-label">Frustum</div>
+          <strong>{frustumCulled}/{frustumCandidates}</strong>
+        </div>
       </div>
       <div className="debug-panel-section debug-panel-section--controls" aria-label="Debug controls">
         <div className="debug-panel-row">

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { hashString } from '../utils/hash'
 
 const AUDIO_VOLUME_EVENT = 'world-oceanarium-audio-volume'
 const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
@@ -34,15 +35,6 @@ const UI_SFX_ASSETS = {
     '/audio/ui-sfx/ui-click-03.mp3',
     '/audio/ui-sfx/ui-click-04.mp3',
   ],
-}
-
-function hashString(value) {
-  let hash = 2166136261
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index)
-    hash = Math.imul(hash, 16777619)
-  }
-  return hash >>> 0
 }
 
 function createAudioContext() {

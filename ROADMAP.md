@@ -13,7 +13,20 @@ Status labels:
 
 ## Current release bucket
 
-No active dev bucket.
+### v0.8.3 — Code hygiene and debug-runtime cleanup
+
+Status: `Current in development`
+
+Reference:
+- GitHub umbrella: #8
+- Subtasks: #9, #10, #11, #12, #13
+
+Subtasks:
+- [x] Extract shared species/hash/body-length helpers.
+- [ ] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
+- [ ] Remove confirmed-unused starter-era components/assets.
+- [ ] Review `Fish.jsx` split after current visual/release review stabilizes.
+- [ ] Decide and wire the local debug channel at `fish.chiayong.com`.
 
 ## Released / archived
 

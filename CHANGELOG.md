@@ -11,13 +11,14 @@ Versioning convention notes:
 
 ## v0.8.3 — Code hygiene and debug-runtime cleanup
 
-Status: in development as `v0.8.3-dev_2` after parking the world-clock experiment on a separate unassigned branch.
+Status: in development as `v0.8.3-dev_6` after parking the world-clock experiment on a separate unassigned branch.
 
 ### Performance / code hygiene
 
 - Cleanup stack continues the post-`v0.8.2` code-hygiene bucket by extracting shared species/hash/body-length helpers so creature identity and scale logic lives in one place.
 - Starter cleanup removes confirmed-unused starter-era components and assets.
 - `v0.8.3-dev_2` moves the debug panel into a bottom horizontal bar and changes debug copy/counts from sardine-specific wording to creature-level LOD/frustum readouts; single-model creatures count as LOD0.
+- `v0.8.3-dev_6` removes the remaining follow-camera snapback path by preserving orbit/distance when the already-selected creature receives a duplicate pointer-up/click selection after an orbit drag.
 
 ## v0.8.2 — Follow-camera orbit polish
 

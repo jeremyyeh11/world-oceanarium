@@ -58,7 +58,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
     <group>
       <Environment biome={name} />
       {name === 'ocean' && <OceanBubbles />}
-      {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} />}
+      {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debug={debug} debugLodView={debugLodView} />}
       {visibleCreatures.map(creature => {
         const selected = String(creature.id) === String(selectedCreatureId)
         const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))

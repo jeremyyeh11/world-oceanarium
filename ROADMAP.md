@@ -23,7 +23,7 @@ Reference:
 
 Subtasks:
 - [x] Extract shared species/hash/body-length helpers.
-- [ ] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
+- [x] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
 - [ ] Remove confirmed-unused starter-era components/assets.
 - [ ] Review `Fish.jsx` split after current visual/release review stabilizes.
 - [ ] Decide and wire the local debug channel at `fish.chiayong.com`.

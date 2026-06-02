@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
+import { ENABLE_FISH_LIGHT_MASK, sardineDebugGlobalsEnabled } from '../utils/debugFlags'
 import { hashString } from '../utils/hash'
 
 const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
@@ -10,7 +11,6 @@ const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
 const MAX_INSTANCES_PER_VARIANT = 1024
 const SARDINE_MODEL_SCALE = 0.42
 const SARDINE_MATERIAL_ROUGHNESS = 0.2
-const SARDINE_LIGHT_MASK_DIAGNOSTIC = true
 
 const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
 const instanceMatrix = new THREE.Matrix4()
@@ -97,7 +97,7 @@ varying vec3 vSardineWorldPosition;`,
       )
       .replace(
         '#include <dithering_fragment>',
-        `${SARDINE_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vSardineWorldPosition;
+        `${ENABLE_FISH_LIGHT_MASK ? `vec3 maskPos = vSardineWorldPosition;
 float stripeA = sin(maskPos.x * 1.75 + maskPos.y * 0.85 + maskPos.z * 1.10 + uSardineWiggleTime * 0.46);
 float stripeB = sin(maskPos.x * -0.95 + maskPos.z * 2.15 - uSardineWiggleTime * 0.34);
 float lightMask = smoothstep(0.06, 0.46, stripeA + stripeB * 0.28);
@@ -108,7 +108,7 @@ gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);` : ''}
 #include <dithering_fragment>`,
       )
   }
-  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}-light-mask-${SARDINE_LIGHT_MASK_DIAGNOSTIC ? 'on' : 'off'}`
+  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}-light-mask-${ENABLE_FISH_LIGHT_MASK ? 'on' : 'off'}`
   nextMaterial.needsUpdate = true
   return nextMaterial
 }
@@ -205,7 +205,7 @@ function updateWiggleTime(material, elapsedTime) {
   if (uniforms?.uSardineWiggleTime) uniforms.uSardineWiggleTime.value = elapsedTime
 }
 
-export default function SardineInstancedLayer({ debugLodView = false }) {
+export default function SardineInstancedLayer({ debug = false, debugLodView = false }) {
   const lod1Asset = useInstancedSardineAsset(SARDINE_LOD1_MODEL_PATH, 'sardine-lod1-glb')
   const lod2Asset = useInstancedSardineAsset(SARDINE_LOD2_MODEL_PATH, 'sardine-lod2-glb')
   const lod1MeshRef = useRef(null)
@@ -219,7 +219,7 @@ export default function SardineInstancedLayer({ debugLodView = false }) {
     const lod1Entries = collectEntries(rawLod1Entries)
     const lod2Entries = collectEntries(rawLod2Entries)
 
-    if (typeof window !== 'undefined') {
+    if (sardineDebugGlobalsEnabled(debug || debugLodView)) {
       window.__WO_SARDINE_INSTANCE_DEBUG = {
         total: lod2Entries.length,
         lod1Total: lod1Entries.length,

@@ -2888,7 +2888,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (!model) fish.rotateZ(pitch)
     fish.up.lerp(up, 0.18)
 
-    if (canInstanceSardine && sardineDebugGlobalsEnabled(debug || debugLodView)) {
+    if (canInstanceSardine && sardineDebugGlobalsEnabled(debugGlobals || debug || debugLodView)) {
       const stats = window.__WO_SARDINE_DEBUG ?? { frames: 0, samples: [] }
       stats.frames += 1
       if (stats.samples.length < 12 || selected) {

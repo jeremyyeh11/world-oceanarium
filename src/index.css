@@ -524,6 +524,10 @@ button { font: inherit; }
   display: none;
 }
 
+.debug-mobile-readout {
+  display: none;
+}
+
 .debug-panel--floating {
   position: absolute;
   right: 0;
@@ -840,6 +844,110 @@ body:has(.debug-panel) .app-version-footnote {
 
 .focus-hint-controls-mobile {
   display: none !important;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .debug-panel {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    max-height: 30dvh;
+    padding: 0 max(0.42rem, env(safe-area-inset-right)) max(0.18rem, env(safe-area-inset-bottom)) max(0.42rem, env(safe-area-inset-left));
+    overflow: hidden;
+    font-size: 0.56rem;
+    line-height: 1.18;
+  }
+
+  .debug-mobile-readout {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    min-width: 0;
+    padding: 0.38rem 0 0.28rem;
+    border-bottom: 1px solid rgba(220,245,255,0.08);
+    white-space: nowrap;
+  }
+
+  .debug-mobile-stat {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.18rem;
+  }
+
+  .debug-mobile-stat span {
+    color: rgba(180,225,240,0.54);
+  }
+
+  .debug-mobile-stat strong {
+    color: rgba(245,255,255,0.94);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .debug-mobile-version {
+    flex: 1 1 auto;
+    min-width: 4.8rem;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    color: rgba(245,255,255,0.9);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    letter-spacing: 0.045em;
+    padding: 0;
+    text-align: right;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .debug-panel-section--runtime,
+  .debug-panel-section--load,
+  .debug-panel-section--identity,
+  .audio-debug-meters {
+    display: none;
+  }
+
+  .debug-panel-section--controls {
+    display: flex;
+    min-height: 0;
+    gap: 0.55rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0.32rem 0 0.28rem;
+    border-left: 0;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .debug-panel-section--controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .debug-panel-row {
+    gap: 0.22rem;
+  }
+
+  .debug-panel-button {
+    min-width: 24px;
+    height: 22px;
+    padding: 0 0.28rem;
+    font-size: 0.64rem;
+  }
+
+  .debug-panel-button--wide {
+    min-width: 3.9rem;
+    padding-inline: 0.42rem;
+  }
+
+  .debug-panel-error {
+    max-width: none;
+    padding: 0.26rem 0;
+    border-left: 0;
+    border-top: 1px solid rgba(255,220,220,0.1);
+  }
 }
 
 @media (max-width: 640px) and (orientation: portrait) {

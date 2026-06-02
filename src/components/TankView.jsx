@@ -33,7 +33,7 @@ const clampFollowOrbit = ({ yaw, pitch }) => ({
 })
 const DEBUG_VIEW_MODES = [
   { id: 'all', icon: '◎', label: 'View all' },
-  { id: 'focused', icon: '◉', label: 'Selected fish' },
+  { id: 'focused', icon: '◉', label: 'Selected creature' },
 ]
 const DEBUG_LAYER_BUTTONS = [
   { id: 'direction', icon: '↗', label: 'Show direction' },
@@ -57,10 +57,8 @@ function creatureDisplayName(creature) {
 
 function summarizeRenderLoad(creatures, biomeId) {
   const visibleCreatures = creatures.filter(creature => creature.alive && creature.biome === biomeId)
-  const sardines = visibleCreatures.filter(creature => creature.species === 'Spotted Sardinella')
   return {
     visibleCreatures: visibleCreatures.length,
-    sardines: sardines.length,
   }
 }
 
@@ -641,27 +639,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         </div>
       )}
       {!screenshotMode && selectedCreature && (
-        <InfoCard creature={selectedCreature} onClose={releaseFocus}>
-          {visibleDebugPanel && (
-            <DebugPanel
-              className="debug-panel--inline"
-              creatureDataSource={creatureDataSource}
-              creatureDataError={creatureDataError}
-              creatureCount={creatures.length}
-              debugView={debugView}
-              debugLayers={debugLayers}
-              debugSimulationSpeed={debugSimulationSpeed}
-              audioLevels={audioLevels}
-              performanceStats={performanceStats}
-              renderLoad={renderLoad}
-              canQueueSunBask={canQueueDebugSunBask}
-              onDebugViewChange={setDebugView}
-              onDebugLayerToggle={toggleDebugLayer}
-              onDebugSimulationSpeedChange={setDebugSimulationSpeed}
-              onQueueSunBask={queueDebugSunBask}
-            />
-          )}
-        </InfoCard>
+        <InfoCard creature={selectedCreature} onClose={releaseFocus} />
       )}
     </div>
   )
@@ -703,26 +681,25 @@ function DebugPanel({
   onDebugSimulationSpeedChange,
   onQueueSunBask,
 }) {
-  const sardineCount = clampDebugCount(renderLoad?.sardines)
+  const visibleCreatureCount = clampDebugCount(renderLoad?.visibleCreatures)
   const lod1Drawn = clampDebugCount(performanceStats?.lod1Drawn)
   const lod1Candidates = Math.max(lod1Drawn, clampDebugCount(performanceStats?.lod1Candidates))
   const lod2Drawn = clampDebugCount(performanceStats?.instancedDrawn)
   const lod2Candidates = Math.max(lod2Drawn, clampDebugCount(performanceStats?.sardineCandidates))
-  const lod0Candidates = clampDebugCount(performanceStats?.lod0Candidates) || Math.max(0, sardineCount - lod1Candidates - lod2Candidates)
-  const lod0Drawn = Math.min(lod0Candidates, clampDebugCount(performanceStats?.lod0Drawn))
-  const frustumCandidates = clampDebugCount(performanceStats?.frustumCandidates)
+  const lod0Candidates = Math.max(0, visibleCreatureCount - lod1Candidates - lod2Candidates)
+  const frustumCandidates = Math.max(visibleCreatureCount, clampDebugCount(performanceStats?.frustumCandidates))
   const frustumCulled = Math.min(frustumCandidates, clampDebugCount(performanceStats?.frustumCulled))
+  const lod0Drawn = Math.max(0, lod0Candidates - frustumCulled)
 
   return (
     <div className={`debug-panel ${className}`}>
-      <div>Data: {creatureDataSource}</div>
-      <div>Creatures: {creatureCount}</div>
-      <div>Visible: {renderLoad?.visibleCreatures ?? '—'} · Sardines: {renderLoad?.sardines ?? '—'}</div>
-      <div>FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
-      <div>LOD0: {lod0Drawn}/{lod0Candidates}</div>
-      <div>LOD1: {lod1Drawn}/{lod1Candidates}</div>
-      <div>LOD2: {lod2Drawn}/{lod2Candidates}</div>
-      <div>Frustum: {frustumCulled}/{frustumCandidates}</div>
+      <div className="debug-panel-stat">Data: {creatureDataSource}</div>
+      <div className="debug-panel-stat">Creatures: {visibleCreatureCount}/{creatureCount}</div>
+      <div className="debug-panel-stat">FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
+      <div className="debug-panel-stat">LOD0 creatures: {lod0Drawn}/{lod0Candidates}</div>
+      <div className="debug-panel-stat">LOD1 creatures: {lod1Drawn}/{lod1Candidates}</div>
+      <div className="debug-panel-stat">LOD2 creatures: {lod2Drawn}/{lod2Candidates}</div>
+      <div className="debug-panel-stat">Frustum creatures: {frustumCulled}/{frustumCandidates}</div>
       <div className="debug-panel-row">
         <span className="debug-panel-label">Debug</span>
         {DEBUG_VIEW_MODES.map(mode => (

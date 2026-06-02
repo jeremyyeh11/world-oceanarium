@@ -15,7 +15,7 @@ Status: in development.
 
 ### Performance / code hygiene
 
-- `v0.8.3-dev_1` starts the post-`v0.8.2` cleanup bucket by extracting shared species/hash/body-length helpers so creature identity and scale logic lives in one place.
+- Cleanup stack starts the post-`v0.8.2` code-hygiene bucket by extracting shared species/hash/body-length helpers so creature identity and scale logic lives in one place. No visible version bump in this refactor-only PR, preserving runtime data-source behavior.
 
 ## v0.8.2 — Follow-camera orbit polish
 

@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
+import { hashString } from '../utils/hash'
 
 const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
 const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
@@ -156,13 +157,7 @@ function collectEntries(entriesMap) {
 }
 
 function phaseFromId(id) {
-  const text = String(id ?? '')
-  let hash = 2166136261
-  for (let i = 0; i < text.length; i += 1) {
-    hash ^= text.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return ((hash >>> 0) / 4294967295) * Math.PI * 2
+  return (hashString(id) / 4294967295) * Math.PI * 2
 }
 
 function writeInstances(mesh, entries, debugColor = null) {

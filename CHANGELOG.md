@@ -9,6 +9,15 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.3 — Code hygiene and debug-runtime cleanup
+
+Status: in development.
+
+### Performance / code hygiene
+
+- `v0.8.3-dev_1` starts the post-`v0.8.2` cleanup bucket by extracting shared species/hash helpers, gating sardine debug globals out of normal runtime, and removing unused starter-era files/assets.
+- Keeps the current fish light-mask visual enabled by default, but renames it away from the old diagnostic flag and adds `VITE_WO_ENABLE_FISH_LIGHT_MASK=false` for targeted shader comparison.
+
 ## v0.8.2 — Follow-camera orbit polish
 
 Status: accepted and promoted as clean `v0.8.2` from `v0.8.2-dev_2` after Jeremy approval.

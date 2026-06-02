@@ -3,10 +3,13 @@ import { useFrame } from '@react-three/fiber'
 import { Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
+import { ENABLE_FISH_LIGHT_MASK, sardineDebugGlobalsEnabled } from '../utils/debugFlags'
+import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
+import { hashString } from '../utils/hash'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -29,17 +32,6 @@ const TANK_CAMERA_ASPECT = 16 / 9
 const SCREEN_X_SAFE_FRACTION = 0.78
 const GLOBAL_X_DESTINATION_RANGE_SCALE = 0.9
 
-function speciesLookupKeys(species) {
-  return [
-    species.id,
-    species.name,
-    species.scientificName,
-    ...(species.legacyIds ?? []),
-    ...(species.legacyNames ?? []),
-  ].filter(Boolean)
-}
-
-const SPECIES_BY_KEY = new Map(SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])))
 const SARDINE_MATERIAL_ROUGHNESS = 0.2
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
@@ -83,7 +75,7 @@ const LOD0_DEBUG_COLOR = '#00ff28'
 const SELECTED_RIM_INTENSITY = 1.65
 const LEADER_RIM_INTENSITY = 0.8
 const RIM_POWER = 3.1
-const FISH_LIGHT_MASK_DIAGNOSTIC = true
+
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
 const SARDINE_VIEW_CULL_MARGIN_NDC = 1.28
 const SCHOOL_SPACING = 0.58
@@ -286,15 +278,6 @@ function getSchoolState(school, creature, swim) {
   return state
 }
 
-function hashString(value) {
-  let hash = 2166136261
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return hash >>> 0
-}
-
 function randomSeed() {
   if (globalThis.crypto?.getRandomValues) {
     const values = new Uint32Array(1)
@@ -321,10 +304,6 @@ function randomRange(rand, min, max) {
 function randomRangeFromPair(rand, pair, fallback) {
   const [min, max] = Array.isArray(pair) ? pair : fallback
   return randomRange(rand, min, max)
-}
-
-function resolveSpecies(creature) {
-  return SPECIES_BY_KEY.get(creature?.species)
 }
 
 function resolveSwimProfile(creature) {
@@ -358,7 +337,7 @@ function resolveModel(creature) {
 }
 
 function creatureBodyLength(creature, swim) {
-  return swim.bodyLengthWU * (creature.size ?? 1)
+  return creatureBodyLengthWU(creature, swim.bodyLengthWU)
 }
 
 function largeCreatureFactor(creature, swim) {
@@ -1634,8 +1613,8 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   material.needsUpdate = true
 }
 
-function applyFishLightMaskDiagnostic(material, rim = null) {
-  if (!FISH_LIGHT_MASK_DIAGNOSTIC && !rim) return
+function applyFishLightMask(material, rim = null) {
+  if (!ENABLE_FISH_LIGHT_MASK && !rim) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
@@ -1702,7 +1681,7 @@ float fishMaskFbm(vec3 p) {
       )
       .replace(
         '#include <dithering_fragment>',
-        `${FISH_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vFishWorldPosition;
+        `${ENABLE_FISH_LIGHT_MASK ? `vec3 maskPos = vFishWorldPosition;
 float t = uFishLightMaskTime;
 vec3 warpedPos = maskPos;
 warpedPos.x += (fishMaskFbm(maskPos * vec3(0.18, 0.28, 0.16) + vec3(t * 0.018, -t * 0.010, 1.7)) - 0.5) * 4.8;
@@ -1721,7 +1700,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`
       )
   }
-  material.customProgramCacheKey = () => `fish-light-mask-diagnostic:${FISH_LIGHT_MASK_DIAGNOSTIC ? 'on' : 'off'}:${rimKey}`
+  material.customProgramCacheKey = () => `fish-light-mask:${ENABLE_FISH_LIGHT_MASK ? 'on' : 'off'}:${rimKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
   material.needsUpdate = true
 }
@@ -1746,7 +1725,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
         nextMaterial.emissive.set(lodDebugColor)
         nextMaterial.emissiveIntensity = 0.32
       }
-      applyFishLightMaskDiagnostic(nextMaterial, rim)
+      applyFishLightMask(nextMaterial, rim)
       materials.push(nextMaterial)
       return nextMaterial
     })
@@ -2909,7 +2888,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (!model) fish.rotateZ(pitch)
     fish.up.lerp(up, 0.18)
 
-    if (canInstanceSardine && typeof window !== 'undefined') {
+    if (canInstanceSardine && sardineDebugGlobalsEnabled(debug || debugLodView)) {
       const stats = window.__WO_SARDINE_DEBUG ?? { frames: 0, samples: [] }
       stats.frames += 1
       if (stats.samples.length < 12 || selected) {

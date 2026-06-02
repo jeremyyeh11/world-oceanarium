@@ -3,30 +3,11 @@ import Environment from './Environment'
 import Fish from './Fish'
 import OceanBubbles from './OceanBubbles'
 import SardineInstancedLayer from './SardineInstancedLayer'
-import { SPECIES } from '../data/species'
+import { SPECIES_BY_KEY } from '../utils/speciesLookup'
+import { hashString } from '../utils/hash'
 
-function speciesLookupKeys(species) {
-  return [
-    species.id,
-    species.name,
-    species.scientificName,
-    ...(species.legacyIds ?? []),
-    ...(species.legacyNames ?? []),
-  ].filter(Boolean)
-}
-
-const SPECIES_BY_KEY = new Map(SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])))
 const SCHOOL_MAX_SIZE = 64
 const ENABLE_SARDINE_INSTANCED_LAYER = true
-
-function hashString(value) {
-  let hash = 2166136261
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return hash >>> 0
-}
 
 function schoolKeyForCreature(creature) {
   return `${creature.biome}:${creature.depthZone}:${creature.species}`
@@ -77,7 +58,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
     <group>
       <Environment biome={name} />
       {name === 'ocean' && <OceanBubbles />}
-      {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} />}
+      {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debug={debug} debugLodView={debugLodView} />}
       {visibleCreatures.map(creature => {
         const selected = String(creature.id) === String(selectedCreatureId)
         const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))

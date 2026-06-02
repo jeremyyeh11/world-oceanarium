@@ -691,19 +691,41 @@ function DebugPanel({
   const frustumCandidates = Math.max(visibleCreatureCount, clampDebugCount(performanceStats?.frustumCandidates))
   const frustumCulled = Math.min(frustumCandidates, clampDebugCount(performanceStats?.frustumCulled))
   const lod0Drawn = Math.max(0, lod0Candidates - frustumCulled)
+  const debugVersionTapCount = useRef(0)
+  const debugVersionTapTimer = useRef(null)
+
+  const resetDebugVersionTaps = () => {
+    debugVersionTapCount.current = 0
+    if (!debugVersionTapTimer.current) return
+    window.clearTimeout(debugVersionTapTimer.current)
+    debugVersionTapTimer.current = null
+  }
+
+  const handleDebugVersionTap = (event) => {
+    event.stopPropagation()
+    if (debugVersionTapTimer.current) {
+      window.clearTimeout(debugVersionTapTimer.current)
+    }
+
+    debugVersionTapCount.current += 1
+
+    if (debugVersionTapCount.current >= 3) {
+      resetDebugVersionTaps()
+      window.dispatchEvent(new CustomEvent(DEBUG_TOGGLE_EVENT))
+      return
+    }
+
+    debugVersionTapTimer.current = window.setTimeout(resetDebugVersionTaps, 1200)
+  }
 
   return (
     <div className={`debug-panel ${className}`}>
-      <div className="debug-panel-section debug-panel-section--identity" aria-label="Build version">
-        <span className="debug-panel-section-icon" aria-hidden="true">⚙</span>
-        <span className="debug-panel-version">{APP_VERSION_LABEL}</span>
-      </div>
       <div className="debug-panel-section" aria-label="Runtime stats">
-        <div className="debug-panel-stat"><span aria-hidden="true">🐟</span><span className="debug-panel-label">Creatures</span><strong>{visibleCreatureCount}/{creatureCount}</strong></div>
         <div className="debug-panel-stat"><span aria-hidden="true">◷</span><span className="debug-panel-label">FPS</span><strong>{Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</strong></div>
         <div className="debug-panel-stat"><span aria-hidden="true">◆</span><span className="debug-panel-label">Data</span><strong>{creatureDataSource}</strong></div>
       </div>
-      <div className="debug-panel-section" aria-label="Render load">
+      <div className="debug-panel-section debug-panel-section--load" aria-label="Creature render load">
+        <div className="debug-panel-stat"><span aria-hidden="true">🐟</span><span className="debug-panel-label">Creatures</span><strong>{visibleCreatureCount}/{creatureCount}</strong></div>
         <div className="debug-panel-stat"><span aria-hidden="true">◉</span><span className="debug-panel-label">LOD0</span><strong>{lod0Drawn}/{lod0Candidates}</strong></div>
         <div className="debug-panel-stat"><span aria-hidden="true">◌</span><span className="debug-panel-label">LOD1</span><strong>{lod1Drawn}/{lod1Candidates}</strong></div>
         <div className="debug-panel-stat"><span aria-hidden="true">·</span><span className="debug-panel-label">LOD2</span><strong>{lod2Drawn}/{lod2Candidates}</strong></div>
@@ -775,6 +797,17 @@ function DebugPanel({
           {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}
         </div>
       )}
+      <div className="debug-panel-section debug-panel-section--identity" aria-label="Build version">
+        <button
+          className="debug-panel-version"
+          type="button"
+          aria-label="Tap three times to disable debug mode"
+          onPointerUp={handleDebugVersionTap}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          {APP_VERSION_LABEL}
+        </button>
+      </div>
     </div>
   )
 }

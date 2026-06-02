@@ -503,17 +503,17 @@ button { font: inherit; }
   max-width: none;
   min-height: 3.05rem;
   padding: 0 max(0.72rem, env(safe-area-inset-right)) max(0.22rem, env(safe-area-inset-bottom)) max(0.72rem, env(safe-area-inset-left));
-  border-top: 1px solid rgba(125,249,255,0.24);
+  border-top: 0;
   border-right: 0;
   border-bottom: 0;
   border-left: 0;
   border-radius: 0;
-  background: linear-gradient(180deg, rgba(0,22,38,0.82), rgba(0,10,24,0.92));
+  background: rgba(0,10,24,0.92);
   color: rgba(220,245,255,0.72);
   font: 0.62rem/1.18 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   letter-spacing: 0.035em;
   text-transform: uppercase;
-  backdrop-filter: blur(12px);
+  backdrop-filter: none;
   pointer-events: auto;
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -543,7 +543,7 @@ button { font: inherit; }
   gap: 0.5rem;
   min-height: 100%;
   padding: 0.48rem 0.78rem;
-  border-left: 1px solid rgba(125,249,255,0.13);
+  border-left: 1px solid rgba(220,245,255,0.09);
 }
 
 .debug-panel-section:first-child {
@@ -552,8 +552,21 @@ button { font: inherit; }
 }
 
 .debug-panel-section--identity {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  margin-left: auto;
   gap: 0.38rem;
+  background: rgba(0,10,24,0.92);
   color: rgba(238,252,255,0.9);
+}
+
+.debug-panel-section--load {
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: 1fr;
+  align-content: center;
+  gap: 0.18rem;
 }
 
 .debug-panel-section--controls {
@@ -567,9 +580,15 @@ button { font: inherit; }
 }
 
 .debug-panel-version {
+  border: 0;
+  background: transparent;
   color: rgba(245,255,255,0.94);
+  cursor: pointer;
+  font: inherit;
   font-weight: 800;
   letter-spacing: 0.075em;
+  padding: 0;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -637,7 +656,7 @@ button { font: inherit; }
   flex: 0 0 auto;
   max-width: 280px;
   padding: 0.48rem 0.78rem;
-  border-left: 1px solid rgba(255, 180, 180, 0.18);
+  border-left: 1px solid rgba(255, 220, 220, 0.1);
   white-space: normal;
   text-transform: none;
   color: rgba(255,205,205,0.8);
@@ -647,7 +666,7 @@ button { font: inherit; }
   flex: 0 0 auto;
   min-width: 10.5rem;
   padding: 0.48rem 0.78rem;
-  border-left: 1px solid rgba(125, 249, 255, 0.13);
+  border-left: 1px solid rgba(220, 245, 255, 0.09);
 }
 
 .audio-debug-heading {

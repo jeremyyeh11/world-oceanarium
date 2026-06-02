@@ -16,6 +16,7 @@ Status: in development.
 ### Performance / code hygiene
 
 - Cleanup stack starts the post-`v0.8.2` code-hygiene bucket by extracting shared species/hash/body-length helpers so creature identity and scale logic lives in one place. No visible version bump in this refactor-only PR, preserving runtime data-source behavior.
+- Starter cleanup removes confirmed-unused starter-era components and assets.
 
 ## v0.8.2 — Follow-camera orbit polish
 

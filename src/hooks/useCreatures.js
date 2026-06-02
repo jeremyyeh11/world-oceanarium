@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { CREATURES, SPECIES } from '../data/species'
 import { APP_VERSION } from '../version'
 import { hashString } from '../utils/hash'
-import { speciesLookupKeys } from '../utils/speciesLookup'
+import { speciesAliasKeys } from '../utils/speciesLookup'
 
 const SPECIES_ALIASES = SPECIES.flatMap(species => [
-  ...speciesLookupKeys(species).map(key => [key, species.name]),
+  ...speciesAliasKeys(species).map(key => [key, species.name]),
 ])
 const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))

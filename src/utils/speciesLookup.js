@@ -12,6 +12,15 @@ export function speciesLookupKeys(species) {
   ].filter(Boolean)
 }
 
+export function speciesAliasKeys(species) {
+  return [
+    species.id,
+    species.name,
+    ...(species.legacyIds ?? []),
+    ...(species.legacyNames ?? []),
+  ].filter(Boolean)
+}
+
 export const SPECIES_BY_KEY = new Map(
   SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])),
 )

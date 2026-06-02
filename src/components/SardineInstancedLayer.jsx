@@ -157,7 +157,7 @@ function collectEntries(entriesMap) {
 }
 
 function phaseFromId(id) {
-  return (hashString(id) / 4294967295) * Math.PI * 2
+  return (hashString(String(id ?? '')) / 4294967295) * Math.PI * 2
 }
 
 function writeInstances(mesh, entries, debugColor = null) {

@@ -9,6 +9,14 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.3 — Code hygiene and debug-runtime cleanup
+
+Status: in development.
+
+### Performance / code hygiene
+
+- Cleanup stack starts the post-`v0.8.2` code-hygiene bucket by extracting shared species/hash/body-length helpers so creature identity and scale logic lives in one place. No visible version bump in this refactor-only PR, preserving runtime data-source behavior.
+
 ## v0.8.2 — Follow-camera orbit polish
 
 Status: accepted and promoted as clean `v0.8.2` from `v0.8.2-dev_2` after Jeremy approval.

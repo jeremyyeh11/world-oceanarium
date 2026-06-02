@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { CREATURES, SPECIES } from '../data/species'
 import { APP_VERSION } from '../version'
+import { hashString } from '../utils/hash'
+import { speciesAliasKeys } from '../utils/speciesLookup'
 
 const SPECIES_ALIASES = SPECIES.flatMap(species => [
-  [species.id, species.name],
-  [species.name, species.name],
-  ...(species.legacyIds ?? []).map(id => [id, species.name]),
-  ...(species.legacyNames ?? []).map(name => [name, species.name]),
+  ...speciesAliasKeys(species).map(key => [key, species.name]),
 ])
 const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
@@ -17,15 +16,6 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_CREATURES_URL = import.meta.env.VITE_SUPABASE_CREATURES_URL
 const SUPABASE_CREATURES_TABLE = APP_VERSION.includes('-dev_') ? 'creatures_dev' : 'creatures'
 const ALLOW_STATIC_DEV_CREATURES = APP_VERSION.includes('-dev_')
-
-function hashString(value) {
-  let hash = 2166136261
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return hash >>> 0
-}
 
 function persistentUnitRandom(seed) {
   let t = hashString(seed) + 0x6D2B79F5

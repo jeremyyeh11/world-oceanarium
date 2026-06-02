@@ -1,8 +1,8 @@
-import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { DEPTH_ZONES, SPECIES } from '../data/species'
+import { creatureBodyLengthMeters } from '../utils/speciesLookup'
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
-const DEFAULT_BODY_LENGTH_WU = 1
 const DEFAULT_MASS = {
   coefficient: 0.008,
   exponent: 3,
@@ -169,8 +169,7 @@ function namedIndividualDescription(creature, customName) {
 }
 
 function bodyLengthMeters(creature, species) {
-  const bodyLengthWU = species?.swim?.bodyLengthWU ?? DEFAULT_BODY_LENGTH_WU
-  return bodyLengthWU * (creature.size ?? 1) * WORLD_UNIT_METERS
+  return creatureBodyLengthMeters(creature, species?.swim?.bodyLengthWU)
 }
 
 function estimateMassKg(lengthMeters, species) {

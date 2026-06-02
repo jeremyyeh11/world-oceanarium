@@ -7,8 +7,9 @@ import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
-import { DEPTH_ZONES, SPECIES } from '../data/species'
+import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
+import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
 
 const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
 const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
@@ -42,22 +43,6 @@ const DEBUG_LAYER_BUTTONS = [
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
-
-function speciesLookupKeys(species) {
-  return [
-    species.id,
-    species.name,
-    species.scientificName,
-    ...(species.legacyIds ?? []),
-    ...(species.legacyNames ?? []),
-  ].filter(Boolean)
-}
-
-const SPECIES_BY_KEY = new Map(SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])))
-
-function resolveSpecies(creature) {
-  return SPECIES_BY_KEY.get(creature?.species)
-}
 
 function isSunfishCreature(creature) {
   const species = resolveSpecies(creature)
@@ -96,7 +81,7 @@ function getTouchDistance(points) {
 
 function creatureBodyLength(creature) {
   const species = resolveSpecies(creature)
-  return (species?.swim?.bodyLengthWU ?? 1) * (creature?.size ?? 1)
+  return creatureBodyLengthWU(creature, species?.swim?.bodyLengthWU)
 }
 
 function maxFollowDistanceForCreature(creature) {

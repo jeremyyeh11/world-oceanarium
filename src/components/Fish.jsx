@@ -3,10 +3,12 @@ import { useFrame } from '@react-three/fiber'
 import { Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
+import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
+import { hashString } from '../utils/hash'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -29,17 +31,6 @@ const TANK_CAMERA_ASPECT = 16 / 9
 const SCREEN_X_SAFE_FRACTION = 0.78
 const GLOBAL_X_DESTINATION_RANGE_SCALE = 0.9
 
-function speciesLookupKeys(species) {
-  return [
-    species.id,
-    species.name,
-    species.scientificName,
-    ...(species.legacyIds ?? []),
-    ...(species.legacyNames ?? []),
-  ].filter(Boolean)
-}
-
-const SPECIES_BY_KEY = new Map(SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])))
 const SARDINE_MATERIAL_ROUGHNESS = 0.2
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
@@ -286,15 +277,6 @@ function getSchoolState(school, creature, swim) {
   return state
 }
 
-function hashString(value) {
-  let hash = 2166136261
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return hash >>> 0
-}
-
 function randomSeed() {
   if (globalThis.crypto?.getRandomValues) {
     const values = new Uint32Array(1)
@@ -321,10 +303,6 @@ function randomRange(rand, min, max) {
 function randomRangeFromPair(rand, pair, fallback) {
   const [min, max] = Array.isArray(pair) ? pair : fallback
   return randomRange(rand, min, max)
-}
-
-function resolveSpecies(creature) {
-  return SPECIES_BY_KEY.get(creature?.species)
 }
 
 function resolveSwimProfile(creature) {
@@ -358,7 +336,7 @@ function resolveModel(creature) {
 }
 
 function creatureBodyLength(creature, swim) {
-  return swim.bodyLengthWU * (creature.size ?? 1)
+  return creatureBodyLengthWU(creature, swim.bodyLengthWU)
 }
 
 function largeCreatureFactor(creature, swim) {

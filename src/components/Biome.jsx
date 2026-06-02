@@ -72,6 +72,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
             soloRuntimeRecoveryEnabled={soloRuntimeRecoveryEnabled}
             hideSelectionSilhouette={hideSelectionSilhouette}
             debug={showDebug}
+            debugGlobals={debug}
             debugLayers={debugLayers}
             debugLodView={debugLodView}
             debugSimulationSpeed={debugSimulationSpeed}

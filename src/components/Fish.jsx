@@ -1988,7 +1988,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugGlobals = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()

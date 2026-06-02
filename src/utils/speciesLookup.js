@@ -30,7 +30,7 @@ export function resolveSpecies(creature) {
 }
 
 export function creatureBodyLengthWU(creature, bodyLengthWU = DEFAULT_BODY_LENGTH_WU) {
-  return bodyLengthWU * (creature?.size ?? 1)
+  return (bodyLengthWU ?? DEFAULT_BODY_LENGTH_WU) * (creature?.size ?? 1)
 }
 
 export function creatureBodyLengthMeters(creature, bodyLengthWU = DEFAULT_BODY_LENGTH_WU) {

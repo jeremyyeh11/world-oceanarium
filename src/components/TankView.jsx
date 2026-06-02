@@ -725,10 +725,27 @@ function DebugPanel({
     debugVersionTapTimer.current = window.setTimeout(resetDebugVersionTaps, 1200)
   }
 
+  const fpsLabel = Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'
+
   return (
     <div className={`debug-panel ${className}`}>
-      <div className="debug-panel-section" aria-label="Runtime stats">
-        <div className="debug-panel-stat"><span aria-hidden="true">◷</span><span className="debug-panel-label">FPS</span><strong>{Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</strong></div>
+      <div className="debug-mobile-readout" aria-label="Compact mobile debug readout">
+        <div className="debug-mobile-stat"><span>C</span><strong>{visibleCreatureCount}/{creatureCount}</strong></div>
+        <div className="debug-mobile-stat"><span>LOD</span><strong>{lod0Drawn}/{lod1Drawn}/{lod2Drawn}</strong></div>
+        <div className="debug-mobile-stat"><span>F</span><strong>{frustumCulled}/{frustumCandidates}</strong></div>
+        <div className="debug-mobile-stat"><span>FPS</span><strong>{fpsLabel}</strong></div>
+        <button
+          className="debug-mobile-version"
+          type="button"
+          aria-label="Tap three times to disable debug mode"
+          onPointerUp={handleDebugVersionTap}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          {APP_VERSION_LABEL.replace(/^world oceanarium\s+/i, '')}
+        </button>
+      </div>
+      <div className="debug-panel-section debug-panel-section--runtime" aria-label="Runtime stats">
+        <div className="debug-panel-stat"><span aria-hidden="true">◷</span><span className="debug-panel-label">FPS</span><strong>{fpsLabel}</strong></div>
         <div className="debug-panel-stat"><span aria-hidden="true">◆</span><span className="debug-panel-label">Data</span><strong>{creatureDataSource}</strong></div>
       </div>
       <div className="debug-panel-section debug-panel-section--load" aria-label="Creature render load">

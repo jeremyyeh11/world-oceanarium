@@ -25,6 +25,7 @@ Subtasks:
 - [x] Extract shared species/hash/body-length helpers.
 - [ ] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
 - [x] Move debug menu to a bottom horizontal bar with creature-level LOD/frustum wording.
+- [x] Add mobile compact two-row debug strip for phone-width usability (`v0.8.3-dev_7`).
 - [x] Remove remaining same-creature follow-camera snapback after non-limit orbit drags (`v0.8.3-dev_6`).
 - [x] Remove confirmed-unused starter-era components/assets.
 - [ ] Review `Fish.jsx` split after current visual/release review stabilizes.

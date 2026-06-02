@@ -10,6 +10,7 @@ import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, g
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
+import { APP_VERSION_LABEL } from '../version'
 
 const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
 const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
@@ -693,62 +694,70 @@ function DebugPanel({
 
   return (
     <div className={`debug-panel ${className}`}>
-      <div className="debug-panel-stat">Data: {creatureDataSource}</div>
-      <div className="debug-panel-stat">Creatures: {visibleCreatureCount}/{creatureCount}</div>
-      <div className="debug-panel-stat">FPS: {Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</div>
-      <div className="debug-panel-stat">LOD0 creatures: {lod0Drawn}/{lod0Candidates}</div>
-      <div className="debug-panel-stat">LOD1 creatures: {lod1Drawn}/{lod1Candidates}</div>
-      <div className="debug-panel-stat">LOD2 creatures: {lod2Drawn}/{lod2Candidates}</div>
-      <div className="debug-panel-stat">Frustum creatures: {frustumCulled}/{frustumCandidates}</div>
-      <div className="debug-panel-row">
-        <span className="debug-panel-label">Debug</span>
-        {DEBUG_VIEW_MODES.map(mode => (
-          <button
-            key={mode.id}
-            type="button"
-            title={mode.label}
-            aria-label={`Debug ${mode.label}`}
-            aria-pressed={debugView === mode.id}
-            className="debug-panel-button"
-            onClick={() => onDebugViewChange(mode.id)}
-          >
-            {mode.icon}
-          </button>
-        ))}
+      <div className="debug-panel-section debug-panel-section--identity" aria-label="Build version">
+        <span className="debug-panel-section-icon" aria-hidden="true">⚙</span>
+        <span className="debug-panel-version">{APP_VERSION_LABEL}</span>
       </div>
-      <div className="debug-panel-row debug-panel-row--wrap">
-        {DEBUG_LAYER_BUTTONS.map(layer => (
-          <button
-            key={layer.id}
-            type="button"
-            title={layer.label}
-            aria-label={`Toggle ${layer.label}`}
-            aria-pressed={debugLayers[layer.id]}
-            className="debug-panel-button"
-            onClick={() => onDebugLayerToggle(layer.id)}
-          >
-            {layer.icon}
-          </button>
-        ))}
+      <div className="debug-panel-section" aria-label="Runtime stats">
+        <div className="debug-panel-stat"><span aria-hidden="true">🐟</span><span className="debug-panel-label">Creatures</span><strong>{visibleCreatureCount}/{creatureCount}</strong></div>
+        <div className="debug-panel-stat"><span aria-hidden="true">◷</span><span className="debug-panel-label">FPS</span><strong>{Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'}</strong></div>
+        <div className="debug-panel-stat"><span aria-hidden="true">◆</span><span className="debug-panel-label">Data</span><strong>{creatureDataSource}</strong></div>
       </div>
-      <div className="debug-panel-row debug-panel-row--wrap">
-        <span className="debug-panel-label">Sim</span>
-        {DEBUG_SIMULATION_SPEEDS.map(speed => (
-          <button
-            key={speed}
-            type="button"
-            title={`Simulation speed ${speed}x`}
-            aria-label={`Simulation speed ${speed}x`}
-            aria-pressed={debugSimulationSpeed === speed}
-            className="debug-panel-button"
-            onClick={() => onDebugSimulationSpeedChange(speed)}
-          >
-            {speed}x
-          </button>
-        ))}
+      <div className="debug-panel-section" aria-label="Render load">
+        <div className="debug-panel-stat"><span aria-hidden="true">◉</span><span className="debug-panel-label">LOD0</span><strong>{lod0Drawn}/{lod0Candidates}</strong></div>
+        <div className="debug-panel-stat"><span aria-hidden="true">◌</span><span className="debug-panel-label">LOD1</span><strong>{lod1Drawn}/{lod1Candidates}</strong></div>
+        <div className="debug-panel-stat"><span aria-hidden="true">·</span><span className="debug-panel-label">LOD2</span><strong>{lod2Drawn}/{lod2Candidates}</strong></div>
+        <div className="debug-panel-stat"><span aria-hidden="true">▢</span><span className="debug-panel-label">Frustum</span><strong>{frustumCulled}/{frustumCandidates}</strong></div>
       </div>
-      <div className="debug-panel-row debug-panel-row--wrap">
-        <span className="debug-panel-label">Actions</span>
+      <div className="debug-panel-section debug-panel-section--controls" aria-label="Debug controls">
+        <div className="debug-panel-row">
+          <span className="debug-panel-label">View</span>
+          {DEBUG_VIEW_MODES.map(mode => (
+            <button
+              key={mode.id}
+              type="button"
+              title={mode.label}
+              aria-label={`Debug ${mode.label}`}
+              aria-pressed={debugView === mode.id}
+              className="debug-panel-button"
+              onClick={() => onDebugViewChange(mode.id)}
+            >
+              {mode.icon}
+            </button>
+          ))}
+        </div>
+        <div className="debug-panel-row">
+          <span className="debug-panel-label">Overlay</span>
+          {DEBUG_LAYER_BUTTONS.map(layer => (
+            <button
+              key={layer.id}
+              type="button"
+              title={layer.label}
+              aria-label={`Toggle ${layer.label}`}
+              aria-pressed={debugLayers[layer.id]}
+              className="debug-panel-button"
+              onClick={() => onDebugLayerToggle(layer.id)}
+            >
+              {layer.icon}
+            </button>
+          ))}
+        </div>
+        <div className="debug-panel-row">
+          <span className="debug-panel-label">Sim</span>
+          {DEBUG_SIMULATION_SPEEDS.map(speed => (
+            <button
+              key={speed}
+              type="button"
+              title={`Simulation speed ${speed}x`}
+              aria-label={`Simulation speed ${speed}x`}
+              aria-pressed={debugSimulationSpeed === speed}
+              className="debug-panel-button"
+              onClick={() => onDebugSimulationSpeedChange(speed)}
+            >
+              {speed}x
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           title={canQueueSunBask ? 'Queue Mola sun-bask' : 'Follow Mola in debug mode to queue sun-bask'}
@@ -757,7 +766,7 @@ function DebugPanel({
           disabled={!canQueueSunBask}
           onClick={onQueueSunBask}
         >
-          bask
+          ☀ bask
         </button>
       </div>
       <AudioDebugMeters levels={audioLevels} />

@@ -609,14 +609,16 @@ button { font: inherit; }
 .debug-panel-version {
   border: 0;
   background: transparent;
-  color: rgba(245,255,255,0.94);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 800;
-  letter-spacing: 0.075em;
+  color: rgba(220, 245, 255, 0.26);
+  cursor: default;
+  font: 0.68rem/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.04em;
   padding: 0;
-  text-transform: uppercase;
+  text-transform: lowercase;
   white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
 .debug-panel-stat {
@@ -887,20 +889,22 @@ body:has(.debug-panel) .app-version-footnote {
 
   .debug-mobile-version {
     flex: 1 1 auto;
-    min-width: 4.8rem;
+    min-width: 6.4rem;
     overflow: hidden;
     border: 0;
     background: transparent;
-    color: rgba(245,255,255,0.9);
-    cursor: pointer;
-    font: inherit;
-    font-weight: 800;
-    letter-spacing: 0.045em;
+    color: rgba(220, 245, 255, 0.26);
+    cursor: default;
+    font: 0.68rem/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing: 0.04em;
     padding: 0;
     text-align: right;
     text-overflow: ellipsis;
-    text-transform: uppercase;
+    text-transform: lowercase;
     white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
   }
 
   .debug-panel-section--runtime,

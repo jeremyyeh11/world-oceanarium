@@ -775,7 +775,7 @@ function DebugPanel({
           onPointerUp={handleDebugVersionTap}
           onContextMenu={(event) => event.preventDefault()}
         >
-          {APP_VERSION_LABEL.replace(/^world oceanarium\s+/i, '')}
+          {APP_VERSION_LABEL}
         </button>
       </div>
       <div className="debug-panel-section debug-panel-section--runtime" aria-label="Runtime stats">

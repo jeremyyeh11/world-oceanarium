@@ -4,7 +4,7 @@ import SearchControl from './components/SearchControl'
 import { BIOMES } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
-import { APP_VERSION_LABEL } from './version'
+import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from './version'
 
 const DEFAULT_BIOME_ID = 'ocean'
 const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
@@ -485,7 +485,8 @@ export default function App() {
           onPointerUp={handleDebugTap}
           onContextMenu={(event) => event.preventDefault()}
         >
-          {APP_VERSION_LABEL}
+          <span className="version-label-full">{APP_VERSION_LABEL}</span>
+          <span className="version-label-short">{APP_VERSION_SHORT_LABEL}</span>
         </button>
       )}
     </>

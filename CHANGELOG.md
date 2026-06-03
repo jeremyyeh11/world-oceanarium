@@ -9,6 +9,16 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.4 — Creature moments + next polish bucket
+
+Status: in development; current visible dev patch is `v0.8.4-dev_1`.
+
+### Creature behavior
+
+- Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser, sardines and the large-predator placeholder default false.
+- `v0.8.4-dev_1` adds smoothed schooling drift away from nearby repulser creatures so sardines can softly part around the Mola instead of abruptly snapping away.
+- Keeps the response horizontal, biome-local, and utility-tested so the feel can be tuned without cluttering the per-frame fish loop.
+
 ## v0.8.3 — Code hygiene and debug-runtime cleanup
 
 Status: accepted and promoted as clean `v0.8.3` from `v0.8.3-dev_11` after Jeremy approval.

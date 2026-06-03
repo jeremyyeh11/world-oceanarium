@@ -67,6 +67,34 @@ No active feature bucket.
 
 ### Feature backlog
 
+#### 1. Creature moments — schooling behavior around large fish
+
+Status: `Current in development`
+
+Reference:
+- `v0.8.4-dev_1` starts this feature sequence item and visible review patch.
+- Jeremy requested this as the next feature sequence item; promoted to active feature work.
+- Intended feel: authored animal moments, not quests or gamification — the tank should read less like isolated loops and more like creatures sharing space.
+
+Subtasks:
+- [ ] Add schooling response where small fish subtly repel/part around large fish passing nearby.
+- [ ] Add schooling response where small fish can briefly follow or trail a large fish without looking magnetized.
+- [ ] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
+- [ ] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone.
+
+#### 2. Mahi mahi
+
+Status: `Backlog`
+
+Reference:
+- Jeremy requested this as the next species sequence item after creature moments.
+
+Subtasks:
+- [ ] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, animation set, and licensing.
+- [ ] Add species data, movement profile, selection copy, and LOD/render path.
+- [ ] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
+- [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
+
 #### Rejected/saved visual experiments
 
 Status: `Backlog`

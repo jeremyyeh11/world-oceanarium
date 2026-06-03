@@ -8,6 +8,7 @@ import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
 import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
+import { creatureRepulsesOthers, lerpRepulserDrift, resolveRepulserDriftVector } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 
 const DEPTH_Y = {
@@ -110,6 +111,10 @@ const DENSE_SCHOOL_RADIUS_SCALE = 0.58
 const DENSE_SCHOOL_PADDING_SCALE = 0.2
 const AVOIDANCE_SMOOTHING = 3.4
 const AVOIDANCE_MAX_WEIGHT = 0.28
+const REPULSER_DRIFT_INNER_RADIUS = 5.8
+const REPULSER_DRIFT_OUTER_RADIUS = 17
+const REPULSER_DRIFT_MAX = 2.2
+const REPULSER_DRIFT_RESPONSE = 1.65
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
 const SOLO_AGENT_ARC_MIN_SPEED_SCALE = 0.36
@@ -1539,6 +1544,8 @@ function limitAvoidanceAngle(out, followDirection, maxAngle) {
 
 function updateFishRegistry(fish, creature, swim, school = null) {
   const radius = fishCollisionRadius(creature, swim, school)
+  const species = resolveSpecies(creature)
+  const repulser = creatureRepulsesOthers(species)
   const entry = FISH_REGISTRY.get(creature.id)
   if (entry) {
     entry.position.copy(fish.position)
@@ -1547,6 +1554,7 @@ function updateFishRegistry(fish, creature, swim, school = null) {
     entry.species = creature.species
     entry.biome = creature.biome
     entry.schoolId = school?.id ?? null
+    entry.repulser = repulser
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
@@ -1555,6 +1563,7 @@ function updateFishRegistry(fish, creature, swim, school = null) {
       species: creature.species,
       biome: creature.biome,
       schoolId: school?.id ?? null,
+      repulser,
     })
   }
 }
@@ -2041,6 +2050,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const simulationTime = useRef(null)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
+  const repulserDrift = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
   const labelPosition = useRef(new THREE.Vector3())
   const previousPosition = useRef(new THREE.Vector3())
@@ -2186,6 +2196,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     driftUntil.current = 0
     rawAvoidance.current.set(0, 0, 0)
     smoothedAvoidance.current.set(0, 0, 0)
+    repulserDrift.current.set(0, 0, 0)
     hasVisualForward.current = false
     hasBaseLookQuaternion.current = false
     lookBehaviorKey.current = ''
@@ -2303,6 +2314,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     let position = isSchooling
       ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now, organicNoise.current)
       : currentPath.getPointAt(t)
+    if (isSchooling) {
+      const targetDrift = resolveRepulserDriftVector(position, FISH_REGISTRY.values(), {
+        selfId: creature.id,
+        biome: creature.biome,
+        innerRadius: REPULSER_DRIFT_INNER_RADIUS,
+        outerRadius: REPULSER_DRIFT_OUTER_RADIUS,
+        maxDrift: REPULSER_DRIFT_MAX,
+      })
+      const easedDrift = lerpRepulserDrift(repulserDrift.current, targetDrift, delta, REPULSER_DRIFT_RESPONSE)
+      repulserDrift.current.set(easedDrift.x, easedDrift.y, easedDrift.z)
+      position.add(repulserDrift.current)
+    }
     currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
     tangent.subVectors(nextPoint, currentPath.getPointAt(t)).normalize()
 
@@ -2310,6 +2333,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
       offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
+      followTarget.current.add(repulserDrift.current)
     } else if (isSoloAgent) {
       position = hasFollowPosition.current ? fish.position : position
       const currentForward = desiredDirection.current.lengthSq() > 0.0001

@@ -9,7 +9,7 @@ import InfoCard from './InfoCard'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
-import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
+import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 
 const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
@@ -44,11 +44,6 @@ const DEBUG_LAYER_BUTTONS = [
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
-
-function isSunfishCreature(creature) {
-  const species = resolveSpecies(creature)
-  return species?.id === 'mola-alexandrini' || creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
-}
 
 function creatureDisplayName(creature) {
   const customName = creature?.customName?.trim()
@@ -90,7 +85,7 @@ function maxFollowDistanceForCreature(creature) {
 
 function minFollowDistanceForCreature(creature) {
   const bodyLength = creatureBodyLength(creature)
-  return isSunfishCreature(creature)
+  return isMolaCreature(creature)
     ? Math.max(MIN_FOLLOW_DISTANCE, bodyLength * MOLA_MIN_FOLLOW_BODY_LENGTHS)
     : MIN_FOLLOW_DISTANCE
 }
@@ -140,7 +135,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const visibleDebugPanel = debugMode && !screenshotMode
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
   const renderLoad = summarizeRenderLoad(creatures, biome?.id)
-  const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isSunfishCreature(selectedCreature)
+  const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isMolaCreature(selectedCreature)
 
   const queueDebugSunBask = () => {
     if (!canQueueDebugSunBask) return
@@ -180,7 +175,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     const queueSunBaskOnShortcut = (event) => {
       const isSunBaskShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && (event.code === 'KeyX' || event.key?.toLowerCase() === 'x')
       if (!isSunBaskShortcut) return
-      if (!debugMode || !selectedCreature || !isSunfishCreature(selectedCreature)) return
+      if (!debugMode || !selectedCreature || !isMolaCreature(selectedCreature)) return
       event.preventDefault()
       setDebugSunBaskRequestId(current => current + 1)
     }
@@ -355,7 +350,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }
 
   const releaseFollowForCameraClip = () => {
-    if (!selectedCreature || !isSunfishCreature(selectedCreature)) return
+    if (!selectedCreature || !isMolaCreature(selectedCreature)) return
     releaseFocusForRuntimeRecovery(selectedCreature)
   }
 

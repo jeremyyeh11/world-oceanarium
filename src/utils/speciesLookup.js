@@ -29,6 +29,11 @@ export function resolveSpecies(creature) {
   return SPECIES_BY_KEY.get(creature?.species)
 }
 
+export function isMolaCreature(creature) {
+  const species = resolveSpecies(creature)
+  return species?.id === 'mola-alexandrini' || creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
+}
+
 export function creatureBodyLengthWU(creature, bodyLengthWU = DEFAULT_BODY_LENGTH_WU) {
   return (bodyLengthWU ?? DEFAULT_BODY_LENGTH_WU) * (creature?.size ?? 1)
 }

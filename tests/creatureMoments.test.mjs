@@ -4,6 +4,7 @@ import {
   creatureRepulsesOthers,
   repulserInfluenceAtDistance,
   lerpRepulserDrift,
+  repulserDebugIntensity,
   resolveRepulserDriftVector,
 } from '../src/utils/creatureMoments.js'
 
@@ -34,5 +35,9 @@ const target = { x: 1.8, y: 0, z: 0 }
 const eased = lerpRepulserDrift(initial, target, 0.1, 4)
 assert.ok(eased.x > 0, 'repulser drift begins moving toward target')
 assert.ok(eased.x < target.x, 'repulser drift is lerped, not snapped')
+
+assert.equal(repulserDebugIntensity({ x: 0, y: 0, z: 0 }, 2.2), 0, 'no repulser drift keeps marker yellow')
+assert.ok(repulserDebugIntensity({ x: 1.1, y: 0, z: 0 }, 2.2) > 0.45, 'partial repulser drift warms marker toward red')
+assert.equal(repulserDebugIntensity({ x: 2.2, y: 0, z: 0 }, 2.2), 1, 'max repulser drift makes marker red')
 
 console.log('creature moments tests passed')

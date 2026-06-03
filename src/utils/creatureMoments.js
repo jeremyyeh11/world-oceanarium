@@ -65,3 +65,9 @@ export function lerpRepulserDrift(current, target, delta, response = 2.8) {
     z: finiteNumber(current?.z) + (finiteNumber(target?.z) - finiteNumber(current?.z)) * alpha,
   }
 }
+
+export function repulserDebugIntensity(drift, maxDrift) {
+  const maxLength = Math.max(0.0001, finiteNumber(maxDrift, 1))
+  const length = Math.hypot(finiteNumber(drift?.x), finiteNumber(drift?.y), finiteNumber(drift?.z))
+  return Math.min(1, Math.max(0, length / maxLength))
+}

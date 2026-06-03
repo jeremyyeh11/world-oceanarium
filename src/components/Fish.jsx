@@ -8,7 +8,7 @@ import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
 import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
-import { creatureRepulsesOthers, lerpRepulserDrift, resolveRepulserDriftVector } from '../utils/creatureMoments'
+import { creatureRepulsesOthers, lerpRepulserDrift, repulserDebugIntensity, resolveRepulserDriftVector } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 
 const DEPTH_Y = {
@@ -74,6 +74,8 @@ const LEADER_OUTLINE_COLOR = '#80ff72'
 const LOD0_DEBUG_COLOR = '#00ff28'
 const SELECTED_RIM_INTENSITY = 1.65
 const LEADER_RIM_INTENSITY = 0.8
+const DEBUG_FOLLOW_TARGET_YELLOW = new THREE.Color('#ffd166')
+const DEBUG_FOLLOW_TARGET_REPULSER_RED = new THREE.Color('#ff3b30')
 const RIM_POWER = 3.1
 const FISH_LIGHT_MASK_DIAGNOSTIC = true
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
@@ -261,6 +263,7 @@ const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
 const separationDelta = new THREE.Vector3()
+const debugFollowTargetColor = new THREE.Color()
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
 
@@ -2778,6 +2781,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (forwardLineRef.current) forwardLineRef.current.visible = showDirection && !showAgentDebug
       if (followTargetMarkerRef.current) {
         followTargetMarkerRef.current.position.copy(followTarget.current)
+        const markerMaterial = followTargetMarkerRef.current.material
+        if (markerMaterial?.color) {
+          const repulserAlpha = repulserDebugIntensity(repulserDrift.current, REPULSER_DRIFT_MAX)
+          debugFollowTargetColor.copy(DEBUG_FOLLOW_TARGET_YELLOW).lerp(DEBUG_FOLLOW_TARGET_REPULSER_RED, repulserAlpha)
+          markerMaterial.color.copy(debugFollowTargetColor)
+        }
         followTargetMarkerRef.current.visible = showDirection && !showAgentDebug
       }
       if (speedLabelRef.current) {

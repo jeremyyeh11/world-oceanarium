@@ -13,7 +13,28 @@ Status labels:
 
 ## Current release bucket
 
-No active dev bucket.
+### v0.8.4 — Debug-runtime hardening and maintainability
+
+Status: `Current in development`
+
+Reference:
+- Follow-up bucket after clean `v0.8.3` release.
+- Deferred from v0.8.3 umbrella #8 after `v0.8.3-dev_11` was accepted.
+
+Why this is next:
+- `v0.8.3` shipped the visible debug-toolbar polish and cleanup; the remaining value is making the debug path safer and easier to maintain without changing player-facing feel.
+- These are mostly technical gates, so they should be validated by behavior-equivalence checks, build, and a short desktop/mobile smoke pass rather than long visual review.
+
+Subtasks:
+- [ ] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
+- [ ] Review and split `Fish.jsx` only where it reduces risk/complexity; preserve strict behavior equivalence.
+- [ ] Decide and wire the local debug channel at `fish.chiayong.com`.
+
+Review gates:
+- Normal public build has no leaked sardine/debug globals unless debug is explicitly enabled.
+- Debug mode still shows creature counts, LOD 0/1/2, frustum counts, and selected-creature readouts.
+- Follow camera, mobile debug strip, compact mobile version label, and audio unlock behavior remain unchanged.
+- `npm run build` passes and browser smoke confirms both normal and debug entry paths.
 
 ## Released / archived
 
@@ -109,19 +130,20 @@ Implementation summary:
 
 ## Backlog / future buckets
 
-### v0.8.4 candidate follow-ups from v0.8.3 cleanup
+### A. Creature data backup hygiene
 
 Status: `Backlog`
 
 Reference:
-- Deferred from v0.8.3 umbrella #8 after clean `v0.8.3` release.
+- Backups are JSON snapshots/diffs under `.supabase-creature-backups/`, not Markdown.
+- Latest refreshed production snapshot after `v0.8.3`: `.supabase-creature-backups/snapshots/2026-06-03_03-49-58-066Z_creatures.json`.
+- Current live table check: 89 total active creatures = 88 `amblygaster-sirm` + 1 `mola-alexandrini`; `creatures` and `creatures_dev` matched at time of check.
 
 Subtasks:
-- [ ] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
-- [ ] Review `Fish.jsx` split after current visual/release review stabilizes.
-- [ ] Decide and wire the local debug channel at `fish.chiayong.com`.
+- [ ] Before direct Supabase creature writes, run `npm run backup:creatures`; verify after writes and back up again.
+- [ ] If creature data starts changing often, consider adding a small report script for count/species/size diffs instead of reading raw JSON.
 
-### A. Roadmap hygiene
+### B. Roadmap hygiene
 
 Status: `Backlog`
 
@@ -131,7 +153,7 @@ Subtasks:
 - [ ] When an item is completed and pushed to clean public release, remove it from active sections or archive it under a dated/archive section.
 - [ ] Keep ordering: current work first, then priority, then chronological discovery order unless Jeremy/YK manually asks to reorder.
 
-### B. Rejected/saved visual experiments
+### C. Rejected/saved visual experiments
 
 Status: `Backlog`
 

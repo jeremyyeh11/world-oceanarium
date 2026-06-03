@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.3 — Code hygiene and debug-runtime cleanup
 
-Status: in development as `v0.8.3-dev_7` after parking the world-clock experiment on a separate unassigned branch.
+Status: accepted and promoted as clean `v0.8.3` from `v0.8.3-dev_11` after Jeremy approval.
 
 ### Performance / code hygiene
 
@@ -20,6 +20,7 @@ Status: in development as `v0.8.3-dev_7` after parking the world-clock experimen
 - `v0.8.3-dev_2` moves the debug panel into a bottom horizontal bar and changes debug copy/counts from sardine-specific wording to creature-level LOD/frustum readouts; single-model creatures count as LOD0.
 - `v0.8.3-dev_6` removes the remaining follow-camera snapback path by preserving orbit/distance when the already-selected creature receives a duplicate pointer-up/click selection after an orbit drag.
 - `v0.8.3-dev_7` makes mobile debug usable as a compact two-row strip: essentials readout on top, horizontally scrollable controls below, and audio meters collapsed out of the phone layout.
+- `v0.8.3-dev_11` keeps the normal mobile version label compact by showing only the version string while preserving the full `world oceanarium` label on desktop.
 
 ## v0.8.2 — Follow-camera orbit polish
 

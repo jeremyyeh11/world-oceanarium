@@ -13,25 +13,35 @@ Status labels:
 
 ## Current release bucket
 
+No active dev bucket.
+
+## Released / archived
+
 ### v0.8.3 — Code hygiene and debug-runtime cleanup
 
-Status: `Current in development`
+Status: accepted and promoted as clean `v0.8.3` after Jeremy approval.
+
+Released from: `v0.8.3-dev_11`.
 
 Reference:
 - GitHub umbrella: #8
 - Subtasks: #9, #10, #11, #12, #13
 
-Subtasks:
-- [x] Extract shared species/hash/body-length helpers.
-- [ ] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
-- [x] Move debug menu to a bottom horizontal bar with creature-level LOD/frustum wording.
-- [x] Add mobile compact two-row debug strip for phone-width usability (`v0.8.3-dev_7`).
-- [x] Remove remaining same-creature follow-camera snapback after non-limit orbit drags (`v0.8.3-dev_6`).
-- [x] Remove confirmed-unused starter-era components/assets.
-- [ ] Review `Fish.jsx` split after current visual/release review stabilizes.
-- [ ] Decide and wire the local debug channel at `fish.chiayong.com`.
+Accepted gates:
+- Shared species/hash/body-length helpers extracted.
+- Confirmed-unused starter-era components/assets removed.
+- Bottom debug bar accepted as flat toolbar with creature-level LOD/frustum wording.
+- Mobile debug strip accepted for phone-width usability.
+- Normal mobile version label shortened while desktop keeps the full `world oceanarium` label.
+- Same-creature follow-camera orbit no longer snaps back after non-limit orbit drags.
+- Jeremy visual pass accepted the release candidate.
+- Final release judgement: `SHIP`.
 
-## Released / archived
+Implementation summary:
+- Moves debug UI toward a cleaner full-width toolbar and compact mobile layout while preserving debug affordances.
+- Keeps follow-camera orbit state stable when duplicate same-creature selection events arrive after drag release.
+- Removes unused starter files and centralizes creature helper logic for cleaner future species work.
+
 
 ### v0.8.2 — Follow-camera orbit polish
 
@@ -98,6 +108,18 @@ Implementation summary:
 - Hardens audio startup/unlock after direct tank entry, including immediate startup attempts and Mobile Safari gesture fallback.
 
 ## Backlog / future buckets
+
+### v0.8.4 candidate follow-ups from v0.8.3 cleanup
+
+Status: `Backlog`
+
+Reference:
+- Deferred from v0.8.3 umbrella #8 after clean `v0.8.3` release.
+
+Subtasks:
+- [ ] Gate sardine debug globals out of normal runtime while preserving debug/LOD opt-in.
+- [ ] Review `Fish.jsx` split after current visual/release review stabilizes.
+- [ ] Decide and wire the local debug channel at `fish.chiayong.com`.
 
 ### A. Roadmap hygiene
 

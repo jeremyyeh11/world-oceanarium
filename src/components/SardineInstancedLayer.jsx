@@ -205,7 +205,7 @@ function updateWiggleTime(material, elapsedTime) {
   if (uniforms?.uSardineWiggleTime) uniforms.uSardineWiggleTime.value = elapsedTime
 }
 
-export default function SardineInstancedLayer({ debugLodView = false }) {
+export default function SardineInstancedLayer({ debugLodView = false, debugStatsEnabled = false }) {
   const lod1Asset = useInstancedSardineAsset(SARDINE_LOD1_MODEL_PATH, 'sardine-lod1-glb')
   const lod2Asset = useInstancedSardineAsset(SARDINE_LOD2_MODEL_PATH, 'sardine-lod2-glb')
   const lod1MeshRef = useRef(null)
@@ -219,7 +219,7 @@ export default function SardineInstancedLayer({ debugLodView = false }) {
     const lod1Entries = collectEntries(rawLod1Entries)
     const lod2Entries = collectEntries(rawLod2Entries)
 
-    if (typeof window !== 'undefined') {
+    if (debugStatsEnabled && typeof window !== 'undefined') {
       window.__WO_SARDINE_INSTANCE_DEBUG = {
         total: lod2Entries.length,
         lod1Total: lod1Entries.length,

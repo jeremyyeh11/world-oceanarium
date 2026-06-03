@@ -1,8 +1,8 @@
 # World Oceanarium Roadmap
 
-Purpose: keep active work, release blockers, and follow-up ideas in one ordered place so review TODOs do not get lost.
+Purpose: keep active maintenance work, feature ideas, release blockers, and follow-up notes in one ordered place so review TODOs do not get lost.
 
-Ordering rule: list work in the sequence we are currently tackling, then by priority, then chronological discovery order. Only reorder manually when Jeremy/YK asks.
+Ordering rule: keep code cleanup/maintenance separate from feature work. Within each section, list current work first, then priority, then chronological discovery order. Only reorder manually when Jeremy/YK asks.
 
 Status labels:
 - `Current in development` — actively being worked/reviewed in the current dev bucket.
@@ -11,9 +11,9 @@ Status labels:
 - `Backlog` — known follow-up, not blocking current release unless promoted.
 - `Archive candidate` — remove or move to archive once completed and pushed to a clean public release.
 
-## Current release bucket
+## Code cleanup / maintenance
 
-### v0.8.4 — Debug-runtime hardening and maintainability
+### Current maintenance bucket: v0.8.4 — Debug-runtime hardening and maintainability
 
 Status: `Current in development`
 
@@ -35,6 +35,48 @@ Review gates:
 - Debug mode still shows creature counts, LOD 0/1/2, frustum counts, and selected-creature readouts.
 - Follow camera, mobile debug strip, compact mobile version label, and audio unlock behavior remain unchanged.
 - `npm run build` passes and browser smoke confirms both normal and debug entry paths.
+
+### Maintenance backlog
+
+#### Creature data backup hygiene
+
+Status: `Backlog`
+
+Reference:
+- Backups are JSON snapshots/diffs under `.supabase-creature-backups/`, not Markdown.
+- Latest refreshed production snapshot after `v0.8.3`: `.supabase-creature-backups/snapshots/2026-06-03_03-49-58-066Z_creatures.json`.
+- Current live table check: 89 total active creatures = 88 `amblygaster-sirm` + 1 `mola-alexandrini`; `creatures` and `creatures_dev` matched at time of check.
+
+Subtasks:
+- [ ] Before direct Supabase creature writes, run `npm run backup:creatures`; verify after writes and back up again.
+- [ ] If creature data starts changing often, consider adding a small report script for count/species/size diffs instead of reading raw JSON.
+
+#### Roadmap hygiene
+
+Status: `Backlog`
+
+Subtasks:
+- [ ] When new release blockers or TODO lists come up in chat, add them here with relevant dev patch/bucket version references.
+- [ ] When actively working an item, move/set it to `Current in development`.
+- [ ] When an item is completed and pushed to clean public release, remove it from active sections or archive it under a dated/archive section.
+- [ ] Keep ordering: current work first, then priority, then chronological discovery order unless Jeremy/YK manually asks to reorder.
+
+## Feature list
+
+No active feature bucket.
+
+### Feature backlog
+
+#### Rejected/saved visual experiments
+
+Status: `Backlog`
+
+Reference:
+- `v0.8.0-dev_107` appendage-only/outline-related experiment was visually rejected; preserve useful dev-bucket knowledge without returning it to main unless explicitly asked.
+
+Subtasks:
+- [ ] If a future visual experiment looks bad, revert main quickly while preserving the experiment in a separate dev branch/bucket for reference.
+- [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
 
@@ -127,39 +169,3 @@ Implementation summary:
 - Adds Mola near-surface sun-basking lifecycle with approach, roll, hold drift, animation isolation, and smooth exit.
 - Improves follow mode for large creatures: adaptive distance/FOV, manual zoom authority, surface-footprint clamps, smooth entry/exit, and recovery notices.
 - Hardens audio startup/unlock after direct tank entry, including immediate startup attempts and Mobile Safari gesture fallback.
-
-## Backlog / future buckets
-
-### A. Creature data backup hygiene
-
-Status: `Backlog`
-
-Reference:
-- Backups are JSON snapshots/diffs under `.supabase-creature-backups/`, not Markdown.
-- Latest refreshed production snapshot after `v0.8.3`: `.supabase-creature-backups/snapshots/2026-06-03_03-49-58-066Z_creatures.json`.
-- Current live table check: 89 total active creatures = 88 `amblygaster-sirm` + 1 `mola-alexandrini`; `creatures` and `creatures_dev` matched at time of check.
-
-Subtasks:
-- [ ] Before direct Supabase creature writes, run `npm run backup:creatures`; verify after writes and back up again.
-- [ ] If creature data starts changing often, consider adding a small report script for count/species/size diffs instead of reading raw JSON.
-
-### B. Roadmap hygiene
-
-Status: `Backlog`
-
-Subtasks:
-- [ ] When new release blockers or TODO lists come up in chat, add them here with relevant dev patch/bucket version references.
-- [ ] When actively working an item, move/set it to `Current in development`.
-- [ ] When an item is completed and pushed to clean public release, remove it from active sections or archive it under a dated/archive section.
-- [ ] Keep ordering: current work first, then priority, then chronological discovery order unless Jeremy/YK manually asks to reorder.
-
-### C. Rejected/saved visual experiments
-
-Status: `Backlog`
-
-Reference:
-- `v0.8.0-dev_107` appendage-only/outline-related experiment was visually rejected; preserve useful dev-bucket knowledge without returning it to main unless explicitly asked.
-
-Subtasks:
-- [ ] If a future visual experiment looks bad, revert main quickly while preserving the experiment in a separate dev branch/bucket for reference.
-- [ ] Document branch/bucket name here when such a saved experiment is created.

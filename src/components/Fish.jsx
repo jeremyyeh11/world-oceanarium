@@ -7,7 +7,7 @@ import { WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
-import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
+import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { creatureRepulsesOthers, lerpRepulserDrift, repulserDebugIntensity, resolveRepulserDriftVector } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 
@@ -675,11 +675,6 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
   const fallback = pickSoloAgentTarget(out, creature, swim, rand, from)
   if (fallback) out.z = THREE.MathUtils.clamp(out.z, zMin, zMax)
   return fallback
-}
-
-function isMolaCreature(creature) {
-  const species = resolveSpecies(creature)
-  return species?.id === 'mola-alexandrini' || creature?.species === 'mola-alexandrini' || creature?.species === 'mola-mola'
 }
 
 function molaSurfaceCenterYMax(creature, swim, bounds) {

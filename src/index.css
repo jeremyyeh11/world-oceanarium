@@ -32,6 +32,10 @@ button { font: inherit; }
   cursor: default;
 }
 
+.version-label-short {
+  display: none;
+}
+
 .top-controls {
   --top-control-size: 2.3rem;
   --top-control-gap: 0.34rem;
@@ -849,6 +853,14 @@ body:has(.debug-panel) .app-version-footnote {
 }
 
 @media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .version-label-full {
+    display: none;
+  }
+
+  .version-label-short {
+    display: inline;
+  }
+
   .debug-panel {
     flex-direction: column;
     align-items: stretch;

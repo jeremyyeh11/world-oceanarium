@@ -10,7 +10,7 @@ import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, g
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, resolveSpecies } from '../utils/speciesLookup'
-import { APP_VERSION_LABEL } from '../version'
+import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 
 const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
 const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
@@ -775,7 +775,8 @@ function DebugPanel({
           onPointerUp={handleDebugVersionTap}
           onContextMenu={(event) => event.preventDefault()}
         >
-          {APP_VERSION_LABEL}
+          <span className="version-label-full">{APP_VERSION_LABEL}</span>
+          <span className="version-label-short">{APP_VERSION_SHORT_LABEL}</span>
         </button>
       </div>
       <div className="debug-panel-section debug-panel-section--runtime" aria-label="Runtime stats">
@@ -874,7 +875,8 @@ function DebugPanel({
           onPointerUp={handleDebugVersionTap}
           onContextMenu={(event) => event.preventDefault()}
         >
-          {APP_VERSION_LABEL}
+          <span className="version-label-full">{APP_VERSION_LABEL}</span>
+          <span className="version-label-short">{APP_VERSION_SHORT_LABEL}</span>
         </button>
       </div>
     </div>

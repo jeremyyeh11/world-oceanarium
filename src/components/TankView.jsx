@@ -610,6 +610,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debugView={debugView}
             debugLayers={debugLayers}
             debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
+            debugStatsEnabled={visibleDebugVisuals}
             debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
             onCreatureClick={focusCreature}
             onCreatureReady={registerCreatureRef}

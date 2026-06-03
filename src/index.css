@@ -1018,6 +1018,12 @@ body:has(.debug-panel) .app-version-footnote {
     -webkit-overflow-scrolling: touch !important;
   }
 
+  .tank-viewport.is-following-fish.has-debug-panel .info-card {
+    bottom: calc(var(--floating-debug-panel-height, 4rem) + 0.65rem) !important;
+    max-height: calc(40dvh - var(--floating-debug-panel-height, 4rem) - 0.65rem) !important;
+    padding-bottom: 0.72rem !important;
+  }
+
   .tank-viewport.is-following-fish .info-card h2 {
     font-size: 1.18rem !important;
     line-height: 1.05 !important;
@@ -1061,6 +1067,10 @@ body:has(.debug-panel) .app-version-footnote {
   body:has(.tank-viewport.is-following-fish) .app-version-footnote {
     bottom: calc(var(--mobile-follow-card-height, 0px) + 0.7rem);
   }
+}
+
+.tank-viewport.is-following-fish.has-debug-panel .info-card {
+  bottom: calc(var(--floating-debug-panel-height, 4rem) + 0.75rem) !important;
 }
 
 .tank-top-exposure {

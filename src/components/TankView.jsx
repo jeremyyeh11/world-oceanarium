@@ -266,6 +266,40 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   }, [selectedCreature, debugMode])
 
   useEffect(() => {
+    if (!visibleDebugPanel) {
+      document.documentElement.style.removeProperty('--floating-debug-panel-height')
+      return undefined
+    }
+
+    let observer = null
+    let frameId = 0
+
+    const updateDebugPanelHeight = () => {
+      const panel = document.querySelector('.tank-viewport .debug-panel--floating')
+      if (!panel) return
+
+      const syncHeight = () => {
+        document.documentElement.style.setProperty('--floating-debug-panel-height', `${panel.getBoundingClientRect().height}px`)
+      }
+
+      syncHeight()
+      observer?.disconnect()
+      observer = new ResizeObserver(syncHeight)
+      observer.observe(panel)
+    }
+
+    frameId = window.requestAnimationFrame(updateDebugPanelHeight)
+    window.addEventListener('resize', updateDebugPanelHeight)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      window.removeEventListener('resize', updateDebugPanelHeight)
+      observer?.disconnect()
+      document.documentElement.style.removeProperty('--floating-debug-panel-height')
+    }
+  }, [visibleDebugPanel])
+
+  useEffect(() => {
     if (!selectedCreature || !panLimits.enabled) return undefined
 
     let frameId = 0
@@ -545,7 +579,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
 
   return (
     <div
-      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}
+      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}
       style={{ '--stage-pan-x': `${stagePan}px` }}
     >
       <div
@@ -641,7 +675,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       )}
 
       {!screenshotMode && selectedCreature && <FocusHint />}
-      {!screenshotMode && recoveryNotice && (
+      {recoveryNotice && (
         <div key={recoveryNotice.id} className="runtime-recovery-notice" role="status" aria-live="polite">
           {recoveryNotice.text}
         </div>

@@ -91,36 +91,6 @@ export const SPECIES = [
     },
   },
   {
-    id: 'large-predator',
-    name: 'Large Predator',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    schooling: false,
-    repulser: false,
-    aggressive: false,
-    predator: true,
-    description: 'A generic large solo predator placeholder for testing scale, presence, and future apex species behavior.',
-    swim: {
-      // Generic large non-schooling predator placeholder for future specific species.
-      bodyLengthWU: 2.0,
-      visualTimeScale: 0.35,
-      idleBLPerSec: [0.35, 0.65],
-      idleDriftBLPerSec: [0.08, 0.16],
-      snapBLPerSec: [1.1, 1.6],
-      burstBLPerSec: [1.8, 2.5],
-      burstInterval: [8.0, 13.0],
-      erraticness: 0.12,
-      turnRadius: 0.9,
-      speedMultiplier: 0.55,
-    },
-    sizeRange: [3.2, 3.8],
-    mass: {
-      // Generic shark-like estimate until this placeholder becomes a specific species.
-      coefficient: 0.0095,
-      exponent: 3,
-    },
-  },
-  {
     id: 'mola-alexandrini',
     legacyIds: ['mola-mola'],
     legacyNames: ['Ocean Sunfish'],

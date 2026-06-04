@@ -69,10 +69,6 @@ function SpeciesModel({ species }) {
       <Suspense fallback={<FallbackFish species={species} />}>
         {species?.model?.path ? <ModelAsset species={species} /> : <FallbackFish species={species} />}
       </Suspense>
-      <mesh position={[0, -1.35, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[4.4, 64]} />
-        <meshBasicMaterial color="#89d7ff" transparent opacity={0.055} />
-      </mesh>
       <OrbitControls enablePan={false} enableZoom={false} autoRotate autoRotateSpeed={0.55} minPolarAngle={Math.PI * 0.3} maxPolarAngle={Math.PI * 0.72} />
     </Canvas>
   )

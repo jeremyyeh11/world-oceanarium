@@ -11,12 +11,13 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_2`.
+Status: in development; current visible dev patch is `v0.8.6-dev_3`.
 
 ### Interface / encyclopaedia
 
 - `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia feature branch from clean `v0.8.4` so navigation, creature information architecture, and reading flow can iterate separately from species work.
 - `v0.8.6-dev_2` adds the first encyclopaedia mockup: top-right gallery entry, left species list with thumbnails, central 3D/species-scale stage, right field-guide info panel, human-scale placeholder, and an info-card button from followed fish.
+- `v0.8.6-dev_3` removes the generic Large Predator species placeholder entirely and removes the floor disc from the encyclopaedia 3D viewport.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1
@@ -25,7 +26,7 @@ Status: accepted and promoted as clean `v0.8.4` from `v0.8.4-dev_4` after Jeremy
 
 ### Creature behavior
 
-- Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser, sardines and the large-predator placeholder default false.
+- Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser and sardines default false.
 - `v0.8.4-dev_1` adds smoothed schooling drift away from nearby repulser creatures so sardines can softly part around the Mola instead of abruptly snapping away.
 - `v0.8.4-dev_2` makes the debug follow-target marker lerp from yellow to red as repulser drift increases, then back to yellow as the school returns to its normal target.
 - `v0.8.4-dev_3` temporarily added a debug-panel `repel` demo button so the effect could be reviewed without waiting for a Mola crossing.

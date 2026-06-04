@@ -72,6 +72,7 @@ Status: `Current in development`
 Reference:
 - `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia branch from clean `v0.8.4`.
 - `v0.8.6-dev_2` adds the first encyclopaedia page mockup and tank/info-card entry points.
+- `v0.8.6-dev_3` removes the generic Large Predator placeholder species and the encyclopaedia viewport floor disc.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

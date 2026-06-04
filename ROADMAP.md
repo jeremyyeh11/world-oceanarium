@@ -63,11 +63,9 @@ Subtasks:
 
 ## Feature list
 
-No active feature bucket.
+### Active feature bucket
 
-### Feature backlog
-
-#### 1. Creature moments — schooling behavior around large fish
+#### 2. Creature moments — schooling behavior around large fish
 
 Status: `Archive candidate`
 
@@ -84,11 +82,12 @@ Subtasks:
 - [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
 - [x] Remove the temporary forced `repel` debug demo before clean public release.
 
-#### 2. Mahi mahi
+#### 1. Mahi mahi
 
-Status: `Backlog`
+Status: `Current in development`
 
 Reference:
+- `v0.8.5-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.4`.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:

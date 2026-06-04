@@ -9,6 +9,15 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.5 — Mahi mahi
+
+Status: in development; current visible dev patch is `v0.8.5-dev_1`.
+
+### Creature roster
+
+- Starts the Mahi mahi feature branch from clean `v0.8.4` so species asset, behavior, copy, and performance work can iterate without mixing into `main`.
+- Target feel: fast, confident pelagic cruising with readable flashes and turns — elegant movement, not generic fish drift.
+
 ## v0.8.4 — Creature moments repulser v1
 
 Status: accepted and promoted as clean `v0.8.4` from `v0.8.4-dev_4` after Jeremy approval on desktop/mobile feel.

@@ -1,6 +1,7 @@
-import { Suspense, useMemo, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
+import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import SceneLighting from './SceneLighting'
@@ -52,33 +53,156 @@ function formatLength(meters) {
   return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
 }
 
+const ROOT_TRANSLATION_TRACK_RE = /^(root|scene)\.position$/i
+
+function cloneInPlaceClip(clip) {
+  const tracks = clip.tracks.filter(track => !ROOT_TRANSLATION_TRACK_RE.test(track.name))
+  return new THREE.AnimationClip(clip.name, clip.duration, tracks.map(track => track.clone()))
+}
+
+function findClip(clips, candidates) {
+  const normalized = candidates.filter(Boolean).map(name => String(name).toLowerCase())
+  return clips.find(clip => normalized.includes(clip.name.toLowerCase()))
+    ?? clips.find(clip => normalized.some(name => clip.name.toLowerCase().includes(name)))
+}
+
+function atlasIdleCandidates(model) {
+  return [
+    model?.animationMap?.idle,
+    model?.moveset?.drift,
+    model?.moveset?.cruise,
+    'idle',
+    'idle_drift',
+    'slow_cruise',
+  ]
+}
+
+function atlasBurstCandidates(model) {
+  return [
+    model?.animationMap?.burst,
+    model?.moveset?.burst,
+    'burst',
+    'snap_left',
+    'snap_right',
+  ]
+}
+
+function nextBurstDelay() {
+  return THREE.MathUtils.randFloat(6.5, 10.5)
+}
+
 function ModelAsset({ species, pose }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const scene = useMemo(() => clone(gltf.scene), [gltf.scene])
+  const mixerRef = useRef(null)
+  const actionsRef = useRef({ idle: null, burst: null })
+  const burstDueAtRef = useRef(0)
   const rawScale = species?.model?.scale ?? 1
   const viewerScale = rawScale * pose.scaleMultiplier
   const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
   const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset, sourceRotation[2]]
 
+  useEffect(() => {
+    const clips = gltf.animations ?? []
+    const idleClip = findClip(clips, atlasIdleCandidates(species?.model))
+    const burstClip = findClip(clips, atlasBurstCandidates(species?.model))
+    if (!idleClip && !burstClip) return undefined
+
+    const mixer = new THREE.AnimationMixer(scene)
+    const fadeDuration = species?.model?.animationFadeDuration ?? 0.28
+    const idleAction = idleClip ? mixer.clipAction(cloneInPlaceClip(idleClip)) : null
+    const burstAction = burstClip ? mixer.clipAction(cloneInPlaceClip(burstClip)) : null
+
+    if (idleAction) {
+      idleAction.enabled = true
+      idleAction.setLoop(THREE.LoopRepeat, Infinity)
+      idleAction.setEffectiveTimeScale(idleClip.name === 'slow_cruise' ? 0.82 : 1)
+      idleAction.setEffectiveWeight(1)
+      idleAction.play()
+    }
+
+    if (burstAction) {
+      burstAction.enabled = true
+      burstAction.setLoop(THREE.LoopOnce, 1)
+      burstAction.clampWhenFinished = false
+      burstAction.setEffectiveTimeScale(burstClip.duration > 3 ? 1.18 : 1)
+      burstAction.setEffectiveWeight(1)
+    }
+
+    const onFinished = event => {
+      if (event.action !== burstAction || !idleAction) return
+      idleAction.reset().fadeIn(fadeDuration).play()
+      burstDueAtRef.current = mixer.time + nextBurstDelay()
+    }
+
+    mixer.addEventListener('finished', onFinished)
+    mixerRef.current = mixer
+    actionsRef.current = { idle: idleAction, burst: burstAction }
+    burstDueAtRef.current = mixer.time + 3.8
+
+    return () => {
+      mixer.removeEventListener('finished', onFinished)
+      mixer.stopAllAction()
+      mixer.uncacheRoot(scene)
+      mixerRef.current = null
+      actionsRef.current = { idle: null, burst: null }
+    }
+  }, [gltf.animations, scene, species])
+
+  useFrame((_, delta) => {
+    const mixer = mixerRef.current
+    if (!mixer) return
+    mixer.update(delta)
+
+    const { idle, burst } = actionsRef.current
+    if (!burst || burst.isRunning()) return
+    if (mixer.time < burstDueAtRef.current) return
+
+    burst.reset().play()
+    if (idle) burst.crossFadeFrom(idle, species?.model?.animationFadeDuration ?? 0.28, false)
+    burstDueAtRef.current = mixer.time + 999
+  })
+
   return <primitive object={scene} rotation={rotation} scale={viewerScale} position={pose.position} />
+}
+
+const HUMAN_SCALE_METERS = 1.7
+const DIVER_IMAGE_ASPECT = 620 / 360
+
+const DIVER_POSES_BY_SPECIES = {
+  'mola-alexandrini': {
+    position: [1.48, -0.72, 0.95],
+    opacity: 0.58,
+  },
+}
+
+function displayedSpeciesLengthUnits(species, pose) {
+  const bodyLengthWU = species?.swim?.bodyLengthWU
+  if (!Number.isFinite(bodyLengthWU)) return null
+  return bodyLengthWU * pose.scaleMultiplier
 }
 
 function AtlasDiverScale({ species }) {
   const texture = useTexture('/atlas/diver-silhouette.png')
   const lengthMeters = speciesLengthMeters(species)
   const isTinyComparison = Number.isFinite(lengthMeters) && lengthMeters < 0.6
-  const aspect = 620 / 360
-  const width = isTinyComparison ? 4.2 : 2.8
-  const height = width / aspect
-  const position = isTinyComparison
-    ? [-2.95, -0.18, -0.9]
-    : [-2.65, -0.32, -0.9]
+  const pose = viewPoseForSpecies(species)
+  const displayedLength = displayedSpeciesLengthUnits(species, pose)
+  const exactWidth = Number.isFinite(displayedLength) && Number.isFinite(lengthMeters)
+    ? displayedLength * (HUMAN_SCALE_METERS / lengthMeters)
+    : 2.8
+  const width = isTinyComparison ? Math.min(exactWidth, 6.8) : exactWidth
+  const height = width / DIVER_IMAGE_ASPECT
+  const diverPose = DIVER_POSES_BY_SPECIES[species?.id] ?? {
+    position: isTinyComparison ? [-3.85, -0.18, 0.95] : [1.35, -1.36, 0.95],
+    opacity: isTinyComparison ? 0.54 : 0.62,
+  }
 
   return (
-    <mesh position={position} scale={[width, height, 1]} raycast={() => null}>
+    <mesh position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} transparent opacity={0.58} depthWrite={false} toneMapped={false} />
+      <meshBasicMaterial map={texture} transparent opacity={diverPose.opacity} depthWrite={false} depthTest={false} toneMapped={false} />
     </mesh>
   )
 }

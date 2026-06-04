@@ -79,6 +79,7 @@ Reference:
 - `v0.8.6-dev_7` moves human scale into the viewport with Jeremy's diver silhouette; small fish compare against the diver head crop rather than shrinking the creature.
 - `v0.8.6-dev_8` animates Atlas models in place with idle loops and occasional burst actions, while filtering root translation tracks so the fish stays fixed in the viewport.
 - `v0.8.6-dev_9` removes the rejected Atlas animation experiment and uses the live ocean tank water/lighting/FX backdrop in The Atlas viewport without tank fish or UI.
+- `v0.8.6-dev_10` restores Atlas in-place animations after Jeremy clarified only the photo background should be removed, and repositions/rescales the diver reference to a 1.7 m human in the lower-right Mola comparison area.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

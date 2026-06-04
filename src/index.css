@@ -1287,7 +1287,7 @@ body:has(.debug-panel) .app-version-footnote {
 
 .encyclopedia-model-stage canvas {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: 100% !important;
   height: 100% !important;
 }
@@ -1299,56 +1299,35 @@ body:has(.debug-panel) .app-version-footnote {
   top: 1rem;
 }
 
-.encyclopedia-scale-placeholder {
+.atlas-human-scale {
   position: absolute;
-  right: clamp(1rem, 3vw, 3.2rem);
-  bottom: clamp(1rem, 5vh, 3.2rem);
-  z-index: 3;
-  display: flex;
-  align-items: flex-end;
-  gap: 0.85rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px dashed rgba(255,255,255,0.28);
-  border-radius: 18px;
-  background: rgba(0, 0, 0, 0.18);
+  z-index: 2;
+  left: clamp(0.75rem, 2vw, 2rem);
+  top: 50%;
+  width: var(--diver-width, 18rem);
+  max-width: 28vw;
+  transform: translateY(-38%);
+  pointer-events: none;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 0.85rem rgba(10, 28, 42, 0.52));
 }
 
-.encyclopedia-scale-placeholder strong,
-.encyclopedia-scale-placeholder span {
+.atlas-human-scale.is-head-comparison {
+  left: -15rem;
+  top: 45%;
+  width: var(--diver-width, 28rem);
+  max-width: none;
+  opacity: 0.74;
+}
+
+.atlas-human-scale img {
   display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
 }
 
-.encyclopedia-scale-placeholder strong {
-  font-size: 0.82rem;
-}
-
-.encyclopedia-scale-placeholder span {
-  margin-top: 0.18rem;
-  color: rgba(214, 234, 244, 0.58);
-  font-size: 0.68rem;
-}
-
-.encyclopedia-human-silhouette {
-  position: relative;
-  width: 2.2rem;
-  height: 5.4rem;
-  flex: 0 0 auto;
-}
-
-.human-head,
-.human-body,
-.human-leg {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255,255,255,0.92);
-}
-
-.human-head { top: 0; width: 1rem; height: 1rem; border-radius: 999px; }
-.human-body { top: 1.15rem; width: 1.2rem; height: 2.45rem; border-radius: 0.7rem 0.7rem 0.32rem 0.32rem; }
-.human-leg { top: 3.35rem; width: 0.42rem; height: 2rem; border-radius: 999px; }
-.human-leg--left { margin-left: -0.32rem; }
-.human-leg--right { margin-left: 0.32rem; }
 
 .encyclopedia-info-panel {
   overflow: auto;
@@ -1441,10 +1420,14 @@ body:has(.debug-panel) .app-version-footnote {
     max-height: none;
   }
 
-  .encyclopedia-scale-placeholder {
-    right: 0.75rem;
-    bottom: 0.75rem;
-    transform: scale(0.82);
-    transform-origin: bottom right;
+  .atlas-human-scale {
+    left: -0.8rem;
+    top: 48%;
+    max-width: 48vw;
+  }
+
+  .atlas-human-scale.is-head-comparison {
+    left: -15.5rem;
+    top: 44%;
   }
 }

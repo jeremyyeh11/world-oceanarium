@@ -104,19 +104,22 @@ function SpeciesModel({ species }) {
   )
 }
 
-function HumanScalePlaceholder() {
+const HUMAN_SCALE_METERS = 1.75
+
+function HumanScaleDiver({ species }) {
+  const lengthMeters = speciesLengthMeters(species)
+  const isTinyComparison = Number.isFinite(lengthMeters) && lengthMeters < 0.6
+  const diverWidthRem = isTinyComparison
+    ? 28
+    : Math.max(10, Math.min(20, 17 * (HUMAN_SCALE_METERS / Math.max(lengthMeters ?? HUMAN_SCALE_METERS, 0.8))))
+
   return (
-    <div className="encyclopedia-scale-placeholder" aria-label="Placeholder human scale image">
-      <div className="encyclopedia-human-silhouette">
-        <span className="human-head" />
-        <span className="human-body" />
-        <span className="human-leg human-leg--left" />
-        <span className="human-leg human-leg--right" />
-      </div>
-      <div>
-        <strong>Human scale image</strong>
-        <span>placeholder for final art</span>
-      </div>
+    <div
+      className={`atlas-human-scale${isTinyComparison ? ' is-head-comparison' : ''}`}
+      style={{ '--diver-width': `${diverWidthRem}rem` }}
+      aria-label={isTinyComparison ? 'Human head scale comparison' : 'Human diver scale comparison'}
+    >
+      <img src="/atlas/diver-silhouette.png" alt="Human diver scale silhouette" draggable="false" />
     </div>
   )
 }
@@ -169,7 +172,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         aria-label={`${selectedSpecies.name} fixed side view`}
       >
         <SpeciesModel species={selectedSpecies} />
-        <HumanScalePlaceholder />
+        <HumanScaleDiver species={selectedSpecies} />
       </main>
 
       <aside className="encyclopedia-info-panel" aria-label={`${selectedSpecies.name} information`}>

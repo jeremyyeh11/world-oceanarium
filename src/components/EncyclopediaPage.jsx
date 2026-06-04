@@ -171,6 +171,11 @@ const HUMAN_SCALE_METERS = 1.7
 const DIVER_IMAGE_ASPECT = 620 / 360
 
 const DIVER_POSES_BY_SPECIES = {
+  'amblygaster-sirm': {
+    position: [3.15, -0.12, 0.95],
+    opacity: 0.46,
+    maxWidth: 8.8,
+  },
   'mola-alexandrini': {
     position: [1.48, -0.72, 0.95],
     opacity: 0.58,
@@ -192,12 +197,12 @@ function AtlasDiverScale({ species }) {
   const exactWidth = Number.isFinite(displayedLength) && Number.isFinite(lengthMeters)
     ? displayedLength * (HUMAN_SCALE_METERS / lengthMeters)
     : 2.8
-  const width = isTinyComparison ? Math.min(exactWidth, 6.8) : exactWidth
-  const height = width / DIVER_IMAGE_ASPECT
   const diverPose = DIVER_POSES_BY_SPECIES[species?.id] ?? {
     position: isTinyComparison ? [-3.85, -0.18, 0.95] : [1.35, -1.36, 0.95],
     opacity: isTinyComparison ? 0.54 : 0.62,
   }
+  const width = isTinyComparison ? Math.min(exactWidth, diverPose.maxWidth ?? 6.8) : exactWidth
+  const height = width / DIVER_IMAGE_ASPECT
 
   return (
     <mesh position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>

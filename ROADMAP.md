@@ -84,6 +84,7 @@ Reference:
 - `v0.8.6-dev_12` swaps in Jeremy's SVG diver as a Three.js mesh plane and moves Atlas scale math to species max body length with a small-fish display cap.
 - `v0.8.6-dev_13` lowers the diver silhouette opacity and adds the IUCN Red List conservation-status bar to the Atlas info panel.
 - `v0.8.6-dev_14` fixes diver plane visibility with double-sided camera-facing mesh behavior and turns the Atlas camera 15° left/up for a slight front-left, top-down fish view.
+- `v0.8.6-dev_15` makes the diver silhouette visible against the dark tank backdrop and turns the Atlas camera another 15° left, for 30° left / 15° top-down.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

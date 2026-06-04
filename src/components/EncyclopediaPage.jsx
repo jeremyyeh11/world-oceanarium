@@ -26,7 +26,7 @@ const IUCN_STATUS_STEPS = [
   { code: 'CR', label: 'Critically Endangered', color: '#eb5757' },
 ]
 
-const ATLAS_CAMERA_YAW_DEGREES = -15
+const ATLAS_CAMERA_YAW_DEGREES = -30
 const ATLAS_CAMERA_PITCH_DEGREES = 15
 
 const DEFAULT_VIEW_POSE = {
@@ -233,11 +233,11 @@ const DIVER_IMAGE_ASPECT = 478.65 / 211.93
 const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     position: [2.15, -0.02, 0.95],
-    opacity: 0.22,
+    opacity: 0.34,
   },
   'mola-alexandrini': {
     position: [1.32, -0.72, 0.95],
-    opacity: 0.28,
+    opacity: 0.42,
   },
 }
 
@@ -263,7 +263,7 @@ function AtlasDiverScale({ species }) {
   return (
     <mesh ref={meshRef} position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial color="#02070b" map={texture} transparent opacity={diverPose.opacity} alphaTest={0.01} side={THREE.DoubleSide} depthWrite={false} depthTest={false} toneMapped={false} />
+      <meshBasicMaterial color="#8fb6c6" map={texture} transparent opacity={diverPose.opacity} alphaTest={0.01} side={THREE.DoubleSide} depthWrite={false} depthTest={false} toneMapped={false} />
     </mesh>
   )
 }

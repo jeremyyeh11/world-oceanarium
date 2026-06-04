@@ -73,16 +73,16 @@ Status: `Current in development`
 
 Reference:
 - `v0.8.4-dev_1` starts this feature sequence item and visible review patch.
-- `v0.8.4-dev_3` adds a temporary forced `repel` debug demo for reviewing the effect on demand.
+- `v0.8.4-dev_3` added a temporary forced `repel` debug demo for review; `v0.8.4-dev_4` removes it after Jeremy accepted the current behavior for now.
 - Jeremy requested this as the next feature sequence item; promoted to active feature work.
 - Intended feel: authored animal moments, not quests or gamification — the tank should read less like isolated loops and more like creatures sharing space.
 
 Subtasks:
-- [ ] Add schooling response where small fish subtly repel/part around large fish passing nearby.
+- [x] Add schooling response where small fish subtly repel/part around large fish passing nearby.
 - [ ] Add schooling response where small fish can briefly follow or trail a large fish without looking magnetized.
-- [ ] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
+- [x] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
 - [ ] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone.
-- [ ] Remove or disable the temporary forced `repel` debug demo before promoting a clean public release unless Jeremy/YK explicitly keep it.
+- [x] Remove the temporary forced `repel` debug demo before clean public release.
 
 #### 2. Mahi mahi
 

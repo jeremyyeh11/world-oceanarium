@@ -71,20 +71,3 @@ export function repulserDebugIntensity(drift, maxDrift) {
   const length = Math.hypot(finiteNumber(drift?.x), finiteNumber(drift?.y), finiteNumber(drift?.z))
   return Math.min(1, Math.max(0, length / maxLength))
 }
-
-export function resolveRepulserDemoDriftVector(elapsed, options = {}) {
-  const duration = Math.max(0.001, finiteNumber(options.duration, 8))
-  const maxDrift = finiteNumber(options.maxDrift, 1.8)
-  const phase = Math.min(1, Math.max(0, finiteNumber(elapsed) / duration))
-  if (phase >= 1) return { x: 0, y: 0, z: 0 }
-  const attack = Math.min(1, phase / 0.22)
-  const release = phase > 0.66 ? Math.max(0, 1 - ((phase - 0.66) / 0.34)) : 1
-  const envelope = attack * release
-  const wobble = Math.sin(finiteNumber(elapsed) * 1.7) * 0.16
-
-  return {
-    x: maxDrift * envelope,
-    y: 0,
-    z: maxDrift * wobble * envelope,
-  }
-}

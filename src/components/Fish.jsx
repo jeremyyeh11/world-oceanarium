@@ -8,7 +8,7 @@ import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
-import { creatureRepulsesOthers, lerpRepulserDrift, repulserDebugIntensity, resolveRepulserDemoDriftVector, resolveRepulserDriftVector } from '../utils/creatureMoments'
+import { creatureRepulsesOthers, lerpRepulserDrift, repulserDebugIntensity, resolveRepulserDriftVector } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 
 const DEPTH_Y = {
@@ -117,7 +117,6 @@ const REPULSER_DRIFT_INNER_RADIUS = 5.8
 const REPULSER_DRIFT_OUTER_RADIUS = 17
 const REPULSER_DRIFT_MAX = 2.2
 const REPULSER_DRIFT_RESPONSE = 1.65
-const REPULSER_DEMO_DURATION = 8
 const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
 const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
 const SOLO_AGENT_ARC_MIN_SPEED_SCALE = 0.36
@@ -1995,7 +1994,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, debugRepulserDemoRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -2050,8 +2049,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
   const repulserDrift = useRef(new THREE.Vector3())
-  const repulserDemoStartedAt = useRef(-Infinity)
-  const handledRepulserDemoRequestId = useRef(0)
   const desiredDirection = useRef(new THREE.Vector3())
   const labelPosition = useRef(new THREE.Vector3())
   const previousPosition = useRef(new THREE.Vector3())
@@ -2198,8 +2195,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     rawAvoidance.current.set(0, 0, 0)
     smoothedAvoidance.current.set(0, 0, 0)
     repulserDrift.current.set(0, 0, 0)
-    repulserDemoStartedAt.current = -Infinity
-    handledRepulserDemoRequestId.current = 0
     hasVisualForward.current = false
     hasBaseLookQuaternion.current = false
     lookBehaviorKey.current = ''
@@ -2318,20 +2313,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now, organicNoise.current)
       : currentPath.getPointAt(t)
     if (isSchooling) {
-      if (debugRepulserDemoRequestId && debugRepulserDemoRequestId !== handledRepulserDemoRequestId.current) {
-        handledRepulserDemoRequestId.current = debugRepulserDemoRequestId
-        repulserDemoStartedAt.current = now
-      }
-      const demoElapsed = now - repulserDemoStartedAt.current
-      const targetDrift = demoElapsed >= 0 && demoElapsed <= REPULSER_DEMO_DURATION
-        ? resolveRepulserDemoDriftVector(demoElapsed, { duration: REPULSER_DEMO_DURATION, maxDrift: REPULSER_DRIFT_MAX })
-        : resolveRepulserDriftVector(position, FISH_REGISTRY.values(), {
-          selfId: creature.id,
-          biome: creature.biome,
-          innerRadius: REPULSER_DRIFT_INNER_RADIUS,
-          outerRadius: REPULSER_DRIFT_OUTER_RADIUS,
-          maxDrift: REPULSER_DRIFT_MAX,
-        })
+      const targetDrift = resolveRepulserDriftVector(position, FISH_REGISTRY.values(), {
+        selfId: creature.id,
+        biome: creature.biome,
+        innerRadius: REPULSER_DRIFT_INNER_RADIUS,
+        outerRadius: REPULSER_DRIFT_OUTER_RADIUS,
+        maxDrift: REPULSER_DRIFT_MAX,
+      })
       const easedDrift = lerpRepulserDrift(repulserDrift.current, targetDrift, delta, REPULSER_DRIFT_RESPONSE)
       repulserDrift.current.set(easedDrift.x, easedDrift.y, easedDrift.z)
       position.add(repulserDrift.current)

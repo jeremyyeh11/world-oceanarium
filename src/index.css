@@ -1363,6 +1363,67 @@ body:has(.debug-panel) .app-version-footnote {
   font-size: 0.86rem;
 }
 
+.iucn-status-card {
+  margin-top: 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  background: rgba(0, 8, 18, 0.3);
+  padding: 0.76rem;
+}
+
+.iucn-status-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.iucn-status-heading span,
+.iucn-status-track span {
+  color: rgba(195, 229, 242, 0.64);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.iucn-status-heading strong {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+}
+
+.iucn-status-name {
+  margin-top: 0.2rem;
+  color: rgba(237, 249, 255, 0.88);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.iucn-status-track {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.22rem;
+  margin-top: 0.65rem;
+}
+
+.iucn-status-track span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 1.15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--iucn-color) 28%, rgba(255,255,255,0.08));
+  color: rgba(244, 252, 255, 0.74);
+  letter-spacing: 0.08em;
+  font-size: 0.56rem;
+}
+
+.iucn-status-track span.is-active {
+  background: var(--iucn-color);
+  color: rgba(2, 9, 16, 0.92);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 0 1rem color-mix(in srgb, var(--iucn-color) 54%, transparent);
+  font-weight: 900;
+}
+
 .encyclopedia-note-block {
   margin-top: 1rem;
 }

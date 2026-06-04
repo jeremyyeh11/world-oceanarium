@@ -16,6 +16,16 @@ const THUMBNAIL_GRADIENTS = [
   'linear-gradient(135deg, rgba(200, 218, 255, 0.26), rgba(26, 36, 66, 0.86))',
 ]
 
+const IUCN_STATUS_STEPS = [
+  { code: 'NE', label: 'Not Evaluated', color: '#6d7781' },
+  { code: 'DD', label: 'Data Deficient', color: '#8e969d' },
+  { code: 'LC', label: 'Least Concern', color: '#3fcf7f' },
+  { code: 'NT', label: 'Near Threatened', color: '#b9d84b' },
+  { code: 'VU', label: 'Vulnerable', color: '#f2c94c' },
+  { code: 'EN', label: 'Endangered', color: '#f2994a' },
+  { code: 'CR', label: 'Critically Endangered', color: '#eb5757' },
+]
+
 const DEFAULT_VIEW_POSE = {
   yawOffset: Math.PI / 2,
   cameraPosition: [0, 0.65, 9.2],
@@ -195,11 +205,11 @@ const DIVER_IMAGE_ASPECT = 478.65 / 211.93
 const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     position: [2.15, -0.02, 0.95],
-    opacity: 0.5,
+    opacity: 0.22,
   },
   'mola-alexandrini': {
     position: [1.32, -0.72, 0.95],
-    opacity: 0.58,
+    opacity: 0.28,
   },
 }
 
@@ -220,7 +230,7 @@ function AtlasDiverScale({ species }) {
   return (
     <mesh position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} transparent opacity={diverPose.opacity} depthWrite={false} depthTest={false} toneMapped={false} />
+      <meshBasicMaterial color="#02070b" map={texture} transparent opacity={diverPose.opacity} depthWrite={false} depthTest={false} toneMapped={false} />
     </mesh>
   )
 }
@@ -278,6 +288,33 @@ function SpeciesThumbnail({ species, index }) {
   )
 }
 
+function ConservationStatusBar({ status }) {
+  const statusCode = status?.code ?? 'NE'
+  const activeIndex = Math.max(0, IUCN_STATUS_STEPS.findIndex(step => step.code === statusCode))
+  const activeStep = IUCN_STATUS_STEPS[activeIndex]
+
+  return (
+    <section className="iucn-status-card" aria-label={`IUCN Red List status: ${activeStep.label}`}>
+      <div className="iucn-status-heading">
+        <span>IUCN Red List</span>
+        <strong style={{ color: activeStep.color }}>{activeStep.code}</strong>
+      </div>
+      <div className="iucn-status-name">{activeStep.label}</div>
+      <div className="iucn-status-track" aria-hidden="true">
+        {IUCN_STATUS_STEPS.map((step, index) => (
+          <span
+            key={step.code}
+            className={index === activeIndex ? 'is-active' : ''}
+            style={{ '--iucn-color': step.color }}
+          >
+            {step.code}
+          </span>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const [selectedId, setSelectedId] = useState(initialSpeciesId ?? SPECIES[0]?.id)
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
@@ -321,6 +358,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         <p className="encyclopedia-panel-kicker">{selectedSpecies.family ?? 'Oceanarium species'}</p>
         <h2>{selectedSpecies.name}</h2>
         {selectedSpecies.scientificName && <p className="encyclopedia-scientific">{selectedSpecies.scientificName}</p>}
+        <ConservationStatusBar status={selectedSpecies.conservationStatus} />
         <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
         <div className="encyclopedia-stat-grid">
           <div><span>Max body length</span><strong>{formatLength(lengthMeters)}</strong></div>

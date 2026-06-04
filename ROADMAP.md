@@ -82,6 +82,7 @@ Reference:
 - `v0.8.6-dev_10` restores Atlas in-place animations after Jeremy clarified only the photo background should be removed, and repositions/rescales the diver reference to a 1.7 m human in the lower-right Mola comparison area.
 - `v0.8.6-dev_11` shifts the sardine diver-scale silhouette behind the fish body to match Jeremy's marked comparison composition.
 - `v0.8.6-dev_12` swaps in Jeremy's SVG diver as a Three.js mesh plane and moves Atlas scale math to species max body length with a small-fish display cap.
+- `v0.8.6-dev_13` lowers the diver silhouette opacity and adds the IUCN Red List conservation-status bar to the Atlas info panel.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

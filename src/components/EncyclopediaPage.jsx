@@ -20,7 +20,7 @@ const DEFAULT_VIEW_POSE = {
   yawOffset: Math.PI / 2,
   cameraPosition: [0, 0.65, 9.2],
   fov: 34,
-  scaleMultiplier: 6.8,
+  maxLengthDisplayUnits: 2.8,
   position: [0, -0.05, 0],
 }
 
@@ -28,17 +28,40 @@ const DEFAULT_VIEW_POSE = {
 // but future species can override yaw, camera, or scale when a different
 // anatomical angle is more legible.
 const VIEW_POSES_BY_SPECIES = {
+  'amblygaster-sirm': {
+    maxLengthDisplayUnits: 1.35,
+    cameraPosition: [0, 0.35, 9.2],
+    position: [0, -0.02, 0],
+  },
   'mola-alexandrini': {
     yawOffset: Math.PI / 2,
     cameraPosition: [0, 0.8, 10.8],
     fov: 34,
-    scaleMultiplier: 0.42,
+    maxLengthDisplayUnits: 4.1,
     position: [0, -0.55, 0],
   },
 }
 
+const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
+  'amblygaster-sirm': 1.8223,
+  'mola-alexandrini': 20.7909,
+}
+
 function viewPoseForSpecies(species) {
   return { ...DEFAULT_VIEW_POSE, ...(VIEW_POSES_BY_SPECIES[species?.id] ?? {}) }
+}
+
+function displayedSpeciesLengthUnits(species, pose) {
+  if (!Number.isFinite(pose?.maxLengthDisplayUnits)) return null
+  return pose.maxLengthDisplayUnits
+}
+
+function atlasModelScaleForSpecies(species, pose) {
+  const sourceLength = MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES[species?.id]
+  if (Number.isFinite(sourceLength) && sourceLength > 0 && Number.isFinite(pose?.maxLengthDisplayUnits)) {
+    return pose.maxLengthDisplayUnits / sourceLength
+  }
+  return species?.model?.scale ?? 1
 }
 
 function speciesLengthMeters(species) {
@@ -98,8 +121,7 @@ function ModelAsset({ species, pose }) {
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
-  const rawScale = species?.model?.scale ?? 1
-  const viewerScale = rawScale * pose.scaleMultiplier
+  const viewerScale = atlasModelScaleForSpecies(species, pose)
   const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
   const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset, sourceRotation[2]]
 
@@ -168,41 +190,32 @@ function ModelAsset({ species, pose }) {
 }
 
 const HUMAN_SCALE_METERS = 1.7
-const DIVER_IMAGE_ASPECT = 620 / 360
+const DIVER_IMAGE_ASPECT = 478.65 / 211.93
 
 const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
-    position: [3.15, -0.12, 0.95],
-    opacity: 0.46,
-    maxWidth: 8.8,
+    position: [2.15, -0.02, 0.95],
+    opacity: 0.5,
   },
   'mola-alexandrini': {
-    position: [1.48, -0.72, 0.95],
+    position: [1.32, -0.72, 0.95],
     opacity: 0.58,
   },
 }
 
-function displayedSpeciesLengthUnits(species, pose) {
-  const bodyLengthWU = species?.swim?.bodyLengthWU
-  if (!Number.isFinite(bodyLengthWU)) return null
-  return bodyLengthWU * pose.scaleMultiplier
-}
-
 function AtlasDiverScale({ species }) {
-  const texture = useTexture('/atlas/diver-silhouette.png')
+  const texture = useTexture('/atlas/diver.svg')
   const lengthMeters = speciesLengthMeters(species)
-  const isTinyComparison = Number.isFinite(lengthMeters) && lengthMeters < 0.6
   const pose = viewPoseForSpecies(species)
   const displayedLength = displayedSpeciesLengthUnits(species, pose)
-  const exactWidth = Number.isFinite(displayedLength) && Number.isFinite(lengthMeters)
+  const width = Number.isFinite(displayedLength) && Number.isFinite(lengthMeters)
     ? displayedLength * (HUMAN_SCALE_METERS / lengthMeters)
     : 2.8
-  const diverPose = DIVER_POSES_BY_SPECIES[species?.id] ?? {
-    position: isTinyComparison ? [-3.85, -0.18, 0.95] : [1.35, -1.36, 0.95],
-    opacity: isTinyComparison ? 0.54 : 0.62,
-  }
-  const width = isTinyComparison ? Math.min(exactWidth, diverPose.maxWidth ?? 6.8) : exactWidth
   const height = width / DIVER_IMAGE_ASPECT
+  const diverPose = DIVER_POSES_BY_SPECIES[species?.id] ?? {
+    position: [1.35, -1.36, 0.95],
+    opacity: 0.62,
+  }
 
   return (
     <mesh position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>
@@ -214,8 +227,8 @@ function AtlasDiverScale({ species }) {
 
 function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   const isLarge = species?.swim?.bodyLengthWU > 3
-  const bodyLength = isLarge ? 4.2 : 2.4
-  const bodyHeight = isLarge ? 1.2 : 0.58
+  const bodyLength = displayedSpeciesLengthUnits(species, pose) ?? (isLarge ? 4.2 : 2.4)
+  const bodyHeight = isLarge ? bodyLength * 0.28 : bodyLength * 0.24
   const color = species?.predator ? '#9ab7c8' : '#78d4e6'
 
   return (
@@ -310,7 +323,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         {selectedSpecies.scientificName && <p className="encyclopedia-scientific">{selectedSpecies.scientificName}</p>}
         <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
         <div className="encyclopedia-stat-grid">
-          <div><span>Body length</span><strong>{formatLength(lengthMeters)}</strong></div>
+          <div><span>Max body length</span><strong>{formatLength(lengthMeters)}</strong></div>
           <div><span>Depth zone</span><strong>{depthZone?.shortLabel ?? selectedSpecies.depthZone ?? 'Unknown'}</strong></div>
           <div><span>Behavior</span><strong>{selectedSpecies.schooling ? 'Schooling' : selectedSpecies.repulser ? 'Large solo presence' : 'Solo / pending'}</strong></div>
           <div><span>Model</span><strong>{selectedSpecies.model?.path ? 'Available' : 'Placeholder'}</strong></div>

@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_11`.
+Status: in development; current visible dev patch is `v0.8.6-dev_12`.
 
 ### Interface / encyclopaedia
 
@@ -26,6 +26,7 @@ Status: in development; current visible dev patch is `v0.8.6-dev_11`.
 - `v0.8.6-dev_9` removes the rejected Atlas model animation experiment and replaces the supplied photo backdrop with the live ocean tank backdrop stack, without tank fish or UI.
 - `v0.8.6-dev_10` restores the Atlas in-place idle/burst animations, keeps the tank backdrop, and moves the diver scale reference into the lower-right Mola comparison area using a 1.7 m human scale.
 - `v0.8.6-dev_11` moves the sardine diver-scale silhouette behind the fish body instead of cropping it against the left edge, matching Jeremy's marked comparison layout.
+- `v0.8.6-dev_12` replaces the diver PNG with Jeremy's SVG on a Three.js mesh plane, scales the Atlas fish and diver from species max body length, labels the stat as max body length, and caps small-fish display size so sardines do not fill the viewport.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1

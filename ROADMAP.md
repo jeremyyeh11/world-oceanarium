@@ -77,6 +77,7 @@ Reference:
 - `v0.8.6-dev_5` renames the page and entry points to The Atlas.
 - `v0.8.6-dev_6` applies Jeremy's supplied epipelagic water backdrop to The Atlas viewport for epipelagic species.
 - `v0.8.6-dev_7` moves human scale into the viewport with Jeremy's diver silhouette; small fish compare against the diver head crop rather than shrinking the creature.
+- `v0.8.6-dev_8` animates Atlas models in place with idle loops and occasional burst actions, while filtering root translation tracks so the fish stays fixed in the viewport.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

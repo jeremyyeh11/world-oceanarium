@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_7`.
+Status: in development; current visible dev patch is `v0.8.6-dev_8`.
 
 ### Interface / encyclopaedia
 
@@ -22,6 +22,7 @@ Status: in development; current visible dev patch is `v0.8.6-dev_7`.
 - `v0.8.6-dev_5` renames the page and entry points from Oceanpaedia to The Atlas.
 - `v0.8.6-dev_6` adds the supplied epipelagic sunlight-water backdrop to The Atlas viewport for epipelagic species.
 - `v0.8.6-dev_7` replaces the corner human-scale placeholder with Jeremy's diver silhouette placed inside the viewport beside the fish, using a head-comparison crop for very small species.
+- `v0.8.6-dev_8` plays Atlas model idle clips in place and triggers occasional in-place burst clips without viewport translation.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1

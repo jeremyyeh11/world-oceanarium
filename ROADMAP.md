@@ -71,12 +71,14 @@ Status: `Current in development`
 
 Reference:
 - `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia branch from clean `v0.8.4`.
+- `v0.8.6-dev_2` adds the first encyclopaedia page mockup and tank/info-card entry points.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:
-- [ ] Audit current tank UI, controls, search, creature-card, and mobile reading flow.
-- [ ] Design the encyclopaedia structure around species personality, real biological facts, scale, and observation notes.
-- [ ] Implement the UI overhaul without covering the aquarium or making the experience menu-heavy.
+- [x] Audit current tank UI, controls, search, creature-card, and mobile reading flow for first encyclopaedia entry points.
+- [x] Design the encyclopaedia structure around species personality, real biological facts, scale, and observation notes.
+- [x] Implement a first-pass encyclopaedia mockup with left species list, central 3D/scale stage, and right info panel.
+- [ ] Refine UI overhaul so the encyclopaedia feels integrated without making the aquarium menu-heavy.
 - [ ] Verify desktop and phone readability, touch ergonomics, audio unlock, and follow-camera interactions.
 
 ### Feature backlog

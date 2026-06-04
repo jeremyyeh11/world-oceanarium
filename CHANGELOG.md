@@ -11,11 +11,12 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_1`.
+Status: in development; current visible dev patch is `v0.8.6-dev_2`.
 
 ### Interface / encyclopaedia
 
-- Starts the isolated UI overhaul + encyclopaedia feature branch from clean `v0.8.4` so navigation, creature information architecture, and reading flow can iterate separately from species work.
+- `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia feature branch from clean `v0.8.4` so navigation, creature information architecture, and reading flow can iterate separately from species work.
+- `v0.8.6-dev_2` adds the first encyclopaedia mockup: top-right gallery entry, left species list with thumbnails, central 3D/species-scale stage, right field-guide info panel, human-scale placeholder, and an info-card button from followed fish.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1

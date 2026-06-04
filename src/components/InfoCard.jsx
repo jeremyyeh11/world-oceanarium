@@ -132,6 +132,20 @@ const styles = {
     fontWeight: 620,
     overflowWrap: 'anywhere',
   },
+  encyclopediaButton: {
+    width: '100%',
+    marginTop: '0.9rem',
+    border: '1px solid rgba(125, 249, 255, 0.34)',
+    borderRadius: 999,
+    background: 'rgba(55, 186, 218, 0.13)',
+    color: 'rgba(235, 253, 255, 0.92)',
+    padding: '0.72rem 0.9rem',
+    fontSize: '0.72rem',
+    fontWeight: 760,
+    letterSpacing: '0.09em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+  },
 }
 
 function formatBornAt(value) {
@@ -201,7 +215,7 @@ function Stat({ label, value }) {
   )
 }
 
-export default function InfoCard({ creature, onClose, children }) {
+export default function InfoCard({ creature, onClose, onOpenEncyclopedia, children }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
   const depthLabel = depthZone?.label ?? creature.depthZone ?? 'Unknown zone'
@@ -237,6 +251,15 @@ export default function InfoCard({ creature, onClose, children }) {
         <Stat label="Body length" value={formatLength(lengthMeters)} />
         <Stat label="Weight" value={formatMass(massKg)} />
       </div>
+      {onOpenEncyclopedia && (
+        <button
+          type="button"
+          style={styles.encyclopediaButton}
+          onClick={() => onOpenEncyclopedia(species?.id)}
+        >
+          Open in encyclopaedia
+        </button>
+      )}
       {children}
     </section>
   )

@@ -23,6 +23,10 @@ const DEFAULT_VIEW_POSE = {
 // Per-species fixed gallery poses. Most fish should read in side profile,
 // but future species can override yaw, camera, or scale when a different
 // anatomical angle is more legible.
+const VIEWPORT_BACKDROPS_BY_DEPTH_ZONE = {
+  epipelagic: '/atlas/epipelagic-backdrop.jpg',
+}
+
 const VIEW_POSES_BY_SPECIES = {
   'mola-alexandrini': {
     yawOffset: Math.PI / 2,
@@ -90,7 +94,6 @@ function SpeciesModel({ species }) {
 
   return (
     <Canvas camera={{ position: pose.cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
-      <color attach="background" args={['#06111d']} />
       <ambientLight intensity={1.6} />
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
@@ -132,6 +135,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
   const lengthMeters = speciesLengthMeters(selectedSpecies)
   const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
+  const viewportBackdrop = VIEWPORT_BACKDROPS_BY_DEPTH_ZONE[selectedSpecies?.depthZone]
 
   return (
     <section className="encyclopedia-page" aria-label="The Atlas mockup">
@@ -159,7 +163,11 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         ))}
       </aside>
 
-      <main className="encyclopedia-model-stage" aria-label={`${selectedSpecies.name} fixed side view`}>
+      <main
+        className={`encyclopedia-model-stage${viewportBackdrop ? ' has-backdrop' : ''}`}
+        style={viewportBackdrop ? { '--atlas-backdrop': `url(${viewportBackdrop})` } : undefined}
+        aria-label={`${selectedSpecies.name} fixed side view`}
+      >
         <SpeciesModel species={selectedSpecies} />
         <HumanScalePlaceholder />
       </main>

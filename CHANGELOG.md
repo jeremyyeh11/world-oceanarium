@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_5`.
+Status: in development; current visible dev patch is `v0.8.6-dev_6`.
 
 ### Interface / encyclopaedia
 
@@ -20,6 +20,7 @@ Status: in development; current visible dev patch is `v0.8.6-dev_5`.
 - `v0.8.6-dev_3` removes the generic Large Predator species placeholder entirely and removes the floor disc from the encyclopaedia 3D viewport.
 - `v0.8.6-dev_4` renames the feature to Oceanpaedia, removes redundant panel labels, and fixes the model viewer to a non-orbiting side profile with per-species pose overrides for future angle tuning.
 - `v0.8.6-dev_5` renames the page and entry points from Oceanpaedia to The Atlas.
+- `v0.8.6-dev_6` adds the supplied epipelagic sunlight-water backdrop to The Atlas viewport for epipelagic species.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1

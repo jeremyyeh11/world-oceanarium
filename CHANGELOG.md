@@ -11,14 +11,15 @@ Versioning convention notes:
 
 ## v0.8.4 — Creature moments + next polish bucket
 
-Status: in development; current visible dev patch is `v0.8.4-dev_3`.
+Status: in development; current visible dev patch is `v0.8.4-dev_4`.
 
 ### Creature behavior
 
 - Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser, sardines and the large-predator placeholder default false.
 - `v0.8.4-dev_1` adds smoothed schooling drift away from nearby repulser creatures so sardines can softly part around the Mola instead of abruptly snapping away.
 - `v0.8.4-dev_2` makes the debug follow-target marker lerp from yellow to red as repulser drift increases, then back to yellow as the school returns to its normal target.
-- `v0.8.4-dev_3` adds a temporary debug-panel `repel` demo button that forces an eight-second sardine drift/marker-color pass so the effect can be reviewed without waiting for a Mola crossing.
+- `v0.8.4-dev_3` temporarily added a debug-panel `repel` demo button so the effect could be reviewed without waiting for a Mola crossing.
+- `v0.8.4-dev_4` removes that forced demo trigger after Jeremy accepted the current behavior for now; the natural Mola-proximity repulser drift remains.
 - Keeps the response horizontal, biome-local, and utility-tested so the feel can be tuned without cluttering the per-frame fish loop.
 
 ## v0.8.3 — Code hygiene and debug-runtime cleanup

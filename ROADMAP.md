@@ -63,7 +63,21 @@ Subtasks:
 
 ## Feature list
 
-No active feature bucket.
+### Active feature bucket
+
+#### 1. UI overhaul + encyclopaedia addition
+
+Status: `Current in development`
+
+Reference:
+- `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia branch from clean `v0.8.4`.
+- Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
+
+Subtasks:
+- [ ] Audit current tank UI, controls, search, creature-card, and mobile reading flow.
+- [ ] Design the encyclopaedia structure around species personality, real biological facts, scale, and observation notes.
+- [ ] Implement the UI overhaul without covering the aquarium or making the experience menu-heavy.
+- [ ] Verify desktop and phone readability, touch ergonomics, audio unlock, and follow-camera interactions.
 
 ### Feature backlog
 

@@ -9,6 +9,15 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.6 — UI overhaul + encyclopaedia
+
+Status: in development; current visible dev patch is `v0.8.6-dev_1`.
+
+### Interface / encyclopaedia
+
+- Starts the isolated UI overhaul + encyclopaedia feature branch from clean `v0.8.4` so navigation, creature information architecture, and reading flow can iterate separately from species work.
+- Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
+
 ## v0.8.4 — Creature moments repulser v1
 
 Status: accepted and promoted as clean `v0.8.4` from `v0.8.4-dev_4` after Jeremy approval on desktop/mobile feel.

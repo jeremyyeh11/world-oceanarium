@@ -26,12 +26,16 @@ const IUCN_STATUS_STEPS = [
   { code: 'CR', label: 'Critically Endangered', color: '#eb5757' },
 ]
 
+const ATLAS_CAMERA_YAW_DEGREES = -15
+const ATLAS_CAMERA_PITCH_DEGREES = 15
+
 const DEFAULT_VIEW_POSE = {
   yawOffset: Math.PI / 2,
-  cameraPosition: [0, 0.65, 9.2],
+  cameraDistance: 9.2,
   fov: 34,
   maxLengthDisplayUnits: 2.8,
   position: [0, -0.05, 0],
+  lookAt: [0, -0.05, 0],
 }
 
 // Per-species fixed gallery poses. Most fish should read in side profile,
@@ -40,15 +44,17 @@ const DEFAULT_VIEW_POSE = {
 const VIEW_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     maxLengthDisplayUnits: 1.35,
-    cameraPosition: [0, 0.35, 9.2],
+    cameraDistance: 9.2,
     position: [0, -0.02, 0],
+    lookAt: [0, -0.02, 0],
   },
   'mola-alexandrini': {
     yawOffset: Math.PI / 2,
-    cameraPosition: [0, 0.8, 10.8],
+    cameraDistance: 10.8,
     fov: 34,
     maxLengthDisplayUnits: 4.1,
     position: [0, -0.55, 0],
+    lookAt: [0, -0.3, 0],
   },
 }
 
@@ -59,6 +65,28 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
 
 function viewPoseForSpecies(species) {
   return { ...DEFAULT_VIEW_POSE, ...(VIEW_POSES_BY_SPECIES[species?.id] ?? {}) }
+}
+
+function atlasCameraPosition(pose) {
+  const distance = pose.cameraDistance ?? pose.cameraPosition?.[2] ?? 9.2
+  const yaw = THREE.MathUtils.degToRad(ATLAS_CAMERA_YAW_DEGREES)
+  const pitch = THREE.MathUtils.degToRad(ATLAS_CAMERA_PITCH_DEGREES)
+  const lookAt = pose.lookAt ?? pose.position ?? [0, 0, 0]
+  const horizontalDistance = Math.cos(pitch) * distance
+
+  return [
+    lookAt[0] + Math.sin(yaw) * horizontalDistance,
+    lookAt[1] + Math.sin(pitch) * distance,
+    lookAt[2] + Math.cos(yaw) * horizontalDistance,
+  ]
+}
+
+function AtlasCamera({ pose }) {
+  useFrame(({ camera }) => {
+    const lookAt = pose.lookAt ?? pose.position ?? [0, 0, 0]
+    camera.lookAt(lookAt[0], lookAt[1], lookAt[2])
+  })
+  return null
 }
 
 function displayedSpeciesLengthUnits(species, pose) {
@@ -215,6 +243,7 @@ const DIVER_POSES_BY_SPECIES = {
 
 function AtlasDiverScale({ species }) {
   const texture = useTexture('/atlas/diver.svg')
+  const meshRef = useRef(null)
   const lengthMeters = speciesLengthMeters(species)
   const pose = viewPoseForSpecies(species)
   const displayedLength = displayedSpeciesLengthUnits(species, pose)
@@ -227,10 +256,14 @@ function AtlasDiverScale({ species }) {
     opacity: 0.62,
   }
 
+  useFrame(({ camera }) => {
+    if (meshRef.current) meshRef.current.lookAt(camera.position)
+  })
+
   return (
-    <mesh position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>
+    <mesh ref={meshRef} position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial color="#02070b" map={texture} transparent opacity={diverPose.opacity} depthWrite={false} depthTest={false} toneMapped={false} />
+      <meshBasicMaterial color="#02070b" map={texture} transparent opacity={diverPose.opacity} alphaTest={0.01} side={THREE.DoubleSide} depthWrite={false} depthTest={false} toneMapped={false} />
     </mesh>
   )
 }
@@ -261,9 +294,11 @@ function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
 
 function SpeciesModel({ species }) {
   const pose = viewPoseForSpecies(species)
+  const cameraPosition = atlasCameraPosition(pose)
 
   return (
-    <Canvas camera={{ position: pose.cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
+    <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
+      <AtlasCamera pose={pose} />
       <SceneLighting biome="ocean" />
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />

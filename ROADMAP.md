@@ -83,6 +83,7 @@ Reference:
 - `v0.8.6-dev_11` shifts the sardine diver-scale silhouette behind the fish body to match Jeremy's marked comparison composition.
 - `v0.8.6-dev_12` swaps in Jeremy's SVG diver as a Three.js mesh plane and moves Atlas scale math to species max body length with a small-fish display cap.
 - `v0.8.6-dev_13` lowers the diver silhouette opacity and adds the IUCN Red List conservation-status bar to the Atlas info panel.
+- `v0.8.6-dev_14` fixes diver plane visibility with double-sided camera-facing mesh behavior and turns the Atlas camera 15° left/up for a slight front-left, top-down fish view.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

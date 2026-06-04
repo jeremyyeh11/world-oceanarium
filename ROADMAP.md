@@ -74,6 +74,7 @@ Reference:
 - `v0.8.6-dev_2` adds the first encyclopaedia page mockup and tank/info-card entry points.
 - `v0.8.6-dev_3` removes the generic Large Predator placeholder species and the encyclopaedia viewport floor disc.
 - `v0.8.6-dev_4` renames the page to Oceanpaedia, removes redundant labels, and locks the model viewer to side-view poses with per-species override hooks.
+- `v0.8.6-dev_5` renames the page and entry points to The Atlas.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

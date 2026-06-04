@@ -134,10 +134,10 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
 
   return (
-    <section className="encyclopedia-page" aria-label="Oceanpaedia mockup">
+    <section className="encyclopedia-page" aria-label="The Atlas mockup">
       <div className="encyclopedia-topbar">
         <div>
-          <h1>Oceanpaedia</h1>
+          <h1>The Atlas</h1>
         </div>
         <button className="encyclopedia-close" type="button" onClick={onClose} aria-label="Close encyclopaedia">×</button>
       </div>

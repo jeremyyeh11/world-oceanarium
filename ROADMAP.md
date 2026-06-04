@@ -13,12 +13,12 @@ Status labels:
 
 ## Code cleanup / maintenance
 
-### Current maintenance bucket: v0.8.4 — Debug-runtime hardening and maintainability
+### Debug-runtime hardening and maintainability
 
-Status: `Current in development`
+Status: `Backlog`
 
 Reference:
-- Follow-up bucket after clean `v0.8.3` release.
+- Follow-up bucket after clean `v0.8.3` release; deferred while `v0.8.4` shipped the accepted creature-moments repulser v1 slice.
 - Deferred from v0.8.3 umbrella #8 after `v0.8.3-dev_11` was accepted.
 
 Why this is next:
@@ -69,19 +69,19 @@ No active feature bucket.
 
 #### 1. Creature moments — schooling behavior around large fish
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - `v0.8.4-dev_1` starts this feature sequence item and visible review patch.
-- `v0.8.4-dev_3` added a temporary forced `repel` debug demo for review; `v0.8.4-dev_4` removes it after Jeremy accepted the current behavior for now.
-- Jeremy requested this as the next feature sequence item; promoted to active feature work.
+- `v0.8.4-dev_3` added a temporary forced `repel` debug demo for review; `v0.8.4-dev_4` removes it after Jeremy accepted repulser v1.
+- Jeremy approved repulser v1 for clean `v0.8.4`; mobile already looked good.
 - Intended feel: authored animal moments, not quests or gamification — the tank should read less like isolated loops and more like creatures sharing space.
 
 Subtasks:
 - [x] Add schooling response where small fish subtly repel/part around large fish passing nearby.
-- [ ] Add schooling response where small fish can briefly follow or trail a large fish without looking magnetized.
+- [ ] Follow-up: consider a separate small-fish follow/trail moment later without making v1 feel magnetized.
 - [x] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
-- [ ] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone.
+- [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
 - [x] Remove the temporary forced `repel` debug demo before clean public release.
 
 #### 2. Mahi mahi

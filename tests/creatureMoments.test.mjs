@@ -6,6 +6,7 @@ import {
   lerpRepulserDrift,
   repulserDebugIntensity,
   resolveRepulserDriftVector,
+  resolveRepulserDemoDriftVector,
 } from '../src/utils/creatureMoments.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
@@ -39,5 +40,11 @@ assert.ok(eased.x < target.x, 'repulser drift is lerped, not snapped')
 assert.equal(repulserDebugIntensity({ x: 0, y: 0, z: 0 }, 2.2), 0, 'no repulser drift keeps marker yellow')
 assert.ok(repulserDebugIntensity({ x: 1.1, y: 0, z: 0 }, 2.2) > 0.45, 'partial repulser drift warms marker toward red')
 assert.equal(repulserDebugIntensity({ x: 2.2, y: 0, z: 0 }, 2.2), 1, 'max repulser drift makes marker red')
+
+const demoEarly = resolveRepulserDemoDriftVector(0.8, { duration: 8, maxDrift: 2.2 })
+const demoLate = resolveRepulserDemoDriftVector(8, { duration: 8, maxDrift: 2.2 })
+assert.ok(demoEarly.x > 0.8, 'debug repulser demo creates visible temporary drift')
+assert.equal(demoEarly.y, 0, 'debug repulser demo stays horizontal')
+assert.equal(demoLate.x, 0, 'debug repulser demo fades out at the end')
 
 console.log('creature moments tests passed')

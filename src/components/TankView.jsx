@@ -120,6 +120,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
   const [followScreenOffset, setFollowScreenOffset] = useState(0)
   const [debugSunBaskRequestId, setDebugSunBaskRequestId] = useState(0)
+  const [debugRepulserDemoRequestId, setDebugRepulserDemoRequestId] = useState(0)
   const [defaultCameraSettled, setDefaultCameraSettled] = useState(true)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
@@ -140,6 +141,11 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const queueDebugSunBask = () => {
     if (!canQueueDebugSunBask) return
     setDebugSunBaskRequestId(current => current + 1)
+  }
+
+  const queueDebugRepulserDemo = () => {
+    if (!debugMode) return
+    setDebugRepulserDemoRequestId(current => current + 1)
   }
 
   const toggleDebugMode = () => {
@@ -604,6 +610,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive}
             debugSunBaskRequestId={debugSunBaskRequestId}
+            debugRepulserDemoRequestId={debugRepulserDemoRequestId}
             soloRuntimeRecoveryEnabled={!zoomActive && defaultCameraSettled}
             hideSelectionSilhouette={screenshotMode}
             debug={visibleDebugVisuals}
@@ -667,6 +674,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           onDebugLayerToggle={toggleDebugLayer}
           onDebugSimulationSpeedChange={setDebugSimulationSpeed}
           onQueueSunBask={queueDebugSunBask}
+          onQueueRepulserDemo={queueDebugRepulserDemo}
         />
       )}
 
@@ -718,6 +726,7 @@ function DebugPanel({
   onDebugLayerToggle,
   onDebugSimulationSpeedChange,
   onQueueSunBask,
+  onQueueRepulserDemo,
 }) {
   const visibleCreatureCount = clampDebugCount(renderLoad?.visibleCreatures)
   const lod1Drawn = clampDebugCount(performanceStats?.lod1Drawn)
@@ -845,6 +854,18 @@ function DebugPanel({
               {speed}x
             </button>
           ))}
+        </div>
+        <div className="debug-panel-row">
+          <span className="debug-panel-label">Demo</span>
+          <button
+            type="button"
+            title="Force temporary sardine repulser drift"
+            aria-label="Force temporary sardine repulser drift"
+            className="debug-panel-button"
+            onClick={onQueueRepulserDemo}
+          >
+            repel
+          </button>
         </div>
         <button
           type="button"

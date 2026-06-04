@@ -1,6 +1,6 @@
 import { Suspense, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, useGLTF } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 
@@ -11,6 +11,31 @@ const THUMBNAIL_GRADIENTS = [
   'linear-gradient(135deg, rgba(154, 222, 211, 0.28), rgba(10, 45, 54, 0.86))',
   'linear-gradient(135deg, rgba(200, 218, 255, 0.26), rgba(26, 36, 66, 0.86))',
 ]
+
+const DEFAULT_VIEW_POSE = {
+  yawOffset: Math.PI / 2,
+  cameraPosition: [0, 0.65, 9.2],
+  fov: 34,
+  scaleMultiplier: 6.8,
+  position: [0, -0.05, 0],
+}
+
+// Per-species fixed gallery poses. Most fish should read in side profile,
+// but future species can override yaw, camera, or scale when a different
+// anatomical angle is more legible.
+const VIEW_POSES_BY_SPECIES = {
+  'mola-alexandrini': {
+    yawOffset: Math.PI / 2,
+    cameraPosition: [0, 0.8, 10.8],
+    fov: 34,
+    scaleMultiplier: 0.42,
+    position: [0, -0.55, 0],
+  },
+}
+
+function viewPoseForSpecies(species) {
+  return { ...DEFAULT_VIEW_POSE, ...(VIEW_POSES_BY_SPECIES[species?.id] ?? {}) }
+}
 
 function speciesLengthMeters(species) {
   const bodyLengthWU = species?.swim?.bodyLengthWU
@@ -24,25 +49,26 @@ function formatLength(meters) {
   return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
 }
 
-function ModelAsset({ species }) {
+function ModelAsset({ species, pose }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const scene = useMemo(() => clone(gltf.scene), [gltf.scene])
   const rawScale = species?.model?.scale ?? 1
-  const viewerScale = species?.id === 'mola-alexandrini' ? rawScale * 0.62 : rawScale * 8.5
-  const rotation = species?.model?.rotation ?? [0, 0, 0]
+  const viewerScale = rawScale * pose.scaleMultiplier
+  const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
+  const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset, sourceRotation[2]]
 
-  return <primitive object={scene} rotation={rotation} scale={viewerScale} position={[0, 0, 0]} />
+  return <primitive object={scene} rotation={rotation} scale={viewerScale} position={pose.position} />
 }
 
-function FallbackFish({ species }) {
+function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   const isLarge = species?.swim?.bodyLengthWU > 3
   const bodyLength = isLarge ? 4.2 : 2.4
   const bodyHeight = isLarge ? 1.2 : 0.58
   const color = species?.predator ? '#9ab7c8' : '#78d4e6'
 
   return (
-    <group rotation={[0, -0.35, 0]}>
+    <group rotation={[0, pose.yawOffset, 0]} position={pose.position}>
       <mesh scale={[bodyLength, bodyHeight, bodyHeight * 0.58]}>
         <sphereGeometry args={[0.5, 48, 24]} />
         <meshStandardMaterial color={color} roughness={0.48} metalness={0.04} />
@@ -60,16 +86,17 @@ function FallbackFish({ species }) {
 }
 
 function SpeciesModel({ species }) {
+  const pose = viewPoseForSpecies(species)
+
   return (
-    <Canvas camera={{ position: [0, 1.25, 7.5], fov: 38 }} dpr={[1, 1.5]}>
+    <Canvas camera={{ position: pose.cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
       <color attach="background" args={['#06111d']} />
       <ambientLight intensity={1.6} />
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
-      <Suspense fallback={<FallbackFish species={species} />}>
-        {species?.model?.path ? <ModelAsset species={species} /> : <FallbackFish species={species} />}
+      <Suspense fallback={<FallbackFish species={species} pose={pose} />}>
+        {species?.model?.path ? <ModelAsset species={species} pose={pose} /> : <FallbackFish species={species} pose={pose} />}
       </Suspense>
-      <OrbitControls enablePan={false} enableZoom={false} autoRotate autoRotateSpeed={0.55} minPolarAngle={Math.PI * 0.3} maxPolarAngle={Math.PI * 0.72} />
     </Canvas>
   )
 }
@@ -105,23 +132,17 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
   const lengthMeters = speciesLengthMeters(selectedSpecies)
   const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
-  const modelLabel = selectedSpecies?.model?.path ? '3D model preview' : 'Placeholder 3D form'
 
   return (
-    <section className="encyclopedia-page" aria-label="Oceanarium encyclopaedia mockup">
+    <section className="encyclopedia-page" aria-label="Oceanpaedia mockup">
       <div className="encyclopedia-topbar">
         <div>
-          <p>Oceanarium encyclopaedia</p>
-          <h1>Species gallery</h1>
+          <h1>Oceanpaedia</h1>
         </div>
         <button className="encyclopedia-close" type="button" onClick={onClose} aria-label="Close encyclopaedia">×</button>
       </div>
 
       <aside className="encyclopedia-species-list" aria-label="Species list">
-        <div className="encyclopedia-list-heading">
-          <span>Existing species</span>
-          <strong>{SPECIES.length}</strong>
-        </div>
         {SPECIES.map((species, index) => (
           <button
             key={species.id}
@@ -138,8 +159,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         ))}
       </aside>
 
-      <main className="encyclopedia-model-stage" aria-label={modelLabel}>
-        <div className="encyclopedia-stage-label">{modelLabel}</div>
+      <main className="encyclopedia-model-stage" aria-label={`${selectedSpecies.name} fixed side view`}>
         <SpeciesModel species={selectedSpecies} />
         <HumanScalePlaceholder />
       </main>

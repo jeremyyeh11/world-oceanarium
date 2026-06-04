@@ -397,7 +397,7 @@ export default function App() {
             <button
               className="encyclopedia-toggle"
               type="button"
-              aria-label="Open oceanarium encyclopaedia"
+              aria-label="Open Oceanpaedia"
               aria-pressed={encyclopediaOpen}
               onClick={() => openEncyclopedia()}
             >

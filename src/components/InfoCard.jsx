@@ -257,7 +257,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
           style={styles.encyclopediaButton}
           onClick={() => onOpenEncyclopedia(species?.id)}
         >
-          Open in encyclopaedia
+          Open in Oceanpaedia
         </button>
       )}
       {children}

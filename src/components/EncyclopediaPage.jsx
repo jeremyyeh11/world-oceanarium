@@ -117,10 +117,40 @@ function speciesLengthMeters(species) {
   return bodyLengthWU * WORLD_UNIT_METERS
 }
 
+function speciesLengthRangeMeters(species) {
+  if (Array.isArray(species?.adultLengthRangeMeters) && species.adultLengthRangeMeters.length >= 2) {
+    const [min, max] = species.adultLengthRangeMeters.map(Number)
+    if (Number.isFinite(min) && Number.isFinite(max) && min > 0 && max >= min) return [min, max]
+  }
+
+  const maxLength = speciesLengthMeters(species)
+  if (!Number.isFinite(maxLength) || maxLength <= 0) return null
+
+  if (Array.isArray(species?.sizeRange) && species.sizeRange.length >= 2) {
+    const [minScale, maxScale] = species.sizeRange.map(Number)
+    if (Number.isFinite(minScale) && Number.isFinite(maxScale) && minScale > 0 && maxScale >= minScale) {
+      return [maxLength * minScale, maxLength * maxScale]
+    }
+  }
+
+  return [maxLength, maxLength]
+}
+
 function formatLength(meters) {
   if (!Number.isFinite(meters) || meters <= 0) return 'Unknown'
   if (meters < 1) return `${Math.round(meters * 100)} cm`
   return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
+}
+
+function formatLengthRange(range) {
+  if (!Array.isArray(range) || range.length < 2) return 'Unknown'
+  const [min, max] = range
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0) return 'Unknown'
+  if (Math.abs(min - max) < 0.001) return formatLength(max)
+
+  const bothUnderMeter = min < 1 && max < 1
+  if (bothUnderMeter) return `${Math.round(min * 100)} cm - ${Math.round(max * 100)} cm`
+  return `${min.toFixed(min < 10 ? 1 : 0)} m - ${max.toFixed(max < 10 ? 1 : 0)} m`
 }
 
 const ROOT_TRANSLATION_TRACK_RE = /^(root|scene)\.position$/i
@@ -524,7 +554,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const debugTapTimer = useRef(null)
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
   const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
-  const lengthMeters = speciesLengthMeters(selectedSpecies)
+  const lengthRangeMeters = speciesLengthRangeMeters(selectedSpecies)
   const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
 
   const resetDebugTaps = () => {
@@ -654,7 +684,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         <ConservationStatusBar status={selectedSpecies.conservationStatus} />
         <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
         <div className="encyclopedia-stat-grid">
-          <div><span>Max body length</span><strong>{formatLength(lengthMeters)}</strong></div>
+          <div><span>Size (body length)</span><strong>{formatLengthRange(lengthRangeMeters)}</strong></div>
           <div><span>Depth zone</span><strong>{depthZone?.shortLabel ?? selectedSpecies.depthZone ?? 'Unknown'}</strong></div>
           <div><span>Behavior</span><strong>{selectedSpecies.schooling ? 'Schooling' : selectedSpecies.repulser ? 'Large solo presence' : 'Solo / pending'}</strong></div>
           <div><span>Model</span><strong>{selectedSpecies.model?.path ? 'Available' : 'Placeholder'}</strong></div>

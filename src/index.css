@@ -1286,6 +1286,77 @@ body:has(.debug-panel) .app-version-footnote {
   top: 1rem;
 }
 
+.atlas-pose-editor {
+  position: absolute;
+  z-index: 5;
+  left: 1rem;
+  bottom: 1rem;
+  width: min(22rem, calc(100% - 2rem));
+  padding: 0.85rem;
+  border: 1px solid rgba(125, 249, 255, 0.26);
+  border-radius: 18px;
+  background: rgba(2, 11, 20, 0.82);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(16px);
+}
+
+.atlas-pose-editor-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.65rem;
+  color: rgba(236, 251, 255, 0.9);
+  font-size: 0.78rem;
+}
+
+.atlas-pose-editor-heading span,
+.atlas-pose-editor p {
+  color: rgba(195, 231, 245, 0.62);
+  font: 0.68rem/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.atlas-pose-control {
+  display: grid;
+  grid-template-columns: 4.2rem minmax(0, 1fr) 3.2rem;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.42rem;
+  color: rgba(232, 250, 255, 0.84);
+  font-size: 0.72rem;
+}
+
+.atlas-pose-control input {
+  width: 100%;
+  accent-color: rgba(125, 249, 255, 0.86);
+}
+
+.atlas-pose-control output {
+  text-align: right;
+  color: rgba(195, 231, 245, 0.72);
+  font-variant-numeric: tabular-nums;
+}
+
+.atlas-pose-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.atlas-pose-actions button {
+  flex: 1;
+  border: 1px solid rgba(195, 231, 245, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(236, 251, 255, 0.88);
+  padding: 0.45rem 0.65rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.atlas-pose-editor p {
+  margin-top: 0.6rem;
+}
+
 .atlas-human-scale {
   position: absolute;
   z-index: 2;

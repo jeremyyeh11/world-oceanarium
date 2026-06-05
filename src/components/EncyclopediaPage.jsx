@@ -28,6 +28,8 @@ const IUCN_STATUS_STEPS = [
 
 const ATLAS_CAMERA_YAW_DEGREES = -30
 const ATLAS_CAMERA_PITCH_DEGREES = 15
+const ATLAS_DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
+const ATLAS_DIVER_POSE_STORAGE_KEY = 'world-oceanarium-atlas-diver-poses'
 
 const DEFAULT_VIEW_POSE = {
   yawOffset: Math.PI / 2,
@@ -252,6 +254,11 @@ function ModelAsset({ species, pose }) {
 const HUMAN_SCALE_METERS = 1.7
 const DIVER_IMAGE_ASPECT = 479 / 212
 
+const DEFAULT_DIVER_POSE = {
+  position: [1.35, -1.62, -0.85],
+  opacity: 0.42,
+}
+
 const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     position: [2.15, -0.42, -0.85],
@@ -263,7 +270,26 @@ const DIVER_POSES_BY_SPECIES = {
   },
 }
 
-function AtlasDiverScale({ species }) {
+function baseDiverPoseForSpecies(species) {
+  return DIVER_POSES_BY_SPECIES[species?.id] ?? DEFAULT_DIVER_POSE
+}
+
+function normalizeDiverPose(candidate, fallback = DEFAULT_DIVER_POSE) {
+  const position = Array.isArray(candidate?.position) ? candidate.position : fallback.position
+  return {
+    position: [0, 1, 2].map(index => (
+      Number.isFinite(Number(position?.[index])) ? Number(position[index]) : fallback.position[index]
+    )),
+    opacity: Number.isFinite(Number(candidate?.opacity)) ? Number(candidate.opacity) : fallback.opacity,
+  }
+}
+
+function mergedDiverPoseForSpecies(species, overridePose = null) {
+  const basePose = baseDiverPoseForSpecies(species)
+  return normalizeDiverPose(overridePose, basePose)
+}
+
+function AtlasDiverScale({ species, diverPoseOverride = null }) {
   const texture = useTexture('/atlas/diver.png')
   const lengthMeters = speciesLengthMeters(species)
   const pose = viewPoseForSpecies(species)
@@ -272,10 +298,7 @@ function AtlasDiverScale({ species }) {
     ? displayedLength * (HUMAN_SCALE_METERS / lengthMeters)
     : 2.8
   const height = width / DIVER_IMAGE_ASPECT
-  const diverPose = DIVER_POSES_BY_SPECIES[species?.id] ?? {
-    position: [1.35, -1.62, -0.85],
-    opacity: 0.42,
-  }
+  const diverPose = mergedDiverPoseForSpecies(species, diverPoseOverride)
 
   return (
     <sprite position={diverPose.position} scale={[width, height, 1]} renderOrder={-5} raycast={() => null}>
@@ -317,7 +340,7 @@ function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   )
 }
 
-function SpeciesModel({ species }) {
+function SpeciesModel({ species, diverPoseOverride = null }) {
   const pose = viewPoseForSpecies(species)
   const cameraPosition = atlasCameraPosition(pose)
 
@@ -330,7 +353,7 @@ function SpeciesModel({ species }) {
       <WaterSurface biome="ocean" />
       <UnderwaterFX biome="ocean" />
       <Suspense fallback={null}>
-        <AtlasDiverScale species={species} />
+        <AtlasDiverScale species={species} diverPoseOverride={diverPoseOverride} />
       </Suspense>
       <Suspense fallback={<FallbackFish species={species} pose={pose} />}>
         {species?.model?.path ? <ModelAsset species={species} pose={pose} /> : <FallbackFish species={species} pose={pose} />}
@@ -375,11 +398,147 @@ function ConservationStatusBar({ status }) {
   )
 }
 
+function loadStoredDiverPoses() {
+  if (typeof window === 'undefined') return {}
+  try {
+    const stored = window.localStorage.getItem(ATLAS_DIVER_POSE_STORAGE_KEY)
+    if (!stored) return {}
+    const parsed = JSON.parse(stored)
+    if (!parsed || typeof parsed !== 'object') return {}
+    return Object.fromEntries(Object.entries(parsed).map(([speciesId, pose]) => [speciesId, normalizeDiverPose(pose)]))
+  } catch (error) {
+    console.warn('Could not load Atlas diver poses', error)
+    return {}
+  }
+}
+
+function saveStoredDiverPoses(poses) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(ATLAS_DIVER_POSE_STORAGE_KEY, JSON.stringify(poses))
+  } catch (error) {
+    console.warn('Could not save Atlas diver poses', error)
+  }
+}
+
+function roundPoseValue(value) {
+  return Math.round(value * 100) / 100
+}
+
+function roundedDiverPose(pose) {
+  return {
+    position: pose.position.map(roundPoseValue),
+    opacity: roundPoseValue(pose.opacity),
+  }
+}
+
+function AtlasDiverPoseEditor({ species, pose, onPoseChange, onReset }) {
+  const [copyState, setCopyState] = useState('Copy JSON')
+  const controls = [
+    { label: 'X', index: 0, min: -4, max: 4, step: 0.05 },
+    { label: 'Y', index: 1, min: -3, max: 2, step: 0.05 },
+    { label: 'Z', index: 2, min: -2.5, max: 1.5, step: 0.05 },
+  ]
+
+  const updatePosition = (index, value) => {
+    const next = normalizeDiverPose(pose)
+    next.position[index] = Number(value)
+    onPoseChange(roundedDiverPose(next))
+  }
+
+  const updateOpacity = (value) => {
+    const next = normalizeDiverPose(pose)
+    next.opacity = Number(value)
+    onPoseChange(roundedDiverPose(next))
+  }
+
+  const copyPose = async () => {
+    const text = `'${species.id}': ${JSON.stringify(roundedDiverPose(pose))}`
+    try {
+      await navigator.clipboard?.writeText(text)
+      setCopyState('Copied')
+    } catch {
+      setCopyState(text)
+    }
+    window.setTimeout(() => setCopyState('Copy JSON'), 1400)
+  }
+
+  return (
+    <aside className="atlas-pose-editor" aria-label="Atlas diver pose editor">
+      <div className="atlas-pose-editor-heading">
+        <strong>Diver pose</strong>
+        <span>{species.name}</span>
+      </div>
+      {controls.map(control => (
+        <label key={control.label} className="atlas-pose-control">
+          <span>{control.label}</span>
+          <input
+            type="range"
+            min={control.min}
+            max={control.max}
+            step={control.step}
+            value={pose.position[control.index]}
+            onChange={(event) => updatePosition(control.index, event.target.value)}
+          />
+          <output>{pose.position[control.index].toFixed(2)}</output>
+        </label>
+      ))}
+      <label className="atlas-pose-control">
+        <span>Opacity</span>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={pose.opacity}
+          onChange={(event) => updateOpacity(event.target.value)}
+        />
+        <output>{pose.opacity.toFixed(2)}</output>
+      </label>
+      <div className="atlas-pose-actions">
+        <button type="button" onClick={copyPose}>{copyState}</button>
+        <button type="button" onClick={onReset}>Reset species</button>
+      </div>
+      <p>Triple-tap the version label to hide/show. Saves locally in this browser.</p>
+    </aside>
+  )
+}
+
 export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const [selectedId, setSelectedId] = useState(initialSpeciesId ?? SPECIES[0]?.id)
+  const [poseEditorOpen, setPoseEditorOpen] = useState(false)
+  const [storedDiverPoses, setStoredDiverPoses] = useState(() => loadStoredDiverPoses())
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
+  const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
   const lengthMeters = speciesLengthMeters(selectedSpecies)
   const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
+
+  useEffect(() => {
+    const togglePoseEditor = () => setPoseEditorOpen(current => !current)
+    window.addEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
+    return () => window.removeEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
+  }, [])
+
+  const updateDiverPose = (nextPose) => {
+    const speciesId = selectedSpecies?.id
+    if (!speciesId) return
+    setStoredDiverPoses(current => {
+      const next = { ...current, [speciesId]: normalizeDiverPose(nextPose, baseDiverPoseForSpecies(selectedSpecies)) }
+      saveStoredDiverPoses(next)
+      return next
+    })
+  }
+
+  const resetDiverPose = () => {
+    const speciesId = selectedSpecies?.id
+    if (!speciesId) return
+    setStoredDiverPoses(current => {
+      const next = { ...current }
+      delete next[speciesId]
+      saveStoredDiverPoses(next)
+      return next
+    })
+  }
 
   return (
     <section className="encyclopedia-page" aria-label="The Atlas mockup">
@@ -411,7 +570,15 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         className="encyclopedia-model-stage is-tank-backdrop"
         aria-label={`${selectedSpecies.name} fixed side view`}
       >
-        <SpeciesModel species={selectedSpecies} />
+        <SpeciesModel species={selectedSpecies} diverPoseOverride={diverPose} />
+        {poseEditorOpen && (
+          <AtlasDiverPoseEditor
+            species={selectedSpecies}
+            pose={diverPose}
+            onPoseChange={updateDiverPose}
+            onReset={resetDiverPose}
+          />
+        )}
       </main>
 
       <aside className="encyclopedia-info-panel" aria-label={`${selectedSpecies.name} information`}>

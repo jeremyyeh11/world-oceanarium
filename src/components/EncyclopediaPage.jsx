@@ -152,10 +152,32 @@ function nextBurstDelay() {
   return THREE.MathUtils.randFloat(6.5, 10.5)
 }
 
+function prepareAtlasModelScene(sourceScene) {
+  const scene = clone(sourceScene)
+  scene.traverse(object => {
+    if (!object.isMesh) return
+    const sanitizeMaterial = material => {
+      if (!material) return material
+      const nextMaterial = material.clone()
+      nextMaterial.transparent = false
+      nextMaterial.opacity = 1
+      nextMaterial.depthWrite = true
+      nextMaterial.depthTest = true
+      nextMaterial.side = THREE.FrontSide
+      nextMaterial.needsUpdate = true
+      return nextMaterial
+    }
+    object.material = Array.isArray(object.material)
+      ? object.material.map(sanitizeMaterial)
+      : sanitizeMaterial(object.material)
+  })
+  return scene
+}
+
 function ModelAsset({ species, pose }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
-  const scene = useMemo(() => clone(gltf.scene), [gltf.scene])
+  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene), [gltf.scene])
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)

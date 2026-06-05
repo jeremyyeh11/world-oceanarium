@@ -88,6 +88,7 @@ Reference:
 - `v0.8.6-dev_16` switches the Atlas diver reference to a camera-facing sprite using the supplied SVG texture, with tint-safe fill normalization and depth testing disabled.
 - `v0.8.6-dev_17` rasterizes the supplied diver SVG into a PNG texture so browser/WebGL SVG-texture handling cannot hide the scale reference.
 - `v0.8.6-dev_18` replaces the diver texture with Jeremy's new PNG, renders it black, and lowers opacity for a quieter scale read.
+- `v0.8.6-dev_19` fixes Atlas Mola material rendering by forcing cloned GLB materials to opaque front-face/depth-writing mode so opposite-side eye geometry cannot bleed through.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

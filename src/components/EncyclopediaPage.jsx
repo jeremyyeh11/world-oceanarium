@@ -27,13 +27,14 @@ const IUCN_STATUS_STEPS = [
   { code: 'CR', label: 'Critically Endangered', color: '#eb5757' },
 ]
 
-const ATLAS_CAMERA_YAW_DEGREES = -30
+const ATLAS_CAMERA_YAW_DEGREES = 0
 const ATLAS_CAMERA_PITCH_DEGREES = 15
+const ATLAS_CREATURE_DIAGONAL_YAW_RADIANS = Math.PI / 6
 const ATLAS_DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const ATLAS_DIVER_POSE_STORAGE_KEY = 'world-oceanarium-atlas-diver-poses'
 
 const DEFAULT_VIEW_POSE = {
-  yawOffset: Math.PI / 2,
+  yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,
   cameraDistance: 9.2,
   fov: 34,
   maxLengthDisplayUnits: 2.8,
@@ -52,7 +53,7 @@ const VIEW_POSES_BY_SPECIES = {
     lookAt: [0, -0.02, 0],
   },
   'mola-alexandrini': {
-    yawOffset: Math.PI / 2,
+    yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,
     cameraDistance: 10.8,
     fov: 34,
     maxLengthDisplayUnits: 4.1,

@@ -66,7 +66,8 @@ export const SPECIES = [
       code: 'LC',
       label: 'Least Concern',
     },
-    description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. It reaches up to 27 cm total length and is widely caught for food and bait fisheries.',
+    description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. Small and bright, it reaches a largest documented body length of about 27 cm total length and moves as a flickering coastal school rather than a lone specimen.',
+    maxBodyLengthMeters: 0.27,
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.
       bodyLengthWU: 1.08,
@@ -114,7 +115,10 @@ export const SPECIES = [
       code: 'NE',
       label: 'Not Evaluated',
     },
-    description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds. Adults have a distinctive head bump, chin bump, rectangular body scales, and rounded clavus that separate them from other sunfish.',
+    description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. Adult-ish head and chin bumps appear from roughly 1.6 m total length, and the largest documented animals reach about 3.3 m. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds.',
+    adultLengthRangeMeters: [1.6, 3.3],
+    maxBodyLengthMeters: 3.3,
+    atlasThumbnail: '/atlas/mola-alexandrini-thumbnail.png',
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Current review scale keeps adults at 180–240 cm = 7.2–9.6 WU until the final GLB scale is approved.
       // Target review speed: ~0.6–1.1 WU/s after the latest 1.2x idle movement tuning.

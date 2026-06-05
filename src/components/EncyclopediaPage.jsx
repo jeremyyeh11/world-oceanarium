@@ -107,6 +107,7 @@ function atlasModelScaleForSpecies(species, pose) {
 }
 
 function speciesLengthMeters(species) {
+  if (Number.isFinite(species?.maxBodyLengthMeters)) return species.maxBodyLengthMeters
   const bodyLengthWU = species?.swim?.bodyLengthWU
   if (!Number.isFinite(bodyLengthWU)) return null
   return bodyLengthWU * WORLD_UNIT_METERS
@@ -255,53 +256,6 @@ function ModelAsset({ species, pose }) {
 
 const HUMAN_SCALE_METERS = 1.7
 const DIVER_IMAGE_ASPECT = 479 / 212
-const ATLAS_HEX_TEXTURE_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='288' height='252' viewBox='0 0 288 252'%3E%3Cg fill='none' stroke='%237deeff' stroke-opacity='0.58' stroke-width='2'%3E%3Cpath d='M72 6 138 42v78l-66 36-66-36V42z'/%3E%3Cpath d='M216 6l66 36v78l-66 36-66-36V42z'/%3E%3Cpath d='M144 126l66 36v78l-66 36-66-36v-78z'/%3E%3C/g%3E%3C/svg%3E"
-
-function AtlasHexBackdrop() {
-  const hexTexture = useTexture(ATLAS_HEX_TEXTURE_URL)
-  const sweepRef = useRef(null)
-
-  useEffect(() => {
-    hexTexture.wrapS = THREE.RepeatWrapping
-    hexTexture.wrapT = THREE.RepeatWrapping
-    hexTexture.repeat.set(1.15, 1.05)
-    hexTexture.needsUpdate = true
-  }, [hexTexture])
-
-  useFrame(({ clock }) => {
-    if (!sweepRef.current) return
-    const progress = (clock.getElapsedTime() * 0.12) % 1
-    sweepRef.current.position.x = THREE.MathUtils.lerp(-4.2, 4.2, progress)
-  })
-
-  return (
-    <group position={[0, -0.18, -2.25]} renderOrder={-20} raycast={() => null}>
-      <mesh renderOrder={-20}>
-        <planeGeometry args={[7.4, 5.4]} />
-        <meshBasicMaterial
-          map={hexTexture}
-          color="#7deeff"
-          transparent
-          opacity={0.2}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-        />
-      </mesh>
-      <mesh ref={sweepRef} renderOrder={-19} rotation={[0, 0, -0.28]}>
-        <planeGeometry args={[0.72, 6.6]} />
-        <meshBasicMaterial
-          color="#e6fcff"
-          transparent
-          opacity={0.07}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-        />
-      </mesh>
-    </group>
-  )
-}
 
 const DEFAULT_DIVER_POSE = {
   position: [1.35, -1.62, -0.85],
@@ -403,7 +357,6 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
       <WaterSurface biome="ocean" />
       <UnderwaterFX biome="ocean" />
-      <AtlasHexBackdrop />
       <Suspense fallback={null}>
         <AtlasDiverScale species={species} diverPoseOverride={diverPoseOverride} />
       </Suspense>
@@ -418,7 +371,9 @@ function SpeciesThumbnail({ species, index }) {
   const initials = species.name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()
   return (
     <div className="encyclopedia-species-thumb" style={{ background: THUMBNAIL_GRADIENTS[index % THUMBNAIL_GRADIENTS.length] }}>
-      <span>{initials}</span>
+      {species.atlasThumbnail
+        ? <img src={species.atlasThumbnail} alt="" loading="lazy" />
+        : <span>{initials}</span>}
     </div>
   )
 }

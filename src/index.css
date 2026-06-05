@@ -1247,6 +1247,13 @@ body:has(.debug-panel) .app-version-footnote {
   overflow: hidden;
 }
 
+.encyclopedia-species-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 .encyclopedia-species-thumb span {
   color: rgba(245, 253, 255, 0.82);
   font-size: 0.82rem;
@@ -1283,41 +1290,6 @@ body:has(.debug-panel) .app-version-footnote {
     linear-gradient(180deg, rgba(92, 171, 205, 0.24), transparent 46%),
     radial-gradient(circle at 50% 68%, rgba(104, 207, 246, 0.18), transparent 38%),
     linear-gradient(180deg, rgba(6, 32, 54, 0.86), rgba(3, 16, 31, 0.88));
-}
-
-.encyclopedia-model-stage.is-tank-backdrop::before {
-  content: '';
-  position: absolute;
-  inset: 7% 9%;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.2;
-  background:
-    linear-gradient(112deg, transparent 0 42%, rgba(215, 252, 255, 0.0) 47%, rgba(215, 252, 255, 0.34) 50%, rgba(125, 238, 255, 0.08) 53%, transparent 60%),
-    radial-gradient(circle at 50% 52%, rgba(100, 225, 255, 0.32), transparent 58%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='84' viewBox='0 0 96 84'%3E%3Cg fill='none' stroke='%237deeff' stroke-opacity='0.52' stroke-width='1'%3E%3Cpath d='M24 2 46 14v26L24 52 2 40V14z'/%3E%3Cpath d='M72 2 94 14v26L72 52 50 40V14z'/%3E%3Cpath d='M48 42 70 54v26L48 92 26 80V54z'/%3E%3C/g%3E%3C/svg%3E");
-  background-position: -90% 0, center, center;
-  background-size: 38% 100%, 100% 100%, 18rem 15.75rem;
-  filter: blur(0.1px) drop-shadow(0 0 12px rgba(125, 238, 255, 0.18));
-  mix-blend-mode: screen;
-  animation: atlasHexSpecular 8s ease-in-out infinite;
-  -webkit-mask-image: radial-gradient(ellipse at center, black 0 44%, transparent 74%);
-  mask-image: radial-gradient(ellipse at center, black 0 44%, transparent 74%);
-}
-
-@keyframes atlasHexSpecular {
-  0%, 18% {
-    background-position: -90% 0, center, center;
-    filter: blur(0.1px) drop-shadow(0 0 8px rgba(125, 238, 255, 0.1));
-  }
-  48%, 58% {
-    background-position: 190% 0, center, center;
-    filter: blur(0.1px) drop-shadow(0 0 18px rgba(177, 248, 255, 0.26));
-  }
-  100% {
-    background-position: 190% 0, center, center;
-    filter: blur(0.1px) drop-shadow(0 0 8px rgba(125, 238, 255, 0.1));
-  }
 }
 
 .encyclopedia-model-stage.is-tank-backdrop::after {

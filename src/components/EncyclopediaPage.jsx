@@ -359,7 +359,7 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
       <SceneLighting biome="ocean" />
       <Environment biome="ocean" />
       <group position={[0, 5.0, 0]}>
-        <OceanBubbles count={34} depthTest={false} opacityScale={1.8} renderOrder={8} sizeScale={2.4} />
+        <OceanBubbles count={34} depthTest={false} opacityScale={1.8} renderOrder={8} sizeScale={1.35} />
       </group>
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />

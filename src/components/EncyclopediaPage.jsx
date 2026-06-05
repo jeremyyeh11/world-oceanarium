@@ -242,7 +242,7 @@ const DIVER_POSES_BY_SPECIES = {
 }
 
 function AtlasDiverScale({ species }) {
-  const texture = useTexture('/atlas/diver.svg?v=2')
+  const texture = useTexture('/atlas/diver.png')
   const lengthMeters = speciesLengthMeters(species)
   const pose = viewPoseForSpecies(species)
   const displayedLength = displayedSpeciesLengthUnits(species, pose)

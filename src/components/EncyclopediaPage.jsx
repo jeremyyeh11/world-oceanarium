@@ -31,6 +31,8 @@ const ATLAS_CAMERA_YAW_DEGREES = 0
 const ATLAS_CAMERA_PITCH_DEGREES = 15
 const ATLAS_CREATURE_DIAGONAL_YAW_RADIANS = Math.PI / 6
 const ATLAS_DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
+const ATLAS_DEBUG_TAP_WINDOW_MS = 1200
+const ATLAS_DEBUG_REQUIRED_TAPS = 3
 const ATLAS_DIVER_POSE_STORAGE_KEY = 'world-oceanarium-atlas-diver-poses'
 
 const DEFAULT_VIEW_POSE = {
@@ -604,10 +606,19 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const [selectedId, setSelectedId] = useState(initialSpeciesId ?? SPECIES[0]?.id)
   const [poseEditorOpen, setPoseEditorOpen] = useState(false)
   const [storedDiverPoses, setStoredDiverPoses] = useState(() => loadStoredDiverPoses())
+  const debugTapCount = useRef(0)
+  const debugTapTimer = useRef(null)
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
   const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
   const lengthMeters = speciesLengthMeters(selectedSpecies)
   const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
+
+  const resetDebugTaps = () => {
+    debugTapCount.current = 0
+    if (!debugTapTimer.current) return
+    window.clearTimeout(debugTapTimer.current)
+    debugTapTimer.current = null
+  }
 
   useEffect(() => {
     const togglePoseEditor = () => setPoseEditorOpen(current => !current)
@@ -649,6 +660,25 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
     })
   }
 
+  const handleVersionTap = (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (debugTapTimer.current) {
+      window.clearTimeout(debugTapTimer.current)
+    }
+
+    debugTapCount.current += 1
+
+    if (debugTapCount.current >= ATLAS_DEBUG_REQUIRED_TAPS) {
+      resetDebugTaps()
+      setPoseEditorOpen(current => !current)
+      return
+    }
+
+    debugTapTimer.current = window.setTimeout(resetDebugTaps, ATLAS_DEBUG_TAP_WINDOW_MS)
+  }
+
   return (
     <section className="encyclopedia-page" aria-label="The Atlas mockup">
       <div className="encyclopedia-topbar">
@@ -659,13 +689,11 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           <button
             className={`atlas-version-label${poseEditorOpen ? ' is-active' : ''}`}
             type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-              setPoseEditorOpen(current => !current)
-            }}
-            aria-label="Toggle Atlas diver pose editor"
+            onPointerUp={handleVersionTap}
+            onContextMenu={(event) => event.preventDefault()}
+            aria-label="Tap three times to toggle Atlas diver pose editor"
             aria-pressed={poseEditorOpen}
-            title="Ctrl+Shift+D toggles diver pose editor"
+            title="Tap three times or press Ctrl+Shift+D to toggle diver pose editor"
           >
             {APP_VERSION_SHORT_LABEL}
           </button>

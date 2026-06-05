@@ -641,7 +641,11 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           >
             {APP_VERSION_SHORT_LABEL}
           </button>
-          <button className="encyclopedia-close" type="button" onClick={onClose} aria-label="Close encyclopaedia">×</button>
+          <button className="encyclopedia-close" type="button" onClick={onClose} aria-label="Close encyclopaedia">
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+              <path d="M7 7l10 10M17 7L7 17" />
+            </svg>
+          </button>
         </div>
       </div>
 

@@ -1180,14 +1180,26 @@ body:has(.debug-panel) .app-version-footnote {
 }
 
 .encyclopedia-close {
+  display: inline-grid;
+  place-items: center;
   width: 2.25rem;
   height: 2.25rem;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid rgba(225, 245, 255, 0.24);
   background: rgba(255, 255, 255, 0.07);
   color: rgba(245, 253, 255, 0.88);
-  font-size: 1.35rem;
   cursor: pointer;
+}
+
+.encyclopedia-close svg {
+  width: 0.92rem;
+  height: 0.92rem;
+  display: block;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-width: 2.35;
+  stroke-linecap: round;
 }
 
 .encyclopedia-species-list,

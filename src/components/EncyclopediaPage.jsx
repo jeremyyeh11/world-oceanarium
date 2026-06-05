@@ -594,10 +594,10 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   }
 
   return (
-    <section className="encyclopedia-page" aria-label="The Atlas mockup">
+    <section className="encyclopedia-page" aria-label="THE ATLAS mockup">
       <div className="encyclopedia-topbar">
         <div>
-          <h1>The Atlas</h1>
+          <h1>THE ATLAS</h1>
         </div>
         <div className="encyclopedia-topbar-actions">
           <button

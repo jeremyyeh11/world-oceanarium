@@ -358,9 +358,7 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
       <AtlasCamera pose={pose} />
       <SceneLighting biome="ocean" />
       <Environment biome="ocean" />
-      <group position={[0, 5.0, 0]}>
-        <OceanBubbles count={34} depthTest={false} opacityScale={1.8} renderOrder={8} sizeScale={1.35} />
-      </group>
+      <OceanBubbles count={22} depthTest={false} maxY={-0.75} minY={-3.15} opacityScale={0.72} renderOrder={8} sizeScale={1.1} />
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
       <WaterSurface biome="ocean" />

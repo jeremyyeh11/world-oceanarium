@@ -54,11 +54,12 @@ function lifeCurve(age01) {
   return Math.max(0, (Math.log(1 - x) + 4) / 5)
 }
 
-function respawn(index, positions, baseSizes, lifeScales, ages, lifetimes, velocities, initial = false) {
+function respawn(index, positions, baseSizes, lifeScales, ages, lifetimes, velocities, bounds, initial = false) {
+  const { maxY, minY, spreadX, spreadZ } = bounds
   const j = index * 3
-  positions[j] = randomRange(-SPREAD_X / 2, SPREAD_X / 2)
-  positions[j + 1] = initial ? randomRange(MIN_Y, MAX_Y) : MIN_Y + randomRange(-1.2, 0.8)
-  positions[j + 2] = randomRange(-SPREAD_Z / 2, SPREAD_Z / 2)
+  positions[j] = randomRange(-spreadX / 2, spreadX / 2)
+  positions[j + 1] = initial ? randomRange(minY, maxY) : minY + randomRange(-0.25, 0.18)
+  positions[j + 2] = randomRange(-spreadZ / 2, spreadZ / 2)
   baseSizes[index] = randomRange(1.2, 2.6)
   lifetimes[index] = randomRange(MIN_LIFETIME, MAX_LIFETIME)
   ages[index] = initial ? randomRange(0, lifetimes[index] * 0.82) : 0
@@ -66,11 +67,12 @@ function respawn(index, positions, baseSizes, lifeScales, ages, lifetimes, veloc
   velocities[index] = randomRange(0.85, 1.85)
 }
 
-export default function OceanBubbles({ count = BUBBLE_COUNT, depthTest = true, opacityScale = 1, renderOrder = 0, sizeScale = 1 }) {
+export default function OceanBubbles({ count = BUBBLE_COUNT, depthTest = true, maxY = MAX_Y, minY = MIN_Y, opacityScale = 1, renderOrder = 0, sizeScale = 1, spreadX = SPREAD_X, spreadZ = SPREAD_Z }) {
   const pointsRef = useRef()
   const state = useRef(null)
 
   const attributes = useMemo(() => {
+    const bounds = { maxY, minY, spreadX, spreadZ }
     const positions = new Float32Array(count * 3)
     const baseSizes = new Float32Array(count)
     const lifeScales = new Float32Array(count)
@@ -79,12 +81,12 @@ export default function OceanBubbles({ count = BUBBLE_COUNT, depthTest = true, o
     const velocities = new Float32Array(count)
 
     for (let i = 0; i < count; i += 1) {
-      respawn(i, positions, baseSizes, lifeScales, ages, lifetimes, velocities, true)
+      respawn(i, positions, baseSizes, lifeScales, ages, lifetimes, velocities, bounds, true)
     }
 
-    state.current = { ages, lifetimes, velocities }
+    state.current = { ages, bounds, lifetimes, velocities }
     return { positions, baseSizes, lifeScales }
-  }, [count])
+  }, [count, maxY, minY, spreadX, spreadZ])
 
   useFrame(({ clock }, delta) => {
     const points = pointsRef.current
@@ -94,7 +96,7 @@ export default function OceanBubbles({ count = BUBBLE_COUNT, depthTest = true, o
     const scaleAttr = points.geometry.attributes.aLifeScale
     const pos = posAttr.array
     const lifeScales = scaleAttr.array
-    const { ages, lifetimes, velocities } = state.current
+    const { ages, bounds, lifetimes, velocities } = state.current
     const t = clock.getElapsedTime()
 
     for (let i = 0; i < count; i += 1) {
@@ -106,8 +108,8 @@ export default function OceanBubbles({ count = BUBBLE_COUNT, depthTest = true, o
       }
 
       const normalizedAge = ages[i] / lifetimes[i]
-      if (normalizedAge >= 1 || pos[i * 3 + 1] > MAX_Y) {
-        respawn(i, pos, points.geometry.attributes.aBaseSize.array, lifeScales, ages, lifetimes, velocities)
+      if (normalizedAge >= 1 || pos[i * 3 + 1] > bounds.maxY) {
+        respawn(i, pos, points.geometry.attributes.aBaseSize.array, lifeScales, ages, lifetimes, velocities, bounds)
         continue
       }
 

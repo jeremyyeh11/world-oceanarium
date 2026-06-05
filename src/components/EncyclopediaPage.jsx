@@ -282,44 +282,47 @@ function paintAtlasHexTexture() {
   const ctx = canvas.getContext('2d')
 
   const base = ctx.createLinearGradient(0, 0, 0, height)
-  base.addColorStop(0, '#276f7f')
-  base.addColorStop(0.34, '#1d5868')
-  base.addColorStop(0.66, '#123d4d')
+  base.addColorStop(0, '#195564')
+  base.addColorStop(0.34, '#134555')
+  base.addColorStop(0.66, '#0d3140')
   base.addColorStop(1, '#061a27')
   ctx.fillStyle = base
   ctx.fillRect(0, 0, width, height)
 
   const topGlow = ctx.createRadialGradient(width * 0.34, -height * 0.05, 0, width * 0.36, height * 0.12, width * 0.86)
-  topGlow.addColorStop(0, 'rgba(195, 250, 255, 0.26)')
-  topGlow.addColorStop(0.46, 'rgba(85, 169, 188, 0.12)')
+  topGlow.addColorStop(0, 'rgba(195, 250, 255, 0.16)')
+  topGlow.addColorStop(0.46, 'rgba(85, 169, 188, 0.08)')
   topGlow.addColorStop(1, 'rgba(0, 0, 0, 0)')
   ctx.fillStyle = topGlow
   ctx.fillRect(0, 0, width, height)
 
   ctx.save()
-  ctx.filter = 'blur(6px)'
-  ctx.globalAlpha = 0.9
-  const radius = 74
-  const xStep = radius * 1.7
-  const yStep = radius * 1.48
-  for (let row = -1; row < 6; row += 1) {
-    for (let column = -1; column < 9; column += 1) {
-      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 18
-      const y = row * yStep + 22
-      const verticalFade = y < height * 0.12 ? 0.64 : y > height * 0.74 ? 1.0 : 0.92
-      const horizontalFade = Math.max(0.62, 1 - Math.abs(x - width * 0.54) / (width * 0.95))
+  ctx.filter = 'blur(4px)'
+  ctx.globalAlpha = 1
+  const radius = 22
+  const xStep = radius * 3.05
+  const yStep = radius * 2.55
+  for (let row = -1; row < 11; row += 1) {
+    for (let column = -1; column < 17; column += 1) {
+      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 28
+      const y = row * yStep + 24
+      const verticalFade = y < height * 0.12 ? 0.3 : y > height * 0.74 ? 0.2 : 0.34
+      const horizontalFade = Math.max(0.42, 1 - Math.abs(x - width * 0.48) / (width * 0.85))
       const alpha = verticalFade * horizontalFade
-      drawHex(ctx, x, y, radius, `rgba(0, 6, 14, ${alpha.toFixed(3)})`)
+      drawHex(ctx, x, y, radius, `rgba(75, 156, 176, ${alpha.toFixed(3)})`)
     }
   }
   ctx.restore()
 
   ctx.save()
-  ctx.filter = 'blur(16px)'
+  ctx.filter = 'blur(34px)'
   ctx.globalCompositeOperation = 'screen'
-  drawHex(ctx, width * 0.18, height * 0.26, 120, 'rgba(122, 211, 222, 0.20)')
-  drawHex(ctx, width * 0.62, height * 0.22, 128, 'rgba(91, 178, 202, 0.15)')
-  drawHex(ctx, width * 0.88, height * 0.56, 132, 'rgba(70, 154, 184, 0.12)')
+  const centerLift = ctx.createRadialGradient(width * 0.38, height * 0.08, 0, width * 0.38, height * 0.08, width * 0.55)
+  centerLift.addColorStop(0, 'rgba(112, 210, 226, 0.12)')
+  centerLift.addColorStop(0.7, 'rgba(43, 121, 151, 0.04)')
+  centerLift.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  ctx.fillStyle = centerLift
+  ctx.fillRect(0, 0, width, height)
   ctx.restore()
 
   const bottomBand = ctx.createLinearGradient(0, height * 0.70, 0, height)

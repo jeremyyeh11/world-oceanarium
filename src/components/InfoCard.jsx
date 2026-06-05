@@ -67,15 +67,25 @@ const styles = {
     letterSpacing: '0.035em',
   },
   close: {
+    display: 'inline-grid',
+    placeItems: 'center',
     width: 34,
     height: 34,
+    padding: 0,
     borderRadius: 999,
     border: '1px solid rgba(255,255,255,0.14)',
     background: 'rgba(255,255,255,0.07)',
     color: 'rgba(245,252,255,0.86)',
-    fontSize: '1.15rem',
     cursor: 'pointer',
-    lineHeight: 1,
+  },
+  closeIcon: {
+    width: 15,
+    height: 15,
+    display: 'block',
+    overflow: 'visible',
+    stroke: 'currentColor',
+    strokeWidth: 2.35,
+    strokeLinecap: 'round',
   },
   chips: {
     display: 'flex',
@@ -98,12 +108,6 @@ const styles = {
     gridTemplateColumns: '1fr 1fr',
     gap: '0.55rem',
     marginTop: '0.95rem',
-  },
-  speciesDescription: {
-    margin: '0.9rem 0 0',
-    color: 'rgba(226,246,255,0.76)',
-    fontSize: '0.84rem',
-    lineHeight: 1.45,
   },
   individualDescription: {
     margin: '0.72rem 0 0',
@@ -233,7 +237,11 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
           {customName && <div style={styles.nameTag}>{customName}</div>}
           {species?.scientificName && <p style={styles.scientificName}>{species.scientificName}</p>}
         </div>
-        <button type="button" style={styles.close} onClick={onClose} aria-label="Close focus card">×</button>
+        <button type="button" style={styles.close} onClick={onClose} aria-label="Close focus card">
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" style={styles.closeIcon}>
+            <path d="M7 7l10 10M17 7L7 17" />
+          </svg>
+        </button>
       </div>
 
       <div style={styles.chips}>
@@ -243,7 +251,6 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
         {species?.aggressive && <span style={styles.chip}>Aggressive</span>}
       </div>
 
-      {species?.description && <p style={styles.speciesDescription}>{species.description}</p>}
       <p style={styles.individualDescription}>{individualDescription}</p>
 
       <div style={styles.grid}>

@@ -5,6 +5,8 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
+import Environment from './Environment'
+import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import WaterSurface from './WaterSurface'
@@ -258,85 +260,6 @@ function ModelAsset({ species, pose }) {
 
 const HUMAN_SCALE_METERS = 1.7
 const DIVER_IMAGE_ASPECT = 479 / 212
-const ATLAS_HEX_TEXTURE_SIZE = [1024, 576]
-
-function drawHex(ctx, centerX, centerY, radius, fillStyle) {
-  ctx.beginPath()
-  for (let index = 0; index < 6; index += 1) {
-    const angle = Math.PI / 6 + index * Math.PI / 3
-    const x = centerX + Math.cos(angle) * radius
-    const y = centerY + Math.sin(angle) * radius
-    if (index === 0) ctx.moveTo(x, y)
-    else ctx.lineTo(x, y)
-  }
-  ctx.closePath()
-  ctx.fillStyle = fillStyle
-  ctx.fill()
-}
-
-function paintAtlasHexTexture() {
-  const canvas = document.createElement('canvas')
-  const [width, height] = ATLAS_HEX_TEXTURE_SIZE
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')
-
-  const base = ctx.createLinearGradient(0, 0, 0, height)
-  base.addColorStop(0, '#245f70')
-  base.addColorStop(0.42, '#174858')
-  base.addColorStop(1, '#071b29')
-  ctx.fillStyle = base
-  ctx.fillRect(0, 0, width, height)
-
-  const wash = ctx.createRadialGradient(width * 0.35, height * 0.24, 0, width * 0.42, height * 0.34, width * 0.72)
-  wash.addColorStop(0, 'rgba(160, 246, 255, 0.28)')
-  wash.addColorStop(0.42, 'rgba(52, 166, 222, 0.15)')
-  wash.addColorStop(1, 'rgba(0, 0, 0, 0)')
-  ctx.fillStyle = wash
-  ctx.fillRect(0, 0, width, height)
-
-  ctx.save()
-  ctx.filter = 'blur(2.5px)'
-  const radius = 12
-  const xStep = radius * 2.28
-  const yStep = radius * 1.96
-  for (let row = -2; row < 29; row += 1) {
-    for (let column = -2; column < 47; column += 1) {
-      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 18
-      const y = row * yStep + 12
-      const verticalFade = y < height * 0.12 ? 0.16 : y > height * 0.76 ? 0.30 : 0.24
-      const horizontalFade = Math.max(0.44, 1 - Math.abs(x - width * 0.5) / (width * 0.92))
-      const alpha = verticalFade * horizontalFade
-      drawHex(ctx, x, y, radius, `rgba(3, 27, 42, ${alpha.toFixed(3)})`)
-    }
-  }
-  ctx.restore()
-
-  ctx.save()
-  ctx.filter = 'blur(22px)'
-  ctx.globalCompositeOperation = 'screen'
-  drawHex(ctx, width * 0.20, height * 0.18, 98, 'rgba(122, 230, 255, 0.10)')
-  drawHex(ctx, width * 0.70, height * 0.20, 92, 'rgba(83, 200, 255, 0.08)')
-  ctx.restore()
-
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.needsUpdate = true
-  return texture
-}
-
-function AtlasHexBackdrop() {
-  const texture = useMemo(() => paintAtlasHexTexture(), [])
-
-  useEffect(() => () => texture.dispose(), [texture])
-
-  return (
-    <mesh position={[0, 0, -24]} scale={[84, 48, 1]} renderOrder={-100} raycast={() => null}>
-      <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} fog={false} depthWrite={false} depthTest={false} toneMapped={false} />
-    </mesh>
-  )
-}
 
 const DEFAULT_DIVER_POSE = {
   position: [1.35, -1.62, -0.85],
@@ -434,7 +357,10 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
     <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
       <AtlasCamera pose={pose} />
       <SceneLighting biome="ocean" />
-      <AtlasHexBackdrop />
+      <Environment biome="ocean" />
+      <group position={[0, 5.0, 0]}>
+        <OceanBubbles count={34} depthTest={false} opacityScale={1.8} renderOrder={8} sizeScale={2.4} />
+      </group>
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
       <WaterSurface biome="ocean" />

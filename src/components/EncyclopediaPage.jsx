@@ -280,7 +280,13 @@ function paintAtlasHexTexture() {
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')
-  ctx.clearRect(0, 0, width, height)
+
+  const base = ctx.createLinearGradient(0, 0, 0, height)
+  base.addColorStop(0, '#245f70')
+  base.addColorStop(0.42, '#174858')
+  base.addColorStop(1, '#071b29')
+  ctx.fillStyle = base
+  ctx.fillRect(0, 0, width, height)
 
   const wash = ctx.createRadialGradient(width * 0.35, height * 0.24, 0, width * 0.42, height * 0.34, width * 0.72)
   wash.addColorStop(0, 'rgba(160, 246, 255, 0.28)')
@@ -290,24 +296,27 @@ function paintAtlasHexTexture() {
   ctx.fillRect(0, 0, width, height)
 
   ctx.save()
-  ctx.filter = 'blur(9px)'
-  ctx.globalCompositeOperation = 'lighter'
-  const radius = 96
-  const xStep = radius * 1.72
-  const yStep = radius * 1.5
-  for (let row = -2; row < 6; row += 1) {
-    for (let column = -2; column < 8; column += 1) {
-      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 92
-      const y = row * yStep + 18
-      const distanceFromGlow = Math.hypot((x - width * 0.46) / width, (y - height * 0.30) / height)
-      const alpha = Math.max(0, 0.28 - distanceFromGlow * 0.24)
-      if (alpha <= 0.028) continue
-      drawHex(ctx, x, y, radius, `rgba(116, 229, 255, ${alpha.toFixed(3)})`)
+  ctx.filter = 'blur(2.5px)'
+  const radius = 12
+  const xStep = radius * 2.28
+  const yStep = radius * 1.96
+  for (let row = -2; row < 29; row += 1) {
+    for (let column = -2; column < 47; column += 1) {
+      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 18
+      const y = row * yStep + 12
+      const verticalFade = y < height * 0.12 ? 0.16 : y > height * 0.76 ? 0.30 : 0.24
+      const horizontalFade = Math.max(0.44, 1 - Math.abs(x - width * 0.5) / (width * 0.92))
+      const alpha = verticalFade * horizontalFade
+      drawHex(ctx, x, y, radius, `rgba(3, 27, 42, ${alpha.toFixed(3)})`)
     }
   }
-  drawHex(ctx, width * 0.18, height * 0.18, 138, 'rgba(196, 251, 255, 0.18)')
-  drawHex(ctx, width * 0.74, height * 0.24, 126, 'rgba(83, 200, 255, 0.16)')
-  drawHex(ctx, width * 0.80, height * 0.72, 142, 'rgba(184, 248, 255, 0.10)')
+  ctx.restore()
+
+  ctx.save()
+  ctx.filter = 'blur(22px)'
+  ctx.globalCompositeOperation = 'screen'
+  drawHex(ctx, width * 0.20, height * 0.18, 98, 'rgba(122, 230, 255, 0.10)')
+  drawHex(ctx, width * 0.70, height * 0.20, 92, 'rgba(83, 200, 255, 0.08)')
   ctx.restore()
 
   const texture = new THREE.CanvasTexture(canvas)
@@ -324,7 +333,7 @@ function AtlasHexBackdrop() {
   return (
     <mesh position={[0, 0, -24]} scale={[84, 48, 1]} renderOrder={-100} raycast={() => null}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} transparent opacity={1} fog={false} depthWrite={false} depthTest={false} toneMapped={false} />
+      <meshBasicMaterial map={texture} fog={false} depthWrite={false} depthTest={false} toneMapped={false} />
     </mesh>
   )
 }

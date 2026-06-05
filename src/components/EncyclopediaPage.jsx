@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { BIOMES, DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
 import Environment from './Environment'
 import OceanBubbles from './OceanBubbles'
@@ -12,6 +12,7 @@ import UnderwaterFX from './UnderwaterFX'
 import WaterSurface from './WaterSurface'
 
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
+const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 
 const THUMBNAIL_GRADIENTS = [
   'linear-gradient(135deg, rgba(74, 196, 255, 0.34), rgba(7, 34, 62, 0.82))',
@@ -556,7 +557,8 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
   const lengthRangeMeters = speciesLengthRangeMeters(selectedSpecies)
   const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
-
+  const biome = BIOME_BY_ID.get(selectedSpecies?.biome)
+  const atlasDetails = selectedSpecies?.atlasDetails ?? {}
   const resetDebugTaps = () => {
     debugTapCount.current = 0
     if (!debugTapTimer.current) return
@@ -624,7 +626,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   }
 
   return (
-    <section className="encyclopedia-page" aria-label="THE ATLAS mockup">
+    <section className="encyclopedia-page" aria-label="THE ATLAS">
       <div className="encyclopedia-topbar">
         <div>
           <h1>THE ATLAS</h1>
@@ -691,11 +693,11 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           <div><span>Size (body length)</span><strong>{formatLengthRange(lengthRangeMeters)}</strong></div>
           <div><span>Depth zone</span><strong>{depthZone?.shortLabel ?? selectedSpecies.depthZone ?? 'Unknown'}</strong></div>
           <div><span>Behavior</span><strong>{selectedSpecies.schooling ? 'Schooling' : selectedSpecies.repulser ? 'Large solo presence' : 'Solo / pending'}</strong></div>
-          <div><span>Model</span><strong>{selectedSpecies.model?.path ? 'Available' : 'Placeholder'}</strong></div>
-        </div>
-        <div className="encyclopedia-note-block">
-          <strong>Mockup note</strong>
-          <p>This is the first pass at the gallery flow: list on the left, model and scale read in the center, field-guide facts on the right.</p>
+          <div className="is-wide"><span>Common diet</span><strong>{atlasDetails.commonDiet ?? 'Unknown'}</strong></div>
+          <div className="is-wide"><span>Found in</span><strong>{atlasDetails.foundIn ?? 'Unknown'}</strong></div>
+          <div><span>Biome</span><strong>{biome?.name ?? selectedSpecies.biome ?? 'Unknown'}</strong></div>
+          <div><span>Average life span</span><strong>{atlasDetails.averageLifeSpan ?? 'Unknown'}</strong></div>
+          <div className="is-wide"><span>Adult age</span><strong>{atlasDetails.adultAge ?? 'Unknown'}</strong></div>
         </div>
       </aside>
     </section>

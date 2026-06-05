@@ -1470,6 +1470,10 @@ body:has(.debug-panel) .app-version-footnote {
   padding: 0.7rem;
 }
 
+.encyclopedia-stat-grid div.is-wide {
+  grid-column: 1 / -1;
+}
+
 .encyclopedia-stat-grid strong {
   display: block;
   margin-top: 0.25rem;

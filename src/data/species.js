@@ -66,6 +66,12 @@ export const SPECIES = [
       code: 'LC',
       label: 'Least Concern',
     },
+    atlasDetails: {
+      commonDiet: 'Copepods, nauplii, zoea larvae, larval bivalves and gastropods, plus dinoflagellates; juveniles also graze phytoplankton.',
+      foundIn: 'Indo-West Pacific: Red Sea and Mozambique east to the Philippines and Fiji, north to Taiwan/Okinawa and south to northern Australia.',
+      averageLifeSpan: 'Up to about 8 years reported.',
+      adultAge: 'Not well documented by age; first maturity is around 15 cm body length.',
+    },
     description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. Small and bright, it reaches a largest documented body length of about 27 cm total length and moves as a flickering coastal school rather than a lone specimen.',
     maxBodyLengthMeters: 0.27,
     swim: {
@@ -114,6 +120,12 @@ export const SPECIES = [
       system: 'IUCN Red List',
       code: 'NE',
       label: 'Not Evaluated',
+    },
+    atlasDetails: {
+      commonDiet: 'Jellyfish, salps, crustaceans, mollusks, squid, small fish, and other soft-bodied pelagic prey gathered during deep dives.',
+      foundIn: 'Circumglobal open ocean outside the polar regions, especially temperate and subtropical Southern Hemisphere waters.',
+      averageLifeSpan: 'Not well documented in the wild.',
+      adultAge: 'Not well documented by age; adult head and chin bumps appear from roughly 1.6 m body length.',
     },
     description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. Adult-ish head and chin bumps appear from roughly 1.6 m total length, and the largest documented animals reach about 3.3 m. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds.',
     adultLengthRangeMeters: [1.6, 3.3],

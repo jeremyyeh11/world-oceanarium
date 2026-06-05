@@ -256,6 +256,76 @@ function ModelAsset({ species, pose }) {
 
 const HUMAN_SCALE_METERS = 1.7
 const DIVER_IMAGE_ASPECT = 479 / 212
+const ATLAS_HEX_TEXTURE_SIZE = [1024, 576]
+
+function drawHex(ctx, centerX, centerY, radius, fillStyle) {
+  ctx.beginPath()
+  for (let index = 0; index < 6; index += 1) {
+    const angle = Math.PI / 6 + index * Math.PI / 3
+    const x = centerX + Math.cos(angle) * radius
+    const y = centerY + Math.sin(angle) * radius
+    if (index === 0) ctx.moveTo(x, y)
+    else ctx.lineTo(x, y)
+  }
+  ctx.closePath()
+  ctx.fillStyle = fillStyle
+  ctx.fill()
+}
+
+function paintAtlasHexTexture() {
+  const canvas = document.createElement('canvas')
+  const [width, height] = ATLAS_HEX_TEXTURE_SIZE
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, width, height)
+
+  const wash = ctx.createRadialGradient(width * 0.35, height * 0.24, 0, width * 0.42, height * 0.34, width * 0.72)
+  wash.addColorStop(0, 'rgba(160, 246, 255, 0.28)')
+  wash.addColorStop(0.42, 'rgba(52, 166, 222, 0.15)')
+  wash.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  ctx.fillStyle = wash
+  ctx.fillRect(0, 0, width, height)
+
+  ctx.save()
+  ctx.filter = 'blur(9px)'
+  ctx.globalCompositeOperation = 'lighter'
+  const radius = 96
+  const xStep = radius * 1.72
+  const yStep = radius * 1.5
+  for (let row = -2; row < 6; row += 1) {
+    for (let column = -2; column < 8; column += 1) {
+      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 92
+      const y = row * yStep + 18
+      const distanceFromGlow = Math.hypot((x - width * 0.46) / width, (y - height * 0.30) / height)
+      const alpha = Math.max(0, 0.28 - distanceFromGlow * 0.24)
+      if (alpha <= 0.028) continue
+      drawHex(ctx, x, y, radius, `rgba(116, 229, 255, ${alpha.toFixed(3)})`)
+    }
+  }
+  drawHex(ctx, width * 0.18, height * 0.18, 138, 'rgba(196, 251, 255, 0.18)')
+  drawHex(ctx, width * 0.74, height * 0.24, 126, 'rgba(83, 200, 255, 0.16)')
+  drawHex(ctx, width * 0.80, height * 0.72, 142, 'rgba(184, 248, 255, 0.10)')
+  ctx.restore()
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.needsUpdate = true
+  return texture
+}
+
+function AtlasHexBackdrop() {
+  const texture = useMemo(() => paintAtlasHexTexture(), [])
+
+  useEffect(() => () => texture.dispose(), [texture])
+
+  return (
+    <mesh position={[0, -0.08, -4.8]} scale={[16, 9, 1]} renderOrder={-30} raycast={() => null}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={texture} transparent opacity={1} depthWrite={false} depthTest={false} toneMapped={false} />
+    </mesh>
+  )
+}
 
 const DEFAULT_DIVER_POSE = {
   position: [1.35, -1.62, -0.85],
@@ -353,6 +423,7 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
     <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
       <AtlasCamera pose={pose} />
       <SceneLighting biome="ocean" />
+      <AtlasHexBackdrop />
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
       <WaterSurface biome="ocean" />

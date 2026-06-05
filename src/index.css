@@ -1287,20 +1287,39 @@ body:has(.debug-panel) .app-version-footnote {
   border: 1px solid rgba(171, 225, 255, 0.12);
   border-radius: 0;
   background:
-    linear-gradient(180deg, rgba(92, 171, 205, 0.24), transparent 46%),
-    radial-gradient(circle at 50% 68%, rgba(104, 207, 246, 0.18), transparent 38%),
-    linear-gradient(180deg, rgba(6, 32, 54, 0.86), rgba(3, 16, 31, 0.88));
+    radial-gradient(circle at 22% 18%, rgba(167, 241, 255, 0.22), transparent 31%),
+    radial-gradient(circle at 72% 34%, rgba(62, 182, 241, 0.24), transparent 34%),
+    linear-gradient(180deg, rgba(109, 197, 229, 0.30), transparent 48%),
+    radial-gradient(circle at 50% 68%, rgba(104, 207, 246, 0.20), transparent 40%),
+    linear-gradient(180deg, rgba(8, 39, 66, 0.88), rgba(3, 16, 31, 0.88));
+}
+
+.encyclopedia-model-stage::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.24;
+  filter: blur(7px);
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle at 32% 18%, rgba(176, 250, 255, 0.30), transparent 25%),
+    radial-gradient(circle at 78% 72%, rgba(80, 194, 255, 0.24), transparent 30%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='226' viewBox='0 0 260 226'%3E%3Cg fill='%236bdfff' fill-opacity='0.20'%3E%3Cpolygon points='65 10 117 40 117 100 65 130 13 100 13 40'/%3E%3Cpolygon points='195 10 247 40 247 100 195 130 143 100 143 40'/%3E%3Cpolygon points='130 96 182 126 182 186 130 216 78 186 78 126'/%3E%3C/g%3E%3Cg fill='%23d9fbff' fill-opacity='0.10'%3E%3Cpolygon points='0 96 52 126 52 186 0 216 -52 186 -52 126'/%3E%3Cpolygon points='260 96 312 126 312 186 260 216 208 186 208 126'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: cover, cover, 12rem 10.4rem;
+  background-position: center, center, 8% 9%;
 }
 
 .encyclopedia-model-stage.is-tank-backdrop::after {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 42%, transparent 0 34%, rgba(0, 8, 22, 0.18) 72%),
-    linear-gradient(90deg, rgba(0, 8, 18, 0.18), transparent 28%, transparent 72%, rgba(0, 8, 18, 0.18));
+    radial-gradient(circle at 50% 42%, transparent 0 34%, rgba(0, 8, 22, 0.12) 72%),
+    linear-gradient(90deg, rgba(0, 8, 18, 0.12), transparent 28%, transparent 72%, rgba(0, 8, 18, 0.12));
 }
 
 .encyclopedia-model-stage canvas {

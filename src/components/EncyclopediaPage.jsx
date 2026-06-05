@@ -696,7 +696,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           <div className="is-wide"><span>Common diet</span><strong>{atlasDetails.commonDiet ?? 'Unknown'}</strong></div>
           <div className="is-wide"><span>Found in</span><strong>{atlasDetails.foundIn ?? 'Unknown'}</strong></div>
           <div><span>Biome</span><strong>{biome?.name ?? selectedSpecies.biome ?? 'Unknown'}</strong></div>
-          <div><span>Average life span</span><strong>{atlasDetails.averageLifeSpan ?? 'Unknown'}</strong></div>
+          <div><span>Life span</span><strong>{atlasDetails.lifeSpan ?? 'Unknown'}</strong></div>
           <div className="is-wide"><span>Adult age</span><strong>{atlasDetails.adultAge ?? 'Unknown'}</strong></div>
         </div>
       </aside>

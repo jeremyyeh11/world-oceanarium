@@ -233,17 +233,16 @@ const DIVER_IMAGE_ASPECT = 478.65 / 211.93
 const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     position: [2.15, -0.02, 0.95],
-    opacity: 0.34,
+    opacity: 0.62,
   },
   'mola-alexandrini': {
     position: [1.32, -0.72, 0.95],
-    opacity: 0.42,
+    opacity: 0.68,
   },
 }
 
 function AtlasDiverScale({ species }) {
-  const texture = useTexture('/atlas/diver.svg')
-  const meshRef = useRef(null)
+  const texture = useTexture('/atlas/diver.svg?v=2')
   const lengthMeters = speciesLengthMeters(species)
   const pose = viewPoseForSpecies(species)
   const displayedLength = displayedSpeciesLengthUnits(species, pose)
@@ -253,18 +252,22 @@ function AtlasDiverScale({ species }) {
   const height = width / DIVER_IMAGE_ASPECT
   const diverPose = DIVER_POSES_BY_SPECIES[species?.id] ?? {
     position: [1.35, -1.36, 0.95],
-    opacity: 0.62,
+    opacity: 0.78,
   }
 
-  useFrame(({ camera }) => {
-    if (meshRef.current) meshRef.current.lookAt(camera.position)
-  })
-
   return (
-    <mesh ref={meshRef} position={diverPose.position} scale={[width, height, 1]} raycast={() => null}>
-      <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial color="#8fb6c6" map={texture} transparent opacity={diverPose.opacity} alphaTest={0.01} side={THREE.DoubleSide} depthWrite={false} depthTest={false} toneMapped={false} />
-    </mesh>
+    <sprite position={diverPose.position} scale={[width, height, 1]} renderOrder={20} raycast={() => null}>
+      <spriteMaterial
+        color="#d9f4ff"
+        map={texture}
+        transparent
+        opacity={diverPose.opacity}
+        alphaTest={0.01}
+        depthWrite={false}
+        depthTest={false}
+        toneMapped={false}
+      />
+    </sprite>
   )
 }
 

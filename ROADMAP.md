@@ -89,6 +89,7 @@ Reference:
 - `v0.8.6-dev_17` rasterizes the supplied diver SVG into a PNG texture so browser/WebGL SVG-texture handling cannot hide the scale reference.
 - `v0.8.6-dev_18` replaces the diver texture with Jeremy's new PNG, renders it black, and lowers opacity for a quieter scale read.
 - `v0.8.6-dev_19` fixes Atlas Mola material rendering by forcing cloned GLB materials to opaque front-face/depth-writing mode so opposite-side eye geometry cannot bleed through.
+- `v0.8.6-dev_20` lowers the diver silhouette and moves it behind the fish with depth testing so it reads as background scale, not a foreground overlay.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

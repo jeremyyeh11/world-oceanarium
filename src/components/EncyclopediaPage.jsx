@@ -339,9 +339,9 @@ function AtlasHexBackdrop() {
   useEffect(() => () => texture.dispose(), [texture])
 
   return (
-    <mesh position={[0, -0.08, -4.8]} scale={[16, 9, 1]} renderOrder={-30} raycast={() => null}>
+    <mesh position={[0, 0, -24]} scale={[84, 48, 1]} renderOrder={-100} raycast={() => null}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} depthWrite={false} depthTest toneMapped={false} />
+      <meshBasicMaterial map={texture} depthWrite={false} depthTest={false} toneMapped={false} />
     </mesh>
   )
 }

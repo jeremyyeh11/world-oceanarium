@@ -263,11 +263,11 @@ const DEFAULT_DIVER_POSE = {
 
 const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
-    position: [2.15, -0.42, -0.85],
+    position: [2.25, -0.55, -0.85],
     opacity: 0.34,
   },
   'mola-alexandrini': {
-    position: [1.32, -1.2, -0.85],
+    position: [-0.6, -2.15, -0.85],
     opacity: 0.38,
   },
 }
@@ -288,7 +288,9 @@ function normalizeDiverPose(candidate, fallback = DEFAULT_DIVER_POSE) {
 
 function mergedDiverPoseForSpecies(species, overridePose = null) {
   const basePose = baseDiverPoseForSpecies(species)
-  return normalizeDiverPose(overridePose, basePose)
+  const pose = normalizeDiverPose(overridePose, basePose)
+  pose.position[2] = basePose.position[2]
+  return pose
 }
 
 function AtlasDiverScale({ species, diverPoseOverride = null }) {
@@ -348,6 +350,7 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
 
   return (
     <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
+      <color attach="background" args={['#082841']} />
       <AtlasCamera pose={pose} />
       <SceneLighting biome="ocean" />
       <directionalLight position={[4, 5, 6]} intensity={2.8} />
@@ -439,7 +442,6 @@ function AtlasDiverPoseEditor({ species, pose, onPoseChange, onReset }) {
   const controls = [
     { label: 'X', index: 0, min: -4, max: 4, step: 0.05 },
     { label: 'Y', index: 1, min: -3, max: 2, step: 0.05 },
-    { label: 'Z', index: 2, min: -2.5, max: 1.5, step: 0.05 },
   ]
 
   const updatePosition = (index, value) => {
@@ -501,7 +503,7 @@ function AtlasDiverPoseEditor({ species, pose, onPoseChange, onReset }) {
         <button type="button" onClick={copyPose}>{copyState}</button>
         <button type="button" onClick={onReset}>Reset species</button>
       </div>
-      <p>Ctrl+Shift+D hides/shows this panel. Saves locally in this browser.</p>
+      <p>Ctrl+Shift+D hides/shows this panel. Saves locally in this browser. Z is fixed at -0.85 so scale stays comparable.</p>
     </aside>
   )
 }
@@ -535,7 +537,10 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
     const speciesId = selectedSpecies?.id
     if (!speciesId) return
     setStoredDiverPoses(current => {
-      const next = { ...current, [speciesId]: normalizeDiverPose(nextPose, baseDiverPoseForSpecies(selectedSpecies)) }
+      const basePose = baseDiverPoseForSpecies(selectedSpecies)
+      const normalizedPose = normalizeDiverPose(nextPose, basePose)
+      normalizedPose.position[2] = basePose.position[2]
+      const next = { ...current, [speciesId]: normalizedPose }
       saveStoredDiverPoses(next)
       return next
     })

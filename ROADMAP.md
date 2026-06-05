@@ -85,6 +85,9 @@ Reference:
 - `v0.8.6-dev_13` lowers the diver silhouette opacity and adds the IUCN Red List conservation-status bar to the Atlas info panel.
 - `v0.8.6-dev_14` fixes diver plane visibility with double-sided camera-facing mesh behavior and turns the Atlas camera 15° left/up for a slight front-left, top-down fish view.
 - `v0.8.6-dev_15` makes the diver silhouette visible against the dark tank backdrop and turns the Atlas camera another 15° left, for 30° left / 15° top-down.
+- `v0.8.6-dev_16` switches the Atlas diver reference to a camera-facing sprite using the supplied SVG texture, with tint-safe fill normalization and depth testing disabled.
+- `v0.8.6-dev_17` rasterizes the supplied diver SVG into a PNG texture so browser/WebGL SVG-texture handling cannot hide the scale reference.
+- `v0.8.6-dev_18` replaces the diver texture with Jeremy's new PNG, renders it black, and lowers opacity for a quieter scale read.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

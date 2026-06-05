@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_17`.
+Status: in development; current visible dev patch is `v0.8.6-dev_18`.
 
 ### Interface / encyclopaedia
 
@@ -32,6 +32,7 @@ Status: in development; current visible dev patch is `v0.8.6-dev_17`.
 - `v0.8.6-dev_15` makes the diver silhouette visibly render against the dark tank backdrop with a pale translucent mesh material, and turns the Atlas camera another 15° left for a 30° front-left view.
 - `v0.8.6-dev_16` switches the Atlas diver scale reference to a camera-facing sprite using the supplied SVG texture, normalizes the SVG fill to tint correctly, raises its opacity, and disables depth testing so it remains visible in front of the dark tank viewport.
 - `v0.8.6-dev_17` rasterizes the supplied diver SVG into a PNG texture and uses that PNG for the Atlas sprite so browser/WebGL SVG-texture handling cannot hide the scale reference.
+- `v0.8.6-dev_18` replaces the Atlas diver texture with Jeremy's new PNG, normalizes it to a black silhouette, and lowers the sprite opacity so it reads as a quieter scale reference.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1

@@ -228,16 +228,16 @@ function ModelAsset({ species, pose }) {
 }
 
 const HUMAN_SCALE_METERS = 1.7
-const DIVER_IMAGE_ASPECT = 478.65 / 211.93
+const DIVER_IMAGE_ASPECT = 479 / 212
 
 const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     position: [2.15, -0.02, 0.95],
-    opacity: 0.62,
+    opacity: 0.34,
   },
   'mola-alexandrini': {
     position: [1.32, -0.72, 0.95],
-    opacity: 0.68,
+    opacity: 0.38,
   },
 }
 
@@ -252,13 +252,13 @@ function AtlasDiverScale({ species }) {
   const height = width / DIVER_IMAGE_ASPECT
   const diverPose = DIVER_POSES_BY_SPECIES[species?.id] ?? {
     position: [1.35, -1.36, 0.95],
-    opacity: 0.78,
+    opacity: 0.42,
   }
 
   return (
     <sprite position={diverPose.position} scale={[width, height, 1]} renderOrder={20} raycast={() => null}>
       <spriteMaterial
-        color="#d9f4ff"
+        color="#000000"
         map={texture}
         transparent
         opacity={diverPose.opacity}

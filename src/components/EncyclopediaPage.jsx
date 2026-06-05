@@ -268,7 +268,7 @@ const DIVER_POSES_BY_SPECIES = {
     opacity: 0.34,
   },
   'mola-alexandrini': {
-    position: [-0.6, -2.15, -0.85],
+    position: [-1.05, -2.05, -0.85],
     opacity: 0.38,
   },
 }

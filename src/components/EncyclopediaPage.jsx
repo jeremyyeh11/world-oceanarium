@@ -278,35 +278,54 @@ function paintAtlasHexTexture() {
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')
-  ctx.clearRect(0, 0, width, height)
 
-  const wash = ctx.createRadialGradient(width * 0.35, height * 0.24, 0, width * 0.42, height * 0.34, width * 0.72)
-  wash.addColorStop(0, 'rgba(160, 246, 255, 0.28)')
-  wash.addColorStop(0.42, 'rgba(52, 166, 222, 0.15)')
-  wash.addColorStop(1, 'rgba(0, 0, 0, 0)')
-  ctx.fillStyle = wash
+  const base = ctx.createLinearGradient(0, 0, 0, height)
+  base.addColorStop(0, '#2c7687')
+  base.addColorStop(0.34, '#1d5969')
+  base.addColorStop(0.66, '#123a49')
+  base.addColorStop(1, '#061a27')
+  ctx.fillStyle = base
+  ctx.fillRect(0, 0, width, height)
+
+  const topGlow = ctx.createRadialGradient(width * 0.34, -height * 0.05, 0, width * 0.36, height * 0.12, width * 0.86)
+  topGlow.addColorStop(0, 'rgba(195, 250, 255, 0.26)')
+  topGlow.addColorStop(0.46, 'rgba(85, 169, 188, 0.12)')
+  topGlow.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  ctx.fillStyle = topGlow
   ctx.fillRect(0, 0, width, height)
 
   ctx.save()
-  ctx.filter = 'blur(9px)'
-  ctx.globalCompositeOperation = 'lighter'
-  const radius = 96
-  const xStep = radius * 1.72
-  const yStep = radius * 1.5
-  for (let row = -2; row < 6; row += 1) {
-    for (let column = -2; column < 8; column += 1) {
-      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 92
-      const y = row * yStep + 18
-      const distanceFromGlow = Math.hypot((x - width * 0.46) / width, (y - height * 0.30) / height)
-      const alpha = Math.max(0, 0.28 - distanceFromGlow * 0.24)
-      if (alpha <= 0.028) continue
-      drawHex(ctx, x, y, radius, `rgba(116, 229, 255, ${alpha.toFixed(3)})`)
+  ctx.filter = 'blur(18px)'
+  ctx.globalAlpha = 0.88
+  const radius = 86
+  const xStep = radius * 1.7
+  const yStep = radius * 1.48
+  for (let row = -1; row < 6; row += 1) {
+    for (let column = -1; column < 9; column += 1) {
+      const x = column * xStep + (row % 2 ? xStep * 0.5 : 0) + 18
+      const y = row * yStep + 22
+      const verticalFade = y < height * 0.12 ? 0.46 : y > height * 0.74 ? 1.0 : 0.68
+      const horizontalFade = Math.max(0.42, 1 - Math.abs(x - width * 0.54) / (width * 0.86))
+      const alpha = verticalFade * horizontalFade
+      drawHex(ctx, x, y, radius, `rgba(0, 13, 24, ${alpha.toFixed(3)})`)
     }
   }
-  drawHex(ctx, width * 0.18, height * 0.18, 138, 'rgba(196, 251, 255, 0.18)')
-  drawHex(ctx, width * 0.74, height * 0.24, 126, 'rgba(83, 200, 255, 0.16)')
-  drawHex(ctx, width * 0.80, height * 0.72, 142, 'rgba(184, 248, 255, 0.10)')
   ctx.restore()
+
+  ctx.save()
+  ctx.filter = 'blur(16px)'
+  ctx.globalCompositeOperation = 'screen'
+  drawHex(ctx, width * 0.18, height * 0.26, 120, 'rgba(102, 185, 199, 0.12)')
+  drawHex(ctx, width * 0.62, height * 0.22, 128, 'rgba(73, 154, 178, 0.08)')
+  drawHex(ctx, width * 0.88, height * 0.56, 132, 'rgba(59, 136, 164, 0.07)')
+  ctx.restore()
+
+  const bottomBand = ctx.createLinearGradient(0, height * 0.70, 0, height)
+  bottomBand.addColorStop(0, 'rgba(0, 0, 0, 0)')
+  bottomBand.addColorStop(0.36, 'rgba(0, 10, 20, 0.46)')
+  bottomBand.addColorStop(1, 'rgba(0, 6, 14, 0.84)')
+  ctx.fillStyle = bottomBand
+  ctx.fillRect(0, 0, width, height)
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
@@ -322,7 +341,7 @@ function AtlasHexBackdrop() {
   return (
     <mesh position={[0, -0.08, -4.8]} scale={[16, 9, 1]} renderOrder={-30} raycast={() => null}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} transparent opacity={1} depthWrite={false} depthTest={false} toneMapped={false} />
+      <meshBasicMaterial map={texture} depthWrite={false} depthTest toneMapped={false} />
     </mesh>
   )
 }

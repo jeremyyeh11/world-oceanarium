@@ -1118,8 +1118,8 @@ body:has(.debug-panel) .app-version-footnote {
   display: grid;
   grid-template-columns: minmax(15rem, 20vw) minmax(0, 1fr) minmax(18rem, 24vw);
   grid-template-rows: auto 1fr;
-  gap: clamp(0.85rem, 1.4vw, 1.25rem);
-  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  gap: 0;
+  padding: 0;
   color: rgba(240, 252, 255, 0.94);
   background:
     radial-gradient(circle at 42% 18%, rgba(83, 162, 196, 0.24), transparent 38%),
@@ -1133,8 +1133,32 @@ body:has(.debug-panel) .app-version-footnote {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgba(180, 229, 255, 0.13);
+  padding: max(0.8rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 0.8rem max(1rem, env(safe-area-inset-left));
+  border: 1px solid rgba(180, 229, 255, 0.13);
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.encyclopedia-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.atlas-version-label {
+  border: 0;
+  background: transparent;
+  color: rgba(195, 231, 245, 0.58);
+  font: 0.68rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.atlas-version-label:hover,
+.atlas-version-label:focus-visible,
+.atlas-version-label.is-active {
+  color: rgba(201, 250, 255, 0.86);
 }
 
 .encyclopedia-topbar p,
@@ -1170,7 +1194,7 @@ body:has(.debug-panel) .app-version-footnote {
 .encyclopedia-info-panel {
   min-height: 0;
   border: 1px solid rgba(171, 225, 255, 0.16);
-  border-radius: 24px;
+  border-radius: 0;
   background: rgba(4, 19, 34, 0.62);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 24px 80px rgba(0,0,0,0.2);
   backdrop-filter: blur(18px);
@@ -1254,7 +1278,7 @@ body:has(.debug-panel) .app-version-footnote {
   min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(171, 225, 255, 0.12);
-  border-radius: 28px;
+  border-radius: 0;
   background:
     linear-gradient(180deg, rgba(82, 126, 146, 0.18), transparent 44%),
     radial-gradient(circle at 50% 68%, rgba(94, 181, 216, 0.11), transparent 36%),

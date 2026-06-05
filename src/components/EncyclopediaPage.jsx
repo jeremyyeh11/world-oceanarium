@@ -4,6 +4,7 @@ import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { APP_VERSION_SHORT_LABEL } from '../version'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import WaterSurface from './WaterSurface'
@@ -499,7 +500,7 @@ function AtlasDiverPoseEditor({ species, pose, onPoseChange, onReset }) {
         <button type="button" onClick={copyPose}>{copyState}</button>
         <button type="button" onClick={onReset}>Reset species</button>
       </div>
-      <p>Triple-tap the version label to hide/show. Saves locally in this browser.</p>
+      <p>Ctrl+Shift+D hides/shows this panel. Saves locally in this browser.</p>
     </aside>
   )
 }
@@ -515,8 +516,18 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
 
   useEffect(() => {
     const togglePoseEditor = () => setPoseEditorOpen(current => !current)
+    const togglePoseEditorFromShortcut = (event) => {
+      if (!event.ctrlKey || !event.shiftKey || event.key.toLowerCase() !== 'd') return
+      event.preventDefault()
+      togglePoseEditor()
+    }
+
     window.addEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
-    return () => window.removeEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
+    window.addEventListener('keydown', togglePoseEditorFromShortcut)
+    return () => {
+      window.removeEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
+      window.removeEventListener('keydown', togglePoseEditorFromShortcut)
+    }
   }, [])
 
   const updateDiverPose = (nextPose) => {
@@ -546,7 +557,22 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         <div>
           <h1>The Atlas</h1>
         </div>
-        <button className="encyclopedia-close" type="button" onClick={onClose} aria-label="Close encyclopaedia">×</button>
+        <div className="encyclopedia-topbar-actions">
+          <button
+            className={`atlas-version-label${poseEditorOpen ? ' is-active' : ''}`}
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              setPoseEditorOpen(current => !current)
+            }}
+            aria-label="Toggle Atlas diver pose editor"
+            aria-pressed={poseEditorOpen}
+            title="Ctrl+Shift+D toggles diver pose editor"
+          >
+            {APP_VERSION_SHORT_LABEL}
+          </button>
+          <button className="encyclopedia-close" type="button" onClick={onClose} aria-label="Close encyclopaedia">×</button>
+        </div>
       </div>
 
       <aside className="encyclopedia-species-list" aria-label="Species list">

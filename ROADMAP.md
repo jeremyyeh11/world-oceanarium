@@ -91,6 +91,7 @@ Reference:
 - `v0.8.6-dev_19` fixes Atlas Mola material rendering by forcing cloned GLB materials to opaque front-face/depth-writing mode so opposite-side eye geometry cannot bleed through.
 - `v0.8.6-dev_20` lowers the diver silhouette and moves it behind the fish with depth testing so it reads as background scale, not a foreground overlay.
 - `v0.8.6-dev_21` adds a debug-gated Atlas diver pose editor using the same triple-tap version-label activation; edits persist locally and can be copied as JSON for code commits.
+- `v0.8.6-dev_22` switches Atlas pose-editor activation to `Ctrl+Shift+D`, restores a visible Atlas version label, and changes Atlas panels to square full-bleed bordered sections.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

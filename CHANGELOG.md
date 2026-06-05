@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_21`.
+Status: in development; current visible dev patch is `v0.8.6-dev_22`.
 
 ### Interface / encyclopaedia
 
@@ -36,6 +36,7 @@ Status: in development; current visible dev patch is `v0.8.6-dev_21`.
 - `v0.8.6-dev_19` sanitizes Atlas GLB materials to render opaque front faces with depth writes, preventing Mola's opposite eye/interior surfaces from showing through the head.
 - `v0.8.6-dev_20` lowers the Atlas diver silhouette and places it behind the fish with depth testing so creature bodies occlude the scale reference instead of being covered by it.
 - `v0.8.6-dev_21` adds a debug-gated Atlas diver pose editor with X/Y/Z/opacity sliders, per-species localStorage persistence, reset, and copyable pose JSON for committing reviewed placements.
+- `v0.8.6-dev_22` moves Atlas pose-editor activation to `Ctrl+Shift+D`, shows the Atlas version label in the overlay, and squares/full-bleeds the Atlas panels while keeping thin borders.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1

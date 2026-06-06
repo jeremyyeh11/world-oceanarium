@@ -77,7 +77,7 @@ const LEADER_RIM_INTENSITY = 0.8
 const DEBUG_FOLLOW_TARGET_YELLOW = new THREE.Color('#ffd166')
 const DEBUG_FOLLOW_TARGET_REPULSER_RED = new THREE.Color('#ff3b30')
 const RIM_POWER = 3.1
-const FISH_LIGHT_MASK_DIAGNOSTIC = true
+const FISH_LIGHT_MASK_ENABLED = true
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
 const SARDINE_VIEW_CULL_MARGIN_NDC = 1.28
 const SCHOOL_SPACING = 0.58
@@ -1619,8 +1619,8 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   material.needsUpdate = true
 }
 
-function applyFishLightMaskDiagnostic(material, rim = null) {
-  if (!FISH_LIGHT_MASK_DIAGNOSTIC && !rim) return
+function applyFishLightMask(material, rim = null) {
+  if (!FISH_LIGHT_MASK_ENABLED && !rim) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
@@ -1687,7 +1687,7 @@ float fishMaskFbm(vec3 p) {
       )
       .replace(
         '#include <dithering_fragment>',
-        `${FISH_LIGHT_MASK_DIAGNOSTIC ? `vec3 maskPos = vFishWorldPosition;
+        `${FISH_LIGHT_MASK_ENABLED ? `vec3 maskPos = vFishWorldPosition;
 float t = uFishLightMaskTime;
 vec3 warpedPos = maskPos;
 warpedPos.x += (fishMaskFbm(maskPos * vec3(0.18, 0.28, 0.16) + vec3(t * 0.018, -t * 0.010, 1.7)) - 0.5) * 4.8;
@@ -1706,7 +1706,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`
       )
   }
-  material.customProgramCacheKey = () => `fish-light-mask-diagnostic:${FISH_LIGHT_MASK_DIAGNOSTIC ? 'on' : 'off'}:${rimKey}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
   material.needsUpdate = true
 }
@@ -1731,7 +1731,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
         nextMaterial.emissive.set(lodDebugColor)
         nextMaterial.emissiveIntensity = 0.32
       }
-      applyFishLightMaskDiagnostic(nextMaterial, rim)
+      applyFishLightMask(nextMaterial, rim)
       materials.push(nextMaterial)
       return nextMaterial
     })

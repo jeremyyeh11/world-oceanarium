@@ -1,0 +1,1 @@
+export const SARDINE_MATERIAL_ROUGHNESS = 0.2

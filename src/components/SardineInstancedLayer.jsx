@@ -4,12 +4,12 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
 import { hashString } from '../utils/hash'
+import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
 
 const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
 const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
 const MAX_INSTANCES_PER_VARIANT = 1024
 const SARDINE_MODEL_SCALE = 0.42
-const SARDINE_MATERIAL_ROUGHNESS = 0.2
 const SARDINE_LIGHT_MASK_DIAGNOSTIC = true
 
 const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0)

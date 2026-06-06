@@ -10,6 +10,7 @@ import { SURFACE_PLANE_Y } from './WaterSurface'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { creatureRepulsesOthers, lerpRepulserDrift, repulserDebugIntensity, resolveRepulserDriftVector } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
+import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -32,7 +33,6 @@ const TANK_CAMERA_ASPECT = 16 / 9
 const SCREEN_X_SAFE_FRACTION = 0.78
 const GLOBAL_X_DESTINATION_RANGE_SCALE = 0.9
 
-const SARDINE_MATERIAL_ROUGHNESS = 0.2
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
   visualTimeScale: 0.45,

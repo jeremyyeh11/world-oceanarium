@@ -11,6 +11,7 @@ import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/s
 import { creatureRepulsesOthers, lerpRepulserDrift, repulserDebugIntensity, resolveRepulserDriftVector } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
+import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -2916,7 +2917,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     fish.up.lerp(up, 0.18)
 
     if (debug && canInstanceSardine && typeof window !== 'undefined') {
-      const stats = window.__WO_SARDINE_DEBUG ?? { frames: 0, samples: [] }
+      const stats = window[SARDINE_DEBUG_GLOBAL] ?? { frames: 0, samples: [] }
       stats.frames += 1
       if (stats.samples.length < 12 || selected) {
         const projected = fish.position.clone().project(camera)
@@ -2953,7 +2954,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (index >= 0) stats.samples[index] = sample
         else stats.samples.push(sample)
       }
-      window.__WO_SARDINE_DEBUG = stats
+      window[SARDINE_DEBUG_GLOBAL] = stats
     }
 
     const forceDetailedForDebug = debug && !debugLodView

@@ -11,6 +11,7 @@ import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
+import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
 const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
 const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
@@ -24,7 +25,6 @@ const LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS = 4.0
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
-const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const RECOVERY_NOTICE_DURATION_MS = 4200
 
@@ -385,7 +385,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       frameCount += 1
       const elapsed = now - sampleStartedAt
       if (elapsed >= FPS_SAMPLE_MS) {
-        const instanceDebug = window.__WO_SARDINE_INSTANCE_DEBUG
+        const instanceDebug = window[SARDINE_INSTANCE_DEBUG_GLOBAL]
         const instancingMode = instanceDebug?.mode ?? 'off'
         const lod1Drawn = Number.isFinite(instanceDebug?.lod1Total) ? instanceDebug.lod1Total : 0
         const lod2Drawn = Number.isFinite(instanceDebug?.lod2Total) ? instanceDebug.lod2Total : (Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0)

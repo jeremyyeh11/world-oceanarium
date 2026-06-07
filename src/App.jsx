@@ -4,13 +4,13 @@ import SearchControl from './components/SearchControl'
 import { BIOMES } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
+import { DEBUG_TOGGLE_EVENT } from './utils/debugIdentifiers'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from './version'
 
 const DEFAULT_BIOME_ID = 'ocean'
 const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
 const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
-const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const AUDIO_BOOT_START_DELAYS_MS = [0, 60, 180, 500, 1200, 2500]
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 const AUDIO_SESSION_RECOVERY_MS = 2500

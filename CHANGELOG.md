@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.5 — Follow mode stability
 
-Status: in development as `v0.8.5-dev_3`.
+Status: accepted and promoted as clean `v0.8.5` from `v0.8.5-dev_3` after Jeremy approval.
 
 ### Camera / controls
 

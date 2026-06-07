@@ -93,6 +93,7 @@ Reference:
 - `v0.8.6-dev_21` adds a debug-gated Atlas diver pose editor using the same triple-tap version-label activation; edits persist locally and can be copied as JSON for code commits.
 - `v0.8.6-dev_22` switches Atlas pose-editor activation to `Ctrl+Shift+D`, restores a visible Atlas version label, and changes Atlas panels to square full-bleed bordered sections.
 - `v0.8.6-dev_46` keeps this work on the Atlas branch while tightening the followed-creature card: short quick facts, shorter depth/measurement labels, and a neutral empty-note placeholder.
+- `v0.8.6-dev_47` makes Atlas facts more scannable with concise labels/copy while keeping the main species description as the longer personality paragraph; the tank follow info card hides biome/zone/diet/social facts.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:
@@ -133,6 +134,18 @@ Subtasks:
 - [ ] Add species data, movement profile, selection copy, and LOD/render path.
 - [ ] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
 - [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
+
+#### Sardine procedural snap/micro-correct experiment
+
+Status: `Backlog`
+
+Reference:
+- `v0.8.5-dev_14` refined sardine snap presets, removed idle/micro-correct/startle-flick lab presets, removed tank-view micro-correct/startle-flick moments, and remapped drift to cruise.
+- Jeremy judged this direction not working well for now; stick to authored animation clips for the current release path.
+
+Subtasks:
+- [ ] Preserve as an incomplete/future-version experiment only.
+- [ ] Do not reintroduce procedural sardine snap/micro-correct/startle-flick behavior unless explicitly promoted later.
 
 #### Rejected/saved visual experiments
 

@@ -1,9 +1,8 @@
-import { BIOMES, DEPTH_ZONES, SPECIES } from '../data/species'
+import { DEPTH_ZONES, SPECIES } from '../data/species'
 import { creatureBodyLengthMeters } from '../utils/speciesLookup'
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
-const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 const DEFAULT_MASS = {
   coefficient: 0.008,
   exponent: 3,
@@ -245,33 +244,6 @@ function compactDepthLabel(depthZone, fallback) {
   return depthZone?.shortLabel ?? depthZone?.name ?? fallback ?? 'Unknown'
 }
 
-function speciesTrait(species) {
-  if (species?.atlasSummary?.social) return species.atlasSummary.social
-  if (species?.schooling) return 'Schooling'
-  if (species?.predator) return 'Predator'
-  return 'Solo'
-}
-
-function buildFacts({ creature, species, depthLabel }) {
-  const biome = BIOME_BY_ID.get(creature.biome ?? species?.biome)
-  const summary = species?.atlasSummary ?? {}
-  return [
-    { label: 'Biome', value: summary.biome ?? biome?.name },
-    { label: 'Zone', value: summary.zone ?? depthLabel },
-    { label: 'Diet', value: summary.diet },
-    { label: 'Social', value: speciesTrait(species) },
-  ].filter(fact => fact.value)
-}
-
-function Fact({ label, value }) {
-  return (
-    <div style={styles.fact}>
-      <span style={styles.factLabel}>{label}</span>
-      <span style={styles.factValue}>{value}</span>
-    </div>
-  )
-}
-
 function Stat({ label, value }) {
   return (
     <div style={styles.stat}>
@@ -289,7 +261,6 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
   const individualDescription = namedIndividualDescription(creature, customName)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
-  const facts = buildFacts({ creature, species, depthLabel })
 
   return (
     <section className="info-card" style={styles.wrap} aria-label={`${creature.species} details`}>
@@ -314,11 +285,6 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
         {species?.aggressive && <span style={styles.chip}>Aggressive</span>}
       </div>
 
-      {facts.length > 0 && (
-        <div style={styles.facts} aria-label="Quick facts">
-          {facts.map(fact => <Fact key={fact.label} label={fact.label} value={fact.value} />)}
-        </div>
-      )}
 
       <p style={styles.individualDescription}>{individualDescription}</p>
 

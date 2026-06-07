@@ -690,14 +690,14 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         <ConservationStatusBar status={selectedSpecies.conservationStatus} />
         <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
         <div className="encyclopedia-stat-grid">
-          <div><span>Size (body length)</span><strong>{formatLengthRange(lengthRangeMeters)}</strong></div>
-          <div><span>Depth zone</span><strong>{depthZone?.shortLabel ?? selectedSpecies.depthZone ?? 'Unknown'}</strong></div>
+          <div><span>Size</span><strong>{formatLengthRange(lengthRangeMeters)}</strong></div>
+          <div><span>Zone</span><strong>{depthZone?.shortLabel ?? selectedSpecies.depthZone ?? 'Unknown'}</strong></div>
           <div><span>Behavior</span><strong>{selectedSpecies.schooling ? 'Schooling' : selectedSpecies.repulser ? 'Large solo presence' : 'Solo / pending'}</strong></div>
-          <div className="is-wide"><span>Common diet</span><strong>{atlasDetails.commonDiet ?? 'Unknown'}</strong></div>
-          <div className="is-wide"><span>Found in</span><strong>{atlasDetails.foundIn ?? 'Unknown'}</strong></div>
+          <div><span>Diet</span><strong>{atlasDetails.commonDiet ?? 'Unknown'}</strong></div>
+          <div><span>Range</span><strong>{atlasDetails.foundIn ?? 'Unknown'}</strong></div>
           <div><span>Biome</span><strong>{biome?.name ?? selectedSpecies.biome ?? 'Unknown'}</strong></div>
           <div><span>Life span</span><strong>{atlasDetails.lifeSpan ?? 'Unknown'}</strong></div>
-          <div className="is-wide"><span>Adult age</span><strong>{atlasDetails.adultAge ?? 'Unknown'}</strong></div>
+          <div><span>Adult</span><strong>{atlasDetails.adultAge ?? 'Unknown'}</strong></div>
         </div>
       </aside>
     </section>

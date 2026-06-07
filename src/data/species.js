@@ -67,10 +67,10 @@ export const SPECIES = [
       label: 'Least Concern',
     },
     atlasDetails: {
-      commonDiet: 'Copepods, nauplii, zoea larvae, larval bivalves and gastropods; juveniles also feed on phytoplankton.',
-      foundIn: 'Indo-West Pacific: Red Sea and Mozambique to the Philippines, Taiwan/Okinawa, New Guinea, northern Australia, Arafura Sea, and Fiji.',
-      lifeSpan: 'Maximum reported age: 8 years.',
-      adultAge: 'Age at maturity is not well documented; first maturity is reported around 15 cm body length.',
+      commonDiet: 'Copepods, larvae, plankton.',
+      foundIn: 'Indo-West Pacific coasts.',
+      lifeSpan: 'Up to 8 years reported.',
+      adultAge: 'Mature around 15 cm body length.',
     },
     atlasSummary: {
       biome: 'Ocean',
@@ -128,10 +128,10 @@ export const SPECIES = [
       label: 'Not Evaluated',
     },
     atlasDetails: {
-      commonDiet: 'Mostly soft-bodied pelagic prey such as jellyfish and salps; also reported eating crustaceans, mollusks, squid, and small fish.',
-      foundIn: 'Circumglobal open ocean outside polar regions, with many records from temperate and subtropical Southern Hemisphere waters.',
-      lifeSpan: 'Not well documented in the wild.',
-      adultAge: 'Age at maturity is not well documented; adult head and chin bumps appear from roughly 1.6 m body length.',
+      commonDiet: 'Jellyfish, salps, soft-bodied prey.',
+      foundIn: 'Open ocean outside polar regions.',
+      lifeSpan: 'Unknown in the wild.',
+      adultAge: 'Adult bumps from roughly 1.6 m.',
     },
     atlasSummary: {
       biome: 'Ocean',

@@ -2,7 +2,6 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const GOD_RAY_DIAGNOSTIC_WIREFRAME = false
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
 const GOD_RAY_SURFACE_START_Y = 15
 const SUSPENDED_PARTICLE_COUNT = 96
@@ -108,7 +107,7 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uSeed: { value: seed },
-    uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 1.05 : strength },
+    uStrength: { value: strength },
     uFadeLength: { value: fadeLength },
   }), [seed, strength, fadeLength])
 
@@ -133,21 +132,6 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
           side={THREE.DoubleSide}
         />
       </mesh>
-      {GOD_RAY_DIAGNOSTIC_WIREFRAME && (
-        <mesh raycast={() => null}>
-          <planeGeometry args={[width, height, 8, 8]} />
-          <meshBasicMaterial
-            color="#8eeeff"
-            transparent
-            opacity={0.20}
-            depthWrite={false}
-            depthTest
-            blending={THREE.NormalBlending}
-            side={THREE.DoubleSide}
-            wireframe
-          />
-        </mesh>
-      )}
     </group>
   )
 }

@@ -27,6 +27,7 @@ const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
 const FOLLOW_ORBIT_SELECTION_SUPPRESS_MS = 280
 const FOLLOW_ZOOM_SELECTION_SUPPRESS_MS = 360
+const FOLLOW_TOUCH_GESTURE_RESET_MS = 90
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const RECOVERY_NOTICE_DURATION_MS = 4200
 
@@ -382,6 +383,13 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     suppressCreatureFocusUntilRef.current = Math.max(suppressCreatureFocusUntilRef.current, performance.now() + durationMs)
   }
 
+  const resetFollowTouchGestureSoon = () => {
+    window.setTimeout(() => {
+      if (touchPointsRef.current.size > 0) return
+      if (dragRef.current?.mode === 'pinch') dragRef.current = null
+    }, FOLLOW_TOUCH_GESTURE_RESET_MS)
+  }
+
   const toggleDebugLayer = (layerId) => {
     setDebugLayers(current => ({ ...current, [layerId]: !current[layerId] }))
   }
@@ -570,7 +578,10 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (dragRef.current?.mode === 'pinch') {
       suppressCreatureFocusFor(FOLLOW_ZOOM_SELECTION_SUPPRESS_MS)
       setStagePanning(false)
-      if (touchPointsRef.current.size < 2) dragRef.current = null
+      if (touchPointsRef.current.size < 2) {
+        dragRef.current = null
+        resetFollowTouchGestureSoon()
+      }
       return
     }
 
@@ -621,8 +632,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         className="tank-stage"
         onPointerDown={startStageDrag}
         onPointerMove={moveStageDrag}
-        onPointerUp={endStageDrag}
-        onPointerCancel={endStageDrag}
+        onPointerUpCapture={endStageDrag}
+        onPointerCancelCapture={endStageDrag}
         onWheel={zoomFollowWithWheel}
       >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>

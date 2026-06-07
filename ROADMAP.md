@@ -70,11 +70,13 @@ Status: `Current in development`
 Reference:
 - `v0.8.5-dev_1` branch `fix/follow-mode-mobile-selection` addresses Jeremy's mobile follow-centering and disruptive orbit-release reselection reports.
 - `v0.8.5-dev_2` extends the same selection guard to mobile pinch zoom after Jeremy reported zoom-release reselection.
+- `v0.8.5-dev_3` fixes gesture recovery after finger-up lands on a fish, so movement is re-allowed after each touch sequence.
 
 Subtasks:
 - [x] Keep focused creature centered on mobile instead of biased by the phone info card or prior cropped-stage pan.
 - [x] Prevent follow-orbit drag release over another creature from switching focus.
 - [x] Prevent follow-zoom/pinch release over another creature from switching focus.
+- [x] Re-allow orbit/zoom movement after each touch sequence, even when finger-up lands on a fish.
 - [x] Verify desktop and phone-sized browser behavior before review.
 
 ### Feature backlog

@@ -96,6 +96,7 @@ Reference:
 - `v0.8.6-dev_47` makes Atlas facts more scannable with concise labels/copy while keeping the main species description as the longer personality paragraph; the tank follow info card hides biome/zone/diet/social facts.
 - `v0.8.6-dev_48` replaces the awkward `Adult` fact with a clearer `Maturity` field and source-safe maturity notes.
 - `v0.8.6-dev_49` corrects `Maturity` to be an age-only stat (`X years` when known) and removes length/morphology values from that field.
+- `v0.8.6-dev_50` makes The Atlas mobile-responsive with a sticky compact header, horizontal species cards in portrait, controlled model height, single-column phone facts, and a landscape phone grid.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

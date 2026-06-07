@@ -1,15 +1,8 @@
 import { useEffect, useState } from 'react'
-import { CREATURES, SPECIES } from '../data/species'
+import { CREATURES } from '../data/species'
 import { APP_VERSION } from '../version'
 import { hashString } from '../utils/hash'
-import { speciesAliasKeys } from '../utils/speciesLookup'
-
-const SPECIES_ALIASES = SPECIES.flatMap(species => [
-  ...speciesAliasKeys(species).map(key => [key, species.name]),
-])
-const ACTIVE_SPECIES = new Set(SPECIES.map(species => species.name))
-const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
-const SPECIES_NAME_BY_ID = new Map(SPECIES_ALIASES)
+import { ACTIVE_SPECIES_NAMES, SPECIES_BY_NAME, SPECIES_NAME_BY_ALIAS } from '../utils/speciesLookup'
 const DEFAULT_SIZE_RANGE = [0.9, 1.1]
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -52,7 +45,7 @@ function withDefaultSize(creature) {
 }
 
 function normalizeSpecies(value) {
-  return SPECIES_NAME_BY_ID.get(value) ?? value
+  return SPECIES_NAME_BY_ALIAS.get(value) ?? value
 }
 
 function normalizeCreature(row) {
@@ -73,7 +66,7 @@ function normalizeCreature(row) {
 function creaturesFromRows(rows) {
   return rows
     .map(normalizeCreature)
-    .filter(creature => creature.alive !== false && ACTIVE_SPECIES.has(creature.species))
+    .filter(creature => creature.alive !== false && ACTIVE_SPECIES_NAMES.has(creature.species))
 }
 
 function resolveCreaturesUrl() {

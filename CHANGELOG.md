@@ -11,12 +11,13 @@ Versioning convention notes:
 
 ## v0.8.5 — Follow mode stability
 
-Status: in development as `v0.8.5-dev_1`.
+Status: in development as `v0.8.5-dev_2`.
 
 ### Camera / controls
 
 - `v0.8.5-dev_1` keeps follow mode centered on mobile by removing the phone info-card camera framing bias and immediately zeroing any cropped-stage pan when a creature is focused.
 - Suppresses creature reselection after follow-orbit drags by pointer-capturing the orbit drag and ignoring creature focus events for a short release window, so releasing over another fish does not steal follow mode.
+- `v0.8.5-dev_2` applies the same release-window suppression to follow zoom gestures: mobile pinch zoom and follow-mode wheel zoom now ignore creature focus events briefly after zooming, so lifting a finger over another fish does not switch targets.
 
 ## v0.8.4 — Creature moments repulser v1
 

@@ -25,6 +25,7 @@ const LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS = 4.0
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
+const FOLLOW_ORBIT_SELECTION_SUPPRESS_MS = 280
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const RECOVERY_NOTICE_DURATION_MS = 4200
 
@@ -129,6 +130,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
   const focusChangeAtRef = useRef(0)
+  const suppressCreatureFocusUntilRef = useRef(0)
   const fishRefsByCreatureId = useRef(new Map())
   const zoomActive = Boolean(selectedCreature)
   const visibleDebugVisuals = debugMode
@@ -241,7 +243,10 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       const syncHeight = () => {
         const cardHeight = card.getBoundingClientRect().height
         document.documentElement.style.setProperty('--mobile-follow-card-height', `${cardHeight}px`)
-        setFollowScreenOffset(isMobileInputSurface() ? Math.min(0.4, cardHeight / Math.max(1, window.innerHeight)) : 0)
+        // Follow mode should keep the creature centered in the actual screen.
+        // The card height is still exposed for UI layout, but it no longer
+        // biases the camera framing on phone-sized viewports.
+        setFollowScreenOffset(0)
       }
 
       syncHeight()
@@ -318,14 +323,21 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (sameCreatureFocused) {
       setSelectedCreature(creature)
       setFocusedFishRef(fishRef)
+      setStagePan(0)
       return
     }
 
     focusChangeAtRef.current = performance.now()
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
+    setStagePan(0)
     setFollowOrbit({ yaw: 0, pitch: 0 })
     setFollowDistance(defaultFollowDistanceForCreature(creature))
+  }
+
+  const selectCreatureFromPointer = (creature, fishRef) => {
+    if (performance.now() < suppressCreatureFocusUntilRef.current) return
+    focusCreature(creature, fishRef)
   }
 
   const registerCreatureRef = (creature, fishRef) => {
@@ -465,6 +477,12 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         lastX: event.clientX,
         lastY: event.clientY,
         startFocusChangeAt: focusChangeAtRef.current,
+        target: event.currentTarget,
+      }
+      try {
+        event.currentTarget?.setPointerCapture?.(event.pointerId)
+      } catch {
+        // Pointer capture is a guard, not a dependency; orbit still works without it.
       }
       return
     }
@@ -513,6 +531,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       drag.lastY = event.clientY
       drag.mode = 'orbit'
       drag.moved = true
+      suppressCreatureFocusUntilRef.current = performance.now() + FOLLOW_ORBIT_SELECTION_SUPPRESS_MS
       setFollowOrbit(current => clampFollowOrbit({
         yaw: current.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED,
         pitch: current.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED,
@@ -563,7 +582,17 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       setStagePanning(false)
       const drag = dragRef.current
       dragRef.current = null
-      if (drag.mode === 'orbit') return
+      try {
+        if (drag.target?.hasPointerCapture?.(event.pointerId)) {
+          drag.target.releasePointerCapture(event.pointerId)
+        }
+      } catch {
+        // Ignore stale pointer-capture cleanup.
+      }
+      if (drag.mode === 'orbit') {
+        suppressCreatureFocusUntilRef.current = performance.now() + FOLLOW_ORBIT_SELECTION_SUPPRESS_MS
+        return
+      }
       window.setTimeout(() => {
         if (focusChangeAtRef.current === drag.startFocusChangeAt) releaseFocus()
       }, 0)
@@ -613,7 +642,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
             debugStatsEnabled={visibleDebugVisuals}
             debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
-            onCreatureClick={focusCreature}
+            onCreatureClick={selectCreatureFromPointer}
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />

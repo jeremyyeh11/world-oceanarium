@@ -63,6 +63,18 @@ Subtasks:
 
 ## Feature list
 
+### Atlas copy tightening
+
+Status: `Current in development`
+
+Reference:
+- `v0.8.6-dev_1` starts Jeremy's atlas readability pass: keep main descriptions characterful, but make supporting information short and scannable.
+
+Subtasks:
+- [x] Add concise quick facts for Biome, Zone, Diet, and Social behavior using text placeholders for now.
+- [x] Shorten existing atlas labels such as depth zone, body length, and weight.
+- [ ] Review whether Biome, Zone, Diet, Social, Length, and Mass should become icon-led labels once Jeremy provides the icon set.
+
 ### Feature backlog
 
 #### 1. Creature moments — schooling behavior around large fish

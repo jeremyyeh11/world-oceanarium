@@ -62,6 +62,12 @@ export const SPECIES = [
     aggressive: false,
     predator: false,
     description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. It reaches up to 27 cm total length and is widely caught for food and bait fisheries.',
+    atlas: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Plankton',
+      social: 'Schooling',
+    },
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.
       bodyLengthWU: 1.08,
@@ -100,6 +106,12 @@ export const SPECIES = [
     aggressive: false,
     predator: true,
     description: 'A generic large solo predator placeholder for testing scale, presence, and future apex species behavior.',
+    atlas: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Placeholder',
+      social: 'Solo',
+    },
     swim: {
       // Generic large non-schooling predator placeholder for future specific species.
       bodyLengthWU: 2.0,
@@ -135,6 +147,12 @@ export const SPECIES = [
     aggressive: false,
     predator: false,
     description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds. Adults have a distinctive head bump, chin bump, rectangular body scales, and rounded clavus that separate them from other sunfish.',
+    atlas: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Jellies + soft prey',
+      social: 'Solo / pairs',
+    },
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Current review scale keeps adults at 180–240 cm = 7.2–9.6 WU until the final GLB scale is approved.
       // Target review speed: ~0.6–1.1 WU/s after the latest 1.2x idle movement tuning.

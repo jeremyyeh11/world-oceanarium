@@ -1,8 +1,9 @@
-import { DEPTH_ZONES, SPECIES } from '../data/species'
+import { BIOMES, DEPTH_ZONES, SPECIES } from '../data/species'
 import { creatureBodyLengthMeters } from '../utils/speciesLookup'
 
 const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
+const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 const DEFAULT_MASS = {
   coefficient: 0.008,
   exponent: 3,
@@ -93,6 +94,36 @@ const styles = {
     letterSpacing: '0.045em',
     textTransform: 'uppercase',
   },
+  facts: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '0.44rem',
+    marginTop: '0.9rem',
+  },
+  fact: {
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr',
+    columnGap: '0.42rem',
+    alignItems: 'baseline',
+    minWidth: 0,
+    borderRadius: 12,
+    padding: '0.48rem 0.54rem',
+    background: 'rgba(0, 9, 24, 0.22)',
+    border: '1px solid rgba(255,255,255,0.07)',
+  },
+  factLabel: {
+    color: 'rgba(190,226,245,0.5)',
+    fontSize: '0.58rem',
+    fontWeight: 720,
+    letterSpacing: '0.11em',
+    textTransform: 'uppercase',
+  },
+  factValue: {
+    color: 'rgba(247,253,255,0.9)',
+    fontSize: '0.78rem',
+    fontWeight: 650,
+    overflowWrap: 'anywhere',
+  },
   grid: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
@@ -142,7 +173,7 @@ function formatBornAt(value) {
 }
 
 function fallbackIndividualDescription() {
-  return 'this one poops a lot'
+  return 'No individual notes yet.'
 }
 
 function escapeRegExp(value) {
@@ -152,7 +183,7 @@ function escapeRegExp(value) {
 function namedIndividualDescription(creature, customName) {
   const rawDescription = creature.description?.trim()
   if (!customName) return rawDescription || fallbackIndividualDescription(creature)
-  if (!rawDescription) return `${customName} poops a lot`
+  if (!rawDescription) return `${customName}: No individual notes yet.`
 
   const namePattern = new RegExp(`\\b${escapeRegExp(customName)}\\b`, 'i')
   if (namePattern.test(rawDescription)) return rawDescription
@@ -192,6 +223,37 @@ function formatMass(massKg) {
   return `${massKg.toFixed(massKg < 10 ? 1 : 0)} kg`
 }
 
+function compactDepthLabel(depthZone, fallback) {
+  return depthZone?.shortLabel ?? depthZone?.name ?? fallback ?? 'Unknown'
+}
+
+function speciesTrait(species) {
+  if (species?.atlas?.social) return species.atlas.social
+  if (species?.schooling) return 'Schooling'
+  if (species?.predator) return 'Predator'
+  return 'Solo'
+}
+
+function buildFacts({ creature, species, depthLabel }) {
+  const biome = BIOME_BY_ID.get(creature.biome ?? species?.biome)
+  const atlas = species?.atlas ?? {}
+  return [
+    { label: 'Biome', value: atlas.biome ?? biome?.name },
+    { label: 'Zone', value: atlas.zone ?? depthLabel },
+    { label: 'Diet', value: atlas.diet },
+    { label: 'Social', value: speciesTrait(species) },
+  ].filter(fact => fact.value)
+}
+
+function Fact({ label, value }) {
+  return (
+    <div style={styles.fact}>
+      <span style={styles.factLabel}>{label}</span>
+      <span style={styles.factValue}>{value}</span>
+    </div>
+  )
+}
+
 function Stat({ label, value }) {
   return (
     <div style={styles.stat}>
@@ -204,11 +266,12 @@ function Stat({ label, value }) {
 export default function InfoCard({ creature, onClose, children }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
-  const depthLabel = depthZone?.label ?? creature.depthZone ?? 'Unknown zone'
+  const depthLabel = compactDepthLabel(depthZone, creature.depthZone)
   const customName = creature.customName?.trim()
   const individualDescription = namedIndividualDescription(creature, customName)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
+  const facts = buildFacts({ creature, species, depthLabel })
 
   return (
     <section className="info-card" style={styles.wrap} aria-label={`${creature.species} details`}>
@@ -230,12 +293,17 @@ export default function InfoCard({ creature, onClose, children }) {
       </div>
 
       {species?.description && <p style={styles.speciesDescription}>{species.description}</p>}
+      {facts.length > 0 && (
+        <div style={styles.facts} aria-label="Quick facts">
+          {facts.map(fact => <Fact key={fact.label} label={fact.label} value={fact.value} />)}
+        </div>
+      )}
       <p style={styles.individualDescription}>{individualDescription}</p>
 
       <div style={styles.grid}>
         <Stat label="Born" value={formatBornAt(creature.bornAt)} />
-        <Stat label="Body length" value={formatLength(lengthMeters)} />
-        <Stat label="Weight" value={formatMass(massKg)} />
+        <Stat label="Length" value={formatLength(lengthMeters)} />
+        <Stat label="Mass" value={formatMass(massKg)} />
       </div>
       {children}
     </section>

@@ -9,6 +9,14 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.6 — Atlas copy tightening
+
+Status: in development as `v0.8.6-dev_1`.
+
+### Atlas / info card
+
+- `v0.8.6-dev_1` makes the creature atlas easier to scan: depth chips use short zone names, quick facts are split into terse Biome / Zone / Diet / Social fields, measurement labels are shortened to Length / Mass, and empty individual notes use a short neutral placeholder while the main species description remains the longer characterful copy block.
+
 ## v0.8.5 — Follow mode stability
 
 Status: accepted and promoted as clean `v0.8.5` from `v0.8.5-dev_3` after Jeremy approval.

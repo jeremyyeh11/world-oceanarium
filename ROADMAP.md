@@ -92,6 +92,7 @@ Reference:
 - `v0.8.6-dev_20` lowers the diver silhouette and moves it behind the fish with depth testing so it reads as background scale, not a foreground overlay.
 - `v0.8.6-dev_21` adds a debug-gated Atlas diver pose editor using the same triple-tap version-label activation; edits persist locally and can be copied as JSON for code commits.
 - `v0.8.6-dev_22` switches Atlas pose-editor activation to `Ctrl+Shift+D`, restores a visible Atlas version label, and changes Atlas panels to square full-bleed bordered sections.
+- `v0.8.6-dev_46` keeps this work on the Atlas branch while tightening the followed-creature card: short quick facts, shorter depth/measurement labels, and a neutral empty-note placeholder.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

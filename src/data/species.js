@@ -72,6 +72,12 @@ export const SPECIES = [
       lifeSpan: 'Maximum reported age: 8 years.',
       adultAge: 'Age at maturity is not well documented; first maturity is reported around 15 cm body length.',
     },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Copepods + larvae',
+      social: 'Schooling',
+    },
     description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. Small and bright, it reaches a largest documented body length of about 27 cm total length and moves as a flickering coastal school rather than a lone specimen.',
     maxBodyLengthMeters: 0.27,
     swim: {
@@ -126,6 +132,12 @@ export const SPECIES = [
       foundIn: 'Circumglobal open ocean outside polar regions, with many records from temperate and subtropical Southern Hemisphere waters.',
       lifeSpan: 'Not well documented in the wild.',
       adultAge: 'Age at maturity is not well documented; adult head and chin bumps appear from roughly 1.6 m body length.',
+    },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Soft-bodied prey',
+      social: 'Solo / pairs',
     },
     description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. Adult-ish head and chin bumps appear from roughly 1.6 m total length, and the largest documented animals reach about 3.3 m. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds.',
     adultLengthRangeMeters: [1.6, 3.3],

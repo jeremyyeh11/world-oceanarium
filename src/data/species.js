@@ -70,7 +70,7 @@ export const SPECIES = [
       commonDiet: 'Copepods, larvae, plankton.',
       foundIn: 'Indo-West Pacific coasts.',
       lifeSpan: 'Up to 8 years reported.',
-      adultAge: 'Mature around 15 cm body length.',
+      maturity: 'Reported around 15 cm body length.',
     },
     atlasSummary: {
       biome: 'Ocean',
@@ -131,7 +131,7 @@ export const SPECIES = [
       commonDiet: 'Jellyfish, salps, soft-bodied prey.',
       foundIn: 'Open ocean outside polar regions.',
       lifeSpan: 'Unknown in the wild.',
-      adultAge: 'Adult bumps from roughly 1.6 m.',
+      maturity: 'Wild maturity unknown; adult bumps from ~1.6 m.',
     },
     atlasSummary: {
       biome: 'Ocean',

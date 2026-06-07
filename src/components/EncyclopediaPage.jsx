@@ -697,7 +697,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           <div><span>Range</span><strong>{atlasDetails.foundIn ?? 'Unknown'}</strong></div>
           <div><span>Biome</span><strong>{biome?.name ?? selectedSpecies.biome ?? 'Unknown'}</strong></div>
           <div><span>Life span</span><strong>{atlasDetails.lifeSpan ?? 'Unknown'}</strong></div>
-          <div><span>Adult</span><strong>{atlasDetails.adultAge ?? 'Unknown'}</strong></div>
+          <div><span>Maturity</span><strong>{atlasDetails.maturity ?? 'Unknown'}</strong></div>
         </div>
       </aside>
     </section>

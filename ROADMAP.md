@@ -94,6 +94,7 @@ Reference:
 - `v0.8.6-dev_22` switches Atlas pose-editor activation to `Ctrl+Shift+D`, restores a visible Atlas version label, and changes Atlas panels to square full-bleed bordered sections.
 - `v0.8.6-dev_46` keeps this work on the Atlas branch while tightening the followed-creature card: short quick facts, shorter depth/measurement labels, and a neutral empty-note placeholder.
 - `v0.8.6-dev_47` makes Atlas facts more scannable with concise labels/copy while keeping the main species description as the longer personality paragraph; the tank follow info card hides biome/zone/diet/social facts.
+- `v0.8.6-dev_48` replaces the awkward `Adult` fact with a clearer `Maturity` field and source-safe maturity notes.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

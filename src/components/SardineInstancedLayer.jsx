@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
+import { SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
 const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
 const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
@@ -220,7 +221,7 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
     const lod2Entries = collectEntries(rawLod2Entries)
 
     if (debugStatsEnabled && typeof window !== 'undefined') {
-      window.__WO_SARDINE_INSTANCE_DEBUG = {
+      window[SARDINE_INSTANCE_DEBUG_GLOBAL] = {
         total: lod2Entries.length,
         lod1Total: lod1Entries.length,
         lod2Total: lod2Entries.length,

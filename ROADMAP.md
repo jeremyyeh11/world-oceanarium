@@ -69,10 +69,12 @@ Status: `Current in development`
 
 Reference:
 - `v0.8.5-dev_1` branch `fix/follow-mode-mobile-selection` addresses Jeremy's mobile follow-centering and disruptive orbit-release reselection reports.
+- `v0.8.5-dev_2` extends the same selection guard to mobile pinch zoom after Jeremy reported zoom-release reselection.
 
 Subtasks:
 - [x] Keep focused creature centered on mobile instead of biased by the phone info card or prior cropped-stage pan.
 - [x] Prevent follow-orbit drag release over another creature from switching focus.
+- [x] Prevent follow-zoom/pinch release over another creature from switching focus.
 - [x] Verify desktop and phone-sized browser behavior before review.
 
 ### Feature backlog

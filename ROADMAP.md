@@ -63,22 +63,6 @@ Subtasks:
 
 ## Feature list
 
-### Follow mode camera / selection stability
-
-Status: `Current in development`
-
-Reference:
-- `v0.8.5-dev_1` branch `fix/follow-mode-mobile-selection` addresses Jeremy's mobile follow-centering and disruptive orbit-release reselection reports.
-- `v0.8.5-dev_2` extends the same selection guard to mobile pinch zoom after Jeremy reported zoom-release reselection.
-- `v0.8.5-dev_3` fixes gesture recovery after finger-up lands on a fish, so movement is re-allowed after each touch sequence.
-
-Subtasks:
-- [x] Keep focused creature centered on mobile instead of biased by the phone info card or prior cropped-stage pan.
-- [x] Prevent follow-orbit drag release over another creature from switching focus.
-- [x] Prevent follow-zoom/pinch release over another creature from switching focus.
-- [x] Re-allow orbit/zoom movement after each touch sequence, even when finger-up lands on a fish.
-- [x] Verify desktop and phone-sized browser behavior before review.
-
 ### Feature backlog
 
 #### 1. Creature moments — schooling behavior around large fish
@@ -123,6 +107,25 @@ Subtasks:
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
+
+### v0.8.5 — Follow mode stability
+
+Status: accepted and promoted as clean `v0.8.5` after Jeremy approval.
+
+Released from: `v0.8.5-dev_3`.
+
+Accepted gates:
+- Mobile follow mode keeps the focused creature centered instead of biasing framing around the phone info card or stale cropped-stage pan.
+- Orbit-drag release over another creature no longer steals follow target selection.
+- Pinch/wheel zoom release over another creature no longer steals follow target selection.
+- Touch follow gestures recover after finger-up lands on a fish, so the next orbit/zoom gesture works normally.
+- Jeremy visual/device pass accepted the release candidate.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Separates follow manipulation gestures from creature selection with short selection-suppression windows for orbit, pinch, and wheel zoom.
+- Handles touch end/cancel in capture and clears stale pinch state after touch-up so mobile follow controls remain responsive.
+- Keeps direct tap-to-select behavior available when there was no orbit/zoom manipulation.
 
 ### v0.8.3 — Code hygiene and debug-runtime cleanup
 

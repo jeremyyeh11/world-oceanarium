@@ -10,6 +10,16 @@ Versioning convention notes:
 
 
 
+## v0.8.7 — Atlas thumbnail polish
+
+Status: accepted and promoted as clean `v0.8.7` from `v0.8.7-dev_3` after Jeremy approval.
+
+### Interface / encyclopaedia
+
+- `v0.8.7-dev_1` adds Jeremy's supplied sardine-school artwork as the Spotted Sardinella Atlas thumbnail.
+- `v0.8.7-dev_2` widens the desktop Atlas species list so `Spotted Sardinella` does not clip beside its thumbnail.
+- `v0.8.7-dev_3` preserves the Atlas WebGL drawing buffer so screenshot capture includes the 3D model and diver silhouette.
+
 ## v0.8.6 — UI overhaul + encyclopaedia
 
 Status: accepted and promoted as clean `v0.8.6` from `v0.8.6-dev_62` after Jeremy approval.

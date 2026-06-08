@@ -97,6 +97,7 @@ export const SPECIES = [
       social: 'Schooling',
     },
     description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the tank as a quick flicker of many bodies rather than a lone specimen.',
+    atlasThumbnail: '/atlas/amblygaster-sirm-thumbnail.png',
     maxBodyLengthMeters: 0.27,
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.

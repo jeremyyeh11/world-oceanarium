@@ -49,6 +49,7 @@ const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
 const DEFAULT_CAMERA_DEBUG_SETTINGS = {
   y: -1.35,
+  shiftY: 0,
   z: 12.8,
   lookY: 0.95,
   fov: 60,
@@ -58,6 +59,7 @@ const DEFAULT_CAMERA_DEBUG_SETTINGS = {
   dofMaxblur: 0.006,
 }
 const DEBUG_CAMERA_SLIDERS = [
+  { id: 'shiftY', label: 'Shift Y', min: -3, max: 3, step: 0.05 },
   { id: 'y', label: 'Cam Y', min: -4, max: 2, step: 0.05 },
   { id: 'z', label: 'Cam Z', min: 8, max: 18, step: 0.1 },
   { id: 'lookY', label: 'Look Y', min: -1, max: 4, step: 0.05 },

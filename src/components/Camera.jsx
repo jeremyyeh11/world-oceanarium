@@ -10,6 +10,7 @@ export const CAMERA_LIMITS = {
 
 const DEFAULT_CAMERA_DEBUG_SETTINGS = {
   y: -1.35,
+  shiftY: 0,
   z: 12.8,
   lookY: 0.95,
   fov: 60,
@@ -21,6 +22,7 @@ const DEFAULT_CAMERA_DEBUG_SETTINGS = {
 
 const DEFAULT_CAMERA_Z = DEFAULT_CAMERA_DEBUG_SETTINGS.z
 const DEFAULT_CAMERA_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.y
+const DEFAULT_CAMERA_SHIFT_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.shiftY
 const DEFAULT_CAMERA_LOOK_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.lookY
 const DEFAULT_CAMERA_FOV = 60
 const MAX_FOLLOW_CAMERA_FOV = 76
@@ -80,8 +82,9 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   }
 
   useEffect(() => {
-    camera.position.set(0, debugCamera.y, debugCamera.z)
-  }, [camera, biome, debugCamera.y, debugCamera.z])
+    const targetDefaultShiftY = Number.isFinite(debugCamera.shiftY) ? debugCamera.shiftY : DEFAULT_CAMERA_SHIFT_Y
+    camera.position.set(0, debugCamera.y + targetDefaultShiftY, debugCamera.z)
+  }, [camera, biome, debugCamera.shiftY, debugCamera.y, debugCamera.z])
 
   useFrame(({ clock }, delta) => {
     const now = clock.getElapsedTime()
@@ -204,9 +207,10 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     hasSmoothedFocus.current = false
     hasSmoothedLookTarget.current = false
     const targetDefaultFov = Number.isFinite(debugCamera.fov) ? debugCamera.fov : DEFAULT_CAMERA_FOV
-    const targetDefaultY = Number.isFinite(debugCamera.y) ? debugCamera.y : DEFAULT_CAMERA_Y
+    const targetDefaultShiftY = Number.isFinite(debugCamera.shiftY) ? debugCamera.shiftY : DEFAULT_CAMERA_SHIFT_Y
+    const targetDefaultY = (Number.isFinite(debugCamera.y) ? debugCamera.y : DEFAULT_CAMERA_Y) + targetDefaultShiftY
     const targetDefaultZ = Number.isFinite(debugCamera.z) ? debugCamera.z : DEFAULT_CAMERA_Z
-    const targetDefaultLookY = Number.isFinite(debugCamera.lookY) ? debugCamera.lookY : DEFAULT_CAMERA_LOOK_Y
+    const targetDefaultLookY = (Number.isFinite(debugCamera.lookY) ? debugCamera.lookY : DEFAULT_CAMERA_LOOK_Y) + targetDefaultShiftY
     const nextDefaultFov = THREE.MathUtils.damp(camera.fov, targetDefaultFov, FOLLOW_FOV_DAMPING, delta)
     if (Math.abs(nextDefaultFov - camera.fov) > 0.01) {
       camera.fov = nextDefaultFov

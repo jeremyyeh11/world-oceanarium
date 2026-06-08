@@ -609,6 +609,36 @@ button { font: inherit; }
   gap: 0.72rem;
 }
 
+.debug-camera-controls {
+  align-items: center;
+  gap: 0.46rem;
+}
+
+.debug-camera-slider {
+  display: grid;
+  grid-template-columns: 3.8rem 5.4rem 3.2rem;
+  align-items: center;
+  gap: 0.32rem;
+  color: rgba(220,245,255,0.62);
+  white-space: nowrap;
+}
+
+.debug-camera-slider span,
+.debug-camera-slider output {
+  font: 0.56rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.debug-camera-slider input {
+  width: 5.4rem;
+  accent-color: rgba(125,249,255,0.82);
+}
+
+.debug-camera-slider output {
+  color: rgba(245,255,255,0.84);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .debug-panel-section-icon {
   color: rgba(125,249,255,0.72);
   font-size: 0.92rem;

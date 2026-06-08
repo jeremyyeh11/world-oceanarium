@@ -8,7 +8,20 @@ export const CAMERA_LIMITS = {
   'tropical-river': { min: -11, max: 3 },
 }
 
-const DEFAULT_CAMERA_Z = 12
+const DEFAULT_CAMERA_DEBUG_SETTINGS = {
+  y: -1.35,
+  z: 12.8,
+  lookY: 0.95,
+  fov: 60,
+  dofEnabled: false,
+  dofFocus: 14,
+  dofAperture: 0.00018,
+  dofMaxblur: 0.006,
+}
+
+const DEFAULT_CAMERA_Z = DEFAULT_CAMERA_DEBUG_SETTINGS.z
+const DEFAULT_CAMERA_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.y
+const DEFAULT_CAMERA_LOOK_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.lookY
 const DEFAULT_CAMERA_FOV = 60
 const MAX_FOLLOW_CAMERA_FOV = 76
 const FOLLOW_FOV_DAMPING = 3.4
@@ -46,7 +59,7 @@ const MAX_FOLLOW_CAMERA_X = SURFACE_PLANE_X + SURFACE_PLANE_WIDTH * 0.5 - FOLLOW
 const MIN_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z - SURFACE_PLANE_DEPTH * 0.5 + FOLLOW_SURFACE_XZ_CLEARANCE
 const MAX_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z + SURFACE_PLANE_DEPTH * 0.5 - FOLLOW_SURFACE_XZ_CLEARANCE
 
-export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, debugCamera = DEFAULT_CAMERA_DEBUG_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
   const smoothedLookTarget = useRef(new THREE.Vector3())
@@ -67,8 +80,8 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   }
 
   useEffect(() => {
-    camera.position.set(0, 0, DEFAULT_CAMERA_Z)
-  }, [camera, biome])
+    camera.position.set(0, debugCamera.y, debugCamera.z)
+  }, [camera, biome, debugCamera.y, debugCamera.z])
 
   useFrame(({ clock }, delta) => {
     const now = clock.getElapsedTime()
@@ -190,15 +203,19 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
     hasSmoothedLookTarget.current = false
-    const nextDefaultFov = THREE.MathUtils.damp(camera.fov, DEFAULT_CAMERA_FOV, FOLLOW_FOV_DAMPING, delta)
+    const targetDefaultFov = Number.isFinite(debugCamera.fov) ? debugCamera.fov : DEFAULT_CAMERA_FOV
+    const targetDefaultY = Number.isFinite(debugCamera.y) ? debugCamera.y : DEFAULT_CAMERA_Y
+    const targetDefaultZ = Number.isFinite(debugCamera.z) ? debugCamera.z : DEFAULT_CAMERA_Z
+    const targetDefaultLookY = Number.isFinite(debugCamera.lookY) ? debugCamera.lookY : DEFAULT_CAMERA_LOOK_Y
+    const nextDefaultFov = THREE.MathUtils.damp(camera.fov, targetDefaultFov, FOLLOW_FOV_DAMPING, delta)
     if (Math.abs(nextDefaultFov - camera.fov) > 0.01) {
       camera.fov = nextDefaultFov
       camera.updateProjectionMatrix()
     }
     camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, DEFAULT_POSITION_DAMPING, delta)
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, 0, DEFAULT_POSITION_DAMPING, delta)
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, DEFAULT_CAMERA_Z, DEFAULT_POSITION_DAMPING, delta)
-    defaultLookTarget.set(camera.position.x, camera.position.y, 0)
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, targetDefaultY, DEFAULT_POSITION_DAMPING, delta)
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetDefaultZ, DEFAULT_POSITION_DAMPING, delta)
+    defaultLookTarget.set(camera.position.x, targetDefaultLookY, 0)
     if (!hasSmoothedDefaultLookTarget.current) {
       camera.getWorldDirection(currentCameraForward)
       const initialLookDistance = Math.max(1, camera.position.distanceTo(defaultLookTarget))
@@ -209,7 +226,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     smoothedDefaultLookTarget.current.y = THREE.MathUtils.damp(smoothedDefaultLookTarget.current.y, defaultLookTarget.y, FOLLOW_LOOK_DAMPING, delta)
     smoothedDefaultLookTarget.current.z = THREE.MathUtils.damp(smoothedDefaultLookTarget.current.z, defaultLookTarget.z, FOLLOW_LOOK_DAMPING, delta)
     camera.lookAt(smoothedDefaultLookTarget.current)
-    defaultCameraPosition.set(0, 0, DEFAULT_CAMERA_Z)
+    defaultCameraPosition.set(0, targetDefaultY, targetDefaultZ)
     setDefaultCameraSettled(
       camera.position.distanceTo(defaultCameraPosition) <= DEFAULT_CAMERA_SETTLED_POSITION_EPSILON
       && smoothedDefaultLookTarget.current.distanceTo(defaultLookTarget) <= DEFAULT_CAMERA_SETTLED_LOOK_EPSILON,

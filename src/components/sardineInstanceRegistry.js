@@ -7,6 +7,7 @@ const sardineLod2Instances = new Map()
 const sardineLod1Instances = new Map()
 const sardineLod0Entries = new Map()
 const sardineFrustumEntries = new Map()
+let sardineInstancedStats = null
 
 export function updateSardineInstance(id, entry) {
   if (!id || !entry) return
@@ -77,4 +78,12 @@ export function getSardineFrustumStats() {
     if (entry.culled) culled += 1
   })
   return { candidates, culled }
+}
+
+export function updateSardineInstancedStats(stats) {
+  sardineInstancedStats = stats ?? null
+}
+
+export function getSardineInstancedStats() {
+  return sardineInstancedStats
 }

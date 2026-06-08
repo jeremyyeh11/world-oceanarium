@@ -6,12 +6,12 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
+import { getSardineFrustumStats, getSardineInstancedStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
 import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
-import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
+import { DEBUG_TOGGLE_EVENT } from '../utils/debugIdentifiers'
 
 const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
 const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
@@ -410,7 +410,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       frameCount += 1
       const elapsed = now - sampleStartedAt
       if (elapsed >= FPS_SAMPLE_MS) {
-        const instanceDebug = window[SARDINE_INSTANCE_DEBUG_GLOBAL]
+        const instanceDebug = getSardineInstancedStats()
         const instancingMode = instanceDebug?.mode ?? 'off'
         const lod1Drawn = Number.isFinite(instanceDebug?.lod1Total) ? instanceDebug.lod1Total : 0
         const lod2Drawn = Number.isFinite(instanceDebug?.lod2Total) ? instanceDebug.lod2Total : (Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0)

@@ -2,10 +2,9 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
-import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
+import { getSardineInstances, getSardineLod1Instances, updateSardineInstancedStats } from './sardineInstanceRegistry'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
-import { SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
 const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
 const SARDINE_LOD2_MODEL_PATH = '/models/fish/sardine/sardine_LOD2.glb'
@@ -220,8 +219,8 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
     const lod1Entries = collectEntries(rawLod1Entries)
     const lod2Entries = collectEntries(rawLod2Entries)
 
-    if (debugStatsEnabled && typeof window !== 'undefined') {
-      window[SARDINE_INSTANCE_DEBUG_GLOBAL] = {
+    if (debugStatsEnabled) {
+      updateSardineInstancedStats({
         total: lod2Entries.length,
         lod1Total: lod1Entries.length,
         lod2Total: lod2Entries.length,
@@ -234,7 +233,7 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
           position: [Number((lod2Entries[0] ?? lod1Entries[0]).position.x.toFixed(2)), Number((lod2Entries[0] ?? lod1Entries[0]).position.y.toFixed(2)), Number((lod2Entries[0] ?? lod1Entries[0]).position.z.toFixed(2))],
           scale: Number(((lod2Entries[0] ?? lod1Entries[0]).scale ?? 1).toFixed(2)),
         } : null,
-      }
+      })
     }
 
     writeInstances(lod1MeshRef.current, lod1Entries, debugLodView ? LOD1_DEBUG_COLOR : null)

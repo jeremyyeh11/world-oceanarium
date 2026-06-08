@@ -701,14 +701,15 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           />
           <WaterSurface biome={biome.id} />
           <UnderwaterFX biome={biome.id} />
-          <DepthOfFieldDebugEffect
-            settings={{
-              enabled: visibleDebugPanel && debugCamera.dofEnabled,
-              focus: debugCamera.dofFocus,
-              aperture: debugCamera.dofAperture,
-              maxblur: debugCamera.dofMaxblur,
-            }}
-          />
+          {visibleDebugPanel && debugCamera.dofEnabled && (
+            <DepthOfFieldDebugEffect
+              settings={{
+                focus: debugCamera.dofFocus,
+                aperture: debugCamera.dofAperture,
+                maxblur: debugCamera.dofMaxblur,
+              }}
+            />
+          )}
         </Canvas>
       </div>
 

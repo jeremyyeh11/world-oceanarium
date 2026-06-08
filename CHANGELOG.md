@@ -12,11 +12,12 @@ Versioning convention notes:
 
 ## v0.8.9 — Camera position + DOF debug
 
-Status: in development; current visible dev patch is `v0.8.9-dev_1`.
+Status: in development; current visible dev patch is `v0.8.9-dev_2`.
 
 ### Camera / debug
 
 - `v0.8.9-dev_1` starts a separate camera-position branch from clean `v0.8.7`, lowers the default tank camera, angles the look target upward for a standing-at-the-tank read, and adds debug sliders for camera height, distance, look height, FOV, and experimental depth-of-field focus/aperture/blur.
+- `v0.8.9-dev_2` fixes the empty-scene regression by mounting the experimental DOF postprocess only when the debug panel explicitly enables it, so normal tank rendering does not instantiate the composer/pass stack.
 
 ## v0.8.7 — Atlas thumbnail polish
 

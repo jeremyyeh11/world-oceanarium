@@ -6,7 +6,6 @@ import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
 
 export default function DepthOfFieldDebugEffect({ settings }) {
   const { gl, scene, camera, size } = useThree()
-  const enabled = Boolean(settings?.enabled)
 
   const composer = useMemo(() => {
     const nextComposer = new EffectComposer(gl)
@@ -25,10 +24,10 @@ export default function DepthOfFieldDebugEffect({ settings }) {
 
   useEffect(() => {
     composer.setSize(size.width, size.height)
+    return () => composer.dispose()
   }, [composer, size.height, size.width])
 
   useFrame((_, delta) => {
-    if (!enabled) return
     const bokehPass = composer.userData.bokehPass
     if (bokehPass?.uniforms) {
       bokehPass.uniforms.focus.value = settings.focus
@@ -36,7 +35,7 @@ export default function DepthOfFieldDebugEffect({ settings }) {
       bokehPass.uniforms.maxblur.value = settings.maxblur
     }
     composer.render(delta)
-  }, enabled ? 1 : 0)
+  }, 1)
 
   return null
 }

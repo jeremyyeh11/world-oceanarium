@@ -156,8 +156,8 @@ export const SPECIES = [
         reproduction: 'Broadcast spawning in pairs or small groups in warm open water above 21°C. Multiple spawning events per season, around every 2 days; extended year-round season in the tropics with May–Jul and Nov–Jan peaks.',
       },
       averages: {
-        maleSizeMeters: 1.5,
-        femaleSizeMeters: 1.0,
+        maleSizeMeters: 0.91,
+        femaleSizeMeters: 0.91,
         maleWeightKg: 20,
         femaleWeightKg: 14,
         maleLifeExpectancyYears: 5,
@@ -176,11 +176,11 @@ export const SPECIES = [
       social: 'Loose schools',
     },
     description: 'A fast, flashing open-ocean hunter with a long dorsal fin, forked tail, and electric blue-green body that can flare brighter when excited. Mahi-mahi cruise warm surface waters in pairs or loose schools, often gathering around floating cover before breaking into quick prey-chasing runs.',
-    adultLengthRangeMeters: [0.7, 2.1],
-    maxBodyLengthMeters: 2.1,
+    adultLengthRangeMeters: [0.91, 1.8],
+    maxBodyLengthMeters: 1.8,
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. Review tank uses smaller young adults so the loose school reads cleanly beside sardines.
-      bodyLengthWU: 5.6,
+      // World Oceanarium scale: 1 WU = 25 cm. Size 1.0 now maps to Jeremy's 1.8 m max body length.
+      bodyLengthWU: 7.2,
       // Fast pelagic feel: stronger than sardines, much more agile than Mola, but slowed enough for readable tank passes.
       visualTimeScale: 0.55,
       idleBLPerSec: [0.42, 0.78],
@@ -201,8 +201,8 @@ export const SPECIES = [
       boundsZMin: -23,
       boundsZMax: 4,
     },
-    // Normalized individual size maps to smaller review specimens; full adult/max scale remains in Atlas data.
-    sizeRange: [0.28, 0.62],
+    // Normalized individual size maps directly to the 0–1 share of the 1.8 m max; DB rows use a truncated normal distribution centered near the 0.91 m average.
+    sizeRange: [0, 1],
     mass: {
       // Broad length-weight placeholder tuned for readable card weights until curated fishery data lands.
       coefficient: 0.005,
@@ -210,8 +210,8 @@ export const SPECIES = [
     },
     model: {
       path: '/models/fish/mahi-mahi/mahi-mahi.glb',
-      // Source GLB is ~9.79 units nose-to-tail; tank scale is intentionally below Atlas max scale for readable schooling.
-      scale: 0.572,
+      // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 1.8 m / 7.2 WU max.
+      scale: 0.735,
       moveset: {
         cruise: 'idle',
         drift: 'idle',
@@ -405,7 +405,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-06-08T00:00:00Z',
     alive: true,
-    size: 0.82,
+    size: 0.398,
   },
   {
     id: 9,
@@ -414,7 +414,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-06-08T00:00:00Z',
     alive: true,
-    size: 0.68,
+    size: 0.506,
   },
   {
     id: 10,
@@ -423,7 +423,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-06-08T00:00:00Z',
     alive: true,
-    size: 0.54,
+    size: 0.614,
   },
 ]
 

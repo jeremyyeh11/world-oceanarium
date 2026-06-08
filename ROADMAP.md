@@ -103,6 +103,7 @@ Reference:
 - `v0.8.6-dev_54` removes the portrait phone Atlas species strip, gives that space to a taller/closer model viewport, and makes the portrait Atlas page scroll naturally again.
 - `v0.8.6-dev_55` updates the Atlas info format across viewport sizes: Diet/Biome/Location cards before the description, then SOCIAL / AVERAGES / LIFECYCLE table sections after it.
 - `v0.8.6-dev_56` fixes portrait mobile Atlas scroll/touch handling and makes the mobile Atlas areas full-bleed with square PC-style panel edges instead of rounded/margined cards.
+- `v0.8.6-dev_57` adds a portrait-mobile Atlas touch-scroll fallback so drag gestures directly advance the Atlas scroll container even on touch stacks that ignore fixed-overlay overflow scrolling.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

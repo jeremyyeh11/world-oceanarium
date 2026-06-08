@@ -633,6 +633,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const [selectedId, setSelectedId] = useState(initialSpeciesId ?? SPECIES[0]?.id)
   const [poseEditorOpen, setPoseEditorOpen] = useState(false)
   const [storedDiverPoses, setStoredDiverPoses] = useState(() => loadStoredDiverPoses())
+  const pageRef = useRef(null)
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
@@ -659,6 +660,41 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
     return () => {
       window.removeEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
       window.removeEventListener('keydown', togglePoseEditorFromShortcut)
+    }
+  }, [])
+
+
+  useEffect(() => {
+    const page = pageRef.current
+    if (!page) return undefined
+
+    const touchState = { startY: 0, startScrollTop: 0 }
+    const isPortraitMobileAtlas = () => window.matchMedia('(max-width: 880px) and (orientation: portrait)').matches
+
+    const handleTouchStart = (event) => {
+      if (!isPortraitMobileAtlas() || event.touches.length !== 1) return
+      touchState.startY = event.touches[0].clientY
+      touchState.startScrollTop = page.scrollTop
+    }
+
+    const handleTouchMove = (event) => {
+      if (!isPortraitMobileAtlas() || event.touches.length !== 1) return
+      const deltaY = touchState.startY - event.touches[0].clientY
+      if (Math.abs(deltaY) < 2) return
+
+      const maxScrollTop = Math.max(0, page.scrollHeight - page.clientHeight)
+      if (maxScrollTop <= 0) return
+
+      page.scrollTop = Math.min(maxScrollTop, Math.max(0, touchState.startScrollTop + deltaY))
+      event.preventDefault()
+    }
+
+    page.addEventListener('touchstart', handleTouchStart, { passive: true })
+    page.addEventListener('touchmove', handleTouchMove, { passive: false })
+
+    return () => {
+      page.removeEventListener('touchstart', handleTouchStart)
+      page.removeEventListener('touchmove', handleTouchMove)
     }
   }, [])
 
@@ -706,7 +742,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   }
 
   return (
-    <section className="encyclopedia-page" aria-label="THE ATLAS">
+    <section ref={pageRef} className="encyclopedia-page" aria-label="THE ATLAS">
       <div className="encyclopedia-topbar">
         <div>
           <h1>THE ATLAS</h1>

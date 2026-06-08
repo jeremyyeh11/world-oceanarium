@@ -197,6 +197,8 @@ export const SPECIES = [
       turnRadius: 1.65,
       speedMultiplier: 1.05,
       schoolSpacingScale: 5.8,
+      schoolMaxAvoidanceAngleDegrees: 18,
+      schoolDirectionResponse: 3.2,
       boundsYMin: -6,
       boundsZMin: -23,
       boundsZMax: 4,

@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
+import EncyclopediaPage from './components/EncyclopediaPage'
 import { BIOMES } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
+import { DEBUG_TOGGLE_EVENT } from './utils/debugIdentifiers'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from './version'
 
 const DEFAULT_BIOME_ID = 'ocean'
 const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
 const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
-const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const AUDIO_BOOT_START_DELAYS_MS = [0, 60, 180, 500, 1200, 2500]
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 const AUDIO_SESSION_RECOVERY_MS = 2500
@@ -53,6 +54,8 @@ export default function App() {
   const [screenshotMode, setScreenshotMode] = useState(false)
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
+  const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
+  const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
   const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const audioEnabled = audioStarted && !audioMuted
   const debugTapCount = useRef(0)
@@ -100,6 +103,10 @@ export default function App() {
   useEffect(() => {
     if (screen !== 'tank' || screenshotMode) setTopMenuOpen(false)
   }, [screen, screenshotMode])
+
+  useEffect(() => {
+    if (screenshotMode) setEncyclopediaOpen(false)
+  }, [screenshotMode])
 
   useEffect(() => {
     const playButtonSfx = (event) => {
@@ -367,11 +374,17 @@ export default function App() {
     setTopMenuOpen(current => !current)
   }
 
+  const openEncyclopedia = (speciesId = null) => {
+    setTopMenuOpen(false)
+    setEncyclopediaSpeciesId(speciesId)
+    setEncyclopediaOpen(true)
+  }
+
   let page = null
 
   if (screen === 'tank' && activeBiome) {
     const biome = ACTIVE_BIOMES.find(b => b.id === activeBiome) ?? ACTIVE_BIOMES[0]
-    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} />
+    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (
@@ -380,6 +393,21 @@ export default function App() {
       {!screenshotMode && (
         <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
           {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
+          {screen === 'tank' && (
+            <button
+              className="encyclopedia-toggle"
+              type="button"
+              aria-label="Open THE ATLAS"
+              aria-pressed={encyclopediaOpen}
+              onClick={() => openEncyclopedia()}
+            >
+              <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M5 4.5h10.5A3.5 3.5 0 0 1 19 8v11.5H8.5A3.5 3.5 0 0 0 5 23V4.5Z" />
+                <path d="M8.5 8h6" />
+                <path d="M8.5 11.5h5" />
+              </svg>
+            </button>
+          )}
           {screen === 'tank' && (
             <button
               className="top-menu-toggle"
@@ -476,6 +504,9 @@ export default function App() {
             </button>
           </div>
         </div>
+      )}
+      {!screenshotMode && encyclopediaOpen && (
+        <EncyclopediaPage initialSpeciesId={encyclopediaSpeciesId} onClose={() => setEncyclopediaOpen(false)} />
       )}
       {!screenshotMode && (
         <button

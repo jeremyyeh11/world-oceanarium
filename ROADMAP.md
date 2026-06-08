@@ -65,7 +65,23 @@ Subtasks:
 
 ### Active feature bucket
 
-#### 2. Creature moments — schooling behavior around large fish
+#### 1. Mahi mahi
+
+Status: `Current in development`
+
+Reference:
+- `v0.8.8-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.7`.
+- Jeremy requested this as the next species sequence item after creature moments.
+
+Subtasks:
+- [ ] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, animation set, and licensing.
+- [ ] Add species data, movement profile, selection copy, and LOD/render path.
+- [ ] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
+- [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
+
+### Feature backlog
+
+#### 1. Creature moments — schooling behavior around large fish
 
 Status: `Archive candidate`
 
@@ -82,12 +98,11 @@ Subtasks:
 - [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
 - [x] Remove the temporary forced `repel` debug demo before clean public release.
 
-#### 1. Mahi mahi
+#### 2. Mahi mahi
 
-Status: `Current in development`
+Status: `Backlog`
 
 Reference:
-- `v0.8.5-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.4`.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:
@@ -95,6 +110,18 @@ Subtasks:
 - [ ] Add species data, movement profile, selection copy, and LOD/render path.
 - [ ] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
 - [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
+
+#### Sardine procedural snap/micro-correct experiment
+
+Status: `Backlog`
+
+Reference:
+- `v0.8.5-dev_14` refined sardine snap presets, removed idle/micro-correct/startle-flick lab presets, removed tank-view micro-correct/startle-flick moments, and remapped drift to cruise.
+- Jeremy judged this direction not working well for now; stick to authored animation clips for the current release path.
+
+Subtasks:
+- [ ] Preserve as an incomplete/future-version experiment only.
+- [ ] Do not reintroduce procedural sardine snap/micro-correct/startle-flick behavior unless explicitly promoted later.
 
 #### Rejected/saved visual experiments
 
@@ -108,6 +135,46 @@ Subtasks:
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
+
+### v0.8.6 — UI overhaul + encyclopaedia addition
+
+Status: accepted and promoted as clean `v0.8.6` after Jeremy approval.
+
+Released from: `v0.8.6-dev_62`.
+
+Accepted gates:
+- The Atlas entry point, species list, model/scale stage, and species-information panel are accepted for clean release.
+- Follow-card Atlas entry uses the compact icon beside the common name without crowding the card.
+- Atlas mobile layout scrolls naturally and keeps full-bleed square panels.
+- `Amblygaster sirm` and `Mola alexandrini` Atlas data/copy are source-safe and review-approved, with unknown fields left explicit.
+- `Mola alexandrini` displays as `Giant Sunfish`; alternate common names stay limited in prose and preserved in metadata.
+- Jeremy visual pass accepted the release candidate.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Adds The Atlas as the field-guide layer for World Oceanarium, with species selection, 3D creature stage, diver scale reference, conservation status, and structured species facts.
+- Tightens followed-creature info cards into identity-first field cards with a compact Atlas route beside the name.
+- Adds responsive Atlas behavior for desktop and phone, including portrait touch-scroll fallback and full-bleed mobile panels.
+- Updates Spotted Sardinella and Giant Sunfish copy/data with safer biological fields, sexed averages, lifecycle rows, and preserved alternate-name search metadata.
+
+### v0.8.5 — Follow mode stability
+
+Status: accepted and promoted as clean `v0.8.5` after Jeremy approval.
+
+Released from: `v0.8.5-dev_3`.
+
+Accepted gates:
+- Mobile follow mode keeps the focused creature centered instead of biasing framing around the phone info card or stale cropped-stage pan.
+- Orbit-drag release over another creature no longer steals follow target selection.
+- Pinch/wheel zoom release over another creature no longer steals follow target selection.
+- Touch follow gestures recover after finger-up lands on a fish, so the next orbit/zoom gesture works normally.
+- Jeremy visual/device pass accepted the release candidate.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Separates follow manipulation gestures from creature selection with short selection-suppression windows for orbit, pinch, and wheel zoom.
+- Handles touch end/cancel in capture and clears stale pinch state after touch-up so mobile follow controls remain responsive.
+- Keeps direct tap-to-select behavior available when there was no orbit/zoom manipulation.
 
 ### v0.8.3 — Code hygiene and debug-runtime cleanup
 

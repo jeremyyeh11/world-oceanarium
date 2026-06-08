@@ -143,4 +143,6 @@ When reporting a shipped patch, include:
 - visible version and commit SHA when applicable
 - release judgement: either keep iterating with `-dev_##` builds or promote to a clean release, with one short reason
 
+When completing a task in the World Oceanarium Telegram thread, tag Jeremy so completion is visible to him.
+
 Keep replies concise. No markdown tables.

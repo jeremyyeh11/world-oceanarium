@@ -39,10 +39,42 @@ const styles = {
   },
   title: {
     margin: '0.22rem 0 0',
+    minWidth: 0,
     fontSize: 'clamp(1.25rem, 4.8vw, 1.8rem)',
     lineHeight: 1,
     fontWeight: 720,
     letterSpacing: '-0.035em',
+  },
+  titleLine: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.58rem',
+    minWidth: 0,
+  },
+  atlasIconButton: {
+    display: 'inline-grid',
+    placeItems: 'center',
+    flex: '0 0 auto',
+    width: 36,
+    height: 36,
+    padding: 0,
+    marginTop: '0.18rem',
+    borderRadius: 999,
+    border: '1px solid rgba(125, 249, 255, 0.34)',
+    background: 'rgba(55, 186, 218, 0.13)',
+    color: 'rgba(235, 253, 255, 0.92)',
+    boxShadow: '0 0 18px rgba(38, 225, 240, 0.1), inset 0 1px 0 rgba(255,255,255,0.08)',
+    cursor: 'pointer',
+  },
+  atlasIcon: {
+    width: 18,
+    height: 18,
+    display: 'block',
+    overflow: 'visible',
+    stroke: 'currentColor',
+    strokeWidth: 1.9,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
   },
   scientificName: {
     margin: '0.38rem 0 0',
@@ -166,20 +198,6 @@ const styles = {
     fontWeight: 620,
     overflowWrap: 'anywhere',
   },
-  encyclopediaButton: {
-    width: '100%',
-    marginTop: '0.9rem',
-    border: '1px solid rgba(125, 249, 255, 0.34)',
-    borderRadius: 999,
-    background: 'rgba(55, 186, 218, 0.13)',
-    color: 'rgba(235, 253, 255, 0.92)',
-    padding: '0.72rem 0.9rem',
-    fontSize: '0.72rem',
-    fontWeight: 760,
-    letterSpacing: '0.09em',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-  },
 }
 
 function formatBornAt(value) {
@@ -267,7 +285,25 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
       <div style={styles.header}>
         <div>
           <p style={styles.eyebrow}>ID: {creature.id}</p>
-          <h2 style={styles.title}>{creature.species}</h2>
+          <div style={styles.titleLine}>
+            <h2 style={styles.title}>{creature.species}</h2>
+            {onOpenEncyclopedia && (
+              <button
+                type="button"
+                className="info-card-atlas-icon"
+                style={styles.atlasIconButton}
+                onClick={() => onOpenEncyclopedia(species?.id)}
+                aria-label="Open in The Atlas"
+                title="Open in The Atlas"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" style={styles.atlasIcon}>
+                  <path d="M5 5.5c1.8-.9 4.2-.9 6 0v13c-1.8-.9-4.2-.9-6 0v-13Z" />
+                  <path d="M13 5.5c1.8-.9 4.2-.9 6 0v13c-1.8-.9-4.2-.9-6 0v-13Z" />
+                  <path d="M11 5.5v13M13 5.5v13" />
+                </svg>
+              </button>
+            )}
+          </div>
           {customName && <div style={styles.nameTag}>{customName}</div>}
           {species?.scientificName && <p style={styles.scientificName}>{species.scientificName}</p>}
         </div>
@@ -293,15 +329,6 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
         <Stat label="Length" value={formatLength(lengthMeters)} />
         <Stat label="Mass" value={formatMass(massKg)} />
       </div>
-      {onOpenEncyclopedia && (
-        <button
-          type="button"
-          style={styles.encyclopediaButton}
-          onClick={() => onOpenEncyclopedia(species?.id)}
-        >
-          Open in THE ATLAS
-        </button>
-      )}
       {children}
     </section>
   )

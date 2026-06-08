@@ -99,6 +99,7 @@ Reference:
 - `v0.8.6-dev_50` makes The Atlas mobile-responsive with a sticky compact header, horizontal species cards in portrait, controlled model height, single-column phone facts, and a landscape phone grid.
 - `v0.8.6-dev_51` retunes the portrait phone Atlas toward Jeremy's character-screen reference: a dominant framed/zoomed model stage, compact bottom species-tile tray, and detail card below without copying the source layout 1:1.
 - `v0.8.6-dev_52` corrects the mobile reference interpretation: portrait Atlas is now a single screen-like grid with header, hero/model panel, attached dark species tile strip, and internally scrolling info panel rather than loose stacked cards.
+- `v0.8.6-dev_53` moves the follow-card Atlas action from the bottom text button to a compact book icon beside the fish name, matching Jeremy's requested mobile placement.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

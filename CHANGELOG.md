@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_61`.
+Status: in development; current visible dev patch is `v0.8.6-dev_62`.
 
 ### Interface / encyclopaedia
 
@@ -42,6 +42,7 @@ Status: in development; current visible dev patch is `v0.8.6-dev_61`.
 - `v0.8.6-dev_59` replaces the prior unknown placeholders with Jeremy's supplied Atlas fact sheet for spotted sardinella and bumphead sunfish, and formats sub-kilogram masses / decimal-meter lengths cleanly in the Atlas tables.
 - `v0.8.6-dev_60` adjusts the follow-card shell and title row for the longer bumphead sunfish common name: wider card, no common-name wrap, smaller name-to-Atlas-icon gap, and a slightly more compact icon.
 - `v0.8.6-dev_61` changes the displayed common name for `Mola alexandrini` to `Giant Sunfish`, folds the other common names into the general species description, and relaxes the follow-card Atlas icon spacing after review.
+- `v0.8.6-dev_62` limits the `Giant Sunfish` general description to two alternate common-name mentions while retaining the broader alternate-name list for search/reference data.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.4 — Creature moments repulser v1

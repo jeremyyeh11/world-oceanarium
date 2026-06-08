@@ -108,6 +108,7 @@ Reference:
 - `v0.8.6-dev_59` applies Jeremy's full Atlas species fact sheet for `Amblygaster sirm` and `Mola alexandrini`, including sexed size/weight/life-expectancy values, spawning notes, school size, and egg-count ranges.
 - `v0.8.6-dev_60` widens and tightens the follow-card title row so `Bumphead Sunfish` stays on one line and the Atlas icon sits closer to the common name.
 - `v0.8.6-dev_61` retitles `Mola alexandrini` to `Giant Sunfish`, keeps other common names in the species description, and eases the follow-card name-to-Atlas-icon gap so it no longer feels pinched.
+- `v0.8.6-dev_62` trims the `Giant Sunfish` description to mention only two alternate common names, keeping the copy lighter while preserving searchable alternate-name data.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

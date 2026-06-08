@@ -175,7 +175,7 @@ export const SPECIES = [
       diet: 'Soft-bodied prey',
       social: 'Solitary',
     },
-    description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone through open water after maturity. Also known as the bumphead sunfish, bump-head sunfish, Ramsay\'s sunfish, southern ocean sunfish, southern sunfish, or short sunfish, it can briefly aggregate to broadcast spawn before returning to solitary cruising, deep soft-bodied prey hunts, and sideways surface basking.',
+    description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone through open water after maturity. Also known as the bumphead sunfish and Ramsay\'s sunfish, it can briefly aggregate to broadcast spawn before returning to solitary cruising, deep soft-bodied prey hunts, and sideways surface basking.',
     adultLengthRangeMeters: [1.6, 3.3],
     maxBodyLengthMeters: 3.3,
     atlasThumbnail: '/atlas/mola-alexandrini-thumbnail.png',

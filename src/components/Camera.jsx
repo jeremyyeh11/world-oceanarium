@@ -8,23 +8,17 @@ export const CAMERA_LIMITS = {
   'tropical-river': { min: -11, max: 3 },
 }
 
-const DEFAULT_CAMERA_DEBUG_SETTINGS = {
-  y: -1.35,
-  shiftY: 0,
-  z: 12.8,
-  lookY: 0.95,
-  fov: 60,
-  dofEnabled: false,
-  dofFocus: 14,
-  dofAperture: 0.00018,
-  dofMaxblur: 0.006,
+const DEFAULT_CAMERA_SETTINGS = {
+  y: -6.35,
+  z: 10,
+  lookY: -2.65,
+  fov: 61,
 }
 
-const DEFAULT_CAMERA_Z = DEFAULT_CAMERA_DEBUG_SETTINGS.z
-const DEFAULT_CAMERA_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.y
-const DEFAULT_CAMERA_SHIFT_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.shiftY
-const DEFAULT_CAMERA_LOOK_Y = DEFAULT_CAMERA_DEBUG_SETTINGS.lookY
-const DEFAULT_CAMERA_FOV = 60
+const DEFAULT_CAMERA_Z = DEFAULT_CAMERA_SETTINGS.z
+const DEFAULT_CAMERA_Y = DEFAULT_CAMERA_SETTINGS.y
+const DEFAULT_CAMERA_LOOK_Y = DEFAULT_CAMERA_SETTINGS.lookY
+const DEFAULT_CAMERA_FOV = DEFAULT_CAMERA_SETTINGS.fov
 const MAX_FOLLOW_CAMERA_FOV = 76
 const FOLLOW_FOV_DAMPING = 3.4
 const FOLLOW_FRAME_MARGIN = 1.32
@@ -61,7 +55,7 @@ const MAX_FOLLOW_CAMERA_X = SURFACE_PLANE_X + SURFACE_PLANE_WIDTH * 0.5 - FOLLOW
 const MIN_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z - SURFACE_PLANE_DEPTH * 0.5 + FOLLOW_SURFACE_XZ_CLEARANCE
 const MAX_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z + SURFACE_PLANE_DEPTH * 0.5 - FOLLOW_SURFACE_XZ_CLEARANCE
 
-export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, debugCamera = DEFAULT_CAMERA_DEBUG_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
   const { camera } = useThree()
   const smoothedFocus = useRef(new THREE.Vector3())
   const smoothedLookTarget = useRef(new THREE.Vector3())
@@ -82,9 +76,8 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   }
 
   useEffect(() => {
-    const targetDefaultShiftY = Number.isFinite(debugCamera.shiftY) ? debugCamera.shiftY : DEFAULT_CAMERA_SHIFT_Y
-    camera.position.set(0, debugCamera.y + targetDefaultShiftY, debugCamera.z)
-  }, [camera, biome, debugCamera.shiftY, debugCamera.y, debugCamera.z])
+    camera.position.set(0, cameraSettings.y, cameraSettings.z)
+  }, [camera, biome, cameraSettings.y, cameraSettings.z])
 
   useFrame(({ clock }, delta) => {
     const now = clock.getElapsedTime()
@@ -206,11 +199,10 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
     hasSmoothedLookTarget.current = false
-    const targetDefaultFov = Number.isFinite(debugCamera.fov) ? debugCamera.fov : DEFAULT_CAMERA_FOV
-    const targetDefaultShiftY = Number.isFinite(debugCamera.shiftY) ? debugCamera.shiftY : DEFAULT_CAMERA_SHIFT_Y
-    const targetDefaultY = (Number.isFinite(debugCamera.y) ? debugCamera.y : DEFAULT_CAMERA_Y) + targetDefaultShiftY
-    const targetDefaultZ = Number.isFinite(debugCamera.z) ? debugCamera.z : DEFAULT_CAMERA_Z
-    const targetDefaultLookY = (Number.isFinite(debugCamera.lookY) ? debugCamera.lookY : DEFAULT_CAMERA_LOOK_Y) + targetDefaultShiftY
+    const targetDefaultFov = Number.isFinite(cameraSettings.fov) ? cameraSettings.fov : DEFAULT_CAMERA_FOV
+    const targetDefaultY = Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y
+    const targetDefaultZ = Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z
+    const targetDefaultLookY = Number.isFinite(cameraSettings.lookY) ? cameraSettings.lookY : DEFAULT_CAMERA_LOOK_Y
     const nextDefaultFov = THREE.MathUtils.damp(camera.fov, targetDefaultFov, FOLLOW_FOV_DAMPING, delta)
     if (Math.abs(nextDefaultFov - camera.fov) > 0.01) {
       camera.fov = nextDefaultFov

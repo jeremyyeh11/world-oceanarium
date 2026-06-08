@@ -2,7 +2,6 @@ import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import Camera from './Camera'
 import Biome from './Biome'
-import DepthOfFieldDebugEffect from './DepthOfFieldDebugEffect'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
@@ -47,27 +46,6 @@ const DEBUG_LAYER_BUTTONS = [
 ]
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
-const DEFAULT_CAMERA_DEBUG_SETTINGS = {
-  y: -1.35,
-  shiftY: 0,
-  z: 12.8,
-  lookY: 0.95,
-  fov: 60,
-  dofEnabled: false,
-  dofFocus: 14,
-  dofAperture: 0.00018,
-  dofMaxblur: 0.006,
-}
-const DEBUG_CAMERA_SLIDERS = [
-  { id: 'shiftY', label: 'Shift Y', min: -3, max: 3, step: 0.05 },
-  { id: 'y', label: 'Cam Y', min: -4, max: 2, step: 0.05 },
-  { id: 'z', label: 'Cam Z', min: 8, max: 18, step: 0.1 },
-  { id: 'lookY', label: 'Look Y', min: -1, max: 4, step: 0.05 },
-  { id: 'fov', label: 'FOV', min: 42, max: 76, step: 1 },
-  { id: 'dofFocus', label: 'Focus', min: 4, max: 28, step: 0.25 },
-  { id: 'dofAperture', label: 'Aperture', min: 0.00002, max: 0.0007, step: 0.00002 },
-  { id: 'dofMaxblur', label: 'Max blur', min: 0.001, max: 0.02, step: 0.001 },
-]
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
 function creatureDisplayName(creature) {
@@ -139,7 +117,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [debugView, setDebugView] = useState('focused')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false })
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
-  const [debugCamera, setDebugCamera] = useState(DEFAULT_CAMERA_DEBUG_SETTINGS)
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
@@ -169,16 +146,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     setDebugSunBaskRequestId(current => current + 1)
   }
 
-  const updateDebugCamera = (id, value) => {
-    setDebugCamera(current => ({
-      ...current,
-      [id]: value,
-    }))
-  }
-
-  const resetDebugCamera = () => {
-    setDebugCamera(DEFAULT_CAMERA_DEBUG_SETTINGS)
-  }
 
   const toggleDebugMode = () => {
     setDebugMode(current => !current)
@@ -669,7 +636,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         onPointerCancelCapture={endStageDrag}
         onWheel={zoomFollowWithWheel}
       >
-        <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <SceneLighting biome={biome.id} />
           <Camera
             biome={biome.id}
@@ -677,7 +644,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             followOrbit={followOrbit}
             followDistance={followDistance}
             followScreenOffset={followScreenOffset}
-            debugCamera={debugCamera}
             onDefaultCameraSettledChange={setDefaultCameraSettled}
             onFollowCameraClip={releaseFollowForCameraClip}
           />
@@ -703,15 +669,6 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           />
           <WaterSurface biome={biome.id} />
           <UnderwaterFX biome={biome.id} />
-          {visibleDebugPanel && debugCamera.dofEnabled && (
-            <DepthOfFieldDebugEffect
-              settings={{
-                focus: debugCamera.dofFocus,
-                aperture: debugCamera.dofAperture,
-                maxblur: debugCamera.dofMaxblur,
-              }}
-            />
-          )}
         </Canvas>
       </div>
 
@@ -757,12 +714,9 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           performanceStats={performanceStats}
           renderLoad={renderLoad}
           canQueueSunBask={canQueueDebugSunBask}
-          debugCamera={debugCamera}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
           onDebugSimulationSpeedChange={setDebugSimulationSpeed}
-          onDebugCameraChange={updateDebugCamera}
-          onDebugCameraReset={resetDebugCamera}
           onQueueSunBask={queueDebugSunBask}
         />
       )}
@@ -811,12 +765,9 @@ function DebugPanel({
   performanceStats,
   renderLoad,
   canQueueSunBask = false,
-  debugCamera,
   onDebugViewChange,
   onDebugLayerToggle,
   onDebugSimulationSpeedChange,
-  onDebugCameraChange,
-  onDebugCameraReset,
   onQueueSunBask,
 }) {
   const visibleCreatureCount = clampDebugCount(renderLoad?.visibleCreatures)
@@ -956,42 +907,6 @@ function DebugPanel({
         >
           ☀ bask
         </button>
-        <div className="debug-panel-row debug-camera-controls" aria-label="Camera and depth of field debug controls">
-          <span className="debug-panel-label">Camera</span>
-          <button
-            type="button"
-            title="Toggle debug depth of field"
-            aria-label="Toggle debug depth of field"
-            aria-pressed={debugCamera.dofEnabled}
-            className="debug-panel-button"
-            onClick={() => onDebugCameraChange('dofEnabled', !debugCamera.dofEnabled)}
-          >
-            DOF
-          </button>
-          {DEBUG_CAMERA_SLIDERS.map(slider => (
-            <label key={slider.id} className="debug-camera-slider">
-              <span>{slider.label}</span>
-              <input
-                type="range"
-                min={slider.min}
-                max={slider.max}
-                step={slider.step}
-                value={debugCamera[slider.id]}
-                onChange={(event) => onDebugCameraChange(slider.id, Number(event.target.value))}
-              />
-              <output>{formatDebugSliderValue(debugCamera[slider.id], slider.step)}</output>
-            </label>
-          ))}
-          <button
-            type="button"
-            title="Reset camera debug sliders"
-            aria-label="Reset camera debug sliders"
-            className="debug-panel-button"
-            onClick={onDebugCameraReset}
-          >
-            ↺
-          </button>
-        </div>
       </div>
       <AudioDebugMeters levels={audioLevels} />
       {creatureDataError && (
@@ -1015,13 +930,6 @@ function DebugPanel({
   )
 }
 
-function formatDebugSliderValue(value, step) {
-  if (!Number.isFinite(value)) return '—'
-  if (step < 0.001) return value.toFixed(5)
-  if (step < 0.01) return value.toFixed(3)
-  if (step < 0.1) return value.toFixed(2)
-  return value.toFixed(step < 1 ? 1 : 0)
-}
 
 function clamp01(value) {
   return Math.max(0, Math.min(1, value))

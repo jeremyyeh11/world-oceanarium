@@ -477,7 +477,7 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
   const cameraPosition = atlasCameraPosition(pose)
 
   return (
-    <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
+    <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]} gl={{ preserveDrawingBuffer: true }}>
       <AtlasCamera species={species} pose={pose} />
       <SceneLighting biome="ocean" />
       <Environment biome="ocean" />

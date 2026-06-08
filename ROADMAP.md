@@ -63,7 +63,6 @@ Subtasks:
 
 ## Feature list
 
-
 ### Feature backlog
 
 #### 1. Creature moments — schooling behavior around large fish

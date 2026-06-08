@@ -53,7 +53,7 @@ const styles = {
   titleLine: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.3rem',
+    gap: '0.45rem',
     minWidth: 0,
     width: 'fit-content',
     maxWidth: '100%',

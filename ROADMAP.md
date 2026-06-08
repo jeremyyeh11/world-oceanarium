@@ -97,6 +97,7 @@ Reference:
 - `v0.8.6-dev_48` replaces the awkward `Adult` fact with a clearer `Maturity` field and source-safe maturity notes.
 - `v0.8.6-dev_49` corrects `Maturity` to be an age-only stat (`X years` when known) and removes length/morphology values from that field.
 - `v0.8.6-dev_50` makes The Atlas mobile-responsive with a sticky compact header, horizontal species cards in portrait, controlled model height, single-column phone facts, and a landscape phone grid.
+- `v0.8.6-dev_51` retunes the portrait phone Atlas toward Jeremy's character-screen reference: a dominant framed/zoomed model stage, compact bottom species-tile tray, and detail card below without copying the source layout 1:1.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

@@ -90,9 +90,28 @@ function atlasCameraPosition(pose) {
   ]
 }
 
-function AtlasCamera({ pose }) {
-  useFrame(({ camera }) => {
+function atlasViewportCameraDistance(species, pose, size) {
+  const baseDistance = pose.cameraDistance ?? pose.cameraPosition?.[2] ?? 9.2
+  const isMobile = size.width <= 880
+  if (!isMobile) return baseDistance
+
+  const isPortraitPhone = size.width <= 480 && size.height > size.width
+  if (isPortraitPhone) {
+    return baseDistance * (species?.id === 'amblygaster-sirm' ? 0.52 : 0.68)
+  }
+
+  return baseDistance * 0.74
+}
+
+function AtlasCamera({ species, pose }) {
+  useFrame(({ camera, size }) => {
+    const cameraPose = {
+      ...pose,
+      cameraDistance: atlasViewportCameraDistance(species, pose, size),
+    }
+    const [x, y, z] = atlasCameraPosition(cameraPose)
     const lookAt = pose.lookAt ?? pose.position ?? [0, 0, 0]
+    camera.position.set(x, y, z)
     camera.lookAt(lookAt[0], lookAt[1], lookAt[2])
   })
   return null
@@ -386,7 +405,7 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
 
   return (
     <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]}>
-      <AtlasCamera pose={pose} />
+      <AtlasCamera species={species} pose={pose} />
       <SceneLighting biome="ocean" />
       <Environment biome="ocean" />
       <OceanBubbles count={22} depthTest={false} maxY={-0.75} minY={-3.15} opacityScale={0.72} renderOrder={8} sizeScale={1.1} />

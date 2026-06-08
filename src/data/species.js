@@ -67,14 +67,14 @@ export const SPECIES = [
       label: 'Least Concern',
     },
     atlasDetails: {
-      commonDiet: 'Copepods, larvae, plankton.',
-      foundIn: 'Indo-West Pacific coasts.',
+      commonDiet: 'Plankton, copepods, larvae.',
+      foundIn: 'Indo-West Pacific coastal waters and lagoons.',
       lifeSpan: 'Up to 8 years reported.',
       maturityAge: 'Unknown',
       social: {
         schoolSize: 'Unknown',
-        groupingBehaviour: 'Adults and juveniles move in tight coastal schools; exact school counts vary by site.',
-        reproduction: 'Pelagic broadcast spawner; local spawning seasons vary across its range.',
+        groupingBehaviour: 'Pelagic schooling fish in coastal waters and lagoons; juveniles also occur inshore.',
+        reproduction: 'Unknown',
       },
       averages: {
         maleSizeMeters: 'Unknown',
@@ -96,7 +96,7 @@ export const SPECIES = [
       diet: 'Copepods + larvae',
       social: 'Schooling',
     },
-    description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. Small and bright, it reaches a largest documented body length of about 27 cm total length and moves as a flickering coastal school rather than a lone specimen.',
+    description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the tank as a quick flicker of many bodies rather than a lone specimen.',
     maxBodyLengthMeters: 0.27,
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.
@@ -151,9 +151,9 @@ export const SPECIES = [
       lifeSpan: 'Unknown in the wild.',
       maturityAge: 'Unknown',
       social: {
-        schoolSize: 1,
-        groupingBehaviour: 'Usually solitary or paired; juveniles may gather near shelter and adults can bask near the surface.',
-        reproduction: 'Likely pelagic spawning; season and pair/communal pattern are not well documented.',
+        schoolSize: 'Unknown',
+        groupingBehaviour: 'Unknown',
+        reproduction: 'Unknown',
       },
       averages: {
         maleSizeMeters: 'Unknown',

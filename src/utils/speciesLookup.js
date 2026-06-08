@@ -25,6 +25,12 @@ export const SPECIES_BY_KEY = new Map(
   SPECIES.flatMap(species => speciesLookupKeys(species).map(key => [key, species])),
 )
 
+export const ACTIVE_SPECIES_NAMES = new Set(SPECIES.map(species => species.name))
+export const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+export const SPECIES_NAME_BY_ALIAS = new Map(
+  SPECIES.flatMap(species => speciesAliasKeys(species).map(key => [key, species.name])),
+)
+
 export function resolveSpecies(creature) {
   return SPECIES_BY_KEY.get(creature?.species)
 }

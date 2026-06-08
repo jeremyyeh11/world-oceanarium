@@ -63,60 +63,6 @@ Subtasks:
 
 ## Feature list
 
-### Active feature bucket
-
-#### 1. UI overhaul + encyclopaedia addition
-
-Status: `Current in development`
-
-Reference:
-- `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia branch from clean `v0.8.4`.
-- `v0.8.6-dev_2` adds the first encyclopaedia page mockup and tank/info-card entry points.
-- `v0.8.6-dev_3` removes the generic Large Predator placeholder species and the encyclopaedia viewport floor disc.
-- `v0.8.6-dev_4` renames the page to Oceanpaedia, removes redundant labels, and locks the model viewer to side-view poses with per-species override hooks.
-- `v0.8.6-dev_5` renames the page and entry points to The Atlas.
-- `v0.8.6-dev_6` applies Jeremy's supplied epipelagic water backdrop to The Atlas viewport for epipelagic species.
-- `v0.8.6-dev_7` moves human scale into the viewport with Jeremy's diver silhouette; small fish compare against the diver head crop rather than shrinking the creature.
-- `v0.8.6-dev_8` animates Atlas models in place with idle loops and occasional burst actions, while filtering root translation tracks so the fish stays fixed in the viewport.
-- `v0.8.6-dev_9` removes the rejected Atlas animation experiment and uses the live ocean tank water/lighting/FX backdrop in The Atlas viewport without tank fish or UI.
-- `v0.8.6-dev_10` restores Atlas in-place animations after Jeremy clarified only the photo background should be removed, and repositions/rescales the diver reference to a 1.7 m human in the lower-right Mola comparison area.
-- `v0.8.6-dev_11` shifts the sardine diver-scale silhouette behind the fish body to match Jeremy's marked comparison composition.
-- `v0.8.6-dev_12` swaps in Jeremy's SVG diver as a Three.js mesh plane and moves Atlas scale math to species max body length with a small-fish display cap.
-- `v0.8.6-dev_13` lowers the diver silhouette opacity and adds the IUCN Red List conservation-status bar to the Atlas info panel.
-- `v0.8.6-dev_14` fixes diver plane visibility with double-sided camera-facing mesh behavior and turns the Atlas camera 15° left/up for a slight front-left, top-down fish view.
-- `v0.8.6-dev_15` makes the diver silhouette visible against the dark tank backdrop and turns the Atlas camera another 15° left, for 30° left / 15° top-down.
-- `v0.8.6-dev_16` switches the Atlas diver reference to a camera-facing sprite using the supplied SVG texture, with tint-safe fill normalization and depth testing disabled.
-- `v0.8.6-dev_17` rasterizes the supplied diver SVG into a PNG texture so browser/WebGL SVG-texture handling cannot hide the scale reference.
-- `v0.8.6-dev_18` replaces the diver texture with Jeremy's new PNG, renders it black, and lowers opacity for a quieter scale read.
-- `v0.8.6-dev_19` fixes Atlas Mola material rendering by forcing cloned GLB materials to opaque front-face/depth-writing mode so opposite-side eye geometry cannot bleed through.
-- `v0.8.6-dev_20` lowers the diver silhouette and moves it behind the fish with depth testing so it reads as background scale, not a foreground overlay.
-- `v0.8.6-dev_21` adds a debug-gated Atlas diver pose editor using the same triple-tap version-label activation; edits persist locally and can be copied as JSON for code commits.
-- `v0.8.6-dev_22` switches Atlas pose-editor activation to `Ctrl+Shift+D`, restores a visible Atlas version label, and changes Atlas panels to square full-bleed bordered sections.
-- `v0.8.6-dev_46` keeps this work on the Atlas branch while tightening the followed-creature card: short quick facts, shorter depth/measurement labels, and a neutral empty-note placeholder.
-- `v0.8.6-dev_47` makes Atlas facts more scannable with concise labels/copy while keeping the main species description as the longer personality paragraph; the tank follow info card hides biome/zone/diet/social facts.
-- `v0.8.6-dev_48` replaces the awkward `Adult` fact with a clearer `Maturity` field and source-safe maturity notes.
-- `v0.8.6-dev_49` corrects `Maturity` to be an age-only stat (`X years` when known) and removes length/morphology values from that field.
-- `v0.8.6-dev_50` makes The Atlas mobile-responsive with a sticky compact header, horizontal species cards in portrait, controlled model height, single-column phone facts, and a landscape phone grid.
-- `v0.8.6-dev_51` retunes the portrait phone Atlas toward Jeremy's character-screen reference: a dominant framed/zoomed model stage, compact bottom species-tile tray, and detail card below without copying the source layout 1:1.
-- `v0.8.6-dev_52` corrects the mobile reference interpretation: portrait Atlas is now a single screen-like grid with header, hero/model panel, attached dark species tile strip, and internally scrolling info panel rather than loose stacked cards.
-- `v0.8.6-dev_53` moves the follow-card Atlas action from the bottom text button to a compact book icon beside the fish name, matching Jeremy's requested mobile placement.
-- `v0.8.6-dev_54` removes the portrait phone Atlas species strip, gives that space to a taller/closer model viewport, and makes the portrait Atlas page scroll naturally again.
-- `v0.8.6-dev_55` updates the Atlas info format across viewport sizes: Diet/Biome/Location cards before the description, then SOCIAL / AVERAGES / LIFECYCLE table sections after it.
-- `v0.8.6-dev_56` fixes portrait mobile Atlas scroll/touch handling and makes the mobile Atlas areas full-bleed with square PC-style panel edges instead of rounded/margined cards.
-- `v0.8.6-dev_57` adds a portrait-mobile Atlas touch-scroll fallback so drag gestures directly advance the Atlas scroll container even on touch stacks that ignore fixed-overlay overflow scrolling.
-- `v0.8.6-dev_58` updates Atlas species copy for `Amblygaster sirm` and keeps sparse `Mola alexandrini` social/reproduction fields explicitly unknown rather than invented.
-- `v0.8.6-dev_59` applies Jeremy's full Atlas species fact sheet for `Amblygaster sirm` and `Mola alexandrini`, including sexed size/weight/life-expectancy values, spawning notes, school size, and egg-count ranges.
-- `v0.8.6-dev_60` widens and tightens the follow-card title row so `Bumphead Sunfish` stays on one line and the Atlas icon sits closer to the common name.
-- `v0.8.6-dev_61` retitles `Mola alexandrini` to `Giant Sunfish`, keeps other common names in the species description, and eases the follow-card name-to-Atlas-icon gap so it no longer feels pinched.
-- `v0.8.6-dev_62` trims the `Giant Sunfish` description to mention only two alternate common names, keeping the copy lighter while preserving searchable alternate-name data.
-- Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
-
-Subtasks:
-- [x] Audit current tank UI, controls, search, creature-card, and mobile reading flow for first encyclopaedia entry points.
-- [x] Design the encyclopaedia structure around species personality, real biological facts, scale, and observation notes.
-- [x] Implement a first-pass encyclopaedia mockup with left species list, central 3D/scale stage, and right info panel.
-- [ ] Refine UI overhaul so the encyclopaedia feels integrated without making the aquarium menu-heavy.
-- [ ] Verify desktop and phone readability, touch ergonomics, audio unlock, and follow-camera interactions.
 
 ### Feature backlog
 
@@ -174,6 +120,46 @@ Subtasks:
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
+
+### v0.8.6 — UI overhaul + encyclopaedia addition
+
+Status: accepted and promoted as clean `v0.8.6` after Jeremy approval.
+
+Released from: `v0.8.6-dev_62`.
+
+Accepted gates:
+- The Atlas entry point, species list, model/scale stage, and species-information panel are accepted for clean release.
+- Follow-card Atlas entry uses the compact icon beside the common name without crowding the card.
+- Atlas mobile layout scrolls naturally and keeps full-bleed square panels.
+- `Amblygaster sirm` and `Mola alexandrini` Atlas data/copy are source-safe and review-approved, with unknown fields left explicit.
+- `Mola alexandrini` displays as `Giant Sunfish`; alternate common names stay limited in prose and preserved in metadata.
+- Jeremy visual pass accepted the release candidate.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Adds The Atlas as the field-guide layer for World Oceanarium, with species selection, 3D creature stage, diver scale reference, conservation status, and structured species facts.
+- Tightens followed-creature info cards into identity-first field cards with a compact Atlas route beside the name.
+- Adds responsive Atlas behavior for desktop and phone, including portrait touch-scroll fallback and full-bleed mobile panels.
+- Updates Spotted Sardinella and Giant Sunfish copy/data with safer biological fields, sexed averages, lifecycle rows, and preserved alternate-name search metadata.
+
+### v0.8.5 — Follow mode stability
+
+Status: accepted and promoted as clean `v0.8.5` after Jeremy approval.
+
+Released from: `v0.8.5-dev_3`.
+
+Accepted gates:
+- Mobile follow mode keeps the focused creature centered instead of biasing framing around the phone info card or stale cropped-stage pan.
+- Orbit-drag release over another creature no longer steals follow target selection.
+- Pinch/wheel zoom release over another creature no longer steals follow target selection.
+- Touch follow gestures recover after finger-up lands on a fish, so the next orbit/zoom gesture works normally.
+- Jeremy visual/device pass accepted the release candidate.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Separates follow manipulation gestures from creature selection with short selection-suppression windows for orbit, pinch, and wheel zoom.
+- Handles touch end/cancel in capture and clears stale pinch state after touch-up so mobile follow controls remain responsive.
+- Keeps direct tap-to-select behavior available when there was no orbit/zoom manipulation.
 
 ### v0.8.3 — Code hygiene and debug-runtime cleanup
 

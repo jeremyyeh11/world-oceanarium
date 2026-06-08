@@ -2,7 +2,6 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const GOD_RAY_DIAGNOSTIC_WIREFRAME = false
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
 const GOD_RAY_SURFACE_START_Y = 15
 const SUSPENDED_PARTICLE_COUNT = 96
@@ -102,61 +101,13 @@ const PARTICLE_FRAGMENT = /* glsl */ `
   }
 `
 
-const SURFACE_FRAGMENT = /* glsl */ `
-  uniform float uTime;
-  varying vec2 vUv;
-
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-  }
-
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
-      u.y
-    );
-  }
-
-  float fbm(vec2 p) {
-    float value = 0.0;
-    float amp = 0.56;
-    for (int i = 0; i < 4; i++) {
-      value += amp * noise(p);
-      p = mat2(1.72, -0.86, 0.86, 1.72) * p + 7.1;
-      amp *= 0.5;
-    }
-    return value;
-  }
-
-  void main() {
-    vec2 uv = vUv;
-    vec2 waveUv = uv * vec2(5.2, 2.2);
-    float broad = fbm(waveUv + vec2(uTime * 0.055, uTime * 0.010));
-    float streak = fbm(uv * vec2(16.0, 4.6) + vec2(-uTime * 0.12, uTime * 0.03));
-    float foam = smoothstep(0.62, 0.86, broad + streak * 0.34);
-    float glint = smoothstep(0.72, 0.94, streak) * smoothstep(0.18, 0.92, uv.x);
-    float bandMask = smoothstep(0.0, 0.16, uv.y) * smoothstep(1.0, 0.28, uv.y);
-    float topGlow = smoothstep(1.0, 0.46, uv.y);
-
-    vec3 cyan = vec3(0.20, 0.78, 0.92);
-    vec3 foamColor = vec3(0.82, 1.0, 0.96);
-    vec3 color = mix(cyan, foamColor, foam * 0.82 + glint * 0.55);
-    float alpha = (0.12 + foam * 0.28 + glint * 0.18) * bandMask * topGlow;
-    gl_FragColor = vec4(color, alpha);
-  }
-`
-
 function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rotation, strength, seed, fadeLength }) {
   const material = useRef()
   const centerY = surfaceY - Math.cos(rotation) * height * 0.5
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uSeed: { value: seed },
-    uStrength: { value: GOD_RAY_DIAGNOSTIC_WIREFRAME ? 1.05 : strength },
+    uStrength: { value: strength },
     uFadeLength: { value: fadeLength },
   }), [seed, strength, fadeLength])
 
@@ -181,21 +132,6 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
           side={THREE.DoubleSide}
         />
       </mesh>
-      {GOD_RAY_DIAGNOSTIC_WIREFRAME && (
-        <mesh raycast={() => null}>
-          <planeGeometry args={[width, height, 8, 8]} />
-          <meshBasicMaterial
-            color="#8eeeff"
-            transparent
-            opacity={0.20}
-            depthWrite={false}
-            depthTest
-            blending={THREE.NormalBlending}
-            side={THREE.DoubleSide}
-            wireframe
-          />
-        </mesh>
-      )}
     </group>
   )
 }
@@ -270,31 +206,6 @@ function SuspendedParticles() {
         blending={THREE.NormalBlending}
       />
     </points>
-  )
-}
-
-function SurfaceFoam() {
-  const material = useRef()
-  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
-
-  useFrame(({ clock }) => {
-    if (material.current) material.current.uniforms.uTime.value = clock.getElapsedTime()
-  })
-
-  return (
-    <mesh position={[0, 3.72, 5.35]} raycast={() => null}>
-      <planeGeometry args={[27.5, 2.25, 1, 1]} />
-      <shaderMaterial
-        ref={material}
-        uniforms={uniforms}
-        vertexShader={BASIC_VERTEX}
-        fragmentShader={SURFACE_FRAGMENT}
-        transparent
-        depthWrite={false}
-        depthTest={false}
-        blending={THREE.AdditiveBlending}
-      />
-    </mesh>
   )
 }
 

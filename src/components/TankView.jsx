@@ -11,6 +11,7 @@ import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
+import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
 const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
 const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
@@ -24,7 +25,9 @@ const LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS = 4.0
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
-const DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
+const FOLLOW_ORBIT_SELECTION_SUPPRESS_MS = 280
+const FOLLOW_ZOOM_SELECTION_SUPPRESS_MS = 360
+const FOLLOW_TOUCH_GESTURE_RESET_MS = 90
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const RECOVERY_NOTICE_DURATION_MS = 4200
 
@@ -129,6 +132,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
   const focusChangeAtRef = useRef(0)
+  const suppressCreatureFocusUntilRef = useRef(0)
   const fishRefsByCreatureId = useRef(new Map())
   const zoomActive = Boolean(selectedCreature)
   const visibleDebugVisuals = debugMode
@@ -241,7 +245,10 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       const syncHeight = () => {
         const cardHeight = card.getBoundingClientRect().height
         document.documentElement.style.setProperty('--mobile-follow-card-height', `${cardHeight}px`)
-        setFollowScreenOffset(isMobileInputSurface() ? Math.min(0.4, cardHeight / Math.max(1, window.innerHeight)) : 0)
+        // Follow mode should keep the creature centered in the actual screen.
+        // The card height is still exposed for UI layout, but it no longer
+        // biases the camera framing on phone-sized viewports.
+        setFollowScreenOffset(0)
       }
 
       syncHeight()
@@ -318,14 +325,21 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (sameCreatureFocused) {
       setSelectedCreature(creature)
       setFocusedFishRef(fishRef)
+      setStagePan(0)
       return
     }
 
     focusChangeAtRef.current = performance.now()
     setSelectedCreature(creature)
     setFocusedFishRef(fishRef)
+    setStagePan(0)
     setFollowOrbit({ yaw: 0, pitch: 0 })
     setFollowDistance(defaultFollowDistanceForCreature(creature))
+  }
+
+  const selectCreatureFromPointer = (creature, fishRef) => {
+    if (performance.now() < suppressCreatureFocusUntilRef.current) return
+    focusCreature(creature, fishRef)
   }
 
   const registerCreatureRef = (creature, fishRef) => {
@@ -365,6 +379,17 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     setFollowDistance(current => clampFollowDistance(current + delta, selectedCreature))
   }
 
+  const suppressCreatureFocusFor = (durationMs) => {
+    suppressCreatureFocusUntilRef.current = Math.max(suppressCreatureFocusUntilRef.current, performance.now() + durationMs)
+  }
+
+  const resetFollowTouchGestureSoon = () => {
+    window.setTimeout(() => {
+      if (touchPointsRef.current.size > 0) return
+      if (dragRef.current?.mode === 'pinch') dragRef.current = null
+    }, FOLLOW_TOUCH_GESTURE_RESET_MS)
+  }
+
   const toggleDebugLayer = (layerId) => {
     setDebugLayers(current => ({ ...current, [layerId]: !current[layerId] }))
   }
@@ -385,7 +410,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       frameCount += 1
       const elapsed = now - sampleStartedAt
       if (elapsed >= FPS_SAMPLE_MS) {
-        const instanceDebug = window.__WO_SARDINE_INSTANCE_DEBUG
+        const instanceDebug = window[SARDINE_INSTANCE_DEBUG_GLOBAL]
         const instancingMode = instanceDebug?.mode ?? 'off'
         const lod1Drawn = Number.isFinite(instanceDebug?.lod1Total) ? instanceDebug.lod1Total : 0
         const lod2Drawn = Number.isFinite(instanceDebug?.lod2Total) ? instanceDebug.lod2Total : (Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0)
@@ -436,6 +461,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const zoomFollowWithWheel = (event) => {
     if (!selectedCreature) return
     event.preventDefault()
+    suppressCreatureFocusFor(FOLLOW_ZOOM_SELECTION_SUPPRESS_MS)
     const normalizedDelta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY
     adjustFollowDistance(normalizedDelta * FOLLOW_WHEEL_ZOOM_SPEED * followDistance)
   }
@@ -447,6 +473,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       event.preventDefault()
       touchPointsRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
       if (touchPointsRef.current.size >= 2) {
+        suppressCreatureFocusFor(FOLLOW_ZOOM_SELECTION_SUPPRESS_MS)
         dragRef.current = {
           mode: 'pinch',
           startDistance: getTouchDistance(touchPointsRef.current),
@@ -465,6 +492,12 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         lastX: event.clientX,
         lastY: event.clientY,
         startFocusChangeAt: focusChangeAtRef.current,
+        target: event.currentTarget,
+      }
+      try {
+        event.currentTarget?.setPointerCapture?.(event.pointerId)
+      } catch {
+        // Pointer capture is a guard, not a dependency; orbit still works without it.
       }
       return
     }
@@ -490,6 +523,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (!drag) return
 
     if (drag.mode === 'pinch') {
+      event.preventDefault()
+      suppressCreatureFocusFor(FOLLOW_ZOOM_SELECTION_SUPPRESS_MS)
       const pinchDistance = getTouchDistance(touchPointsRef.current)
       if (!pinchDistance || !drag.startDistance) return
       const pinchDelta = drag.startDistance - pinchDistance
@@ -513,6 +548,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       drag.lastY = event.clientY
       drag.mode = 'orbit'
       drag.moved = true
+      suppressCreatureFocusFor(FOLLOW_ORBIT_SELECTION_SUPPRESS_MS)
       setFollowOrbit(current => clampFollowOrbit({
         yaw: current.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED,
         pitch: current.pitch - deltaY * FOLLOW_ORBIT_DRAG_SPEED,
@@ -540,8 +576,12 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
     if (event.pointerType === 'touch') touchPointsRef.current.delete(event.pointerId)
 
     if (dragRef.current?.mode === 'pinch') {
+      suppressCreatureFocusFor(FOLLOW_ZOOM_SELECTION_SUPPRESS_MS)
       setStagePanning(false)
-      if (touchPointsRef.current.size < 2) dragRef.current = null
+      if (touchPointsRef.current.size < 2) {
+        dragRef.current = null
+        resetFollowTouchGestureSoon()
+      }
       return
     }
 
@@ -563,7 +603,17 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       setStagePanning(false)
       const drag = dragRef.current
       dragRef.current = null
-      if (drag.mode === 'orbit') return
+      try {
+        if (drag.target?.hasPointerCapture?.(event.pointerId)) {
+          drag.target.releasePointerCapture(event.pointerId)
+        }
+      } catch {
+        // Ignore stale pointer-capture cleanup.
+      }
+      if (drag.mode === 'orbit') {
+        suppressCreatureFocusFor(FOLLOW_ORBIT_SELECTION_SUPPRESS_MS)
+        return
+      }
       window.setTimeout(() => {
         if (focusChangeAtRef.current === drag.startFocusChangeAt) releaseFocus()
       }, 0)
@@ -582,8 +632,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         className="tank-stage"
         onPointerDown={startStageDrag}
         onPointerMove={moveStageDrag}
-        onPointerUp={endStageDrag}
-        onPointerCancel={endStageDrag}
+        onPointerUpCapture={endStageDrag}
+        onPointerCancelCapture={endStageDrag}
         onWheel={zoomFollowWithWheel}
       >
         <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
@@ -613,7 +663,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
             debugStatsEnabled={visibleDebugVisuals}
             debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
-            onCreatureClick={focusCreature}
+            onCreatureClick={selectCreatureFromPointer}
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />

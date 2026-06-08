@@ -9,9 +9,10 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+
 ## v0.8.6 — UI overhaul + encyclopaedia
 
-Status: in development; current visible dev patch is `v0.8.6-dev_62`.
+Status: accepted and promoted as clean `v0.8.6` from `v0.8.6-dev_62` after Jeremy approval.
 
 ### Interface / encyclopaedia
 
@@ -44,6 +45,18 @@ Status: in development; current visible dev patch is `v0.8.6-dev_62`.
 - `v0.8.6-dev_61` changes the displayed common name for `Mola alexandrini` to `Giant Sunfish`, folds the other common names into the general species description, and relaxes the follow-card Atlas icon spacing after review.
 - `v0.8.6-dev_62` limits the `Giant Sunfish` general description to two alternate common-name mentions while retaining the broader alternate-name list for search/reference data.
 - Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
+
+## v0.8.5 — Follow mode stability
+
+Status: accepted and promoted as clean `v0.8.5` from `v0.8.5-dev_3` after Jeremy approval.
+
+### Camera / controls
+
+- `v0.8.5-dev_1` keeps follow mode centered on mobile by removing the phone info-card camera framing bias and immediately zeroing any cropped-stage pan when a creature is focused.
+- Suppresses creature reselection after follow-orbit drags by pointer-capturing the orbit drag and ignoring creature focus events for a short release window, so releasing over another fish does not steal follow mode.
+- `v0.8.5-dev_2` applies the same release-window suppression to follow zoom gestures: mobile pinch zoom and follow-mode wheel zoom now ignore creature focus events briefly after zooming, so lifting a finger over another fish does not switch targets.
+- `v0.8.5-dev_3` lets the follow gesture system recover after touch-up on a fish by handling touch end in capture before fish selection swallows the event, then clearing stale pinch state after a short delay so the next finger-down can orbit/zoom again.
+
 
 ## v0.8.4 — Creature moments repulser v1
 

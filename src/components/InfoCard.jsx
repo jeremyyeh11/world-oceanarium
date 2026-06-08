@@ -11,9 +11,9 @@ const DEFAULT_MASS = {
 const styles = {
   wrap: {
     position: 'absolute',
-    right: 'clamp(1rem, 4vw, 2.25rem)',
+    right: 'clamp(0.75rem, 3vw, 2.25rem)',
     bottom: 'clamp(4.75rem, 7vh, 6.5rem)',
-    width: 'min(22rem, calc(100vw - 2rem))',
+    width: 'min(25rem, calc(100vw - 1.5rem))',
     color: '#f5fbff',
     padding: '1rem',
     borderRadius: '20px',
@@ -27,8 +27,12 @@ const styles = {
   header: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: '1rem',
+    gap: '0.7rem',
     alignItems: 'flex-start',
+  },
+  identity: {
+    flex: '1 1 auto',
+    minWidth: 0,
   },
   eyebrow: {
     margin: 0,
@@ -40,25 +44,28 @@ const styles = {
   title: {
     margin: '0.22rem 0 0',
     minWidth: 0,
-    fontSize: 'clamp(1.25rem, 4.8vw, 1.8rem)',
+    fontSize: 'clamp(1.2rem, 4.1vw, 1.68rem)',
     lineHeight: 1,
     fontWeight: 720,
     letterSpacing: '-0.035em',
+    whiteSpace: 'nowrap',
   },
   titleLine: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.58rem',
+    gap: '0.3rem',
     minWidth: 0,
+    width: 'fit-content',
+    maxWidth: '100%',
   },
   atlasIconButton: {
     display: 'inline-grid',
     placeItems: 'center',
     flex: '0 0 auto',
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     padding: 0,
-    marginTop: '0.18rem',
+    marginTop: '0.12rem',
     borderRadius: 999,
     border: '1px solid rgba(125, 249, 255, 0.34)',
     background: 'rgba(55, 186, 218, 0.13)',
@@ -283,7 +290,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
   return (
     <section className="info-card" style={styles.wrap} aria-label={`${creature.species} details`}>
       <div style={styles.header}>
-        <div>
+        <div style={styles.identity}>
           <p style={styles.eyebrow}>ID: {creature.id}</p>
           <div style={styles.titleLine}>
             <h2 style={styles.title}>{creature.species}</h2>

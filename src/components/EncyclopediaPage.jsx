@@ -57,6 +57,12 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.02, 0],
     lookAt: [0, -0.02, 0],
   },
+  'coryphaena-hippurus': {
+    maxLengthDisplayUnits: 2.8,
+    cameraDistance: 9.8,
+    position: [0, -0.02, 0],
+    lookAt: [0, -0.02, 0],
+  },
   'mola-alexandrini': {
     yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,
     cameraDistance: 10.8,
@@ -69,6 +75,7 @@ const VIEW_POSES_BY_SPECIES = {
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'amblygaster-sirm': 1.8223,
+  'coryphaena-hippurus': 9.788,
   'mola-alexandrini': 20.7909,
 }
 

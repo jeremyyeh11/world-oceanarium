@@ -1420,7 +1420,8 @@ function schoolFormationOffset(school, creature) {
   const rand = mulberry32(hashString(`${school.id}:${creature.id}:formation`))
   const count = Math.max(1, school.count)
   const indexRadius = Math.sqrt((school.index + 0.5) / count)
-  const schoolRadius = SCHOOL_SPACING * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
+  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
+  const schoolRadius = SCHOOL_SPACING * spacingScale * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
   const angle = school.index * GOLDEN_ANGLE + randomRange(rand, -0.14, 0.14)
   const isLeader = school.index === 0
   const longitudinal = isLeader
@@ -3241,3 +3242,4 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
 useGLTF.preload('/models/fish/sardine/sardine.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi.glb')

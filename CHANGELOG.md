@@ -18,6 +18,8 @@ Status: in development; current visible dev patch is `v0.8.8-dev_1`.
 ### Creature roster
 
 - `v0.8.8-dev_1` starts the Mahi mahi feature branch from clean `v0.8.7`, carrying the supplied model asset into species, behavior, and Atlas review.
+- Adds `Coryphaena hippurus` / Mahi-mahi to the active species roster with Jeremy's supplied GLB, three static-dev review creatures, a source-safe Atlas entry, and model moves wired to `idle`, `burst`, `snap_left`, and `snap_right`.
+- Tunes Mahi-mahi as loose-schooling epipelagic hunters: larger spacing than sardines, faster readable cruise/burst speeds, wider open-ocean bounds, and less twitchy turns than the sardine school.
 - Target feel: fast, confident pelagic cruising with readable flashes and turns — elegant movement, not generic fish drift.
 
 ## v0.8.7 — Atlas thumbnail polish

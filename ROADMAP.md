@@ -74,9 +74,9 @@ Reference:
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:
-- [ ] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, animation set, and licensing.
-- [ ] Add species data, movement profile, selection copy, and LOD/render path.
-- [ ] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
+- [x] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, and animation set. Licensing/source approval remains tied to Jeremy-supplied asset provenance.
+- [x] Add species data, movement profile, selection copy, static-dev review creatures, and model render path.
+- [x] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
 - [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
 ### Feature backlog
@@ -97,19 +97,6 @@ Subtasks:
 - [x] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
 - [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
 - [x] Remove the temporary forced `repel` debug demo before clean public release.
-
-#### 2. Mahi mahi
-
-Status: `Backlog`
-
-Reference:
-- Jeremy requested this as the next species sequence item after creature moments.
-
-Subtasks:
-- [ ] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, animation set, and licensing.
-- [ ] Add species data, movement profile, selection copy, and LOD/render path.
-- [ ] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
-- [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
 #### Sardine procedural snap/micro-correct experiment
 

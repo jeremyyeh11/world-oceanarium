@@ -419,7 +419,7 @@ const DIVER_POSES_BY_SPECIES = {
     opacity: 0.34,
   },
   'coryphaena-hippurus': {
-    position: [1.2, 0.6, -0.85],
+    position: [0.5, 0.45, -0.85],
     opacity: 0.38,
   },
   'mola-alexandrini': {

@@ -10,6 +10,14 @@ Versioning convention notes:
 
 
 
+## v0.8.7 — Atlas thumbnail polish
+
+Status: in development; current visible dev patch is `v0.8.7-dev_1`.
+
+### Interface / encyclopaedia
+
+- `v0.8.7-dev_1` adds Jeremy's supplied sardine-school artwork as the Spotted Sardinella Atlas thumbnail.
+
 ## v0.8.6 — UI overhaul + encyclopaedia
 
 Status: accepted and promoted as clean `v0.8.6` from `v0.8.6-dev_62` after Jeremy approval.

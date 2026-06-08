@@ -63,6 +63,19 @@ Subtasks:
 
 ## Feature list
 
+### Active feature bucket
+
+#### 1. Atlas thumbnail polish
+
+Status: `Current in development`
+
+Reference:
+- `v0.8.7-dev_1` adds Jeremy's supplied sardine-school artwork as the Spotted Sardinella Atlas thumbnail.
+
+Subtasks:
+- [x] Add the sardine thumbnail asset.
+- [x] Wire the Spotted Sardinella Atlas species record to the thumbnail.
+- [ ] Verify the Atlas list/card presentation locally and on preview.
 
 ### Feature backlog
 

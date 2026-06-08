@@ -1116,7 +1116,7 @@ body:has(.debug-panel) .app-version-footnote {
   inset: 0;
   z-index: 1200;
   display: grid;
-  grid-template-columns: minmax(15rem, 20vw) minmax(0, 1fr) minmax(18rem, 24vw);
+  grid-template-columns: minmax(18rem, 22vw) minmax(0, 1fr) minmax(18rem, 24vw);
   grid-template-rows: auto 1fr;
   gap: 0;
   width: 100vw;

@@ -71,10 +71,12 @@ Status: `Current in development`
 
 Reference:
 - `v0.8.7-dev_1` adds Jeremy's supplied sardine-school artwork as the Spotted Sardinella Atlas thumbnail.
+- `v0.8.7-dev_2` widens the desktop Atlas species-list panel so `Spotted Sardinella` fits without truncation beside the thumbnail.
 
 Subtasks:
 - [x] Add the sardine thumbnail asset.
 - [x] Wire the Spotted Sardinella Atlas species record to the thumbnail.
+- [x] Widen the desktop Atlas species list so Spotted Sardinella is not cut off.
 - [ ] Verify the Atlas list/card presentation locally and on preview.
 
 ### Feature backlog

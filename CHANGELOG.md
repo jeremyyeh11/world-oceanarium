@@ -17,6 +17,7 @@ Status: in development; current visible dev patch is `v0.8.7-dev_1`.
 ### Interface / encyclopaedia
 
 - `v0.8.7-dev_1` adds Jeremy's supplied sardine-school artwork as the Spotted Sardinella Atlas thumbnail.
+- `v0.8.7-dev_2` widens the desktop Atlas species-list panel so `Spotted Sardinella` fits without truncation beside the thumbnail.
 
 ## v0.8.6 — UI overhaul + encyclopaedia
 

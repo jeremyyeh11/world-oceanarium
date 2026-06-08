@@ -71,6 +71,24 @@ export const SPECIES = [
       foundIn: 'Indo-West Pacific coasts.',
       lifeSpan: 'Up to 8 years reported.',
       maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Unknown',
+        groupingBehaviour: 'Adults and juveniles move in tight coastal schools; exact school counts vary by site.',
+        reproduction: 'Pelagic broadcast spawner; local spawning seasons vary across its range.',
+      },
+      averages: {
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
     },
     atlasSummary: {
       biome: 'Ocean',
@@ -132,6 +150,24 @@ export const SPECIES = [
       foundIn: 'Open ocean outside polar regions.',
       lifeSpan: 'Unknown in the wild.',
       maturityAge: 'Unknown',
+      social: {
+        schoolSize: 1,
+        groupingBehaviour: 'Usually solitary or paired; juveniles may gather near shelter and adults can bask near the surface.',
+        reproduction: 'Likely pelagic spawning; season and pair/communal pattern are not well documented.',
+      },
+      averages: {
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
     },
     atlasSummary: {
       biome: 'Ocean',

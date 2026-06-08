@@ -173,6 +173,69 @@ function formatLengthRange(range) {
   return `${min.toFixed(min < 10 ? 1 : 0)} m - ${max.toFixed(max < 10 ? 1 : 0)} m`
 }
 
+function unknownIfEmpty(value) {
+  if (value === null || value === undefined || value === '') return 'Unknown'
+  return value
+}
+
+function formatInteger(value, suffix) {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric) || numeric <= 0) return 'Unknown'
+  return `${Math.round(numeric)} ${suffix}`
+}
+
+function formatSexLength(value) {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric) || numeric <= 0) return 'Unknown'
+  if (numeric < 1) return `${Math.round(numeric * 100)} cm long`
+  return `${Math.round(numeric)} m long`
+}
+
+function formatYears(value) {
+  return formatInteger(value, 'years')
+}
+
+function formatOffspring(value) {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric) || numeric <= 0) return unknownIfEmpty(value)
+  return new Intl.NumberFormat().format(Math.round(numeric))
+}
+
+function SexPair({ male, female, formatter }) {
+  return (
+    <span className="atlas-sex-pair">
+      <span aria-label="Male">♂ {formatter(male)}</span>
+      <span aria-label="Female">♀ {formatter(female)}</span>
+    </span>
+  )
+}
+
+function AtlasQuickCards({ diet, biome, location }) {
+  return (
+    <div className="atlas-quick-card-grid" aria-label="Species quick facts">
+      <div><span>Diet</span><strong>{unknownIfEmpty(diet)}</strong></div>
+      <div><span>Biome</span><strong>{unknownIfEmpty(biome)}</strong></div>
+      <div><span>Location</span><strong>{unknownIfEmpty(location)}</strong></div>
+    </div>
+  )
+}
+
+function AtlasTableSection({ title, rows }) {
+  return (
+    <section className="atlas-table-section" aria-label={title}>
+      <h3>{title}</h3>
+      <div className="atlas-info-table">
+        {rows.map(row => (
+          <div className="atlas-info-row" key={row.label}>
+            <div className="atlas-info-label">{row.label}</div>
+            <div className="atlas-info-value">{row.value}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 const ROOT_TRANSLATION_TRACK_RE = /^(root|scene)\.position$/i
 
 function cloneInPlaceClip(clip) {
@@ -574,8 +637,6 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const debugTapTimer = useRef(null)
   const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
   const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
-  const lengthRangeMeters = speciesLengthRangeMeters(selectedSpecies)
-  const depthZone = DEPTH_ZONE_BY_ID.get(selectedSpecies?.depthZone)
   const biome = BIOME_BY_ID.get(selectedSpecies?.biome)
   const atlasDetails = selectedSpecies?.atlasDetails ?? {}
   const resetDebugTaps = () => {
@@ -707,16 +768,37 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         <h2>{selectedSpecies.name}</h2>
         {selectedSpecies.scientificName && <p className="encyclopedia-scientific">{selectedSpecies.scientificName}</p>}
         <ConservationStatusBar status={selectedSpecies.conservationStatus} />
+        <AtlasQuickCards
+          diet={atlasDetails.commonDiet}
+          biome={biome?.name ?? selectedSpecies.biome}
+          location={atlasDetails.foundIn}
+        />
         <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
-        <div className="encyclopedia-stat-grid">
-          <div><span>Size</span><strong>{formatLengthRange(lengthRangeMeters)}</strong></div>
-          <div><span>Zone</span><strong>{depthZone?.shortLabel ?? selectedSpecies.depthZone ?? 'Unknown'}</strong></div>
-          <div><span>Behavior</span><strong>{selectedSpecies.schooling ? 'Schooling' : selectedSpecies.repulser ? 'Large solo presence' : 'Solo / pending'}</strong></div>
-          <div><span>Diet</span><strong>{atlasDetails.commonDiet ?? 'Unknown'}</strong></div>
-          <div><span>Range</span><strong>{atlasDetails.foundIn ?? 'Unknown'}</strong></div>
-          <div><span>Biome</span><strong>{biome?.name ?? selectedSpecies.biome ?? 'Unknown'}</strong></div>
-          <div><span>Life span</span><strong>{atlasDetails.lifeSpan ?? 'Unknown'}</strong></div>
-          <div><span>Maturity</span><strong>{atlasDetails.maturityAge ?? 'Unknown'}</strong></div>
+        <div className="atlas-table-stack">
+          <AtlasTableSection
+            title="Social"
+            rows={[
+              { label: 'School size', value: formatOffspring(atlasDetails.social?.schoolSize) },
+              { label: 'Grouping behaviour', value: unknownIfEmpty(atlasDetails.social?.groupingBehaviour) },
+              { label: 'Reproduction', value: unknownIfEmpty(atlasDetails.social?.reproduction) },
+            ]}
+          />
+          <AtlasTableSection
+            title="Averages"
+            rows={[
+              { label: 'Size', value: <SexPair male={atlasDetails.averages?.maleSizeMeters} female={atlasDetails.averages?.femaleSizeMeters} formatter={formatSexLength} /> },
+              { label: 'Weight', value: <SexPair male={atlasDetails.averages?.maleWeightKg} female={atlasDetails.averages?.femaleWeightKg} formatter={(value) => formatInteger(value, 'kg')} /> },
+              { label: 'Life expectancy', value: <SexPair male={atlasDetails.averages?.maleLifeExpectancyYears} female={atlasDetails.averages?.femaleLifeExpectancyYears} formatter={formatYears} /> },
+            ]}
+          />
+          <AtlasTableSection
+            title="Lifecycle"
+            rows={[
+              { label: 'Age of sexual maturity', value: formatYears(atlasDetails.lifecycle?.sexualMaturityYears) },
+              { label: 'Age of sexual sterility', value: formatYears(atlasDetails.lifecycle?.sexualSterilityYears) },
+              { label: 'No. of offspring/eggs per mating event', value: formatOffspring(atlasDetails.lifecycle?.offspringPerMatingEvent) },
+            ]}
+          />
         </div>
       </aside>
     </section>

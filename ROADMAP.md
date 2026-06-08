@@ -105,6 +105,7 @@ Reference:
 - `v0.8.6-dev_56` fixes portrait mobile Atlas scroll/touch handling and makes the mobile Atlas areas full-bleed with square PC-style panel edges instead of rounded/margined cards.
 - `v0.8.6-dev_57` adds a portrait-mobile Atlas touch-scroll fallback so drag gestures directly advance the Atlas scroll container even on touch stacks that ignore fixed-overlay overflow scrolling.
 - `v0.8.6-dev_58` updates Atlas species copy for `Amblygaster sirm` and keeps sparse `Mola alexandrini` social/reproduction fields explicitly unknown rather than invented.
+- `v0.8.6-dev_59` applies Jeremy's full Atlas species fact sheet for `Amblygaster sirm` and `Mola alexandrini`, including sexed size/weight/life-expectancy values, spawning notes, school size, and egg-count ranges.
 - Jeremy requested this as a separate branch from Mahi mahi so interface/encyclopaedia work can iterate independently.
 
 Subtasks:

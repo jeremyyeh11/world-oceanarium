@@ -185,14 +185,24 @@ function formatInteger(value, suffix) {
 }
 
 function formatSexLength(value) {
+  if (typeof value === 'string' && value.trim() !== '' && Number.isNaN(Number(value))) return value
   const numeric = Number(value)
   if (!Number.isFinite(numeric) || numeric <= 0) return 'Unknown'
-  if (numeric < 1) return `${Math.round(numeric * 100)} cm long`
-  return `${Math.round(numeric)} m long`
+  if (numeric < 1) return `${numeric.toFixed(2)} m`
+  if (numeric < 10 && !Number.isInteger(numeric)) return `${numeric.toFixed(1)} m`
+  return `${Math.round(numeric)} m`
 }
 
 function formatYears(value) {
   return formatInteger(value, 'years')
+}
+
+function formatWeight(value) {
+  if (typeof value === 'string' && value.trim() !== '' && Number.isNaN(Number(value))) return value
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric) || numeric <= 0) return 'Unknown'
+  if (numeric < 1) return `${numeric.toFixed(2)} kg`
+  return `${new Intl.NumberFormat().format(Math.round(numeric))} kg`
 }
 
 function formatOffspring(value) {
@@ -823,7 +833,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
             title="Averages"
             rows={[
               { label: 'Size', value: <SexPair male={atlasDetails.averages?.maleSizeMeters} female={atlasDetails.averages?.femaleSizeMeters} formatter={formatSexLength} /> },
-              { label: 'Weight', value: <SexPair male={atlasDetails.averages?.maleWeightKg} female={atlasDetails.averages?.femaleWeightKg} formatter={(value) => formatInteger(value, 'kg')} /> },
+              { label: 'Weight', value: <SexPair male={atlasDetails.averages?.maleWeightKg} female={atlasDetails.averages?.femaleWeightKg} formatter={formatWeight} /> },
               { label: 'Life expectancy', value: <SexPair male={atlasDetails.averages?.maleLifeExpectancyYears} female={atlasDetails.averages?.femaleLifeExpectancyYears} formatter={formatYears} /> },
             ]}
           />

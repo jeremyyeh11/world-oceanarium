@@ -61,7 +61,43 @@ export const SPECIES = [
     repulser: false,
     aggressive: false,
     predator: false,
-    description: 'A reef-associated coastal sardinella with 10–20 golden spots along the flank. It reaches up to 27 cm total length and is widely caught for food and bait fisheries.',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      commonDiet: 'Plankton, copepods, larvae.',
+      foundIn: 'Indo-West Pacific coastal waters and lagoons.',
+      lifeSpan: 'Up to 8 years reported.',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: '>1000',
+        groupingBehaviour: 'Pelagic schooling fish in coastal waters and lagoons; juveniles found closer inshore.',
+        reproduction: 'Communal broadcast spawning. Peak season Nov–Jan. No pair bonding.',
+      },
+      averages: {
+        maleSizeMeters: 0.20,
+        femaleSizeMeters: 0.22,
+        maleWeightKg: 0.05,
+        femaleWeightKg: 0.07,
+        maleLifeExpectancyYears: 8,
+        femaleLifeExpectancyYears: 8,
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: '11,600–43,200',
+      },
+    },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Copepods + larvae',
+      social: 'Schooling',
+    },
+    description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the tank as a quick flicker of many bodies rather than a lone specimen.',
+    maxBodyLengthMeters: 0.27,
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.
       bodyLengthWU: 1.08,
@@ -91,39 +127,9 @@ export const SPECIES = [
     },
   },
   {
-    id: 'large-predator',
-    name: 'Large Predator',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    schooling: false,
-    repulser: false,
-    aggressive: false,
-    predator: true,
-    description: 'A generic large solo predator placeholder for testing scale, presence, and future apex species behavior.',
-    swim: {
-      // Generic large non-schooling predator placeholder for future specific species.
-      bodyLengthWU: 2.0,
-      visualTimeScale: 0.35,
-      idleBLPerSec: [0.35, 0.65],
-      idleDriftBLPerSec: [0.08, 0.16],
-      snapBLPerSec: [1.1, 1.6],
-      burstBLPerSec: [1.8, 2.5],
-      burstInterval: [8.0, 13.0],
-      erraticness: 0.12,
-      turnRadius: 0.9,
-      speedMultiplier: 0.55,
-    },
-    sizeRange: [3.2, 3.8],
-    mass: {
-      // Generic shark-like estimate until this placeholder becomes a specific species.
-      coefficient: 0.0095,
-      exponent: 3,
-    },
-  },
-  {
     id: 'mola-alexandrini',
     legacyIds: ['mola-mola'],
-    legacyNames: ['Ocean Sunfish'],
+    legacyNames: ['Ocean Sunfish', 'Bumphead Sunfish'],
     name: 'Giant Sunfish',
     scientificName: 'Mola alexandrini',
     family: 'Molidae',
@@ -134,7 +140,45 @@ export const SPECIES = [
     repulser: true,
     aggressive: false,
     predator: false,
-    description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone or in pairs through open water. It dives deep to hunt jellyfish, salps, crustaceans, mollusks, and other soft-bodied prey, then may bask sideways near the surface to warm up, recover oxygen, and invite parasite-picking birds. Adults have a distinctive head bump, chin bump, rectangular body scales, and rounded clavus that separate them from other sunfish.',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'NE',
+      label: 'Not Evaluated',
+    },
+    atlasDetails: {
+      commonDiet: 'Jellyfish, salps, soft-bodied prey.',
+      foundIn: 'Open ocean outside polar regions.',
+      lifeSpan: 'Unknown in the wild.',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 1,
+        groupingBehaviour: 'Solitary as adults. Juveniles loosely school for predator protection, dispersing at maturity.',
+        reproduction: 'Broadcast spawning in open water; adults briefly aggregate to spawn. Season likely summer (Jun–Aug). No parental care.',
+      },
+      averages: {
+        maleSizeMeters: 2.5,
+        femaleSizeMeters: 3.3,
+        maleWeightKg: 1000,
+        femaleWeightKg: 2300,
+        maleLifeExpectancyYears: 20,
+        femaleLifeExpectancyYears: 20,
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: '>300,000,000',
+      },
+    },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Soft-bodied prey',
+      social: 'Solitary',
+    },
+    description: 'The giant sunfish rows its tall dorsal and anal fins together, usually traveling alone through open water after maturity. Also known as the bumphead sunfish and Ramsay\'s sunfish, it can briefly aggregate to broadcast spawn before returning to solitary cruising, deep soft-bodied prey hunts, and sideways surface basking.',
+    adultLengthRangeMeters: [1.6, 3.3],
+    maxBodyLengthMeters: 3.3,
+    atlasThumbnail: '/atlas/mola-alexandrini-thumbnail.png',
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Current review scale keeps adults at 180–240 cm = 7.2–9.6 WU until the final GLB scale is approved.
       // Target review speed: ~0.6–1.1 WU/s after the latest 1.2x idle movement tuning.

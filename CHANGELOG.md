@@ -9,6 +9,43 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+
+## v0.8.6 — UI overhaul + encyclopaedia
+
+Status: accepted and promoted as clean `v0.8.6` from `v0.8.6-dev_62` after Jeremy approval.
+
+### Interface / encyclopaedia
+
+- `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia feature branch from clean `v0.8.4` so navigation, creature information architecture, and reading flow can iterate separately from species work.
+- `v0.8.6-dev_2` adds the first encyclopaedia mockup: top-right gallery entry, left species list with thumbnails, central 3D/species-scale stage, right field-guide info panel, human-scale placeholder, and an info-card button from followed fish.
+- `v0.8.6-dev_3` removes the generic Large Predator species placeholder entirely and removes the floor disc from the encyclopaedia 3D viewport.
+- `v0.8.6-dev_4` renames the feature to Oceanpaedia, removes redundant panel labels, and fixes the model viewer to a non-orbiting side profile with per-species pose overrides for future angle tuning.
+- `v0.8.6-dev_5` renames the page and entry points from Oceanpaedia to The Atlas.
+- `v0.8.6-dev_6` adds the supplied epipelagic sunlight-water backdrop to The Atlas viewport for epipelagic species.
+- `v0.8.6-dev_7` replaces the corner human-scale placeholder with Jeremy's diver silhouette placed inside the viewport beside the fish, using a head-comparison crop for very small species.
+- `v0.8.6-dev_8` plays Atlas model idle clips in place and triggers occasional in-place burst clips without viewport translation.
+- `v0.8.6-dev_9` removes the rejected Atlas model animation experiment and replaces the supplied photo backdrop with the live ocean tank backdrop stack, without tank fish or UI.
+- `v0.8.6-dev_10` restores the Atlas in-place idle/burst animations, keeps the tank backdrop, and moves the diver scale reference into the lower-right Mola comparison area using a 1.7 m human scale.
+- `v0.8.6-dev_11` moves the sardine diver-scale silhouette behind the fish body instead of cropping it against the left edge, matching Jeremy's marked comparison layout.
+- `v0.8.6-dev_12` replaces the diver PNG with Jeremy's SVG on a Three.js mesh plane, scales the Atlas fish and diver from species max body length, labels the stat as max body length, and caps small-fish display size so sardines do not fill the viewport.
+- `v0.8.6-dev_13` reduces the diver mesh opacity to a subdued reference silhouette and adds an IUCN Red List conservation-status bar to the Atlas info panel.
+- `v0.8.6-dev_14` makes the diver mesh double-sided and camera-facing so it cannot vanish from backface/axis changes, then shifts the Atlas camera 15° left and 15° upward for a slight front-left, top-down fish view.
+- `v0.8.6-dev_15` makes the diver silhouette visibly render against the dark tank backdrop with a pale translucent mesh material, and turns the Atlas camera another 15° left for a 30° front-left view.
+- `v0.8.6-dev_16` switches the Atlas diver scale reference to a camera-facing sprite using the supplied SVG texture, normalizes the SVG fill to tint correctly, raises its opacity, and disables depth testing so it remains visible in front of the dark tank viewport.
+- `v0.8.6-dev_17` rasterizes the supplied diver SVG into a PNG texture and uses that PNG for the Atlas sprite so browser/WebGL SVG-texture handling cannot hide the scale reference.
+- `v0.8.6-dev_18` replaces the Atlas diver texture with Jeremy's new PNG, normalizes it to a black silhouette, and lowers the sprite opacity so it reads as a quieter scale reference.
+- `v0.8.6-dev_19` sanitizes Atlas GLB materials to render opaque front faces with depth writes, preventing Mola's opposite eye/interior surfaces from showing through the head.
+- `v0.8.6-dev_20` lowers the Atlas diver silhouette and places it behind the fish with depth testing so creature bodies occlude the scale reference instead of being covered by it.
+- `v0.8.6-dev_21` adds a debug-gated Atlas diver pose editor with X/Y/Z/opacity sliders, per-species localStorage persistence, reset, and copyable pose JSON for committing reviewed placements.
+- `v0.8.6-dev_22` moves Atlas pose-editor activation to `Ctrl+Shift+D`, shows the Atlas version label in the overlay, and squares/full-bleeds the Atlas panels while keeping thin borders.
+- `v0.8.6-dev_46` tightens followed-creature atlas-card copy while staying on the Atlas branch: quick facts are split into terse Biome / Zone / Diet / Social fields, depth/measurement labels are shortened, and empty individual notes use a neutral placeholder without removing the top-right Atlas entry or info-card Atlas button.
+- `v0.8.6-dev_58` source-safes the Atlas species copy: `Amblygaster sirm` now reads as spotted sardinella with coastal/lagoons schooling context, while sparse `Mola alexandrini` social and reproduction fields stay `Unknown` instead of speculative.
+- `v0.8.6-dev_59` replaces the prior unknown placeholders with Jeremy's supplied Atlas fact sheet for spotted sardinella and bumphead sunfish, and formats sub-kilogram masses / decimal-meter lengths cleanly in the Atlas tables.
+- `v0.8.6-dev_60` adjusts the follow-card shell and title row for the longer bumphead sunfish common name: wider card, no common-name wrap, smaller name-to-Atlas-icon gap, and a slightly more compact icon.
+- `v0.8.6-dev_61` changes the displayed common name for `Mola alexandrini` to `Giant Sunfish`, folds the other common names into the general species description, and relaxes the follow-card Atlas icon spacing after review.
+- `v0.8.6-dev_62` limits the `Giant Sunfish` general description to two alternate common-name mentions while retaining the broader alternate-name list for search/reference data.
+- Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
+
 ## v0.8.5 — Follow mode stability
 
 Status: accepted and promoted as clean `v0.8.5` from `v0.8.5-dev_3` after Jeremy approval.
@@ -20,13 +57,14 @@ Status: accepted and promoted as clean `v0.8.5` from `v0.8.5-dev_3` after Jeremy
 - `v0.8.5-dev_2` applies the same release-window suppression to follow zoom gestures: mobile pinch zoom and follow-mode wheel zoom now ignore creature focus events briefly after zooming, so lifting a finger over another fish does not switch targets.
 - `v0.8.5-dev_3` lets the follow gesture system recover after touch-up on a fish by handling touch end in capture before fish selection swallows the event, then clearing stale pinch state after a short delay so the next finger-down can orbit/zoom again.
 
+
 ## v0.8.4 — Creature moments repulser v1
 
 Status: accepted and promoted as clean `v0.8.4` from `v0.8.4-dev_4` after Jeremy approval on desktop/mobile feel.
 
 ### Creature behavior
 
-- Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser, sardines and the large-predator placeholder default false.
+- Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser and sardines default false.
 - `v0.8.4-dev_1` adds smoothed schooling drift away from nearby repulser creatures so sardines can softly part around the Mola instead of abruptly snapping away.
 - `v0.8.4-dev_2` makes the debug follow-target marker lerp from yellow to red as repulser drift increases, then back to yellow as the school returns to its normal target.
 - `v0.8.4-dev_3` temporarily added a debug-panel `repel` demo button so the effect could be reviewed without waiting for a Mola crossing.

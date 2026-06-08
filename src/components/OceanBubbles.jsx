@@ -9,11 +9,11 @@ const MAX_Y = 5
 const SPREAD_Z = 7
 const MIN_LIFETIME = 2.1
 const MAX_LIFETIME = 3.8
-const RESPAWN_STAGGER = 3.2
 
 const VERTEX_SHADER = /* glsl */ `
   attribute float aBaseSize;
   attribute float aLifeScale;
+  uniform float uSizeScale;
   varying float vAlpha;
 
   void main() {
@@ -21,12 +21,13 @@ const VERTEX_SHADER = /* glsl */ `
     gl_Position = projectionMatrix * mvPosition;
 
     float perspective = 42.0 / max(1.0, -mvPosition.z);
-    gl_PointSize = aBaseSize * aLifeScale * perspective;
+    gl_PointSize = aBaseSize * uSizeScale * aLifeScale * perspective;
     vAlpha = smoothstep(0.0, 0.18, aLifeScale);
   }
 `
 
 const FRAGMENT_SHADER = /* glsl */ `
+  uniform float uOpacityScale;
   varying float vAlpha;
 
   void main() {
@@ -35,7 +36,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     float shell = smoothstep(0.5, 0.34, dist);
     float rim = smoothstep(0.34, 0.48, dist) * 0.45;
     float highlight = smoothstep(0.13, 0.0, length(uv - vec2(-0.16, 0.15))) * 0.55;
-    float alpha = (shell * 0.18 + rim + highlight) * vAlpha * 0.34;
+    float alpha = (shell * 0.18 + rim + highlight) * vAlpha * 0.34 * uOpacityScale;
 
     if (dist > 0.5 || alpha < 0.01) discard;
     gl_FragColor = vec4(0.74, 0.94, 1.0, alpha);
@@ -53,37 +54,39 @@ function lifeCurve(age01) {
   return Math.max(0, (Math.log(1 - x) + 4) / 5)
 }
 
-function respawn(index, positions, baseSizes, lifeScales, ages, lifetimes, velocities, initial = false) {
+function respawn(index, positions, baseSizes, lifeScales, ages, lifetimes, velocities, bounds, initial = false) {
+  const { maxY, minY, spreadX, spreadZ } = bounds
   const j = index * 3
-  positions[j] = randomRange(-SPREAD_X / 2, SPREAD_X / 2)
-  positions[j + 1] = initial ? randomRange(MIN_Y, MAX_Y) : MIN_Y + randomRange(-1.2, 0.8)
-  positions[j + 2] = randomRange(-SPREAD_Z / 2, SPREAD_Z / 2)
+  positions[j] = randomRange(-spreadX / 2, spreadX / 2)
+  positions[j + 1] = initial ? randomRange(minY, maxY) : minY + randomRange(-0.25, 0.18)
+  positions[j + 2] = randomRange(-spreadZ / 2, spreadZ / 2)
   baseSizes[index] = randomRange(1.2, 2.6)
-  lifeScales[index] = 0
-  ages[index] = initial ? -randomRange(0, RESPAWN_STAGGER) : 0
   lifetimes[index] = randomRange(MIN_LIFETIME, MAX_LIFETIME)
+  ages[index] = initial ? randomRange(0, lifetimes[index] * 0.82) : 0
+  lifeScales[index] = initial ? lifeCurve(ages[index] / lifetimes[index]) : 0
   velocities[index] = randomRange(0.85, 1.85)
 }
 
-export default function OceanBubbles() {
+export default function OceanBubbles({ count = BUBBLE_COUNT, depthTest = true, maxY = MAX_Y, minY = MIN_Y, opacityScale = 1, renderOrder = 0, sizeScale = 1, spreadX = SPREAD_X, spreadZ = SPREAD_Z }) {
   const pointsRef = useRef()
   const state = useRef(null)
 
   const attributes = useMemo(() => {
-    const positions = new Float32Array(BUBBLE_COUNT * 3)
-    const baseSizes = new Float32Array(BUBBLE_COUNT)
-    const lifeScales = new Float32Array(BUBBLE_COUNT)
-    const ages = new Float32Array(BUBBLE_COUNT)
-    const lifetimes = new Float32Array(BUBBLE_COUNT)
-    const velocities = new Float32Array(BUBBLE_COUNT)
+    const bounds = { maxY, minY, spreadX, spreadZ }
+    const positions = new Float32Array(count * 3)
+    const baseSizes = new Float32Array(count)
+    const lifeScales = new Float32Array(count)
+    const ages = new Float32Array(count)
+    const lifetimes = new Float32Array(count)
+    const velocities = new Float32Array(count)
 
-    for (let i = 0; i < BUBBLE_COUNT; i += 1) {
-      respawn(i, positions, baseSizes, lifeScales, ages, lifetimes, velocities, true)
+    for (let i = 0; i < count; i += 1) {
+      respawn(i, positions, baseSizes, lifeScales, ages, lifetimes, velocities, bounds, true)
     }
 
-    state.current = { ages, lifetimes, velocities }
+    state.current = { ages, bounds, lifetimes, velocities }
     return { positions, baseSizes, lifeScales }
-  }, [])
+  }, [count, maxY, minY, spreadX, spreadZ])
 
   useFrame(({ clock }, delta) => {
     const points = pointsRef.current
@@ -93,10 +96,10 @@ export default function OceanBubbles() {
     const scaleAttr = points.geometry.attributes.aLifeScale
     const pos = posAttr.array
     const lifeScales = scaleAttr.array
-    const { ages, lifetimes, velocities } = state.current
+    const { ages, bounds, lifetimes, velocities } = state.current
     const t = clock.getElapsedTime()
 
-    for (let i = 0; i < BUBBLE_COUNT; i += 1) {
+    for (let i = 0; i < count; i += 1) {
       ages[i] += delta
 
       if (ages[i] < 0) {
@@ -105,8 +108,8 @@ export default function OceanBubbles() {
       }
 
       const normalizedAge = ages[i] / lifetimes[i]
-      if (normalizedAge >= 1 || pos[i * 3 + 1] > MAX_Y) {
-        respawn(i, pos, points.geometry.attributes.aBaseSize.array, lifeScales, ages, lifetimes, velocities)
+      if (normalizedAge >= 1 || pos[i * 3 + 1] > bounds.maxY) {
+        respawn(i, pos, points.geometry.attributes.aBaseSize.array, lifeScales, ages, lifetimes, velocities, bounds)
         continue
       }
 
@@ -122,7 +125,7 @@ export default function OceanBubbles() {
   })
 
   return (
-    <points ref={pointsRef} frustumCulled={false}>
+    <points ref={pointsRef} frustumCulled={false} renderOrder={renderOrder}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[attributes.positions, 3]} />
         <bufferAttribute attach="attributes-aBaseSize" args={[attributes.baseSizes, 1]} />
@@ -131,8 +134,13 @@ export default function OceanBubbles() {
       <shaderMaterial
         vertexShader={VERTEX_SHADER}
         fragmentShader={FRAGMENT_SHADER}
+        uniforms={{
+          uOpacityScale: { value: opacityScale },
+          uSizeScale: { value: sizeScale },
+        }}
         transparent
         depthWrite={false}
+        depthTest={depthTest}
         blending={THREE.AdditiveBlending}
       />
     </points>

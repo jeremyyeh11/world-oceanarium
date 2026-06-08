@@ -63,6 +63,7 @@ Subtasks:
 
 ## Feature list
 
+
 ### Feature backlog
 
 #### 1. Creature moments — schooling behavior around large fish
@@ -95,6 +96,18 @@ Subtasks:
 - [ ] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
 - [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
+#### Sardine procedural snap/micro-correct experiment
+
+Status: `Backlog`
+
+Reference:
+- `v0.8.5-dev_14` refined sardine snap presets, removed idle/micro-correct/startle-flick lab presets, removed tank-view micro-correct/startle-flick moments, and remapped drift to cruise.
+- Jeremy judged this direction not working well for now; stick to authored animation clips for the current release path.
+
+Subtasks:
+- [ ] Preserve as an incomplete/future-version experiment only.
+- [ ] Do not reintroduce procedural sardine snap/micro-correct/startle-flick behavior unless explicitly promoted later.
+
 #### Rejected/saved visual experiments
 
 Status: `Backlog`
@@ -107,6 +120,27 @@ Subtasks:
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
+
+### v0.8.6 — UI overhaul + encyclopaedia addition
+
+Status: accepted and promoted as clean `v0.8.6` after Jeremy approval.
+
+Released from: `v0.8.6-dev_62`.
+
+Accepted gates:
+- The Atlas entry point, species list, model/scale stage, and species-information panel are accepted for clean release.
+- Follow-card Atlas entry uses the compact icon beside the common name without crowding the card.
+- Atlas mobile layout scrolls naturally and keeps full-bleed square panels.
+- `Amblygaster sirm` and `Mola alexandrini` Atlas data/copy are source-safe and review-approved, with unknown fields left explicit.
+- `Mola alexandrini` displays as `Giant Sunfish`; alternate common names stay limited in prose and preserved in metadata.
+- Jeremy visual pass accepted the release candidate.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Adds The Atlas as the field-guide layer for World Oceanarium, with species selection, 3D creature stage, diver scale reference, conservation status, and structured species facts.
+- Tightens followed-creature info cards into identity-first field cards with a compact Atlas route beside the name.
+- Adds responsive Atlas behavior for desktop and phone, including portrait touch-scroll fallback and full-bleed mobile panels.
+- Updates Spotted Sardinella and Giant Sunfish copy/data with safer biological fields, sexed averages, lifecycle rows, and preserved alternate-name search metadata.
 
 ### v0.8.5 — Follow mode stability
 

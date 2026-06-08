@@ -97,10 +97,10 @@ function atlasViewportCameraDistance(species, pose, size) {
 
   const isPortraitPhone = size.width <= 480 && size.height > size.width
   if (isPortraitPhone) {
-    return baseDistance * (species?.id === 'amblygaster-sirm' ? 0.52 : 0.68)
+    return baseDistance * (species?.id === 'amblygaster-sirm' ? 0.46 : 0.6)
   }
 
-  return baseDistance * 0.74
+  return baseDistance * 0.68
 }
 
 function AtlasCamera({ species, pose }) {

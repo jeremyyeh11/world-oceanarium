@@ -1557,34 +1557,33 @@ body:has(.debug-panel) .app-version-footnote {
 
 @media (max-width: 880px) {
   .encyclopedia-page {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
+    display: grid;
+    grid-template-rows: auto minmax(14rem, 42svh) auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    overflow: hidden;
     overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 0 max(0.9rem, env(safe-area-inset-bottom));
+    padding: 0.62rem 0.62rem max(0.62rem, env(safe-area-inset-bottom));
     background:
-      radial-gradient(circle at 50% 22%, rgba(78, 165, 196, 0.22), transparent 36%),
-      linear-gradient(180deg, rgba(7, 20, 34, 0.98), rgba(3, 9, 16, 0.99));
+      radial-gradient(circle at 50% 28%, rgba(78, 165, 196, 0.22), transparent 38%),
+      linear-gradient(180deg, rgba(6, 18, 31, 0.99), rgba(2, 8, 15, 1));
   }
 
   .encyclopedia-topbar {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 8;
     align-items: center;
     margin: 0;
-    padding: max(0.65rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) 0.62rem max(0.75rem, env(safe-area-inset-left));
-    background: linear-gradient(180deg, rgba(3, 14, 25, 0.98), rgba(3, 14, 25, 0.9));
-    border-bottom-color: rgba(180, 229, 255, 0.18);
-    box-shadow: 0 0.8rem 1.6rem rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(16px);
+    padding: max(0.44rem, env(safe-area-inset-top)) 0.2rem 0.62rem;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .encyclopedia-topbar h1 {
     margin: 0;
-    font-size: clamp(1.18rem, 7.4vw, 1.62rem);
+    font-size: clamp(1.16rem, 7vw, 1.58rem);
     letter-spacing: -0.045em;
   }
 
@@ -1607,41 +1606,35 @@ body:has(.debug-panel) .app-version-footnote {
   }
 
   .encyclopedia-model-stage {
-    order: 1;
-    flex: 0 0 auto;
+    grid-row: 2;
+    min-width: 0;
     min-height: 0;
-    height: clamp(16rem, 44svh, 25rem);
-    margin: 0.72rem 0.72rem 0;
-    border-color: rgba(171, 225, 255, 0.18);
-    border-radius: 22px 22px 10px 10px;
+    height: auto;
+    margin: 0;
+    border-color: rgba(171, 225, 255, 0.2);
+    border-radius: 20px 20px 0 0;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(72, 154, 181, 0.28), transparent 45%),
+      linear-gradient(180deg, rgba(9, 32, 50, 0.92), rgba(1, 10, 19, 0.98));
     box-shadow: 0 1.2rem 3rem rgba(0, 0, 0, 0.28);
   }
 
-  .encyclopedia-info-panel {
-    order: 3;
-    flex: 0 0 auto;
-    max-height: none;
-    overflow: visible;
-    margin: 0.72rem 0.72rem 0;
-    padding: 0.9rem 0.82rem 1rem;
-    border-radius: 22px;
-    background: linear-gradient(180deg, rgba(6, 24, 39, 0.9), rgba(3, 14, 24, 0.96));
-    box-shadow: 0 1rem 2.6rem rgba(0, 0, 0, 0.22);
-  }
-
   .encyclopedia-species-list {
-    order: 2;
-    display: flex;
-    flex: 0 0 auto;
-    gap: 0.55rem;
-    margin: 0.72rem 0.72rem 0;
+    grid-row: 3;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(5.5rem, 6rem);
+    gap: 0.46rem;
+    min-height: 6.65rem;
+    margin: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 0.58rem;
-    border-radius: 20px;
-    background: rgba(232, 244, 245, 0.92);
-    border-color: rgba(255, 255, 255, 0.24);
-    box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.2);
+    padding: 0.52rem;
+    border-top: 0;
+    border-color: rgba(171, 225, 255, 0.18);
+    border-radius: 0 0 20px 20px;
+    background: linear-gradient(180deg, rgba(7, 25, 39, 0.94), rgba(4, 17, 29, 0.98));
+    box-shadow: 0 1.1rem 2.4rem rgba(0, 0, 0, 0.24);
     scroll-snap-type: x proximity;
     scrollbar-width: none;
   }
@@ -1657,15 +1650,15 @@ body:has(.debug-panel) .app-version-footnote {
   .encyclopedia-species-row {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 3.8rem auto;
-    min-width: 5.85rem;
-    max-width: 6.4rem;
+    grid-template-rows: 3.45rem auto;
+    min-width: 0;
+    width: 100%;
     margin-bottom: 0;
-    padding: 0.34rem;
-    gap: 0.36rem;
+    padding: 0.32rem;
+    gap: 0.32rem;
     border-radius: 12px;
-    border-color: rgba(7, 44, 62, 0.18);
-    background: rgba(4, 30, 46, 0.86);
+    border-color: rgba(139, 207, 235, 0.16);
+    background: rgba(8, 40, 59, 0.72);
     color: rgba(244, 253, 255, 0.94);
     text-align: center;
     scroll-snap-align: start;
@@ -1673,12 +1666,12 @@ body:has(.debug-panel) .app-version-footnote {
 
   .encyclopedia-species-row.is-selected {
     border-color: rgba(22, 206, 217, 0.82);
-    background: rgba(8, 69, 91, 0.94);
-    box-shadow: 0 0 0 2px rgba(22, 206, 217, 0.22);
+    background: rgba(8, 68, 91, 0.96);
+    box-shadow: 0 0 0 2px rgba(22, 206, 217, 0.22), 0 0 1rem rgba(22, 206, 217, 0.28);
   }
 
   .encyclopedia-species-thumb {
-    height: 3.8rem;
+    height: 3.45rem;
     border-radius: 10px;
   }
 
@@ -1691,7 +1684,7 @@ body:has(.debug-panel) .app-version-footnote {
 
   .encyclopedia-species-row strong {
     -webkit-line-clamp: 2;
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     line-height: 1.08;
   }
 
@@ -1699,57 +1692,70 @@ body:has(.debug-panel) .app-version-footnote {
     display: none;
   }
 
+  .encyclopedia-info-panel {
+    grid-row: 4;
+    min-height: 0;
+    max-height: none;
+    overflow: auto;
+    margin: 0.62rem 0 0;
+    padding: 0.82rem 0.78rem 1rem;
+    border-radius: 18px;
+    background: rgba(4, 19, 34, 0.74);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 1rem 2.6rem rgba(0, 0, 0, 0.22);
+    -webkit-overflow-scrolling: touch;
+  }
+
   .encyclopedia-stage-label {
-    left: 0.82rem;
-    top: 0.76rem;
+    left: 0.78rem;
+    top: 0.72rem;
     padding: 0.28rem 0.46rem;
     border-radius: 999px;
     background: rgba(1, 9, 17, 0.38);
   }
 
   .encyclopedia-info-panel h2 {
-    font-size: clamp(1.2rem, 7.4vw, 1.68rem);
+    font-size: clamp(1.15rem, 7vw, 1.58rem);
   }
 
   .encyclopedia-scientific {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
   }
 
   .encyclopedia-description {
-    margin-top: 0.78rem;
-    font-size: 0.82rem;
-    line-height: 1.44;
+    margin-top: 0.72rem;
+    font-size: 0.8rem;
+    line-height: 1.42;
   }
 
   .encyclopedia-stat-grid {
-    gap: 0.46rem;
-    margin-top: 0.82rem;
+    gap: 0.44rem;
+    margin-top: 0.76rem;
   }
 
   .encyclopedia-stat-grid div,
   .iucn-status-card {
     border-radius: 12px;
-    padding: 0.56rem;
+    padding: 0.54rem;
   }
 
   .encyclopedia-stat-grid span {
-    font-size: 0.56rem;
+    font-size: 0.54rem;
     letter-spacing: 0.1em;
   }
 
   .encyclopedia-stat-grid strong {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     line-height: 1.22;
   }
 
   .iucn-status-track {
-    gap: 0.16rem;
+    gap: 0.14rem;
   }
 
   .iucn-status-track span {
-    min-height: 1rem;
-    font-size: 0.48rem;
-    letter-spacing: 0.04em;
+    min-height: 0.95rem;
+    font-size: 0.46rem;
+    letter-spacing: 0.035em;
   }
 
   .atlas-human-scale {
@@ -1780,7 +1786,7 @@ body:has(.debug-panel) .app-version-footnote {
     grid-template-columns: minmax(10rem, 28vw) minmax(16rem, 1fr) minmax(13rem, 32vw);
     grid-template-rows: auto minmax(0, 1fr);
     overflow: hidden;
-    padding-bottom: 0;
+    padding-bottom: 0.62rem;
   }
 
   .encyclopedia-species-list,
@@ -1789,8 +1795,21 @@ body:has(.debug-panel) .app-version-footnote {
   }
 
   .encyclopedia-species-list {
+    grid-column: 2;
+    grid-row: 2;
     display: block;
+    min-height: 0;
+    margin: 0;
     padding: 0.5rem;
+    border: 1px solid rgba(171, 225, 255, 0.18);
+    border-radius: 0;
+  }
+
+  .encyclopedia-info-panel {
+    grid-column: 3;
+    grid-row: 2;
+    margin: 0;
+    border-radius: 0;
   }
 
   .encyclopedia-species-row {
@@ -1818,8 +1837,12 @@ body:has(.debug-panel) .app-version-footnote {
   }
 
   .encyclopedia-model-stage {
+    grid-column: 1;
+    grid-row: 2;
     height: auto;
     min-height: 0;
+    margin: 0;
+    border-radius: 0;
   }
 
   .encyclopedia-stat-grid {

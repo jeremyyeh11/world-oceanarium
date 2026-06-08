@@ -13,7 +13,7 @@ Versioning convention notes:
 
 ## v0.8.8 — Mahi mahi
 
-Status: in development; current visible dev patch is `v0.8.8-dev_5`.
+Status: in development; current visible dev patch is `v0.8.8-dev_6`.
 
 ### Creature roster
 
@@ -24,6 +24,7 @@ Status: in development; current visible dev patch is `v0.8.8-dev_5`.
 - `v0.8.8-dev_3` restores visible Mahi-mahi snap-left/right turns after the smoother `dev_2` path made tangent-change triggers too rare: lower turn threshold, shorter held turn action, and slightly more live path variation without returning to tight spinning.
 - `v0.8.8-dev_4` calms the overcorrected turn feel: ordinary course changes are movement/bank-led again, snap clips require larger turns, fade in/out softer, and turn accents are brief instead of held.
 - `v0.8.8-dev_5` updates Mahi-mahi sizing to Jeremy's 1.8 m max / 0.91 m average, with normalized individual DB sizes distributed around the average instead of uniform stepping.
+- `v0.8.8-dev_6` softens Mahi-mahi turns after review: wider path radius, lower erraticness, rarer snap triggers, shorter turn holds, and slower animation fades so the school arcs instead of cutting hard corners.
 - Target feel: fast, confident pelagic cruising with readable flashes and turns — elegant movement, not generic fish drift.
 
 ## v0.8.7 — Atlas thumbnail polish

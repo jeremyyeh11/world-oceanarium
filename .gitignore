@@ -13,8 +13,7 @@ dist-ssr
 *.local
 .supabase-creature-backups
 
-# Blender source files
-*.blend
+# Blender backup files
 *.blend1
 
 # Editor directories and files
@@ -27,4 +26,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-/blender models

@@ -79,6 +79,19 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'mola-alexandrini': 20.7909,
 }
 
+const ATLAS_COMPANIONS_BY_SPECIES = {
+  'amblygaster-sirm': [
+    { position: [-1.15, 0.34, -1.15], scale: 0.58, yaw: -0.08, animationOffset: 1.1 },
+    { position: [1.18, -0.34, -1.5], scale: 0.52, yaw: 0.1, animationOffset: 2.7 },
+    { position: [-0.42, -0.72, -1.9], scale: 0.44, yaw: 0.04, animationOffset: 4.0 },
+  ],
+  'coryphaena-hippurus': [
+    { position: [-1.55, 0.42, -1.65], scale: 0.54, yaw: -0.1, animationOffset: 1.4 },
+    { position: [1.42, -0.5, -2.05], scale: 0.48, yaw: 0.12, animationOffset: 3.1 },
+    { position: [0.28, 0.86, -2.4], scale: 0.42, yaw: 0.05, animationOffset: 4.6 },
+  ],
+}
+
 function viewPoseForSpecies(species) {
   return { ...DEFAULT_VIEW_POSE, ...(VIEW_POSES_BY_SPECIES[species?.id] ?? {}) }
 }
@@ -313,16 +326,17 @@ function prepareAtlasModelScene(sourceScene) {
   return scene
 }
 
-function ModelAsset({ species, pose }) {
+function ModelAsset({ species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const scene = useMemo(() => prepareAtlasModelScene(gltf.scene), [gltf.scene])
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
-  const viewerScale = atlasModelScaleForSpecies(species, pose)
+  const viewerScale = atlasModelScaleForSpecies(species, pose) * (companion?.scale ?? 1)
   const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
-  const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset, sourceRotation[2]]
+  const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset + (companion?.yaw ?? 0), sourceRotation[2]]
+  const position = companion?.position ?? pose.position
 
   useEffect(() => {
     const clips = gltf.animations ?? []
@@ -360,6 +374,9 @@ function ModelAsset({ species, pose }) {
     mixer.addEventListener('finished', onFinished)
     mixerRef.current = mixer
     actionsRef.current = { idle: idleAction, burst: burstAction }
+    if (Number.isFinite(companion?.animationOffset) && companion.animationOffset > 0) {
+      mixer.update(companion.animationOffset)
+    }
     burstDueAtRef.current = mixer.time + 3.8
 
     return () => {
@@ -369,7 +386,7 @@ function ModelAsset({ species, pose }) {
       mixerRef.current = null
       actionsRef.current = { idle: null, burst: null }
     }
-  }, [gltf.animations, scene, species])
+  }, [companion?.animationOffset, gltf.animations, scene, species])
 
   useFrame((_, delta) => {
     const mixer = mixerRef.current
@@ -385,7 +402,7 @@ function ModelAsset({ species, pose }) {
     burstDueAtRef.current = mixer.time + 999
   })
 
-  return <primitive object={scene} rotation={rotation} scale={viewerScale} position={pose.position} />
+  return <primitive object={scene} rotation={rotation} scale={viewerScale} position={position} />
 }
 
 const HUMAN_SCALE_METERS = 1.7
@@ -400,6 +417,10 @@ const DIVER_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     position: [2.25, -0.55, -0.85],
     opacity: 0.34,
+  },
+  'coryphaena-hippurus': {
+    position: [1.2, 0.6, -0.85],
+    opacity: 0.38,
   },
   'mola-alexandrini': {
     position: [-1.05, -2.05, -0.85],
@@ -482,6 +503,7 @@ function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
 function SpeciesModel({ species, diverPoseOverride = null }) {
   const pose = viewPoseForSpecies(species)
   const cameraPosition = atlasCameraPosition(pose)
+  const companions = ATLAS_COMPANIONS_BY_SPECIES[species?.id] ?? []
 
   return (
     <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]} gl={{ preserveDrawingBuffer: true }}>
@@ -497,7 +519,14 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
         <AtlasDiverScale species={species} diverPoseOverride={diverPoseOverride} />
       </Suspense>
       <Suspense fallback={<FallbackFish species={species} pose={pose} />}>
-        {species?.model?.path ? <ModelAsset species={species} pose={pose} /> : <FallbackFish species={species} pose={pose} />}
+        {species?.model?.path ? (
+          <>
+            {companions.map((companion, index) => (
+              <ModelAsset key={`${species.id}-atlas-companion-${index}`} species={species} pose={pose} companion={companion} />
+            ))}
+            <ModelAsset species={species} pose={pose} />
+          </>
+        ) : <FallbackFish species={species} pose={pose} />}
       </Suspense>
     </Canvas>
   )

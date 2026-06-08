@@ -73,6 +73,7 @@ Reference:
 - `v0.8.8-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.7`.
 - `v0.8.8-dev_2` shrinks tank-view Mahi-mahi and expands school spacing after Jeremy review: previous fish read too large and tight schooling risked spin-in-place behavior.
 - `v0.8.8-dev_3` makes the wired `snap_left` / `snap_right` turn clips visible again after Jeremy reported not seeing turning animations in `dev_2`.
+- `v0.8.8-dev_4` reduces the unnatural abruptness from `dev_3` by making snap turns rare/short accents with softer fades and smoother path variation.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:
@@ -81,6 +82,7 @@ Subtasks:
 - [x] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
 - [x] Reduce tank-view scale and increase loose-school spacing so Mahi-mahi do not dominate the tank or spin in place.
 - [x] Retune turn trigger/action timing so authored turn clips fire visibly in the looser-school build.
+- [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
 - [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
 ### Feature backlog

@@ -71,12 +71,14 @@ Status: `Current in development`
 
 Reference:
 - `v0.8.8-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.7`.
+- `v0.8.8-dev_2` shrinks tank-view Mahi-mahi and expands school spacing after Jeremy review: previous fish read too large and tight schooling risked spin-in-place behavior.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:
 - [x] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, and animation set. Licensing/source approval remains tied to Jeremy-supplied asset provenance.
 - [x] Add species data, movement profile, selection copy, static-dev review creatures, and model render path.
 - [x] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
+- [x] Reduce tank-view scale and increase loose-school spacing so Mahi-mahi do not dominate the tank or spin in place.
 - [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
 ### Feature backlog

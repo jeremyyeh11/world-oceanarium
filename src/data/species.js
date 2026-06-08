@@ -179,8 +179,8 @@ export const SPECIES = [
     adultLengthRangeMeters: [0.7, 2.1],
     maxBodyLengthMeters: 2.1,
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. Mahi-mahi max length ≈2.1 m = 8.4 WU.
-      bodyLengthWU: 8.4,
+      // World Oceanarium scale: 1 WU = 25 cm. Review tank uses smaller young adults so the loose school reads cleanly beside sardines.
+      bodyLengthWU: 5.6,
       // Fast pelagic feel: stronger than sardines, much more agile than Mola, but slowed enough for readable tank passes.
       visualTimeScale: 0.55,
       idleBLPerSec: [0.42, 0.78],
@@ -193,16 +193,16 @@ export const SPECIES = [
       burstActionDuration: 5.0,
       turnActionDuration: 5.0,
       turnTriggerThreshold: 0.012,
-      erraticness: 0.16,
-      turnRadius: 0.72,
+      erraticness: 0.12,
+      turnRadius: 1.15,
       speedMultiplier: 1.05,
-      schoolSpacingScale: 3.1,
+      schoolSpacingScale: 5.8,
       boundsYMin: -6,
       boundsZMin: -23,
       boundsZMax: 4,
     },
-    // Normalized individual size maps to roughly 70–200 cm for review; full max remains in Atlas data.
-    sizeRange: [0.34, 0.95],
+    // Normalized individual size maps to smaller review specimens; full adult/max scale remains in Atlas data.
+    sizeRange: [0.28, 0.62],
     mass: {
       // Broad length-weight placeholder tuned for readable card weights until curated fishery data lands.
       coefficient: 0.005,
@@ -210,8 +210,8 @@ export const SPECIES = [
     },
     model: {
       path: '/models/fish/mahi-mahi/mahi-mahi.glb',
-      // Source GLB is ~9.79 units nose-to-tail; scale to 8.4 WU max review length.
-      scale: 0.858,
+      // Source GLB is ~9.79 units nose-to-tail; tank scale is intentionally below Atlas max scale for readable schooling.
+      scale: 0.572,
       moveset: {
         cruise: 'idle',
         drift: 'idle',

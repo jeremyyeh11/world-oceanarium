@@ -12,7 +12,7 @@ Versioning convention notes:
 
 ## v0.8.7 — Atlas thumbnail polish
 
-Status: in development; current visible dev patch is `v0.8.7-dev_3`.
+Status: accepted and promoted as clean `v0.8.7` from `v0.8.7-dev_3` after Jeremy approval.
 
 ### Interface / encyclopaedia
 

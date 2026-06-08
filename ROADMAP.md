@@ -63,23 +63,6 @@ Subtasks:
 
 ## Feature list
 
-### Active feature bucket
-
-#### 1. Atlas thumbnail polish
-
-Status: `Current in development`
-
-Reference:
-- `v0.8.7-dev_1` adds Jeremy's supplied sardine-school artwork as the Spotted Sardinella Atlas thumbnail.
-- `v0.8.7-dev_2` widens the desktop Atlas species list so `Spotted Sardinella` fits fully beside its thumbnail.
-- `v0.8.7-dev_3` preserves the Atlas WebGL drawing buffer so screenshot capture includes the model and diver.
-
-Subtasks:
-- [x] Add the sardine thumbnail asset.
-- [x] Wire the Spotted Sardinella Atlas species record to the thumbnail.
-- [x] Widen the desktop Atlas species list so Spotted Sardinella is not cut off.
-- [ ] Verify the Atlas list/card presentation locally and on preview.
-
 ### Feature backlog
 
 #### 1. Creature moments — schooling behavior around large fish

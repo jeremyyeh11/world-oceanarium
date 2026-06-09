@@ -525,6 +525,7 @@ button { font: inherit; }
   backdrop-filter: none;
   pointer-events: auto;
   overflow-x: auto;
+  overflow-y: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
 }
@@ -607,7 +608,10 @@ button { font: inherit; }
 
 .debug-panel-section--controls {
   gap: 0.72rem;
+  flex-wrap: wrap;
+  align-content: center;
 }
+
 
 .debug-panel-section-icon {
   color: rgba(125,249,255,0.72);
@@ -870,9 +874,10 @@ body:has(.debug-panel) .app-version-footnote {
     flex-direction: column;
     align-items: stretch;
     min-height: 0;
-    max-height: 30dvh;
+    max-height: 56dvh;
     padding: 0 max(0.42rem, env(safe-area-inset-right)) max(0.18rem, env(safe-area-inset-bottom)) max(0.42rem, env(safe-area-inset-left));
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     font-size: 0.56rem;
     line-height: 1.18;
   }
@@ -935,7 +940,9 @@ body:has(.debug-panel) .app-version-footnote {
     display: flex;
     min-height: 0;
     gap: 0.55rem;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    overflow-x: hidden;
+    overflow-y: visible;
     overscroll-behavior-x: contain;
     padding: 0.32rem 0 0.28rem;
     border-left: 0;
@@ -950,6 +957,7 @@ body:has(.debug-panel) .app-version-footnote {
   .debug-panel-row {
     gap: 0.22rem;
   }
+
 
   .debug-panel-button {
     min-width: 24px;

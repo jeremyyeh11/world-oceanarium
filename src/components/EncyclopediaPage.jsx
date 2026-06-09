@@ -37,6 +37,7 @@ const ATLAS_DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const ATLAS_DEBUG_TAP_WINDOW_MS = 1200
 const ATLAS_DEBUG_REQUIRED_TAPS = 3
 const ATLAS_DIVER_POSE_STORAGE_KEY = 'world-oceanarium-atlas-diver-poses'
+const ATLAS_SPECIES = SPECIES.filter(species => !species.hiddenInAtlas)
 
 const DEFAULT_VIEW_POSE = {
   yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,
@@ -686,13 +687,16 @@ function AtlasDiverPoseEditor({ species, pose, onPoseChange, onReset }) {
 }
 
 export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
-  const [selectedId, setSelectedId] = useState(initialSpeciesId ?? SPECIES[0]?.id)
+  const [selectedId, setSelectedId] = useState(() => {
+    if (ATLAS_SPECIES.some(species => species.id === initialSpeciesId)) return initialSpeciesId
+    return ATLAS_SPECIES[0]?.id
+  })
   const [poseEditorOpen, setPoseEditorOpen] = useState(false)
   const [storedDiverPoses, setStoredDiverPoses] = useState(() => loadStoredDiverPoses())
   const pageRef = useRef(null)
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
-  const selectedSpecies = SPECIES.find(species => species.id === selectedId) ?? SPECIES[0]
+  const selectedSpecies = ATLAS_SPECIES.find(species => species.id === selectedId) ?? ATLAS_SPECIES[0]
   const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
   const biome = BIOME_BY_ID.get(selectedSpecies?.biome)
   const atlasDetails = selectedSpecies?.atlasDetails ?? {}
@@ -824,7 +828,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
       </div>
 
       <aside className="encyclopedia-species-list" aria-label="Species list">
-        {SPECIES.map((species, index) => (
+        {ATLAS_SPECIES.map((species, index) => (
           <button
             key={species.id}
             type="button"

@@ -10,6 +10,14 @@ Versioning convention notes:
 
 
 
+## v0.8.11 — Atlas release gating hotfix
+
+Status: hotfix on `main` after `v0.8.10`.
+
+### Interface / encyclopaedia
+
+- Hides unreleased species entries from The Atlas and removes their follow-card Atlas shortcut, starting with `Coryphaena hippurus` / Mahi-mahi until that Atlas page is explicitly ready for release.
+
 ## v0.8.10 — Mahi mahi
 
 Status: accepted and promoted as clean `v0.8.10` from `v0.8.8-dev_16` after Jeremy approval; clean target advanced because `v0.8.9` camera polish landed on `main` first.

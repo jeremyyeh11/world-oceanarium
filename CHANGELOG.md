@@ -21,6 +21,7 @@ Status: active dev branch `feat/mahi-mahi-v2`; Mahi-mahi remains hidden from The
 - `v0.8.12-dev_3` fixes glitchy Mahi-mahi turning by driving authored turn/burst triggers from the live visual forward vector instead of the stale debug-path end tangent, and gives Mahi-mahi a faster solo steering turn rate so it swims into turns instead of broad drifting.
 - `v0.8.12-dev_4` fixes the Mahi-mahi screen-blitzing regression: solo-agent targets now limit vertical jumps from the current position, and Mahi-mahi cruise/snap/burst speeds are reduced to read as forward pelagic passes instead of full-screen up/down dashes.
 - `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: runtime recovery now clamps to the expanded solo envelope instead of snapping back to inner swim bounds, Mahi-mahi live turns stay on the continuous swim loop instead of snap-left/right clips, and burst movement no longer outlasts the authored burst animation.
+- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail, normalized to the existing 502×502 Atlas thumbnail convention.
 
 ## v0.8.11 — Atlas release gating hotfix
 

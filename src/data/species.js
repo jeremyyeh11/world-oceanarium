@@ -175,6 +175,7 @@ export const SPECIES = [
       diet: 'Fish + squid',
       social: 'Solo / pairs',
     },
+    atlasThumbnail: '/atlas/coryphaena-hippurus-thumbnail.png',
     description: 'A fast, flashing open-ocean hunter with a long dorsal fin, forked tail, and electric blue-green body that can flare brighter when excited. Adult Mahi-mahi cruise warm surface waters alone or in pairs, often gathering around floating cover before breaking into quick prey-chasing runs; juveniles may form larger schools.',
     adultLengthRangeMeters: [0.91, 1.8],
     maxBodyLengthMeters: 1.8,

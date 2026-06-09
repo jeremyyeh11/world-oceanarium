@@ -86,6 +86,7 @@ Reference:
 - `v0.8.12-dev_3` fixes Mahi-mahi solo-agent drift/glitchiness by aligning turn/burst triggers to the current visible forward vector and increasing only Mahi-mahi's solo steering rate so turns read as forward swimming.
 - `v0.8.12-dev_4` fixes Mahi-mahi blitzing up/down across the screen by constraining solo-agent vertical target changes and reducing the Mahi-mahi speed envelope.
 - `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: edge recovery no longer snaps all the way back to inner swim bounds, live course corrections keep the continuous swim loop rather than forcing snap-left/right clips, and burst movement duration now stays inside the authored burst clip.
+- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail.
 - Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 
@@ -97,6 +98,7 @@ Subtasks:
 - [x] Retune turn trigger/action timing so authored turn clips fire visibly in the looser-school build.
 - [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
 - [x] Stage Atlas schooling groups without synchronized/flock-stiff animation, and apply latest approved diver silhouette positions.
+- [x] Add Jeremy's supplied Mahi-mahi Atlas thumbnail image.
 - [x] Reopen Mahi-mahi adult behavior after accidental merge; move adult Mahi-mahi off schooling and onto a faster solo-agent path for solo/pair travel.
 - [x] Fix Mahi-mahi solo-agent drift/glitchy turn triggers so turns use live forward motion instead of stale debug path tangents.
 - [x] Fix Mahi-mahi full-screen up/down dashes by limiting vertical target deltas and calming the speed profile.

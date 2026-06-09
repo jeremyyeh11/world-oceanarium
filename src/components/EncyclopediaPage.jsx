@@ -57,6 +57,12 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.02, 0],
     lookAt: [0, -0.02, 0],
   },
+  'coryphaena-hippurus': {
+    maxLengthDisplayUnits: 2.8,
+    cameraDistance: 9.8,
+    position: [0, -0.02, 0],
+    lookAt: [0, -0.02, 0],
+  },
   'mola-alexandrini': {
     yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,
     cameraDistance: 10.8,
@@ -69,7 +75,26 @@ const VIEW_POSES_BY_SPECIES = {
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'amblygaster-sirm': 1.8223,
+  'coryphaena-hippurus': 9.788,
   'mola-alexandrini': 20.7909,
+}
+
+const ATLAS_HERO_ANIMATION_BY_SPECIES = {
+  'amblygaster-sirm': { animationOffset: 0.45, animationSpeed: 0.97, burstDelay: 4.9 },
+  'coryphaena-hippurus': { animationOffset: 0.8, animationSpeed: 1.03, burstDelay: 5.4 },
+}
+
+const ATLAS_COMPANIONS_BY_SPECIES = {
+  'amblygaster-sirm': [
+    { position: [-1.15, -0.3, -2.65], scale: 0.5, yaw: -0.08, animationOffset: 1.35, animationSpeed: 1.08, burstDelay: 7.1 },
+    { position: [1.18, -0.34, -1.5], scale: 0.52, yaw: 0.1, animationOffset: 2.9, animationSpeed: 0.91, burstDelay: 6.2 },
+    { position: [-0.42, -1.24, -1.9], scale: 0.44, yaw: 0.04, animationOffset: 4.25, animationSpeed: 1.14, burstDelay: 8.4 },
+  ],
+  'coryphaena-hippurus': [
+    { position: [-1.55, 0.42, -1.65], scale: 0.54, yaw: -0.1, animationOffset: 1.6, animationSpeed: 0.92, burstDelay: 7.6 },
+    { position: [1.42, -0.5, -2.05], scale: 0.48, yaw: 0.12, animationOffset: 3.35, animationSpeed: 1.11, burstDelay: 6.5 },
+    { position: [0.28, 0.86, -2.4], scale: 0.42, yaw: 0.05, animationOffset: 4.9, animationSpeed: 0.86, burstDelay: 8.9 },
+  ],
 }
 
 function viewPoseForSpecies(species) {
@@ -194,6 +219,7 @@ function formatSexLength(value) {
 }
 
 function formatYears(value) {
+  if (typeof value === 'string' && value.trim() !== '' && Number.isNaN(Number(value))) return value
   return formatInteger(value, 'years')
 }
 
@@ -306,16 +332,21 @@ function prepareAtlasModelScene(sourceScene) {
   return scene
 }
 
-function ModelAsset({ species, pose }) {
+function ModelAsset({ species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const scene = useMemo(() => prepareAtlasModelScene(gltf.scene), [gltf.scene])
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
-  const viewerScale = atlasModelScaleForSpecies(species, pose)
+  const animationProfile = companion ?? ATLAS_HERO_ANIMATION_BY_SPECIES[species?.id] ?? null
+  const animationOffset = animationProfile?.animationOffset ?? 0
+  const animationSpeed = animationProfile?.animationSpeed ?? 1
+  const openingBurstDelay = animationProfile?.burstDelay ?? 3.8
+  const viewerScale = atlasModelScaleForSpecies(species, pose) * (companion?.scale ?? 1)
   const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
-  const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset, sourceRotation[2]]
+  const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset + (companion?.yaw ?? 0), sourceRotation[2]]
+  const position = companion?.position ?? pose.position
 
   useEffect(() => {
     const clips = gltf.animations ?? []
@@ -331,7 +362,7 @@ function ModelAsset({ species, pose }) {
     if (idleAction) {
       idleAction.enabled = true
       idleAction.setLoop(THREE.LoopRepeat, Infinity)
-      idleAction.setEffectiveTimeScale(idleClip.name === 'slow_cruise' ? 0.82 : 1)
+      idleAction.setEffectiveTimeScale((idleClip.name === 'slow_cruise' ? 0.82 : 1) * animationSpeed)
       idleAction.setEffectiveWeight(1)
       idleAction.play()
     }
@@ -340,7 +371,7 @@ function ModelAsset({ species, pose }) {
       burstAction.enabled = true
       burstAction.setLoop(THREE.LoopOnce, 1)
       burstAction.clampWhenFinished = false
-      burstAction.setEffectiveTimeScale(burstClip.duration > 3 ? 1.18 : 1)
+      burstAction.setEffectiveTimeScale((burstClip.duration > 3 ? 1.18 : 1) * animationSpeed)
       burstAction.setEffectiveWeight(1)
     }
 
@@ -353,7 +384,10 @@ function ModelAsset({ species, pose }) {
     mixer.addEventListener('finished', onFinished)
     mixerRef.current = mixer
     actionsRef.current = { idle: idleAction, burst: burstAction }
-    burstDueAtRef.current = mixer.time + 3.8
+    if (Number.isFinite(animationOffset) && animationOffset > 0) {
+      mixer.update(animationOffset)
+    }
+    burstDueAtRef.current = mixer.time + openingBurstDelay
 
     return () => {
       mixer.removeEventListener('finished', onFinished)
@@ -362,7 +396,7 @@ function ModelAsset({ species, pose }) {
       mixerRef.current = null
       actionsRef.current = { idle: null, burst: null }
     }
-  }, [gltf.animations, scene, species])
+  }, [animationOffset, animationSpeed, gltf.animations, openingBurstDelay, scene, species])
 
   useFrame((_, delta) => {
     const mixer = mixerRef.current
@@ -378,7 +412,7 @@ function ModelAsset({ species, pose }) {
     burstDueAtRef.current = mixer.time + 999
   })
 
-  return <primitive object={scene} rotation={rotation} scale={viewerScale} position={pose.position} />
+  return <primitive object={scene} rotation={rotation} scale={viewerScale} position={position} />
 }
 
 const HUMAN_SCALE_METERS = 1.7
@@ -394,8 +428,12 @@ const DIVER_POSES_BY_SPECIES = {
     position: [2.25, -0.55, -0.85],
     opacity: 0.34,
   },
+  'coryphaena-hippurus': {
+    position: [0.8, -1.65, -0.85],
+    opacity: 0.38,
+  },
   'mola-alexandrini': {
-    position: [-1.05, -2.05, -0.85],
+    position: [1.85, -2.25, -0.85],
     opacity: 0.38,
   },
 }
@@ -475,6 +513,7 @@ function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
 function SpeciesModel({ species, diverPoseOverride = null }) {
   const pose = viewPoseForSpecies(species)
   const cameraPosition = atlasCameraPosition(pose)
+  const companions = ATLAS_COMPANIONS_BY_SPECIES[species?.id] ?? []
 
   return (
     <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]} gl={{ preserveDrawingBuffer: true }}>
@@ -490,7 +529,14 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
         <AtlasDiverScale species={species} diverPoseOverride={diverPoseOverride} />
       </Suspense>
       <Suspense fallback={<FallbackFish species={species} pose={pose} />}>
-        {species?.model?.path ? <ModelAsset species={species} pose={pose} /> : <FallbackFish species={species} pose={pose} />}
+        {species?.model?.path ? (
+          <>
+            {companions.map((companion, index) => (
+              <ModelAsset key={`${species.id}-atlas-companion-${index}`} species={species} pose={pose} companion={companion} />
+            ))}
+            <ModelAsset species={species} pose={pose} />
+          </>
+        ) : <FallbackFish species={species} pose={pose} />}
       </Suspense>
     </Canvas>
   )

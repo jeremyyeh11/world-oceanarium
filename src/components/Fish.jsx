@@ -336,6 +336,8 @@ function resolveSwimProfile(creature) {
     burstActionDuration: speciesSwim.burstActionDuration ?? DEFAULT_BURST_ACTION_DURATION,
     turnActionDuration: speciesSwim.turnActionDuration ?? DEFAULT_TURN_ACTION_DURATION,
     turnTriggerThreshold: speciesSwim.turnTriggerThreshold ?? SNAP_TURN_THRESHOLD,
+    schoolMaxAvoidanceAngleDegrees: speciesSwim.schoolMaxAvoidanceAngleDegrees,
+    schoolDirectionResponse: speciesSwim.schoolDirectionResponse,
   }
 }
 
@@ -366,6 +368,17 @@ function maxVisualPitch(creature, swim) {
 
 function turnRateForCreature(creature, swim) {
   return THREE.MathUtils.lerp(SMALL_CREATURE_TURN_RATE, LARGE_CREATURE_TURN_RATE, largeCreatureFactor(creature, swim))
+}
+
+function schoolMaxAvoidanceAngle(creature, swim, school) {
+  if (Number.isFinite(swim.schoolMaxAvoidanceAngleDegrees)) {
+    return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(swim.schoolMaxAvoidanceAngleDegrees, 0, 62))
+  }
+  return school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE
+}
+
+function schoolDirectionResponse(swim) {
+  return THREE.MathUtils.clamp(Number.isFinite(swim.schoolDirectionResponse) ? swim.schoolDirectionResponse : 5.0, 1.5, 14)
 }
 
 function rotateDirectionToward(current, target, maxAngle) {
@@ -1420,7 +1433,8 @@ function schoolFormationOffset(school, creature) {
   const rand = mulberry32(hashString(`${school.id}:${creature.id}:formation`))
   const count = Math.max(1, school.count)
   const indexRadius = Math.sqrt((school.index + 0.5) / count)
-  const schoolRadius = SCHOOL_SPACING * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
+  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
+  const schoolRadius = SCHOOL_SPACING * spacingScale * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
   const angle = school.index * GOLDEN_ANGLE + randomRange(rand, -0.14, 0.14)
   const isLeader = school.index === 0
   const longitudinal = isLeader
@@ -2635,13 +2649,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
         smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
         targetDesiredDirection.copy(schoolFollowDirection).add(smoothedAvoidance.current)
+        const maxAvoidanceAngle = schoolMaxAvoidanceAngle(creature, swim, school)
         limitAvoidanceAngle(
           targetDesiredDirection,
           schoolFollowDirection,
-          school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE,
+          maxAvoidanceAngle,
         )
         if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
-        desiredDirection.current.copy(targetDesiredDirection)
+        if (desiredDirection.current.lengthSq() < 0.0001 || desiredDirection.current.dot(schoolFollowDirection) <= 0) {
+          desiredDirection.current.copy(schoolFollowDirection)
+        }
+        rotateDirectionToward(
+          desiredDirection.current,
+          targetDesiredDirection,
+          maxAvoidanceAngle * (1 - Math.exp(-delta * schoolDirectionResponse(swim))),
+        )
 
         const catchup = THREE.MathUtils.clamp(
           targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
@@ -3241,3 +3263,4 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
 useGLTF.preload('/models/fish/sardine/sardine.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi.glb')

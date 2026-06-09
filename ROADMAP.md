@@ -81,7 +81,7 @@ Reference:
 - `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it remains visible behind the hero.
 - `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
 - `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
-- Jeremy approved `v0.8.8-dev_16` for clean `v0.8.8` promotion and merge.
+- Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:
@@ -137,6 +137,23 @@ Subtasks:
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
+
+### v0.8.9 — Camera position polish
+
+Status: accepted and promoted as clean `v0.8.9` after Jeremy approval.
+
+Released from: `v0.8.9-dev_5`.
+
+Accepted gates:
+- Jeremy accepted the final lowered tank camera framing after the phone blank-scene regression was fixed.
+- Clean build has no temporary camera/DOF debug controls.
+- Jeremy's preview/device pass confirmed the page opens and the accepted framing is visible after the phone blank-scene regression fix.
+- Final release judgement: `SHIP`.
+
+Implementation summary:
+- Lowers and tightens the default tank camera to `y=-3.35`, `z=10`, `lookY=0.35`, `fov=61`.
+- Removes the temporary camera and DOF tuning UI, associated CSS/props/state, and the debug postprocess component.
+- Keeps existing debug toolbar controls for creature/debug simulation modes.
 
 ### v0.8.6 — UI overhaul + encyclopaedia addition
 

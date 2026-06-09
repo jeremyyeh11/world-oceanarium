@@ -636,7 +636,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         onPointerCancelCapture={endStageDrag}
         onWheel={zoomFollowWithWheel}
       >
-        <Canvas camera={{ fov: 60, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <SceneLighting biome={biome.id} />
           <Camera
             biome={biome.id}
@@ -929,6 +929,7 @@ function DebugPanel({
     </div>
   )
 }
+
 
 function clamp01(value) {
   return Math.max(0, Math.min(1, value))

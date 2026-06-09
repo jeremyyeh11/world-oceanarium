@@ -10,10 +10,9 @@ Versioning convention notes:
 
 
 
+## v0.8.10 — Mahi mahi
 
-## v0.8.8 — Mahi mahi
-
-Status: accepted and promoted as clean `v0.8.8` from `v0.8.8-dev_16` after Jeremy approval.
+Status: accepted and promoted as clean `v0.8.10` from `v0.8.8-dev_16` after Jeremy approval; clean target advanced because `v0.8.9` camera polish landed on `main` first.
 
 ### Creature roster
 
@@ -36,6 +35,19 @@ Status: accepted and promoted as clean `v0.8.8` from `v0.8.8-dev_16` after Jerem
 - `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
 - `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
 - Target feel: fast, confident pelagic cruising with readable flashes and turns — elegant movement, not generic fish drift.
+
+## v0.8.9 — Camera position polish
+
+Status: accepted and promoted as clean `v0.8.9` after Jeremy approval.
+
+### Camera / debug
+
+- `v0.8.9-dev_1` starts a separate camera-position branch from clean `v0.8.7`, lowers the default tank camera, angles the look target upward for a standing-at-the-tank read, and adds debug sliders for camera height, distance, look height, FOV, and experimental depth-of-field focus/aperture/blur.
+- `v0.8.9-dev_2` fixes the empty-scene regression by mounting the experimental DOF postprocess only when the debug panel explicitly enables it, so normal tank rendering does not instantiate the composer/pass stack.
+- `v0.8.9-dev_3` makes the camera debug bar wrap/scroll vertically on cramped screens and adds `Shift Y`, a true vertical camera translation slider that moves both camera height and look target together instead of changing only the view angle.
+- `v0.8.9-dev_4` bakes Jeremy's approved camera framing into the tank defaults (`y=-6.35`, `z=10`, `lookY=-2.65`, `fov=61`) and removes the temporary camera/DOF debug controls from the debug toolbar.
+- `v0.8.9-dev_5` fixes the phone blank-scene regression by baking the approved camera slider values without double-applying the temporary `Shift Y` translation on narrow viewports (`y=-3.35`, `z=10`, `lookY=0.35`, `fov=61`).
+- Clean `v0.8.9` ships the accepted lowered tank camera framing with the temporary camera/DOF debug tools removed.
 
 ## v0.8.7 — Atlas thumbnail polish
 

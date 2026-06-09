@@ -82,6 +82,7 @@ Reference:
 - `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
 - `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
 - `v0.8.12-dev_1` reopens the Mahi-mahi branch after the accidental merge: keeps Mahi-mahi hidden from Atlas, removes adult Mahi-mahi from schooling behavior, and moves it onto the faster solo-agent movement path for solo/pair adult travel.
+- `v0.8.12-dev_2` unhides Mahi-mahi in The Atlas for species-page review.
 - Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 

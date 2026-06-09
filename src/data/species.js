@@ -133,7 +133,6 @@ export const SPECIES = [
     name: 'Mahi-mahi',
     scientificName: 'Coryphaena hippurus',
     family: 'Coryphaenidae',
-    hiddenInAtlas: true,
     alternateNames: ['Common dolphinfish', 'Dorado'],
     biome: 'ocean',
     depthZone: 'epipelagic',

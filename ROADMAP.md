@@ -67,13 +67,21 @@ Subtasks:
 
 #### 1. Mahi mahi
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - `v0.8.8-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.7`.
 - `v0.8.8-dev_2` shrinks tank-view Mahi-mahi and expands school spacing after Jeremy review: previous fish read too large and tight schooling risked spin-in-place behavior.
 - `v0.8.8-dev_3` makes the wired `snap_left` / `snap_right` turn clips visible again after Jeremy reported not seeing turning animations in `dev_2`.
 - `v0.8.8-dev_4` reduces the unnatural abruptness from `dev_3` by making snap turns rare/short accents with softer fades and smoother path variation.
+- `v0.8.8-dev_10` keeps the stacked Atlas species-group review moving: schooling Atlas groups now use per-fish phase/speed/burst offsets, with Jeremy's latest Mahi-mahi and Giant Sunfish diver silhouette placements.
+- `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes for Mahi-mahi and spotted sardinella.
+- `v0.8.8-dev_12` uppercases Atlas species-list common names for consistency with the right info panel.
+- `v0.8.8-dev_13` pushes the spotted sardinella upper-left companion deeper behind the diver silhouette after Jeremy's marked screenshot.
+- `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it remains visible behind the hero.
+- `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
+- `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
+- Jeremy approved `v0.8.8-dev_16` for clean `v0.8.8` promotion and merge.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:
@@ -83,7 +91,8 @@ Subtasks:
 - [x] Reduce tank-view scale and increase loose-school spacing so Mahi-mahi do not dominate the tank or spin in place.
 - [x] Retune turn trigger/action timing so authored turn clips fire visibly in the looser-school build.
 - [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
-- [ ] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
+- [x] Stage Atlas schooling groups without synchronized/flock-stiff animation, and apply latest approved diver silhouette positions.
+- [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
 ### Feature backlog
 

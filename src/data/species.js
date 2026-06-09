@@ -70,7 +70,7 @@ export const SPECIES = [
       commonDiet: 'Plankton, copepods, larvae.',
       foundIn: 'Indo-West Pacific coastal waters and lagoons.',
       lifeSpan: 'Up to 8 years reported.',
-      maturityAge: 'Unknown',
+      maturityAge: '~1 year (estimated)',
       social: {
         schoolSize: '>1000',
         groupingBehaviour: 'Pelagic schooling fish in coastal waters and lagoons; juveniles found closer inshore.',
@@ -85,7 +85,7 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 8,
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
+        sexualMaturityYears: '~1 year (estimated)',
         sexualSterilityYears: 'Unknown',
         offspringPerMatingEvent: '11,600–43,200',
       },
@@ -149,7 +149,7 @@ export const SPECIES = [
       commonDiet: 'Small fish, squid, crustaceans.',
       foundIn: 'Warm tropical and subtropical open ocean, often near floating cover.',
       lifeSpan: 'Up to 5 years.',
-      maturityAge: 'Months, not years.',
+      maturityAge: '4–5 months',
       social: {
         schoolSize: '>20',
         groupingBehaviour: 'Juveniles school in open water; adults travel in small groups or pairs near floating debris and weedlines. Males are often size-dominant at aggregation sites.',
@@ -164,9 +164,9 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 5,
       },
       lifecycle: {
-        sexualMaturityYears: '<1',
-        sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: 'Unknown',
+        sexualMaturityYears: '4–5 months',
+        sexualSterilityYears: 'N/A — reproductive until death',
+        offspringPerMatingEvent: '~80,000–1,000,000 eggs per spawn',
       },
     },
     atlasSummary: {

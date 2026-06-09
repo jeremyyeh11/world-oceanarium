@@ -86,7 +86,7 @@ const ATLAS_HERO_ANIMATION_BY_SPECIES = {
 
 const ATLAS_COMPANIONS_BY_SPECIES = {
   'amblygaster-sirm': [
-    { position: [-1.15, -0.3, -2.65], scale: 0.5, yaw: -0.08, animationOffset: 1.35, animationSpeed: 1.08, burstDelay: 7.1 },
+    { position: [-1.15, -0.85, -2.65], scale: 0.5, yaw: -0.08, animationOffset: 1.35, animationSpeed: 1.08, burstDelay: 7.1 },
     { position: [1.18, -0.34, -1.5], scale: 0.52, yaw: 0.1, animationOffset: 2.9, animationSpeed: 0.91, burstDelay: 6.2 },
     { position: [-0.42, -0.72, -1.9], scale: 0.44, yaw: 0.04, animationOffset: 4.25, animationSpeed: 1.14, burstDelay: 8.4 },
   ],

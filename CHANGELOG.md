@@ -13,7 +13,7 @@ Versioning convention notes:
 
 ## v0.8.8 — Mahi mahi
 
-Status: in development; current visible dev patch is `v0.8.8-dev_14`.
+Status: in development; current visible dev patch is `v0.8.8-dev_15`.
 
 ### Creature roster
 
@@ -33,6 +33,7 @@ Status: in development; current visible dev patch is `v0.8.8-dev_14`.
 - `v0.8.8-dev_12` uppercases Atlas species-list common names so the left selection column matches the right info-panel heading style.
 - `v0.8.8-dev_13` adjusts spotted sardinella Atlas group composition from Jeremy's marked screenshot: pushes the upper-left companion deeper behind the diver silhouette.
 - `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it reads behind the hero instead of hidden behind it.
+- `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
 - Target feel: fast, confident pelagic cruising with readable flashes and turns — elegant movement, not generic fish drift.
 
 ## v0.8.7 — Atlas thumbnail polish

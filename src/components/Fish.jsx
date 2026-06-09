@@ -150,6 +150,9 @@ const SOLO_AGENT_RETARGET_COOLDOWN = [2.8, 5.2]
 const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
 const SOLO_AGENT_STEERING_TURN_RATE_MIN = 6
 const SOLO_AGENT_STEERING_TURN_RATE_MAX = 52
+const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_DEFAULT = 0.32
+const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MIN = 0.05
+const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MAX = 1.4
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
 const MOLA_STEERING_REACHED_BODY_LENGTHS = 0.32
 const MOLA_STEERING_REACHED_MAX = 3.0
@@ -341,6 +344,7 @@ function resolveSwimProfile(creature) {
     schoolMaxAvoidanceAngleDegrees: speciesSwim.schoolMaxAvoidanceAngleDegrees,
     schoolDirectionResponse: speciesSwim.schoolDirectionResponse,
     soloSteeringTurnRateDegrees: speciesSwim.soloSteeringTurnRateDegrees,
+    soloTargetVerticalBodyLengths: speciesSwim.soloTargetVerticalBodyLengths,
   }
 }
 
@@ -391,6 +395,22 @@ function soloAgentSteeringTurnRate(swim) {
     SOLO_AGENT_STEERING_TURN_RATE_MIN,
     SOLO_AGENT_STEERING_TURN_RATE_MAX,
   ))
+}
+
+function soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim) {
+  if (!from) return [bounds.yMin, targetYMax]
+  const bodyLengths = THREE.MathUtils.clamp(
+    Number.isFinite(swim.soloTargetVerticalBodyLengths)
+      ? swim.soloTargetVerticalBodyLengths
+      : SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_DEFAULT,
+    SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MIN,
+    SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MAX,
+  )
+  const verticalStep = Math.max(0.18, bodyLength * bodyLengths)
+  const yMin = Math.max(bounds.yMin, from.y - verticalStep)
+  const yMax = Math.min(targetYMax, from.y + verticalStep)
+  if (yMax < yMin) return [bounds.yMin, targetYMax]
+  return [yMin, yMax]
 }
 
 function rotateDirectionToward(current, target, maxAngle) {
@@ -648,6 +668,7 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
   const bodyLength = creatureBodyLength(creature, swim)
   const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
   const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
+  const [targetYMin, limitedTargetYMax] = soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim)
 
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -661,7 +682,7 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
     const targetX = wideTarget
       ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
       : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
-    out.set(targetX, randomRange(rand, bounds.yMin, targetYMax), targetZ)
+    out.set(targetX, randomRange(rand, targetYMin, limitedTargetYMax), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out
@@ -679,6 +700,7 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
   const zMin = Math.min(modeZMin, modeZMax)
   const zMax = Math.max(modeZMin, modeZMax)
   const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
+  const [targetYMin, limitedTargetYMax] = soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim)
 
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -692,7 +714,7 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
     const targetX = wideTarget
       ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
       : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
-    out.set(targetX, randomRange(rand, bounds.yMin, targetYMax), targetZ)
+    out.set(targetX, randomRange(rand, targetYMin, limitedTargetYMax), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out

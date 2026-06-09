@@ -18,6 +18,7 @@ Status: active dev branch `feat/mahi-mahi-v2`; Mahi-mahi remains hidden from The
 
 - `v0.8.12-dev_1` removes adult Mahi-mahi from the schooling system and routes it through the solo-agent movement path used by Giant Sunfish, tuned much faster for confident adult pelagic passes. Atlas/social copy now frames adults as solo/pair travelers while noting juvenile schooling.
 - `v0.8.12-dev_2` adds Mahi-mahi back into The Atlas for review now that Jeremy wants the species visible there again.
+- `v0.8.12-dev_3` fixes glitchy Mahi-mahi turning by driving authored turn/burst triggers from the live visual forward vector instead of the stale debug-path end tangent, and gives Mahi-mahi a faster solo steering turn rate so it swims into turns instead of broad drifting.
 
 ## v0.8.11 — Atlas release gating hotfix
 

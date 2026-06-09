@@ -83,6 +83,7 @@ Reference:
 - `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
 - `v0.8.12-dev_1` reopens the Mahi-mahi branch after the accidental merge: keeps Mahi-mahi hidden from Atlas, removes adult Mahi-mahi from schooling behavior, and moves it onto the faster solo-agent movement path for solo/pair adult travel.
 - `v0.8.12-dev_2` unhides Mahi-mahi in The Atlas for species-page review.
+- `v0.8.12-dev_3` fixes Mahi-mahi solo-agent drift/glitchiness by aligning turn/burst triggers to the current visible forward vector and increasing only Mahi-mahi's solo steering rate so turns read as forward swimming.
 - Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 
@@ -95,6 +96,7 @@ Subtasks:
 - [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
 - [x] Stage Atlas schooling groups without synchronized/flock-stiff animation, and apply latest approved diver silhouette positions.
 - [x] Reopen Mahi-mahi adult behavior after accidental merge; move adult Mahi-mahi off schooling and onto a faster solo-agent path for solo/pair travel.
+- [x] Fix Mahi-mahi solo-agent drift/glitchy turn triggers so turns use live forward motion instead of stale debug path tangents.
 - [ ] Review whether solo-agent Mahi-mahi should get explicit pair cohesion later, or whether independent adult agents feel natural enough in tank view.
 - [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 

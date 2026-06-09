@@ -195,6 +195,7 @@ export const SPECIES = [
       turnTriggerThreshold: 0.026,
       erraticness: 0.06,
       turnRadius: 1.65,
+      soloSteeringTurnRateDegrees: 28,
       speedMultiplier: 1.05,
       movementBoundsScale: 1.18,
       boundsUseSpeciesSize: false,

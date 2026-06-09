@@ -148,6 +148,8 @@ const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
 const SOLO_AGENT_RETARGET_PROGRESS = 0.82
 const SOLO_AGENT_RETARGET_COOLDOWN = [2.8, 5.2]
 const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
+const SOLO_AGENT_STEERING_TURN_RATE_MIN = 6
+const SOLO_AGENT_STEERING_TURN_RATE_MAX = 52
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
 const MOLA_STEERING_REACHED_BODY_LENGTHS = 0.32
 const MOLA_STEERING_REACHED_MAX = 3.0
@@ -338,6 +340,7 @@ function resolveSwimProfile(creature) {
     turnTriggerThreshold: speciesSwim.turnTriggerThreshold ?? SNAP_TURN_THRESHOLD,
     schoolMaxAvoidanceAngleDegrees: speciesSwim.schoolMaxAvoidanceAngleDegrees,
     schoolDirectionResponse: speciesSwim.schoolDirectionResponse,
+    soloSteeringTurnRateDegrees: speciesSwim.soloSteeringTurnRateDegrees,
   }
 }
 
@@ -379,6 +382,15 @@ function schoolMaxAvoidanceAngle(creature, swim, school) {
 
 function schoolDirectionResponse(swim) {
   return THREE.MathUtils.clamp(Number.isFinite(swim.schoolDirectionResponse) ? swim.schoolDirectionResponse : 5.0, 1.5, 14)
+}
+
+function soloAgentSteeringTurnRate(swim) {
+  if (!Number.isFinite(swim.soloSteeringTurnRateDegrees)) return SOLO_AGENT_STEERING_MAX_TURN_RATE
+  return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(
+    swim.soloSteeringTurnRateDegrees,
+    SOLO_AGENT_STEERING_TURN_RATE_MIN,
+    SOLO_AGENT_STEERING_TURN_RATE_MAX,
+  ))
 }
 
 function rotateDirectionToward(current, target, maxAngle) {
@@ -789,7 +801,7 @@ function shapeSoloAgentSteeringDesired(out, position, target, forward, creature,
 function makeSoloAgentSteeringDebugPath(creature, swim, start, startForward, target) {
   const bodyLength = creatureBodyLength(creature, swim)
   const stepDistance = Math.max(0.28, bodyLength * SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS)
-  const turnStep = SOLO_AGENT_STEERING_MAX_TURN_RATE * (stepDistance / Math.max(0.1, bodyLength * 0.08))
+  const turnStep = soloAgentSteeringTurnRate(swim) * (stepDistance / Math.max(0.1, bodyLength * 0.08))
   const points = [start.clone()]
   agentPathPoint.copy(start)
   agentPathTangent.copy(startForward)
@@ -2554,7 +2566,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       } else {
         if (agentHasTarget.current) {
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-          rotateDirectionToward(tangent, agentMoveDirection, SOLO_AGENT_STEERING_MAX_TURN_RATE * delta)
+          rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
         }
 
         desiredDirection.current.copy(tangent)
@@ -3046,9 +3058,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
 
     if (model) {
-      const animationForward = isSoloAgent && agentPath.current && agentPathTangent.lengthSq() > 0
-        ? agentPathTangent
-        : pitchedForward
+      const animationForward = pitchedForward
       let turn = 0
       if (previousTangent.current.lengthSq() > 0) {
         turn = previousTangent.current.z * animationForward.x - previousTangent.current.x * animationForward.z

@@ -87,6 +87,7 @@ Reference:
 - `v0.8.12-dev_4` fixes Mahi-mahi blitzing up/down across the screen by constraining solo-agent vertical target changes and reducing the Mahi-mahi speed envelope.
 - `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: edge recovery no longer snaps all the way back to inner swim bounds, live course corrections keep the continuous swim loop rather than forcing snap-left/right clips, and burst movement duration now stays inside the authored burst clip.
 - `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail.
+- `v0.8.12-dev_7` locks Mahi-mahi GLB animation clips to authored 1× speed, restores snap-left/right turn clips with shorter blending, and tightens/slows solo U-turns so turn motion reads forward instead of backward drift.
 - Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 
@@ -102,7 +103,8 @@ Subtasks:
 - [x] Reopen Mahi-mahi adult behavior after accidental merge; move adult Mahi-mahi off schooling and onto a faster solo-agent path for solo/pair travel.
 - [x] Fix Mahi-mahi solo-agent drift/glitchy turn triggers so turns use live forward motion instead of stale debug path tangents.
 - [x] Fix Mahi-mahi full-screen up/down dashes by limiting vertical target deltas and calming the speed profile.
-- [x] Fix Mahi-mahi teleport/backward/frozen-animation follow-up by removing inner-bound recovery snaps, keeping live turns on the continuous swim loop, and shortening burst movement to match the clip.
+- [x] Fix follow-up Mahi-mahi teleport/backward/frozen-animation glitches by removing inner-bound recovery snaps, keeping live turns on the continuous swim loop, and shortening burst movement to match the authored clip.
+- [x] Restore Mahi-mahi authored snap-left/right visibility, play GLB animations at 1×, and tighten solo U-turn motion.
 - [ ] Review whether solo-agent Mahi-mahi should get explicit pair cohesion later, or whether independent adult agents feel natural enough in tank view.
 - [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 

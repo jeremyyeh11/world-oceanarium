@@ -1828,7 +1828,8 @@ function modelFadeDuration(model, fallback = 0.18) {
   return model?.animationFadeDuration ?? fallback
 }
 
-function modelAnimationSpeed(animationVariation, animation, resolvedAnimation) {
+function modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation) {
+  if (Number.isFinite(model?.animationTimeScale)) return model.animationTimeScale
   const speed = animationVariation?.speeds?.[resolvedAnimation]
     ?? animationVariation?.speeds?.[animation]
     ?? animationVariation?.speeds?.default
@@ -1858,7 +1859,7 @@ function playModelAction(actions, activeActionRef, model, animation, animationVa
   const nextAction = actions[resolvedAnimation] ?? actions[animation] ?? actions.idle ?? Object.values(actions)[0]
   if (!nextAction || activeActionRef.current === nextAction) return
 
-  const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
+  const speed = modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation)
   const offset = animationVariation?.startOffset ?? 0
 
   nextAction.reset()
@@ -1911,7 +1912,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
       else action.stop()
     })
 
-    const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation) * MOLA_SUN_BASK_ANIMATION_SPEED_SCALE
+    const speed = modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation) * MOLA_SUN_BASK_ANIMATION_SPEED_SCALE
     sunBaskAction.reset()
     sunBaskAction.setEffectiveWeight(1)
     configureModelAction(sunBaskAction, model, animation, resolvedAnimation, speed, 0)
@@ -1934,7 +1935,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   const sunBaskExitFadeDuration = modelFadeDuration(model, MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION)
 
   if (baseAction && !baseAction.isRunning()) {
-    const speed = modelAnimationSpeed(animationVariation, baseAnimation, baseAnimation)
+    const speed = modelAnimationSpeed(model, animationVariation, baseAnimation, baseAnimation)
     baseAction.reset()
     baseAction.setEffectiveWeight(model.layeredBaseWeight ?? 1)
     configureModelAction(baseAction, model, baseAnimation, baseAnimation, speed, offset)
@@ -1951,7 +1952,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   const nextAction = actions[resolvedAnimation] ?? actions[animation]
   if (!nextAction || activeActionRef.current === nextAction) return
 
-  const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
+  const speed = modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation)
   nextAction.reset()
   nextAction.setEffectiveWeight(model.layeredOverlayWeight ?? 1)
   configureModelAction(nextAction, model, animation, resolvedAnimation, speed, offset)
@@ -2017,7 +2018,9 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         1,
         10,
       )
-      activeAction.setEffectiveTimeScale(baseTimeScale * (animationSpeedScaleRef?.current ?? 1) * simulationSpeed)
+      const runtimeAnimationScale = model?.lockAnimationPlayback ? 1 : (animationSpeedScaleRef?.current ?? 1)
+      const debugAnimationScale = model?.lockAnimationPlayback ? 1 : simulationSpeed
+      activeAction.setEffectiveTimeScale(baseTimeScale * runtimeAnimationScale * debugAnimationScale)
     }
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms

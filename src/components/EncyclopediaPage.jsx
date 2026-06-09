@@ -3,15 +3,15 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { BIOMES, DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
+import { DEBUG_TOGGLE_EVENT } from '../utils/debugIdentifiers'
 import Environment from './Environment'
 import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import WaterSurface from './WaterSurface'
 
-const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 
 const THUMBNAIL_GRADIENTS = [
@@ -33,7 +33,6 @@ const IUCN_STATUS_STEPS = [
 const ATLAS_CAMERA_YAW_DEGREES = 0
 const ATLAS_CAMERA_PITCH_DEGREES = 15
 const ATLAS_CREATURE_DIAGONAL_YAW_RADIANS = Math.PI / 6
-const ATLAS_DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
 const ATLAS_DEBUG_TAP_WINDOW_MS = 1200
 const ATLAS_DEBUG_REQUIRED_TAPS = 3
 const ATLAS_DIVER_POSE_STORAGE_KEY = 'world-oceanarium-atlas-diver-poses'
@@ -161,42 +160,6 @@ function speciesLengthMeters(species) {
   const bodyLengthWU = species?.swim?.bodyLengthWU
   if (!Number.isFinite(bodyLengthWU)) return null
   return bodyLengthWU * WORLD_UNIT_METERS
-}
-
-function speciesLengthRangeMeters(species) {
-  if (Array.isArray(species?.adultLengthRangeMeters) && species.adultLengthRangeMeters.length >= 2) {
-    const [min, max] = species.adultLengthRangeMeters.map(Number)
-    if (Number.isFinite(min) && Number.isFinite(max) && min > 0 && max >= min) return [min, max]
-  }
-
-  const maxLength = speciesLengthMeters(species)
-  if (!Number.isFinite(maxLength) || maxLength <= 0) return null
-
-  if (Array.isArray(species?.sizeRange) && species.sizeRange.length >= 2) {
-    const [minScale, maxScale] = species.sizeRange.map(Number)
-    if (Number.isFinite(minScale) && Number.isFinite(maxScale) && minScale > 0 && maxScale >= minScale) {
-      return [maxLength * minScale, maxLength * maxScale]
-    }
-  }
-
-  return [maxLength, maxLength]
-}
-
-function formatLength(meters) {
-  if (!Number.isFinite(meters) || meters <= 0) return 'Unknown'
-  if (meters < 1) return `${Math.round(meters * 100)} cm`
-  return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
-}
-
-function formatLengthRange(range) {
-  if (!Array.isArray(range) || range.length < 2) return 'Unknown'
-  const [min, max] = range
-  if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0) return 'Unknown'
-  if (Math.abs(min - max) < 0.001) return formatLength(max)
-
-  const bothUnderMeter = min < 1 && max < 1
-  if (bothUnderMeter) return `${Math.round(min * 100)} cm - ${Math.round(max * 100)} cm`
-  return `${min.toFixed(min < 10 ? 1 : 0)} m - ${max.toFixed(max < 10 ? 1 : 0)} m`
 }
 
 function unknownIfEmpty(value) {
@@ -715,10 +678,10 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
       togglePoseEditor()
     }
 
-    window.addEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
+    window.addEventListener(DEBUG_TOGGLE_EVENT, togglePoseEditor)
     window.addEventListener('keydown', togglePoseEditorFromShortcut)
     return () => {
-      window.removeEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
+      window.removeEventListener(DEBUG_TOGGLE_EVENT, togglePoseEditor)
       window.removeEventListener('keydown', togglePoseEditorFromShortcut)
     }
   }, [])

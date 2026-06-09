@@ -13,7 +13,7 @@ Versioning convention notes:
 
 ## v0.8.8 — Mahi mahi
 
-Status: in development; current visible dev patch is `v0.8.8-dev_16`.
+Status: accepted and promoted as clean `v0.8.8` from `v0.8.8-dev_16` after Jeremy approval.
 
 ### Creature roster
 

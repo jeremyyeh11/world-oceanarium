@@ -219,6 +219,7 @@ function formatSexLength(value) {
 }
 
 function formatYears(value) {
+  if (typeof value === 'string' && value.trim() !== '' && Number.isNaN(Number(value))) return value
   return formatInteger(value, 'years')
 }
 

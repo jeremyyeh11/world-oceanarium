@@ -282,6 +282,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
   const depthLabel = compactDepthLabel(depthZone, creature.depthZone)
   const customName = creature.customName?.trim()
+  const canOpenAtlas = Boolean(onOpenEncyclopedia && species && !species.hiddenInAtlas)
   const individualDescription = namedIndividualDescription(creature, customName)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
@@ -293,7 +294,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
           <p style={styles.eyebrow}>ID: {creature.id}</p>
           <div style={styles.titleLine}>
             <h2 style={styles.title}>{creature.species}</h2>
-            {onOpenEncyclopedia && (
+            {canOpenAtlas && (
               <button
                 type="button"
                 className="info-card-atlas-icon"

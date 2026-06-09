@@ -10,9 +10,9 @@ Versioning convention notes:
 
 
 
-## v0.8.9 — Camera position + DOF debug
+## v0.8.9 — Camera position polish
 
-Status: in development; current visible dev patch is `v0.8.9-dev_5`.
+Status: accepted and promoted as clean `v0.8.9` after Jeremy approval.
 
 ### Camera / debug
 
@@ -21,6 +21,7 @@ Status: in development; current visible dev patch is `v0.8.9-dev_5`.
 - `v0.8.9-dev_3` makes the camera debug bar wrap/scroll vertically on cramped screens and adds `Shift Y`, a true vertical camera translation slider that moves both camera height and look target together instead of changing only the view angle.
 - `v0.8.9-dev_4` bakes Jeremy's approved camera framing into the tank defaults (`y=-6.35`, `z=10`, `lookY=-2.65`, `fov=61`) and removes the temporary camera/DOF debug controls from the debug toolbar.
 - `v0.8.9-dev_5` fixes the phone blank-scene regression by baking the approved camera slider values without double-applying the temporary `Shift Y` translation on narrow viewports (`y=-3.35`, `z=10`, `lookY=0.35`, `fov=61`).
+- Clean `v0.8.9` ships the accepted lowered tank camera framing with the temporary camera/DOF debug tools removed.
 
 ## v0.8.7 — Atlas thumbnail polish
 

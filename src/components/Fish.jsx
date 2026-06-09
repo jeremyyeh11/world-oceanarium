@@ -1607,33 +1607,6 @@ function depthFadeFromScreenZ(z) {
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
 }
 
-function applyFresnelRim(material, color, intensity, power = RIM_POWER) {
-  const rimColor = new THREE.Color(color)
-  const rimKey = `${rimColor.getHexString()}:${intensity}:${power}`
-
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uRimColor = { value: rimColor }
-    shader.uniforms.uRimIntensity = { value: intensity }
-    shader.uniforms.uRimPower = { value: power }
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        `#include <common>
-uniform vec3 uRimColor;
-uniform float uRimIntensity;
-uniform float uRimPower;`
-      )
-      .replace(
-        '#include <dithering_fragment>',
-        `float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), uRimPower);
-gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
-#include <dithering_fragment>`
-      )
-  }
-  material.customProgramCacheKey = () => `fresnel-rim:${rimKey}`
-  material.needsUpdate = true
-}
-
 function applyFishLightMask(material, rim = null) {
   if (!FISH_LIGHT_MASK_ENABLED && !rim) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')

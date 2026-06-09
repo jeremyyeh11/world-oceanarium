@@ -77,6 +77,7 @@ Reference:
 - `v0.8.8-dev_10` keeps the stacked Atlas species-group review moving: schooling Atlas groups now use per-fish phase/speed/burst offsets, with Jeremy's latest Mahi-mahi and Giant Sunfish diver silhouette placements.
 - `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes for Mahi-mahi and spotted sardinella.
 - `v0.8.8-dev_12` uppercases Atlas species-list common names for consistency with the right info panel.
+- `v0.8.8-dev_13` lowers the spotted sardinella Atlas hero fish and pushes the upper-left companion deeper behind the diver silhouette after Jeremy's marked screenshot.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:

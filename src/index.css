@@ -1288,6 +1288,8 @@ body:has(.debug-panel) .app-version-footnote {
 
 .encyclopedia-species-row strong {
   font-size: 0.9rem;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
 }
 
 .encyclopedia-species-row em {

@@ -13,7 +13,7 @@ Versioning convention notes:
 
 ## v0.8.8 — Mahi mahi
 
-Status: in development; current visible dev patch is `v0.8.8-dev_11`.
+Status: in development; current visible dev patch is `v0.8.8-dev_12`.
 
 ### Creature roster
 
@@ -30,6 +30,7 @@ Status: in development; current visible dev patch is `v0.8.8-dev_11`.
 - `v0.8.8-dev_9` adjusts the Mahi-mahi Atlas diver silhouette to Jeremy's approved staging position `[0.5, 0.45, -0.85]` at `0.38` opacity.
 - `v0.8.8-dev_10` desynchronizes Atlas schooling groups with per-fish animation phase, playback speed, and burst timing offsets, and applies Jeremy's latest Mahi-mahi/Giant Sunfish diver silhouette placements.
 - `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes: Mahi-mahi maturity/sterility/spawn-egg range and spotted sardinella estimated maturity/unknown sterility.
+- `v0.8.8-dev_12` uppercases Atlas species-list common names so the left selection column matches the right info-panel heading style.
 - Target feel: fast, confident pelagic cruising with readable flashes and turns — elegant movement, not generic fish drift.
 
 ## v0.8.7 — Atlas thumbnail polish

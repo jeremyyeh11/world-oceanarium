@@ -76,6 +76,7 @@ Reference:
 - `v0.8.8-dev_4` reduces the unnatural abruptness from `dev_3` by making snap turns rare/short accents with softer fades and smoother path variation.
 - `v0.8.8-dev_10` keeps the stacked Atlas species-group review moving: schooling Atlas groups now use per-fish phase/speed/burst offsets, with Jeremy's latest Mahi-mahi and Giant Sunfish diver silhouette placements.
 - `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes for Mahi-mahi and spotted sardinella.
+- `v0.8.8-dev_12` uppercases Atlas species-list common names for consistency with the right info panel.
 - Jeremy requested this as the next species sequence item after creature moments.
 
 Subtasks:

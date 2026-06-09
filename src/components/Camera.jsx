@@ -9,9 +9,9 @@ export const CAMERA_LIMITS = {
 }
 
 const DEFAULT_CAMERA_SETTINGS = {
-  y: -6.35,
+  y: -3.35,
   z: 10,
-  lookY: -2.65,
+  lookY: 0.35,
   fov: 61,
 }
 

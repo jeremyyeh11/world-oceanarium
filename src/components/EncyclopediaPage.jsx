@@ -79,16 +79,21 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'mola-alexandrini': 20.7909,
 }
 
+const ATLAS_HERO_ANIMATION_BY_SPECIES = {
+  'amblygaster-sirm': { animationOffset: 0.45, animationSpeed: 0.97, burstDelay: 4.9 },
+  'coryphaena-hippurus': { animationOffset: 0.8, animationSpeed: 1.03, burstDelay: 5.4 },
+}
+
 const ATLAS_COMPANIONS_BY_SPECIES = {
   'amblygaster-sirm': [
-    { position: [-1.15, 0.34, -1.15], scale: 0.58, yaw: -0.08, animationOffset: 1.1 },
-    { position: [1.18, -0.34, -1.5], scale: 0.52, yaw: 0.1, animationOffset: 2.7 },
-    { position: [-0.42, -0.72, -1.9], scale: 0.44, yaw: 0.04, animationOffset: 4.0 },
+    { position: [-1.15, 0.34, -1.15], scale: 0.58, yaw: -0.08, animationOffset: 1.35, animationSpeed: 1.08, burstDelay: 7.1 },
+    { position: [1.18, -0.34, -1.5], scale: 0.52, yaw: 0.1, animationOffset: 2.9, animationSpeed: 0.91, burstDelay: 6.2 },
+    { position: [-0.42, -0.72, -1.9], scale: 0.44, yaw: 0.04, animationOffset: 4.25, animationSpeed: 1.14, burstDelay: 8.4 },
   ],
   'coryphaena-hippurus': [
-    { position: [-1.55, 0.42, -1.65], scale: 0.54, yaw: -0.1, animationOffset: 1.4 },
-    { position: [1.42, -0.5, -2.05], scale: 0.48, yaw: 0.12, animationOffset: 3.1 },
-    { position: [0.28, 0.86, -2.4], scale: 0.42, yaw: 0.05, animationOffset: 4.6 },
+    { position: [-1.55, 0.42, -1.65], scale: 0.54, yaw: -0.1, animationOffset: 1.6, animationSpeed: 0.92, burstDelay: 7.6 },
+    { position: [1.42, -0.5, -2.05], scale: 0.48, yaw: 0.12, animationOffset: 3.35, animationSpeed: 1.11, burstDelay: 6.5 },
+    { position: [0.28, 0.86, -2.4], scale: 0.42, yaw: 0.05, animationOffset: 4.9, animationSpeed: 0.86, burstDelay: 8.9 },
   ],
 }
 
@@ -333,6 +338,10 @@ function ModelAsset({ species, pose, companion = null }) {
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
+  const animationProfile = companion ?? ATLAS_HERO_ANIMATION_BY_SPECIES[species?.id] ?? null
+  const animationOffset = animationProfile?.animationOffset ?? 0
+  const animationSpeed = animationProfile?.animationSpeed ?? 1
+  const openingBurstDelay = animationProfile?.burstDelay ?? 3.8
   const viewerScale = atlasModelScaleForSpecies(species, pose) * (companion?.scale ?? 1)
   const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
   const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset + (companion?.yaw ?? 0), sourceRotation[2]]
@@ -352,7 +361,7 @@ function ModelAsset({ species, pose, companion = null }) {
     if (idleAction) {
       idleAction.enabled = true
       idleAction.setLoop(THREE.LoopRepeat, Infinity)
-      idleAction.setEffectiveTimeScale(idleClip.name === 'slow_cruise' ? 0.82 : 1)
+      idleAction.setEffectiveTimeScale((idleClip.name === 'slow_cruise' ? 0.82 : 1) * animationSpeed)
       idleAction.setEffectiveWeight(1)
       idleAction.play()
     }
@@ -361,7 +370,7 @@ function ModelAsset({ species, pose, companion = null }) {
       burstAction.enabled = true
       burstAction.setLoop(THREE.LoopOnce, 1)
       burstAction.clampWhenFinished = false
-      burstAction.setEffectiveTimeScale(burstClip.duration > 3 ? 1.18 : 1)
+      burstAction.setEffectiveTimeScale((burstClip.duration > 3 ? 1.18 : 1) * animationSpeed)
       burstAction.setEffectiveWeight(1)
     }
 
@@ -374,10 +383,10 @@ function ModelAsset({ species, pose, companion = null }) {
     mixer.addEventListener('finished', onFinished)
     mixerRef.current = mixer
     actionsRef.current = { idle: idleAction, burst: burstAction }
-    if (Number.isFinite(companion?.animationOffset) && companion.animationOffset > 0) {
-      mixer.update(companion.animationOffset)
+    if (Number.isFinite(animationOffset) && animationOffset > 0) {
+      mixer.update(animationOffset)
     }
-    burstDueAtRef.current = mixer.time + 3.8
+    burstDueAtRef.current = mixer.time + openingBurstDelay
 
     return () => {
       mixer.removeEventListener('finished', onFinished)
@@ -386,7 +395,7 @@ function ModelAsset({ species, pose, companion = null }) {
       mixerRef.current = null
       actionsRef.current = { idle: null, burst: null }
     }
-  }, [companion?.animationOffset, gltf.animations, scene, species])
+  }, [animationOffset, animationSpeed, gltf.animations, openingBurstDelay, scene, species])
 
   useFrame((_, delta) => {
     const mixer = mixerRef.current
@@ -419,11 +428,11 @@ const DIVER_POSES_BY_SPECIES = {
     opacity: 0.34,
   },
   'coryphaena-hippurus': {
-    position: [0.5, 0.45, -0.85],
+    position: [0.8, -1.65, -0.85],
     opacity: 0.38,
   },
   'mola-alexandrini': {
-    position: [-1.05, -2.05, -0.85],
+    position: [1.85, -2.25, -0.85],
     opacity: 0.38,
   },
 }

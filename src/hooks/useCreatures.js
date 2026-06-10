@@ -9,6 +9,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_CREATURES_URL = import.meta.env.VITE_SUPABASE_CREATURES_URL
 const SUPABASE_CREATURES_TABLE = APP_VERSION.includes('-dev_') ? 'creatures_dev' : 'creatures'
 const ALLOW_STATIC_DEV_CREATURES = APP_VERSION.includes('-dev_')
+const ALLOW_STATIC_MISSING_ENV_FALLBACK = true
 
 function persistentUnitRandom(seed) {
   let t = hashString(seed) + 0x6D2B79F5
@@ -104,8 +105,8 @@ export function useCreatures() {
 
     if (!creaturesUrl || !SUPABASE_ANON_KEY) {
       setState({
-        creatures: ALLOW_STATIC_DEV_CREATURES ? staticDevCreatures() : [],
-        source: ALLOW_STATIC_DEV_CREATURES ? 'static-dev' : 'supabase-not-configured',
+        creatures: (ALLOW_STATIC_DEV_CREATURES || ALLOW_STATIC_MISSING_ENV_FALLBACK) ? staticDevCreatures() : [],
+        source: ALLOW_STATIC_DEV_CREATURES ? 'static-dev' : 'static-missing-env',
         error: 'Supabase creature env vars are not configured.',
       })
       return undefined

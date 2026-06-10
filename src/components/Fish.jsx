@@ -3090,6 +3090,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         turn = previousTangent.current.z * animationForward.x - previousTangent.current.x * animationForward.z
       }
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
+        let triggeredAction = false
         if (turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnLeft')
@@ -3101,6 +3102,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationHoldUntil.current = now + turnAnimationDuration
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
+          triggeredAction = true
         } else if (turn < -motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnRight')
@@ -3112,6 +3114,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationHoldUntil.current = now + turnAnimationDuration
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
+          triggeredAction = true
         } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
           const burstDuration = motion.burstActionDuration
           const burstAnimation = resolveMoveAnimation(model, 'burst')
@@ -3124,6 +3127,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(1.0, burstAnimationDuration * 0.65)
           nextBurstAt.current = now + motion.burstInterval
           driftUntil.current = 0
+          triggeredAction = true
+        }
+
+        if (!triggeredAction) {
+          if (hasDriftMove) {
+            if (now >= nextDriftAt.current) {
+              driftUntil.current = now + motion.driftDuration
+              nextDriftAt.current = driftUntil.current + motion.driftInterval
+            }
+            playAnimation(now < driftUntil.current ? driftMove : resolveMoveAnimation(model, 'cruise'))
+          } else {
+            playAnimation(resolveMoveAnimation(model, 'cruise'))
+          }
         }
       } else if (now > animationHoldUntil.current) {
         if (hasDriftMove) {

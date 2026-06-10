@@ -26,6 +26,7 @@ Status: active dev branch `feat/mahi-mahi-v2`; Mahi-mahi remains hidden from The
 - `v0.8.12-dev_8` moves Mahi-mahi off the failed solo-agent path and onto the proven shared group movement, capped at two fish per pair. The GLB clips remain in-place: idle is the default loop, burst/turn clips are accents with separate forward translation, and normal banking stays on idle. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
 - `v0.8.12-dev_9` fixes Mahi-mahi snap-turn playback without retiming the authored GLB clips: turn movement still uses the short simulation impulse, but `snap_left` / `snap_right` now stay selected for their full authored 5.0417s duration instead of being interrupted after the 1.05s movement impulse.
 - `v0.8.12-dev_10` sets global fish GLB playback back to 1× and clamps per-individual animation speed variation to 0.9×–1.1× across species. Spotted sardinella burst/snap animation holds now cover the full clip at the slowest allowed individual speed, so authored clips are not cut off while movement impulses remain short.
+- `v0.8.12-dev_11` fixes one-shot authored clips freezing on their final frame: after a snap/burst hold expires, fish now return to their cruise/drift loop when no new action is triggered, instead of staying stuck if the trigger window is open but idle conditions are calm.
 
 ## v0.8.11 — Atlas release gating hotfix
 

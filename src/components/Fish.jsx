@@ -1842,6 +1842,13 @@ function modelActionAnimationDuration(model, animation, fallback) {
   return Number.isFinite(duration) && duration > 0 ? duration : fallback
 }
 
+function modelActionMovementDelay(model, animation, fallback = 0) {
+  const resolvedAnimation = resolveModelAnimation(model, animation)
+  const delay = model?.actionMovementDelays?.[resolvedAnimation]
+    ?? model?.actionMovementDelays?.[animation]
+  return Number.isFinite(delay) && delay > 0 ? delay : fallback
+}
+
 function configureModelAction(action, model, animation, resolvedAnimation, speed, offset) {
   action.enabled = true
   action.userData ??= {}
@@ -2120,6 +2127,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
   const velocity = useRef(0)
+  const actionSpeedStartAt = useRef(0)
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
   const nextBurstAt = useRef(0)
@@ -2315,7 +2323,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     )
     const driftMove = resolveMoveAnimation(model, 'drift')
     const hasDriftMove = Boolean(model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'))
-    const isActionMoveActive = now < actionSpeedUntil.current
+    const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
     const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current
     const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
     const velocityResponse = isActionMoveActive ? 8 : (isDrifting ? 1.2 : 2.4)
@@ -3097,6 +3105,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
           playAnimation(turnAnimation)
           playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
+          actionSpeedStartAt.current = now
           actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
           animationHoldUntil.current = now + turnAnimationDuration
@@ -3109,6 +3118,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
           playAnimation(turnAnimation)
           playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
+          actionSpeedStartAt.current = now
           actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
           animationHoldUntil.current = now + turnAnimationDuration
@@ -3119,9 +3129,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const burstDuration = motion.burstActionDuration
           const burstAnimation = resolveMoveAnimation(model, 'burst')
           const burstAnimationDuration = modelActionAnimationDuration(model, burstAnimation, burstDuration)
+          const burstMovementDelay = modelActionMovementDelay(model, burstAnimation)
           playAnimation(burstAnimation)
           playSwimSfx('burst', THREE.MathUtils.clamp(motion.burstSpeed / Math.max(0.001, motion.idleSpeed) * 0.18, 0.42, 1), now)
-          actionSpeedUntil.current = now + burstDuration
+          actionSpeedStartAt.current = now + burstMovementDelay
+          actionSpeedUntil.current = actionSpeedStartAt.current + burstDuration
           actionSpeedTarget.current = motion.burstSpeed
           animationHoldUntil.current = now + burstAnimationDuration
           animationCooldown.current = now + Math.max(1.0, burstAnimationDuration * 0.65)

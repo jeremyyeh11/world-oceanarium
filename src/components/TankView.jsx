@@ -493,11 +493,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         lastY: event.clientY,
         startFocusChangeAt: focusChangeAtRef.current,
         target: event.currentTarget,
-      }
-      try {
-        event.currentTarget?.setPointerCapture?.(event.pointerId)
-      } catch {
-        // Pointer capture is a guard, not a dependency; orbit still works without it.
+        captured: false,
       }
       return
     }
@@ -548,6 +544,14 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       drag.lastY = event.clientY
       drag.mode = 'orbit'
       drag.moved = true
+      if (!drag.captured) {
+        try {
+          drag.target?.setPointerCapture?.(event.pointerId)
+          drag.captured = true
+        } catch {
+          // Pointer capture is a guard, not a dependency; orbit still works without it.
+        }
+      }
       suppressCreatureFocusFor(FOLLOW_ORBIT_SELECTION_SUPPRESS_MS)
       setFollowOrbit(current => clampFollowOrbit({
         yaw: current.yaw - deltaX * FOLLOW_ORBIT_DRAG_SPEED,

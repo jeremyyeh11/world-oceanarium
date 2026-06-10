@@ -9,6 +9,14 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.13-dev — Mobile release fallback hotfix
+
+Status: active hotfix branch `fix/mobile-empty-tank-fallback` after mobile review showed an empty clean `v0.8.12` tank on a deployment without Supabase browser env.
+
+### Creature data / mobile smoke
+
+- `v0.8.13-dev_1` prevents a clean deployment with missing browser Supabase env vars from rendering a visually empty tank by falling back to bundled release creature rows only for the missing-env case. If Supabase is configured but empty or errors, clean builds still do not silently replace that result. The bundled fallback now mirrors the released production counts: 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus`.
+
 
 ## v0.8.12 — Mahi-mahi adult movement review
 

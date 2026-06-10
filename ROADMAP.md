@@ -63,6 +63,21 @@ Subtasks:
 
 ## Feature list
 
+### Hotfix: mobile empty tank on clean deployment
+
+Status: `Current in development`
+
+Reference:
+- Jeremy reported clean `v0.8.12` mobile showed UI/water/version but no visible fish on the Vercel deployment URL.
+- Local reproduction with missing browser Supabase env vars showed `0/0` debug load and the same visually empty tank because clean builds did not use static fallback.
+- Local mobile smoke with real Supabase data showed fish visible, so the hotfix target is missing-env release fallback, not mobile camera framing.
+
+Subtasks:
+- [x] Reproduce the empty tank on clean `v0.8.12` with missing browser Supabase env vars.
+- [x] Verify production creature data contains 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus`.
+- [x] Ship `v0.8.13-dev_1` fallback for missing-env deployments only, with bundled release creature rows matching production counts.
+- [x] Mobile-smoke the missing-env path and the real-data path.
+
 ### Active feature bucket
 
 #### 1. Mahi mahi

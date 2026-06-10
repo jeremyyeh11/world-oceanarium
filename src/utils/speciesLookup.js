@@ -1,4 +1,4 @@
-import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { DEPTH_ZONES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 
 export const DEFAULT_BODY_LENGTH_WU = 1
 
@@ -27,6 +27,7 @@ export const SPECIES_BY_KEY = new Map(
 
 export const ACTIVE_SPECIES_NAMES = new Set(SPECIES.map(species => species.name))
 export const SPECIES_BY_NAME = new Map(SPECIES.map(species => [species.name, species]))
+export const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 export const SPECIES_NAME_BY_ALIAS = new Map(
   SPECIES.flatMap(species => speciesAliasKeys(species).map(key => [key, species.name])),
 )

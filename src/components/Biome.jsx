@@ -9,6 +9,12 @@ import { hashString } from '../utils/hash'
 const SCHOOL_MAX_SIZE = 64
 const ENABLE_SARDINE_INSTANCED_LAYER = true
 
+function schoolMaxSizeForSpecies(species) {
+  const configured = species?.swim?.schoolMaxSize
+  if (!Number.isFinite(configured)) return SCHOOL_MAX_SIZE
+  return Math.max(2, Math.min(SCHOOL_MAX_SIZE, Math.floor(configured)))
+}
+
 function schoolKeyForCreature(creature) {
   return `${creature.biome}:${creature.depthZone}:${creature.species}`
 }
@@ -28,20 +34,21 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
       if (!species?.schooling) return groups
 
       const key = schoolKeyForCreature(creature)
-      const group = groups.get(key) ?? []
-      group.push(creature)
-      groups.set(key, group)
+      const entry = groups.get(key) ?? { species, creatures: [] }
+      entry.creatures.push(creature)
+      groups.set(key, entry)
       return groups
     }, new Map())
 
     const nextSchoolByCreatureId = new Map()
-    schoolingGroups.forEach((group, key) => {
+    schoolingGroups.forEach(({ species, creatures: group }, key) => {
       if (group.length < 2) return
       const orderedGroup = [...group].sort((a, b) => deterministicSchoolOrder(a) - deterministicSchoolOrder(b))
-      for (let offset = 0; offset < orderedGroup.length; offset += SCHOOL_MAX_SIZE) {
-        const schoolGroup = orderedGroup.slice(offset, offset + SCHOOL_MAX_SIZE)
+      const maxSchoolSize = schoolMaxSizeForSpecies(species)
+      for (let offset = 0; offset < orderedGroup.length; offset += maxSchoolSize) {
+        const schoolGroup = orderedGroup.slice(offset, offset + maxSchoolSize)
         if (schoolGroup.length < 2) continue
-        const schoolId = `${key}:visit-${tankVisitSeed}:school-${Math.floor(offset / SCHOOL_MAX_SIZE)}`
+        const schoolId = `${key}:visit-${tankVisitSeed}:school-${Math.floor(offset / maxSchoolSize)}`
         schoolGroup.forEach((creature, index) => {
           nextSchoolByCreatureId.set(creature.id, {
             id: schoolId,

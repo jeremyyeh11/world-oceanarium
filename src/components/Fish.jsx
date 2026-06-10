@@ -1837,6 +1837,13 @@ function modelAnimationSpeed(model, animationVariation, animation, resolvedAnima
   return speed * GLOBAL_ANIMATION_TIME_SCALE
 }
 
+function modelActionAnimationDuration(model, animation, fallback) {
+  const resolvedAnimation = resolveModelAnimation(model, animation)
+  const duration = model?.actionAnimationDurations?.[resolvedAnimation]
+    ?? model?.actionAnimationDurations?.[animation]
+  return Number.isFinite(duration) && duration > 0 ? duration : fallback
+}
+
 function configureModelAction(action, model, animation, resolvedAnimation, speed, offset) {
   action.enabled = true
   action.userData ??= {}
@@ -3087,21 +3094,25 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
         if (turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
-          playAnimation(resolveMoveAnimation(model, 'turnLeft'))
+          const turnAnimation = resolveMoveAnimation(model, 'turnLeft')
+          const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
+          playAnimation(turnAnimation)
           playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
           actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
-          animationHoldUntil.current = now + turnDuration
-          animationCooldown.current = now + Math.max(0.7, turnDuration * 0.72)
+          animationHoldUntil.current = now + turnAnimationDuration
+          animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
         } else if (turn < -motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
-          playAnimation(resolveMoveAnimation(model, 'turnRight'))
+          const turnAnimation = resolveMoveAnimation(model, 'turnRight')
+          const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
+          playAnimation(turnAnimation)
           playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
           actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
-          animationHoldUntil.current = now + turnDuration
-          animationCooldown.current = now + Math.max(0.7, turnDuration * 0.72)
+          animationHoldUntil.current = now + turnAnimationDuration
+          animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
         } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
           const burstDuration = motion.burstActionDuration

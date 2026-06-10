@@ -229,6 +229,10 @@ export const SPECIES = [
       animationFadeDuration: 0.16,
       animationTimeScale: 1,
       lockAnimationPlayback: true,
+      actionAnimationDurations: {
+        snap_left: 5.0417,
+        snap_right: 5.0417,
+      },
       loopAnimations: ['idle'],
       debugForwardOrigin: 'head',
     },

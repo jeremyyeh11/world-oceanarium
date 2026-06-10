@@ -125,6 +125,11 @@ export const SPECIES = [
     model: {
       path: '/models/fish/sardine/sardine.glb',
       scale: 0.42,
+      actionAnimationDurations: {
+        burst: 1.39,
+        snap_left: 1.12,
+        snap_right: 1.12,
+      },
     },
   },
   {
@@ -230,8 +235,8 @@ export const SPECIES = [
       animationTimeScale: 1,
       lockAnimationPlayback: true,
       actionAnimationDurations: {
-        snap_left: 5.0417,
-        snap_right: 5.0417,
+        snap_left: 5.61,
+        snap_right: 5.61,
       },
       loopAnimations: ['idle'],
       debugForwardOrigin: 'head',

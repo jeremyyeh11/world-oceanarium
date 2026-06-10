@@ -69,7 +69,7 @@ const DEFAULT_MOVESET = {
 }
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
-const GLOBAL_ANIMATION_TIME_SCALE = 2
+const GLOBAL_ANIMATION_TIME_SCALE = 1
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
 const LOD0_DEBUG_COLOR = '#00ff28'
@@ -1791,21 +1791,19 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
 
 function animationVariationForCreature(creature) {
   const rand = mulberry32(hashString(`${creature.id ?? creature.species}:animation-variation`))
-  const baseSpeed = randomRange(rand, 0.88, 1.14)
-  const idleSpeed = baseSpeed * randomRange(rand, 0.92, 1.08)
-  const actionSpeed = baseSpeed * randomRange(rand, 0.94, 1.1)
+  const baseSpeed = randomRange(rand, 0.9, 1.1)
 
   return {
     startOffset: randomRange(rand, 0, 1),
     speeds: {
-      idle: idleSpeed,
-      slow_cruise: idleSpeed,
-      idle_drift: idleSpeed * randomRange(rand, 0.82, 0.96),
-      burst: actionSpeed * randomRange(rand, 0.98, 1.08),
-      snap_left: actionSpeed * randomRange(rand, 0.96, 1.12),
-      snap_right: actionSpeed * randomRange(rand, 0.96, 1.12),
-      bank_l: actionSpeed * randomRange(rand, 0.96, 1.06),
-      bank_r: actionSpeed * randomRange(rand, 0.96, 1.06),
+      idle: baseSpeed,
+      slow_cruise: baseSpeed,
+      idle_drift: baseSpeed,
+      burst: baseSpeed,
+      snap_left: baseSpeed,
+      snap_right: baseSpeed,
+      bank_l: baseSpeed,
+      bank_r: baseSpeed,
       default: baseSpeed,
     },
   }
@@ -1829,12 +1827,12 @@ function modelFadeDuration(model, fallback = 0.18) {
 }
 
 function modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation) {
-  if (Number.isFinite(model?.animationTimeScale)) return model.animationTimeScale
+  const modelTimeScale = Number.isFinite(model?.animationTimeScale) ? model.animationTimeScale : 1
   const speed = animationVariation?.speeds?.[resolvedAnimation]
     ?? animationVariation?.speeds?.[animation]
     ?? animationVariation?.speeds?.default
     ?? 1
-  return speed * GLOBAL_ANIMATION_TIME_SCALE
+  return speed * modelTimeScale * GLOBAL_ANIMATION_TIME_SCALE
 }
 
 function modelActionAnimationDuration(model, animation, fallback) {
@@ -3116,12 +3114,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           driftUntil.current = 0
         } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
           const burstDuration = motion.burstActionDuration
-          playAnimation(resolveMoveAnimation(model, 'burst'))
+          const burstAnimation = resolveMoveAnimation(model, 'burst')
+          const burstAnimationDuration = modelActionAnimationDuration(model, burstAnimation, burstDuration)
+          playAnimation(burstAnimation)
           playSwimSfx('burst', THREE.MathUtils.clamp(motion.burstSpeed / Math.max(0.001, motion.idleSpeed) * 0.18, 0.42, 1), now)
           actionSpeedUntil.current = now + burstDuration
           actionSpeedTarget.current = motion.burstSpeed
-          animationHoldUntil.current = now + burstDuration
-          animationCooldown.current = now + Math.max(1.0, burstDuration * 0.65)
+          animationHoldUntil.current = now + burstAnimationDuration
+          animationCooldown.current = now + Math.max(1.0, burstAnimationDuration * 0.65)
           nextBurstAt.current = now + motion.burstInterval
           driftUntil.current = 0
         }

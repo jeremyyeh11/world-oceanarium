@@ -90,6 +90,7 @@ Reference:
 - `v0.8.12-dev_7` locks Mahi-mahi GLB animation clips to authored 1× speed, restores snap-left/right turn clips with shorter blending, and tightens/slows solo U-turns so turn motion reads forward instead of backward drift.
 - `v0.8.12-dev_8` switches Mahi-mahi to shared pair-group movement capped at two fish per group, reusing the sardine-style pathing blueprint while keeping adult social copy as solo/pairs. Mahi clips stay in-place: idle default, burst/turn animations as accents, movement translation handled by simulation. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
 - `v0.8.12-dev_9` keeps Mahi-mahi authored snap-left/right clips at 1× and lets them play for their full GLB duration after a turn trigger; movement still uses the short turn impulse, so the fish does not get five seconds of forced translation.
+- `v0.8.12-dev_10` applies Jeremy's global animation-speed rule: base GLB playback is 1×, each individual varies only from 0.9× to 1.1× regardless of species, and sardinella action holds are long enough for burst/snap clips to finish before returning to idle.
 - Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 
@@ -109,6 +110,7 @@ Subtasks:
 - [x] Restore Mahi-mahi authored snap-left/right visibility, play GLB animations at 1×, and tighten solo U-turn motion.
 - [x] Replace solo-agent Mahi-mahi with capped pair-group movement: shared pathing in groups of two, idle as default clip, burst/turn clips as in-place accents with simulation-driven translation.
 - [x] Fix Mahi-mahi snap-left/right interruption by decoupling the short movement impulse from the full authored turn-clip playback duration.
+- [x] Set global fish GLB playback to 1× with only 0.9×–1.1× per-individual variation, and extend spotted sardinella action holds so burst/snap clips are not cut off.
 - [ ] Review whether the pair-group Mahi-mahi movement now reads natural enough in tank view, or needs looser spacing/speed tweaks.
 - [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 

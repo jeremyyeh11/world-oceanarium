@@ -69,7 +69,7 @@ const DEFAULT_MOVESET = {
 }
 const FISH_SFX_MIN_INTERVAL = 0.75
 const SCHOOL_SFX_LEADER_ONLY = true
-const GLOBAL_ANIMATION_TIME_SCALE = 2
+const GLOBAL_ANIMATION_TIME_SCALE = 1
 const SELECTED_OUTLINE_COLOR = '#57c7e8'
 const LEADER_OUTLINE_COLOR = '#80ff72'
 const LOD0_DEBUG_COLOR = '#00ff28'
@@ -148,6 +148,11 @@ const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
 const SOLO_AGENT_RETARGET_PROGRESS = 0.82
 const SOLO_AGENT_RETARGET_COOLDOWN = [2.8, 5.2]
 const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
+const SOLO_AGENT_STEERING_TURN_RATE_MIN = 6
+const SOLO_AGENT_STEERING_TURN_RATE_MAX = 52
+const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_DEFAULT = 0.32
+const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MIN = 0.05
+const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MAX = 1.4
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
 const MOLA_STEERING_REACHED_BODY_LENGTHS = 0.32
 const MOLA_STEERING_REACHED_MAX = 3.0
@@ -338,6 +343,8 @@ function resolveSwimProfile(creature) {
     turnTriggerThreshold: speciesSwim.turnTriggerThreshold ?? SNAP_TURN_THRESHOLD,
     schoolMaxAvoidanceAngleDegrees: speciesSwim.schoolMaxAvoidanceAngleDegrees,
     schoolDirectionResponse: speciesSwim.schoolDirectionResponse,
+    soloSteeringTurnRateDegrees: speciesSwim.soloSteeringTurnRateDegrees,
+    soloTargetVerticalBodyLengths: speciesSwim.soloTargetVerticalBodyLengths,
   }
 }
 
@@ -379,6 +386,31 @@ function schoolMaxAvoidanceAngle(creature, swim, school) {
 
 function schoolDirectionResponse(swim) {
   return THREE.MathUtils.clamp(Number.isFinite(swim.schoolDirectionResponse) ? swim.schoolDirectionResponse : 5.0, 1.5, 14)
+}
+
+function soloAgentSteeringTurnRate(swim) {
+  if (!Number.isFinite(swim.soloSteeringTurnRateDegrees)) return SOLO_AGENT_STEERING_MAX_TURN_RATE
+  return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(
+    swim.soloSteeringTurnRateDegrees,
+    SOLO_AGENT_STEERING_TURN_RATE_MIN,
+    SOLO_AGENT_STEERING_TURN_RATE_MAX,
+  ))
+}
+
+function soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim) {
+  if (!from) return [bounds.yMin, targetYMax]
+  const bodyLengths = THREE.MathUtils.clamp(
+    Number.isFinite(swim.soloTargetVerticalBodyLengths)
+      ? swim.soloTargetVerticalBodyLengths
+      : SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_DEFAULT,
+    SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MIN,
+    SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MAX,
+  )
+  const verticalStep = Math.max(0.18, bodyLength * bodyLengths)
+  const yMin = Math.max(bounds.yMin, from.y - verticalStep)
+  const yMax = Math.min(targetYMax, from.y + verticalStep)
+  if (yMax < yMin) return [bounds.yMin, targetYMax]
+  return [yMin, yMax]
 }
 
 function rotateDirectionToward(current, target, maxAngle) {
@@ -636,6 +668,7 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
   const bodyLength = creatureBodyLength(creature, swim)
   const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
   const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
+  const [targetYMin, limitedTargetYMax] = soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim)
 
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -649,7 +682,7 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
     const targetX = wideTarget
       ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
       : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
-    out.set(targetX, randomRange(rand, bounds.yMin, targetYMax), targetZ)
+    out.set(targetX, randomRange(rand, targetYMin, limitedTargetYMax), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out
@@ -667,6 +700,7 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
   const zMin = Math.min(modeZMin, modeZMax)
   const zMax = Math.max(modeZMin, modeZMax)
   const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
+  const [targetYMin, limitedTargetYMax] = soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim)
 
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -680,7 +714,7 @@ function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forwa
     const targetX = wideTarget
       ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
       : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
-    out.set(targetX, randomRange(rand, bounds.yMin, targetYMax), targetZ)
+    out.set(targetX, randomRange(rand, targetYMin, limitedTargetYMax), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
     return out
@@ -789,7 +823,7 @@ function shapeSoloAgentSteeringDesired(out, position, target, forward, creature,
 function makeSoloAgentSteeringDebugPath(creature, swim, start, startForward, target) {
   const bodyLength = creatureBodyLength(creature, swim)
   const stepDistance = Math.max(0.28, bodyLength * SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS)
-  const turnStep = SOLO_AGENT_STEERING_MAX_TURN_RATE * (stepDistance / Math.max(0.1, bodyLength * 0.08))
+  const turnStep = soloAgentSteeringTurnRate(swim) * (stepDistance / Math.max(0.1, bodyLength * 0.08))
   const points = [start.clone()]
   agentPathPoint.copy(start)
   agentPathTangent.copy(startForward)
@@ -1757,21 +1791,19 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
 
 function animationVariationForCreature(creature) {
   const rand = mulberry32(hashString(`${creature.id ?? creature.species}:animation-variation`))
-  const baseSpeed = randomRange(rand, 0.88, 1.14)
-  const idleSpeed = baseSpeed * randomRange(rand, 0.92, 1.08)
-  const actionSpeed = baseSpeed * randomRange(rand, 0.94, 1.1)
+  const baseSpeed = randomRange(rand, 0.9, 1.1)
 
   return {
     startOffset: randomRange(rand, 0, 1),
     speeds: {
-      idle: idleSpeed,
-      slow_cruise: idleSpeed,
-      idle_drift: idleSpeed * randomRange(rand, 0.82, 0.96),
-      burst: actionSpeed * randomRange(rand, 0.98, 1.08),
-      snap_left: actionSpeed * randomRange(rand, 0.96, 1.12),
-      snap_right: actionSpeed * randomRange(rand, 0.96, 1.12),
-      bank_l: actionSpeed * randomRange(rand, 0.96, 1.06),
-      bank_r: actionSpeed * randomRange(rand, 0.96, 1.06),
+      idle: baseSpeed,
+      slow_cruise: baseSpeed,
+      idle_drift: baseSpeed,
+      burst: baseSpeed,
+      snap_left: baseSpeed,
+      snap_right: baseSpeed,
+      bank_l: baseSpeed,
+      bank_r: baseSpeed,
       default: baseSpeed,
     },
   }
@@ -1794,12 +1826,27 @@ function modelFadeDuration(model, fallback = 0.18) {
   return model?.animationFadeDuration ?? fallback
 }
 
-function modelAnimationSpeed(animationVariation, animation, resolvedAnimation) {
+function modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation) {
+  const modelTimeScale = Number.isFinite(model?.animationTimeScale) ? model.animationTimeScale : 1
   const speed = animationVariation?.speeds?.[resolvedAnimation]
     ?? animationVariation?.speeds?.[animation]
     ?? animationVariation?.speeds?.default
     ?? 1
-  return speed * GLOBAL_ANIMATION_TIME_SCALE
+  return speed * modelTimeScale * GLOBAL_ANIMATION_TIME_SCALE
+}
+
+function modelActionAnimationDuration(model, animation, fallback) {
+  const resolvedAnimation = resolveModelAnimation(model, animation)
+  const duration = model?.actionAnimationDurations?.[resolvedAnimation]
+    ?? model?.actionAnimationDurations?.[animation]
+  return Number.isFinite(duration) && duration > 0 ? duration : fallback
+}
+
+function modelActionMovementDelay(model, animation, fallback = 0) {
+  const resolvedAnimation = resolveModelAnimation(model, animation)
+  const delay = model?.actionMovementDelayOverrides?.[resolvedAnimation]
+    ?? model?.actionMovementDelayOverrides?.[animation]
+  return Number.isFinite(delay) && delay >= 0 ? delay : fallback
 }
 
 function configureModelAction(action, model, animation, resolvedAnimation, speed, offset) {
@@ -1824,7 +1871,7 @@ function playModelAction(actions, activeActionRef, model, animation, animationVa
   const nextAction = actions[resolvedAnimation] ?? actions[animation] ?? actions.idle ?? Object.values(actions)[0]
   if (!nextAction || activeActionRef.current === nextAction) return
 
-  const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
+  const speed = modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation)
   const offset = animationVariation?.startOffset ?? 0
 
   nextAction.reset()
@@ -1877,7 +1924,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
       else action.stop()
     })
 
-    const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation) * MOLA_SUN_BASK_ANIMATION_SPEED_SCALE
+    const speed = modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation) * MOLA_SUN_BASK_ANIMATION_SPEED_SCALE
     sunBaskAction.reset()
     sunBaskAction.setEffectiveWeight(1)
     configureModelAction(sunBaskAction, model, animation, resolvedAnimation, speed, 0)
@@ -1900,7 +1947,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   const sunBaskExitFadeDuration = modelFadeDuration(model, MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION)
 
   if (baseAction && !baseAction.isRunning()) {
-    const speed = modelAnimationSpeed(animationVariation, baseAnimation, baseAnimation)
+    const speed = modelAnimationSpeed(model, animationVariation, baseAnimation, baseAnimation)
     baseAction.reset()
     baseAction.setEffectiveWeight(model.layeredBaseWeight ?? 1)
     configureModelAction(baseAction, model, baseAnimation, baseAnimation, speed, offset)
@@ -1917,7 +1964,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   const nextAction = actions[resolvedAnimation] ?? actions[animation]
   if (!nextAction || activeActionRef.current === nextAction) return
 
-  const speed = modelAnimationSpeed(animationVariation, animation, resolvedAnimation)
+  const speed = modelAnimationSpeed(model, animationVariation, animation, resolvedAnimation)
   nextAction.reset()
   nextAction.setEffectiveWeight(model.layeredOverlayWeight ?? 1)
   configureModelAction(nextAction, model, animation, resolvedAnimation, speed, offset)
@@ -1983,7 +2030,9 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         1,
         10,
       )
-      activeAction.setEffectiveTimeScale(baseTimeScale * (animationSpeedScaleRef?.current ?? 1) * simulationSpeed)
+      const runtimeAnimationScale = model?.lockAnimationPlayback ? 1 : (animationSpeedScaleRef?.current ?? 1)
+      const debugAnimationScale = model?.lockAnimationPlayback ? 1 : simulationSpeed
+      activeAction.setEffectiveTimeScale(baseTimeScale * runtimeAnimationScale * debugAnimationScale)
     }
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms
@@ -2078,6 +2127,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
   const velocity = useRef(0)
+  const actionSpeedStartAt = useRef(0)
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
   const nextBurstAt = useRef(0)
@@ -2273,7 +2323,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     )
     const driftMove = resolveMoveAnimation(model, 'drift')
     const hasDriftMove = Boolean(model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'))
-    const isActionMoveActive = now < actionSpeedUntil.current
+    const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
     const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current
     const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
     const velocityResponse = isActionMoveActive ? 8 : (isDrifting ? 1.2 : 2.4)
@@ -2554,7 +2604,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       } else {
         if (agentHasTarget.current) {
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-          rotateDirectionToward(tangent, agentMoveDirection, SOLO_AGENT_STEERING_MAX_TURN_RATE * delta)
+          rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
         }
 
         desiredDirection.current.copy(tangent)
@@ -2614,14 +2664,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             }
           } else {
             agentRuntimeClamp.copy(fish.position)
-            if (isMolaCreature(creature)) {
-              // Keep visible-edge/front Mola recovery at the expanded runtime envelope edge.
-              // Snapping all the way back to swim bounds is what made bottom-right +Z/X
-              // exits read as a teleport + spin near the camera.
-              clampToSoloAgentRuntimeEnvelope(agentRuntimeClamp, bounds, bodyLength, creature)
-            } else {
-              clampToSwimBounds(agentRuntimeClamp, bounds)
-            }
+            // Keep solo-agent recovery at the expanded runtime envelope edge. Snapping
+            // non-Mola agents all the way back to swim bounds made fast Mahi-mahi
+            // read as repeated teleports near the tank edges.
+            clampToSoloAgentRuntimeEnvelope(agentRuntimeClamp, bounds, bodyLength, creature)
             agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
             if (!isMolaCreature(creature) && agentMoveDirection.lengthSq() > 0.0001) {
               desiredDirection.current.copy(agentMoveDirection.normalize())
@@ -3046,42 +3092,66 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
 
     if (model) {
-      const animationForward = isSoloAgent && agentPath.current && agentPathTangent.lengthSq() > 0
-        ? agentPathTangent
-        : pitchedForward
+      const animationForward = pitchedForward
       let turn = 0
       if (previousTangent.current.lengthSq() > 0) {
         turn = previousTangent.current.z * animationForward.x - previousTangent.current.x * animationForward.z
       }
       if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
+        let triggeredAction = false
         if (turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
-          playAnimation(resolveMoveAnimation(model, 'turnLeft'))
+          const turnAnimation = resolveMoveAnimation(model, 'turnLeft')
+          const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
+          playAnimation(turnAnimation)
           playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
+          actionSpeedStartAt.current = now
           actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
-          animationHoldUntil.current = now + turnDuration
-          animationCooldown.current = now + Math.max(0.7, turnDuration * 0.72)
+          animationHoldUntil.current = now + turnAnimationDuration
+          animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
+          triggeredAction = true
         } else if (turn < -motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
-          playAnimation(resolveMoveAnimation(model, 'turnRight'))
+          const turnAnimation = resolveMoveAnimation(model, 'turnRight')
+          const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
+          playAnimation(turnAnimation)
           playSwimSfx('turn', THREE.MathUtils.clamp(Math.abs(turn) * 34, 0.34, 0.88), now)
+          actionSpeedStartAt.current = now
           actionSpeedUntil.current = now + turnDuration
           actionSpeedTarget.current = motion.snapSpeed
-          animationHoldUntil.current = now + turnDuration
-          animationCooldown.current = now + Math.max(0.7, turnDuration * 0.72)
+          animationHoldUntil.current = now + turnAnimationDuration
+          animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
+          triggeredAction = true
         } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
           const burstDuration = motion.burstActionDuration
-          playAnimation(resolveMoveAnimation(model, 'burst'))
+          const burstAnimation = resolveMoveAnimation(model, 'burst')
+          const burstAnimationDuration = modelActionAnimationDuration(model, burstAnimation, burstDuration)
+          const burstMovementDelay = modelActionMovementDelay(model, burstAnimation)
+          playAnimation(burstAnimation)
           playSwimSfx('burst', THREE.MathUtils.clamp(motion.burstSpeed / Math.max(0.001, motion.idleSpeed) * 0.18, 0.42, 1), now)
-          actionSpeedUntil.current = now + burstDuration
+          actionSpeedStartAt.current = now + burstMovementDelay
+          actionSpeedUntil.current = actionSpeedStartAt.current + burstDuration
           actionSpeedTarget.current = motion.burstSpeed
-          animationHoldUntil.current = now + burstDuration
-          animationCooldown.current = now + Math.max(1.0, burstDuration * 0.65)
+          animationHoldUntil.current = now + burstAnimationDuration
+          animationCooldown.current = now + Math.max(1.0, burstAnimationDuration * 0.65)
           nextBurstAt.current = now + motion.burstInterval
           driftUntil.current = 0
+          triggeredAction = true
+        }
+
+        if (!triggeredAction) {
+          if (hasDriftMove) {
+            if (now >= nextDriftAt.current) {
+              driftUntil.current = now + motion.driftDuration
+              nextDriftAt.current = driftUntil.current + motion.driftInterval
+            }
+            playAnimation(now < driftUntil.current ? driftMove : resolveMoveAnimation(model, 'cruise'))
+          } else {
+            playAnimation(resolveMoveAnimation(model, 'cruise'))
+          }
         }
       } else if (now > animationHoldUntil.current) {
         if (hasDriftMove) {

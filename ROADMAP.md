@@ -81,6 +81,20 @@ Reference:
 - `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it remains visible behind the hero.
 - `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
 - `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
+- `v0.8.12-dev_1` reopens the Mahi-mahi branch after the accidental merge: keeps Mahi-mahi hidden from Atlas, removes adult Mahi-mahi from schooling behavior, and moves it onto the faster solo-agent movement path for solo/pair adult travel.
+- `v0.8.12-dev_2` unhides Mahi-mahi in The Atlas for species-page review.
+- `v0.8.12-dev_3` fixes Mahi-mahi solo-agent drift/glitchiness by aligning turn/burst triggers to the current visible forward vector and increasing only Mahi-mahi's solo steering rate so turns read as forward swimming.
+- `v0.8.12-dev_4` fixes Mahi-mahi blitzing up/down across the screen by constraining solo-agent vertical target changes and reducing the Mahi-mahi speed envelope.
+- `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: edge recovery no longer snaps all the way back to inner swim bounds, live course corrections keep the continuous swim loop rather than forcing snap-left/right clips, and burst movement duration now stays inside the authored burst clip.
+- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail.
+- `v0.8.12-dev_7` locks Mahi-mahi GLB animation clips to authored 1× speed, restores snap-left/right turn clips with shorter blending, and tightens/slows solo U-turns so turn motion reads forward instead of backward drift.
+- `v0.8.12-dev_8` switches Mahi-mahi to shared pair-group movement capped at two fish per group, reusing the sardine-style pathing blueprint while keeping adult social copy as solo/pairs. Mahi clips stay in-place: idle default, burst/turn animations as accents, movement translation handled by simulation. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
+- `v0.8.12-dev_9` keeps Mahi-mahi authored snap-left/right clips at 1× and lets them play for their full GLB duration after a turn trigger; movement still uses the short turn impulse, so the fish does not get five seconds of forced translation.
+- `v0.8.12-dev_10` applies Jeremy's global animation-speed rule: base GLB playback is 1×, each individual varies only from 0.9× to 1.1× regardless of species, and sardinella action holds are long enough for burst/snap clips to finish before returning to idle.
+- `v0.8.12-dev_11` fixes Mahi-mahi/schooling authored action recovery: one-shot snap/burst clips now hand back to the cruise/drift loop after their hold when no new snap or burst is triggered.
+- `v0.8.12-dev_12` delays only the Mahi-mahi burst movement impulse by 0.45s so it lands with the authored burst body action, while the GLB burst clip plays through at 1×.
+- `v0.8.12-dev_13` makes the authored-action movement delay an explicit model override with a 0s default, and raises Mahi-mahi's burst movement delay override to 0.8s after Jeremy's review.
+- Jeremy approved `v0.8.12-dev_13` for clean `v0.8.12` promotion.
 - Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 
@@ -92,6 +106,19 @@ Subtasks:
 - [x] Retune turn trigger/action timing so authored turn clips fire visibly in the looser-school build.
 - [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
 - [x] Stage Atlas schooling groups without synchronized/flock-stiff animation, and apply latest approved diver silhouette positions.
+- [x] Add Jeremy's supplied Mahi-mahi Atlas thumbnail image.
+- [x] Reopen Mahi-mahi adult behavior after accidental merge; move adult Mahi-mahi off schooling and onto a faster solo-agent path for solo/pair travel.
+- [x] Fix Mahi-mahi solo-agent drift/glitchy turn triggers so turns use live forward motion instead of stale debug path tangents.
+- [x] Fix Mahi-mahi full-screen up/down dashes by limiting vertical target deltas and calming the speed profile.
+- [x] Fix follow-up Mahi-mahi teleport/backward/frozen-animation glitches by removing inner-bound recovery snaps, keeping live turns on the continuous swim loop, and shortening burst movement to match the authored clip.
+- [x] Restore Mahi-mahi authored snap-left/right visibility, play GLB animations at 1×, and tighten solo U-turn motion.
+- [x] Replace solo-agent Mahi-mahi with capped pair-group movement: shared pathing in groups of two, idle as default clip, burst/turn clips as in-place accents with simulation-driven translation.
+- [x] Fix Mahi-mahi snap-left/right interruption by decoupling the short movement impulse from the full authored turn-clip playback duration.
+- [x] Set global fish GLB playback to 1× with only 0.9×–1.1× per-individual variation, and extend spotted sardinella action holds so burst/snap clips are not cut off.
+- [x] Fix one-shot authored actions freezing on their final frame by returning to cruise/drift after the action hold when no new snap/burst fires.
+- [x] Align Mahi-mahi burst movement with the authored burst clip by delaying the speed impulse until the body action begins.
+- [x] Make authored action movement delay an explicit model override and tune Mahi-mahi burst delay to 0.8s after review.
+- [x] Review whether the pair-group Mahi-mahi movement now reads natural enough in tank view, or needs looser spacing/speed tweaks.
 - [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
 ### Feature backlog

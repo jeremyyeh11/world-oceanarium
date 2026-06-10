@@ -10,6 +10,27 @@ Versioning convention notes:
 
 
 
+## v0.8.12 — Mahi-mahi adult movement review
+
+Status: accepted and promoted as clean `v0.8.12` from `v0.8.12-dev_13` after Jeremy approval.
+
+### Creature behavior
+
+- `v0.8.12-dev_1` removes adult Mahi-mahi from the schooling system and routes it through the solo-agent movement path used by Giant Sunfish, tuned much faster for confident adult pelagic passes. Atlas/social copy now frames adults as solo/pair travelers while noting juvenile schooling.
+- `v0.8.12-dev_2` adds Mahi-mahi back into The Atlas for review now that Jeremy wants the species visible there again.
+- `v0.8.12-dev_3` fixes glitchy Mahi-mahi turning by driving authored turn/burst triggers from the live visual forward vector instead of the stale debug-path end tangent, and gives Mahi-mahi a faster solo steering turn rate so it swims into turns instead of broad drifting.
+- `v0.8.12-dev_4` fixes the Mahi-mahi screen-blitzing regression: solo-agent targets now limit vertical jumps from the current position, and Mahi-mahi cruise/snap/burst speeds are reduced to read as forward pelagic passes instead of full-screen up/down dashes.
+- `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: runtime recovery now clamps to the expanded solo envelope instead of snapping back to inner swim bounds, Mahi-mahi live turns stay on the continuous swim loop instead of snap-left/right clips, and burst movement no longer outlasts the authored burst animation.
+- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail, normalized to the existing 502×502 Atlas thumbnail convention.
+- `v0.8.12-dev_7` retunes Mahi-mahi authored animation playback: GLB clips now play at 1× without global/random/velocity time scaling, snap-left/right turn clips are restored with a shorter blend, and solo U-turns slow down while steering faster so the fish turns through the arc instead of sliding backward.
+- `v0.8.12-dev_8` moves Mahi-mahi off the failed solo-agent path and onto the proven shared group movement, capped at two fish per pair. The GLB clips remain in-place: idle is the default loop, burst/turn clips are accents with separate forward translation, and normal banking stays on idle. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
+- `v0.8.12-dev_9` fixes Mahi-mahi snap-turn playback without retiming the authored GLB clips: turn movement still uses the short simulation impulse, but `snap_left` / `snap_right` now stay selected for their full authored 5.0417s duration instead of being interrupted after the 1.05s movement impulse.
+- `v0.8.12-dev_10` sets global fish GLB playback back to 1× and clamps per-individual animation speed variation to 0.9×–1.1× across species. Spotted sardinella burst/snap animation holds now cover the full clip at the slowest allowed individual speed, so authored clips are not cut off while movement impulses remain short.
+- `v0.8.12-dev_11` fixes one-shot authored clips freezing on their final frame: after a snap/burst hold expires, fish now return to their cruise/drift loop when no new action is triggered, instead of staying stuck if the trigger window is open but idle conditions are calm.
+- `v0.8.12-dev_12` aligns Mahi-mahi burst movement to the authored burst clip: the clip starts first, the forward speed impulse waits 0.45s for the visible body action, and the burst clip is held for its full authored duration instead of being cut at the movement impulse.
+- `v0.8.12-dev_13` makes authored action movement timing a named model override with a default of 0s, and increases the Mahi-mahi burst movement delay override to 0.8s so the speed impulse lands later in the authored burst action.
+- Clean `v0.8.12` ships the accepted Mahi-mahi adult behavior: loose pair-group movement, authored 1× GLB playback with 0.9×–1.1× individual variation, full-duration snap/burst clip holds, explicit burst movement delay override, and Atlas visibility restored for the species page.
+
 ## v0.8.11 — Atlas release gating hotfix
 
 Status: hotfix on `main` after `v0.8.10`.

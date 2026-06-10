@@ -93,6 +93,7 @@ Reference:
 - `v0.8.12-dev_10` applies Jeremy's global animation-speed rule: base GLB playback is 1×, each individual varies only from 0.9× to 1.1× regardless of species, and sardinella action holds are long enough for burst/snap clips to finish before returning to idle.
 - `v0.8.12-dev_11` fixes Mahi-mahi/schooling authored action recovery: one-shot snap/burst clips now hand back to the cruise/drift loop after their hold when no new snap or burst is triggered.
 - `v0.8.12-dev_12` delays only the Mahi-mahi burst movement impulse by 0.45s so it lands with the authored burst body action, while the GLB burst clip plays through at 1×.
+- `v0.8.12-dev_13` makes the authored-action movement delay an explicit model override with a 0s default, and raises Mahi-mahi's burst movement delay override to 0.8s after Jeremy's review.
 - Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
 - Jeremy requested this as the next species sequence item after creature moments.
 
@@ -115,6 +116,7 @@ Subtasks:
 - [x] Set global fish GLB playback to 1× with only 0.9×–1.1× per-individual variation, and extend spotted sardinella action holds so burst/snap clips are not cut off.
 - [x] Fix one-shot authored actions freezing on their final frame by returning to cruise/drift after the action hold when no new snap/burst fires.
 - [x] Align Mahi-mahi burst movement with the authored burst clip by delaying the speed impulse until the body action begins.
+- [x] Make authored action movement delay an explicit model override and tune Mahi-mahi burst delay to 0.8s after review.
 - [ ] Review whether the pair-group Mahi-mahi movement now reads natural enough in tank view, or needs looser spacing/speed tweaks.
 - [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 

@@ -239,8 +239,8 @@ export const SPECIES = [
         snap_left: 5.61,
         snap_right: 5.61,
       },
-      actionMovementDelays: {
-        burst: 0.45,
+      actionMovementDelayOverrides: {
+        burst: 0.8,
       },
       loopAnimations: ['idle'],
       debugForwardOrigin: 'head',

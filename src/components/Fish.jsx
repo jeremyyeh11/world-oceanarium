@@ -1844,9 +1844,9 @@ function modelActionAnimationDuration(model, animation, fallback) {
 
 function modelActionMovementDelay(model, animation, fallback = 0) {
   const resolvedAnimation = resolveModelAnimation(model, animation)
-  const delay = model?.actionMovementDelays?.[resolvedAnimation]
-    ?? model?.actionMovementDelays?.[animation]
-  return Number.isFinite(delay) && delay > 0 ? delay : fallback
+  const delay = model?.actionMovementDelayOverrides?.[resolvedAnimation]
+    ?? model?.actionMovementDelayOverrides?.[animation]
+  return Number.isFinite(delay) && delay >= 0 ? delay : fallback
 }
 
 function configureModelAction(action, model, animation, resolvedAnimation, speed, offset) {

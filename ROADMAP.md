@@ -65,7 +65,7 @@ Subtasks:
 
 ### Hotfix: mobile empty tank on clean deployment
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy reported clean `v0.8.12` mobile showed UI/water/version but no visible fish on the Vercel deployment URL.
@@ -77,6 +77,7 @@ Subtasks:
 - [x] Verify production creature data contains 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus`.
 - [x] Ship `v0.8.13-dev_1` fallback for missing-env deployments only, with bundled release creature rows matching production counts.
 - [x] Mobile-smoke the missing-env path and the real-data path.
+- [x] Jeremy approved `v0.8.13-dev_1` for clean `v0.8.13` promotion.
 
 ### Active feature bucket
 

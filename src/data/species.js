@@ -364,70 +364,29 @@ export const SPECIES = [
 ]
 
 export const CREATURES = [
-  {
-    id: 1,
+  ...Array.from({ length: 88 }, (_, index) => ({
+    id: index + 1,
     species: 'amblygaster-sirm',
     biome: 'ocean',
     depthZone: 'epipelagic',
-    bornAt: '2026-05-13T00:00:00Z',
+    bornAt: index === 0 ? '2026-05-13T00:00:00Z' : '2026-05-17T00:00:00Z',
     alive: true,
-  },
+  })),
   {
-    id: 2,
-    species: 'amblygaster-sirm',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    bornAt: '2026-05-17T00:00:00Z',
-    alive: true,
-  },
-  {
-    id: 3,
-    species: 'amblygaster-sirm',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    bornAt: '2026-05-17T00:00:00Z',
-    alive: true,
-  },
-  {
-    id: 4,
-    species: 'amblygaster-sirm',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    bornAt: '2026-05-17T00:00:00Z',
-    alive: true,
-  },
-  {
-    id: 5,
-    species: 'amblygaster-sirm',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    bornAt: '2026-05-17T00:00:00Z',
-    alive: true,
-  },
-  {
-    id: 6,
-    species: 'amblygaster-sirm',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    bornAt: '2026-05-17T00:00:00Z',
-    alive: true,
-  },
-  {
-    id: 7,
+    id: 89,
     species: 'mola-alexandrini',
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-05-26T00:00:00Z',
     alive: true,
   },
-  ...[0.398, 0.434, 0.470, 0.506, 0.542, 0.578, 0.614, 0.488, 0.524, 0.560].map((size, index) => ({
-    id: 8 + index,
+  ...[0.338, 0.398, 0.44, 0.476].map((size, index) => ({
+    id: 90 + index,
     species: 'coryphaena-hippurus',
     biome: 'ocean',
     depthZone: 'epipelagic',
-    bornAt: '2026-06-08T00:00:00Z',
+    bornAt: `2026-06-08T07:1${index}:00Z`,
     alive: true,
     size,
   }))
 ]
-

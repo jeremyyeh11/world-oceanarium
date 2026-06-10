@@ -10,9 +10,9 @@ Versioning convention notes:
 
 
 
-## v0.8.12-dev — Mahi-mahi adult movement review
+## v0.8.12 — Mahi-mahi adult movement review
 
-Status: active dev branch `feat/mahi-mahi-v2`; Mahi-mahi remains hidden from The Atlas until explicitly released.
+Status: accepted and promoted as clean `v0.8.12` from `v0.8.12-dev_13` after Jeremy approval.
 
 ### Creature behavior
 
@@ -29,6 +29,7 @@ Status: active dev branch `feat/mahi-mahi-v2`; Mahi-mahi remains hidden from The
 - `v0.8.12-dev_11` fixes one-shot authored clips freezing on their final frame: after a snap/burst hold expires, fish now return to their cruise/drift loop when no new action is triggered, instead of staying stuck if the trigger window is open but idle conditions are calm.
 - `v0.8.12-dev_12` aligns Mahi-mahi burst movement to the authored burst clip: the clip starts first, the forward speed impulse waits 0.45s for the visible body action, and the burst clip is held for its full authored duration instead of being cut at the movement impulse.
 - `v0.8.12-dev_13` makes authored action movement timing a named model override with a default of 0s, and increases the Mahi-mahi burst movement delay override to 0.8s so the speed impulse lands later in the authored burst action.
+- Clean `v0.8.12` ships the accepted Mahi-mahi adult behavior: loose pair-group movement, authored 1× GLB playback with 0.9×–1.1× individual variation, full-duration snap/burst clip holds, explicit burst movement delay override, and Atlas visibility restored for the species page.
 
 ## v0.8.11 — Atlas release gating hotfix
 

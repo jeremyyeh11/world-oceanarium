@@ -246,8 +246,8 @@ export const SPECIES = [
       curveDeform: {
         bones: ['spine.001', 'spine.002', 'spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
-        strength: 0,
-        maxAngleDegrees: 13,
+        strength: 0.82,
+        maxAngleDegrees: 9,
         response: 6.8,
         tailBias: 1.12,
         burstBoost: 0.72,

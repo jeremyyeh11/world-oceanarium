@@ -2042,6 +2042,29 @@ function curveDeformMaxAngle(config) {
   return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(degrees, 0, 24))
 }
 
+function ensureCurveDeformState(state, count) {
+  for (let index = state.previousAdditives.length; index < count; index += 1) {
+    state.previousAdditives.push(new THREE.Quaternion())
+    state.postAdditiveQuaternions.push(new THREE.Quaternion())
+    state.hasPreviousAdditive.push(false)
+  }
+  state.previousAdditives.length = count
+  state.postAdditiveQuaternions.length = count
+  state.hasPreviousAdditive.length = count
+}
+
+function removePreviousCurveDeformAdditive(bone, state, index, scratchQuat) {
+  if (!state.hasPreviousAdditive[index]) return
+  const postAdditive = state.postAdditiveQuaternions[index]
+  if (bone.quaternion.angleTo(postAdditive) > 0.0001) {
+    state.hasPreviousAdditive[index] = false
+    return
+  }
+  scratchQuat.copy(state.previousAdditives[index]).invert()
+  bone.quaternion.multiply(scratchQuat)
+  state.hasPreviousAdditive[index] = false
+}
+
 function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
@@ -2052,6 +2075,12 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   const materialsRef = useRef([])
   const curveDeformTurnRef = useRef(0)
   const curveDeformQuatRef = useRef(new THREE.Quaternion())
+  const curveDeformScratchQuatRef = useRef(new THREE.Quaternion())
+  const curveDeformStateRef = useRef({
+    previousAdditives: [],
+    postAdditiveQuaternions: [],
+    hasPreviousAdditive: [],
+  })
 
   useEffect(() => {
     materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
@@ -2073,6 +2102,9 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
     }
     const curveConfig = model?.curveDeform
     if (curveConfig && curveDeformBones.length > 0) {
+      const curveState = curveDeformStateRef.current
+      ensureCurveDeformState(curveState, curveDeformBones.length)
+      const scratchQuat = curveDeformScratchQuatRef.current
       const input = curveDeformInputRef?.current ?? {}
       const strength = Number.isFinite(curveConfig.strength) ? curveConfig.strength : 0
       const maxAngle = curveDeformMaxAngle(curveConfig)
@@ -2095,11 +2127,15 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const phase = elapsed * 1.35 + (input.phase ?? 0)
       const bendAxis = curveDeformAxis(curveConfig)
       curveDeformBones.forEach((bone, index) => {
+        removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
         const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
         const tailWeight = Math.pow(ratio, tailBias)
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
         curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough)
         bone.quaternion.multiply(curveDeformQuatRef.current)
+        curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
+        curveState.postAdditiveQuaternions[index].copy(bone.quaternion)
+        curveState.hasPreviousAdditive[index] = true
       })
     }
     materialsRef.current.forEach(material => {

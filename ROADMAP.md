@@ -69,10 +69,11 @@ Status: `Current in development`
 
 Reference:
 - Jeremy rejected speed-only Mahi-mahi movement tuning and asked whether a general curve deformation can ride on top of the authored animation while the fish follows the spline.
-- Implementation target: `v0.8.15-dev_4` review build.
+- Implementation target: `v0.8.15-dev_6` repaired deformation review build.
 - Jeremy reviewed `v0.8.15-dev_2` and said deformation was not enough; `v0.8.15-dev_3` raises the visible bend while keeping the same additive-after-mixer architecture.
 - Jeremy screenshot review of `v0.8.15-dev_3` showed fish still flat in turns. Cause: GLB runtime bone names are `spine001`–`spine007` and the bend axis should be local `z`, so previous deformation was either not finding bones or twisting instead of side-bending.
-- Jeremy review of `v0.8.15-dev_4` showed catastrophic pretzel deformation; emergency rollback is `v0.8.15-dev_5` with curve deformation disabled until additive posing is non-accumulating and safely previewed.
+- Jeremy review of `v0.8.15-dev_4` showed catastrophic pretzel deformation; emergency rollback was `v0.8.15-dev_5` with curve deformation disabled until additive posing was non-accumulating and safely previewed.
+- Jeremy rejected leaving deformation disabled; `v0.8.15-dev_6` restores visible deformation with previous-additive removal and safer visible strength.
 
 Subtasks:
 - [x] Keep authored GLB animation playback first and additive deformation after mixer update.
@@ -82,6 +83,7 @@ Subtasks:
 - [x] Increase deformation and browser-smoke `v0.8.15-dev_3`.
 - [x] Fix bone-name matching / bend axis and browser-smoke `v0.8.15-dev_4`.
 - [x] Emergency-disable curve deformation in `v0.8.15-dev_5` after `dev_4` deformation failure.
+- [x] Restore non-accumulating deformation and browser-smoke `v0.8.15-dev_6`.
 
 Review gates:
 - Mahi-mahi no longer reads as a rigid root rotating through curves.

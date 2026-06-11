@@ -19,6 +19,7 @@ Status: in development as `v0.8.15-dev_2` after the rejected speed-only `v0.8.15
 - `v0.8.15-dev_3` increases the visible deformation after Jeremy review: stronger turn-pressure input, a higher safe max bend, faster response, more body-wide/tail follow-through, and stronger burst/speed boost while still preserving accepted translation speeds and authored 1× clips.
 - `v0.8.15-dev_4` fixes the actual visibility bug: the GLB loader resolves Mahi spine bone names as `spine001`–`spine007`, so the dotted config names were not matching; it now normalizes bone names and bends on the rig's local `z` axis instead of twisting around the forward axis.
 - `v0.8.15-dev_5` emergency-disables Mahi curve deformation (`strength: 0`) after review caught catastrophic accumulated spine bending in `dev_4`; keep the accepted authored animation / movement baseline safe while the additive deformation path is reworked.
+- `v0.8.15-dev_6` restores visible Mahi curve deformation with a non-accumulating additive pass: each frame removes the previous additive only when it is still present, then applies a fresh local-`z` side-bend to the resolved spine chain. Strength is re-enabled at a safer visible range (`0.82`, max `9°`).
 
 ## v0.8.14 — Follow-camera retargeting
 

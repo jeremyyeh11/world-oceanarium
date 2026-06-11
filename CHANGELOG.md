@@ -9,13 +9,14 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
-## v0.8.14 — Follow-camera retargeting review
+## v0.8.14 — Follow-camera retargeting
 
-Status: in development as `v0.8.14-dev_1`.
+Status: accepted and promoted as clean `v0.8.14` from `v0.8.14-dev_1` after Jeremy approval.
 
 ### Camera / controls
 
 - `v0.8.14-dev_1` fixes follow-camera retargeting: tapping another fish while already following now switches directly to that fish instead of first exiting follow mode. Follow orbit still captures the pointer after drag movement crosses the orbit threshold, so orbit-release over another fish remains protected from accidental retargeting.
+- Clean `v0.8.14` ships the accepted follow-camera retargeting fix.
 
 
 ## v0.8.13 — Mobile release fallback hotfix

@@ -65,23 +65,25 @@ Subtasks:
 
 ### Hotfix: follow camera retargeting
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy reported that follow cam cannot jump to another fish while already following; a tap exits follow cam before the new fish can be selected.
 - Root cause: follow-mode pointerdown captured the pointer immediately for possible orbit drag, so direct fish taps in follow mode could be retargeted to the stage and interpreted as a follow-mode exit.
+- Jeremy approved `v0.8.14-dev_1` for clean `v0.8.14` promotion.
 
 Subtasks:
 - [x] Move pointer capture from follow-mode pointerdown to the moment an orbit drag is actually confirmed.
 - [x] Keep empty-water tap exiting follow mode.
 - [x] Keep orbit-drag release suppression so releasing over another fish does not accidentally retarget.
 - [x] Build and browser-smoke `v0.8.14-dev_1`.
+- [x] Promote clean `v0.8.14` after approval.
 
 Review gates:
-- While following fish A, direct tap fish B switches follow target to B without an intermediate exit.
-- While following fish A, drag-orbit then release over fish B keeps following fish A.
-- Empty-water tap still exits follow mode.
-- `npm run build` passes and local browser smoke shows `v0.8.14-dev_1`.
+- [x] While following fish A, direct tap fish B switches follow target to B without an intermediate exit.
+- [x] While following fish A, drag-orbit then release over fish B keeps following fish A.
+- [x] Empty-water tap still exits follow mode.
+- [x] `npm run build` passes and local browser smoke shows clean `v0.8.14`.
 
 ### Hotfix: mobile empty tank on clean deployment
 

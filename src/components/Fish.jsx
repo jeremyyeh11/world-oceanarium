@@ -258,6 +258,7 @@ const agentRecoveryEnd = new THREE.Vector3()
 const agentDestinationDirection = new THREE.Vector3()
 const agentBoundaryNormal = new THREE.Vector3()
 const agentBoundaryPlaneTangent = new THREE.Vector3()
+const curveDeformYawAxis = new THREE.Vector3(0, 1, 0)
 const agentBoundaryInward = new THREE.Vector3()
 const agentBoundaryGlideMid = new THREE.Vector3()
 const agentBoundaryGlideEnd = new THREE.Vector3()
@@ -2008,31 +2009,80 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
   )
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null }) {
+function collectCurveDeformBones(object, model) {
+  const names = model?.curveDeform?.bones
+  if (!Array.isArray(names) || names.length === 0) return []
+  const found = []
+  names.forEach(name => {
+    const bone = object.getObjectByName(name)
+    if (bone?.isBone) found.push(bone)
+  })
+  return found
+}
+
+function curveDeformMaxAngle(config) {
+  const degrees = Number.isFinite(config?.maxAngleDegrees) ? config.maxAngleDegrees : 0
+  return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(degrees, 0, 24))
+}
+
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
+  const curveDeformBones = useMemo(() => collectCurveDeformBones(object, model), [object, model])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
+  const curveDeformTurnRef = useRef(0)
+  const curveDeformQuatRef = useRef(new THREE.Quaternion())
 
   useEffect(() => {
     materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
   }, [object, rim, lodDebugColor])
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, rawDelta) => {
     const elapsed = clock.getElapsedTime()
     const activeAction = activeActionRef.current
+    const simulationSpeed = THREE.MathUtils.clamp(
+      Number.isFinite(debugSimulationSpeed) ? debugSimulationSpeed : 1,
+      1,
+      10,
+    )
     if (activeAction) {
       const baseTimeScale = activeAction.userData?.baseTimeScale ?? 1
-      const simulationSpeed = THREE.MathUtils.clamp(
-        Number.isFinite(debugSimulationSpeed) ? debugSimulationSpeed : 1,
-        1,
-        10,
-      )
       const runtimeAnimationScale = model?.lockAnimationPlayback ? 1 : (animationSpeedScaleRef?.current ?? 1)
       const debugAnimationScale = model?.lockAnimationPlayback ? 1 : simulationSpeed
       activeAction.setEffectiveTimeScale(baseTimeScale * runtimeAnimationScale * debugAnimationScale)
+    }
+    const curveConfig = model?.curveDeform
+    if (curveConfig && curveDeformBones.length > 0) {
+      const input = curveDeformInputRef?.current ?? {}
+      const strength = Number.isFinite(curveConfig.strength) ? curveConfig.strength : 0
+      const maxAngle = curveDeformMaxAngle(curveConfig)
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 5
+      const targetTurn = THREE.MathUtils.clamp(input.turn ?? 0, -1, 1)
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        targetTurn,
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const burstBoost = 1 + (Number.isFinite(curveConfig.burstBoost) ? curveConfig.burstBoost : 0) * THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1)
+      const speedBoost = 1 + (Number.isFinite(curveConfig.speedBoost) ? curveConfig.speedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      const baseAngle = THREE.MathUtils.clamp(
+        curveDeformTurnRef.current * strength * burstBoost * speedBoost * maxAngle,
+        -maxAngle,
+        maxAngle,
+      )
+      const tailBias = Number.isFinite(curveConfig.tailBias) ? Math.max(0.1, curveConfig.tailBias) : 1
+      const phase = elapsed * 1.35 + (input.phase ?? 0)
+      curveDeformBones.forEach((bone, index) => {
+        const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
+        const tailWeight = Math.pow(ratio, tailBias)
+        const followThrough = Math.sin(phase - ratio * 1.15) * 0.16 * Math.abs(baseAngle)
+        curveDeformQuatRef.current.setFromAxisAngle(curveDeformYawAxis, baseAngle * tailWeight + followThrough)
+        bone.quaternion.multiply(curveDeformQuatRef.current)
+      })
     }
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms
@@ -2146,6 +2196,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, burst01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
@@ -2264,6 +2315,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     hasBaseLookQuaternion.current = false
     lookBehaviorKey.current = ''
     lookBehaviorTransitionStartedAt.current = -Infinity
+    curveDeformInputRef.current.phase = motion.bobPhase
   }, [motion])
 
   const playAnimation = (name) => {
@@ -3176,6 +3228,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         animationSpeedScaleRef.current = 1
       }
 
+      curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 7.5, -1, 1)
+      curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
+      curveDeformInputRef.current.burst01 = activeAnimation === resolveMoveAnimation(model, 'burst')
+        ? THREE.MathUtils.clamp((animationHoldUntil.current - now) / Math.max(0.001, modelActionAnimationDuration(model, activeAnimation, motion.burstActionDuration)), 0, 1)
+        : 0
+
       const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask'
       const bank = suppressProceduralBank ? 0 : THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
       bankQuaternion.setFromAxisAngle(pitchedForward, -bank)
@@ -3295,6 +3353,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               animation={animation}
               animationVariation={animationVariation}
               animationSpeedScaleRef={animationSpeedScaleRef}
+              curveDeformInputRef={curveDeformInputRef}
               debugSimulationSpeed={debugSimulationSpeed}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}

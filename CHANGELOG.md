@@ -9,6 +9,14 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.15 — Mahi-mahi curve deformation review
+
+Status: in development as `v0.8.15-dev_2` after the rejected speed-only `v0.8.15-dev_1` pass.
+
+### Creature behavior
+
+- `v0.8.15-dev_2` keeps accepted Mahi-mahi translation speeds and authored 1× GLB playback, then layers a controllable additive spine deformation after the animation mixer. The deformation reads path/spline turn pressure, distributes a subtle bend through `spine.001`–`spine.007`, adds a small tail-follow-through phase, and exposes model-level strength/response/max-angle/tail-bias/burst-boost tunables for review rollback or dialing.
+
 ## v0.8.14 — Follow-camera retargeting
 
 Status: accepted and promoted as clean `v0.8.14` from `v0.8.14-dev_1` after Jeremy approval.

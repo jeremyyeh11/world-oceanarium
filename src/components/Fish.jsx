@@ -258,7 +258,9 @@ const agentRecoveryEnd = new THREE.Vector3()
 const agentDestinationDirection = new THREE.Vector3()
 const agentBoundaryNormal = new THREE.Vector3()
 const agentBoundaryPlaneTangent = new THREE.Vector3()
-const curveDeformYawAxis = new THREE.Vector3(0, 1, 0)
+const curveDeformAxisX = new THREE.Vector3(1, 0, 0)
+const curveDeformAxisY = new THREE.Vector3(0, 1, 0)
+const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentBoundaryInward = new THREE.Vector3()
 const agentBoundaryGlideMid = new THREE.Vector3()
 const agentBoundaryGlideEnd = new THREE.Vector3()
@@ -2012,12 +2014,27 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
 function collectCurveDeformBones(object, model) {
   const names = model?.curveDeform?.bones
   if (!Array.isArray(names) || names.length === 0) return []
+  const objectsByNormalizedName = new Map()
+  object.traverse(child => {
+    if (!child?.name) return
+    objectsByNormalizedName.set(normalizeCurveDeformBoneName(child.name), child)
+  })
   const found = []
   names.forEach(name => {
-    const bone = object.getObjectByName(name)
+    const bone = object.getObjectByName(name) ?? objectsByNormalizedName.get(normalizeCurveDeformBoneName(name))
     if (bone?.isBone) found.push(bone)
   })
   return found
+}
+
+function normalizeCurveDeformBoneName(name) {
+  return String(name).toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+function curveDeformAxis(config) {
+  if (config?.axis === 'x') return curveDeformAxisX
+  if (config?.axis === 'y') return curveDeformAxisY
+  return curveDeformAxisZ
 }
 
 function curveDeformMaxAngle(config) {
@@ -2076,11 +2093,12 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       )
       const tailBias = Number.isFinite(curveConfig.tailBias) ? Math.max(0.1, curveConfig.tailBias) : 1
       const phase = elapsed * 1.35 + (input.phase ?? 0)
+      const bendAxis = curveDeformAxis(curveConfig)
       curveDeformBones.forEach((bone, index) => {
         const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
         const tailWeight = Math.pow(ratio, tailBias)
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
-        curveDeformQuatRef.current.setFromAxisAngle(curveDeformYawAxis, baseAngle * tailWeight + followThrough)
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough)
         bone.quaternion.multiply(curveDeformQuatRef.current)
       })
     }

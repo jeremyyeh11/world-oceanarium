@@ -245,6 +245,7 @@ export const SPECIES = [
       loopAnimations: ['idle'],
       curveDeform: {
         bones: ['spine.001', 'spine.002', 'spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
+        axis: 'z',
         strength: 1.25,
         maxAngleDegrees: 13,
         response: 6.8,

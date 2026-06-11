@@ -16,6 +16,7 @@ Status: in development as `v0.8.15-dev_2` after the rejected speed-only `v0.8.15
 ### Creature behavior
 
 - `v0.8.15-dev_2` keeps accepted Mahi-mahi translation speeds and authored 1× GLB playback, then layers a controllable additive spine deformation after the animation mixer. The deformation reads path/spline turn pressure, distributes a subtle bend through `spine.001`–`spine.007`, adds a small tail-follow-through phase, and exposes model-level strength/response/max-angle/tail-bias/burst-boost tunables for review rollback or dialing.
+- `v0.8.15-dev_3` increases the visible deformation after Jeremy review: stronger turn-pressure input, a higher safe max bend, faster response, more body-wide/tail follow-through, and stronger burst/speed boost while still preserving accepted translation speeds and authored 1× clips.
 
 ## v0.8.14 — Follow-camera retargeting
 

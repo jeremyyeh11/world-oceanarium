@@ -2079,7 +2079,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       curveDeformBones.forEach((bone, index) => {
         const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
         const tailWeight = Math.pow(ratio, tailBias)
-        const followThrough = Math.sin(phase - ratio * 1.15) * 0.16 * Math.abs(baseAngle)
+        const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
         curveDeformQuatRef.current.setFromAxisAngle(curveDeformYawAxis, baseAngle * tailWeight + followThrough)
         bone.quaternion.multiply(curveDeformQuatRef.current)
       })
@@ -3228,7 +3228,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         animationSpeedScaleRef.current = 1
       }
 
-      curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 7.5, -1, 1)
+      curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5, -1, 1)
       curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
       curveDeformInputRef.current.burst01 = activeAnimation === resolveMoveAnimation(model, 'burst')
         ? THREE.MathUtils.clamp((animationHoldUntil.current - now) / Math.max(0.001, modelActionAnimationDuration(model, activeAnimation, motion.burstActionDuration)), 0, 1)

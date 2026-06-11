@@ -69,13 +69,15 @@ Status: `Current in development`
 
 Reference:
 - Jeremy rejected speed-only Mahi-mahi movement tuning and asked whether a general curve deformation can ride on top of the authored animation while the fish follows the spline.
-- Implementation target: `v0.8.15-dev_2` review build.
+- Implementation target: `v0.8.15-dev_3` review build.
+- Jeremy reviewed `v0.8.15-dev_2` and said deformation was not enough; `v0.8.15-dev_3` raises the visible bend while keeping the same additive-after-mixer architecture.
 
 Subtasks:
 - [x] Keep authored GLB animation playback first and additive deformation after mixer update.
 - [x] Add model-level deformation tunables for strength, max angle, response, tail bias, burst boost, and speed boost.
 - [x] Drive Mahi-mahi spine deformation from live path/follow turn pressure without changing accepted movement speeds.
 - [x] Build and browser-smoke `v0.8.15-dev_2`.
+- [x] Increase deformation and browser-smoke `v0.8.15-dev_3`.
 
 Review gates:
 - Mahi-mahi no longer reads as a rigid root rotating through curves.

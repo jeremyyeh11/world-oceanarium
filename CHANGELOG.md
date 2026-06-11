@@ -9,15 +9,6 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
-## v0.8.15 — Mahi-mahi movement speed review
-
-Status: in development as `v0.8.15-dev_1` after Jeremy requested faster Mahi-mahi idle and stronger, longer burst movement.
-
-### Creature behavior
-
-- `v0.8.15-dev_1` increases `Coryphaena hippurus` idle travel and drift speed, raises burst translation speed, and lengthens the burst movement impulse so bursts carry slightly farther while still using the authored 1× GLB burst clip and existing loose-pair movement path.
-
-
 ## v0.8.14 — Follow-camera retargeting
 
 Status: accepted and promoted as clean `v0.8.14` from `v0.8.14-dev_1` after Jeremy approval.

@@ -63,25 +63,6 @@ Subtasks:
 
 ## Feature list
 
-### Mahi-mahi movement speed tuning
-
-Status: `Current in development`
-
-Reference:
-- Jeremy requested faster Mahi-mahi movement: stronger burst speed, bursts that travel slightly farther and last longer, and a slightly faster idle.
-- Review build: `v0.8.15-dev_1`.
-
-Subtasks:
-- [x] Increase `Coryphaena hippurus` idle travel speed and drift texture.
-- [x] Increase burst translation speed.
-- [x] Lengthen burst movement impulse so bursts carry farther without retiming the authored GLB clip.
-- [x] Build and browser-smoke `v0.8.15-dev_1`.
-
-Review gates:
-- Mahi-mahi still read as loose adult pairs, not a tight school.
-- Burst is more confident and travels a little farther, without full-screen blitzing or vertical elevator motion.
-- Idle/cruise has more life but stays calm enough for the tank.
-
 ### Hotfix: follow camera retargeting
 
 Status: `Archive candidate`

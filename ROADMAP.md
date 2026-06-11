@@ -63,120 +63,19 @@ Subtasks:
 
 ## Feature list
 
-### Hotfix: follow camera retargeting
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy reported that follow cam cannot jump to another fish while already following; a tap exits follow cam before the new fish can be selected.
-- Root cause: follow-mode pointerdown captured the pointer immediately for possible orbit drag, so direct fish taps in follow mode could be retargeted to the stage and interpreted as a follow-mode exit.
-- Jeremy approved `v0.8.14-dev_1` for clean `v0.8.14` promotion.
-
-Subtasks:
-- [x] Move pointer capture from follow-mode pointerdown to the moment an orbit drag is actually confirmed.
-- [x] Keep empty-water tap exiting follow mode.
-- [x] Keep orbit-drag release suppression so releasing over another fish does not accidentally retarget.
-- [x] Build and browser-smoke `v0.8.14-dev_1`.
-- [x] Promote clean `v0.8.14` after approval.
-
-Review gates:
-- [x] While following fish A, direct tap fish B switches follow target to B without an intermediate exit.
-- [x] While following fish A, drag-orbit then release over fish B keeps following fish A.
-- [x] Empty-water tap still exits follow mode.
-- [x] `npm run build` passes and local browser smoke shows clean `v0.8.14`.
-
-### Hotfix: mobile empty tank on clean deployment
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy reported clean `v0.8.12` mobile showed UI/water/version but no visible fish on the Vercel deployment URL.
-- Local reproduction with missing browser Supabase env vars showed `0/0` debug load and the same visually empty tank because clean builds did not use static fallback.
-- Local mobile smoke with real Supabase data showed fish visible, so the hotfix target is missing-env release fallback, not mobile camera framing.
-
-Subtasks:
-- [x] Reproduce the empty tank on clean `v0.8.12` with missing browser Supabase env vars.
-- [x] Verify production creature data contains 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus`.
-- [x] Ship `v0.8.13-dev_1` fallback for missing-env deployments only, with bundled release creature rows matching production counts.
-- [x] Mobile-smoke the missing-env path and the real-data path.
-- [x] Jeremy approved `v0.8.13-dev_1` for clean `v0.8.13` promotion.
-
-### Active feature bucket
-
-#### 1. Mahi mahi
-
-Status: `Archive candidate`
-
-Reference:
-- `v0.8.8-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.7`.
-- `v0.8.8-dev_2` shrinks tank-view Mahi-mahi and expands school spacing after Jeremy review: previous fish read too large and tight schooling risked spin-in-place behavior.
-- `v0.8.8-dev_3` makes the wired `snap_left` / `snap_right` turn clips visible again after Jeremy reported not seeing turning animations in `dev_2`.
-- `v0.8.8-dev_4` reduces the unnatural abruptness from `dev_3` by making snap turns rare/short accents with softer fades and smoother path variation.
-- `v0.8.8-dev_10` keeps the stacked Atlas species-group review moving: schooling Atlas groups now use per-fish phase/speed/burst offsets, with Jeremy's latest Mahi-mahi and Giant Sunfish diver silhouette placements.
-- `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes for Mahi-mahi and spotted sardinella.
-- `v0.8.8-dev_12` uppercases Atlas species-list common names for consistency with the right info panel.
-- `v0.8.8-dev_13` pushes the spotted sardinella upper-left companion deeper behind the diver silhouette after Jeremy's marked screenshot.
-- `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it remains visible behind the hero.
-- `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
-- `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
-- `v0.8.12-dev_1` reopens the Mahi-mahi branch after the accidental merge: keeps Mahi-mahi hidden from Atlas, removes adult Mahi-mahi from schooling behavior, and moves it onto the faster solo-agent movement path for solo/pair adult travel.
-- `v0.8.12-dev_2` unhides Mahi-mahi in The Atlas for species-page review.
-- `v0.8.12-dev_3` fixes Mahi-mahi solo-agent drift/glitchiness by aligning turn/burst triggers to the current visible forward vector and increasing only Mahi-mahi's solo steering rate so turns read as forward swimming.
-- `v0.8.12-dev_4` fixes Mahi-mahi blitzing up/down across the screen by constraining solo-agent vertical target changes and reducing the Mahi-mahi speed envelope.
-- `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: edge recovery no longer snaps all the way back to inner swim bounds, live course corrections keep the continuous swim loop rather than forcing snap-left/right clips, and burst movement duration now stays inside the authored burst clip.
-- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail.
-- `v0.8.12-dev_7` locks Mahi-mahi GLB animation clips to authored 1× speed, restores snap-left/right turn clips with shorter blending, and tightens/slows solo U-turns so turn motion reads forward instead of backward drift.
-- `v0.8.12-dev_8` switches Mahi-mahi to shared pair-group movement capped at two fish per group, reusing the sardine-style pathing blueprint while keeping adult social copy as solo/pairs. Mahi clips stay in-place: idle default, burst/turn animations as accents, movement translation handled by simulation. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
-- `v0.8.12-dev_9` keeps Mahi-mahi authored snap-left/right clips at 1× and lets them play for their full GLB duration after a turn trigger; movement still uses the short turn impulse, so the fish does not get five seconds of forced translation.
-- `v0.8.12-dev_10` applies Jeremy's global animation-speed rule: base GLB playback is 1×, each individual varies only from 0.9× to 1.1× regardless of species, and sardinella action holds are long enough for burst/snap clips to finish before returning to idle.
-- `v0.8.12-dev_11` fixes Mahi-mahi/schooling authored action recovery: one-shot snap/burst clips now hand back to the cruise/drift loop after their hold when no new snap or burst is triggered.
-- `v0.8.12-dev_12` delays only the Mahi-mahi burst movement impulse by 0.45s so it lands with the authored burst body action, while the GLB burst clip plays through at 1×.
-- `v0.8.12-dev_13` makes the authored-action movement delay an explicit model override with a 0s default, and raises Mahi-mahi's burst movement delay override to 0.8s after Jeremy's review.
-- Jeremy approved `v0.8.12-dev_13` for clean `v0.8.12` promotion.
-- Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
-- Jeremy requested this as the next species sequence item after creature moments.
-
-Subtasks:
-- [x] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, and animation set. Licensing/source approval remains tied to Jeremy-supplied asset provenance.
-- [x] Add species data, movement profile, selection copy, static-dev review creatures, and model render path.
-- [x] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
-- [x] Reduce tank-view scale and increase loose-school spacing so Mahi-mahi do not dominate the tank or spin in place.
-- [x] Retune turn trigger/action timing so authored turn clips fire visibly in the looser-school build.
-- [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
-- [x] Stage Atlas schooling groups without synchronized/flock-stiff animation, and apply latest approved diver silhouette positions.
-- [x] Add Jeremy's supplied Mahi-mahi Atlas thumbnail image.
-- [x] Reopen Mahi-mahi adult behavior after accidental merge; move adult Mahi-mahi off schooling and onto a faster solo-agent path for solo/pair travel.
-- [x] Fix Mahi-mahi solo-agent drift/glitchy turn triggers so turns use live forward motion instead of stale debug path tangents.
-- [x] Fix Mahi-mahi full-screen up/down dashes by limiting vertical target deltas and calming the speed profile.
-- [x] Fix follow-up Mahi-mahi teleport/backward/frozen-animation glitches by removing inner-bound recovery snaps, keeping live turns on the continuous swim loop, and shortening burst movement to match the authored clip.
-- [x] Restore Mahi-mahi authored snap-left/right visibility, play GLB animations at 1×, and tighten solo U-turn motion.
-- [x] Replace solo-agent Mahi-mahi with capped pair-group movement: shared pathing in groups of two, idle as default clip, burst/turn clips as in-place accents with simulation-driven translation.
-- [x] Fix Mahi-mahi snap-left/right interruption by decoupling the short movement impulse from the full authored turn-clip playback duration.
-- [x] Set global fish GLB playback to 1× with only 0.9×–1.1× per-individual variation, and extend spotted sardinella action holds so burst/snap clips are not cut off.
-- [x] Fix one-shot authored actions freezing on their final frame by returning to cruise/drift after the action hold when no new snap/burst fires.
-- [x] Align Mahi-mahi burst movement with the authored burst clip by delaying the speed impulse until the body action begins.
-- [x] Make authored action movement delay an explicit model override and tune Mahi-mahi burst delay to 0.8s after review.
-- [x] Review whether the pair-group Mahi-mahi movement now reads natural enough in tank view, or needs looser spacing/speed tweaks.
-- [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
-
 ### Feature backlog
 
-#### 1. Creature moments — schooling behavior around large fish
+#### 1. Creature moments follow-up
 
-Status: `Archive candidate`
+Status: `Backlog`
 
 Reference:
-- `v0.8.4-dev_1` starts this feature sequence item and visible review patch.
-- `v0.8.4-dev_3` added a temporary forced `repel` debug demo for review; `v0.8.4-dev_4` removes it after Jeremy accepted repulser v1.
-- Jeremy approved repulser v1 for clean `v0.8.4`; mobile already looked good.
+- `v0.8.4` shipped and archived the first schooling response around large fish.
+- Remaining idea: consider a separate small-fish follow/trail moment later without making v1 feel magnetized.
 - Intended feel: authored animal moments, not quests or gamification — the tank should read less like isolated loops and more like creatures sharing space.
 
 Subtasks:
-- [x] Add schooling response where small fish subtly repel/part around large fish passing nearby.
-- [ ] Follow-up: consider a separate small-fish follow/trail moment later without making v1 feel magnetized.
-- [x] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
-- [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
-- [x] Remove the temporary forced `repel` debug demo before clean public release.
+- [ ] Decide whether a small-fish follow/trail moment belongs in a future feature bucket.
 
 #### Sardine procedural snap/micro-correct experiment
 
@@ -202,6 +101,68 @@ Subtasks:
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
+
+### v0.8.14 — Follow camera retargeting hotfix
+
+Status: accepted and promoted as clean `v0.8.14` after Jeremy approval.
+
+Released from: `v0.8.14-dev_1`.
+
+Accepted gates:
+- While following fish A, direct tap fish B switches follow target to B without an intermediate exit.
+- While following fish A, drag-orbit then release over fish B keeps following fish A.
+- Empty-water tap still exits follow mode.
+- `npm run build` passed and local browser smoke showed clean `v0.8.14`.
+
+Implementation summary:
+- Moves pointer capture from follow-mode pointerdown to the moment an orbit drag is confirmed.
+- Preserves empty-water tap-to-exit and orbit-drag release suppression.
+
+### v0.8.13 — Missing-env empty tank hotfix
+
+Status: accepted and promoted as clean `v0.8.13` after Jeremy approval.
+
+Released from: `v0.8.13-dev_1`.
+
+Accepted gates:
+- Missing browser Supabase env vars reproduced the clean `v0.8.12` empty-tank failure.
+- Production creature data was verified as 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus` at release time.
+- Mobile smoke covered both missing-env fallback and real-data paths.
+
+Implementation summary:
+- Adds bundled release creature rows only for missing-env deployments so clean review builds do not show an empty tank when browser Supabase config is absent.
+- Keeps real Supabase data authoritative when the browser-safe env vars are present.
+
+### v0.8.12 — Mahi-mahi tank behavior and Atlas polish
+
+Status: accepted and promoted as clean `v0.8.12` after Jeremy approval.
+
+Released from: `v0.8.12-dev_13`.
+
+Accepted gates:
+- Mahi-mahi switched away from failed solo-agent behavior to capped pair-group movement with authored in-place clips as accents.
+- Base GLB playback stays 1× with only 0.9×–1.1× per-individual variation.
+- Burst movement delay is an explicit model override and Mahi-mahi's burst impulse lands with the authored body action.
+- Static-dev fallback includes enough `coryphaena-hippurus` rows for local/no-env pair review.
+
+Implementation summary:
+- Adds and tunes the Mahi-mahi species path through tank movement, Atlas visibility, thumbnail, and authored animation timing.
+- Preserves adult social copy as solo/pairs while using shared pair-group pathing to avoid solo-agent drift, teleport, and backward-swim artifacts.
+
+### v0.8.10 — Atlas species-group staging
+
+Status: accepted and promoted as clean `v0.8.10` after Jeremy approval.
+
+Released from: `v0.8.8-dev_16` after `v0.8.9` landed first.
+
+Accepted gates:
+- Schooling Atlas groups use per-fish phase/speed/burst offsets instead of synchronized/flock-stiff motion.
+- Mahi-mahi and Giant Sunfish diver silhouette placements reflected Jeremy's latest review marks.
+- Spotted Sardinella companion placement was corrected through `v0.8.8-dev_16`.
+
+Implementation summary:
+- Stages Atlas species groups with more natural desynchronization and reviewed diver-scale composition.
+- Updates Mahi-mahi and Spotted Sardinella Atlas lifecycle/copy details from Jeremy's notes.
 
 ### v0.8.9 — Camera position polish
 
@@ -259,6 +220,21 @@ Implementation summary:
 - Separates follow manipulation gestures from creature selection with short selection-suppression windows for orbit, pinch, and wheel zoom.
 - Handles touch end/cancel in capture and clears stale pinch state after touch-up so mobile follow controls remain responsive.
 - Keeps direct tap-to-select behavior available when there was no orbit/zoom manipulation.
+
+### v0.8.4 — Creature moments repulser v1
+
+Status: accepted and promoted as clean `v0.8.4` after Jeremy approval.
+
+Released from: `v0.8.4-dev_4`.
+
+Accepted gates:
+- Small fish subtly repel/part around large fish passing nearby.
+- Temporary forced `repel` debug demo was removed before clean release.
+- Sardine school cohesion, performance, and follow-camera readability were accepted on desktop and phone.
+
+Implementation summary:
+- Adds the first authored creature-sharing-space moment: schooling fish give large animals soft, rare clearance without making behavior feel magnetized.
+- Leaves separate small-fish follow/trail behavior as a future backlog idea.
 
 ### v0.8.3 — Code hygiene and debug-runtime cleanup
 

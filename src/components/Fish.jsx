@@ -1974,7 +1974,7 @@ function playLayeredModelAction(actions, activeActionRef, model, animation, anim
   activeActionRef.current = nextAction
 }
 
-function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 }) {
+function MolaMolaPlaceholder({ species, swim, rimColor = null }) {
   const dims = placeholderDimensions(species, swim)
   const bodyColor = species?.placeholder?.bodyColor ?? '#8fb8bc'
   const finColor = species?.placeholder?.finColor ?? '#6f9fa4'
@@ -3304,7 +3304,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               species={species}
               swim={swim}
               rimColor={rimColor}
-              rimIntensity={rimIntensity}
             />
           ) : !model ? (
             <>

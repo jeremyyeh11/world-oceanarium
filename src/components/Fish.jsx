@@ -1896,7 +1896,7 @@ function sunBaskAnimationFadeDuration(model, animation, resolvedAnimation) {
   return modelFadeDuration(model)
 }
 
-function layeredAnimationClips(gltfAnimations, model) {
+function layeredAnimationClips(gltfAnimations) {
   // Keep authored clips intact. Sun-bask playback is isolated at action time so
   // the complete authored bask clip plays alone, with no cruise base or overlay
   // surgery that can introduce partial-rig conflicts.
@@ -2011,7 +2011,7 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
 function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
+  const animations = useMemo(() => layeredAnimationClips(gltf.animations), [gltf.animations])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])

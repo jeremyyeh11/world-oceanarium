@@ -2065,7 +2065,15 @@ function removePreviousCurveDeformAdditive(bone, state, index, scratchQuat) {
   state.hasPreviousAdditive[index] = false
 }
 
-function CurveDeformBoneDebugOverlay({ object, bones, modelScale = 1 }) {
+function collectModelBones(object) {
+  const bones = []
+  object.traverse(child => {
+    if (child?.isBone) bones.push(child)
+  })
+  return bones
+}
+
+function BoneDebugOverlay({ object, bones, modelScale = 1 }) {
   const markerRefs = useRef([])
   const labelRefs = useRef([])
   const scratchWorldPositionRef = useRef(new THREE.Vector3())
@@ -2073,14 +2081,23 @@ function CurveDeformBoneDebugOverlay({ object, bones, modelScale = 1 }) {
     () => bones.map(() => new THREE.Vector3()),
     [bones],
   )
+  const boneIndices = useMemo(() => new Map(bones.map((bone, index) => [bone.uuid, index])), [bones])
+  const boneSegments = useMemo(() => {
+    const segments = []
+    bones.forEach((bone, index) => {
+      const parentIndex = bone.parent?.isBone ? boneIndices.get(bone.parent.uuid) : undefined
+      if (Number.isInteger(parentIndex)) segments.push([parentIndex, index])
+    })
+    return segments
+  }, [bones, boneIndices])
   const lineGeometry = useMemo(() => {
     const geometry = new THREE.BufferGeometry()
-    const pointCount = Math.max(2, bones.length)
+    const pointCount = Math.max(2, boneSegments.length * 2)
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(pointCount * 3), 3))
     return geometry
-  }, [bones.length])
-  const markerScale = THREE.MathUtils.clamp(0.075 / Math.max(0.001, modelScale), 0.045, 0.16)
-  const labelScale = THREE.MathUtils.clamp(0.18 / Math.max(0.001, modelScale), 0.11, 0.28)
+  }, [boneSegments.length])
+  const markerScale = THREE.MathUtils.clamp(0.055 / Math.max(0.001, modelScale), 0.035, 0.12)
+  const labelScale = THREE.MathUtils.clamp(0.095 / Math.max(0.001, modelScale), 0.055, 0.15)
 
   useFrame(() => {
     if (!object || bones.length === 0) return
@@ -2093,15 +2110,21 @@ function CurveDeformBoneDebugOverlay({ object, bones, modelScale = 1 }) {
       const marker = markerRefs.current[index]
       if (marker) marker.position.copy(localPositions[index])
       const label = labelRefs.current[index]
-      if (label) label.position.copy(localPositions[index]).addScalar(markerScale * 1.45)
+      if (label) label.position.copy(localPositions[index]).addScalar(markerScale * 1.15)
     })
     const positionAttribute = lineGeometry.getAttribute('position')
-    localPositions.forEach((position, index) => {
-      positionAttribute.setXYZ(index, position.x, position.y, position.z)
+    let cursor = 0
+    boneSegments.forEach(([startIndex, endIndex]) => {
+      const start = localPositions[startIndex]
+      const end = localPositions[endIndex]
+      positionAttribute.setXYZ(cursor, start.x, start.y, start.z)
+      positionAttribute.setXYZ(cursor + 1, end.x, end.y, end.z)
+      cursor += 2
     })
-    if (bones.length === 1) {
-      const position = localPositions[0]
-      positionAttribute.setXYZ(1, position.x, position.y, position.z)
+    while (cursor < positionAttribute.count) {
+      const fallback = localPositions[0] ?? scratch.set(0, 0, 0)
+      positionAttribute.setXYZ(cursor, fallback.x, fallback.y, fallback.z)
+      cursor += 1
     }
     positionAttribute.needsUpdate = true
     lineGeometry.computeBoundingSphere()
@@ -2111,9 +2134,9 @@ function CurveDeformBoneDebugOverlay({ object, bones, modelScale = 1 }) {
 
   return (
     <group raycast={() => null}>
-      <line geometry={lineGeometry} raycast={() => null} renderOrder={45}>
-        <lineBasicMaterial color="#35f7ff" transparent opacity={0.95} depthTest={false} depthWrite={false} />
-      </line>
+      <lineSegments geometry={lineGeometry} raycast={() => null} renderOrder={45}>
+        <lineBasicMaterial color="#35f7ff" transparent opacity={0.92} depthTest={false} depthWrite={false} />
+      </lineSegments>
       {bones.map((bone, index) => (
         <group key={`${bone.uuid}:${index}`}>
           <mesh
@@ -2122,8 +2145,8 @@ function CurveDeformBoneDebugOverlay({ object, bones, modelScale = 1 }) {
             raycast={() => null}
             renderOrder={46}
           >
-            <sphereGeometry args={[1, 10, 10]} />
-            <meshBasicMaterial color={index === 0 ? '#ffec6a' : '#35f7ff'} transparent opacity={0.92} depthTest={false} depthWrite={false} />
+            <sphereGeometry args={[1, 8, 8]} />
+            <meshBasicMaterial color={bone.parent?.isBone ? '#35f7ff' : '#ffec6a'} transparent opacity={0.9} depthTest={false} depthWrite={false} />
           </mesh>
           <Text
             ref={element => { labelRefs.current[index] = element }}
@@ -2149,6 +2172,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
   const curveDeformBones = useMemo(() => collectCurveDeformBones(object, model), [object, model])
+  const debugBones = useMemo(() => collectModelBones(object), [object])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
@@ -2238,8 +2262,8 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       position={model.position ?? [0, 0, 0]}
     >
       <primitive object={object} />
-      {debugCurveBones && curveDeformBones.length > 0 && (
-        <CurveDeformBoneDebugOverlay object={object} bones={curveDeformBones} modelScale={model.scale ?? 1} />
+      {debugCurveBones && debugBones.length > 0 && (
+        <BoneDebugOverlay object={object} bones={debugBones} modelScale={model.scale ?? 1} />
       )}
     </group>
   )
@@ -2339,7 +2363,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(schoolState?.path ?? path)
   const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
-  const splineGeometry = useMemo(() => makePathGeometry(path), [path])
+  const splineGeometry = useMemo(
+    () => makePathGeometry(schoolState?.path ?? path),
+    [path, schoolState?.path],
+  )
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
@@ -3407,7 +3434,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     <group>
       {debug && (
         <>
-          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug) && (
+          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug || selected) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>
@@ -3492,7 +3519,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               animationSpeedScaleRef={animationSpeedScaleRef}
               curveDeformInputRef={curveDeformInputRef}
               debugSimulationSpeed={debugSimulationSpeed}
-              debugCurveBones={debug && Boolean(debugLayers?.bones) && Boolean(model?.curveDeform)}
+              debugCurveBones={debug && selected && Boolean(debugLayers?.bones)}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
             />

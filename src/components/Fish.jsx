@@ -2249,12 +2249,15 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         maxAngle,
       )
       const tailBias = Number.isFinite(curveConfig.tailBias) ? Math.max(0.1, curveConfig.tailBias) : 1
+      const baseWeight = Number.isFinite(curveConfig.baseWeight)
+        ? THREE.MathUtils.clamp(curveConfig.baseWeight, 0, 1)
+        : 0
       const phase = elapsed * 1.35 + (input.phase ?? 0)
       const bendAxis = curveDeformAxis(curveConfig)
       curveDeformBones.forEach((bone, index) => {
         removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
         const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
-        const tailWeight = Math.pow(ratio, tailBias)
+        const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias))
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
         curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough)
         bone.quaternion.multiply(curveDeformQuatRef.current)
@@ -2363,6 +2366,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const actionSpeedStartAt = useRef(0)
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
+  const curveDeformTurnIntent = useRef(0)
   const nextBurstAt = useRef(0)
   const nextDriftAt = useRef(0)
   const driftUntil = useRef(0)
@@ -2612,6 +2616,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     const t = THREE.MathUtils.clamp((isSchooling ? schoolState.progress : progress.current) + (schoolOffset?.phase ?? 0), 0, 1)
     const currentPath = pathRef.current
+    curveDeformTurnIntent.current = 0
     let position = isSchooling
       ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now, organicNoise.current)
       : currentPath.getPointAt(t)
@@ -2942,6 +2947,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
         if (desiredDirection.current.lengthSq() < 0.0001 || desiredDirection.current.dot(schoolFollowDirection) <= 0) {
           desiredDirection.current.copy(schoolFollowDirection)
+        }
+        const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
+          ? model.curveDeform.turnIntentScale
+          : 0
+        if (turnIntentScale > 0) {
+          const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
+          curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
         }
         rotateDirectionToward(
           desiredDirection.current,
@@ -3414,7 +3426,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         animationSpeedScaleRef.current = 1
       }
 
-      curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5, -1, 1)
+      curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5 + curveDeformTurnIntent.current, -1, 1)
       curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
       curveDeformInputRef.current.burst01 = activeAnimation === resolveMoveAnimation(model, 'burst')
         ? THREE.MathUtils.clamp((animationHoldUntil.current - now) / Math.max(0.001, modelActionAnimationDuration(model, activeAnimation, motion.burstActionDuration)), 0, 1)

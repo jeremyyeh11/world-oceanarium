@@ -43,6 +43,7 @@ const DEBUG_LAYER_BUTTONS = [
   { id: 'direction', icon: '↗', label: 'Show direction' },
   { id: 'name', icon: '#', label: 'Show name' },
   { id: 'lod', icon: 'L', label: 'Show LOD colors' },
+  { id: 'bones', icon: 'B', label: 'Show curve-deform bones' },
 ]
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
@@ -115,7 +116,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('focused')
-  const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false })
+  const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false, bones: true })
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)

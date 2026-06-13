@@ -2065,7 +2065,86 @@ function removePreviousCurveDeformAdditive(bone, state, index, scratchQuat) {
   state.hasPreviousAdditive[index] = false
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null }) {
+function CurveDeformBoneDebugOverlay({ object, bones, modelScale = 1 }) {
+  const markerRefs = useRef([])
+  const labelRefs = useRef([])
+  const scratchWorldPositionRef = useRef(new THREE.Vector3())
+  const localPositions = useMemo(
+    () => bones.map(() => new THREE.Vector3()),
+    [bones],
+  )
+  const lineGeometry = useMemo(() => {
+    const geometry = new THREE.BufferGeometry()
+    const pointCount = Math.max(2, bones.length)
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(pointCount * 3), 3))
+    return geometry
+  }, [bones.length])
+  const markerScale = THREE.MathUtils.clamp(0.075 / Math.max(0.001, modelScale), 0.045, 0.16)
+  const labelScale = THREE.MathUtils.clamp(0.18 / Math.max(0.001, modelScale), 0.11, 0.28)
+
+  useFrame(() => {
+    if (!object || bones.length === 0) return
+    object.updateWorldMatrix(true, true)
+    const scratch = scratchWorldPositionRef.current
+    bones.forEach((bone, index) => {
+      bone.getWorldPosition(scratch)
+      localPositions[index].copy(scratch)
+      object.worldToLocal(localPositions[index])
+      const marker = markerRefs.current[index]
+      if (marker) marker.position.copy(localPositions[index])
+      const label = labelRefs.current[index]
+      if (label) label.position.copy(localPositions[index]).addScalar(markerScale * 1.45)
+    })
+    const positionAttribute = lineGeometry.getAttribute('position')
+    localPositions.forEach((position, index) => {
+      positionAttribute.setXYZ(index, position.x, position.y, position.z)
+    })
+    if (bones.length === 1) {
+      const position = localPositions[0]
+      positionAttribute.setXYZ(1, position.x, position.y, position.z)
+    }
+    positionAttribute.needsUpdate = true
+    lineGeometry.computeBoundingSphere()
+  })
+
+  if (bones.length === 0) return null
+
+  return (
+    <group raycast={() => null}>
+      <line geometry={lineGeometry} raycast={() => null} renderOrder={45}>
+        <lineBasicMaterial color="#35f7ff" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+      </line>
+      {bones.map((bone, index) => (
+        <group key={`${bone.uuid}:${index}`}>
+          <mesh
+            ref={element => { markerRefs.current[index] = element }}
+            scale={markerScale}
+            raycast={() => null}
+            renderOrder={46}
+          >
+            <sphereGeometry args={[1, 10, 10]} />
+            <meshBasicMaterial color={index === 0 ? '#ffec6a' : '#35f7ff'} transparent opacity={0.92} depthTest={false} depthWrite={false} />
+          </mesh>
+          <Text
+            ref={element => { labelRefs.current[index] = element }}
+            fontSize={labelScale}
+            font={DEBUG_LABEL_FONT}
+            color="#eaffff"
+            anchorX="left"
+            anchorY="middle"
+            depthTest={false}
+            renderOrder={47}
+            raycast={() => null}
+          >
+            {bone.name}
+          </Text>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, debugCurveBones = false, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
@@ -2153,12 +2232,16 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   }, [actions, model, animation, animationVariation])
 
   return (
-    <primitive
-      object={object}
+    <group
       scale={model.scale ?? 1}
       rotation={model.rotation ?? [0, 0, 0]}
       position={model.position ?? [0, 0, 0]}
-    />
+    >
+      <primitive object={object} />
+      {debugCurveBones && curveDeformBones.length > 0 && (
+        <CurveDeformBoneDebugOverlay object={object} bones={curveDeformBones} modelScale={model.scale ?? 1} />
+      )}
+    </group>
   )
 }
 
@@ -3409,6 +3492,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               animationSpeedScaleRef={animationSpeedScaleRef}
               curveDeformInputRef={curveDeformInputRef}
               debugSimulationSpeed={debugSimulationSpeed}
+              debugCurveBones={debug && Boolean(debugLayers?.bones) && Boolean(model?.curveDeform)}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
             />

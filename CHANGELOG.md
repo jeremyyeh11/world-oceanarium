@@ -8,6 +8,173 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.8.16 — Creature sex + dimorphism review
+
+Status: accepted and promoted as clean `v0.8.16` from `v0.8.16-dev_3` after Jeremy approval.
+
+### Creature data / Atlas
+
+- `v0.8.16-dev_3` imports Jeremy's returned Atlas CSV copy edits, including Sardinella adult length range and simplified social/reproduction/lifecycle wording.
+- `v0.8.16-dev_2` assigns `sex` for every active creature row, including non-dimorphic species, while only sexually dimorphic model variants affect GLB selection.
+- `v0.8.16-dev_1` adds a nullable `sex` creature field for Supabase `creatures` and `creatures_dev`, maps Mahi-mahi male/female rows to the matching GLB variants, shows sex on the follow info card, and adds Atlas sexual-dimorphism copy for each species. Non-dimorphic species ignore sex at the model layer.
+- Clean `v0.8.16` ships creature sex across all active Supabase rows, Mahi-mahi sex-driven GLB selection, and the accepted Atlas dimorphism/copy edits.
+
+
+## v0.8.15 — Mahi-mahi curve deformation review
+
+Status: accepted and promoted as clean `v0.8.15` from `v0.8.15-dev_15` after Jeremy approval.
+
+### Creature behavior
+
+- `v0.8.15-dev_2` keeps accepted Mahi-mahi translation speeds and authored 1× GLB playback, then layers a controllable additive spine deformation after the animation mixer. The deformation reads path/spline turn pressure, distributes a subtle bend through `spine.001`–`spine.007`, adds a small tail-follow-through phase, and exposes model-level strength/response/max-angle/tail-bias/burst-boost tunables for review rollback or dialing.
+- `v0.8.15-dev_3` increases the visible deformation after Jeremy review: stronger turn-pressure input, a higher safe max bend, faster response, more body-wide/tail follow-through, and stronger burst/speed boost while still preserving accepted translation speeds and authored 1× clips.
+- `v0.8.15-dev_4` fixes the actual visibility bug: the GLB loader resolves Mahi spine bone names as `spine001`–`spine007`, so the dotted config names were not matching; it now normalizes bone names and bends on the rig's local `z` axis instead of twisting around the forward axis.
+- `v0.8.15-dev_5` emergency-disables Mahi curve deformation (`strength: 0`) after review caught catastrophic accumulated spine bending in `dev_4`; keep the accepted authored animation / movement baseline safe while the additive deformation path is reworked.
+- `v0.8.15-dev_6` restores visible Mahi curve deformation with a non-accumulating additive pass: each frame removes the previous additive only when it is still present, then applies a fresh local-`z` side-bend to the resolved spine chain. Strength is re-enabled at a safer visible range (`0.82`, max `9°`).
+- `v0.8.15-dev_7` adds a debug bone overlay for curve-deform rigs: debug mode now defaults the `B` layer on, drawing the resolved spine chain and runtime bone names over Mahi-mahi so reviewers can see exactly which bones the deformation targets.
+- `v0.8.15-dev_8` retargets bone debug to selected-creature inspection: smaller labels, all resolved GLB bones for the selected creature, no bone overlay in `View all`, and selected schooling fish now show their shared movement/follow spline even when they are not the school leader.
+- `v0.8.15-dev_9` adds male/female model variants for Mahi-mahi and general school-level sex-variant assignment: schools with both sex models available receive an approximately balanced mix, with Mahi-mahi pairs resolving to exactly one male and one female.
+- `v0.8.15-dev_10` makes selected-creature bone-name labels camera-facing billboards, unbold/normal weight, and front-rendered so bones stay legible over the fish mesh.
+- `v0.8.15-dev_11` shrinks selected-creature bone-name labels to match the normal selected-name label font size while preserving billboard/front-render behavior.
+- `v0.8.15-dev_12` moves model forward-vector debug lines to the configured head/nose offset instead of the model root, clarifying that Mahi GLB origins sit near mid-body while the debug heading starts at the nose.
+- `v0.8.15-dev_13` increases Mahi spline deformation and limits additive bend targets to `spine003`–`spine007`, keeping the forward head/root bones out of the deformation chain.
+- `v0.8.15-dev_14` makes Mahi curling respond to sustained turn intent toward the follow spline, adds a base bend on `spine003`, and strengthens rear-spine curl so turns read as body bending instead of straight-body rotation.
+- `v0.8.15-dev_15` adds a 1.05× per-bone chain multiplier to Mahi curve deformation, smooths visual pitch changes to remove random pitch snaps, and makes newly generated school splines preserve their incoming direction with the first turn pushed away from the spline start for all schooling fish.
+- Clean `v0.8.15` ships the accepted Mahi-mahi curve-deformation pass: authored GLB animation remains intact, additive bend is limited to `spine003`–`spine007`, turns use sustained follow-spline intent, debug bone/forward-vector tools are readable, Mahi pairs can use male/female variants, and schooling splines now continue smoothly across regenerated paths.
+
+## v0.8.14 — Follow-camera retargeting
+
+Status: accepted and promoted as clean `v0.8.14` from `v0.8.14-dev_1` after Jeremy approval.
+
+### Camera / controls
+
+- `v0.8.14-dev_1` fixes follow-camera retargeting: tapping another fish while already following now switches directly to that fish instead of first exiting follow mode. Follow orbit still captures the pointer after drag movement crosses the orbit threshold, so orbit-release over another fish remains protected from accidental retargeting.
+- Clean `v0.8.14` ships the accepted follow-camera retargeting fix.
+
+
+## v0.8.13 — Mobile release fallback hotfix
+
+Status: accepted and promoted as clean `v0.8.13` from `v0.8.13-dev_1` after Jeremy approval.
+
+### Creature data / mobile smoke
+
+- `v0.8.13-dev_1` prevents a clean deployment with missing browser Supabase env vars from rendering a visually empty tank by falling back to bundled release creature rows only for the missing-env case. If Supabase is configured but empty or errors, clean builds still do not silently replace that result. The bundled fallback now mirrors the released production counts: 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus`.
+- Clean `v0.8.13` ships the mobile empty-tank hotfix so the public release shows fish even on deployments missing browser Supabase env vars, while preserving real Supabase data as the source of truth when configured.
+
+
+## v0.8.12 — Mahi-mahi adult movement review
+
+Status: accepted and promoted as clean `v0.8.12` from `v0.8.12-dev_13` after Jeremy approval.
+
+### Creature behavior
+
+- `v0.8.12-dev_1` removes adult Mahi-mahi from the schooling system and routes it through the solo-agent movement path used by Giant Sunfish, tuned much faster for confident adult pelagic passes. Atlas/social copy now frames adults as solo/pair travelers while noting juvenile schooling.
+- `v0.8.12-dev_2` adds Mahi-mahi back into The Atlas for review now that Jeremy wants the species visible there again.
+- `v0.8.12-dev_3` fixes glitchy Mahi-mahi turning by driving authored turn/burst triggers from the live visual forward vector instead of the stale debug-path end tangent, and gives Mahi-mahi a faster solo steering turn rate so it swims into turns instead of broad drifting.
+- `v0.8.12-dev_4` fixes the Mahi-mahi screen-blitzing regression: solo-agent targets now limit vertical jumps from the current position, and Mahi-mahi cruise/snap/burst speeds are reduced to read as forward pelagic passes instead of full-screen up/down dashes.
+- `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: runtime recovery now clamps to the expanded solo envelope instead of snapping back to inner swim bounds, Mahi-mahi live turns stay on the continuous swim loop instead of snap-left/right clips, and burst movement no longer outlasts the authored burst animation.
+- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail, normalized to the existing 502×502 Atlas thumbnail convention.
+- `v0.8.12-dev_7` retunes Mahi-mahi authored animation playback: GLB clips now play at 1× without global/random/velocity time scaling, snap-left/right turn clips are restored with a shorter blend, and solo U-turns slow down while steering faster so the fish turns through the arc instead of sliding backward.
+- `v0.8.12-dev_8` moves Mahi-mahi off the failed solo-agent path and onto the proven shared group movement, capped at two fish per pair. The GLB clips remain in-place: idle is the default loop, burst/turn clips are accents with separate forward translation, and normal banking stays on idle. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
+- `v0.8.12-dev_9` fixes Mahi-mahi snap-turn playback without retiming the authored GLB clips: turn movement still uses the short simulation impulse, but `snap_left` / `snap_right` now stay selected for their full authored 5.0417s duration instead of being interrupted after the 1.05s movement impulse.
+- `v0.8.12-dev_10` sets global fish GLB playback back to 1× and clamps per-individual animation speed variation to 0.9×–1.1× across species. Spotted sardinella burst/snap animation holds now cover the full clip at the slowest allowed individual speed, so authored clips are not cut off while movement impulses remain short.
+- `v0.8.12-dev_11` fixes one-shot authored clips freezing on their final frame: after a snap/burst hold expires, fish now return to their cruise/drift loop when no new action is triggered, instead of staying stuck if the trigger window is open but idle conditions are calm.
+- `v0.8.12-dev_12` aligns Mahi-mahi burst movement to the authored burst clip: the clip starts first, the forward speed impulse waits 0.45s for the visible body action, and the burst clip is held for its full authored duration instead of being cut at the movement impulse.
+- `v0.8.12-dev_13` makes authored action movement timing a named model override with a default of 0s, and increases the Mahi-mahi burst movement delay override to 0.8s so the speed impulse lands later in the authored burst action.
+- Clean `v0.8.12` ships the accepted Mahi-mahi adult behavior: loose pair-group movement, authored 1× GLB playback with 0.9×–1.1× individual variation, full-duration snap/burst clip holds, explicit burst movement delay override, and Atlas visibility restored for the species page.
+
+## v0.8.11 — Atlas release gating hotfix
+
+Status: hotfix on `main` after `v0.8.10`.
+
+### Interface / encyclopaedia
+
+- Hides unreleased species entries from The Atlas and removes their follow-card Atlas shortcut, starting with `Coryphaena hippurus` / Mahi-mahi until that Atlas page is explicitly ready for release.
+
+## v0.8.10 — Mahi mahi
+
+Status: accepted and promoted as clean `v0.8.10` from `v0.8.8-dev_16` after Jeremy approval; clean target advanced because `v0.8.9` camera polish landed on `main` first.
+
+### Creature roster
+
+- `v0.8.8-dev_1` starts the Mahi mahi feature branch from clean `v0.8.7`, carrying the supplied model asset into species, behavior, and Atlas review.
+- Adds `Coryphaena hippurus` / Mahi-mahi to the active species roster with Jeremy's supplied GLB, three static-dev review creatures, a source-safe Atlas entry, and model moves wired to `idle`, `burst`, `snap_left`, and `snap_right`.
+- Tunes Mahi-mahi as loose-schooling epipelagic hunters: larger spacing than sardines, faster readable cruise/burst speeds, wider open-ocean bounds, and less twitchy turns than the sardine school.
+- `v0.8.8-dev_2` responds to Jeremy's review by shrinking tank-view Mahi-mahi specimens and spreading the school farther apart, with wider turn radius/lower erraticness to avoid on-the-spot spinning.
+- `v0.8.8-dev_3` restores visible Mahi-mahi snap-left/right turns after the smoother `dev_2` path made tangent-change triggers too rare: lower turn threshold, shorter held turn action, and slightly more live path variation without returning to tight spinning.
+- `v0.8.8-dev_4` calms the overcorrected turn feel: ordinary course changes are movement/bank-led again, snap clips require larger turns, fade in/out softer, and turn accents are brief instead of held.
+- `v0.8.8-dev_5` updates Mahi-mahi sizing to Jeremy's 1.8 m max / 0.91 m average, with normalized individual DB sizes distributed around the average instead of uniform stepping.
+- `v0.8.8-dev_6` softens Mahi-mahi turns after review: wider path radius, lower erraticness, rarer snap triggers, shorter turn holds, and slower animation fades so the school arcs instead of cutting hard corners.
+- `v0.8.8-dev_7` makes Mahi-mahi schooling forward-led: avoidance is constrained to a narrow forward cone and direction changes are smoothed so each fish swims into the turn instead of sliding, strafing, or backing through it.
+- `v0.8.8-dev_8` updates the Atlas staging: Mahi-mahi uses Jeremy's diver silhouette position/opacity, and sardine/Mahi-mahi entries add smaller mid/background companions around the centered hero fish.
+- `v0.8.8-dev_9` adjusts the Mahi-mahi Atlas diver silhouette to Jeremy's approved staging position `[0.5, 0.45, -0.85]` at `0.38` opacity.
+- `v0.8.8-dev_10` desynchronizes Atlas schooling groups with per-fish animation phase, playback speed, and burst timing offsets, and applies Jeremy's latest Mahi-mahi/Giant Sunfish diver silhouette placements.
+- `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes: Mahi-mahi maturity/sterility/spawn-egg range and spotted sardinella estimated maturity/unknown sterility.
+- `v0.8.8-dev_12` uppercases Atlas species-list common names so the left selection column matches the right info-panel heading style.
+- `v0.8.8-dev_13` adjusts spotted sardinella Atlas group composition from Jeremy's marked screenshot: pushes the upper-left companion deeper behind the diver silhouette.
+- `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it reads behind the hero instead of hidden behind it.
+- `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
+- `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
+- Target feel: fast, confident pelagic cruising with readable flashes and turns — elegant movement, not generic fish drift.
+
+## v0.8.9 — Camera position polish
+
+Status: accepted and promoted as clean `v0.8.9` after Jeremy approval.
+
+### Camera / debug
+
+- `v0.8.9-dev_1` starts a separate camera-position branch from clean `v0.8.7`, lowers the default tank camera, angles the look target upward for a standing-at-the-tank read, and adds debug sliders for camera height, distance, look height, FOV, and experimental depth-of-field focus/aperture/blur.
+- `v0.8.9-dev_2` fixes the empty-scene regression by mounting the experimental DOF postprocess only when the debug panel explicitly enables it, so normal tank rendering does not instantiate the composer/pass stack.
+- `v0.8.9-dev_3` makes the camera debug bar wrap/scroll vertically on cramped screens and adds `Shift Y`, a true vertical camera translation slider that moves both camera height and look target together instead of changing only the view angle.
+- `v0.8.9-dev_4` bakes Jeremy's approved camera framing into the tank defaults (`y=-6.35`, `z=10`, `lookY=-2.65`, `fov=61`) and removes the temporary camera/DOF debug controls from the debug toolbar.
+- `v0.8.9-dev_5` fixes the phone blank-scene regression by baking the approved camera slider values without double-applying the temporary `Shift Y` translation on narrow viewports (`y=-3.35`, `z=10`, `lookY=0.35`, `fov=61`).
+- Clean `v0.8.9` ships the accepted lowered tank camera framing with the temporary camera/DOF debug tools removed.
+
+## v0.8.7 — Atlas thumbnail polish
+
+Status: accepted and promoted as clean `v0.8.7` from `v0.8.7-dev_3` after Jeremy approval.
+
+### Interface / encyclopaedia
+
+- `v0.8.7-dev_1` adds Jeremy's supplied sardine-school artwork as the Spotted Sardinella Atlas thumbnail.
+- `v0.8.7-dev_2` widens the desktop Atlas species list so `Spotted Sardinella` does not clip beside its thumbnail.
+- `v0.8.7-dev_3` preserves the Atlas WebGL drawing buffer so screenshot capture includes the 3D model and diver silhouette.
+
+## v0.8.6 — UI overhaul + encyclopaedia
+
+Status: accepted and promoted as clean `v0.8.6` from `v0.8.6-dev_62` after Jeremy approval.
+
+### Interface / encyclopaedia
+
+- `v0.8.6-dev_1` starts the isolated UI overhaul + encyclopaedia feature branch from clean `v0.8.4` so navigation, creature information architecture, and reading flow can iterate separately from species work.
+- `v0.8.6-dev_2` adds the first encyclopaedia mockup: top-right gallery entry, left species list with thumbnails, central 3D/species-scale stage, right field-guide info panel, human-scale placeholder, and an info-card button from followed fish.
+- `v0.8.6-dev_3` removes the generic Large Predator species placeholder entirely and removes the floor disc from the encyclopaedia 3D viewport.
+- `v0.8.6-dev_4` renames the feature to Oceanpaedia, removes redundant panel labels, and fixes the model viewer to a non-orbiting side profile with per-species pose overrides for future angle tuning.
+- `v0.8.6-dev_5` renames the page and entry points from Oceanpaedia to The Atlas.
+- `v0.8.6-dev_6` adds the supplied epipelagic sunlight-water backdrop to The Atlas viewport for epipelagic species.
+- `v0.8.6-dev_7` replaces the corner human-scale placeholder with Jeremy's diver silhouette placed inside the viewport beside the fish, using a head-comparison crop for very small species.
+- `v0.8.6-dev_8` plays Atlas model idle clips in place and triggers occasional in-place burst clips without viewport translation.
+- `v0.8.6-dev_9` removes the rejected Atlas model animation experiment and replaces the supplied photo backdrop with the live ocean tank backdrop stack, without tank fish or UI.
+- `v0.8.6-dev_10` restores the Atlas in-place idle/burst animations, keeps the tank backdrop, and moves the diver scale reference into the lower-right Mola comparison area using a 1.7 m human scale.
+- `v0.8.6-dev_11` moves the sardine diver-scale silhouette behind the fish body instead of cropping it against the left edge, matching Jeremy's marked comparison layout.
+- `v0.8.6-dev_12` replaces the diver PNG with Jeremy's SVG on a Three.js mesh plane, scales the Atlas fish and diver from species max body length, labels the stat as max body length, and caps small-fish display size so sardines do not fill the viewport.
+- `v0.8.6-dev_13` reduces the diver mesh opacity to a subdued reference silhouette and adds an IUCN Red List conservation-status bar to the Atlas info panel.
+- `v0.8.6-dev_14` makes the diver mesh double-sided and camera-facing so it cannot vanish from backface/axis changes, then shifts the Atlas camera 15° left and 15° upward for a slight front-left, top-down fish view.
+- `v0.8.6-dev_15` makes the diver silhouette visibly render against the dark tank backdrop with a pale translucent mesh material, and turns the Atlas camera another 15° left for a 30° front-left view.
+- `v0.8.6-dev_16` switches the Atlas diver scale reference to a camera-facing sprite using the supplied SVG texture, normalizes the SVG fill to tint correctly, raises its opacity, and disables depth testing so it remains visible in front of the dark tank viewport.
+- `v0.8.6-dev_17` rasterizes the supplied diver SVG into a PNG texture and uses that PNG for the Atlas sprite so browser/WebGL SVG-texture handling cannot hide the scale reference.
+- `v0.8.6-dev_18` replaces the Atlas diver texture with Jeremy's new PNG, normalizes it to a black silhouette, and lowers the sprite opacity so it reads as a quieter scale reference.
+- `v0.8.6-dev_19` sanitizes Atlas GLB materials to render opaque front faces with depth writes, preventing Mola's opposite eye/interior surfaces from showing through the head.
+- `v0.8.6-dev_20` lowers the Atlas diver silhouette and places it behind the fish with depth testing so creature bodies occlude the scale reference instead of being covered by it.
+- `v0.8.6-dev_21` adds a debug-gated Atlas diver pose editor with X/Y/Z/opacity sliders, per-species localStorage persistence, reset, and copyable pose JSON for committing reviewed placements.
+- `v0.8.6-dev_22` moves Atlas pose-editor activation to `Ctrl+Shift+D`, shows the Atlas version label in the overlay, and squares/full-bleeds the Atlas panels while keeping thin borders.
+- `v0.8.6-dev_46` tightens followed-creature atlas-card copy while staying on the Atlas branch: quick facts are split into terse Biome / Zone / Diet / Social fields, depth/measurement labels are shortened, and empty individual notes use a neutral placeholder without removing the top-right Atlas entry or info-card Atlas button.
+- `v0.8.6-dev_58` source-safes the Atlas species copy: `Amblygaster sirm` now reads as spotted sardinella with coastal/lagoons schooling context, while sparse `Mola alexandrini` social and reproduction fields stay `Unknown` instead of speculative.
+- `v0.8.6-dev_59` replaces the prior unknown placeholders with Jeremy's supplied Atlas fact sheet for spotted sardinella and bumphead sunfish, and formats sub-kilogram masses / decimal-meter lengths cleanly in the Atlas tables.
+- `v0.8.6-dev_60` adjusts the follow-card shell and title row for the longer bumphead sunfish common name: wider card, no common-name wrap, smaller name-to-Atlas-icon gap, and a slightly more compact icon.
+- `v0.8.6-dev_61` changes the displayed common name for `Mola alexandrini` to `Giant Sunfish`, folds the other common names into the general species description, and relaxes the follow-card Atlas icon spacing after review.
+- `v0.8.6-dev_62` limits the `Giant Sunfish` general description to two alternate common-name mentions while retaining the broader alternate-name list for search/reference data.
+- Target feel: quiet field-guide clarity layered over the aquarium, not a menu-heavy game UI.
 
 ## v0.8.5 — Follow mode stability
 
@@ -20,13 +187,14 @@ Status: accepted and promoted as clean `v0.8.5` from `v0.8.5-dev_3` after Jeremy
 - `v0.8.5-dev_2` applies the same release-window suppression to follow zoom gestures: mobile pinch zoom and follow-mode wheel zoom now ignore creature focus events briefly after zooming, so lifting a finger over another fish does not switch targets.
 - `v0.8.5-dev_3` lets the follow gesture system recover after touch-up on a fish by handling touch end in capture before fish selection swallows the event, then clearing stale pinch state after a short delay so the next finger-down can orbit/zoom again.
 
+
 ## v0.8.4 — Creature moments repulser v1
 
 Status: accepted and promoted as clean `v0.8.4` from `v0.8.4-dev_4` after Jeremy approval on desktop/mobile feel.
 
 ### Creature behavior
 
-- Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser, sardines and the large-predator placeholder default false.
+- Starts the creature-moments bucket with a species-level `repulser` flag: Mola is a repulser and sardines default false.
 - `v0.8.4-dev_1` adds smoothed schooling drift away from nearby repulser creatures so sardines can softly part around the Mola instead of abruptly snapping away.
 - `v0.8.4-dev_2` makes the debug follow-target marker lerp from yellow to red as repulser drift increases, then back to yellow as the school returns to its normal target.
 - `v0.8.4-dev_3` temporarily added a debug-panel `repel` demo button so the effect could be reviewed without waiting for a Mola crossing.
@@ -104,74 +272,11 @@ Status: accepted and promoted as clean `v0.8.0`.
 - Fixes the arc-turn stall by steering the visual facing toward the actual destination while translating along the current forward vector, with a higher minimum arc speed so the Mola keeps making progress during opposite-direction turns.
 - Adds a cyan wireframe movement-boundary box to Mola direction debug so the padded solo-agent target volume is visible in the tank.
 - Retunes tank-view movement bounds only: sardines and Mola get wider horizontal X travel and deeper negative-Y travel, while the Mola target volume moves farther back on negative Z. Follow mode mechanics are unchanged.
-- Tunes active tank movement bounds to give sardines and Mola much wider horizontal travel (`X [-25, 25]`), lowers both movement volumes to `Y min -7`, and gives sardines explicit asymmetric depth travel (`Z [-15, 8]`). Mola depth stays at the current review range (`Z [-35, -10]`). Keeps the randomized school startup feel visible under explicit min/max bounds by varying each visit's school lane/depth/vertical traversal phase, instead of always starting the shared spline from the same left/back/down pattern.
-- Hides the landing/biome-entry step while there is only one active tank: app boot now opens directly into the Ocean tank and suppresses the tank back button until multi-tank navigation returns.
-- Restores audio unlock after direct tank entry: since there is no landing `DIVE IN` gesture anymore, the first pointer/touch/key gesture in the tank now starts the Web Audio graph before UI/fish SFX fire.
-- Retriggers the deployment pipeline after Vercel did not create/report a deployment for `v0.8.0-dev_22`; no gameplay or audio behavior changes beyond the audio-unlock fix.
-- Makes the audio control reflect actual Web Audio unlock state, not just the mute flag: it now appears off until audio has really started, and tapping the audio button before unlock starts sound instead of accidentally muting it.
-- Narrows tank-view X movement bounds for both Spotted Sardinella and Mola mola from `[-25, 25]` to `[-18, 18]`; Y/Z bounds and follow-mode mechanics are unchanged.
-- Pulls Mola tank-view depth forward by changing its Z range from `[-35, -10]` to `[-25, -10]`; sardine bounds and follow-mode mechanics are unchanged.
-- Canonicalizes creature species storage around scientific-name slugs: `mola-alexandrini` for Giant Sunfish and `amblygaster-sirm` for Spotted Sardinella, while keeping legacy aliases for older `mola-mola`, `sardine`, and display-name rows.
-- Adds a static dev-creature safety net for `-dev_` builds when Supabase env vars are missing or `creatures_dev` returns no active supported creatures, preventing the tank from rendering as an empty blue scene during review/deploy smoke tests.
-- Fixes the Mola layered-animation crash by initializing `AnimationAction.userData` before storing per-action time-scale metadata.
-- Corrects Mola turn-sign detection so left turns trigger `bank_l` and right turns trigger `bank_r`, then softens solo-agent steering plus Mola animation crossfades/overlay weight to reduce visible jitter between movement states.
-- Converts Mola solo-agent travel from direct target steering to wide-radius cubic splines: each destination rebuilds a curve from current position and visual-forward tangent, movement advances by curve arc length, banking follows curve tangent deltas, and avoidance is applied as a soft offset instead of replacing the route.
-- Fixes Mola spline continuity so each new solo-agent route departs along the prior route's exit tangent and timed retargets wait until the fish is near the spline end, preventing backwards-looking traversal on route rebuilds.
-- Moves the Mola solo-agent follow/debug lookahead target to a body-length-scaled point ahead on the active spline, matching the sardine follow-target pattern so the target no longer sits inside the large body.
-- Tightens Mola visual-forward tracking against the active spline tangent, using faster tangent catch-up for solo agents so the body stays close to parallel with the curve instead of sliding sideways/backward along it.
-- Increases Mola solo-agent spline turning radius by lengthening cubic control leads, blending sharp destination approaches more strongly toward the current route tangent, and slowing arc-length progress when local spline tangent delta exceeds the lower curvature cap.
-- Enforces broad Mola spline routes at generation time: candidate targets/curves are sampled for full 3D tangent continuity, sample-to-sample tangent delta, and minimum turning radius; only curves under the tangent caps and over the radius floor are accepted when possible, close targets are rejected, and fallback picks the smoothest candidate instead of the first random target.
-- Preserves route-swap tangent continuity on all axes by keeping the new Bezier's first control point on the previous spline tangent instead of flattening control-point Y, and by sampling the current path tangent for early/reached-target retargets instead of snapping to the old endpoint tangent.
-- Doubles global GLTF animation time scales, increases Mola idle movement speed by `1.2x`, and increases Mola burst movement speed by `1.5x` for a more active fin/body read against the widened path arcs.
-- Adds size-biased avoidance so smaller creatures yield more strongly to larger creatures while larger creatures are minimally disturbed by smaller ones; species dominance overrides are left as an explicit future movement-system TODO.
-- Removes boundary-avoidance/clamping from runtime fish movement: destinations are still generated inside the swim bounds, but agents can temporarily traverse outside the target box while completing broad maneuvers near an edge.
-- Keeps Mola solo-agent Bezier handles unclamped as well as runtime positions, so near-boundary routes can bend outside the target box instead of forming a clipped control-point corner while still ending at an in-bounds destination.
-- Hard-gates Mola solo-agent route swaps on a minimum sampled turn radius of `1.2x` body length, increases target/curve retries, and stops using rejected “smoothest fallback” curves after a route already exists.
-- Reduces Mola Bezier handle length to prevent stretched-control S-bends, caps handle length as a smaller route-distance fraction, and rejects sampled curves whose XZ tangent changes turn direction mid-route.
-- Fixes the post-initial spline-end stall by adding a strict-gated forward continuation target when broad random retargets all fail after a route completes, so the Mola keeps moving without reintroducing rejected fallback curves.
-- Adds a deterministic endpoint recovery arc for the completed-route case when all random retargets fail: the arc is generated at `1.25x` the required turn radius, ends inside bounds, and is accepted only if it still passes the start-tangent, minimum-radius, and no-tangent-reversal gates.
-- Starts Mola spline handoff much earlier at `82%` route progress so the next route is generated before the fish parks at a completed spline endpoint.
-- Replaces the single long-handle Mola route cubic with a multi-segment cubic path: modest per-segment handles, controlled intermediate waypoints, and per-point tangent directions shape rotation gradually across the route instead of concentrating curvature into one Bezier span.
-- Removes the unsafe completed-endpoint best-candidate override that could reintroduce sharp turns; endpoint recovery now has to pass the radius/no-reversal gate again.
-- Fixes retarget-generation frame spikes by restoring the retarget cooldown gate, applying the same cooldown to completed/reached endpoints, and reducing Mola route candidate search from `32x18` to `16x8` attempts now that segmented paths need less brute force.
-- Removes the debug-panel `None` view mode so debug visuals are always either `View all` or `Selected fish`; debug now defaults to `View all` when enabled.
-- Revamps movement bounds so species only define Y/Z ranges while global X range is derived from tank camera projection at each destination depth: near-front destinations get narrow X travel and farther negative-Z destinations get wider X travel. Removes the debug movement-boundary box.
-- Rebuilds Mola solo-agent movement around explicit behavior lifecycles: destinations are sampled once per behavior inside the forward 180° cone, behind/failed destinations fall back to a broad turn behavior, route swaps happen only after behavior completion, runtime boundary avoidance is disabled for solo paths, and Mola debug labels now show id, common/scientific name, move speed, and active behavior.
-- Narrows Mola debug output to only the requested identity/speed/behavior label, hides solo-agent spline/target/speed/name debug extras, and hardens solo-agent path advancement against invalid path-length or speed values so an accepted visible route always advances position.
-- Fixes the Mola `choose-behavior` stall by replacing failed over-strict cruise route rejection with an immediate turn-route fallback, plus a last-resort forward fallback path, so solo agents always receive an active behavior/path instead of waiting in retry cooldown.
-- Restores the Mola debug spline while keeping Mola debug text limited to the requested identity/speed/behavior fields, and defaults debug view to selected fish only.
-- Adds boundary-aware solo-agent spline generation: endpoint tangents near X/Y/Z bounds are shaped and gated to glide within 15° of the boundary plane, and failed near-boundary routes now use a boundary-glide recovery path before any inward fallback so Mola does not sharply reverse off the edge.
-- Tightens Mola route validation against rare boundary S-curves by tracking cumulative turn, meaningful opposite-direction curvature, and a lower total-turn budget for boundary-glide recovery; boundary-glide now keeps its end tangent boundary-parallel with less inward bias so edge recovery remains one broad glide instead of left-right snaking.
-- Extends Mola spline smoothness validation to all axes by detecting opposite-direction curvature in XZ, XY, and YZ planes, so vertical/depth S-curves are rejected along with horizontal wiggles while preserving full 3D tangent continuity.
-- Replaces Mola's committed spline-follow movement with continuous steering: destinations remain inside bounds, but the body turns toward them under a fixed max turn rate, applies boundary-plane glancing bias near edges, and moves forward from its own heading so smoothness comes from the controller instead of repeatedly accepting/rejecting generated splines. The cyan debug line is now a predicted steering trail, not the movement source.
-- Extends Mola's destination Z range forward to `[-25, 0]`, but adds stateful depth residency so it usually chains several deep targets at `Z <= -10` and only occasionally enters short front excursions. This biases time spent in the back without independently biasing every destination sample and causing constant front/back swings.
-- Increases selected-creature zoom-out capacity for large animals by scaling max follow distance from body length, so selected Mola can pull back far enough to show surrounding water and neighbors. Normal selection no longer adds Fresnel/outline or body scale changes; selection Fresnel is debug-only.
-- Smooths selected-creature camera entry by easing follow distance directly from the camera's current position to the creature-specific follow distance, avoiding both immediate rush-in and pre-zoom spring-back.
-- Reduces the global projected X destination range to `90%` of the previous width, giving fish more screen-edge buffer when steering/animation carries them outside their destination bounds.
-- Adds the currently requested/playing movement animation name to the Mola debug text below the behavior line.
-- Removes the remaining selected-follow spring/lateral snap by seeding follow focus from the current camera pose and easing directly to the selected creature with softer target/position damping.
-- Adds a follow-camera surface collision plane: when zoom/orbit would lift the camera into the water surface, the desired camera pose clamps just below the surface while X/Z motion continues, creating a slide-along-surface behavior instead of rising above it.
-- Adds a runtime safety envelope for solo-agent movement: Mola can still temporarily traverse outside destination bounds for broad maneuvers, but its body center is capped to a small body-length-scaled overshoot and immediately retargets inward if it hits that outer envelope.
-- Smooths selected-follow camera rotation by seeding a look target from the current camera forward vector and damping it toward the framed creature focus, avoiding the raw `lookAt` target jump that could create an initial lateral snap before position damping was visible.
-- Applies the same smoothed-look-target transition when exiting follow mode back to tank view, so rotation eases from the current follow-facing direction instead of snapping immediately to the default tank `lookAt`.
-- Adds a Mola sun-basking behavior lifecycle: occasional front/surface approach, gradual side-up roll, 30s stationary bask hold with tiny drift and left/right bask animation, then an exit target that rolls back down before normal solo-agent behavior resumes.
-- Adds a Mola-specific hard surface ceiling for body-center motion and destination sampling, so X/Z maneuver leniency remains but upward runtime overshoot slides along a safe center height below the water surface instead of letting the body clip through the surface plane.
-- Lowers the Mola surface ceiling to account for the GLB's full visual vertical reach, preventing the visible body from swimming above the water surface in follow mode.
-- Resolves species records by id, scientific name, common name, and legacy names before applying Mola-only behavior, fixing debug sun-bask queueing and surface ceilings when creature feeds use non-common-name species keys.
-- Expands the Mola runtime safety envelope on X/Z only, moving any hard outer-cap recovery well past the screen edge while keeping the existing vertical/surface protections unchanged.
-- Disables solo-agent hard outer-envelope recovery while any creature is in follow mode, then waits 1 second after exiting follow before allowing recovery again; surface-ceiling protection remains active.
-- Adds a debug-only sunfish follow shortcut: while debug mode is on and a Mola is selected/followed, `Ctrl+Shift+X` queues sun-basking as the next solo-agent behavior after the current behavior completes.
-- Adds an explicit solo-agent debug `queue` line between `behavior` and `animation`, showing `none` or the queued next action.
-- Removes the remaining Mola boundary-tangent steering near destination bounds and tightens Mola behavior completion from nearly one body length to a small center-distance threshold, preventing visible mid-route retargets/sharp turns near screen edges.
-- When the selected solo agent hits the offscreen hard-recovery envelope during follow mode, exits follow mode first, then waits until the tank camera has returned to its original default pose before allowing the hard outer-envelope correction/retarget, so the hard correction happens only after the follow-return camera motion is complete.
-- Keeps the debug Mola sun-bask shortcut naturalistic: while debug mode is on and a Mola is selected/followed, `Ctrl+Shift+X` queues sun-basking as the next solo-agent behavior instead of interrupting the current behavior.
-- Adjusts the Mola basking pose lifecycle so the approach stays normal/upright, then the Mola rolls side-up during the surface hold while playing `sun_bask_l` / `sun_bask_r`, and rolls back down during exit.
-- Moves Mola sun-bask targets/holds closer to the surface with a separate basking surface clearance (`0.12x` body length, clamped to `0.85–1.25 WU`) while preserving the larger normal Mola surface ceiling for cruise motion.
-- Flips the Mola left/right sun-bask clip mapping so the side-up roll uses the visually matching `sun_bask_l` / `sun_bask_r` animation.
-- Starts the Mola side-up sun-bask roll during the swimming approach instead of after it stops, slows roll-in/roll-out, tightens approach arrival so it reaches the near-surface target before holding, doubles bask hold time to `60s`, and adds small independent XYZ ocean-drift motion during the stationary bask pose.
-- Adds a mobile-friendly debug action button: while debug mode is on and a Mola is selected/followed, tap `bask` in the debug panel to queue the same natural sun-bask behavior as `Ctrl+Shift+X`.
-- Retimes the Mola sun-bask approach roll from elapsed-time based to distance-progress based with eased-in interpolation, so it only reaches the full side-up pose as the fish arrives and starts basking instead of rotating fully too early mid-approach.
-- Clamps follow-camera X/Z inside the water-surface plane footprint, matching the existing Y ceiling, so zooming/orbiting out during follow mode cannot pull the camera beyond the surface card and reveal space above/outside the water. `v0.8.0-dev_118` adds adaptive selected-creature framing: large/near subjects such as Mola automatically back the follow distance out to fit their bounds, and if the surface-card clamp prevents more physical pullback the camera gently widens FOV up to a capped follow-only limit so mobile can still see the whole fish without freely exposing plane edges. `v0.8.0-dev_119` moves Mola's default follow framing farther back while restoring manual pinch/scroll zoom authority, so the fit safety no longer locks zoom-in/zoom-out controls.
+- Tunes active tank movement bounds to give sardines and Mola much wider horizontal travel (`X [-25, 25]`), lowers both movement volumes to `Y min -7`, and gives sardines explicit asymmetric depth trav
+
+... [OUTPUT TRUNCATED - 16662 chars omitted out of 66662 total] ...
+
+ity, so the fit safety no longer locks zoom-in/zoom-out controls.
 - Expands the water-surface plane width by `3x` while scaling the procedural surface UVs in X by the same factor, preserving shimmer/glint density instead of stretching the texture across the wider top surface.
 - Adds eased deceleration during the Mola sun-bask approach, ramping down forward movement over the final approach distance instead of switching from cruise speed to stationary hold abruptly.
 - Delays Mola side-up roll pacing until late in the sun-bask approach: roll now starts after about `62%` route progress and caps at `92%` while still approaching, then completes to the full 90° pose gradually during the bask hold instead of snapping at the stage transition.

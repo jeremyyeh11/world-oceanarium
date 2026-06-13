@@ -9,12 +9,41 @@ import { hashString } from '../utils/hash'
 const SCHOOL_MAX_SIZE = 64
 const ENABLE_SARDINE_INSTANCED_LAYER = true
 
+function schoolMaxSizeForSpecies(species) {
+  const configured = species?.swim?.schoolMaxSize
+  if (!Number.isFinite(configured)) return SCHOOL_MAX_SIZE
+  return Math.max(2, Math.min(SCHOOL_MAX_SIZE, Math.floor(configured)))
+}
+
 function schoolKeyForCreature(creature) {
   return `${creature.biome}:${creature.depthZone}:${creature.species}`
 }
 
 function deterministicSchoolOrder(creature) {
   return hashString(`${creature.species}:${creature.biome}:${creature.depthZone}:${creature.id}`)
+}
+
+function sexModelVariantKeysForSpecies(species) {
+  const variants = species?.model?.sexVariants
+  if (!variants || typeof variants !== 'object') return []
+  return ['male', 'female'].filter(key => variants[key]?.path)
+}
+
+function schoolModelVariantKey(species, schoolId, index, count) {
+  const variantKeys = sexModelVariantKeysForSpecies(species)
+  if (variantKeys.length < 2) return null
+
+  const half = Math.ceil(count / 2)
+  const baseKey = index < half ? variantKeys[0] : variantKeys[1]
+  const shouldFlip = (hashString(`${schoolId}:sex-order`) & 1) === 1
+  if (!shouldFlip) return baseKey
+  return baseKey === variantKeys[0] ? variantKeys[1] : variantKeys[0]
+}
+
+function creatureSexModelVariantKey(creature, species, fallbackKey) {
+  const normalizedSex = typeof creature.sex === 'string' ? creature.sex.trim().toLowerCase() : ''
+  if (normalizedSex && species?.model?.sexVariants?.[normalizedSex]?.path) return normalizedSex
+  return fallbackKey
 }
 
 export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
@@ -28,25 +57,27 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
       if (!species?.schooling) return groups
 
       const key = schoolKeyForCreature(creature)
-      const group = groups.get(key) ?? []
-      group.push(creature)
-      groups.set(key, group)
+      const entry = groups.get(key) ?? { species, creatures: [] }
+      entry.creatures.push(creature)
+      groups.set(key, entry)
       return groups
     }, new Map())
 
     const nextSchoolByCreatureId = new Map()
-    schoolingGroups.forEach((group, key) => {
+    schoolingGroups.forEach(({ species, creatures: group }, key) => {
       if (group.length < 2) return
       const orderedGroup = [...group].sort((a, b) => deterministicSchoolOrder(a) - deterministicSchoolOrder(b))
-      for (let offset = 0; offset < orderedGroup.length; offset += SCHOOL_MAX_SIZE) {
-        const schoolGroup = orderedGroup.slice(offset, offset + SCHOOL_MAX_SIZE)
+      const maxSchoolSize = schoolMaxSizeForSpecies(species)
+      for (let offset = 0; offset < orderedGroup.length; offset += maxSchoolSize) {
+        const schoolGroup = orderedGroup.slice(offset, offset + maxSchoolSize)
         if (schoolGroup.length < 2) continue
-        const schoolId = `${key}:visit-${tankVisitSeed}:school-${Math.floor(offset / SCHOOL_MAX_SIZE)}`
+        const schoolId = `${key}:visit-${tankVisitSeed}:school-${Math.floor(offset / maxSchoolSize)}`
         schoolGroup.forEach((creature, index) => {
           nextSchoolByCreatureId.set(creature.id, {
             id: schoolId,
             index,
             count: schoolGroup.length,
+            modelVariantKey: schoolModelVariantKey(species, schoolId, index, schoolGroup.length),
           })
         })
       }
@@ -61,6 +92,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
       {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} debugStatsEnabled={debugStatsEnabled} />}
       {visibleCreatures.map(creature => {
         const selected = String(creature.id) === String(selectedCreatureId)
+        const school = schoolByCreatureId.get(creature.id) ?? null
         const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))
         return (
           <Fish
@@ -75,7 +107,8 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
             debugLayers={debugLayers}
             debugLodView={debugLodView}
             debugSimulationSpeed={debugSimulationSpeed}
-            school={schoolByCreatureId.get(creature.id) ?? null}
+            school={school}
+            modelVariantKey={creatureSexModelVariantKey(creature, SPECIES_BY_KEY.get(creature.species), school?.modelVariantKey ?? null)}
             onClick={onCreatureClick}
             onReady={onCreatureReady}
             onRuntimeRecoveryNeeded={onRuntimeRecoveryNeeded}

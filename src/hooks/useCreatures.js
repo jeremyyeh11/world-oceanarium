@@ -9,6 +9,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_CREATURES_URL = import.meta.env.VITE_SUPABASE_CREATURES_URL
 const SUPABASE_CREATURES_TABLE = APP_VERSION.includes('-dev_') ? 'creatures_dev' : 'creatures'
 const ALLOW_STATIC_DEV_CREATURES = APP_VERSION.includes('-dev_')
+const ALLOW_STATIC_MISSING_ENV_FALLBACK = true
 
 function persistentUnitRandom(seed) {
   let t = hashString(seed) + 0x6D2B79F5
@@ -48,6 +49,19 @@ function normalizeSpecies(value) {
   return SPECIES_NAME_BY_ALIAS.get(value) ?? value
 }
 
+function fallbackSexForCreature(row) {
+  const species = normalizeSpecies(row.species)
+  const id = Number(row.id)
+
+  if (species === 'coryphaena-hippurus') {
+    if ([90, 92].includes(id)) return 'male'
+    if ([91, 93].includes(id)) return 'female'
+  }
+
+  if (Number.isFinite(id)) return id % 2 === 0 ? 'female' : 'male'
+  return persistentUnitRandom(`${species}:${row.id}:sex`) < 0.5 ? 'female' : 'male'
+}
+
 function normalizeCreature(row) {
   return withDefaultSize({
     id: String(row.id),
@@ -59,6 +73,7 @@ function normalizeCreature(row) {
     alive: row.alive ?? true,
     description: row.description ?? row.individual_description,
     customName: row.customName ?? row.custom_name,
+    sex: row.sex ?? fallbackSexForCreature(row),
     size: row.size,
   })
 }
@@ -104,8 +119,8 @@ export function useCreatures() {
 
     if (!creaturesUrl || !SUPABASE_ANON_KEY) {
       setState({
-        creatures: ALLOW_STATIC_DEV_CREATURES ? staticDevCreatures() : [],
-        source: ALLOW_STATIC_DEV_CREATURES ? 'static-dev' : 'supabase-not-configured',
+        creatures: (ALLOW_STATIC_DEV_CREATURES || ALLOW_STATIC_MISSING_ENV_FALLBACK) ? staticDevCreatures() : [],
+        source: ALLOW_STATIC_DEV_CREATURES ? 'static-dev' : 'static-missing-env',
         error: 'Supabase creature env vars are not configured.',
       })
       return undefined

@@ -1,7 +1,5 @@
-import { DEPTH_ZONES } from '../data/species'
-import { creatureBodyLengthMeters, SPECIES_BY_NAME } from '../utils/speciesLookup'
+import { creatureBodyLengthMeters, DEPTH_ZONE_BY_ID, SPECIES_BY_NAME } from '../utils/speciesLookup'
 
-const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 const DEFAULT_MASS = {
   coefficient: 0.008,
   exponent: 3,
@@ -10,9 +8,9 @@ const DEFAULT_MASS = {
 const styles = {
   wrap: {
     position: 'absolute',
-    right: 'clamp(1rem, 4vw, 2.25rem)',
+    right: 'clamp(0.75rem, 3vw, 2.25rem)',
     bottom: 'clamp(4.75rem, 7vh, 6.5rem)',
-    width: 'min(22rem, calc(100vw - 2rem))',
+    width: 'min(25rem, calc(100vw - 1.5rem))',
     color: '#f5fbff',
     padding: '1rem',
     borderRadius: '20px',
@@ -26,8 +24,12 @@ const styles = {
   header: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: '1rem',
+    gap: '0.7rem',
     alignItems: 'flex-start',
+  },
+  identity: {
+    flex: '1 1 auto',
+    minWidth: 0,
   },
   eyebrow: {
     margin: 0,
@@ -38,10 +40,45 @@ const styles = {
   },
   title: {
     margin: '0.22rem 0 0',
-    fontSize: 'clamp(1.25rem, 4.8vw, 1.8rem)',
+    minWidth: 0,
+    fontSize: 'clamp(1.2rem, 4.1vw, 1.68rem)',
     lineHeight: 1,
     fontWeight: 720,
     letterSpacing: '-0.035em',
+    whiteSpace: 'nowrap',
+  },
+  titleLine: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.45rem',
+    minWidth: 0,
+    width: 'fit-content',
+    maxWidth: '100%',
+  },
+  atlasIconButton: {
+    display: 'inline-grid',
+    placeItems: 'center',
+    flex: '0 0 auto',
+    width: 32,
+    height: 32,
+    padding: 0,
+    marginTop: '0.12rem',
+    borderRadius: 999,
+    border: '1px solid rgba(125, 249, 255, 0.34)',
+    background: 'rgba(55, 186, 218, 0.13)',
+    color: 'rgba(235, 253, 255, 0.92)',
+    boxShadow: '0 0 18px rgba(38, 225, 240, 0.1), inset 0 1px 0 rgba(255,255,255,0.08)',
+    cursor: 'pointer',
+  },
+  atlasIcon: {
+    width: 18,
+    height: 18,
+    display: 'block',
+    overflow: 'visible',
+    stroke: 'currentColor',
+    strokeWidth: 1.9,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
   },
   scientificName: {
     margin: '0.38rem 0 0',
@@ -66,15 +103,25 @@ const styles = {
     letterSpacing: '0.035em',
   },
   close: {
+    display: 'inline-grid',
+    placeItems: 'center',
     width: 34,
     height: 34,
+    padding: 0,
     borderRadius: 999,
     border: '1px solid rgba(255,255,255,0.14)',
     background: 'rgba(255,255,255,0.07)',
     color: 'rgba(245,252,255,0.86)',
-    fontSize: '1.15rem',
     cursor: 'pointer',
-    lineHeight: 1,
+  },
+  closeIcon: {
+    width: 15,
+    height: 15,
+    display: 'block',
+    overflow: 'visible',
+    stroke: 'currentColor',
+    strokeWidth: 2.35,
+    strokeLinecap: 'round',
   },
   chips: {
     display: 'flex',
@@ -92,17 +139,41 @@ const styles = {
     letterSpacing: '0.045em',
     textTransform: 'uppercase',
   },
+  facts: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '0.44rem',
+    marginTop: '0.9rem',
+  },
+  fact: {
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr',
+    columnGap: '0.42rem',
+    alignItems: 'baseline',
+    minWidth: 0,
+    borderRadius: 12,
+    padding: '0.48rem 0.54rem',
+    background: 'rgba(0, 9, 24, 0.22)',
+    border: '1px solid rgba(255,255,255,0.07)',
+  },
+  factLabel: {
+    color: 'rgba(190,226,245,0.5)',
+    fontSize: '0.58rem',
+    fontWeight: 720,
+    letterSpacing: '0.11em',
+    textTransform: 'uppercase',
+  },
+  factValue: {
+    color: 'rgba(247,253,255,0.9)',
+    fontSize: '0.78rem',
+    fontWeight: 650,
+    overflowWrap: 'anywhere',
+  },
   grid: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: '0.55rem',
     marginTop: '0.95rem',
-  },
-  speciesDescription: {
-    margin: '0.9rem 0 0',
-    color: 'rgba(226,246,255,0.76)',
-    fontSize: '0.84rem',
-    lineHeight: 1.45,
   },
   individualDescription: {
     margin: '0.72rem 0 0',
@@ -141,7 +212,7 @@ function formatBornAt(value) {
 }
 
 function fallbackIndividualDescription() {
-  return 'this one poops a lot'
+  return 'No individual notes yet.'
 }
 
 function escapeRegExp(value) {
@@ -151,7 +222,7 @@ function escapeRegExp(value) {
 function namedIndividualDescription(creature, customName) {
   const rawDescription = creature.description?.trim()
   if (!customName) return rawDescription || fallbackIndividualDescription(creature)
-  if (!rawDescription) return `${customName} poops a lot`
+  if (!rawDescription) return `${customName}: No individual notes yet.`
 
   const namePattern = new RegExp(`\\b${escapeRegExp(customName)}\\b`, 'i')
   if (namePattern.test(rawDescription)) return rawDescription
@@ -191,6 +262,17 @@ function formatMass(massKg) {
   return `${massKg.toFixed(massKg < 10 ? 1 : 0)} kg`
 }
 
+function formatSex(value) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : ''
+  if (normalized === 'male') return 'Male'
+  if (normalized === 'female') return 'Female'
+  return null
+}
+
+function compactDepthLabel(depthZone, fallback) {
+  return depthZone?.shortLabel ?? depthZone?.name ?? fallback ?? 'Unknown'
+}
+
 function Stat({ label, value }) {
   return (
     <div style={styles.stat}>
@@ -200,25 +282,49 @@ function Stat({ label, value }) {
   )
 }
 
-export default function InfoCard({ creature, onClose, children }) {
+export default function InfoCard({ creature, onClose, onOpenEncyclopedia, children }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
-  const depthLabel = depthZone?.label ?? creature.depthZone ?? 'Unknown zone'
+  const depthLabel = compactDepthLabel(depthZone, creature.depthZone)
   const customName = creature.customName?.trim()
+  const canOpenAtlas = Boolean(onOpenEncyclopedia && species && !species.hiddenInAtlas)
   const individualDescription = namedIndividualDescription(creature, customName)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
+  const sexLabel = formatSex(creature.sex)
 
   return (
     <section className="info-card" style={styles.wrap} aria-label={`${creature.species} details`}>
       <div style={styles.header}>
-        <div>
+        <div style={styles.identity}>
           <p style={styles.eyebrow}>ID: {creature.id}</p>
-          <h2 style={styles.title}>{creature.species}</h2>
+          <div style={styles.titleLine}>
+            <h2 style={styles.title}>{creature.species}</h2>
+            {canOpenAtlas && (
+              <button
+                type="button"
+                className="info-card-atlas-icon"
+                style={styles.atlasIconButton}
+                onClick={() => onOpenEncyclopedia(species?.id)}
+                aria-label="Open in The Atlas"
+                title="Open in The Atlas"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" style={styles.atlasIcon}>
+                  <path d="M5 5.5c1.8-.9 4.2-.9 6 0v13c-1.8-.9-4.2-.9-6 0v-13Z" />
+                  <path d="M13 5.5c1.8-.9 4.2-.9 6 0v13c-1.8-.9-4.2-.9-6 0v-13Z" />
+                  <path d="M11 5.5v13M13 5.5v13" />
+                </svg>
+              </button>
+            )}
+          </div>
           {customName && <div style={styles.nameTag}>{customName}</div>}
           {species?.scientificName && <p style={styles.scientificName}>{species.scientificName}</p>}
         </div>
-        <button type="button" style={styles.close} onClick={onClose} aria-label="Close focus card">×</button>
+        <button type="button" style={styles.close} onClick={onClose} aria-label="Close focus card">
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" style={styles.closeIcon}>
+            <path d="M7 7l10 10M17 7L7 17" />
+          </svg>
+        </button>
       </div>
 
       <div style={styles.chips}>
@@ -228,13 +334,14 @@ export default function InfoCard({ creature, onClose, children }) {
         {species?.aggressive && <span style={styles.chip}>Aggressive</span>}
       </div>
 
-      {species?.description && <p style={styles.speciesDescription}>{species.description}</p>}
+
       <p style={styles.individualDescription}>{individualDescription}</p>
 
       <div style={styles.grid}>
         <Stat label="Born" value={formatBornAt(creature.bornAt)} />
-        <Stat label="Body length" value={formatLength(lengthMeters)} />
-        <Stat label="Weight" value={formatMass(massKg)} />
+        <Stat label="Length" value={formatLength(lengthMeters)} />
+        <Stat label="Mass" value={formatMass(massKg)} />
+        {sexLabel && <Stat label="Sex" value={sexLabel} />}
       </div>
       {children}
     </section>

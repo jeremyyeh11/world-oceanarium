@@ -8,6 +8,15 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.8.17 — Speed Insights review
+
+Status: in development.
+
+### Observability
+
+- `v0.8.17-dev_1` adds Vercel Speed Insights client injection beside the existing Vercel Analytics hook so deployed builds can collect performance metrics.
+
+
 ## v0.8.16 — Creature sex + dimorphism review
 
 Status: accepted and promoted as clean `v0.8.16` from `v0.8.16-dev_3` after Jeremy approval.

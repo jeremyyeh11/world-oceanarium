@@ -9,6 +9,28 @@ Versioning convention notes:
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
 
+## v0.8.15 — Mahi-mahi curve deformation review
+
+Status: accepted and promoted as clean `v0.8.15` from `v0.8.15-dev_15` after Jeremy approval.
+
+### Creature behavior
+
+- `v0.8.15-dev_2` keeps accepted Mahi-mahi translation speeds and authored 1× GLB playback, then layers a controllable additive spine deformation after the animation mixer. The deformation reads path/spline turn pressure, distributes a subtle bend through `spine.001`–`spine.007`, adds a small tail-follow-through phase, and exposes model-level strength/response/max-angle/tail-bias/burst-boost tunables for review rollback or dialing.
+- `v0.8.15-dev_3` increases the visible deformation after Jeremy review: stronger turn-pressure input, a higher safe max bend, faster response, more body-wide/tail follow-through, and stronger burst/speed boost while still preserving accepted translation speeds and authored 1× clips.
+- `v0.8.15-dev_4` fixes the actual visibility bug: the GLB loader resolves Mahi spine bone names as `spine001`–`spine007`, so the dotted config names were not matching; it now normalizes bone names and bends on the rig's local `z` axis instead of twisting around the forward axis.
+- `v0.8.15-dev_5` emergency-disables Mahi curve deformation (`strength: 0`) after review caught catastrophic accumulated spine bending in `dev_4`; keep the accepted authored animation / movement baseline safe while the additive deformation path is reworked.
+- `v0.8.15-dev_6` restores visible Mahi curve deformation with a non-accumulating additive pass: each frame removes the previous additive only when it is still present, then applies a fresh local-`z` side-bend to the resolved spine chain. Strength is re-enabled at a safer visible range (`0.82`, max `9°`).
+- `v0.8.15-dev_7` adds a debug bone overlay for curve-deform rigs: debug mode now defaults the `B` layer on, drawing the resolved spine chain and runtime bone names over Mahi-mahi so reviewers can see exactly which bones the deformation targets.
+- `v0.8.15-dev_8` retargets bone debug to selected-creature inspection: smaller labels, all resolved GLB bones for the selected creature, no bone overlay in `View all`, and selected schooling fish now show their shared movement/follow spline even when they are not the school leader.
+- `v0.8.15-dev_9` adds male/female model variants for Mahi-mahi and general school-level sex-variant assignment: schools with both sex models available receive an approximately balanced mix, with Mahi-mahi pairs resolving to exactly one male and one female.
+- `v0.8.15-dev_10` makes selected-creature bone-name labels camera-facing billboards, unbold/normal weight, and front-rendered so bones stay legible over the fish mesh.
+- `v0.8.15-dev_11` shrinks selected-creature bone-name labels to match the normal selected-name label font size while preserving billboard/front-render behavior.
+- `v0.8.15-dev_12` moves model forward-vector debug lines to the configured head/nose offset instead of the model root, clarifying that Mahi GLB origins sit near mid-body while the debug heading starts at the nose.
+- `v0.8.15-dev_13` increases Mahi spline deformation and limits additive bend targets to `spine003`–`spine007`, keeping the forward head/root bones out of the deformation chain.
+- `v0.8.15-dev_14` makes Mahi curling respond to sustained turn intent toward the follow spline, adds a base bend on `spine003`, and strengthens rear-spine curl so turns read as body bending instead of straight-body rotation.
+- `v0.8.15-dev_15` adds a 1.05× per-bone chain multiplier to Mahi curve deformation, smooths visual pitch changes to remove random pitch snaps, and makes newly generated school splines preserve their incoming direction with the first turn pushed away from the spline start for all schooling fish.
+- Clean `v0.8.15` ships the accepted Mahi-mahi curve-deformation pass: authored GLB animation remains intact, additive bend is limited to `spine003`–`spine007`, turns use sustained follow-spline intent, debug bone/forward-vector tools are readable, Mahi pairs can use male/female variants, and schooling splines now continue smoothly across regenerated paths.
+
 ## v0.8.14 — Follow-camera retargeting
 
 Status: accepted and promoted as clean `v0.8.14` from `v0.8.14-dev_1` after Jeremy approval.

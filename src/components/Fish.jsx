@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text, useAnimations, useGLTF } from '@react-three/drei'
+import { Billboard, Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { WORLD_UNIT_METERS } from '../data/species'
@@ -99,6 +99,9 @@ const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
+const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
+const SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS = 1.55
+const VISUAL_PITCH_RESPONSE = 4.8
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
 const MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION = 0.55
@@ -258,6 +261,9 @@ const agentRecoveryEnd = new THREE.Vector3()
 const agentDestinationDirection = new THREE.Vector3()
 const agentBoundaryNormal = new THREE.Vector3()
 const agentBoundaryPlaneTangent = new THREE.Vector3()
+const curveDeformAxisX = new THREE.Vector3(1, 0, 0)
+const curveDeformAxisY = new THREE.Vector3(0, 1, 0)
+const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentBoundaryInward = new THREE.Vector3()
 const agentBoundaryGlideMid = new THREE.Vector3()
 const agentBoundaryGlideEnd = new THREE.Vector3()
@@ -348,9 +354,17 @@ function resolveSwimProfile(creature) {
   }
 }
 
-function resolveModel(creature) {
+function resolveModel(creature, variantKey = null) {
   const species = resolveSpecies(creature)
-  return species?.model ?? null
+  const baseModel = species?.model ?? null
+  const variant = variantKey ? baseModel?.sexVariants?.[variantKey] : null
+  if (!variant) return baseModel
+  return {
+    ...baseModel,
+    ...variant,
+    sexVariant: variantKey,
+    sexVariants: baseModel.sexVariants,
+  }
 }
 
 function creatureBodyLength(creature, swim) {
@@ -445,10 +459,12 @@ function enforceForwardPitchLimit(direction, pitchLimit) {
 }
 
 function debugForwardOffset(creature, swim, model) {
-  if (model?.debugForwardOrigin === 'head') return 0
   if (Number.isFinite(model?.debugForwardOffsetWU)) return model.debugForwardOffsetWU
+  const bodyLength = creatureBodyLength(creature, swim)
+  if (Number.isFinite(model?.debugForwardOffsetRatio)) return bodyLength * model.debugForwardOffsetRatio
+  if (model?.debugForwardOrigin === 'head') return bodyLength * 0.46
   if (!model) return creatureBodyLength(creature, swim) * 0.52
-  return creatureBodyLength(creature, swim) * 0.42
+  return bodyLength * 0.42
 }
 
 function placeholderDimensions(species, swim) {
@@ -1443,14 +1459,41 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
     yFlip: rand() < 0.5 ? 0 : 1,
   }
   const points = []
+  const hasContinuation = Boolean(start && exitTangent)
 
-  if (start && exitTangent) {
+  if (hasContinuation) {
     points.push(start.clone())
-    const leadDistance = THREE.MathUtils.lerp(2.4, 7.0, turnRadius) * THREE.MathUtils.lerp(1, 1.35, largeCreatureFactor(creature, swim)) * randomRange(rand, 0.9, 1.15)
-    const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
-    lead.y = THREE.MathUtils.lerp(lead.y, traversalY(rand, bounds, swim, 1, verticalScale, 0.62), 0.58)
-    lead.z += randomRange(rand, -0.7, 0.7)
+    schoolTargetTangent.copy(exitTangent)
+    if (schoolTargetTangent.lengthSq() < 0.0001) schoolTargetTangent.set(0, 0, -1)
+    schoolTargetTangent.normalize()
+
+    const bodyLength = creatureBodyLength(creature, swim)
+    const firstTurnDistance = Math.max(
+      bodyLength * SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS,
+      THREE.MathUtils.lerp(1.35, 3.6, turnRadius),
+    )
+    const leadDistance = Math.max(
+      firstTurnDistance + bodyLength * 0.4,
+      bodyLength * SCHOOL_PATH_CONTINUATION_BODY_LENGTHS * THREE.MathUtils.lerp(0.9, 1.28, turnRadius),
+    ) * randomRange(rand, 0.94, 1.08)
+    const lead = start.clone().addScaledVector(schoolTargetTangent, leadDistance)
     points.push(clampToSwimBounds(lead, bounds))
+
+    const minTurnPointDistance = firstTurnDistance + bodyLength * 0.65
+    let firstTurnPoint = null
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const candidate = rotatedSchoolPoint(rand, bounds, swim, points.length, pointCount, verticalScale, rotation, weavePhase, pattern)
+      if (candidate.distanceTo(start) >= minTurnPointDistance) {
+        firstTurnPoint = candidate
+        break
+      }
+    }
+    if (!firstTurnPoint) {
+      firstTurnPoint = start.clone().addScaledVector(schoolTargetTangent, minTurnPointDistance)
+      firstTurnPoint.y = traversalY(rand, bounds, swim, 2, verticalScale, 0.62)
+      clampToSwimBounds(firstTurnPoint, bounds)
+    }
+    points.push(firstTurnPoint)
   }
 
   for (let i = points.length; i < pointCount; i += 1) {
@@ -1981,31 +2024,254 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
   )
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null }) {
+function collectCurveDeformBones(object, model) {
+  const names = model?.curveDeform?.bones
+  if (!Array.isArray(names) || names.length === 0) return []
+  const objectsByNormalizedName = new Map()
+  object.traverse(child => {
+    if (!child?.name) return
+    objectsByNormalizedName.set(normalizeCurveDeformBoneName(child.name), child)
+  })
+  const found = []
+  names.forEach(name => {
+    const bone = object.getObjectByName(name) ?? objectsByNormalizedName.get(normalizeCurveDeformBoneName(name))
+    if (bone?.isBone) found.push(bone)
+  })
+  return found
+}
+
+function normalizeCurveDeformBoneName(name) {
+  return String(name).toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+function curveDeformAxis(config) {
+  if (config?.axis === 'x') return curveDeformAxisX
+  if (config?.axis === 'y') return curveDeformAxisY
+  return curveDeformAxisZ
+}
+
+function curveDeformMaxAngle(config) {
+  const degrees = Number.isFinite(config?.maxAngleDegrees) ? config.maxAngleDegrees : 0
+  return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(degrees, 0, 24))
+}
+
+function ensureCurveDeformState(state, count) {
+  for (let index = state.previousAdditives.length; index < count; index += 1) {
+    state.previousAdditives.push(new THREE.Quaternion())
+    state.postAdditiveQuaternions.push(new THREE.Quaternion())
+    state.hasPreviousAdditive.push(false)
+  }
+  state.previousAdditives.length = count
+  state.postAdditiveQuaternions.length = count
+  state.hasPreviousAdditive.length = count
+}
+
+function removePreviousCurveDeformAdditive(bone, state, index, scratchQuat) {
+  if (!state.hasPreviousAdditive[index]) return
+  const postAdditive = state.postAdditiveQuaternions[index]
+  if (bone.quaternion.angleTo(postAdditive) > 0.0001) {
+    state.hasPreviousAdditive[index] = false
+    return
+  }
+  scratchQuat.copy(state.previousAdditives[index]).invert()
+  bone.quaternion.multiply(scratchQuat)
+  state.hasPreviousAdditive[index] = false
+}
+
+function collectModelBones(object) {
+  const bones = []
+  object.traverse(child => {
+    if (child?.isBone) bones.push(child)
+  })
+  return bones
+}
+
+function BoneDebugOverlay({ object, bones, modelScale = 1, parentScale = 1 }) {
+  const markerRefs = useRef([])
+  const labelRefs = useRef([])
+  const scratchWorldPositionRef = useRef(new THREE.Vector3())
+  const localPositions = useMemo(
+    () => bones.map(() => new THREE.Vector3()),
+    [bones],
+  )
+  const boneIndices = useMemo(() => new Map(bones.map((bone, index) => [bone.uuid, index])), [bones])
+  const boneSegments = useMemo(() => {
+    const segments = []
+    bones.forEach((bone, index) => {
+      const parentIndex = bone.parent?.isBone ? boneIndices.get(bone.parent.uuid) : undefined
+      if (Number.isInteger(parentIndex)) segments.push([parentIndex, index])
+    })
+    return segments
+  }, [bones, boneIndices])
+  const lineGeometry = useMemo(() => {
+    const geometry = new THREE.BufferGeometry()
+    const pointCount = Math.max(2, boneSegments.length * 2)
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(pointCount * 3), 3))
+    return geometry
+  }, [boneSegments.length])
+  const markerScale = THREE.MathUtils.clamp(0.055 / Math.max(0.001, modelScale), 0.035, 0.12)
+  const labelScale = DEBUG_NAME_LABEL_SCALE / Math.max(0.001, modelScale * parentScale)
+
+  useFrame(() => {
+    if (!object || bones.length === 0) return
+    object.updateWorldMatrix(true, true)
+    const scratch = scratchWorldPositionRef.current
+    bones.forEach((bone, index) => {
+      bone.getWorldPosition(scratch)
+      localPositions[index].copy(scratch)
+      object.worldToLocal(localPositions[index])
+      const marker = markerRefs.current[index]
+      if (marker) marker.position.copy(localPositions[index])
+      const label = labelRefs.current[index]
+      if (label) label.position.copy(localPositions[index]).addScalar(markerScale * 1.15)
+    })
+    const positionAttribute = lineGeometry.getAttribute('position')
+    let cursor = 0
+    boneSegments.forEach(([startIndex, endIndex]) => {
+      const start = localPositions[startIndex]
+      const end = localPositions[endIndex]
+      positionAttribute.setXYZ(cursor, start.x, start.y, start.z)
+      positionAttribute.setXYZ(cursor + 1, end.x, end.y, end.z)
+      cursor += 2
+    })
+    while (cursor < positionAttribute.count) {
+      const fallback = localPositions[0] ?? scratch.set(0, 0, 0)
+      positionAttribute.setXYZ(cursor, fallback.x, fallback.y, fallback.z)
+      cursor += 1
+    }
+    positionAttribute.needsUpdate = true
+    lineGeometry.computeBoundingSphere()
+  })
+
+  if (bones.length === 0) return null
+
+  return (
+    <group raycast={() => null}>
+      <lineSegments geometry={lineGeometry} raycast={() => null} renderOrder={45}>
+        <lineBasicMaterial color="#35f7ff" transparent opacity={0.92} depthTest={false} depthWrite={false} />
+      </lineSegments>
+      {bones.map((bone, index) => (
+        <group key={`${bone.uuid}:${index}`}>
+          <mesh
+            ref={element => { markerRefs.current[index] = element }}
+            scale={markerScale}
+            raycast={() => null}
+            renderOrder={46}
+          >
+            <sphereGeometry args={[1, 8, 8]} />
+            <meshBasicMaterial color={bone.parent?.isBone ? '#35f7ff' : '#ffec6a'} transparent opacity={0.9} depthTest={false} depthWrite={false} />
+          </mesh>
+          <Billboard
+            ref={element => { labelRefs.current[index] = element }}
+            follow
+            raycast={() => null}
+            renderOrder={80}
+          >
+            <Text
+              fontSize={labelScale}
+              font={DEBUG_LABEL_FONT}
+              fontWeight="normal"
+              color="#eaffff"
+              anchorX="left"
+              anchorY="middle"
+              depthTest={false}
+              depthWrite={false}
+              renderOrder={81}
+              material-depthTest={false}
+              material-depthWrite={false}
+              material-transparent
+              material-toneMapped={false}
+              raycast={() => null}
+            >
+              {bone.name}
+            </Text>
+          </Billboard>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
+  const curveDeformBones = useMemo(() => collectCurveDeformBones(object, model), [object, model])
+  const debugBones = useMemo(() => collectModelBones(object), [object])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
+  const curveDeformTurnRef = useRef(0)
+  const curveDeformQuatRef = useRef(new THREE.Quaternion())
+  const curveDeformScratchQuatRef = useRef(new THREE.Quaternion())
+  const curveDeformStateRef = useRef({
+    previousAdditives: [],
+    postAdditiveQuaternions: [],
+    hasPreviousAdditive: [],
+  })
 
   useEffect(() => {
     materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
   }, [object, rim, lodDebugColor])
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, rawDelta) => {
     const elapsed = clock.getElapsedTime()
     const activeAction = activeActionRef.current
+    const simulationSpeed = THREE.MathUtils.clamp(
+      Number.isFinite(debugSimulationSpeed) ? debugSimulationSpeed : 1,
+      1,
+      10,
+    )
     if (activeAction) {
       const baseTimeScale = activeAction.userData?.baseTimeScale ?? 1
-      const simulationSpeed = THREE.MathUtils.clamp(
-        Number.isFinite(debugSimulationSpeed) ? debugSimulationSpeed : 1,
-        1,
-        10,
-      )
       const runtimeAnimationScale = model?.lockAnimationPlayback ? 1 : (animationSpeedScaleRef?.current ?? 1)
       const debugAnimationScale = model?.lockAnimationPlayback ? 1 : simulationSpeed
       activeAction.setEffectiveTimeScale(baseTimeScale * runtimeAnimationScale * debugAnimationScale)
+    }
+    const curveConfig = model?.curveDeform
+    if (curveConfig && curveDeformBones.length > 0) {
+      const curveState = curveDeformStateRef.current
+      ensureCurveDeformState(curveState, curveDeformBones.length)
+      const scratchQuat = curveDeformScratchQuatRef.current
+      const input = curveDeformInputRef?.current ?? {}
+      const strength = Number.isFinite(curveConfig.strength) ? curveConfig.strength : 0
+      const maxAngle = curveDeformMaxAngle(curveConfig)
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 5
+      const targetTurn = THREE.MathUtils.clamp(input.turn ?? 0, -1, 1)
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        targetTurn,
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const burstBoost = 1 + (Number.isFinite(curveConfig.burstBoost) ? curveConfig.burstBoost : 0) * THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1)
+      const speedBoost = 1 + (Number.isFinite(curveConfig.speedBoost) ? curveConfig.speedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      const baseAngle = THREE.MathUtils.clamp(
+        curveDeformTurnRef.current * strength * burstBoost * speedBoost * maxAngle,
+        -maxAngle,
+        maxAngle,
+      )
+      const tailBias = Number.isFinite(curveConfig.tailBias) ? Math.max(0.1, curveConfig.tailBias) : 1
+      const baseWeight = Number.isFinite(curveConfig.baseWeight)
+        ? THREE.MathUtils.clamp(curveConfig.baseWeight, 0, 1)
+        : 0
+      const chainMultiplier = Number.isFinite(curveConfig.chainMultiplier)
+        ? THREE.MathUtils.clamp(curveConfig.chainMultiplier, 0.5, 1.5)
+        : 1
+      const phase = elapsed * 1.35 + (input.phase ?? 0)
+      const bendAxis = curveDeformAxis(curveConfig)
+      curveDeformBones.forEach((bone, index) => {
+        removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
+        const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
+        const chainWeight = Math.pow(chainMultiplier, index)
+        const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias)) * chainWeight
+        const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough)
+        bone.quaternion.multiply(curveDeformQuatRef.current)
+        curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
+        curveState.postAdditiveQuaternions[index].copy(bone.quaternion)
+        curveState.hasPreviousAdditive[index] = true
+      })
     }
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms
@@ -2022,16 +2288,20 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   }, [actions, model, animation, animationVariation])
 
   return (
-    <primitive
-      object={object}
+    <group
       scale={model.scale ?? 1}
       rotation={model.rotation ?? [0, 0, 0]}
       position={model.position ?? [0, 0, 0]}
-    />
+    >
+      <primitive object={object} />
+      {debugCurveBones && debugBones.length > 0 && (
+        <BoneDebugOverlay object={object} bones={debugBones} modelScale={model.scale ?? 1} parentScale={debugParentScale} />
+      )}
+    </group>
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -2042,7 +2312,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const species = useMemo(() => resolveSpecies(creature), [creature])
-  const model = useMemo(() => resolveModel(creature), [creature])
+  const model = useMemo(() => resolveModel(creature, modelVariantKey), [creature, modelVariantKey])
   const canInstanceSardine = model?.path?.includes('/sardine/') && creature.species === 'Spotted Sardinella'
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
@@ -2092,6 +2362,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const hasFollowPosition = useRef(false)
   const previousTangent = useRef(new THREE.Vector3())
   const visualForward = useRef(new THREE.Vector3())
+  const visualPitch = useRef(0)
   const hasVisualForward = useRef(false)
   const baseLookQuaternion = useRef(new THREE.Quaternion())
   const hasBaseLookQuaternion = useRef(false)
@@ -2103,6 +2374,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const actionSpeedStartAt = useRef(0)
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
+  const curveDeformTurnIntent = useRef(0)
   const nextBurstAt = useRef(0)
   const nextDriftAt = useRef(0)
   const driftUntil = useRef(0)
@@ -2119,12 +2391,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, burst01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(schoolState?.path ?? path)
   const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
-  const splineGeometry = useMemo(() => makePathGeometry(path), [path])
+  const splineGeometry = useMemo(
+    () => makePathGeometry(schoolState?.path ?? path),
+    [path, schoolState?.path],
+  )
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
@@ -2237,6 +2513,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     hasBaseLookQuaternion.current = false
     lookBehaviorKey.current = ''
     lookBehaviorTransitionStartedAt.current = -Infinity
+    curveDeformInputRef.current.phase = motion.bobPhase
   }, [motion])
 
   const playAnimation = (name) => {
@@ -2347,6 +2624,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     const t = THREE.MathUtils.clamp((isSchooling ? schoolState.progress : progress.current) + (schoolOffset?.phase ?? 0), 0, 1)
     const currentPath = pathRef.current
+    curveDeformTurnIntent.current = 0
     let position = isSchooling
       ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now, organicNoise.current)
       : currentPath.getPointAt(t)
@@ -2678,6 +2956,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (desiredDirection.current.lengthSq() < 0.0001 || desiredDirection.current.dot(schoolFollowDirection) <= 0) {
           desiredDirection.current.copy(schoolFollowDirection)
         }
+        const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
+          ? model.curveDeform.turnIntentScale
+          : 0
+        if (turnIntentScale > 0) {
+          const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
+          curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
+        }
         rotateDirectionToward(
           desiredDirection.current,
           targetDesiredDirection,
@@ -2773,7 +3058,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     } else {
       currentPath.getTangentAt(t, splineVisualTangent).normalize()
     }
-    setForwardWithPitch(rawVisualForward, horizontalForward, clampedVisualPitch(splineVisualTangent, pitchLimit))
+    const targetVisualPitch = clampedVisualPitch(splineVisualTangent, pitchLimit)
+    if (!hasVisualForward.current) {
+      visualPitch.current = targetVisualPitch
+    } else {
+      visualPitch.current = THREE.MathUtils.damp(
+        visualPitch.current,
+        targetVisualPitch,
+        VISUAL_PITCH_RESPONSE,
+        delta,
+      )
+    }
+    setForwardWithPitch(rawVisualForward, horizontalForward, visualPitch.current)
 
     if (!hasVisualForward.current) {
       visualForward.current.copy(rawVisualForward)
@@ -3149,6 +3445,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         animationSpeedScaleRef.current = 1
       }
 
+      curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5 + curveDeformTurnIntent.current, -1, 1)
+      curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
+      curveDeformInputRef.current.burst01 = activeAnimation === resolveMoveAnimation(model, 'burst')
+        ? THREE.MathUtils.clamp((animationHoldUntil.current - now) / Math.max(0.001, modelActionAnimationDuration(model, activeAnimation, motion.burstActionDuration)), 0, 1)
+        : 0
+
       const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask'
       const bank = suppressProceduralBank ? 0 : THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
       bankQuaternion.setFromAxisAngle(pitchedForward, -bank)
@@ -3185,7 +3487,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     <group>
       {debug && (
         <>
-          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug) && (
+          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug || selected) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>
@@ -3268,7 +3570,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               animation={animation}
               animationVariation={animationVariation}
               animationSpeedScaleRef={animationSpeedScaleRef}
+              curveDeformInputRef={curveDeformInputRef}
               debugSimulationSpeed={debugSimulationSpeed}
+              debugCurveBones={debug && selected && Boolean(debugLayers?.bones)}
+              debugParentScale={size * focusScale}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
             />
@@ -3306,4 +3611,5 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
 useGLTF.preload('/models/fish/sardine/sardine.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female.glb')

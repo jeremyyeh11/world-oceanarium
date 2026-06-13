@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { SURFACE_PLANE_DEPTH, SURFACE_PLANE_WIDTH, SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z } from './WaterSurface'
 
-export const CAMERA_LIMITS = {
+const CAMERA_LIMITS = {
   ocean: { min: -50, max: 3 },
   'tropical-river': { min: -11, max: 3 },
 }

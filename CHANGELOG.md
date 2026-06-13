@@ -14,7 +14,8 @@ Status: in development.
 
 ### Creature data / Atlas
 
-- `v0.8.16-dev_1` adds a nullable `sex` creature field for Supabase `creatures` and `creatures_dev`, maps Mahi-mahi male/female rows to the matching GLB variants, shows sex on the follow info card, and adds Atlas sexual-dimorphism copy for each species. Non-dimorphic species stay null/ignored at the model layer.
+- `v0.8.16-dev_2` assigns `sex` for every active creature row, including non-dimorphic species, while only sexually dimorphic model variants affect GLB selection.
+- `v0.8.16-dev_1` adds a nullable `sex` creature field for Supabase `creatures` and `creatures_dev`, maps Mahi-mahi male/female rows to the matching GLB variants, shows sex on the follow info card, and adds Atlas sexual-dimorphism copy for each species. Non-dimorphic species ignore sex at the model layer.
 
 
 ## v0.8.15 — Mahi-mahi curve deformation review

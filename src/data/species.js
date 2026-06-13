@@ -393,6 +393,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: index === 0 ? '2026-05-13T00:00:00Z' : '2026-05-17T00:00:00Z',
     alive: true,
+    sex: (index + 1) % 2 === 0 ? 'female' : 'male',
   })),
   {
     id: 89,
@@ -401,6 +402,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-26T00:00:00Z',
     alive: true,
+    sex: 'male',
   },
   ...[0.338, 0.398, 0.44, 0.476].map((size, index) => ({
     id: 90 + index,

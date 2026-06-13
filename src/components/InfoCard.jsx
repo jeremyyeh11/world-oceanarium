@@ -1,7 +1,5 @@
-import { DEPTH_ZONES } from '../data/species'
-import { creatureBodyLengthMeters, SPECIES_BY_NAME } from '../utils/speciesLookup'
+import { creatureBodyLengthMeters, DEPTH_ZONE_BY_ID, SPECIES_BY_NAME } from '../utils/speciesLookup'
 
-const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 const DEFAULT_MASS = {
   coefficient: 0.008,
   exponent: 3,

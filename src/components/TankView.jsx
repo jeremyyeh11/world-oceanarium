@@ -7,9 +7,8 @@ import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
-import { DEPTH_ZONES } from '../data/species'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
-import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
+import { creatureBodyLengthWU, DEPTH_ZONE_BY_ID, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
@@ -46,7 +45,6 @@ const DEBUG_LAYER_BUTTONS = [
 ]
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
-const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
 function creatureDisplayName(creature) {
   const customName = creature?.customName?.trim()

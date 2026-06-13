@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text, useAnimations, useGLTF } from '@react-three/drei'
+import { Billboard, Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { WORLD_UNIT_METERS } from '../data/species'
@@ -2156,19 +2156,31 @@ function BoneDebugOverlay({ object, bones, modelScale = 1 }) {
             <sphereGeometry args={[1, 8, 8]} />
             <meshBasicMaterial color={bone.parent?.isBone ? '#35f7ff' : '#ffec6a'} transparent opacity={0.9} depthTest={false} depthWrite={false} />
           </mesh>
-          <Text
+          <Billboard
             ref={element => { labelRefs.current[index] = element }}
-            fontSize={labelScale}
-            font={DEBUG_LABEL_FONT}
-            color="#eaffff"
-            anchorX="left"
-            anchorY="middle"
-            depthTest={false}
-            renderOrder={47}
+            follow
             raycast={() => null}
+            renderOrder={80}
           >
-            {bone.name}
-          </Text>
+            <Text
+              fontSize={labelScale}
+              font={DEBUG_LABEL_FONT}
+              fontWeight="normal"
+              color="#eaffff"
+              anchorX="left"
+              anchorY="middle"
+              depthTest={false}
+              depthWrite={false}
+              renderOrder={81}
+              material-depthTest={false}
+              material-depthWrite={false}
+              material-transparent
+              material-toneMapped={false}
+              raycast={() => null}
+            >
+              {bone.name}
+            </Text>
+          </Billboard>
         </group>
       ))}
     </group>

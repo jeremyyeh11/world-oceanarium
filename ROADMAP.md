@@ -13,6 +13,12 @@ Status labels:
 
 ## Current work
 
+### v0.8.17 — Vercel Speed Insights (Current in development)
+
+- [x] Install `@vercel/speed-insights`.
+- [x] Inject Speed Insights once on the client.
+- [ ] Deploy/visit preview so Vercel can collect first data points.
+
 ## Code cleanup / maintenance
 
 ### Debug-runtime hardening and maintainability

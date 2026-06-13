@@ -456,10 +456,12 @@ function enforceForwardPitchLimit(direction, pitchLimit) {
 }
 
 function debugForwardOffset(creature, swim, model) {
-  if (model?.debugForwardOrigin === 'head') return 0
   if (Number.isFinite(model?.debugForwardOffsetWU)) return model.debugForwardOffsetWU
+  const bodyLength = creatureBodyLength(creature, swim)
+  if (Number.isFinite(model?.debugForwardOffsetRatio)) return bodyLength * model.debugForwardOffsetRatio
+  if (model?.debugForwardOrigin === 'head') return bodyLength * 0.46
   if (!model) return creatureBodyLength(creature, swim) * 0.52
-  return creatureBodyLength(creature, swim) * 0.42
+  return bodyLength * 0.42
 }
 
 function placeholderDimensions(species, swim) {

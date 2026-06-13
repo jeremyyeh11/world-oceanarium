@@ -69,7 +69,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy rejected speed-only Mahi-mahi movement tuning and asked whether a general curve deformation can ride on top of the authored animation while the fish follows the spline.
-- Implementation target: `v0.8.15-dev_11` repaired deformation review build with name-label-sized bone labels.
+- Implementation target: `v0.8.15-dev_12` repaired deformation review build with nose-anchored forward-vector debug.
 - Jeremy reviewed `v0.8.15-dev_2` and said deformation was not enough; `v0.8.15-dev_3` raises the visible bend while keeping the same additive-after-mixer architecture.
 - Jeremy screenshot review of `v0.8.15-dev_3` showed fish still flat in turns. Cause: GLB runtime bone names are `spine001`–`spine007` and the bend axis should be local `z`, so previous deformation was either not finding bones or twisting instead of side-bending.
 - Jeremy review of `v0.8.15-dev_4` showed catastrophic pretzel deformation; emergency rollback was `v0.8.15-dev_5` with curve deformation disabled until additive posing was non-accumulating and safely previewed.
@@ -79,6 +79,7 @@ Reference:
 - Jeremy added male/female Mahi-mahi GLBs and asked for general school logic that mixes available sex variants at approximately 1:1, exactly 1:1 for two-creature Mahi pairs.
 - Jeremy asked for selected bone-name fonts to be billboards, unbold, and always rendered in front.
 - Jeremy asked for bone-name fonts even smaller, matching the selected name label font.
+- Jeremy noticed the forward vector coming from mid-body; GLB origin/pivot is near mid-body, but debug heading should start at the nose.
 
 Subtasks:
 - [x] Keep authored GLB animation playback first and additive deformation after mixer update.
@@ -94,6 +95,7 @@ Subtasks:
 - [x] Add Mahi male/female variants plus balanced school sex-model assignment and browser-smoke `v0.8.15-dev_9`.
 - [x] Make bone-name labels billboards, normal weight, front-rendered and browser-smoke `v0.8.15-dev_10`.
 - [x] Shrink bone-name labels to match selected name label font and browser-smoke `v0.8.15-dev_11`.
+- [x] Move model forward-vector debug start to Mahi nose/head offset and browser-smoke `v0.8.15-dev_12`.
 
 Review gates:
 - Mahi-mahi no longer reads as a rigid root rotating through curves.

@@ -258,6 +258,8 @@ export const SPECIES = [
         speedBoost: 0.28,
       },
       debugForwardOrigin: 'head',
+      // GLB origin sits near mid-body; nose is at +4.55 / 9.79 of the source length.
+      debugForwardOffsetRatio: 0.465,
     },
   },
   {

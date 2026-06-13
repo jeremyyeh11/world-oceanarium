@@ -25,6 +25,7 @@ Status: in development as `v0.8.15-dev_2` after the rejected speed-only `v0.8.15
 - `v0.8.15-dev_9` adds male/female model variants for Mahi-mahi and general school-level sex-variant assignment: schools with both sex models available receive an approximately balanced mix, with Mahi-mahi pairs resolving to exactly one male and one female.
 - `v0.8.15-dev_10` makes selected-creature bone-name labels camera-facing billboards, unbold/normal weight, and front-rendered so bones stay legible over the fish mesh.
 - `v0.8.15-dev_11` shrinks selected-creature bone-name labels to match the normal selected-name label font size while preserving billboard/front-render behavior.
+- `v0.8.15-dev_12` moves model forward-vector debug lines to the configured head/nose offset instead of the model root, clarifying that Mahi GLB origins sit near mid-body while the debug heading starts at the nose.
 
 ## v0.8.14 — Follow-camera retargeting
 

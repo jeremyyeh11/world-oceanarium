@@ -10,13 +10,14 @@ Versioning convention notes:
 
 ## v0.8.16 — Creature sex + dimorphism review
 
-Status: in development.
+Status: accepted and promoted as clean `v0.8.16` from `v0.8.16-dev_3` after Jeremy approval.
 
 ### Creature data / Atlas
 
 - `v0.8.16-dev_3` imports Jeremy's returned Atlas CSV copy edits, including Sardinella adult length range and simplified social/reproduction/lifecycle wording.
 - `v0.8.16-dev_2` assigns `sex` for every active creature row, including non-dimorphic species, while only sexually dimorphic model variants affect GLB selection.
 - `v0.8.16-dev_1` adds a nullable `sex` creature field for Supabase `creatures` and `creatures_dev`, maps Mahi-mahi male/female rows to the matching GLB variants, shows sex on the follow info card, and adds Atlas sexual-dimorphism copy for each species. Non-dimorphic species ignore sex at the model layer.
+- Clean `v0.8.16` ships creature sex across all active Supabase rows, Mahi-mahi sex-driven GLB selection, and the accepted Atlas dimorphism/copy edits.
 
 
 ## v0.8.15 — Mahi-mahi curve deformation review

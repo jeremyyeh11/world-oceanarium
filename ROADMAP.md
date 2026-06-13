@@ -13,13 +13,6 @@ Status labels:
 
 ## Current work
 
-### v0.8.16 — Creature sex + dimorphism (Current in development)
-
-- [x] Add nullable Supabase `sex` migration for `creatures` and `creatures_dev`.
-- [x] Show individual sex in the follow info card.
-- [x] Route sexually dimorphic Mahi-mahi GLBs from the creature `sex` value; assign sex to all creatures while leaving non-dimorphic species ignored at the model layer.
-- [x] Add Atlas sexual-dimorphism field for every visible species.
-
 ## Code cleanup / maintenance
 
 ### Debug-runtime hardening and maintainability

@@ -99,6 +99,9 @@ const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
+const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
+const SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS = 1.55
+const VISUAL_PITCH_RESPONSE = 4.8
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
 const MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION = 0.55
@@ -1456,14 +1459,41 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
     yFlip: rand() < 0.5 ? 0 : 1,
   }
   const points = []
+  const hasContinuation = Boolean(start && exitTangent)
 
-  if (start && exitTangent) {
+  if (hasContinuation) {
     points.push(start.clone())
-    const leadDistance = THREE.MathUtils.lerp(2.4, 7.0, turnRadius) * THREE.MathUtils.lerp(1, 1.35, largeCreatureFactor(creature, swim)) * randomRange(rand, 0.9, 1.15)
-    const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
-    lead.y = THREE.MathUtils.lerp(lead.y, traversalY(rand, bounds, swim, 1, verticalScale, 0.62), 0.58)
-    lead.z += randomRange(rand, -0.7, 0.7)
+    schoolTargetTangent.copy(exitTangent)
+    if (schoolTargetTangent.lengthSq() < 0.0001) schoolTargetTangent.set(0, 0, -1)
+    schoolTargetTangent.normalize()
+
+    const bodyLength = creatureBodyLength(creature, swim)
+    const firstTurnDistance = Math.max(
+      bodyLength * SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS,
+      THREE.MathUtils.lerp(1.35, 3.6, turnRadius),
+    )
+    const leadDistance = Math.max(
+      firstTurnDistance + bodyLength * 0.4,
+      bodyLength * SCHOOL_PATH_CONTINUATION_BODY_LENGTHS * THREE.MathUtils.lerp(0.9, 1.28, turnRadius),
+    ) * randomRange(rand, 0.94, 1.08)
+    const lead = start.clone().addScaledVector(schoolTargetTangent, leadDistance)
     points.push(clampToSwimBounds(lead, bounds))
+
+    const minTurnPointDistance = firstTurnDistance + bodyLength * 0.65
+    let firstTurnPoint = null
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const candidate = rotatedSchoolPoint(rand, bounds, swim, points.length, pointCount, verticalScale, rotation, weavePhase, pattern)
+      if (candidate.distanceTo(start) >= minTurnPointDistance) {
+        firstTurnPoint = candidate
+        break
+      }
+    }
+    if (!firstTurnPoint) {
+      firstTurnPoint = start.clone().addScaledVector(schoolTargetTangent, minTurnPointDistance)
+      firstTurnPoint.y = traversalY(rand, bounds, swim, 2, verticalScale, 0.62)
+      clampToSwimBounds(firstTurnPoint, bounds)
+    }
+    points.push(firstTurnPoint)
   }
 
   for (let i = points.length; i < pointCount; i += 1) {
@@ -2252,12 +2282,16 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const baseWeight = Number.isFinite(curveConfig.baseWeight)
         ? THREE.MathUtils.clamp(curveConfig.baseWeight, 0, 1)
         : 0
+      const chainMultiplier = Number.isFinite(curveConfig.chainMultiplier)
+        ? THREE.MathUtils.clamp(curveConfig.chainMultiplier, 0.5, 1.5)
+        : 1
       const phase = elapsed * 1.35 + (input.phase ?? 0)
       const bendAxis = curveDeformAxis(curveConfig)
       curveDeformBones.forEach((bone, index) => {
         removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
         const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
-        const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias))
+        const chainWeight = Math.pow(chainMultiplier, index)
+        const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias)) * chainWeight
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
         curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough)
         bone.quaternion.multiply(curveDeformQuatRef.current)
@@ -2355,6 +2389,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const hasFollowPosition = useRef(false)
   const previousTangent = useRef(new THREE.Vector3())
   const visualForward = useRef(new THREE.Vector3())
+  const visualPitch = useRef(0)
   const hasVisualForward = useRef(false)
   const baseLookQuaternion = useRef(new THREE.Quaternion())
   const hasBaseLookQuaternion = useRef(false)
@@ -3050,7 +3085,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     } else {
       currentPath.getTangentAt(t, splineVisualTangent).normalize()
     }
-    setForwardWithPitch(rawVisualForward, horizontalForward, clampedVisualPitch(splineVisualTangent, pitchLimit))
+    const targetVisualPitch = clampedVisualPitch(splineVisualTangent, pitchLimit)
+    if (!hasVisualForward.current) {
+      visualPitch.current = targetVisualPitch
+    } else {
+      visualPitch.current = THREE.MathUtils.damp(
+        visualPitch.current,
+        targetVisualPitch,
+        VISUAL_PITCH_RESPONSE,
+        delta,
+      )
+    }
+    setForwardWithPitch(rawVisualForward, horizontalForward, visualPitch.current)
 
     if (!hasVisualForward.current) {
       visualForward.current.copy(rawVisualForward)

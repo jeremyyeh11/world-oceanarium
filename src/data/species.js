@@ -255,6 +255,7 @@ export const SPECIES = [
         response: 8.5,
         tailBias: 0.85,
         baseWeight: 0.28,
+        chainMultiplier: 1.05,
         turnIntentScale: 5.5,
         burstBoost: 0.72,
         speedBoost: 0.28,

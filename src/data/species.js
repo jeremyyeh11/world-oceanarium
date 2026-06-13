@@ -69,12 +69,13 @@ export const SPECIES = [
     atlasDetails: {
       commonDiet: 'Plankton, copepods, larvae.',
       foundIn: 'Indo-West Pacific coastal waters and lagoons.',
-      lifeSpan: 'Up to 8 years reported.',
-      maturityAge: '~1 year (estimated)',
+      sexualDimorphism: 'N/A',
+      lifeSpan: 'Up to 8 years',
+      maturityAge: '1 year (estimated)',
       social: {
-        schoolSize: '>1000',
-        groupingBehaviour: 'Pelagic schooling fish in coastal waters and lagoons; juveniles found closer inshore.',
-        reproduction: 'Communal broadcast spawning. Peak season Nov–Jan. No pair bonding.',
+        schoolSize: 'More than 1000',
+        groupingBehaviour: 'Pelagic schooling fish in coastal waters and lagoons. Juveniles found closer inshore.',
+        reproduction: 'Communal broadcast spawning. No pair bonding.',
       },
       averages: {
         maleSizeMeters: 0.20,
@@ -85,9 +86,9 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 8,
       },
       lifecycle: {
-        sexualMaturityYears: '~1 year (estimated)',
+        sexualMaturityYears: '1 year (estimated)',
         sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: '11,600–43,200',
+        offspringPerMatingEvent: '11,600 to 43,200 eggs',
       },
     },
     atlasSummary: {
@@ -98,6 +99,7 @@ export const SPECIES = [
     },
     description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the tank as a quick flicker of many bodies rather than a lone specimen.',
     atlasThumbnail: '/atlas/amblygaster-sirm-thumbnail.png',
+    adultLengthRangeMeters: [0.15, 0.27],
     maxBodyLengthMeters: 0.27,
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.
@@ -153,12 +155,13 @@ export const SPECIES = [
     atlasDetails: {
       commonDiet: 'Small fish, squid, crustaceans.',
       foundIn: 'Warm tropical and subtropical open ocean, often near floating cover.',
-      lifeSpan: 'Up to 5 years.',
-      maturityAge: '4–5 months',
+      sexualDimorphism: 'Males develop the tall blunt forehead/head profile; females keep a lower, more rounded head profile.',
+      lifeSpan: 'Up to 5 years',
+      maturityAge: '4 to 5 months',
       social: {
-        schoolSize: '1–2 adults',
-        groupingBehaviour: 'Adults travel alone or in pairs, with occasional small loose groups near floating debris and weedlines. Juveniles may school in open water; males are often size-dominant at aggregation sites.',
-        reproduction: 'Broadcast spawning in pairs or small groups in warm open water above 21°C. Multiple spawning events per season, around every 2 days; extended year-round season in the tropics with May–Jul and Nov–Jan peaks.',
+        schoolSize: '1 to 2',
+        groupingBehaviour: 'Adults travel alone or in pairs, with occasional small loose groups near floating debris and weedlines. Juveniles may school in open water.',
+        reproduction: 'Broadcast spawning in pairs or small groups in warm open water above 21°C. Multiple spawning events per season, around every 2 days; extended year-round season in the tropics.',
       },
       averages: {
         maleSizeMeters: 0.91,
@@ -169,9 +172,9 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 5,
       },
       lifecycle: {
-        sexualMaturityYears: '4–5 months',
-        sexualSterilityYears: 'N/A — reproductive until death',
-        offspringPerMatingEvent: '~80,000–1,000,000 eggs per spawn',
+        sexualMaturityYears: '4 to 5 months',
+        sexualSterilityYears: 'Reproductive until death',
+        offspringPerMatingEvent: '80,000 to 1,000,000 eggs',
       },
     },
     atlasSummary: {
@@ -287,12 +290,13 @@ export const SPECIES = [
     atlasDetails: {
       commonDiet: 'Jellyfish, salps, soft-bodied prey.',
       foundIn: 'Open ocean outside polar regions.',
-      lifeSpan: 'Unknown in the wild.',
+      sexualDimorphism: 'N/A',
+      lifeSpan: 'Unknown',
       maturityAge: 'Unknown',
       social: {
         schoolSize: 1,
-        groupingBehaviour: 'Solitary as adults. Juveniles loosely school for predator protection, dispersing at maturity.',
-        reproduction: 'Broadcast spawning in open water; adults briefly aggregate to spawn. Season likely summer (Jun–Aug). No parental care.',
+        groupingBehaviour: 'Adults are reported to travel mainly alone or in pairs, and sometimes in groups. Juveniles loosely school for predator protection, dispersing at maturity.',
+        reproduction: 'Broadcast spawning in open water; adults briefly aggregate to spawn. No parental care.',
       },
       averages: {
         maleSizeMeters: 2.5,
@@ -305,7 +309,7 @@ export const SPECIES = [
       lifecycle: {
         sexualMaturityYears: 'Unknown',
         sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: '>300,000,000',
+        offspringPerMatingEvent: 'More than 300,000,000 eggs',
       },
     },
     atlasSummary: {
@@ -390,6 +394,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: index === 0 ? '2026-05-13T00:00:00Z' : '2026-05-17T00:00:00Z',
     alive: true,
+    sex: (index + 1) % 2 === 0 ? 'female' : 'male',
   })),
   {
     id: 89,
@@ -398,6 +403,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: '2026-05-26T00:00:00Z',
     alive: true,
+    sex: 'male',
   },
   ...[0.338, 0.398, 0.44, 0.476].map((size, index) => ({
     id: 90 + index,
@@ -406,6 +412,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: `2026-06-08T07:1${index}:00Z`,
     alive: true,
+    sex: index % 2 === 0 ? 'male' : 'female',
     size,
   }))
 ]

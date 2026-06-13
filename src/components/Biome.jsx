@@ -40,6 +40,12 @@ function schoolModelVariantKey(species, schoolId, index, count) {
   return baseKey === variantKeys[0] ? variantKeys[1] : variantKeys[0]
 }
 
+function creatureSexModelVariantKey(creature, species, fallbackKey) {
+  const normalizedSex = typeof creature.sex === 'string' ? creature.sex.trim().toLowerCase() : ''
+  if (normalizedSex && species?.model?.sexVariants?.[normalizedSex]?.path) return normalizedSex
+  return fallbackKey
+}
+
 export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   const visibleCreatures = useMemo(
     () => creatures.filter(c => c.biome === name && c.alive),
@@ -102,7 +108,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
             debugLodView={debugLodView}
             debugSimulationSpeed={debugSimulationSpeed}
             school={school}
-            modelVariantKey={school?.modelVariantKey ?? null}
+            modelVariantKey={creatureSexModelVariantKey(creature, SPECIES_BY_KEY.get(creature.species), school?.modelVariantKey ?? null)}
             onClick={onCreatureClick}
             onReady={onCreatureReady}
             onRuntimeRecoveryNeeded={onRuntimeRecoveryNeeded}

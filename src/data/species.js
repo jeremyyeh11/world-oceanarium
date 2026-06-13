@@ -69,6 +69,7 @@ export const SPECIES = [
     atlasDetails: {
       commonDiet: 'Plankton, copepods, larvae.',
       foundIn: 'Indo-West Pacific coastal waters and lagoons.',
+      sexualDimorphism: 'No clear external sexual dimorphism documented.',
       lifeSpan: 'Up to 8 years reported.',
       maturityAge: '~1 year (estimated)',
       social: {
@@ -153,6 +154,7 @@ export const SPECIES = [
     atlasDetails: {
       commonDiet: 'Small fish, squid, crustaceans.',
       foundIn: 'Warm tropical and subtropical open ocean, often near floating cover.',
+      sexualDimorphism: 'Males develop the tall blunt forehead/head profile; females keep a lower, more rounded head profile. Both share the same bright blue-green/yellow palette.',
       lifeSpan: 'Up to 5 years.',
       maturityAge: '4–5 months',
       social: {
@@ -287,6 +289,7 @@ export const SPECIES = [
     atlasDetails: {
       commonDiet: 'Jellyfish, salps, soft-bodied prey.',
       foundIn: 'Open ocean outside polar regions.',
+      sexualDimorphism: 'No clear external sexual dimorphism; females may reach larger sizes, but body shape alone is not a reliable field sex marker.',
       lifeSpan: 'Unknown in the wild.',
       maturityAge: 'Unknown',
       social: {
@@ -406,6 +409,7 @@ export const CREATURES = [
     depthZone: 'epipelagic',
     bornAt: `2026-06-08T07:1${index}:00Z`,
     alive: true,
+    sex: index % 2 === 0 ? 'male' : 'female',
     size,
   }))
 ]

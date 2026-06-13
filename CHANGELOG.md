@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.8.16 — Creature sex + dimorphism review
+
+Status: in development.
+
+### Creature data / Atlas
+
+- `v0.8.16-dev_1` adds a nullable `sex` creature field for Supabase `creatures` and `creatures_dev`, maps Mahi-mahi male/female rows to the matching GLB variants, shows sex on the follow info card, and adds Atlas sexual-dimorphism copy for each species. Non-dimorphic species stay null/ignored at the model layer.
+
 
 ## v0.8.15 — Mahi-mahi curve deformation review
 

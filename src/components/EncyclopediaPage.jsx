@@ -874,6 +874,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           <AtlasTableSection
             title="Social"
             rows={[
+              { label: 'Sexual dimorphism', value: unknownIfEmpty(atlasDetails.sexualDimorphism) },
               { label: 'School size', value: formatOffspring(atlasDetails.social?.schoolSize) },
               { label: 'Grouping behaviour', value: unknownIfEmpty(atlasDetails.social?.groupingBehaviour) },
               { label: 'Reproduction', value: unknownIfEmpty(atlasDetails.social?.reproduction) },

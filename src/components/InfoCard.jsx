@@ -262,6 +262,13 @@ function formatMass(massKg) {
   return `${massKg.toFixed(massKg < 10 ? 1 : 0)} kg`
 }
 
+function formatSex(value) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : ''
+  if (normalized === 'male') return 'Male'
+  if (normalized === 'female') return 'Female'
+  return null
+}
+
 function compactDepthLabel(depthZone, fallback) {
   return depthZone?.shortLabel ?? depthZone?.name ?? fallback ?? 'Unknown'
 }
@@ -284,6 +291,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
   const individualDescription = namedIndividualDescription(creature, customName)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
+  const sexLabel = formatSex(creature.sex)
 
   return (
     <section className="info-card" style={styles.wrap} aria-label={`${creature.species} details`}>
@@ -333,6 +341,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
         <Stat label="Born" value={formatBornAt(creature.bornAt)} />
         <Stat label="Length" value={formatLength(lengthMeters)} />
         <Stat label="Mass" value={formatMass(massKg)} />
+        {sexLabel && <Stat label="Sex" value={sexLabel} />}
       </div>
       {children}
     </section>

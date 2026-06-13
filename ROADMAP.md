@@ -11,6 +11,15 @@ Status labels:
 - `Backlog` — known follow-up, not blocking current release unless promoted.
 - `Archive candidate` — remove or move to archive once completed and pushed to a clean public release.
 
+## Current work
+
+### v0.8.16 — Creature sex + dimorphism (Current in development)
+
+- [x] Add nullable Supabase `sex` migration for `creatures` and `creatures_dev`.
+- [x] Show individual sex in the follow info card.
+- [x] Route sexually dimorphic Mahi-mahi GLBs from the creature `sex` value; leave non-dimorphic species ignored/null.
+- [x] Add Atlas sexual-dimorphism field for every visible species.
+
 ## Code cleanup / maintenance
 
 ### Debug-runtime hardening and maintainability

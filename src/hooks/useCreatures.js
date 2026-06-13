@@ -49,6 +49,15 @@ function normalizeSpecies(value) {
   return SPECIES_NAME_BY_ALIAS.get(value) ?? value
 }
 
+function fallbackSexForDimorphicCreature(row) {
+  const species = normalizeSpecies(row.species)
+  if (species !== 'coryphaena-hippurus') return null
+  const id = Number(row.id)
+  if ([90, 92].includes(id)) return 'male'
+  if ([91, 93].includes(id)) return 'female'
+  return null
+}
+
 function normalizeCreature(row) {
   return withDefaultSize({
     id: String(row.id),
@@ -60,6 +69,7 @@ function normalizeCreature(row) {
     alive: row.alive ?? true,
     description: row.description ?? row.individual_description,
     customName: row.customName ?? row.custom_name,
+    sex: row.sex ?? fallbackSexForDimorphicCreature(row),
     size: row.size,
   })
 }

@@ -13,12 +13,6 @@ Status labels:
 
 ## Current work
 
-### v0.8.17 — Vercel Speed Insights (Current in development)
-
-- [x] Install `@vercel/speed-insights`.
-- [x] Inject Speed Insights once on the client.
-- [ ] Deploy/visit preview so Vercel can collect first data points.
-
 ## Code cleanup / maintenance
 
 ### Debug-runtime hardening and maintainability
@@ -255,6 +249,18 @@ Subtasks:
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
 ## Released / archived
+
+### v0.8.17 — Vercel Speed Insights
+
+Status: accepted and promoted as clean `v0.8.17` from `v0.8.17-dev_1` after Jeremy approval.
+
+Accepted gates:
+- Speed Insights package installed and injected once beside Vercel Analytics.
+- Main CI passed after merge and clean-version correction.
+- Vercel production deployment completed successfully.
+
+Implementation summary:
+- Adds `@vercel/speed-insights` and renders `<SpeedInsights />` at the app root.
 
 ### v0.8.9 — Camera position polish
 

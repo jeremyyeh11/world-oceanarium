@@ -10,11 +10,11 @@ Versioning convention notes:
 
 ## v0.8.17 — Speed Insights review
 
-Status: in development.
+Status: accepted and promoted as clean `v0.8.17` from `v0.8.17-dev_1` after Jeremy approval.
 
 ### Observability
 
-- `v0.8.17-dev_1` adds Vercel Speed Insights client injection beside the existing Vercel Analytics hook so deployed builds can collect performance metrics.
+- Adds Vercel Speed Insights client injection beside the existing Vercel Analytics hook so deployed public builds can collect performance metrics.
 
 
 ## v0.8.16 — Creature sex + dimorphism review

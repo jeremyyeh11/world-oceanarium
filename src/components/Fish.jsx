@@ -2081,7 +2081,7 @@ function collectModelBones(object) {
   return bones
 }
 
-function BoneDebugOverlay({ object, bones, modelScale = 1 }) {
+function BoneDebugOverlay({ object, bones, modelScale = 1, parentScale = 1 }) {
   const markerRefs = useRef([])
   const labelRefs = useRef([])
   const scratchWorldPositionRef = useRef(new THREE.Vector3())
@@ -2105,7 +2105,7 @@ function BoneDebugOverlay({ object, bones, modelScale = 1 }) {
     return geometry
   }, [boneSegments.length])
   const markerScale = THREE.MathUtils.clamp(0.055 / Math.max(0.001, modelScale), 0.035, 0.12)
-  const labelScale = THREE.MathUtils.clamp(0.095 / Math.max(0.001, modelScale), 0.055, 0.15)
+  const labelScale = DEBUG_NAME_LABEL_SCALE / Math.max(0.001, modelScale * parentScale)
 
   useFrame(() => {
     if (!object || bones.length === 0) return
@@ -2187,7 +2187,7 @@ function BoneDebugOverlay({ object, bones, modelScale = 1 }) {
   )
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, debugCurveBones = false, rim = null, lodDebugColor = null }) {
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
@@ -2283,7 +2283,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
     >
       <primitive object={object} />
       {debugCurveBones && debugBones.length > 0 && (
-        <BoneDebugOverlay object={object} bones={debugBones} modelScale={model.scale ?? 1} />
+        <BoneDebugOverlay object={object} bones={debugBones} modelScale={model.scale ?? 1} parentScale={debugParentScale} />
       )}
     </group>
   )
@@ -3540,6 +3540,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               curveDeformInputRef={curveDeformInputRef}
               debugSimulationSpeed={debugSimulationSpeed}
               debugCurveBones={debug && selected && Boolean(debugLayers?.bones)}
+              debugParentScale={size * focusScale}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
             />

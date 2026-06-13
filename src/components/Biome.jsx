@@ -23,6 +23,23 @@ function deterministicSchoolOrder(creature) {
   return hashString(`${creature.species}:${creature.biome}:${creature.depthZone}:${creature.id}`)
 }
 
+function sexModelVariantKeysForSpecies(species) {
+  const variants = species?.model?.sexVariants
+  if (!variants || typeof variants !== 'object') return []
+  return ['male', 'female'].filter(key => variants[key]?.path)
+}
+
+function schoolModelVariantKey(species, schoolId, index, count) {
+  const variantKeys = sexModelVariantKeysForSpecies(species)
+  if (variantKeys.length < 2) return null
+
+  const half = Math.ceil(count / 2)
+  const baseKey = index < half ? variantKeys[0] : variantKeys[1]
+  const shouldFlip = (hashString(`${schoolId}:sex-order`) & 1) === 1
+  if (!shouldFlip) return baseKey
+  return baseKey === variantKeys[0] ? variantKeys[1] : variantKeys[0]
+}
+
 export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   const visibleCreatures = useMemo(
     () => creatures.filter(c => c.biome === name && c.alive),
@@ -54,6 +71,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
             id: schoolId,
             index,
             count: schoolGroup.length,
+            modelVariantKey: schoolModelVariantKey(species, schoolId, index, schoolGroup.length),
           })
         })
       }
@@ -68,6 +86,7 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
       {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} debugStatsEnabled={debugStatsEnabled} />}
       {visibleCreatures.map(creature => {
         const selected = String(creature.id) === String(selectedCreatureId)
+        const school = schoolByCreatureId.get(creature.id) ?? null
         const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))
         return (
           <Fish
@@ -82,7 +101,8 @@ export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCrea
             debugLayers={debugLayers}
             debugLodView={debugLodView}
             debugSimulationSpeed={debugSimulationSpeed}
-            school={schoolByCreatureId.get(creature.id) ?? null}
+            school={school}
+            modelVariantKey={school?.modelVariantKey ?? null}
             onClick={onCreatureClick}
             onReady={onCreatureReady}
             onRuntimeRecoveryNeeded={onRuntimeRecoveryNeeded}

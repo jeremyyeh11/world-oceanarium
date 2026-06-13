@@ -351,9 +351,17 @@ function resolveSwimProfile(creature) {
   }
 }
 
-function resolveModel(creature) {
+function resolveModel(creature, variantKey = null) {
   const species = resolveSpecies(creature)
-  return species?.model ?? null
+  const baseModel = species?.model ?? null
+  const variant = variantKey ? baseModel?.sexVariants?.[variantKey] : null
+  if (!variant) return baseModel
+  return {
+    ...baseModel,
+    ...variant,
+    sexVariant: variantKey,
+    sexVariants: baseModel.sexVariants,
+  }
 }
 
 function creatureBodyLength(creature, swim) {
@@ -2269,7 +2277,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
@@ -2280,7 +2288,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const species = useMemo(() => resolveSpecies(creature), [creature])
-  const model = useMemo(() => resolveModel(creature), [creature])
+  const model = useMemo(() => resolveModel(creature, modelVariantKey), [creature, modelVariantKey])
   const canInstanceSardine = model?.path?.includes('/sardine/') && creature.species === 'Spotted Sardinella'
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
@@ -3557,4 +3565,5 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
 useGLTF.preload('/models/fish/sardine/sardine.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female.glb')

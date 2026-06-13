@@ -22,6 +22,7 @@ Status: in development as `v0.8.15-dev_2` after the rejected speed-only `v0.8.15
 - `v0.8.15-dev_6` restores visible Mahi curve deformation with a non-accumulating additive pass: each frame removes the previous additive only when it is still present, then applies a fresh local-`z` side-bend to the resolved spine chain. Strength is re-enabled at a safer visible range (`0.82`, max `9°`).
 - `v0.8.15-dev_7` adds a debug bone overlay for curve-deform rigs: debug mode now defaults the `B` layer on, drawing the resolved spine chain and runtime bone names over Mahi-mahi so reviewers can see exactly which bones the deformation targets.
 - `v0.8.15-dev_8` retargets bone debug to selected-creature inspection: smaller labels, all resolved GLB bones for the selected creature, no bone overlay in `View all`, and selected schooling fish now show their shared movement/follow spline even when they are not the school leader.
+- `v0.8.15-dev_9` adds male/female model variants for Mahi-mahi and general school-level sex-variant assignment: schools with both sex models available receive an approximately balanced mix, with Mahi-mahi pairs resolving to exactly one male and one female.
 
 ## v0.8.14 — Follow-camera retargeting
 

@@ -42,6 +42,7 @@ const DEBUG_LAYER_BUTTONS = [
   { id: 'direction', icon: '↗', label: 'Show direction' },
   { id: 'name', icon: '#', label: 'Show name' },
   { id: 'lod', icon: 'L', label: 'Show LOD colors' },
+  { id: 'bones', icon: 'B', label: 'Show curve-deform bones' },
 ]
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
@@ -113,7 +114,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('focused')
-  const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false })
+  const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false, bones: true })
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)
@@ -135,6 +136,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
   const zoomActive = Boolean(selectedCreature)
   const visibleDebugVisuals = debugMode
   const visibleDebugPanel = debugMode && !screenshotMode
+  const boneDebugAvailable = debugView !== 'all'
+  const activeDebugLayers = boneDebugAvailable ? debugLayers : { ...debugLayers, bones: false }
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
   const renderLoad = summarizeRenderLoad(creatures, biome?.id)
   const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isMolaCreature(selectedCreature)
@@ -661,8 +664,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             hideSelectionSilhouette={screenshotMode}
             debug={visibleDebugVisuals}
             debugView={debugView}
-            debugLayers={debugLayers}
-            debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
+            debugLayers={activeDebugLayers}
+            debugLodView={visibleDebugVisuals && Boolean(activeDebugLayers.lod)}
             debugStatsEnabled={visibleDebugVisuals}
             debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
             onCreatureClick={selectCreatureFromPointer}
@@ -711,6 +714,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           creatureCount={creatures.length}
           debugView={debugView}
           debugLayers={debugLayers}
+          boneDebugAvailable={boneDebugAvailable}
           debugSimulationSpeed={debugSimulationSpeed}
           audioLevels={audioLevels}
           performanceStats={performanceStats}
@@ -762,6 +766,7 @@ function DebugPanel({
   creatureCount,
   debugView,
   debugLayers,
+  boneDebugAvailable = true,
   debugSimulationSpeed = 1,
   audioLevels,
   performanceStats,
@@ -869,19 +874,25 @@ function DebugPanel({
         </div>
         <div className="debug-panel-row">
           <span className="debug-panel-label">Overlay</span>
-          {DEBUG_LAYER_BUTTONS.map(layer => (
-            <button
-              key={layer.id}
-              type="button"
-              title={layer.label}
-              aria-label={`Toggle ${layer.label}`}
-              aria-pressed={debugLayers[layer.id]}
-              className="debug-panel-button"
-              onClick={() => onDebugLayerToggle(layer.id)}
-            >
-              {layer.icon}
-            </button>
-          ))}
+          {DEBUG_LAYER_BUTTONS.map(layer => {
+            const disabled = layer.id === 'bones' && !boneDebugAvailable
+            return (
+              <button
+                key={layer.id}
+                type="button"
+                title={disabled ? 'Bone overlay is only available for selected creature view' : layer.label}
+                aria-label={`Toggle ${layer.label}`}
+                aria-pressed={disabled ? false : debugLayers[layer.id]}
+                className="debug-panel-button"
+                disabled={disabled}
+                onClick={() => {
+                  if (!disabled) onDebugLayerToggle(layer.id)
+                }}
+              >
+                {layer.icon}
+              </button>
+            )
+          })}
         </div>
         <div className="debug-panel-row">
           <span className="debug-panel-label">Sim</span>

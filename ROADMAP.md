@@ -63,6 +63,51 @@ Subtasks:
 
 ## Feature list
 
+### Mahi-mahi spline-follow body deformation
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy rejected speed-only Mahi-mahi movement tuning and asked whether a general curve deformation can ride on top of the authored animation while the fish follows the spline.
+- Accepted for clean `v0.8.15` from `v0.8.15-dev_15` after Jeremy approval.
+- Jeremy reviewed `v0.8.15-dev_2` and said deformation was not enough; `v0.8.15-dev_3` raises the visible bend while keeping the same additive-after-mixer architecture.
+- Jeremy screenshot review of `v0.8.15-dev_3` showed fish still flat in turns. Cause: GLB runtime bone names are `spine001`–`spine007` and the bend axis should be local `z`, so previous deformation was either not finding bones or twisting instead of side-bending.
+- Jeremy review of `v0.8.15-dev_4` showed catastrophic pretzel deformation; emergency rollback was `v0.8.15-dev_5` with curve deformation disabled until additive posing was non-accumulating and safely previewed.
+- Jeremy rejected leaving deformation disabled; `v0.8.15-dev_6` restores visible deformation with previous-additive removal and safer visible strength.
+- Jeremy asked to show bones in debug; `v0.8.15-dev_7` adds a default-on `B` overlay for curve-deform bone chain visibility.
+- Jeremy refined bone debug: smaller labels, all bones on selected creatures, unavailable in `View all`, and selected schooling fish should show their shared movement/follow spline.
+- Jeremy added male/female Mahi-mahi GLBs and asked for general school logic that mixes available sex variants at approximately 1:1, exactly 1:1 for two-creature Mahi pairs.
+- Jeremy asked for selected bone-name fonts to be billboards, unbold, and always rendered in front.
+- Jeremy asked for bone-name fonts even smaller, matching the selected name label font.
+- Jeremy noticed the forward vector coming from mid-body; GLB origin/pivot is near mid-body, but debug heading should start at the nose.
+- Jeremy asked to increase spline deformation while only touching `spine003` through `spine007`.
+- Jeremy review of `v0.8.15-dev_13`: effect still not visible; Mahi still seems to rotate on the spot with a flat/straight body. It should bend/curl in the direction it is turning.
+- Jeremy review of `v0.8.15-dev_14`: better, but the Mahi curve can be slightly stronger down-chain, random pitch snaps should be eliminated or interpolated, and generated school splines should preserve incoming direction and delay the first turn for all schooling fish.
+
+Subtasks:
+- [x] Keep authored GLB animation playback first and additive deformation after mixer update.
+- [x] Add model-level deformation tunables for strength, max angle, response, tail bias, burst boost, and speed boost.
+- [x] Drive Mahi-mahi spine deformation from live path/follow turn pressure without changing accepted movement speeds.
+- [x] Build and browser-smoke `v0.8.15-dev_2`.
+- [x] Increase deformation and browser-smoke `v0.8.15-dev_3`.
+- [x] Fix bone-name matching / bend axis and browser-smoke `v0.8.15-dev_4`.
+- [x] Emergency-disable curve deformation in `v0.8.15-dev_5` after `dev_4` deformation failure.
+- [x] Restore non-accumulating deformation and browser-smoke `v0.8.15-dev_6`.
+- [x] Add curve-deform bone debug overlay and browser-smoke `v0.8.15-dev_7`.
+- [x] Refine selected-creature all-bone debug overlay and browser-smoke `v0.8.15-dev_8`.
+- [x] Add Mahi male/female variants plus balanced school sex-model assignment and browser-smoke `v0.8.15-dev_9`.
+- [x] Make bone-name labels billboards, normal weight, front-rendered and browser-smoke `v0.8.15-dev_10`.
+- [x] Shrink bone-name labels to match selected name label font and browser-smoke `v0.8.15-dev_11`.
+- [x] Move model forward-vector debug start to Mahi nose/head offset and browser-smoke `v0.8.15-dev_12`.
+- [x] Increase Mahi spline deformation and restrict curve-deform bones to `spine003`-`spine007`; browser-smoke `v0.8.15-dev_13`.
+- [x] Drive Mahi curve deformation from sustained follow-spline turn intent, add base `spine003` bend, and browser-smoke `v0.8.15-dev_14`.
+- [x] Add 1.05× down-chain bend multiplier, smooth pitch changes, preserve new-school-spline direction, and browser-smoke `v0.8.15-dev_15`.
+
+Review gates:
+- Mahi-mahi no longer reads as a rigid root rotating through curves.
+- Idle/burst/snap authored clips still play at accepted timing.
+- Deformation strength can be dialed or disabled from species/model config.
+
 ### Hotfix: follow camera retargeting
 
 Status: `Archive candidate`

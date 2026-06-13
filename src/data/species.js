@@ -221,7 +221,11 @@ export const SPECIES = [
       exponent: 3,
     },
     model: {
-      path: '/models/fish/mahi-mahi/mahi-mahi.glb',
+      path: '/models/fish/mahi-mahi/mahi-mahi_male.glb',
+      sexVariants: {
+        male: { path: '/models/fish/mahi-mahi/mahi-mahi_male.glb' },
+        female: { path: '/models/fish/mahi-mahi/mahi-mahi_female.glb' },
+      },
       // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 1.8 m / 7.2 WU max.
       scale: 0.735,
       moveset: {
@@ -243,7 +247,22 @@ export const SPECIES = [
         burst: 0.8,
       },
       loopAnimations: ['idle'],
+      curveDeform: {
+        bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
+        axis: 'z',
+        strength: 1.55,
+        maxAngleDegrees: 16,
+        response: 8.5,
+        tailBias: 0.85,
+        baseWeight: 0.28,
+        chainMultiplier: 1.05,
+        turnIntentScale: 5.5,
+        burstBoost: 0.72,
+        speedBoost: 0.28,
+      },
       debugForwardOrigin: 'head',
+      // GLB origin sits near mid-body; nose is at +4.55 / 9.79 of the source length.
+      debugForwardOffsetRatio: 0.465,
     },
   },
   {

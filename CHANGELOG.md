@@ -11,7 +11,7 @@ Versioning convention notes:
 
 ## v0.8.15 — Mahi-mahi curve deformation review
 
-Status: in development as `v0.8.15-dev_2` after the rejected speed-only `v0.8.15-dev_1` pass.
+Status: accepted and promoted as clean `v0.8.15` from `v0.8.15-dev_15` after Jeremy approval.
 
 ### Creature behavior
 
@@ -29,6 +29,7 @@ Status: in development as `v0.8.15-dev_2` after the rejected speed-only `v0.8.15
 - `v0.8.15-dev_13` increases Mahi spline deformation and limits additive bend targets to `spine003`–`spine007`, keeping the forward head/root bones out of the deformation chain.
 - `v0.8.15-dev_14` makes Mahi curling respond to sustained turn intent toward the follow spline, adds a base bend on `spine003`, and strengthens rear-spine curl so turns read as body bending instead of straight-body rotation.
 - `v0.8.15-dev_15` adds a 1.05× per-bone chain multiplier to Mahi curve deformation, smooths visual pitch changes to remove random pitch snaps, and makes newly generated school splines preserve their incoming direction with the first turn pushed away from the spline start for all schooling fish.
+- Clean `v0.8.15` ships the accepted Mahi-mahi curve-deformation pass: authored GLB animation remains intact, additive bend is limited to `spine003`–`spine007`, turns use sustained follow-spline intent, debug bone/forward-vector tools are readable, Mahi pairs can use male/female variants, and schooling splines now continue smoothly across regenerated paths.
 
 ## v0.8.14 — Follow-camera retargeting
 

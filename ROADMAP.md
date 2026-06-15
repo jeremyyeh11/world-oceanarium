@@ -263,8 +263,11 @@ Status: `Backlog`
 
 Reference:
 - `v0.8.0-dev_107` appendage-only/outline-related experiment was visually rejected; preserve useful dev-bucket knowledge without returning it to main unless explicitly asked.
+- Parked/deleted branch `dev/screen-space-outline` (`1499d47`) used screen-space selection outlines. It was already an ancestor of `main` before deletion, but keep the idea here as a future visual experiment note rather than a live branch.
 
 Subtasks:
+- [ ] Do not resurrect screen-space outlines directly unless Jeremy/YK explicitly reopen the visual direction.
+- [ ] If reopened, rebuild from current `main` and judge it against readability/feel on desktop and phone, not just technical correctness.
 - [ ] If a future visual experiment looks bad, revert main quickly while preserving the experiment in a separate dev branch/bucket for reference.
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 

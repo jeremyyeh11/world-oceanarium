@@ -225,17 +225,37 @@ Subtasks:
 - [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
 - [x] Remove the temporary forced `repel` debug demo before clean public release.
 
-#### Sardine procedural snap/micro-correct experiment
+#### Shared deterministic world clock / same living moment
 
 Status: `Backlog`
 
 Reference:
-- `v0.8.5-dev_14` refined sardine snap presets, removed idle/micro-correct/startle-flick lab presets, removed tank-view micro-correct/startle-flick moments, and remapped drift to cruise.
-- Jeremy judged this direction not working well for now; stick to authored animation clips for the current release path.
+- Parked feature from deleted branch `hold/shared-world-clock-unassigned` (`936c65d`) after Jeremy asked whether World Oceanarium could feel like it is always running for everyone: person A and B see the same broad tank moment, and returning an hour later feels like one hour elapsed instead of a fresh random restart.
+- Preferred technical direction was lightweight deterministic world time: shared epoch + stable seeded schedules, not an always-on server simulation.
 
 Subtasks:
+- [ ] Rebuild from current `main` if reopened; do not resurrect the stale branch directly.
+- [ ] Add a canonical world epoch and elapsed-time helper.
+- [ ] Replace startup randomness with deterministic seeds derived from stable creature/school IDs and world time.
+- [ ] Seed school route/progress/formation phase so reloads at the same clock time land in the same broad scene.
+- [ ] Seed solo-agent startup phase so returning later feels elapsed, not rebooted.
+- [ ] Keep visitor-local UI state separate from shared world state.
+- [ ] Visual pass: confirm the same living moment feels alive rather than mechanical.
+
+#### Sardine procedural animation feel
+
+Status: `Backlog`
+
+Reference:
+- Parked feature from deleted branch `feature/procedural-sardine-animation` (`a956537`) after Jeremy judged the procedural sardine direction not working well enough for the release path.
+- `v0.8.5-dev_14` refined sardine snap presets, removed idle/micro-correct/startle-flick lab presets, removed tank-view micro-correct/startle-flick moments, and remapped drift to cruise.
+- Keep sardines on authored animation clips for now; revisit movement-input procedural posing only in a future version if there is a stronger authored-feel plan.
+
+Subtasks:
+- [ ] Rebuild from current `main` if reopened; do not resurrect the stale branch directly.
 - [ ] Preserve as an incomplete/future-version experiment only.
 - [ ] Do not reintroduce procedural sardine snap/micro-correct/startle-flick behavior unless explicitly promoted later.
+- [ ] If reopened, rebuild procedural sardine posing around live movement inputs without losing the feel/readability of authored clips.
 
 #### Rejected/saved visual experiments
 

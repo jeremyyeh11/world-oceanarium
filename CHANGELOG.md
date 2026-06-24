@@ -10,10 +10,11 @@ Versioning convention notes:
 
 ## v0.10.0 (in progress) — Boid schooling movement
 
-Status: in development as `v0.10.0-dev_2` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
+Status: in development as `v0.10.0-dev_3` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
 
 ### Creature behavior
 
+- `v0.10.0-dev_3` adds boid debug visualization in debug mode: selected fish, sampled school fish, and solo agents show separation, alignment, cohesion, and final boid steering vectors plus neighbor/social weight readouts.
 - `v0.10.0-dev_2` removes the previous standalone soft-separation path and folds separation into the generic boid system. Boid steering now runs for schooling and solo species, considers interspecies neighbors, and uses species-biased parameters: sardines are tight/high-neighbor, Mahi-mahi are capped to one neighbor with weak pair influence, and Giant Sunfish barely avoids others while strongly repelling nearby fish.
 - `v0.10.0-dev_1` prototypes a local boid overlay for schooling fish: existing shared school paths still provide the calm ocean-current route, while nearby schoolmates add capped alignment and cohesion steering on top of the existing soft separation avoidance. The goal is sardine schools that feel less spline-choreographed and more like many local decisions without turning chaotic.
 

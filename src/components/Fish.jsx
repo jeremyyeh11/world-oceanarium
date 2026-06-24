@@ -98,6 +98,7 @@ const DEBUG_FORWARD_MIN_LENGTH = 0.11
 const DEBUG_LABEL_SCALE = 0.0525
 const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_AGENT_LABEL_SCALE = 0.045
+const DEBUG_BOID_VECTOR_SCALE = 5.0
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
@@ -289,6 +290,7 @@ const boidDelta = new THREE.Vector3()
 const boidAlignment = new THREE.Vector3()
 const boidCenter = new THREE.Vector3()
 const boidCohesion = new THREE.Vector3()
+const debugBoidVectorEnd = new THREE.Vector3()
 const debugFollowTargetColor = new THREE.Color()
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
@@ -1611,8 +1613,16 @@ function boidSocialWeight(school, creature, other) {
   return 0
 }
 
-function computeBoidSteering(out, fish, creature, swim, school = null, followDirection = null) {
+function computeBoidSteering(out, fish, creature, swim, school = null, followDirection = null, debugState = null) {
   out.set(0, 0, 0)
+  if (debugState) {
+    debugState.separation.set(0, 0, 0)
+    debugState.alignment.set(0, 0, 0)
+    debugState.cohesion.set(0, 0, 0)
+    debugState.result.set(0, 0, 0)
+    debugState.neighborCount = 0
+    debugState.socialWeightTotal = 0
+  }
   const params = boidParamsForCreature(creature, swim)
   if (params.neighborCap <= 0 || params.maxWeight <= 0) return out
 
@@ -1672,12 +1682,18 @@ function computeBoidSteering(out, fish, creature, swim, school = null, followDir
   })
 
   out.add(separationDelta)
+  if (debugState) {
+    debugState.separation.copy(separationDelta)
+    debugState.neighborCount = neighborCount
+    debugState.socialWeightTotal = socialWeightTotal
+  }
 
   if (socialWeightTotal > 0) {
     if (boidAlignment.lengthSq() > 0.0001) {
       boidAlignment.normalize()
       if (forward) boidAlignment.sub(forward).clampLength(0, params.alignmentWeight)
       else boidAlignment.multiplyScalar(params.alignmentWeight)
+      if (debugState) debugState.alignment.copy(boidAlignment)
       out.add(boidAlignment)
     }
 
@@ -1686,11 +1702,13 @@ function computeBoidSteering(out, fish, creature, swim, school = null, followDir
     boidCohesion.y *= 0.45
     if (boidCohesion.lengthSq() > 0.0001) {
       boidCohesion.normalize().multiplyScalar(params.cohesionWeight)
+      if (debugState) debugState.cohesion.copy(boidCohesion)
       out.add(boidCohesion)
     }
   }
 
   out.clampLength(0, params.maxWeight)
+  if (debugState) debugState.result.copy(out)
   return out
 }
 
@@ -1754,6 +1772,11 @@ function updateDebugLine(lineRef, start, end) {
   positions.setXYZ(1, end.x, end.y, end.z)
   positions.needsUpdate = true
   geometry.computeBoundingSphere()
+}
+
+function updateDebugVectorLine(lineRef, start, vector, scale = 1) {
+  debugBoidVectorEnd.copy(start).addScaledVector(vector, scale)
+  updateDebugLine(lineRef, start, debugBoidVectorEnd)
 }
 
 function depthFadeFromScreenZ(z) {
@@ -2392,6 +2415,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
+  const boidSeparationLineRef = useRef()
+  const boidAlignmentLineRef = useRef()
+  const boidCohesionLineRef = useRef()
+  const boidResultLineRef = useRef()
+  const boidLabelRef = useRef()
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
   const agentLabelRef = useRef()
@@ -2442,6 +2470,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const simulationTime = useRef(null)
   const rawBoidSteering = useRef(new THREE.Vector3())
   const smoothedBoidSteering = useRef(new THREE.Vector3())
+  const boidDebugState = useRef({
+    separation: new THREE.Vector3(),
+    alignment: new THREE.Vector3(),
+    cohesion: new THREE.Vector3(),
+    result: new THREE.Vector3(),
+    neighborCount: 0,
+    socialWeightTotal: 0,
+  })
   const repulserDrift = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
   const labelPosition = useRef(new THREE.Vector3())
@@ -2489,6 +2525,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     [path, schoolState?.path],
   )
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidSeparationGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidAlignmentGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidCohesionGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidResultGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
     const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
@@ -2595,6 +2635,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     driftUntil.current = 0
     rawBoidSteering.current.set(0, 0, 0)
     smoothedBoidSteering.current.set(0, 0, 0)
+    boidDebugState.current.separation.set(0, 0, 0)
+    boidDebugState.current.alignment.set(0, 0, 0)
+    boidDebugState.current.cohesion.set(0, 0, 0)
+    boidDebugState.current.result.set(0, 0, 0)
+    boidDebugState.current.neighborCount = 0
+    boidDebugState.current.socialWeightTotal = 0
     repulserDrift.current.set(0, 0, 0)
     hasVisualForward.current = false
     hasBaseLookQuaternion.current = false
@@ -2945,7 +2991,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
         }
 
-        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, tangent)
+        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, tangent, boidDebugState.current)
         smoothedBoidSteering.current.lerp(rawBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
         if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
           targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
@@ -3039,7 +3085,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const targetDistance = schoolFollowDirection.length()
       if (targetDistance > 0.0001) {
         schoolFollowDirection.normalize()
-        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, schoolFollowDirection)
+        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, schoolFollowDirection, boidDebugState.current)
         smoothedBoidSteering.current.lerp(rawBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
         targetDesiredDirection
           .copy(schoolFollowDirection)
@@ -3210,6 +3256,22 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
       if (forwardLineRef.current) forwardLineRef.current.visible = showDirection && !showAgentDebug
+      const showBoidDebug = showDirection && (selected || showAgentDebug || (isSchooling && school.index % 16 === 0))
+      const boidDebug = boidDebugState.current
+      updateDebugVectorLine(boidSeparationLineRef, debugForwardStart, boidDebug.separation, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidAlignmentLineRef, debugForwardStart, boidDebug.alignment, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidCohesionLineRef, debugForwardStart, boidDebug.cohesion, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidResultLineRef, debugForwardStart, smoothedBoidSteering.current, DEBUG_BOID_VECTOR_SCALE)
+      if (boidSeparationLineRef.current) boidSeparationLineRef.current.visible = showBoidDebug && boidDebug.separation.lengthSq() > 0.000001
+      if (boidAlignmentLineRef.current) boidAlignmentLineRef.current.visible = showBoidDebug && boidDebug.alignment.lengthSq() > 0.000001
+      if (boidCohesionLineRef.current) boidCohesionLineRef.current.visible = showBoidDebug && boidDebug.cohesion.lengthSq() > 0.000001
+      if (boidResultLineRef.current) boidResultLineRef.current.visible = showBoidDebug && smoothedBoidSteering.current.lengthSq() > 0.000001
+      if (boidLabelRef.current) {
+        boidLabelRef.current.position.copy(debugForwardStart).addScaledVector(up, 0.30 + size * 0.06)
+        boidLabelRef.current.text = `boid n${boidDebug.neighborCount} social ${boidDebug.socialWeightTotal.toFixed(1)}\nsep ${boidDebug.separation.length().toFixed(2)} align ${boidDebug.alignment.length().toFixed(2)} coh ${boidDebug.cohesion.length().toFixed(2)} out ${smoothedBoidSteering.current.length().toFixed(2)}`
+        boidLabelRef.current.lookAt(camera.position)
+        boidLabelRef.current.visible = showBoidDebug
+      }
       if (followTargetMarkerRef.current) {
         followTargetMarkerRef.current.position.copy(followTarget.current)
         const markerMaterial = followTargetMarkerRef.current.material
@@ -3593,6 +3655,31 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>
+          <line ref={boidSeparationLineRef} geometry={boidSeparationGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ff5a36" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <line ref={boidAlignmentLineRef} geometry={boidAlignmentGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#80ff72" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <line ref={boidCohesionLineRef} geometry={boidCohesionGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ffd166" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <line ref={boidResultLineRef} geometry={boidResultGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ffffff" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <Text
+            ref={boidLabelRef}
+            fontSize={DEBUG_LABEL_SCALE}
+            font={DEBUG_LABEL_FONT}
+            color="#ffffff"
+            anchorX="center"
+            anchorY="middle"
+            depthTest={false}
+            renderOrder={22}
+            raycast={() => null}
+          >
+            boid n0
+          </Text>
           <mesh ref={followTargetMarkerRef} scale={debugTargetScale} raycast={() => null}>
             <sphereGeometry args={[0.055, 8, 8]} />
             <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />

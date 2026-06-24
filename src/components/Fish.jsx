@@ -118,6 +118,13 @@ const DENSE_SCHOOL_RADIUS_SCALE = 0.58
 const DENSE_SCHOOL_PADDING_SCALE = 0.2
 const AVOIDANCE_SMOOTHING = 3.4
 const AVOIDANCE_MAX_WEIGHT = 0.28
+const BOID_NEIGHBOR_CAP = 12
+const BOID_PERCEPTION_MIN = 0.95
+const BOID_PERCEPTION_BODY_LENGTHS = 3.15
+const BOID_PERCEPTION_MAX = 4.2
+const BOID_ALIGNMENT_WEIGHT = 0.18
+const BOID_COHESION_WEIGHT = 0.12
+const BOID_MAX_WEIGHT = 0.22
 const REPULSER_DRIFT_INNER_RADIUS = 5.8
 const REPULSER_DRIFT_OUTER_RADIUS = 17
 const REPULSER_DRIFT_MAX = 2.2
@@ -276,6 +283,10 @@ const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
 const separationDelta = new THREE.Vector3()
+const boidDelta = new THREE.Vector3()
+const boidAlignment = new THREE.Vector3()
+const boidCenter = new THREE.Vector3()
+const boidCohesion = new THREE.Vector3()
 const debugFollowTargetColor = new THREE.Color()
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
@@ -1625,6 +1636,57 @@ function computeSoftAvoidance(out, fish, creature, swim, school = null) {
   return out
 }
 
+function computeLocalBoidSteering(out, fish, creature, swim, school = null, followDirection = null) {
+  out.set(0, 0, 0)
+  if (!school?.id) return out
+
+  const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
+  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
+  const perceptionRadius = THREE.MathUtils.clamp(
+    bodyLength * BOID_PERCEPTION_BODY_LENGTHS * Math.sqrt(Math.max(0.45, spacingScale)),
+    BOID_PERCEPTION_MIN,
+    BOID_PERCEPTION_MAX,
+  )
+  const perceptionRadiusSq = perceptionRadius * perceptionRadius
+  const forward = followDirection?.lengthSq?.() > 0.0001 ? followDirection : null
+  let neighborCount = 0
+  boidAlignment.set(0, 0, 0)
+  boidCenter.set(0, 0, 0)
+
+  FISH_REGISTRY.forEach((other, id) => {
+    if (neighborCount >= BOID_NEIGHBOR_CAP) return
+    if (id === creature.id || other.biome !== creature.biome || other.schoolId !== school.id) return
+    boidDelta.subVectors(other.position, fish.position)
+    boidDelta.y *= 0.62
+    const distanceSq = boidDelta.lengthSq()
+    if (distanceSq < 0.000001 || distanceSq > perceptionRadiusSq) return
+
+    if (other.forward?.lengthSq?.() > 0.0001) boidAlignment.add(other.forward)
+    boidCenter.add(other.position)
+    neighborCount += 1
+  })
+
+  if (neighborCount <= 0) return out
+
+  if (boidAlignment.lengthSq() > 0.0001) {
+    boidAlignment.normalize()
+    if (forward) boidAlignment.sub(forward).clampLength(0, BOID_ALIGNMENT_WEIGHT)
+    else boidAlignment.multiplyScalar(BOID_ALIGNMENT_WEIGHT)
+    out.add(boidAlignment)
+  }
+
+  boidCenter.multiplyScalar(1 / neighborCount)
+  boidCohesion.subVectors(boidCenter, fish.position)
+  boidCohesion.y *= 0.45
+  if (boidCohesion.lengthSq() > 0.0001) {
+    boidCohesion.normalize().multiplyScalar(BOID_COHESION_WEIGHT)
+    out.add(boidCohesion)
+  }
+
+  out.clampLength(0, BOID_MAX_WEIGHT)
+  return out
+}
+
 function limitAvoidanceAngle(out, followDirection, maxAngle) {
   if (out.lengthSq() < 0.000001) return out.copy(followDirection)
   out.normalize()
@@ -1633,13 +1695,16 @@ function limitAvoidanceAngle(out, followDirection, maxAngle) {
   return out
 }
 
-function updateFishRegistry(fish, creature, swim, school = null) {
+function updateFishRegistry(fish, creature, swim, school = null, forward = null) {
   const radius = fishCollisionRadius(creature, swim, school)
   const species = resolveSpecies(creature)
   const repulser = creatureRepulsesOthers(species)
   const entry = FISH_REGISTRY.get(creature.id)
+  const registryForward = forward?.lengthSq?.() > 0.0001 ? forward : null
   if (entry) {
     entry.position.copy(fish.position)
+    if (registryForward) entry.forward.copy(registryForward)
+    else entry.forward.set(0, 0, -1)
     entry.radius = radius
     entry.bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
     entry.species = creature.species
@@ -1649,6 +1714,7 @@ function updateFishRegistry(fish, creature, swim, school = null) {
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
+      forward: registryForward ? registryForward.clone() : new THREE.Vector3(0, 0, -1),
       radius,
       bodyLength: swim.bodyLengthWU * (creature.size ?? 1),
       species: creature.species,
@@ -2366,6 +2432,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const simulationTime = useRef(null)
   const rawAvoidance = useRef(new THREE.Vector3())
   const smoothedAvoidance = useRef(new THREE.Vector3())
+  const localBoidSteering = useRef(new THREE.Vector3())
   const repulserDrift = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
   const labelPosition = useRef(new THREE.Vector3())
@@ -2519,6 +2586,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     driftUntil.current = 0
     rawAvoidance.current.set(0, 0, 0)
     smoothedAvoidance.current.set(0, 0, 0)
+    localBoidSteering.current.set(0, 0, 0)
     repulserDrift.current.set(0, 0, 0)
     hasVisualForward.current = false
     hasBaseLookQuaternion.current = false
@@ -2956,7 +3024,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         schoolFollowDirection.normalize()
         computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
         smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
-        targetDesiredDirection.copy(schoolFollowDirection).add(smoothedAvoidance.current)
+        computeLocalBoidSteering(localBoidSteering.current, fish, creature, swim, school, schoolFollowDirection)
+        targetDesiredDirection
+          .copy(schoolFollowDirection)
+          .add(smoothedAvoidance.current)
+          .add(localBoidSteering.current)
         const maxAvoidanceAngle = schoolMaxAvoidanceAngle(creature, swim, school)
         limitAvoidanceAngle(
           targetDesiredDirection,
@@ -3007,7 +3079,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         : (behavior?.type ?? 'choose-behavior')
     }
 
-    updateFishRegistry(fish, creature, swim, school)
+    updateFishRegistry(fish, creature, swim, school, desiredDirection.current)
 
     let runtimeRecoveryOpacity = 1
     let recoveryFadeState = runtimeRecoveryFade.current

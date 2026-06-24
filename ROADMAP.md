@@ -13,6 +13,25 @@ Status labels:
 
 ## Current work
 
+### Boid schooling overlay
+
+Status: `Current in development`
+
+Reference:
+- Jeremy shared a classic boids logic screenshot — separation / alignment / cohesion / speed limit — and asked whether WO can adopt it.
+- Branch: `feat/boid-schooling-overlay`, rebased onto `v0.9.0` main; review builds renumbered `v0.8.18-dev_#` → `v0.10.0-dev_#`.
+- `v0.10.0-dev_1` prototypes local boid steering as an overlay on existing shared school paths, keeping the path as calm migration/current bias while nearby schoolmates add capped alignment and cohesion.
+
+Subtasks:
+- [x] Create `feat/boid-schooling-overlay` branch from latest `origin/main`.
+- [x] Add local alignment/cohesion steering beside existing separation avoidance for schooling fish.
+- [x] Browser-smoke sardine school motion and decide whether the feel beats the old spline-led baseline.
+
+Review gates:
+- Sardines read more alive and locally responsive, not chaotic or jittery.
+- Mahi-mahi pair behavior and Mola solo behavior remain unchanged in intent.
+- Build passes and desktop browser smoke shows no runtime errors.
+
 ### Tank assemblages & curation
 
 Status: `Archive candidate`

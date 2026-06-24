@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.10.0 (in progress) — Boid schooling movement
+
+Status: in development as `v0.10.0-dev_1` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
+
+### Creature behavior
+
+- `v0.10.0-dev_1` prototypes a local boid overlay for schooling fish: existing shared school paths still provide the calm ocean-current route, while nearby schoolmates add capped alignment and cohesion steering on top of the existing soft separation avoidance. The goal is sardine schools that feel less spline-choreographed and more like many local decisions without turning chaotic.
+
 ## v0.9.0 — Tank assemblages & curation
 
 Status: accepted and promoted as clean `v0.9.0` after Jeremy approval (merged via #57). See `docs/tank-design.md`.

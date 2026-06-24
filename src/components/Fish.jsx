@@ -99,6 +99,7 @@ const DEBUG_LABEL_SCALE = 0.0525
 const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_BOID_VECTOR_SCALE = 5.0
+const SPLINE_MOVEMENT_ENABLED = false
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
@@ -2717,15 +2718,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    if (isSchooling) {
-      if (isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
-    } else if (!isSoloAgent) {
-      progress.current += delta * velocity.current / pathLength
+    if (SPLINE_MOVEMENT_ENABLED) {
+      if (isSchooling) {
+        if (isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
+      } else if (!isSoloAgent) {
+        progress.current += delta * velocity.current / pathLength
+      }
     }
 
     const pathProgress = isSchooling ? schoolState.progress : progress.current
-    const shouldAdvanceSchoolPath = isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
-    if ((!isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath) {
+    const shouldAdvanceSchoolPath = SPLINE_MOVEMENT_ENABLED && isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
+    if (SPLINE_MOVEMENT_ENABLED && ((!isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath)) {
       const endPoint = activePath.getPointAt(1)
       const endTangent = activePath.getTangentAt(1).normalize()
 
@@ -2779,8 +2782,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const followDistance = followLookaheadDistance(creature, swim, isSchooling)
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
-      offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
-      followTarget.current.add(repulserDrift.current)
+      if (SPLINE_MOVEMENT_ENABLED || !hasFollowPosition.current) {
+        offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
+        followTarget.current.add(repulserDrift.current)
+      } else {
+        const freeSwimForward = desiredDirection.current.lengthSq() > 0.0001
+          ? desiredDirection.current
+          : (hasVisualForward.current ? visualForward.current : tangent)
+        if (freeSwimForward.lengthSq() < 0.0001) freeSwimForward.set(0, 0, -1)
+        freeSwimForward.normalize()
+        followTarget.current.copy(fish.position).addScaledVector(freeSwimForward, followDistance)
+      }
     } else if (isSoloAgent) {
       position = hasFollowPosition.current ? fish.position : position
       const currentForward = desiredDirection.current.lengthSq() > 0.0001
@@ -3124,6 +3136,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           agentMoveDirection,
           Math.min(targetDistance, movementScale),
         )
+        if (!SPLINE_MOVEMENT_ENABLED) {
+          const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+          clampToSwimBounds(fish.position, bounds)
+        }
         tangent.subVectors(fish.position, previousPosition.current)
         if (tangent.lengthSq() > 0.000001) {
           tangent.normalize()
@@ -3195,7 +3211,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
     horizontalForward.normalize()
 
-    if (showAgentDebug) {
+    if (showAgentDebug || !SPLINE_MOVEMENT_ENABLED) {
       splineVisualTangent.subVectors(followTarget.current, fish.position)
       if (splineVisualTangent.lengthSq() < 0.0001) splineVisualTangent.copy(tangent)
       else splineVisualTangent.normalize()
@@ -3647,7 +3663,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     <group>
       {debug && (
         <>
-          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug || selected) && (
+          {SPLINE_MOVEMENT_ENABLED && (debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug || selected) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>

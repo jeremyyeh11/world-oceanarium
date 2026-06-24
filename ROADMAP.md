@@ -23,6 +23,7 @@ Reference:
 - `v0.10.0-dev_1` prototypes local boid steering as an overlay on existing shared school paths, keeping the path as calm migration/current bias while nearby schoolmates add capped alignment and cohesion.
 - `v0.10.0-dev_2` removes the legacy standalone separation pass, makes boid separation/alignment/cohesion the generic steering layer for all species, and adds species-specific biases for sardines, Mahi-mahi, and Giant Sunfish.
 - `v0.10.0-dev_3` exposes boid debug vectors/readouts in debug mode so review can see separation, alignment, cohesion, and final steering.
+- `v0.10.0-dev_4` disables spline/path-follow movement so schools now swim from local heading plus boid steering instead of following a hidden route.
 
 Subtasks:
 - [x] Create `feat/boid-schooling-overlay` branch from latest `origin/main`.
@@ -30,6 +31,7 @@ Subtasks:
 - [x] Replace standalone separation with generic interspecies boid steering for all species.
 - [x] Add species-biased boid parameters: sardine high-neighbor schooling, Mahi one-neighbor pair bias, Giant Sunfish low self-avoid / high repulsion.
 - [x] Add debug vectors/readouts for separation, alignment, cohesion, and final boid steering.
+- [x] Disable spline/path-follow movement for the boid review build.
 - [x] Browser-smoke sardine school motion and decide whether the feel beats the old spline-led baseline.
 
 Review gates:

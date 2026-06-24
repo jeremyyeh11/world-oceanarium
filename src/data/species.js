@@ -158,6 +158,14 @@ export const SPECIES = [
       boundsYMin: -7,
       boundsZMin: -15,
       boundsZMax: 8,
+      boids: {
+        neighborCap: 14,
+        perceptionBodyLengths: 3.4,
+        separationWeight: 0.38,
+        alignmentWeight: 0.24,
+        cohesionWeight: 0.16,
+        maxWeight: 0.38,
+      },
     },
     // Normalized individual size maps to roughly 15–27 cm total length for Amblygaster sirm.
     sizeRange: [0.55, 1.0],
@@ -258,6 +266,14 @@ export const SPECIES = [
       boundsYMin: -6,
       boundsZMin: -23,
       boundsZMax: 4,
+      boids: {
+        neighborCap: 1,
+        perceptionBodyLengths: 2.1,
+        separationWeight: 0.18,
+        alignmentWeight: 0.05,
+        cohesionWeight: 0.025,
+        maxWeight: 0.18,
+      },
     },
     // Normalized individual size maps directly to the 0–1 share of the 1.8 m max; DB rows use a truncated normal distribution centered near the 0.91 m average.
     sizeRange: [0, 1],
@@ -524,6 +540,16 @@ export const SPECIES = [
       boundsYMin: -7,
       boundsZMin: -25,
       boundsZMax: 0,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 1.25,
+        separationWeight: 0.05,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.05,
+        selfAvoidanceScale: 0.04,
+        repulsionScale: 2.8,
+      },
     },
     // Normalized individual size maps to roughly 248–330 cm total length (male average → female maximum).
     sizeRange: [0.75, 1.0],

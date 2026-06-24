@@ -116,15 +116,17 @@ const FISH_SEPARATION_PADDING = 0.18
 const DENSE_SCHOOL_MIN_COUNT = 12
 const DENSE_SCHOOL_RADIUS_SCALE = 0.58
 const DENSE_SCHOOL_PADDING_SCALE = 0.2
-const AVOIDANCE_SMOOTHING = 3.4
-const AVOIDANCE_MAX_WEIGHT = 0.28
+const BOID_STEERING_SMOOTHING = 3.4
 const BOID_NEIGHBOR_CAP = 12
 const BOID_PERCEPTION_MIN = 0.95
 const BOID_PERCEPTION_BODY_LENGTHS = 3.15
 const BOID_PERCEPTION_MAX = 4.2
+const BOID_SEPARATION_WEIGHT = 0.34
 const BOID_ALIGNMENT_WEIGHT = 0.18
 const BOID_COHESION_WEIGHT = 0.12
-const BOID_MAX_WEIGHT = 0.22
+const BOID_MAX_WEIGHT = 0.34
+const BOID_SAME_GROUP_SOCIAL_WEIGHT = 1
+const BOID_SAME_SPECIES_SOCIAL_WEIGHT = 0.28
 const REPULSER_DRIFT_INNER_RADIUS = 5.8
 const REPULSER_DRIFT_OUTER_RADIUS = 17
 const REPULSER_DRIFT_MAX = 2.2
@@ -1587,103 +1589,108 @@ function separationPaddingForPair(school, other) {
   return FISH_SEPARATION_PADDING
 }
 
-function avoidanceWeightForPair(creature, swim, school, other) {
-  const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
-  const bodyScale = THREE.MathUtils.clamp(bodyLength, 0.35, 1.8)
-  const sameSchool = school?.id && other.schoolId === school.id
-  const otherBodyLength = other.bodyLength ?? other.radius * 2
-  const sizeRatio = otherBodyLength / Math.max(0.001, bodyLength)
-  const sizeYieldBias = sizeRatio >= 1
-    ? THREE.MathUtils.lerp(1, 2.2, THREE.MathUtils.clamp(sizeRatio - 1, 0, 1))
-    : THREE.MathUtils.clamp(sizeRatio ** 1.5, 0.08, 1)
-
-  // TODO(species-dominance): add a species hierarchy override so specific timid
-  // species can yield to dominant species regardless of raw body size.
-  if (!sameSchool) return bodyScale * sizeYieldBias
-
-  const density = 1 / Math.sqrt(Math.max(1, school.count))
-  const denseScale = school.count >= DENSE_SCHOOL_MIN_COUNT ? 0.34 : 0.75
-  return bodyScale * density * denseScale * sizeYieldBias
+function boidParamsForCreature(creature, swim) {
+  const config = swim.boids ?? {}
+  return {
+    neighborCap: Math.max(0, Math.floor(config.neighborCap ?? BOID_NEIGHBOR_CAP)),
+    perceptionBodyLengths: config.perceptionBodyLengths ?? BOID_PERCEPTION_BODY_LENGTHS,
+    perceptionMin: config.perceptionMin ?? BOID_PERCEPTION_MIN,
+    perceptionMax: config.perceptionMax ?? BOID_PERCEPTION_MAX,
+    separationWeight: config.separationWeight ?? BOID_SEPARATION_WEIGHT,
+    alignmentWeight: config.alignmentWeight ?? BOID_ALIGNMENT_WEIGHT,
+    cohesionWeight: config.cohesionWeight ?? BOID_COHESION_WEIGHT,
+    maxWeight: config.maxWeight ?? BOID_MAX_WEIGHT,
+    selfAvoidanceScale: config.selfAvoidanceScale ?? 1,
+    repulsionScale: config.repulsionScale ?? (creatureRepulsesOthers(resolveSpecies(creature)) ? 2.2 : 1),
+  }
 }
 
-function computeSoftAvoidance(out, fish, creature, swim, school = null) {
+function boidSocialWeight(school, creature, other) {
+  if (school?.id && other.schoolId === school.id) return BOID_SAME_GROUP_SOCIAL_WEIGHT
+  if (other.species === creature.species) return BOID_SAME_SPECIES_SOCIAL_WEIGHT
+  return 0
+}
+
+function computeBoidSteering(out, fish, creature, swim, school = null, followDirection = null) {
+  out.set(0, 0, 0)
+  const params = boidParamsForCreature(creature, swim)
+  if (params.neighborCap <= 0 || params.maxWeight <= 0) return out
+
   const radius = fishCollisionRadius(creature, swim, school)
-  out.set(0, 0, 0)
-
-  FISH_REGISTRY.forEach((other, id) => {
-    if (id === creature.id || other.biome !== creature.biome) return
-    separationDelta.subVectors(fish.position, other.position)
-    separationDelta.y *= 0.35
-    const distanceSq = separationDelta.lengthSq()
-    const pairPadding = separationPaddingForPair(school, other)
-    const minDistance = radius + other.radius + pairPadding
-    if (distanceSq >= minDistance * minDistance) return
-
-    if (distanceSq < 0.000001) {
-      const fallback = hashString(`${creature.id}:${id}:separate`) % 6283 / 1000
-      separationDelta.set(Math.cos(fallback), 0, Math.sin(fallback))
-    } else {
-      separationDelta.normalize()
-    }
-
-    const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
-    const overlap = THREE.MathUtils.clamp((minDistance - distance) / minDistance, 0, 1)
-    const easedOverlap = overlap * overlap
-    out.addScaledVector(separationDelta, easedOverlap * avoidanceWeightForPair(creature, swim, school, other))
-  })
-
-  out.clampLength(0, AVOIDANCE_MAX_WEIGHT)
-  return out
-}
-
-function computeLocalBoidSteering(out, fish, creature, swim, school = null, followDirection = null) {
-  out.set(0, 0, 0)
-  if (!school?.id) return out
-
   const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
   const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
   const perceptionRadius = THREE.MathUtils.clamp(
-    bodyLength * BOID_PERCEPTION_BODY_LENGTHS * Math.sqrt(Math.max(0.45, spacingScale)),
-    BOID_PERCEPTION_MIN,
-    BOID_PERCEPTION_MAX,
+    bodyLength * params.perceptionBodyLengths * Math.sqrt(Math.max(0.45, spacingScale)),
+    params.perceptionMin,
+    params.perceptionMax,
   )
   const perceptionRadiusSq = perceptionRadius * perceptionRadius
   const forward = followDirection?.lengthSq?.() > 0.0001 ? followDirection : null
   let neighborCount = 0
+  let socialWeightTotal = 0
   boidAlignment.set(0, 0, 0)
   boidCenter.set(0, 0, 0)
+  separationDelta.set(0, 0, 0)
 
   FISH_REGISTRY.forEach((other, id) => {
-    if (neighborCount >= BOID_NEIGHBOR_CAP) return
-    if (id === creature.id || other.biome !== creature.biome || other.schoolId !== school.id) return
-    boidDelta.subVectors(other.position, fish.position)
-    boidDelta.y *= 0.62
+    if (neighborCount >= params.neighborCap) return
+    if (id === creature.id || other.biome !== creature.biome) return
+    boidDelta.subVectors(fish.position, other.position)
+    boidDelta.y *= 0.55
     const distanceSq = boidDelta.lengthSq()
     if (distanceSq < 0.000001 || distanceSq > perceptionRadiusSq) return
 
-    if (other.forward?.lengthSq?.() > 0.0001) boidAlignment.add(other.forward)
-    boidCenter.add(other.position)
+    const sameSchool = school?.id && other.schoolId === school.id
+    const pairPadding = separationPaddingForPair(school, other)
+    const minDistance = radius + other.radius + pairPadding
+    if (distanceSq < minDistance * minDistance) {
+      const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
+      const overlap = THREE.MathUtils.clamp((minDistance - distance) / minDistance, 0, 1)
+      const otherBodyLength = other.bodyLength ?? other.radius * 2
+      const sizeRatio = otherBodyLength / Math.max(0.001, bodyLength)
+      const sizeYieldBias = sizeRatio >= 1
+        ? THREE.MathUtils.lerp(1, 2.2, THREE.MathUtils.clamp(sizeRatio - 1, 0, 1))
+        : THREE.MathUtils.clamp(sizeRatio ** 1.5, 0.08, 1)
+      const densityScale = sameSchool ? 1 / Math.sqrt(Math.max(1, school.count)) : 1
+      const denseScale = sameSchool && school.count >= DENSE_SCHOOL_MIN_COUNT ? 0.34 : 1
+      const repulsionScale = other.repulsionScale ?? 1
+      const selfAvoidanceScale = params.selfAvoidanceScale
+      boidDelta.normalize()
+      separationDelta.addScaledVector(
+        boidDelta,
+        overlap * overlap * params.separationWeight * sizeYieldBias * densityScale * denseScale * repulsionScale * selfAvoidanceScale,
+      )
+    }
+
+    const socialWeight = boidSocialWeight(school, creature, other)
+    if (socialWeight > 0) {
+      if (other.forward?.lengthSq?.() > 0.0001) boidAlignment.addScaledVector(other.forward, socialWeight)
+      boidCenter.addScaledVector(other.position, socialWeight)
+      socialWeightTotal += socialWeight
+    }
     neighborCount += 1
   })
 
-  if (neighborCount <= 0) return out
+  out.add(separationDelta)
 
-  if (boidAlignment.lengthSq() > 0.0001) {
-    boidAlignment.normalize()
-    if (forward) boidAlignment.sub(forward).clampLength(0, BOID_ALIGNMENT_WEIGHT)
-    else boidAlignment.multiplyScalar(BOID_ALIGNMENT_WEIGHT)
-    out.add(boidAlignment)
+  if (socialWeightTotal > 0) {
+    if (boidAlignment.lengthSq() > 0.0001) {
+      boidAlignment.normalize()
+      if (forward) boidAlignment.sub(forward).clampLength(0, params.alignmentWeight)
+      else boidAlignment.multiplyScalar(params.alignmentWeight)
+      out.add(boidAlignment)
+    }
+
+    boidCenter.multiplyScalar(1 / socialWeightTotal)
+    boidCohesion.subVectors(boidCenter, fish.position)
+    boidCohesion.y *= 0.45
+    if (boidCohesion.lengthSq() > 0.0001) {
+      boidCohesion.normalize().multiplyScalar(params.cohesionWeight)
+      out.add(boidCohesion)
+    }
   }
 
-  boidCenter.multiplyScalar(1 / neighborCount)
-  boidCohesion.subVectors(boidCenter, fish.position)
-  boidCohesion.y *= 0.45
-  if (boidCohesion.lengthSq() > 0.0001) {
-    boidCohesion.normalize().multiplyScalar(BOID_COHESION_WEIGHT)
-    out.add(boidCohesion)
-  }
-
-  out.clampLength(0, BOID_MAX_WEIGHT)
+  out.clampLength(0, params.maxWeight)
   return out
 }
 
@@ -1699,6 +1706,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
   const radius = fishCollisionRadius(creature, swim, school)
   const species = resolveSpecies(creature)
   const repulser = creatureRepulsesOthers(species)
+  const boidParams = boidParamsForCreature(creature, swim)
   const entry = FISH_REGISTRY.get(creature.id)
   const registryForward = forward?.lengthSq?.() > 0.0001 ? forward : null
   if (entry) {
@@ -1710,6 +1718,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
     entry.species = creature.species
     entry.biome = creature.biome
     entry.schoolId = school?.id ?? null
+    entry.repulsionScale = boidParams.repulsionScale
     entry.repulser = repulser
   } else {
     FISH_REGISTRY.set(creature.id, {
@@ -1720,6 +1729,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
       species: creature.species,
       biome: creature.biome,
       schoolId: school?.id ?? null,
+      repulsionScale: boidParams.repulsionScale,
       repulser,
     })
   }
@@ -2430,9 +2440,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const lastFollowRecoveryExitAt = useRef(-Infinity)
   const runtimeRecoveryFade = useRef({ phase: 'idle', startedAt: 0 })
   const simulationTime = useRef(null)
-  const rawAvoidance = useRef(new THREE.Vector3())
-  const smoothedAvoidance = useRef(new THREE.Vector3())
-  const localBoidSteering = useRef(new THREE.Vector3())
+  const rawBoidSteering = useRef(new THREE.Vector3())
+  const smoothedBoidSteering = useRef(new THREE.Vector3())
   const repulserDrift = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
   const labelPosition = useRef(new THREE.Vector3())
@@ -2584,9 +2593,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     nextBurstAt.current = motion.burstPhase + motion.burstInterval
     nextDriftAt.current = motion.driftPhase
     driftUntil.current = 0
-    rawAvoidance.current.set(0, 0, 0)
-    smoothedAvoidance.current.set(0, 0, 0)
-    localBoidSteering.current.set(0, 0, 0)
+    rawBoidSteering.current.set(0, 0, 0)
+    smoothedBoidSteering.current.set(0, 0, 0)
     repulserDrift.current.set(0, 0, 0)
     hasVisualForward.current = false
     hasBaseLookQuaternion.current = false
@@ -2937,6 +2945,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
         }
 
+        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, tangent)
+        smoothedBoidSteering.current.lerp(rawBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+        if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
+          targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
+          if (targetDesiredDirection.lengthSq() > 0.0001) {
+            rotateDirectionToward(tangent, targetDesiredDirection.normalize(), soloAgentSteeringTurnRate(swim) * 0.45 * delta)
+          }
+        }
+
         desiredDirection.current.copy(tangent)
         agentMoveDirection.copy(tangent)
         const soloAgentSpeed = Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed
@@ -3022,13 +3039,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const targetDistance = schoolFollowDirection.length()
       if (targetDistance > 0.0001) {
         schoolFollowDirection.normalize()
-        computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
-        smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
-        computeLocalBoidSteering(localBoidSteering.current, fish, creature, swim, school, schoolFollowDirection)
+        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, schoolFollowDirection)
+        smoothedBoidSteering.current.lerp(rawBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
         targetDesiredDirection
           .copy(schoolFollowDirection)
-          .add(smoothedAvoidance.current)
-          .add(localBoidSteering.current)
+          .add(smoothedBoidSteering.current)
         const maxAvoidanceAngle = schoolMaxAvoidanceAngle(creature, swim, school)
         limitAvoidanceAngle(
           targetDesiredDirection,

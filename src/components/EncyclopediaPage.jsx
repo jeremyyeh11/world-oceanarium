@@ -72,17 +72,26 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.55, 0],
     lookAt: [0, -0.3, 0],
   },
+  'isurus-oxyrinchus': {
+    cameraDistance: 11.2,
+    fov: 34,
+    maxLengthDisplayUnits: 4.45,
+    position: [0, -0.12, 0],
+    lookAt: [0, -0.08, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'amblygaster-sirm': 1.8223,
   'coryphaena-hippurus': 9.788,
   'mola-alexandrini': 20.7909,
+  'isurus-oxyrinchus': 40.1835,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
   'amblygaster-sirm': { animationOffset: 0.45, animationSpeed: 0.97, burstDelay: 4.9 },
   'coryphaena-hippurus': { animationOffset: 0.8, animationSpeed: 1.03, burstDelay: 5.4 },
+  'isurus-oxyrinchus': { animationOffset: 0.35, animationSpeed: 0.92, burstDelay: 6.8 },
 }
 
 const ATLAS_COMPANIONS_BY_SPECIES = {

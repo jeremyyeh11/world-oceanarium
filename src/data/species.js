@@ -361,9 +361,12 @@ export const SPECIES = [
         drift: 'idle',
         turnLeft: 'idle',
         turnRight: 'idle',
-        burst: 'burst',
+        // Use the continuous swim loop for burst movement too. The supplied burst clip
+        // starts from a visibly different pose, so swapping actions snaps until
+        // the asset has a matched transition/loop.
+        burst: 'idle',
       },
-      animationFadeDuration: 0.22,
+      animationFadeDuration: 0.36,
       animationTimeScale: 0.92,
       actionAnimationDurations: {
         burst: 2.4,

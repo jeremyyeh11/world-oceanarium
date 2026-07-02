@@ -19,14 +19,15 @@ Status: `Current in development`
 
 Reference:
 - Jeremy supplied `short fin mako.zip` and asked to add it on a new branch.
-- Branch: `feat/shortfin-mako`; first review build after rebasing onto clean `v0.8.18`: `v0.8.19-dev_1`.
+- Branch: `feat/shortfin-mako`; current review build after rebasing onto clean `v0.8.18`: `v0.8.19-dev_2`.
 
 Subtasks:
 - [x] Inspect supplied GLB source scale, mesh count, rig, and animation clips.
 - [x] Add `Isurus oxyrinchus` species data, tank model path/scale, movement profile, and static-dev review creature.
 - [x] Add Atlas source-length scaling and fixed pose for the mako GLB.
 - [x] Add one canonical `isurus-oxyrinchus` row to `creatures_dev` for Vercel review, with before/after JSON backups.
-- [x] Build/lint/browser-smoke the review build.
+- [x] Build/lint/browser-smoke the first review build.
+- [x] Patch mako animation snap by keeping burst movement on the continuous swim loop (`v0.8.19-dev_2`).
 - [ ] Collect Jeremy/YK scale/feel review.
 
 Review gates:

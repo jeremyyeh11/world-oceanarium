@@ -8,14 +8,15 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.8.18 — Push-away camera review
+## v0.8.18 — Push-away boundary review
 
-Status: in development as `v0.8.18-dev_1` for Jeremy review.
+Status: in development as `v0.8.18-dev_2` for Jeremy review.
 
-### Camera / framing
+### Movement boundary / framing
 
-- `v0.8.18-dev_1` pulls the default tank camera back from `z: 10` to `z: 13.5` so the whole oceanarium reads farther from the viewer.
-- Follow mode also backs off: default follow distance `3.2 → 4.4`, min follow distance `1.35 → 1.75`, Mola min body-length distance `1.05 → 1.28`, large-creature follow distance `1.9 → 2.45` body lengths, and max follow distance `18 → 24`.
+- `v0.8.18-dev_2` restores the default camera and follow-distance constants from `v0.8.17`; camera position and follow zoom are no longer changed.
+- Pushes the swim boundary start/end Z planes `3.5 WU` farther from the camera by applying `SWIM_BOUNDARY_Z_OFFSET_FROM_CAMERA = -3.5` to both default and species-specific `boundsZMin`/`boundsZMax`.
+- The hard solo-agent runtime envelope still derives from those shifted bounds, so reset/clamp behavior moves with the swim volume instead of fighting the new presentation.
 
 ## v0.8.17 — Speed Insights review
 

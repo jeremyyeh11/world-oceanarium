@@ -13,24 +13,26 @@ Status labels:
 
 ## Current work
 
-### Push-away camera review
+### Push-away boundary review
 
 Status: `Current in development`
 
 Reference:
-- Jeremy asked for a new branch to push everything away from the camera.
-- Branch: `feat/push-away-camera`; current review build: `v0.8.18-dev_1`.
+- Jeremy asked for a new branch to push everything away from the camera, then clarified not to move camera/follow constants because swim/reset boundaries are hard-coded.
+- Branch: `feat/push-away-camera`; current review build: `v0.8.18-dev_2`.
 
 Subtasks:
 - [x] Create fresh branch/worktree from `origin/main`.
-- [x] Pull default tank camera farther back.
-- [x] Pull follow-mode creature framing farther back, including large-creature body-length follow distance.
+- [x] Revert camera/follow-distance pullback from `v0.8.18-dev_1`.
+- [x] Push swim boundary start/end Z planes farther away from camera.
+- [x] Keep solo-agent hard reset/runtime envelope derived from shifted swim bounds.
 - [x] Build/lint/browser-smoke review build.
 - [ ] Collect Jeremy/YK feel review.
 
 Review gates:
-- [ ] Desktop tank default view has more breathing room without feeling empty.
-- [ ] Follow mode still frames selected creatures clearly on desktop/mobile.
+- [ ] Desktop tank default view keeps original camera feel while fish swim farther from camera.
+- [ ] Follow mode keeps original zoom constants but targets shifted fish positions cleanly.
+- [ ] No boundary/reset fighting near the front plane.
 - [ ] No blank/empty first view on phone-sized smoke.
 
 ## Code cleanup / maintenance

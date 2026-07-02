@@ -10,7 +10,7 @@ const CAMERA_LIMITS = {
 
 const DEFAULT_CAMERA_SETTINGS = {
   y: -3.35,
-  z: 13.5,
+  z: 10,
   lookY: 0.35,
   fov: 61,
 }

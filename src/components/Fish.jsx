@@ -101,6 +101,9 @@ const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
 const SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS = 1.55
+const SCALE_REFERENCE_SMALL_BODY_LENGTH_WU = 1.08
+const SCALE_REFERENCE_LARGE_BODY_LENGTH_WU = 9.6
+const MAX_LARGE_BODY_TURN_RADIUS_BONUS = 0.42
 const VISUAL_PITCH_RESPONSE = 4.8
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
@@ -371,12 +374,32 @@ function creatureBodyLength(creature, swim) {
   return creatureBodyLengthWU(creature, swim.bodyLengthWU)
 }
 
+function bodyLengthScaleFactor(bodyLength) {
+  return THREE.MathUtils.clamp(
+    (bodyLength - SCALE_REFERENCE_SMALL_BODY_LENGTH_WU) / (SCALE_REFERENCE_LARGE_BODY_LENGTH_WU - SCALE_REFERENCE_SMALL_BODY_LENGTH_WU),
+    0,
+    1,
+  )
+}
+
+function swimNumber(swim, key, fallback) {
+  return Number.isFinite(swim?.[key]) ? swim[key] : fallback
+}
+
 function largeCreatureFactor(creature, swim) {
-  return THREE.MathUtils.clamp((creatureBodyLength(creature, swim) - 1.0) / 6.5, 0, 1)
+  return bodyLengthScaleFactor(creatureBodyLength(creature, swim))
 }
 
 function effectiveTurnRadius(creature, swim) {
-  return THREE.MathUtils.clamp(swim.turnRadius + largeCreatureFactor(creature, swim) * 0.32, 0, 1)
+  const bodyLength = creatureBodyLength(creature, swim)
+  const bodyScale = bodyLengthScaleFactor(bodyLength)
+  const baseTurnRadius = swimNumber(swim, 'turnRadius', DEFAULT_SWIM.turnRadius)
+  const bonus = swimNumber(
+    swim,
+    'turnRadiusLargeBodyBonus',
+    THREE.MathUtils.lerp(0, MAX_LARGE_BODY_TURN_RADIUS_BONUS, bodyScale),
+  )
+  return THREE.MathUtils.clamp(baseTurnRadius + bonus, 0, 1.25)
 }
 
 function verticalPathScale(creature, swim) {
@@ -402,13 +425,20 @@ function schoolDirectionResponse(swim) {
   return THREE.MathUtils.clamp(Number.isFinite(swim.schoolDirectionResponse) ? swim.schoolDirectionResponse : 5.0, 1.5, 14)
 }
 
-function soloAgentSteeringTurnRate(swim) {
-  if (!Number.isFinite(swim.soloSteeringTurnRateDegrees)) return SOLO_AGENT_STEERING_MAX_TURN_RATE
-  return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(
-    swim.soloSteeringTurnRateDegrees,
-    SOLO_AGENT_STEERING_TURN_RATE_MIN,
-    SOLO_AGENT_STEERING_TURN_RATE_MAX,
-  ))
+function soloAgentSteeringTurnRate(swim, creature = null, bodyLength = null) {
+  if (Number.isFinite(swim.soloSteeringTurnRateDegrees)) {
+    return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(
+      swim.soloSteeringTurnRateDegrees,
+      SOLO_AGENT_STEERING_TURN_RATE_MIN,
+      SOLO_AGENT_STEERING_TURN_RATE_MAX,
+    ))
+  }
+
+  const resolvedBodyLength = Number.isFinite(bodyLength)
+    ? bodyLength
+    : (creature ? creatureBodyLength(creature, swim) : SCALE_REFERENCE_SMALL_BODY_LENGTH_WU)
+  const bodyScale = bodyLengthScaleFactor(resolvedBodyLength)
+  return THREE.MathUtils.degToRad(THREE.MathUtils.lerp(32, 8, bodyScale))
 }
 
 function soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim) {
@@ -514,8 +544,11 @@ function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const boundsSize = swim.boundsUseSpeciesSize === false ? 1 : size
   const bodyLength = boundsBodyLengthWU * boundsSize
   const movementScale = swim.movementBoundsScale ?? 1
-  const bodyMargin = Math.max(PATH_EDGE_PADDING, Math.min(2.2, bodyLength * 0.35))
-  const verticalMargin = Math.min((rawYMax - rawYMin) * 0.16, Math.max(PATH_VERTICAL_PADDING, Math.min(0.58, bodyLength * 0.16)))
+  const bodyScale = bodyLengthScaleFactor(bodyLength)
+  const bodyMarginMax = swimNumber(swim, 'boundsPaddingMaxWU', THREE.MathUtils.lerp(2.2, 5.8, bodyScale))
+  const verticalMarginMax = swimNumber(swim, 'boundsVerticalPaddingMaxWU', THREE.MathUtils.lerp(0.58, 1.35, bodyScale))
+  const bodyMargin = Math.max(PATH_EDGE_PADDING, Math.min(bodyMarginMax, bodyLength * 0.35))
+  const verticalMargin = Math.min((rawYMax - rawYMin) * 0.16, Math.max(PATH_VERTICAL_PADDING, Math.min(verticalMarginMax, bodyLength * 0.16)))
   const zBase = Math.max(1.5, SWIM_BOX.z * movementScale - bodyMargin) * (swim.boundsScaleZ ?? 1)
   const zMin = swim.boundsZMin ?? -zBase
   const zMax = swim.boundsZMax ?? zBase
@@ -682,7 +715,7 @@ function destinationInForwardCone(destination, position, forward, maxAngle = AGE
 function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
-  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+  const minDistance = Math.max(1.2, bodyLength * swimNumber(swim, 'soloMinTargetBodyLengths', SOLO_AGENT_MIN_TARGET_BODY_LENGTHS))
   const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
   const [targetYMin, limitedTargetYMax] = soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim)
 
@@ -710,7 +743,7 @@ function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
 function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forward, depthMode = 'any') {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
-  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+  const minDistance = Math.max(1.2, bodyLength * swimNumber(swim, 'soloMinTargetBodyLengths', SOLO_AGENT_MIN_TARGET_BODY_LENGTHS))
   const modeZMin = depthMode === 'front' ? Math.max(bounds.zMin, MOLA_DEEP_ZONE_Z_MAX) : bounds.zMin
   const modeZMax = depthMode === 'deep' ? Math.min(bounds.zMax, MOLA_DEEP_ZONE_Z_MAX) : bounds.zMax
   const zMin = Math.min(modeZMin, modeZMax)
@@ -839,7 +872,7 @@ function shapeSoloAgentSteeringDesired(out, position, target, forward, creature,
 function makeSoloAgentSteeringDebugPath(creature, swim, start, startForward, target) {
   const bodyLength = creatureBodyLength(creature, swim)
   const stepDistance = Math.max(0.28, bodyLength * SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS)
-  const turnStep = soloAgentSteeringTurnRate(swim) * (stepDistance / Math.max(0.1, bodyLength * 0.08))
+  const turnStep = soloAgentSteeringTurnRate(swim, creature, bodyLength) * (stepDistance / Math.max(0.1, bodyLength * 0.08))
   const points = [start.clone()]
   agentPathPoint.copy(start)
   agentPathTangent.copy(startForward)
@@ -862,7 +895,7 @@ function makeSoloAgentSteeringDebugPath(creature, swim, start, startForward, tar
 function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
-  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+  const minDistance = Math.max(1.2, bodyLength * swimNumber(swim, 'soloMinTargetBodyLengths', SOLO_AGENT_MIN_TARGET_BODY_LENGTHS))
 
   for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
     const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
@@ -897,7 +930,7 @@ function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
 function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startForward) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
-  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
+  const minDistance = Math.max(1.2, bodyLength * swimNumber(swim, 'soloMinTargetBodyLengths', SOLO_AGENT_MIN_TARGET_BODY_LENGTHS))
 
   agentContinuationForward.copy(startForward)
   if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
@@ -1469,12 +1502,12 @@ function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 's
 
     const bodyLength = creatureBodyLength(creature, swim)
     const firstTurnDistance = Math.max(
-      bodyLength * SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS,
+      bodyLength * swimNumber(swim, 'schoolPathMinFirstTurnBodyLengths', SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS),
       THREE.MathUtils.lerp(1.35, 3.6, turnRadius),
     )
     const leadDistance = Math.max(
       firstTurnDistance + bodyLength * 0.4,
-      bodyLength * SCHOOL_PATH_CONTINUATION_BODY_LENGTHS * THREE.MathUtils.lerp(0.9, 1.28, turnRadius),
+      bodyLength * swimNumber(swim, 'schoolPathContinuationBodyLengths', SCHOOL_PATH_CONTINUATION_BODY_LENGTHS) * THREE.MathUtils.lerp(0.9, 1.28, turnRadius),
     ) * randomRange(rand, 0.94, 1.08)
     const lead = start.clone().addScaledVector(schoolTargetTangent, leadDistance)
     points.push(clampToSwimBounds(lead, bounds))
@@ -2855,7 +2888,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       } else {
         if (agentHasTarget.current) {
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-          rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
+          rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim, creature, bodyLength) * delta)
         }
 
         desiredDirection.current.copy(tangent)

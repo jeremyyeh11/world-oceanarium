@@ -8,6 +8,15 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.8.18 — Body-length movement scale review
+
+Status: in development as `v0.8.18-dev_1` for Jeremy review.
+
+### Creature behavior
+
+- `v0.8.18-dev_1` starts the body-length movement scale pass: large-creature turn radius, steering turn rate, target spacing, bounds padding, and Mahi pair path continuation now resolve from body-length-aware helpers instead of fixed sardine-era constants. Mahi-mahi gets wider pair arcs and deeper roam bounds; Giant Sunfish drops the sardine-length bounds override and uses broader, slower solo-agent targets.
+
+
 ## v0.8.17 — Speed Insights review
 
 Status: accepted and promoted as clean `v0.8.17` from `v0.8.17-dev_1` after Jeremy approval.

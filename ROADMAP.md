@@ -13,6 +13,25 @@ Status labels:
 
 ## Current work
 
+### Body-length movement scale review
+
+Status: `Current in development`
+
+Reference:
+- Jeremy diagnosed that large creature movement does not feel as big as creature scale; `v0.8.18-dev_1` starts a body-length scale pass instead of continuing sardine-era constants.
+
+Subtasks:
+- [x] Create `feat/body-length-motion-scale` from latest `origin/main`.
+- [x] Generalize movement/path helpers around body length for large-creature turn radius, steering turn rate, target spacing, and bounds padding.
+- [x] Retune Mahi-mahi pair path continuation and Giant Sunfish solo-agent roam bounds as first review targets.
+- [x] Browser-smoke `v0.8.18-dev_1` locally.
+- [ ] Collect Jeremy/YK feel review on the body-length movement pass.
+
+Review gates:
+- Mahi-mahi and Giant Sunfish should feel larger through broader arcs, slower commitment, and more negative space, not by merely moving faster on screen.
+- Sardine school should retain small-fish flicker/spacing and avoid regressions.
+- Build passes; public review build remains `-dev` until explicit approval.
+
 ## Code cleanup / maintenance
 
 ### Debug-runtime hardening and maintainability

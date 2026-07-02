@@ -8,6 +8,15 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.8.18 — Push-away camera review
+
+Status: in development as `v0.8.18-dev_1` for Jeremy review.
+
+### Camera / framing
+
+- `v0.8.18-dev_1` pulls the default tank camera back from `z: 10` to `z: 13.5` so the whole oceanarium reads farther from the viewer.
+- Follow mode also backs off: default follow distance `3.2 → 4.4`, min follow distance `1.35 → 1.75`, Mola min body-length distance `1.05 → 1.28`, large-creature follow distance `1.9 → 2.45` body lengths, and max follow distance `18 → 24`.
+
 ## v0.8.17 — Speed Insights review
 
 Status: accepted and promoted as clean `v0.8.17` from `v0.8.17-dev_1` after Jeremy approval.

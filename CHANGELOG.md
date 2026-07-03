@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.9.0 (in progress) — Tank assemblages & curation
+## v0.9.0 — Tank assemblages & curation
 
-Status: in development on branch `feat/tank-assemblages`; not yet promoted to a clean release. See `docs/tank-design.md`.
+Status: accepted and promoted as clean `v0.9.0` after Jeremy approval (merged via #57). See `docs/tank-design.md`.
 
 ### Tanks / curation
 

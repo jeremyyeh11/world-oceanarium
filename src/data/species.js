@@ -455,9 +455,9 @@ export const SPECIES = [
     maxBodyLengthMeters: 3.3,
     atlasThumbnail: '/atlas/mola-alexandrini-thumbnail.png',
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. Current review scale keeps adults at 180–240 cm = 7.2–9.6 WU until the final GLB scale is approved.
-      // Target review speed: ~0.6–1.1 WU/s after the latest 1.2x idle movement tuning.
-      bodyLengthWU: 9.6,
+      // World Oceanarium scale: 1 WU = 25 cm. Adults render at their factual size:
+      // Mola alexandrini reaches ~3.3 m total length = 13.2 WU (matches the Atlas female average).
+      bodyLengthWU: 13.2,
       visualTimeScale: 1.0,
       idleBLPerSec: [0.0624, 0.1104],
       idleDriftBLPerSec: [0.010, 0.020],
@@ -479,7 +479,7 @@ export const SPECIES = [
       boundsZMin: -25,
       boundsZMax: 0,
     },
-    // Current review scale maps normalized individual size to 180–240 cm total length; revisit if we want full giant-sunfish adult maximums after the GLB lands.
+    // Normalized individual size maps to roughly 248–330 cm total length (male average → female maximum).
     sizeRange: [0.75, 1.0],
     mass: {
       // Broad placeholder estimate until curated species/body-condition data lands.
@@ -491,8 +491,8 @@ export const SPECIES = [
       // Blender +Z exports as GLB +Y, so this asset's GLB axes are +Y up and +Z forward.
       // The fish root also uses +Y up and +Z swim-forward, so no extra child rotation is needed.
       rotation: [0, 0, 0],
-      // Source body length is ~20.69 model units; scale to the existing 9.6 WU max review length.
-      scale: 0.464,
+      // Source body length is ~20.69 model units; scale maps size 1.0 to 3.3 m / 13.2 WU max.
+      scale: 0.638,
       moveset: {
         cruise: 'slow_cruise',
         drift: 'idle_drift',

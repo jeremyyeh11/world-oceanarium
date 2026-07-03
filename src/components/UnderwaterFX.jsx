@@ -4,7 +4,7 @@ import * as THREE from 'three'
 
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
 const GOD_RAY_SURFACE_START_Y = 15
-const SUSPENDED_PARTICLE_COUNT = 96
+const SUSPENDED_PARTICLE_COUNT = 240
 
 const BASIC_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -54,14 +54,18 @@ const RAY_FRAGMENT = /* glsl */ `
     float fadeStart = 1.0 - uFadeLength;
     float lengthFade = smoothstep(fadeStart, min(0.98, fadeStart + 0.24), fromSurface);
     float vertical = depthFade * surfaceFade * lengthFade;
+    // Dusty, uneven light: a coarse drift plus a finer grain octave so the shaft
+    // breaks up instead of reading as a clean gradient decal.
     vec2 driftUv = vec2(vUv.x * 1.35 + uSeed + uTime * 0.018, vUv.y * 2.4 - uTime * 0.075);
-    float shimmer = 0.76 + noise(driftUv) * 0.24;
+    vec2 grainUv = vec2(vUv.x * 5.6 - uSeed * 2.1 + uTime * 0.031, vUv.y * 7.4 - uTime * 0.112);
+    float dust = noise(driftUv) * 0.62 + noise(grainUv) * 0.38;
+    float shimmer = 0.5 + dust * 0.72;
     float breath = mix(
       0.96 + sin(uTime * 0.040 + uSeed * 1.43) * 0.04,
       0.88 + sin(uTime * 0.068 + uSeed * 1.17) * 0.12,
       topInfluence
     );
-    float alpha = center * sideFade * vertical * shimmer * breath * uStrength * 0.28;
+    float alpha = center * sideFade * vertical * shimmer * breath * uStrength * 0.32;
     gl_FragColor = vec4(0.34, 0.70, 0.90, alpha);
   }
 `
@@ -72,16 +76,22 @@ const PARTICLE_VERTEX = /* glsl */ `
   attribute float aSeed;
   attribute float aSize;
   varying float vAlpha;
+  varying float vGlow;
 
   void main() {
     vec3 p = position;
-    float lift = fract(aSeed * 13.71 + uTime * 0.018);
-    p.x += sin(uTime * 0.135 + aSeed * 4.17) * 0.105;
-    p.y += (lift - 0.5) * 1.15 + sin(uTime * 0.095 + aSeed * 6.31) * 0.035;
-    p.z += cos(uTime * 0.120 + aSeed * 5.43) * 0.090;
+    // Marine snow: a very slow net sink with gentle lateral sway, wrapping over the
+    // column height so the field stays populated without popping.
+    float sink = fract(aSeed * 13.71 - uTime * 0.012);
+    p.x += sin(uTime * 0.135 + aSeed * 4.17) * 0.11;
+    p.y += (0.5 - sink) * 1.35 + sin(uTime * 0.095 + aSeed * 6.31) * 0.045;
+    p.z += cos(uTime * 0.120 + aSeed * 5.43) * 0.095;
+
+    // Particles high in the column catch more downwelling light than deep ones.
+    vGlow = mix(0.5, 1.0, smoothstep(-9.0, 11.0, p.y));
 
     vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-    float distanceFade = smoothstep(42.0, 8.0, -mvPosition.z);
+    float distanceFade = smoothstep(46.0, 6.0, -mvPosition.z);
     vAlpha = distanceFade * (0.35 + fract(aSeed * 17.13) * 0.65);
     gl_PointSize = aSize * (36.0 / max(8.0, -mvPosition.z));
     gl_Position = projectionMatrix * mvPosition;
@@ -90,13 +100,14 @@ const PARTICLE_VERTEX = /* glsl */ `
 
 const PARTICLE_FRAGMENT = /* glsl */ `
   varying float vAlpha;
+  varying float vGlow;
 
   void main() {
     vec2 p = gl_PointCoord - 0.5;
     float r = dot(p, p) * 4.0;
     float softDot = smoothstep(1.0, 0.0, r);
     float core = smoothstep(0.20, 0.0, r);
-    float alpha = (softDot * 0.10 + core * 0.035) * vAlpha;
+    float alpha = (softDot * 0.12 + core * 0.05) * vAlpha * vGlow;
     gl_FragColor = vec4(0.72, 0.96, 1.0, alpha);
   }
 `
@@ -152,9 +163,14 @@ function LightRays() {
     [13.8, GOD_RAY_SURFACE_START_Y, -13.6, 1.1, 23.6, GOD_RAY_LEFT_ANGLE, 0.09, 53.2, 0.52],
   ], [])
 
-  return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed, fadeLength]) => (
-    <LightRay key={seed} x={x} surfaceY={surfaceY} z={z} width={width} height={height} rotation={rotation} strength={strength} seed={seed} fadeLength={fadeLength} />
-  ))
+  // Fan each shaft's tilt by its horizontal position so the rays diverge from an
+  // off-screen upper-left sun instead of marching as identical parallel bands.
+  return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed, fadeLength]) => {
+    const fannedRotation = rotation + (x + 3) * 0.010
+    return (
+      <LightRay key={seed} x={x} surfaceY={surfaceY} z={z} width={width} height={height} rotation={fannedRotation} strength={strength} seed={seed} fadeLength={fadeLength} />
+    )
+  })
 }
 
 
@@ -174,11 +190,11 @@ function SuspendedParticles() {
       const ry = seedB < 0 ? seedB + 1 : seedB
       const rz = seedC < 0 ? seedC + 1 : seedC
 
-      positions[index * 3] = -22 + rx * 44
-      positions[index * 3 + 1] = 1.8 + ry * 10.8
-      positions[index * 3 + 2] = -18 + rz * 24
+      positions[index * 3] = -24 + rx * 48
+      positions[index * 3 + 1] = -9 + ry * 24
+      positions[index * 3 + 2] = -20 + rz * 26
       seeds[index] = seedA
-      sizes[index] = 1.6 + ((rx + ry * 0.7 + rz * 0.3) % 1) * 1.9
+      sizes[index] = 1.5 + ((rx + ry * 0.7 + rz * 0.3) % 1) * 2.0
     }
 
     const nextGeometry = new THREE.BufferGeometry()

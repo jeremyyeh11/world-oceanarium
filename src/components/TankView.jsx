@@ -678,6 +678,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
       </div>
 
       <div className="tank-top-exposure" aria-hidden="true" />
+      <div className="tank-depth-absorption" aria-hidden="true" />
 
       {screenshotMode && (
         <svg className="screenshot-grain" aria-hidden="true" focusable="false">
@@ -696,6 +697,8 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           position: 'absolute', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
           color: 'rgba(255,255,255,0.7)', fontFamily: 'system-ui, sans-serif', textAlign: 'center',
           pointerEvents: 'none',
+          // Keep above the screen-space water overlays (.tank-top-exposure / .tank-depth-absorption, z 4).
+          zIndex: 30,
         }}>
           <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
           {defaultDepthZone && (
@@ -985,6 +988,8 @@ function FocusHint() {
   return (
     <div className="focus-hint" style={{
       position: 'absolute', top: '4.8rem', left: '50%', transform: 'translateX(-50%)',
+      // Keep above the screen-space water overlays (.tank-top-exposure / .tank-depth-absorption, z 4).
+      zIndex: 30,
       color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.56rem',
       letterSpacing: '0.075em', textTransform: 'uppercase', pointerEvents: 'none',
       background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',

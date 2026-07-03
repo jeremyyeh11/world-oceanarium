@@ -1118,6 +1118,23 @@ body:has(.debug-panel) .app-version-footnote {
   mix-blend-mode: screen;
 }
 
+/* Depth absorption: darken the lower field so light visibly dies with depth
+   (counterpart to .tank-top-exposure's surface brightening). */
+.tank-depth-absorption {
+  position: absolute;
+  top: 0;
+  right: auto;
+  bottom: 0;
+  left: 50%;
+  z-index: 4;
+  width: max(100vw, calc(100dvh * 16 / 9));
+  pointer-events: none;
+  transform: translateX(calc(-50% + var(--stage-pan-x, 0px)));
+  background:
+    linear-gradient(180deg, transparent 0%, transparent 38%, rgba(8, 24, 58, 0.28) 62%, rgba(4, 13, 36, 0.52) 82%, rgba(2, 7, 22, 0.72) 100%);
+  mix-blend-mode: multiply;
+}
+
 
 .encyclopedia-page {
   position: fixed;

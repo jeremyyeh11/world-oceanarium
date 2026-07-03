@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.8.20 — Underwater depth & atmosphere review
+
+Status: accepted and promoted as clean `v0.8.20` from `v0.8.20-dev_1` after Jeremy approval.
+
+### Environment / atmosphere
+
+- `v0.8.20-dev_1` reworks the ocean sunlight-zone depth read: `scene.background` now uses a dedicated deep-ocean-blue gradient (luminous surface band falling to dark mid/lower water) kept separate from the brighter environment map that lights the creatures, so the empty upper column reads as lit water instead of a flat void without under-lighting the animals. Distance fog is retuned to a deep-blue haze so far creatures desaturate into scattered light (aerial perspective) rather than fading to black. Palette pulled from teal toward pure ocean blue. The backdrop is painted at higher resolution with soft organic light mottling (large caustic-style light/dark patches) plus a blur pass, which gives the water depth/variation instead of a flat gradient and eliminates the horizontal 8-bit banding without introducing per-pixel grain. A `.tank-depth-absorption` multiply overlay (counterpart to `.tank-top-exposure`) darkens the lower field so light visibly dies with depth across both water and creatures. Tank UI without an explicit stacking level (desktop info card, biome title/zone label, follow hint) now sets `z-index: 30` so it renders above the screen-space water overlays (`z 4`) and below interactive chrome (`z 55+`).
+- Marine snow / suspended particulate raised from 96 to 240 particles and redistributed down into the creature/camera zone (previously confined above it), with a slow net sink and a height-based glow so particles high in the column catch more downwelling light.
+- God-ray shafts now fan out from an off-screen upper-left sun instead of marching as identical parallel bands, and gain a finer grain octave so they read as volumetric light rather than a clean decal.
+
+### Camera
+
+- Eased the resting default view from a ~20° up-pitch (which pinned creatures to the bottom edge) to ~10° up (`lookY` `0.35` → `-1.5`), so animals can swim into the top half of frame while the surface band and god rays still crown the top.
+
+### Creature data / scale
+
+- Giant Sunfish (`Mola alexandrini`) render scale raised to its factual maximum: `bodyLengthWU` `9.6 → 13.2` (≈3.3 m, matching the Atlas female average) and GLB `scale` `0.464 → 0.638`. It now visibly dwarfs the mahi-mahi; normalized individual size maps to ≈248–330 cm. The prior 2.4 m review cap is removed. Sardine, mahi-mahi, and mako scales verified factually proportionate and unchanged.
+
 ## v0.8.19 — Shortfin Mako Shark review
 
 Status: in development as `v0.8.19-dev_3` for Jeremy review.

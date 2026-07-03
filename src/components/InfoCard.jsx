@@ -8,6 +8,8 @@ const DEFAULT_MASS = {
 const styles = {
   wrap: {
     position: 'absolute',
+    // Keep above the screen-space water overlays (.tank-top-exposure / .tank-depth-absorption, z 4).
+    zIndex: 30,
     right: 'clamp(0.75rem, 3vw, 2.25rem)',
     bottom: 'clamp(4.75rem, 7vh, 6.5rem)',
     width: 'min(25rem, calc(100vw - 1.5rem))',

@@ -13,6 +13,29 @@ Status labels:
 
 ## Current work
 
+### Underwater depth & atmosphere pass
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy asked to fix visual-feel problems from the upward camera: no depth cues, scale mismatch (mola not reading as huge), empty top two-thirds, god rays reading as a pasted decal, and no marine snow.
+- Branch: `feat/underwater-depth-atmosphere`; accepted for clean `v0.8.20` release from `v0.8.20-dev_1` after Jeremy approval.
+- Direction approved in chat: deep saturated ocean blue (not teal), luminous surface with bottom-up light absorption; atmosphere-only fill for the empty column (no fake creatures); sunfish bumped to factual 3.3 m.
+
+Subtasks:
+- [x] Depth cues: dedicated moody background gradient + aerial-perspective fog haze, decoupled from creature-lighting env map.
+- [x] Marine snow: densify (96 → 240) and redistribute into the creature/camera column with sink + height glow.
+- [x] God rays: fan divergence from an off-screen sun + dusty grain octave so they read volumetric.
+- [x] Scale: Giant Sunfish to factual 3.3 m (`bodyLengthWU` 13.2, GLB `scale` 0.638); verify other species proportionate.
+- [x] Camera: ease resting up-pitch (`lookY` 0.35 → -1.5) so fish can occupy the top half of frame.
+- [x] Collect Jeremy feel review across color/banding/absorption/UI-stacking iterations; accepted and promoted to clean `v0.8.20`.
+
+Review gates:
+- Distant creatures should fade/desaturate into haze; near subjects keep form and color.
+- Mola must read dramatically larger than the mahi-mahi.
+- God rays should read as volumetric light, not a flat decal layer.
+- Build passes; public review build remains `-dev` until explicit approval.
+
 ### Shortfin Mako Shark import
 
 Status: `Current in development`

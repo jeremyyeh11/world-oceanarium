@@ -11,7 +11,10 @@ const CAMERA_LIMITS = {
 const DEFAULT_CAMERA_SETTINGS = {
   y: -3.35,
   z: 10,
-  lookY: 0.35,
+  // Ease the resting up-pitch (was +0.35 / ~20° up, which pinned creatures to the
+  // bottom edge) to ~10° up so animals can swim into the top half while the surface
+  // band and god rays still crown the very top of frame.
+  lookY: -1.5,
   fov: 61,
 }
 

@@ -10,10 +10,11 @@ Versioning convention notes:
 
 ## v0.8.19 — Shortfin Mako Shark review
 
-Status: in development as `v0.8.19-dev_2` for Jeremy review.
+Status: in development as `v0.8.19-dev_3` for Jeremy review.
 
 ### Creature data / Atlas / asset
 
+- `v0.8.19-dev_3` slows mako solo-agent steering/velocity changes, raises the turn trigger threshold, layers the authored burst clip softly over the continuous swim loop, and adds a subtle procedural spine/tail sway so the shark always reads as swimming instead of rigidly snapping between headings.
 - `v0.8.19-dev_2` keeps mako burst movement but maps the visible burst animation back to the continuous `idle` swim loop and lengthens the model fade, avoiding the supplied `burst` clip's pose discontinuity/snap during tank transitions.
 - `v0.8.19-dev_1` imports Jeremy's Shortfin Mako Shark GLB (`Isurus oxyrinchus`), adds a solitary pelagic predator species profile, one static-dev review creature, Atlas source-length scaling/pose data, and a first-pass solo movement profile with long glides and rare burst acceleration.
 

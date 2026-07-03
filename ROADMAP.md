@@ -13,6 +13,26 @@ Status labels:
 
 ## Current work
 
+### Tank assemblages & curation
+
+Status: `Blocked / waiting review`
+
+Reference:
+- Jeremy felt the pelagic ocean tank read as "rojak" (a haphazard mix): a slow-drifting sunfish sharing water with fast pursuit hunters. Root cause — a "tank" was just a biome and rendered every creature tagged with it, with no curation layer.
+- Branch: `feat/tank-assemblages`.
+- Design doc: `docs/tank-design.md` (full model + how to edit by hand).
+- Approach approved in chat: hybrid membership — tanks list species explicitly (deliberate curation) and species carry a `tempo` so a dev-only coherence guard can flag drifter/fast-swimmer clashes.
+
+Subtasks:
+- [x] Add `tempo` (`drift`/`cruise`/`sprint`) to the four ocean species.
+- [x] Add `TANKS` curation layer + `DEFAULT_TANK_ID` in `species.js`; split the roster into `open-sea` (bait → mahi → mako) and `the-drift` (sunfish).
+- [x] `creaturesForTank` resolver + dev coherence guard in `speciesLookup.js`.
+- [x] Filter `Biome` by active tank (biome still drives environment); `TankView` shows tank name.
+- [x] `activeTankId` state + bottom-center tank switcher in `App.jsx` + styles.
+- [x] Document the model in `docs/tank-design.md` and update `AGENTS.md` paths.
+- [ ] Jeremy review: switcher placement/feel, tank names/taglines, and whether The Drift should move to a twilight depth zone rather than share epipelagic.
+- [ ] Decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
+
 ### Underwater depth & atmosphere pass
 
 Status: `Archive candidate`

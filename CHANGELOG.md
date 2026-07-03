@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.9.0 (in progress) — Tank assemblages & curation
+
+Status: in development on branch `feat/tank-assemblages`; not yet promoted to a clean release. See `docs/tank-design.md`.
+
+### Tanks / curation
+
+- A "tank" is no longer a whole biome dumped on screen. Introduced a `TANKS` curation layer (`src/data/species.js`): each tank borrows a biome for its environment but lists its cast explicitly by species id. `Biome` now renders `creaturesForTank(creatures, tank)` (`src/utils/speciesLookup.js`) instead of `c.biome === name`, falling back to the old biome filter when no tank is passed.
+- Split the pelagic roster into two coherent tanks: `The Open Sea` (spotted sardinella bait → mahi-mahi → shortfin mako, a single-tempo pursuit food chain) and `The Drift` (giant sunfish alone), resolving the "rojak" mix of a slow drifter among fast hunters.
+- Added a `tempo` field (`drift`/`cruise`/`sprint`) to each species and a dev-only coherence guard that warns when a tank mixes drifters with fast swimmers.
+- `TankView` header now shows the tank name; `App` tracks `activeTankId` and renders a bottom-center tank switcher (only when more than one tank exists).
+
 ## v0.8.20 — Underwater depth & atmosphere review
 
 Status: accepted and promoted as clean `v0.8.20` from `v0.8.20-dev_1` after Jeremy approval.

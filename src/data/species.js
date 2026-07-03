@@ -47,6 +47,37 @@ export const BIOMES = [
   },
 ]
 
+// Motion rhythm on each species — describes how the animal moves, independent of
+// trophic role. Used to keep tanks coherent (see TANKS below).
+//   'drift'  — slow, gelatinous, current-borne
+//   'cruise' — steady glides, broad turns, occasional bursts
+//   'sprint' — fast darting / schooling flicker
+//
+// A tank is a curated assemblage, not "everything in a biome". It borrows a biome
+// for its environment (water, light, bubbles are keyed on biome id) but lists its
+// cast explicitly. Drifters and fast swimmers must not share a tank — see the
+// coherence guard in utils/speciesLookup.js.
+export const TANKS = [
+  {
+    id: 'open-sea',
+    name: 'The Open Sea',
+    tagline: 'A blue-water pursuit',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    species: ['amblygaster-sirm', 'coryphaena-hippurus', 'isurus-oxyrinchus'],
+  },
+  {
+    id: 'the-drift',
+    name: 'The Drift',
+    tagline: 'Slow grazers of the open blue',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    species: ['mola-alexandrini'],
+  },
+]
+
+export const DEFAULT_TANK_ID = 'open-sea'
+
 export const SPECIES = [
   {
     id: 'amblygaster-sirm',
@@ -61,6 +92,7 @@ export const SPECIES = [
     repulser: false,
     aggressive: false,
     predator: false,
+    tempo: 'sprint',
     conservationStatus: {
       system: 'IUCN Red List',
       code: 'LC',
@@ -147,6 +179,7 @@ export const SPECIES = [
     repulser: false,
     aggressive: false,
     predator: true,
+    tempo: 'cruise',
     conservationStatus: {
       system: 'IUCN Red List',
       code: 'LC',
@@ -281,6 +314,7 @@ export const SPECIES = [
     repulser: true,
     aggressive: false,
     predator: true,
+    tempo: 'cruise',
     conservationStatus: {
       system: 'IUCN Red List',
       code: 'EN',
@@ -415,6 +449,7 @@ export const SPECIES = [
     repulser: true,
     aggressive: false,
     predator: false,
+    tempo: 'drift',
     conservationStatus: {
       system: 'IUCN Red List',
       code: 'NE',

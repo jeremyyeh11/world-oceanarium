@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
-import { BIOMES } from './data/species'
+import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
 import { DEBUG_TOGGLE_EVENT } from './utils/debugIdentifiers'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from './version'
 
-const DEFAULT_BIOME_ID = 'ocean'
-const ACTIVE_BIOMES = BIOMES.filter(biome => biome.id === DEFAULT_BIOME_ID)
+const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
 const AUDIO_BOOT_START_DELAYS_MS = [0, 60, 180, 500, 1200, 2500]
@@ -47,7 +46,7 @@ function createTankVisitSeed() {
 
 export default function App() {
   const [screen] = useState('tank')
-  const [activeBiome] = useState(DEFAULT_BIOME_ID)
+  const [activeTankId, setActiveTankId] = useState(DEFAULT_TANK_ID)
   const [tankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
@@ -380,16 +379,39 @@ export default function App() {
     setEncyclopediaOpen(true)
   }
 
+  const activeTank = TANKS.find(t => t.id === activeTankId) ?? TANKS[0]
+  const activeBiome = BIOME_BY_ID.get(activeTank?.biome)
+
+  const selectTank = (tankId) => {
+    if (tankId === activeTankId) return
+    triggerUiClickSound()
+    setActiveTankId(tankId)
+  }
+
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    const biome = ACTIVE_BIOMES.find(b => b.id === activeBiome) ?? ACTIVE_BIOMES[0]
-    page = <TankView biome={biome} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onOpenEncyclopedia={openEncyclopedia} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (
     <>
       {page}
+      {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
+        <div className="tank-switcher">
+          {TANKS.map(tank => (
+            <button
+              key={tank.id}
+              type="button"
+              className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
+              aria-pressed={tank.id === activeTankId}
+              onClick={() => selectTank(tank.id)}
+            >
+              {tank.name}
+            </button>
+          ))}
+        </div>
+      )}
       {!screenshotMode && (
         <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
           {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}

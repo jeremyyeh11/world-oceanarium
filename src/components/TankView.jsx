@@ -109,7 +109,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, onBack, onOpenEncyclopedia }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -642,7 +642,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
         onWheel={zoomFollowWithWheel}
       >
         <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
-          <SceneLighting biome={biome.id} />
+          <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}
             focusTarget={focusedFishRef?.current ?? null}
@@ -653,8 +653,9 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             onFollowCameraClip={releaseFollowForCameraClip}
           />
           <Biome
-            key={biome.id}
+            key={tank?.id ?? biome.id}
             name={biome.id}
+            tank={tank}
             creatures={creatures}
             tankVisitSeed={tankVisitSeed}
             selectedCreatureId={selectedCreature?.id}
@@ -672,7 +673,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />
-          <WaterSurface biome={biome.id} />
+          <WaterSurface biome={biome.id} seed={tank?.seed ?? 0} />
           <UnderwaterFX biome={biome.id} />
         </Canvas>
       </div>
@@ -700,7 +701,7 @@ export default function TankView({ biome, creatures, creatureDataSource = 'unkno
           // Keep above the screen-space water overlays (.tank-top-exposure / .tank-depth-absorption, z 4).
           zIndex: 30,
         }}>
-          <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{biome.name}</div>
+          <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{tank?.name ?? biome.name}</div>
           {defaultDepthZone && (
             <div className="tank-zone-label" style={{ marginTop: '0.34rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.52rem', letterSpacing: '0.13em', textTransform: 'uppercase' }}>
               {defaultDepthZone.label}

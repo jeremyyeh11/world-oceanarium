@@ -60,7 +60,19 @@ const PALETTES = {
   },
 }
 
-function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, beamAlpha = 0.24, mottle = 0, blur = 0 } = {}) {
+// Small seeded PRNG (mulberry32) so a tank's background mottling is distinct but
+// stable across mounts, instead of re-randomizing on every visit.
+function mulberry32(seed) {
+  let a = seed >>> 0
+  return function () {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, beamAlpha = 0.24, mottle = 0, blur = 0, rng = Math.random } = {}) {
   const canvas = document.createElement('canvas')
   canvas.width = 1536
   canvas.height = 768
@@ -73,8 +85,9 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   ctx.globalCompositeOperation = 'screen'
+  const beamPhase = (rng() - 0.5) * 0.09
   for (let i = 0; i < 9; i += 1) {
-    const x = canvas.width * (0.12 + i * 0.11)
+    const x = canvas.width * (0.12 + i * 0.11 + beamPhase)
     const beam = ctx.createRadialGradient(x, 0, 0, x, canvas.height * 0.28, canvas.width * 0.18)
     beam.addColorStop(0, `rgba(190, 225, 255, ${beamAlpha})`)
     beam.addColorStop(1, 'rgba(190, 225, 255, 0)')
@@ -88,14 +101,14 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
   // horizontal 8-bit gradient bands — without any per-pixel grain.
   if (mottle > 0) {
     for (let i = 0; i < 46; i += 1) {
-      const cx = Math.random() * canvas.width
-      const cy = Math.random() * canvas.height * 0.92
-      const radius = canvas.width * (0.10 + Math.random() * 0.24)
+      const cx = rng() * canvas.width
+      const cy = rng() * canvas.height * 0.92
+      const radius = canvas.width * (0.10 + rng() * 0.24)
       // Fade the effect with depth — the surface has the most light play.
       const depthFalloff = 1.0 - (cy / canvas.height) * 0.55
-      const strength = (0.035 + Math.random() * 0.055) * mottle * depthFalloff
+      const strength = (0.035 + rng() * 0.055) * mottle * depthFalloff
       const patch = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius)
-      if (Math.random() > 0.42) {
+      if (rng() > 0.42) {
         ctx.globalCompositeOperation = 'screen'
         patch.addColorStop(0, `rgba(90, 165, 255, ${strength})`)
         patch.addColorStop(1, 'rgba(90, 165, 255, 0)')
@@ -130,15 +143,18 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
   return texture
 }
 
-export default function SceneLighting({ biome = 'ocean' }) {
+export default function SceneLighting({ biome = 'ocean', seed = 0, paletteOverrides = null }) {
   const { scene, gl } = useThree()
-  const palette = PALETTES[biome] ?? PALETTES.ocean
+  const palette = useMemo(
+    () => ({ ...(PALETTES[biome] ?? PALETTES.ocean), ...(paletteOverrides ?? {}) }),
+    [biome, paletteOverrides],
+  )
   const envTexture = useMemo(() => paintEquirectGradient(palette), [palette])
   const backgroundTexture = useMemo(
     () => (palette.backgroundStops
-      ? paintEquirectGradient(palette, { stops: palette.backgroundStops, beamAlpha: palette.backgroundBeamAlpha ?? 0.18, mottle: palette.backgroundMottle ?? 1, blur: palette.backgroundBlur ?? 3 })
+      ? paintEquirectGradient(palette, { stops: palette.backgroundStops, beamAlpha: palette.backgroundBeamAlpha ?? 0.18, mottle: palette.backgroundMottle ?? 1, blur: palette.backgroundBlur ?? 3, rng: mulberry32((seed >>> 0) || 1) })
       : null),
-    [palette],
+    [palette, seed],
   )
 
   useEffect(() => {

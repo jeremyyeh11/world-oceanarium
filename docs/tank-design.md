@@ -229,6 +229,24 @@ guard will warn.
 
 Set `DEFAULT_TANK_ID` in `species.js` to another tank's `id`.
 
+## Scaling the switcher (future)
+
+The bottom-center pill switcher is fine for **2–4 tanks** and stops scaling past that.
+Planned progression (revisit when a 3rd/4th tank lands):
+
+- **Phase 1 — now (2–4 tanks):** the inline segmented pill. Keep.
+- **Phase 2 — ~5–8 tanks:** group tanks by **biome**. The switcher becomes
+  biome-scoped (only tanks in the current biome), and the biome choice moves to a
+  lightweight lobby. The entry point already exists: `TankView` has a latent `onBack`
+  → "Back to biome menu" hook that `App` does not currently wire up.
+- **Phase 3 — many tanks / depth stratification:** a two-axis navigator. `DEPTH_ZONES`
+  exists but nothing uses it for navigation yet; the model is pick a biome, then move
+  *vertically* through depth zones (scroll-down = deeper) with tanks as stops along the
+  column. This turns the depth axis from a decorative label into real navigation.
+
+The data model already supports every phase — `tank.biome` and `tank.depthZone` are the
+grouping keys the later phases need. Only the navigation UI changes.
+
 ## Current roster
 
 | Species             | tempo    | tank        | role in the story        |

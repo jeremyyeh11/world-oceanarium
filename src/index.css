@@ -2064,7 +2064,11 @@ body:has(.debug-panel) .app-version-footnote {
 
 .tank-switcher-description {
   margin: 0;
-  max-width: 22rem;
+  /* Prefer one line; only wrap when the viewport is too narrow to fit it.
+     width:max-content sizes to the text (decoupled from the narrower pill row),
+     clamped by max-width so it wraps once it would exceed the screen. */
+  width: max-content;
+  max-width: min(92vw, 48rem);
   text-align: center;
   color: rgba(205, 228, 248, 0.62);
   font-family: system-ui, sans-serif;

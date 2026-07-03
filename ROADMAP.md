@@ -33,6 +33,12 @@ Subtasks:
 - [ ] Jeremy review: switcher placement/feel, tank names/taglines, and whether The Drift should move to a twilight depth zone rather than share epipelagic.
 - [ ] Decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
 
+Switcher scalability (revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4):
+- Phase 1 (now, 2–4 tanks): inline segmented pill switcher. Keep.
+- Phase 2 (~5–8 tanks): group by biome. Switcher becomes biome-scoped; promote the biome choice to a lightweight lobby. Entry point already exists — `TankView` has a latent `onBack` → "Back to biome menu" hook that `App` does not currently wire up.
+- Phase 3 (many tanks / depth stratification): two-axis navigator. `DEPTH_ZONES` exists but is unused for navigation; model is pick biome → move vertically through depth zones (scroll-down = deeper) with tanks as stops. Turns the depth axis from a label into real navigation.
+- Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes. Full write-up in `docs/tank-design.md`.
+
 ### Underwater depth & atmosphere pass
 
 Status: `Archive candidate`

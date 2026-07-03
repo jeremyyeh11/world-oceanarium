@@ -379,7 +379,7 @@ export const SPECIES = [
       },
       loopAnimations: ['idle'],
       curveDeform: {
-        bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'tail.t.001', 'tail.t.002', 'tail.t.003'],
+        bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006'],
         axis: 'z',
         strength: 1.1,
         maxAngleDegrees: 12,

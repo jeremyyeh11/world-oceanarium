@@ -642,7 +642,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
         onWheel={zoomFollowWithWheel}
       >
         <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
-          <SceneLighting biome={biome.id} />
+          <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}
             focusTarget={focusedFishRef?.current ?? null}
@@ -673,7 +673,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />
-          <WaterSurface biome={biome.id} />
+          <WaterSurface biome={biome.id} seed={tank?.seed ?? 0} />
           <UnderwaterFX biome={biome.id} />
         </Canvas>
       </div>

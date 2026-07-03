@@ -76,22 +76,41 @@ export const TANKS = [
     id: 'open-sea',
     name: 'The Open Sea',
     tagline: 'A blue-water pursuit',
+    description: 'Fast open-ocean hunters and their bait, ...', // shown above the switcher
     biome: 'ocean',            // drives environment (water, light, bubbles)
     depthZone: 'epipelagic',   // drives the zone label / framing
+    seed: 137,                 // per-tank surface/sky signature (see below)
     species: ['amblygaster-sirm', 'coryphaena-hippurus', 'isurus-oxyrinchus'],
   },
   {
     id: 'the-drift',
     name: 'The Drift',
     tagline: 'Slow grazers of the open blue',
+    description: 'A calmer, dimmer column ...',
     biome: 'ocean',
     depthZone: 'epipelagic',
+    seed: 953,
+    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 }, // optional palette overrides
     species: ['mola-alexandrini'],
   },
 ]
 
 export const DEFAULT_TANK_ID = 'open-sea'
 ```
+
+Tank fields:
+
+- `name` / `tagline` — display strings.
+- `description` — one or two lines shown in small font above the switcher (falls back
+  to `tagline` if absent).
+- `biome` — an existing `BIOMES` id; drives environment (water, light, bubbles, fog).
+- `depthZone` — an existing `DEPTH_ZONES` id; drives the zone label / camera framing.
+- `seed` — a number giving the tank a distinct-but-stable **visual signature** (see
+  "Visual signature" below).
+- `lighting` — optional palette overrides (any key from a `PALETTES` entry in
+  `SceneLighting.jsx`, e.g. `exposure`, `backgroundBeamAlpha`, `fog`, `density`)
+  merged over the biome palette to art-direct the tank's mood.
+- `species` — the explicit cast, by species id.
 
 The membership model is **hybrid**: tanks list species explicitly (deliberate
 curation, one place to look), *and* species carry `tempo` (so the coherence guard can
@@ -148,9 +167,27 @@ Files touched by this system:
 - `src/data/species.js` — `tempo` on species, `TANKS`, `DEFAULT_TANK_ID`
 - `src/utils/speciesLookup.js` — `creaturesForTank`, `TANK_BY_ID`, dev guard
 - `src/components/Biome.jsx` — tank-based creature filter
-- `src/components/TankView.jsx` — accepts `tank`, shows its name in the header
-- `src/App.jsx` — `activeTankId` state, tank→biome resolution, the switcher
-- `src/index.css` — `.tank-switcher` / `.tank-switch-button` styles (bottom-center pill)
+- `src/components/TankView.jsx` — accepts `tank`, shows its name/description, threads seed + lighting to the scene
+- `src/components/SceneLighting.jsx` — background/env painting; seeds the mottle RNG and merges `lighting` overrides
+- `src/components/WaterSurface.jsx` — surface caustic shader; `uSeed` uniform offsets the noise domain per tank
+- `src/App.jsx` — `activeTankId` state, tank→biome resolution, the switcher + description
+- `src/index.css` — `.tank-switcher-dock` / `.tank-switcher` / `.tank-switch-button` styles (bottom-center)
+
+## Visual signature
+
+Switching tanks should look different, not just swap the fish. Two mechanisms, both
+driven by tank fields:
+
+- **`seed`** (scalable, zero art) — feeds a seeded PRNG for the background light
+  mottling (`SceneLighting.jsx`) and a `uSeed` uniform that offsets the surface
+  caustic noise domain (`WaterSurface.jsx`). Same palette, but a genuinely different
+  stretch of water — so every tank is distinct and stable without hand-authoring.
+- **`lighting`** (deliberate art direction) — optional palette overrides merged over
+  the biome palette. Use for a real mood shift: The Drift lowers `exposure` and softens
+  `backgroundBeamAlpha` to read calmer and dimmer than The Open Sea.
+
+Rule of thumb: give every tank a unique `seed`; reach for `lighting` only when a tank
+should feel meaningfully different in mood.
 
 ## How to change it by hand
 
@@ -176,8 +213,10 @@ Append an entry to `TANKS`:
   id: 'twilight-drift',
   name: 'The Twilight',
   tagline: '...',
+  description: '...',       // shown above the switcher
   biome: 'ocean',           // must be an existing biome id (see BIOMES)
   depthZone: 'mesopelagic', // must be an existing depth-zone id (see DEPTH_ZONES)
+  seed: 421,                // any number; give each tank a unique one
   species: ['some-species-id'],
 }
 ```

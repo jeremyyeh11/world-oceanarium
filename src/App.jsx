@@ -398,18 +398,23 @@ export default function App() {
     <>
       {page}
       {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
-        <div className="tank-switcher">
-          {TANKS.map(tank => (
-            <button
-              key={tank.id}
-              type="button"
-              className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
-              aria-pressed={tank.id === activeTankId}
-              onClick={() => selectTank(tank.id)}
-            >
-              {tank.name}
-            </button>
-          ))}
+        <div className="tank-switcher-dock">
+          {(activeTank?.description || activeTank?.tagline) && (
+            <p className="tank-switcher-description">{activeTank.description ?? activeTank.tagline}</p>
+          )}
+          <div className="tank-switcher">
+            {TANKS.map(tank => (
+              <button
+                key={tank.id}
+                type="button"
+                className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
+                aria-pressed={tank.id === activeTankId}
+                onClick={() => selectTank(tank.id)}
+              >
+                {tank.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {!screenshotMode && (

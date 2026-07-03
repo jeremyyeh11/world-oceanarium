@@ -62,16 +62,26 @@ export const TANKS = [
     id: 'open-sea',
     name: 'The Open Sea',
     tagline: 'A blue-water pursuit',
+    // One or two lines shown under the tank name above the switcher.
+    description: 'Fast open-ocean hunters and their bait, from flickering sardinella to the cruising mako.',
     biome: 'ocean',
     depthZone: 'epipelagic',
+    // seed varies the surface caustics + background mottle so each tank has a
+    // distinct-but-stable sky/surface signature (see SceneLighting / WaterSurface).
+    seed: 137,
     species: ['amblygaster-sirm', 'coryphaena-hippurus', 'isurus-oxyrinchus'],
   },
   {
     id: 'the-drift',
     name: 'The Drift',
     tagline: 'Slow grazers of the open blue',
+    description: 'A calmer, dimmer column where soft-bodied giants drift on the current.',
     biome: 'ocean',
     depthZone: 'epipelagic',
+    seed: 953,
+    // Optional per-tank lighting overrides merged over the biome palette — a cheap
+    // way to art-direct a tank's mood beyond the procedural seed variation.
+    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
     species: ['mola-alexandrini'],
   },
 ]

@@ -28,6 +28,7 @@ const DEPTH_Y = {
 const SWIM_BOX = {
   z: 7.4,
 }
+const SWIM_BOUNDARY_Z_OFFSET_FROM_CAMERA = -15
 const TANK_CAMERA_Z = 12
 const TANK_CAMERA_FOV_DEG = 60
 const TANK_CAMERA_ASPECT = 16 / 9
@@ -517,8 +518,8 @@ function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const bodyMargin = Math.max(PATH_EDGE_PADDING, Math.min(2.2, bodyLength * 0.35))
   const verticalMargin = Math.min((rawYMax - rawYMin) * 0.16, Math.max(PATH_VERTICAL_PADDING, Math.min(0.58, bodyLength * 0.16)))
   const zBase = Math.max(1.5, SWIM_BOX.z * movementScale - bodyMargin) * (swim.boundsScaleZ ?? 1)
-  const zMin = swim.boundsZMin ?? -zBase
-  const zMax = swim.boundsZMax ?? zBase
+  const zMin = (swim.boundsZMin ?? -zBase) + SWIM_BOUNDARY_Z_OFFSET_FROM_CAMERA
+  const zMax = (swim.boundsZMax ?? zBase) + SWIM_BOUNDARY_Z_OFFSET_FROM_CAMERA
   const yMin = swim.boundsYMin ?? rawYMin + verticalMargin
   const yMax = swim.boundsYMax ?? rawYMax - verticalMargin
   const nearX = projectedScreenHalfXAtZ(zMax)

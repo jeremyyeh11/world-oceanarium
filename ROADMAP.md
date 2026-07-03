@@ -15,11 +15,11 @@ Status labels:
 
 ### Tank assemblages & curation
 
-Status: `Blocked / waiting review`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy felt the pelagic ocean tank read as "rojak" (a haphazard mix): a slow-drifting sunfish sharing water with fast pursuit hunters. Root cause — a "tank" was just a biome and rendered every creature tagged with it, with no curation layer.
-- Branch: `feat/tank-assemblages`.
+- Branch: `feat/tank-assemblages`; accepted and merged to `main` after Jeremy chat approval (lint clean, production build passes).
 - Design doc: `docs/tank-design.md` (full model + how to edit by hand).
 - Approach approved in chat: hybrid membership — tanks list species explicitly (deliberate curation) and species carry a `tempo` so a dev-only coherence guard can flag drifter/fast-swimmer clashes.
 
@@ -29,9 +29,12 @@ Subtasks:
 - [x] `creaturesForTank` resolver + dev coherence guard in `speciesLookup.js`.
 - [x] Filter `Biome` by active tank (biome still drives environment); `TankView` shows tank name.
 - [x] `activeTankId` state + bottom-center tank switcher in `App.jsx` + styles.
+- [x] Per-tank description above the switcher (one line on desktop, wraps only when the viewport is too narrow).
+- [x] Per-tank visual signature: `seed` varies surface caustics + background mottle; optional `lighting` palette overrides (The Drift reads calmer/dimmer).
 - [x] Document the model in `docs/tank-design.md` and update `AGENTS.md` paths.
-- [ ] Jeremy review: switcher placement/feel, tank names/taglines, and whether The Drift should move to a twilight depth zone rather than share epipelagic.
-- [ ] Decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
+- [x] Jeremy review: switcher placement/feel, names/taglines/descriptions, and The Drift lighting — all approved.
+- [x] Decision: The Drift stays in `epipelagic` for now (revisit a twilight depth zone later).
+- [ ] Backlog: decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
 
 Switcher scalability (revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4):
 - Phase 1 (now, 2–4 tanks): inline segmented pill switcher. Keep.

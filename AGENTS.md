@@ -29,11 +29,13 @@ Design rule: every mechanic must answer **what it feels like to do, and why that
 Important paths:
 
 - `src/components/Fish.jsx` — creature rendering, movement, animation, debug labels
-- `src/components/Biome.jsx` — grouping/rendering by biome
+- `src/components/Biome.jsx` — renders a tank's curated creature assemblage (see `docs/tank-design.md`)
 - `src/components/TankView.jsx` — tank UI, debug mode, follow selection, controls
 - `src/hooks/useCreatures.js` — Supabase/local creature source routing
 - `src/hooks/useOceanAudio.js` — Web Audio graph and SFX
-- `src/data/species.js` — species templates, model metadata, biological facts
+- `src/data/species.js` — species templates (incl. `tempo`), `TANKS` curation layer, biological facts
+- `src/utils/speciesLookup.js` — species/tank lookups, `creaturesForTank`, dev coherence guard
+- `docs/tank-design.md` — the tank/assemblage model: how species map to tanks and how to edit by hand
 - `src/version.js` — visible bottom-right version label
 - `CHANGELOG.md` — categorized release-bucket notes
 - `ROADMAP.md` — active TODOs, release blockers, and review follow-ups ordered by current work, priority, then chronology

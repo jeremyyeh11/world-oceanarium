@@ -1,6 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { hashString } from '../utils/hash'
 
 const SURFACE_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -13,6 +14,7 @@ const SURFACE_VERTEX = /* glsl */ `
 
 const SURFACE_FRAGMENT = /* glsl */ `
   uniform float uTime;
+  uniform vec2 uSeed;
   varying vec2 vUv;
 
   float hash(vec2 p) {
@@ -61,7 +63,9 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
   void main() {
     vec2 uv = vUv;
-    vec2 patternUv = vec2(uv.x * 3.0, uv.y);
+    // uSeed offsets the noise domain per tank so each tank's caustics read as a
+    // different stretch of water. Screen-position fades below still use raw uv.
+    vec2 patternUv = vec2(uv.x * 3.0, uv.y) + uSeed;
 
     // Large Perlin mask makes the fake caustics occasional: bright streaks
     // appear mostly in mask-active regions, while inactive regions stay darker.
@@ -139,9 +143,19 @@ const SURFACE_PLANE_POSITION = [SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_
 const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
 const SURFACE_PLANE_SIZE = [SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH, 1, 1]
 
-export default function WaterSurface() {
+function seedOffset(seed) {
+  const h = hashString(`tank-surface:${seed}`)
+  return [(h & 0xffff) / 0xffff * 100, ((h >>> 16) & 0xffff) / 0xffff * 100]
+}
+
+export default function WaterSurface({ seed = 0 }) {
   const material = useRef()
-  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
+  const uniforms = useMemo(() => ({ uTime: { value: 0 }, uSeed: { value: new THREE.Vector2() } }), [])
+
+  useEffect(() => {
+    const [x, y] = seedOffset(seed)
+    uniforms.uSeed.value.set(x, y)
+  }, [seed, uniforms])
 
   useFrame(({ clock }) => {
     if (material.current) material.current.uniforms.uTime.value = clock.getElapsedTime()

@@ -13,6 +13,35 @@ Status labels:
 
 ## Current work
 
+### Tank assemblages & curation
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy felt the pelagic ocean tank read as "rojak" (a haphazard mix): a slow-drifting sunfish sharing water with fast pursuit hunters. Root cause — a "tank" was just a biome and rendered every creature tagged with it, with no curation layer.
+- Branch: `feat/tank-assemblages`; accepted and merged to `main` after Jeremy chat approval (lint clean, production build passes).
+- Design doc: `docs/tank-design.md` (full model + how to edit by hand).
+- Approach approved in chat: hybrid membership — tanks list species explicitly (deliberate curation) and species carry a `tempo` so a dev-only coherence guard can flag drifter/fast-swimmer clashes.
+
+Subtasks:
+- [x] Add `tempo` (`drift`/`cruise`/`sprint`) to the four ocean species.
+- [x] Add `TANKS` curation layer + `DEFAULT_TANK_ID` in `species.js`; split the roster into `open-sea` (bait → mahi → mako) and `the-drift` (sunfish).
+- [x] `creaturesForTank` resolver + dev coherence guard in `speciesLookup.js`.
+- [x] Filter `Biome` by active tank (biome still drives environment); `TankView` shows tank name.
+- [x] `activeTankId` state + bottom-center tank switcher in `App.jsx` + styles.
+- [x] Per-tank description above the switcher (one line on desktop, wraps only when the viewport is too narrow).
+- [x] Per-tank visual signature: `seed` varies surface caustics + background mottle; optional `lighting` palette overrides (The Drift reads calmer/dimmer).
+- [x] Document the model in `docs/tank-design.md` and update `AGENTS.md` paths.
+- [x] Jeremy review: switcher placement/feel, names/taglines/descriptions, and The Drift lighting — all approved.
+- [x] Decision: The Drift stays in `epipelagic` for now (revisit a twilight depth zone later).
+- [ ] Backlog: decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
+
+Switcher scalability (revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4):
+- Phase 1 (now, 2–4 tanks): inline segmented pill switcher. Keep.
+- Phase 2 (~5–8 tanks): group by biome. Switcher becomes biome-scoped; promote the biome choice to a lightweight lobby. Entry point already exists — `TankView` has a latent `onBack` → "Back to biome menu" hook that `App` does not currently wire up.
+- Phase 3 (many tanks / depth stratification): two-axis navigator. `DEPTH_ZONES` exists but is unused for navigation; model is pick biome → move vertically through depth zones (scroll-down = deeper) with tanks as stops. Turns the depth axis from a label into real navigation.
+- Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes. Full write-up in `docs/tank-design.md`.
+
 ### Underwater depth & atmosphere pass
 
 Status: `Archive candidate`

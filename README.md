@@ -47,6 +47,18 @@ Eventually, World Oceanarium should support real simulation state over time:
 
 For now, creature data lives locally in versioned source files. This keeps the early project simple and reliable. The data is intentionally shaped like future database records, so it can later migrate to Supabase/Postgres without resetting existing creatures.
 
+## Documentation
+
+Index of the project's Markdown references, for both human and future-agent use. Start here.
+
+| File | What it's for |
+| --- | --- |
+| [AGENTS.md](AGENTS.md) | Architecture, important source paths, commands, and conventions for coding agents. Read first when touching the code. |
+| [ROADMAP.md](ROADMAP.md) | Source of truth for active TODOs, release blockers, and review follow-ups, ordered by current work. |
+| [CHANGELOG.md](CHANGELOG.md) | Significant changes grouped by release bucket. |
+| [MEMORY.md](MEMORY.md) | Durable working preferences and conventions captured across sessions (Atlas/copy/debug prefs, release-judgement, workflow). |
+| [docs/tank-design.md](docs/tank-design.md) | The tank/assemblage model — how species map to tanks, the coherence rules, and how to edit tanks by hand. |
+
 ## Development
 
 ```bash

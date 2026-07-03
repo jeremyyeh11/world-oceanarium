@@ -3,7 +3,7 @@ import Environment from './Environment'
 import Fish from './Fish'
 import OceanBubbles from './OceanBubbles'
 import SardineInstancedLayer from './SardineInstancedLayer'
-import { SPECIES_BY_KEY } from '../utils/speciesLookup'
+import { SPECIES_BY_KEY, creaturesForTank } from '../utils/speciesLookup'
 import { hashString } from '../utils/hash'
 
 const SCHOOL_MAX_SIZE = 64
@@ -46,10 +46,10 @@ function creatureSexModelVariantKey(creature, species, fallbackKey) {
   return fallbackKey
 }
 
-export default function Biome({ name, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
+export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   const visibleCreatures = useMemo(
-    () => creatures.filter(c => c.biome === name && c.alive),
-    [creatures, name],
+    () => (tank ? creaturesForTank(creatures, tank) : creatures.filter(c => c.biome === name && c.alive)),
+    [creatures, name, tank],
   )
   const schoolByCreatureId = useMemo(() => {
     const schoolingGroups = visibleCreatures.reduce((groups, creature) => {

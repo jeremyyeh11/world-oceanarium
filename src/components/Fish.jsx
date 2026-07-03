@@ -2252,6 +2252,14 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         -maxAngle,
         maxAngle,
       )
+      const idleSwayAngle = THREE.MathUtils.degToRad(THREE.MathUtils.clamp(
+        Number.isFinite(curveConfig.idleSwayDegrees) ? curveConfig.idleSwayDegrees : 0,
+        0,
+        10,
+      ))
+      const idleSwaySpeed = Number.isFinite(curveConfig.idleSwaySpeed) ? Math.max(0.01, curveConfig.idleSwaySpeed) : 1.35
+      const idleSwayPhaseOffset = Number.isFinite(curveConfig.idleSwayPhaseOffset) ? curveConfig.idleSwayPhaseOffset : 1.15
+      const idleSwaySpeedBoost = 1 + (Number.isFinite(curveConfig.idleSwaySpeedBoost) ? curveConfig.idleSwaySpeedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
       const tailBias = Number.isFinite(curveConfig.tailBias) ? Math.max(0.1, curveConfig.tailBias) : 1
       const baseWeight = Number.isFinite(curveConfig.baseWeight)
         ? THREE.MathUtils.clamp(curveConfig.baseWeight, 0, 1)
@@ -2260,6 +2268,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         ? THREE.MathUtils.clamp(curveConfig.chainMultiplier, 0.5, 1.5)
         : 1
       const phase = elapsed * 1.35 + (input.phase ?? 0)
+      const idleSwayPhase = elapsed * idleSwaySpeed + (input.phase ?? 0)
       const bendAxis = curveDeformAxis(curveConfig)
       curveDeformBones.forEach((bone, index) => {
         removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
@@ -2267,7 +2276,8 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         const chainWeight = Math.pow(chainMultiplier, index)
         const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias)) * chainWeight
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
-        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough)
+        const idleSway = Math.sin(idleSwayPhase - ratio * idleSwayPhaseOffset) * idleSwayAngle * idleSwaySpeedBoost * tailWeight
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough + idleSway)
         bone.quaternion.multiply(curveDeformQuatRef.current)
         curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
         curveState.postAdditiveQuaternions[index].copy(bone.quaternion)

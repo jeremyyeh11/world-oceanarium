@@ -13,6 +13,29 @@ Status labels:
 
 ## Current work
 
+### Shortfin Mako Shark import
+
+Status: `Current in development`
+
+Reference:
+- Jeremy supplied `short fin mako.zip` and asked to add it on a new branch.
+- Branch: `feat/shortfin-mako`; current review build after animation/movement smoothing: `v0.8.19-dev_3`.
+
+Subtasks:
+- [x] Inspect supplied GLB source scale, mesh count, rig, and animation clips.
+- [x] Add `Isurus oxyrinchus` species data, tank model path/scale, movement profile, and static-dev review creature.
+- [x] Add Atlas source-length scaling and fixed pose for the mako GLB.
+- [x] Add one canonical `isurus-oxyrinchus` row to `creatures_dev` for Vercel review, with before/after JSON backups.
+- [x] Build/lint/browser-smoke the first review build.
+- [x] Patch mako animation snap by keeping burst movement on the continuous swim loop (`v0.8.19-dev_2`).
+- [x] Address Jeremy feedback that mako movement was still snappy and the animation was barely visible (`v0.8.19-dev_3`).
+- [ ] Collect Jeremy/YK scale/feel review.
+
+Review gates:
+- Mako should read as a solitary fast pelagic shark: long committed glides, broad turns, rare acceleration.
+- Atlas scale should show the supplied 40.18-unit source model as a 4.0 m review maximum beside the diver.
+- Build passes; public review build remains `-dev` until explicit approval.
+
 ### Push-away boundary review
 
 Status: `Archive candidate`

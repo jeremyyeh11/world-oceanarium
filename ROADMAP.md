@@ -15,11 +15,11 @@ Status labels:
 
 ### Push-away boundary review
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy asked for a new branch to push everything away from the camera, then clarified not to move camera/follow constants because swim/reset boundaries are hard-coded.
-- Branch: `feat/push-away-camera`; current review build: `v0.8.18-dev_3`.
+- Branch: `feat/push-away-camera`; accepted for clean `v0.8.18` release from `v0.8.18-dev_3`.
 
 Subtasks:
 - [x] Create fresh branch/worktree from `origin/main`.
@@ -27,13 +27,13 @@ Subtasks:
 - [x] Push swim boundary start/end Z planes farther away from camera (`-15 WU` in `v0.8.18-dev_3`).
 - [x] Keep solo-agent hard reset/runtime envelope derived from shifted swim bounds.
 - [x] Build/lint/browser-smoke review build.
-- [ ] Collect Jeremy/YK feel review.
+- [x] Collect Jeremy/YK feel review — Jeremy approved with `reju`.
 
 Review gates:
-- [ ] Desktop tank default view keeps original camera feel while fish swim farther from camera.
-- [ ] Follow mode keeps original zoom constants but targets shifted fish positions cleanly.
-- [ ] No boundary/reset fighting near the front plane.
-- [ ] No blank/empty first view on phone-sized smoke.
+- [x] Desktop tank default view keeps original camera feel while fish swim farther from camera.
+- [x] Follow mode keeps original zoom constants but targets shifted fish positions cleanly.
+- [x] No boundary/reset fighting near the front plane.
+- [x] No blank/empty first view on phone-sized smoke.
 
 ## Code cleanup / maintenance
 

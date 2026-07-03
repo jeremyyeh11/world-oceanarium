@@ -318,6 +318,7 @@ export const SPECIES = [
       social: 'Solitary',
     },
     description: 'A lean, metallic-blue lamnid built for fast open-water pursuit. The shortfin mako should read as a committed pelagic hunter: long glides, rare sharp acceleration, and broad turns that carry its body through the water rather than twitching like a small schooling fish.',
+    atlasThumbnail: '/atlas/isurus-oxyrinchus-thumbnail.png',
     adultLengthRangeMeters: [2.0, 4.0],
     maxBodyLengthMeters: 4.0,
     swim: {

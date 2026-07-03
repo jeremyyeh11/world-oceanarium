@@ -10,12 +10,12 @@ Versioning convention notes:
 
 ## v0.8.18 — Push-away boundary review
 
-Status: in development as `v0.8.18-dev_2` for Jeremy review.
+Status: in development as `v0.8.18-dev_3` for Jeremy review.
 
 ### Movement boundary / framing
 
 - `v0.8.18-dev_2` restores the default camera and follow-distance constants from `v0.8.17`; camera position and follow zoom are no longer changed.
-- Pushes the swim boundary start/end Z planes `3.5 WU` farther from the camera by applying `SWIM_BOUNDARY_Z_OFFSET_FROM_CAMERA = -3.5` to both default and species-specific `boundsZMin`/`boundsZMax`.
+- `v0.8.18-dev_3` pushes the swim boundary start/end Z planes `15 WU` farther from the camera by applying `SWIM_BOUNDARY_Z_OFFSET_FROM_CAMERA = -15` to both default and species-specific `boundsZMin`/`boundsZMax`.
 - The hard solo-agent runtime envelope still derives from those shifted bounds, so reset/clamp behavior moves with the swim volume instead of fighting the new presentation.
 
 ## v0.8.17 — Speed Insights review

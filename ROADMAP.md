@@ -19,12 +19,12 @@ Status: `Current in development`
 
 Reference:
 - Jeremy asked for a new branch to push everything away from the camera, then clarified not to move camera/follow constants because swim/reset boundaries are hard-coded.
-- Branch: `feat/push-away-camera`; current review build: `v0.8.18-dev_2`.
+- Branch: `feat/push-away-camera`; current review build: `v0.8.18-dev_3`.
 
 Subtasks:
 - [x] Create fresh branch/worktree from `origin/main`.
 - [x] Revert camera/follow-distance pullback from `v0.8.18-dev_1`.
-- [x] Push swim boundary start/end Z planes farther away from camera.
+- [x] Push swim boundary start/end Z planes farther away from camera (`-15 WU` in `v0.8.18-dev_3`).
 - [x] Keep solo-agent hard reset/runtime envelope derived from shifted swim bounds.
 - [x] Build/lint/browser-smoke review build.
 - [ ] Collect Jeremy/YK feel review.

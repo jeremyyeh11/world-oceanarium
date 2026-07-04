@@ -10,10 +10,11 @@ Versioning convention notes:
 
 ## v0.10.0 (in progress) — Boid schooling movement
 
-Status: in development as `v0.10.0-dev_6` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
+Status: in development as `v0.10.0-dev_7` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
 
 ### Creature behavior
 
+- `v0.10.0-dev_7` protects authored behaviors from boid interference: while a solo agent runs the mola sun-bask (approach, hold, or exit) its boid steering is fully suppressed so the authored animation owns the path, and the committed boid vector decays out so it does not snap back in when the behavior ends.
 - `v0.10.0-dev_6` reworks the boid debug overlay so the system is legible: the focused fish (selected creature or any solo agent) draws a line to each remembered neighbor colored by relation — green = following, red = avoiding, gray = neutral — plus a cyan tick at each neighbor showing which way it is heading, and a magenta threat-avoidance vector for the observer. Neighbor webs are limited to the focused fish so a school no longer webs into an unreadable tangle; sampled schoolmates still show the aggregate separation/alignment/cohesion/threat vectors and a readout.
 - `v0.10.0-dev_5` fixes the "jitter every half second" by committing each fish to a boid decision for roughly one animation cycle (clamped, per-fish jittered) instead of re-steering every frame, and by selecting a stable nearest-N neighbor set rather than whatever the registry iterated first. Adds a species reaction hierarchy: each species carries `menace` (how threatening it reads) and `wariness` (how strongly it reacts), so prey flee the mako at a wide radius while nobody minds the mola.
 - `v0.10.0-dev_4` disables spline/path-follow movement. Schools keep their seeded initial spread, then swim from their own current heading plus boid separation/alignment/cohesion; debug no longer draws the old cyan spline line.

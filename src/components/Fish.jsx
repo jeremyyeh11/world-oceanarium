@@ -3136,16 +3136,26 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
         }
 
-        if (now >= boidDecisionNextAt.current) {
-          computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, tangent, boidDebugState.current)
-          boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
-        }
-        smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
-        if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
-          targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
-          if (targetDesiredDirection.lengthSq() > 0.0001) {
-            rotateDirectionToward(tangent, targetDesiredDirection.normalize(), soloAgentSteeringTurnRate(swim) * 0.45 * delta)
+        // Authored behaviors (e.g. the mola sun-bask approach/exit) own the steering
+        // outright — boid forces are suppressed so they never nudge the animation off
+        // its path. The bask hold stage above already bypasses boids entirely.
+        const authoredBehaviorActive = agentBehavior.current?.type === 'sun-bask'
+        if (!authoredBehaviorActive) {
+          if (now >= boidDecisionNextAt.current) {
+            computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, tangent, boidDebugState.current)
+            boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
           }
+          smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+          if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
+            targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
+            if (targetDesiredDirection.lengthSq() > 0.0001) {
+              rotateDirectionToward(tangent, targetDesiredDirection.normalize(), soloAgentSteeringTurnRate(swim) * 0.45 * delta)
+            }
+          }
+        } else {
+          // Keep the committed vector decaying so it does not snap back in when the
+          // authored behavior ends.
+          smoothedBoidSteering.current.multiplyScalar(Math.exp(-delta * BOID_STEERING_SMOOTHING))
         }
 
         desiredDirection.current.copy(tangent)

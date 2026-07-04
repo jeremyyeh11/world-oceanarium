@@ -32,12 +32,23 @@ Subtasks:
 - [x] Add species-biased boid parameters: sardine high-neighbor schooling, Mahi one-neighbor pair bias, Giant Sunfish low self-avoid / high repulsion.
 - [x] Add debug vectors/readouts for separation, alignment, cohesion, and final boid steering.
 - [x] Disable spline/path-follow movement for the boid review build.
-- [x] Browser-smoke sardine school motion and decide whether the feel beats the old spline-led baseline.
+- [x] `v0.10.0-dev_5` Fix jitter: commit each fish to a boid decision for ~one animation cycle (clamped, per-fish jittered) instead of steering every frame; select a stable nearest-N neighbor set instead of registry-iteration order.
+- [x] `v0.10.0-dev_5` Add species reaction hierarchy — `menace`/`wariness` per species; prey flee the mako at a wide radius, nobody minds the mola; add missing mako boid profile.
+- [x] `v0.10.0-dev_6` Rework debug overlay: focused fish draws relation-colored connectors to each remembered neighbor (green follow / red avoid / gray neutral), a cyan heading tick per neighbor, and a magenta threat vector; webs gated to the focused fish to stay legible.
+- [x] `v0.10.0-dev_7` Suppress boid steering during the mola sun-bask so authored behavior owns the path.
+- [x] Browser-smoke both tanks; lint clean, production build passes, no runtime errors.
+- [ ] Jeremy feel review: is the jitter gone and does cross-species reaction (flee mako / tolerate mola) read right? Tune `menace`/`wariness` and decision-interval clamps if needed.
+- [ ] Confirm the sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic is preserved — hold stage untouched).
 
 Review gates:
 - Sardines read more alive and locally responsive, not chaotic or jittery.
-- Mahi-mahi pair behavior and Mola solo behavior remain unchanged in intent.
+- Mahi-mahi pair behavior and Mola solo behavior remain unchanged in intent; sun-bask still fires.
+- Cross-species reaction reads: bait steers clear of the mako, tolerates the mola.
 - Build passes and desktop browser smoke shows no runtime errors.
+
+Tuning knobs (in `src/data/species.js` per-species `swim.boids`, and constants in `Fish.jsx`):
+- Per species: `menace`, `wariness`, `neighborCap`, `perceptionBodyLengths`, `separation/alignment/cohesion/maxWeight`.
+- Global: `BOID_DECISION_MIN/MAX_INTERVAL`, `BOID_DECISION_JITTER`, `BOID_THREAT_PERCEPTION_SCALE`, `BOID_THREAT_WEIGHT`.
 
 ### Tank assemblages & curation
 

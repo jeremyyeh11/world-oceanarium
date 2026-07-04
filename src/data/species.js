@@ -165,6 +165,9 @@ export const SPECIES = [
         alignmentWeight: 0.24,
         cohesionWeight: 0.16,
         maxWeight: 0.38,
+        // Harmless bait, but very skittish — flees anything menacing (the mako most of all).
+        menace: 0,
+        wariness: 0.85,
       },
     },
     // Normalized individual size maps to roughly 15–27 cm total length for Amblygaster sirm.
@@ -273,6 +276,9 @@ export const SPECIES = [
         alignmentWeight: 0.05,
         cohesionWeight: 0.025,
         maxWeight: 0.18,
+        // A capable mid predator: mildly menacing to bait, moderately wary of the mako.
+        menace: 0.4,
+        wariness: 0.5,
       },
     },
     // Normalized individual size maps directly to the 0–1 share of the 1.8 m max; DB rows use a truncated normal distribution centered near the 0.91 m average.
@@ -405,6 +411,19 @@ export const SPECIES = [
       boundsYMin: -8,
       boundsZMin: -36,
       boundsZMax: 4,
+      boids: {
+        // Apex solo hunter: sees few neighbors, is unbothered by others, but reads as
+        // maximally menacing so nearly everything else steers away from it.
+        neighborCap: 3,
+        perceptionBodyLengths: 1.4,
+        separationWeight: 0.05,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.06,
+        selfAvoidanceScale: 0.1,
+        menace: 0.95,
+        wariness: 0.08,
+      },
     },
     // Review spread maps individuals to roughly 2.6–4.0 m while the Atlas shows the species maximum.
     sizeRange: [0.65, 1.0],
@@ -549,6 +568,9 @@ export const SPECIES = [
         maxWeight: 0.05,
         selfAvoidanceScale: 0.04,
         repulsionScale: 2.8,
+        // A gentle giant: harmless, so nobody flees it, and it barely reacts to anything.
+        menace: 0.03,
+        wariness: 0.12,
       },
     },
     // Normalized individual size maps to roughly 248–330 cm total length (male average → female maximum).

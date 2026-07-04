@@ -129,6 +129,20 @@ const BOID_COHESION_WEIGHT = 0.12
 const BOID_MAX_WEIGHT = 0.34
 const BOID_SAME_GROUP_SOCIAL_WEIGHT = 1
 const BOID_SAME_SPECIES_SOCIAL_WEIGHT = 0.28
+// A fish commits to a boid steering decision and holds it for roughly one
+// animation cycle, then re-decides. This stops the per-frame re-evaluation that
+// made fish jitter and flip direction several times a second.
+const BOID_DECISION_MIN_INTERVAL = 1.0
+const BOID_DECISION_MAX_INTERVAL = 2.6
+const BOID_DECISION_JITTER = 0.3
+// Species reaction hierarchy: a neighbor's `menace` and the observer's `wariness`
+// combine into a threat-avoidance push sensed at a wider radius than collision
+// separation. Prey flee the mako; nobody minds the mola.
+const BOID_THREAT_PERCEPTION_SCALE = 1.9
+const BOID_THREAT_WEIGHT = 0.62
+const BOID_DEFAULT_MENACE = 0.25
+const BOID_DEFAULT_WARINESS = 0.35
+const BOID_MAX_DEBUG_NEIGHBORS = 12
 const REPULSER_DRIFT_INNER_RADIUS = 5.8
 const REPULSER_DRIFT_OUTER_RADIUS = 17
 const REPULSER_DRIFT_MAX = 2.2
@@ -291,8 +305,12 @@ const boidDelta = new THREE.Vector3()
 const boidAlignment = new THREE.Vector3()
 const boidCenter = new THREE.Vector3()
 const boidCohesion = new THREE.Vector3()
+const boidThreat = new THREE.Vector3()
 const debugBoidVectorEnd = new THREE.Vector3()
 const debugFollowTargetColor = new THREE.Color()
+// Reused candidate buffer for nearest-N neighbor selection so a decision tick does
+// not allocate. Entries are { id, other, distanceSq } and are re-sorted each tick.
+const boidNeighborScratch = []
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
 
@@ -1605,6 +1623,10 @@ function boidParamsForCreature(creature, swim) {
     maxWeight: config.maxWeight ?? BOID_MAX_WEIGHT,
     selfAvoidanceScale: config.selfAvoidanceScale ?? 1,
     repulsionScale: config.repulsionScale ?? (creatureRepulsesOthers(resolveSpecies(creature)) ? 2.2 : 1),
+    // How threatening this species reads to others, and how strongly it reacts to
+    // threatening neighbors. Prey want high wariness; the mako wants high menace.
+    menace: config.menace ?? BOID_DEFAULT_MENACE,
+    wariness: config.wariness ?? BOID_DEFAULT_WARINESS,
   }
 }
 
@@ -1614,15 +1636,34 @@ function boidSocialWeight(school, creature, other) {
   return 0
 }
 
+function recordDebugNeighbor(debugState, other, relation, socialWeight) {
+  if (!debugState || debugState.neighborActive >= BOID_MAX_DEBUG_NEIGHBORS) return
+  const slot = debugState.neighbors[debugState.neighborActive]
+  slot.pos.copy(other.position)
+  if (other.forward?.lengthSq?.() > 0.0001) slot.forward.copy(other.forward)
+  else slot.forward.set(0, 0, -1)
+  slot.relation = relation
+  slot.socialWeight = socialWeight
+  debugState.neighborActive += 1
+}
+
+// Nearest-N neighbor selection: gather everything inside the (wider) threat radius,
+// sort by distance, and only treat the nearest N as school/collision neighbors. This
+// stabilizes who a fish reacts to from tick to tick, which is what kills the jitter —
+// alignment/cohesion targets stop flickering frame to frame. Threat avoidance is
+// applied to any menacing neighbor in range, capped or not, so a shark is never missed.
 function computeBoidSteering(out, fish, creature, swim, school = null, followDirection = null, debugState = null) {
   out.set(0, 0, 0)
   if (debugState) {
     debugState.separation.set(0, 0, 0)
     debugState.alignment.set(0, 0, 0)
     debugState.cohesion.set(0, 0, 0)
+    debugState.threat.set(0, 0, 0)
     debugState.result.set(0, 0, 0)
     debugState.neighborCount = 0
+    debugState.neighborActive = 0
     debugState.socialWeightTotal = 0
+    debugState.perceptionRadius = 0
   }
   const params = boidParamsForCreature(creature, swim)
   if (params.neighborCap <= 0 || params.maxWeight <= 0) return out
@@ -1636,55 +1677,93 @@ function computeBoidSteering(out, fish, creature, swim, school = null, followDir
     params.perceptionMax,
   )
   const perceptionRadiusSq = perceptionRadius * perceptionRadius
+  const threatRadius = perceptionRadius * BOID_THREAT_PERCEPTION_SCALE
+  const threatRadiusSq = threatRadius * threatRadius
   const forward = followDirection?.lengthSq?.() > 0.0001 ? followDirection : null
+  if (debugState) debugState.perceptionRadius = perceptionRadius
+
+  // Phase 1 — gather candidates within the widest (threat) radius, then sort nearest-first.
+  boidNeighborScratch.length = 0
+  FISH_REGISTRY.forEach((other, id) => {
+    if (id === creature.id || other.biome !== creature.biome) return
+    boidDelta.subVectors(fish.position, other.position)
+    boidDelta.y *= 0.55
+    const distanceSq = boidDelta.lengthSq()
+    if (distanceSq < 0.000001 || distanceSq > threatRadiusSq) return
+    boidNeighborScratch.push({ other, distanceSq })
+  })
+  boidNeighborScratch.sort((a, b) => a.distanceSq - b.distanceSq)
+
   let neighborCount = 0
   let socialWeightTotal = 0
   boidAlignment.set(0, 0, 0)
   boidCenter.set(0, 0, 0)
   separationDelta.set(0, 0, 0)
+  boidThreat.set(0, 0, 0)
 
-  FISH_REGISTRY.forEach((other, id) => {
-    if (neighborCount >= params.neighborCap) return
-    if (id === creature.id || other.biome !== creature.biome) return
-    boidDelta.subVectors(fish.position, other.position)
-    boidDelta.y *= 0.55
-    const distanceSq = boidDelta.lengthSq()
-    if (distanceSq < 0.000001 || distanceSq > perceptionRadiusSq) return
+  for (let i = 0; i < boidNeighborScratch.length; i += 1) {
+    const { other, distanceSq } = boidNeighborScratch[i]
+    const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
+    const withinPerception = distanceSq <= perceptionRadiusSq
+    const canUseSocial = withinPerception && neighborCount < params.neighborCap
+    let relation = 'neutral'
+    let socialWeight = 0
 
-    const sameSchool = school?.id && other.schoolId === school.id
-    const pairPadding = separationPaddingForPair(school, other)
-    const minDistance = radius + other.radius + pairPadding
-    if (distanceSq < minDistance * minDistance) {
-      const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
-      const overlap = THREE.MathUtils.clamp((minDistance - distance) / minDistance, 0, 1)
-      const otherBodyLength = other.bodyLength ?? other.radius * 2
-      const sizeRatio = otherBodyLength / Math.max(0.001, bodyLength)
-      const sizeYieldBias = sizeRatio >= 1
-        ? THREE.MathUtils.lerp(1, 2.2, THREE.MathUtils.clamp(sizeRatio - 1, 0, 1))
-        : THREE.MathUtils.clamp(sizeRatio ** 1.5, 0.08, 1)
-      const densityScale = sameSchool ? 1 / Math.sqrt(Math.max(1, school.count)) : 1
-      const denseScale = sameSchool && school.count >= DENSE_SCHOOL_MIN_COUNT ? 0.34 : 1
-      const repulsionScale = other.repulsionScale ?? 1
-      const selfAvoidanceScale = params.selfAvoidanceScale
-      boidDelta.normalize()
-      separationDelta.addScaledVector(
-        boidDelta,
-        overlap * overlap * params.separationWeight * sizeYieldBias * densityScale * denseScale * repulsionScale * selfAvoidanceScale,
-      )
+    // Threat avoidance — a wide-radius push away from menacing neighbors.
+    const threatPair = (other.menace ?? BOID_DEFAULT_MENACE) * params.wariness
+    if (threatPair > 0.06) {
+      const proximity = THREE.MathUtils.clamp(1 - distance / threatRadius, 0, 1)
+      boidDelta.subVectors(fish.position, other.position)
+      boidDelta.y *= 0.55
+      if (boidDelta.lengthSq() > 0.000001) {
+        boidDelta.normalize()
+        boidThreat.addScaledVector(boidDelta, threatPair * proximity * proximity * BOID_THREAT_WEIGHT)
+        relation = 'avoid'
+      }
     }
 
-    const socialWeight = boidSocialWeight(school, creature, other)
-    if (socialWeight > 0) {
-      if (other.forward?.lengthSq?.() > 0.0001) boidAlignment.addScaledVector(other.forward, socialWeight)
-      boidCenter.addScaledVector(other.position, socialWeight)
-      socialWeightTotal += socialWeight
+    if (canUseSocial) {
+      const sameSchool = school?.id && other.schoolId === school.id
+      const pairPadding = separationPaddingForPair(school, other)
+      const minDistance = radius + other.radius + pairPadding
+      if (distanceSq < minDistance * minDistance) {
+        const overlap = THREE.MathUtils.clamp((minDistance - distance) / minDistance, 0, 1)
+        const otherBodyLength = other.bodyLength ?? other.radius * 2
+        const sizeRatio = otherBodyLength / Math.max(0.001, bodyLength)
+        const sizeYieldBias = sizeRatio >= 1
+          ? THREE.MathUtils.lerp(1, 2.2, THREE.MathUtils.clamp(sizeRatio - 1, 0, 1))
+          : THREE.MathUtils.clamp(sizeRatio ** 1.5, 0.08, 1)
+        const densityScale = sameSchool ? 1 / Math.sqrt(Math.max(1, school.count)) : 1
+        const denseScale = sameSchool && school.count >= DENSE_SCHOOL_MIN_COUNT ? 0.34 : 1
+        const repulsionScale = other.repulsionScale ?? 1
+        boidDelta.subVectors(fish.position, other.position)
+        boidDelta.y *= 0.55
+        boidDelta.normalize()
+        separationDelta.addScaledVector(
+          boidDelta,
+          overlap * overlap * params.separationWeight * sizeYieldBias * densityScale * denseScale * repulsionScale * params.selfAvoidanceScale,
+        )
+      }
+
+      socialWeight = boidSocialWeight(school, creature, other)
+      if (socialWeight > 0) {
+        if (other.forward?.lengthSq?.() > 0.0001) boidAlignment.addScaledVector(other.forward, socialWeight)
+        boidCenter.addScaledVector(other.position, socialWeight)
+        socialWeightTotal += socialWeight
+        if (relation !== 'avoid') relation = 'follow'
+      }
+      neighborCount += 1
+      recordDebugNeighbor(debugState, other, relation, socialWeight)
+    } else if (relation === 'avoid') {
+      recordDebugNeighbor(debugState, other, relation, socialWeight)
     }
-    neighborCount += 1
-  })
+  }
 
   out.add(separationDelta)
+  out.add(boidThreat)
   if (debugState) {
     debugState.separation.copy(separationDelta)
+    debugState.threat.copy(boidThreat)
     debugState.neighborCount = neighborCount
     debugState.socialWeightTotal = socialWeightTotal
   }
@@ -1739,6 +1818,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
     entry.schoolId = school?.id ?? null
     entry.repulsionScale = boidParams.repulsionScale
     entry.repulser = repulser
+    entry.menace = boidParams.menace
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
@@ -1750,6 +1830,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
       schoolId: school?.id ?? null,
       repulsionScale: boidParams.repulsionScale,
       repulser,
+      menace: boidParams.menace,
     })
   }
 }
@@ -1957,6 +2038,15 @@ function modelActionAnimationDuration(model, animation, fallback) {
   const duration = model?.actionAnimationDurations?.[resolvedAnimation]
     ?? model?.actionAnimationDurations?.[animation]
   return Number.isFinite(duration) && duration > 0 ? duration : fallback
+}
+
+// How long a fish holds a boid decision before re-deciding: about one cycle of its
+// current swim clip (so a movement decision lasts as long as the animation driving it),
+// clamped and per-fish jittered so a school does not re-decide in lockstep.
+function boidDecisionInterval(model, animation, jitterUnit) {
+  const clip = modelActionAnimationDuration(model, animation, 1.4)
+  const base = THREE.MathUtils.clamp(clip, BOID_DECISION_MIN_INTERVAL, BOID_DECISION_MAX_INTERVAL)
+  return base * (1 + (jitterUnit - 0.5) * 2 * BOID_DECISION_JITTER)
 }
 
 function modelActionMovementDelay(model, animation, fallback = 0) {
@@ -2471,13 +2561,28 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const simulationTime = useRef(null)
   const rawBoidSteering = useRef(new THREE.Vector3())
   const smoothedBoidSteering = useRef(new THREE.Vector3())
+  // Boid decisions are committed and held for ~one animation cycle, then re-decided.
+  // Between ticks the committed vector is eased in, so heading changes are smooth and
+  // infrequent instead of recomputed every frame.
+  const committedBoidSteering = useRef(new THREE.Vector3())
+  const boidDecisionNextAt = useRef(0)
+  const boidDecisionJitter = useRef(Math.random())
   const boidDebugState = useRef({
     separation: new THREE.Vector3(),
     alignment: new THREE.Vector3(),
     cohesion: new THREE.Vector3(),
+    threat: new THREE.Vector3(),
     result: new THREE.Vector3(),
     neighborCount: 0,
     socialWeightTotal: 0,
+    perceptionRadius: 0,
+    neighborActive: 0,
+    neighbors: Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => ({
+      pos: new THREE.Vector3(),
+      forward: new THREE.Vector3(0, 0, -1),
+      relation: 'neutral',
+      socialWeight: 0,
+    })),
   })
   const repulserDrift = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
@@ -2636,11 +2741,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     driftUntil.current = 0
     rawBoidSteering.current.set(0, 0, 0)
     smoothedBoidSteering.current.set(0, 0, 0)
+    committedBoidSteering.current.set(0, 0, 0)
+    boidDecisionNextAt.current = 0
     boidDebugState.current.separation.set(0, 0, 0)
     boidDebugState.current.alignment.set(0, 0, 0)
     boidDebugState.current.cohesion.set(0, 0, 0)
+    boidDebugState.current.threat.set(0, 0, 0)
     boidDebugState.current.result.set(0, 0, 0)
     boidDebugState.current.neighborCount = 0
+    boidDebugState.current.neighborActive = 0
     boidDebugState.current.socialWeightTotal = 0
     repulserDrift.current.set(0, 0, 0)
     hasVisualForward.current = false
@@ -3003,8 +3112,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
         }
 
-        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, tangent, boidDebugState.current)
-        smoothedBoidSteering.current.lerp(rawBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+        if (now >= boidDecisionNextAt.current) {
+          computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, tangent, boidDebugState.current)
+          boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
+        }
+        smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
         if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
           targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
           if (targetDesiredDirection.lengthSq() > 0.0001) {
@@ -3097,8 +3209,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const targetDistance = schoolFollowDirection.length()
       if (targetDistance > 0.0001) {
         schoolFollowDirection.normalize()
-        computeBoidSteering(rawBoidSteering.current, fish, creature, swim, school, schoolFollowDirection, boidDebugState.current)
-        smoothedBoidSteering.current.lerp(rawBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+        if (now >= boidDecisionNextAt.current) {
+          computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, schoolFollowDirection, boidDebugState.current)
+          boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
+        }
+        smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
         targetDesiredDirection
           .copy(schoolFollowDirection)
           .add(smoothedBoidSteering.current)

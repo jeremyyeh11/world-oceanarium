@@ -10,10 +10,11 @@ Versioning convention notes:
 
 ## v0.10.0 (in progress) — Boid schooling movement
 
-Status: in development as `v0.10.0-dev_4` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
+Status: in development as `v0.10.0-dev_5` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
 
 ### Creature behavior
 
+- `v0.10.0-dev_5` fixes the "jitter every half second" by committing each fish to a boid decision for roughly one animation cycle (clamped, per-fish jittered) instead of re-steering every frame, and by selecting a stable nearest-N neighbor set rather than whatever the registry iterated first. Adds a species reaction hierarchy: each species carries `menace` (how threatening it reads) and `wariness` (how strongly it reacts), so prey flee the mako at a wide radius while nobody minds the mola.
 - `v0.10.0-dev_4` disables spline/path-follow movement. Schools keep their seeded initial spread, then swim from their own current heading plus boid separation/alignment/cohesion; debug no longer draws the old cyan spline line.
 - `v0.10.0-dev_3` adds boid debug visualization in debug mode: selected fish, sampled school fish, and solo agents show separation, alignment, cohesion, and final boid steering vectors plus neighbor/social weight readouts.
 - `v0.10.0-dev_2` removes the previous standalone soft-separation path and folds separation into the generic boid system. Boid steering now runs for schooling and solo species, considers interspecies neighbors, and uses species-biased parameters: sardines are tight/high-neighbor, Mahi-mahi are capped to one neighbor with weak pair influence, and Giant Sunfish barely avoids others while strongly repelling nearby fish.

@@ -2496,11 +2496,12 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias)) * chainWeight
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
         const idleSway = Math.sin(idleSwayPhase - ratio * idleSwayPhaseOffset) * idleSwayAngle * idleSwaySpeedBoost * tailWeight
-        // Clamp the turn-driven bend per bone to the configured max. tailWeight
-        // (chainMultiplier^index) and followThrough could otherwise push tail bones well
-        // past maxAngle on sharp turns, kinking the tail. Idle sway stays additive.
-        const turnBend = THREE.MathUtils.clamp(baseAngle * tailWeight + followThrough, -maxAngle, maxAngle)
-        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, turnBend + idleSway)
+        // Clamp only the STATIC turn bend to the configured max (tailWeight /
+        // chainMultiplier^index can otherwise overshoot into a kink). Follow-through and
+        // idle sway stay additive on top so the tail keeps waving (swimming) through a
+        // sustained turn instead of freezing at the clamp.
+        const staticBend = THREE.MathUtils.clamp(baseAngle * tailWeight, -maxAngle, maxAngle)
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, staticBend + followThrough + idleSway)
         bone.quaternion.multiply(curveDeformQuatRef.current)
         curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
         curveState.postAdditiveQuaternions[index].copy(bone.quaternion)

@@ -263,7 +263,10 @@ export const SPECIES = [
       driftDuration: [3.0, 5.5],
       burstActionDuration: 1.6,
       turnActionDuration: 1.05,
-      turnTriggerThreshold: 0.03,
+      // Raised so gentle sustained arcs keep swimming on the looping idle clip (tail
+      // waving) and bank via curve-deform, rather than firing the long non-looping
+      // snap clip that froze the body in a C-curl. Only sharp turns trigger the snap.
+      turnTriggerThreshold: 0.3,
       erraticness: 0.08,
       turnRadius: 1.45,
       // Cruiser: broad, committed turns.
@@ -324,13 +327,15 @@ export const SPECIES = [
       curveDeform: {
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
-        strength: 1.55,
+        strength: 1.2,
         maxAngleDegrees: 16,
         response: 8.5,
         tailBias: 0.85,
         baseWeight: 0.28,
         chainMultiplier: 1.05,
-        turnIntentScale: 5.5,
+        // Lowered so the spine bend scales with actual turn magnitude (gentle bank on a
+        // wide arc) instead of saturating to a full C-curl on any turn.
+        turnIntentScale: 2.2,
         burstBoost: 0.72,
         speedBoost: 0.28,
       },

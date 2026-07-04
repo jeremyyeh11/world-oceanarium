@@ -100,6 +100,16 @@ const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_BOID_VECTOR_SCALE = 5.0
 const SPLINE_MOVEMENT_ENABLED = false
+// Schools travel toward a real destination (the shared school path's far exit, via its
+// intermediate waypoints) instead of hovering in place — boids only adjust the local
+// formation on top. Position stays boid-driven, so this is a soft destination, not the
+// old rigid path-lock (which is still gated behind SPLINE_MOVEMENT_ENABLED).
+const SCHOOL_TRAVEL_ENABLED = true
+// Turn radius as a multiple of body length. Heading rotates no faster than a fish
+// arcing forward on this radius (angular rate = speed / radius), so creatures swim
+// through their turns instead of pivoting or strafing. >=1 arcs; <1 would allow a
+// future spin-in-place creature.
+const DEFAULT_TURN_RADIUS_BODY_LENGTHS = 1.6
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
@@ -432,6 +442,15 @@ function maxVisualPitch(creature, swim) {
 
 function turnRateForCreature(creature, swim) {
   return THREE.MathUtils.lerp(SMALL_CREATURE_TURN_RATE, LARGE_CREATURE_TURN_RATE, largeCreatureFactor(creature, swim))
+}
+
+// Maximum heading change this frame if the creature turns on an arc of radius
+// (turnRadiusBodyLengths * bodyLength) while moving forward at `speed` (WU/s).
+// ω = v / r, so faster fish and tighter radii turn quicker, but never pivot.
+function maxTurnRadiansForSpeed(swim, bodyLength, speed, delta) {
+  const bodyLengths = Math.max(0.05, swim.turnRadiusBodyLengths ?? DEFAULT_TURN_RADIUS_BODY_LENGTHS)
+  const radius = Math.max(0.05, bodyLengths * bodyLength)
+  return (Math.max(0, speed) / radius) * Math.max(0, delta)
 }
 
 function schoolMaxAvoidanceAngle(creature, swim, school) {
@@ -2851,17 +2870,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    if (SPLINE_MOVEMENT_ENABLED) {
+    if (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) {
       if (isSchooling) {
-        if (isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
-      } else if (!isSoloAgent) {
+        if ((SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) && isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
+      } else if (!isSoloAgent && SPLINE_MOVEMENT_ENABLED) {
         progress.current += delta * velocity.current / pathLength
       }
     }
 
     const pathProgress = isSchooling ? schoolState.progress : progress.current
-    const shouldAdvanceSchoolPath = SPLINE_MOVEMENT_ENABLED && isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
-    if (SPLINE_MOVEMENT_ENABLED && ((!isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath)) {
+    const shouldAdvanceSchoolPath = (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) && isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
+    if ((SPLINE_MOVEMENT_ENABLED && !isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath) {
       const endPoint = activePath.getPointAt(1)
       const endTangent = activePath.getTangentAt(1).normalize()
 
@@ -2915,7 +2934,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const followDistance = followLookaheadDistance(creature, swim, isSchooling)
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
-      if (SPLINE_MOVEMENT_ENABLED || !hasFollowPosition.current) {
+      if (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED || !hasFollowPosition.current) {
         offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
         followTarget.current.add(repulserDrift.current)
       } else {
@@ -3131,9 +3150,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
         agentBehaviorDistance.current = 0
       } else {
+        // Cap solo-agent heading changes to a forward arc of body-length turn radius,
+        // so large solo swimmers (mako) bank through turns instead of pivoting on the spot.
+        const soloForwardSpeed = (Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed) * organicMotion.speedScale
+        const soloTurnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, soloForwardSpeed, delta)
         if (agentHasTarget.current) {
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-          rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
+          rotateDirectionToward(tangent, agentMoveDirection, Math.min(soloAgentSteeringTurnRate(swim) * delta, soloTurnRadiusStep))
         }
 
         // Authored behaviors (e.g. the mola sun-bask approach/exit) own the steering
@@ -3149,7 +3172,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
             targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
             if (targetDesiredDirection.lengthSq() > 0.0001) {
-              rotateDirectionToward(tangent, targetDesiredDirection.normalize(), soloAgentSteeringTurnRate(swim) * 0.45 * delta)
+              rotateDirectionToward(tangent, targetDesiredDirection.normalize(), Math.min(soloAgentSteeringTurnRate(swim) * 0.45 * delta, soloTurnRadiusStep))
             }
           }
         } else {
@@ -3268,17 +3291,23 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
           curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
         }
-        rotateDirectionToward(
-          desiredDirection.current,
-          targetDesiredDirection,
-          maxAvoidanceAngle * (1 - Math.exp(-delta * schoolDirectionResponse(swim))),
-        )
-
         const catchup = THREE.MathUtils.clamp(
           targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
           0.50,
           1.82,
         )
+        // Turn no faster than an arc of (turnRadiusBodyLengths * bodyLength) allows at
+        // the current forward speed, so the school banks through turns instead of
+        // pivoting/strafing. The response-based step still smooths within that cap.
+        const forwardSpeed = velocity.current * organicMotion.speedScale * catchup
+        const responseStep = maxAvoidanceAngle * (1 - Math.exp(-delta * schoolDirectionResponse(swim)))
+        const turnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
+        rotateDirectionToward(
+          desiredDirection.current,
+          targetDesiredDirection,
+          Math.min(responseStep, turnRadiusStep),
+        )
+
         const movementScale = velocity.current * organicMotion.speedScale * catchup * delta
         agentMoveDirection.copy(desiredDirection.current)
         fish.position.addScaledVector(

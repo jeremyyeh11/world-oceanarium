@@ -155,6 +155,8 @@ export const SPECIES = [
       burstInterval: [5.5, 9.5],
       erraticness: 0.24,
       turnRadius: 0.78,
+      // Turn radius in body lengths — nimble bait, but still arcs forward through turns.
+      turnRadiusBodyLengths: 1.3,
       boundsYMin: -7,
       boundsZMin: -15,
       boundsZMax: 8,
@@ -263,6 +265,8 @@ export const SPECIES = [
       turnTriggerThreshold: 0.03,
       erraticness: 0.08,
       turnRadius: 1.45,
+      // Cruiser: broad, committed turns.
+      turnRadiusBodyLengths: 1.6,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.18,
       boundsUseSpeciesSize: false,
@@ -403,6 +407,8 @@ export const SPECIES = [
       turnTriggerThreshold: 0.042,
       erraticness: 0.018,
       turnRadius: 1.32,
+      // Apex pelagic shark: long glides and wide banking turns, never a pivot.
+      turnRadiusBodyLengths: 1.4,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.48,
       soloSteeringTurnRateDegrees: 6,
@@ -552,6 +558,8 @@ export const SPECIES = [
       turnTriggerThreshold: 0.0045,
       erraticness: 0.055,
       turnRadius: 1.0,
+      // Slow gelatinous drifter: gentle, wide turns.
+      turnRadiusBodyLengths: 1.2,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.35,
       boundsBodyLengthWU: 1.08,

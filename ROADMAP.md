@@ -36,19 +36,26 @@ Subtasks:
 - [x] `v0.10.0-dev_5` Add species reaction hierarchy — `menace`/`wariness` per species; prey flee the mako at a wide radius, nobody minds the mola; add missing mako boid profile.
 - [x] `v0.10.0-dev_6` Rework debug overlay: focused fish draws relation-colored connectors to each remembered neighbor (green follow / red avoid / gray neutral), a cyan heading tick per neighbor, and a magenta threat vector; webs gated to the focused fish to stay legible.
 - [x] `v0.10.0-dev_7` Suppress boid steering during the mola sun-bask so authored behavior owns the path.
+- [x] `v0.10.0-dev_8` Fix schools clumping: re-enable a soft travel destination (school path far exit + intermediate waypoints) with boids as the local overlay; `SCHOOL_TRAVEL_ENABLED` flag, position stays boid-driven.
+- [x] `v0.10.0-dev_8` Body-length turn-radius kinematics for schools and solo agents so creatures arc forward through turns instead of pivoting/strafing (`turnRadiusBodyLengths` per species, `maxTurnRadiansForSpeed` = speed/radius).
+- [x] `v0.10.0-dev_8` Cut over-frequent swim SFX via a longer global ambient throttle (1.15s) with a responsive follow gap (0.3s).
 - [x] Browser-smoke both tanks; lint clean, production build passes, no runtime errors.
-- [ ] Jeremy feel review: is the jitter gone and does cross-species reaction (flee mako / tolerate mola) read right? Tune `menace`/`wariness` and decision-interval clamps if needed.
+- [ ] Jeremy feel review: is the jitter gone and does cross-species reaction (flee mako / tolerate mola) read right? Do schools now travel with forward-arcing turns (no clumping/strafing)? Is audio calm? Tune knobs below if needed.
 - [ ] Confirm the sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic is preserved — hold stage untouched).
+- [ ] dev_8 visual confirmation was blocked by a stuck preview-screenshot tool this session; app ran error-free (evals/logs live). Re-verify travel + turn arcs visually on next run.
 
 Review gates:
-- Sardines read more alive and locally responsive, not chaotic or jittery.
+- Sardines travel as a school toward a destination (not clumping in place), reading alive and locally responsive, not chaotic or jittery.
+- Creatures bank through turns on a body-length radius — forward motion during turns, no pivoting/strafing/drifting.
 - Mahi-mahi pair behavior and Mola solo behavior remain unchanged in intent; sun-bask still fires.
 - Cross-species reaction reads: bait steers clear of the mako, tolerates the mola.
+- Swim audio is occasional ambient texture, not a constant stream.
 - Build passes and desktop browser smoke shows no runtime errors.
 
-Tuning knobs (in `src/data/species.js` per-species `swim.boids`, and constants in `Fish.jsx`):
-- Per species: `menace`, `wariness`, `neighborCap`, `perceptionBodyLengths`, `separation/alignment/cohesion/maxWeight`.
-- Global: `BOID_DECISION_MIN/MAX_INTERVAL`, `BOID_DECISION_JITTER`, `BOID_THREAT_PERCEPTION_SCALE`, `BOID_THREAT_WEIGHT`.
+Tuning knobs (in `src/data/species.js` per-species `swim.boids`/`swim`, and constants in `Fish.jsx`):
+- Per species: `menace`, `wariness`, `neighborCap`, `perceptionBodyLengths`, `separation/alignment/cohesion/maxWeight`, `turnRadiusBodyLengths`.
+- Global (`Fish.jsx`): `BOID_DECISION_MIN/MAX_INTERVAL`, `BOID_DECISION_JITTER`, `BOID_THREAT_PERCEPTION_SCALE`, `BOID_THREAT_WEIGHT`, `DEFAULT_TURN_RADIUS_BODY_LENGTHS`, `SCHOOL_TRAVEL_ENABLED`.
+- Audio (`useOceanAudio.js`): `SFX_AMBIENT_MIN_GAP_SECONDS`, `SFX_FOLLOW_MIN_GAP_SECONDS`.
 
 ### Tank assemblages & curation
 

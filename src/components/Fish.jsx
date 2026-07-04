@@ -307,6 +307,14 @@ const boidCenter = new THREE.Vector3()
 const boidCohesion = new THREE.Vector3()
 const boidThreat = new THREE.Vector3()
 const debugBoidVectorEnd = new THREE.Vector3()
+const debugNeighborStart = new THREE.Vector3()
+const debugNeighborEnd = new THREE.Vector3()
+const debugNeighborHeadingEnd = new THREE.Vector3()
+const BOID_RELATION_COLORS = {
+  follow: new THREE.Color('#80ff72'),
+  avoid: new THREE.Color('#ff5a36'),
+  neutral: new THREE.Color('#9aa7b2'),
+}
 const debugFollowTargetColor = new THREE.Color()
 // Reused candidate buffer for nearest-N neighbor selection so a decision tick does
 // not allocate. Entries are { id, other, distanceSq } and are re-sorted each tick.
@@ -1636,9 +1644,10 @@ function boidSocialWeight(school, creature, other) {
   return 0
 }
 
-function recordDebugNeighbor(debugState, other, relation, socialWeight) {
+function recordDebugNeighbor(debugState, id, other, relation, socialWeight) {
   if (!debugState || debugState.neighborActive >= BOID_MAX_DEBUG_NEIGHBORS) return
   const slot = debugState.neighbors[debugState.neighborActive]
+  slot.id = id
   slot.pos.copy(other.position)
   if (other.forward?.lengthSq?.() > 0.0001) slot.forward.copy(other.forward)
   else slot.forward.set(0, 0, -1)
@@ -1690,7 +1699,7 @@ function computeBoidSteering(out, fish, creature, swim, school = null, followDir
     boidDelta.y *= 0.55
     const distanceSq = boidDelta.lengthSq()
     if (distanceSq < 0.000001 || distanceSq > threatRadiusSq) return
-    boidNeighborScratch.push({ other, distanceSq })
+    boidNeighborScratch.push({ id, other, distanceSq })
   })
   boidNeighborScratch.sort((a, b) => a.distanceSq - b.distanceSq)
 
@@ -1702,7 +1711,7 @@ function computeBoidSteering(out, fish, creature, swim, school = null, followDir
   boidThreat.set(0, 0, 0)
 
   for (let i = 0; i < boidNeighborScratch.length; i += 1) {
-    const { other, distanceSq } = boidNeighborScratch[i]
+    const { id: otherId, other, distanceSq } = boidNeighborScratch[i]
     const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
     const withinPerception = distanceSq <= perceptionRadiusSq
     const canUseSocial = withinPerception && neighborCount < params.neighborCap
@@ -1753,9 +1762,9 @@ function computeBoidSteering(out, fish, creature, swim, school = null, followDir
         if (relation !== 'avoid') relation = 'follow'
       }
       neighborCount += 1
-      recordDebugNeighbor(debugState, other, relation, socialWeight)
+      recordDebugNeighbor(debugState, otherId, other, relation, socialWeight)
     } else if (relation === 'avoid') {
-      recordDebugNeighbor(debugState, other, relation, socialWeight)
+      recordDebugNeighbor(debugState, otherId, other, relation, socialWeight)
     }
   }
 
@@ -2509,8 +2518,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const boidSeparationLineRef = useRef()
   const boidAlignmentLineRef = useRef()
   const boidCohesionLineRef = useRef()
+  const boidThreatLineRef = useRef()
   const boidResultLineRef = useRef()
   const boidLabelRef = useRef()
+  // Per-neighbor debug lines: a connector fish->neighbor (colored by relation) and a
+  // short tick showing the neighbor's own heading. Fixed pools so nothing allocates.
+  const boidNeighborLineRefs = useRef([])
+  const boidNeighborHeadingRefs = useRef([])
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
   const agentLabelRef = useRef()
@@ -2578,6 +2592,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     perceptionRadius: 0,
     neighborActive: 0,
     neighbors: Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => ({
+      id: null,
       pos: new THREE.Vector3(),
       forward: new THREE.Vector3(0, 0, -1),
       relation: 'neutral',
@@ -2634,7 +2649,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const boidSeparationGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidAlignmentGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidCohesionGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidThreatGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidResultGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidNeighborGeometries = useMemo(
+    () => Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => makeDebugLineGeometry()),
+    [],
+  )
+  const boidNeighborHeadingGeometries = useMemo(
+    () => Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => makeDebugLineGeometry()),
+    [],
+  )
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
     const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
@@ -3392,14 +3416,46 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       updateDebugVectorLine(boidSeparationLineRef, debugForwardStart, boidDebug.separation, DEBUG_BOID_VECTOR_SCALE)
       updateDebugVectorLine(boidAlignmentLineRef, debugForwardStart, boidDebug.alignment, DEBUG_BOID_VECTOR_SCALE)
       updateDebugVectorLine(boidCohesionLineRef, debugForwardStart, boidDebug.cohesion, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidThreatLineRef, debugForwardStart, boidDebug.threat, DEBUG_BOID_VECTOR_SCALE)
       updateDebugVectorLine(boidResultLineRef, debugForwardStart, smoothedBoidSteering.current, DEBUG_BOID_VECTOR_SCALE)
       if (boidSeparationLineRef.current) boidSeparationLineRef.current.visible = showBoidDebug && boidDebug.separation.lengthSq() > 0.000001
       if (boidAlignmentLineRef.current) boidAlignmentLineRef.current.visible = showBoidDebug && boidDebug.alignment.lengthSq() > 0.000001
       if (boidCohesionLineRef.current) boidCohesionLineRef.current.visible = showBoidDebug && boidDebug.cohesion.lengthSq() > 0.000001
+      if (boidThreatLineRef.current) boidThreatLineRef.current.visible = showBoidDebug && boidDebug.threat.lengthSq() > 0.000001
       if (boidResultLineRef.current) boidResultLineRef.current.visible = showBoidDebug && smoothedBoidSteering.current.lengthSq() > 0.000001
+
+      // Neighbor connectors (colored by relation) + heading ticks, tracking live positions.
+      // Only drawn for the focused fish (selected or agent-debug) so one individual's
+      // perception is legible instead of every sampled fish webbing the whole school.
+      const showNeighborWeb = showBoidDebug && (selected || showAgentDebug)
+      const headingTickLength = Math.max(0.35, bodyLength * 0.9)
+      for (let n = 0; n < BOID_MAX_DEBUG_NEIGHBORS; n += 1) {
+        const connector = boidNeighborLineRefs.current[n]
+        const headingTick = boidNeighborHeadingRefs.current[n]
+        const active = showNeighborWeb && n < boidDebug.neighborActive
+        if (connector) {
+          if (active) {
+            const slot = boidDebug.neighbors[n]
+            const live = FISH_REGISTRY.get(slot.id)
+            debugNeighborEnd.copy(live?.position ?? slot.pos)
+            updateDebugLine({ current: connector }, debugForwardStart, debugNeighborEnd)
+            const color = BOID_RELATION_COLORS[slot.relation] ?? BOID_RELATION_COLORS.neutral
+            if (connector.material?.color) connector.material.color.copy(color)
+            if (headingTick) {
+              debugNeighborStart.copy(debugNeighborEnd)
+              debugNeighborHeadingEnd.copy(debugNeighborStart).addScaledVector(live?.forward ?? slot.forward, headingTickLength)
+              updateDebugLine({ current: headingTick }, debugNeighborStart, debugNeighborHeadingEnd)
+              headingTick.visible = true
+            }
+          } else if (headingTick) {
+            headingTick.visible = false
+          }
+          connector.visible = active
+        }
+      }
       if (boidLabelRef.current) {
         boidLabelRef.current.position.copy(debugForwardStart).addScaledVector(up, 0.30 + size * 0.06)
-        boidLabelRef.current.text = `boid n${boidDebug.neighborCount} social ${boidDebug.socialWeightTotal.toFixed(1)}\nsep ${boidDebug.separation.length().toFixed(2)} align ${boidDebug.alignment.length().toFixed(2)} coh ${boidDebug.cohesion.length().toFixed(2)} out ${smoothedBoidSteering.current.length().toFixed(2)}`
+        boidLabelRef.current.text = `boid n${boidDebug.neighborCount} social ${boidDebug.socialWeightTotal.toFixed(1)}\nsep ${boidDebug.separation.length().toFixed(2)} align ${boidDebug.alignment.length().toFixed(2)} coh ${boidDebug.cohesion.length().toFixed(2)} threat ${boidDebug.threat.length().toFixed(2)} out ${smoothedBoidSteering.current.length().toFixed(2)}`
         boidLabelRef.current.lookAt(camera.position)
         boidLabelRef.current.visible = showBoidDebug
       }
@@ -3795,9 +3851,34 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           <line ref={boidCohesionLineRef} geometry={boidCohesionGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ffd166" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>
+          <line ref={boidThreatLineRef} geometry={boidThreatGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ff2fa0" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
           <line ref={boidResultLineRef} geometry={boidResultGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ffffff" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>
+          {boidNeighborGeometries.map((geometry, n) => (
+            <line
+              key={`boid-neighbor-${n}`}
+              ref={el => { boidNeighborLineRefs.current[n] = el }}
+              geometry={geometry}
+              visible={false}
+              raycast={() => null}
+            >
+              <lineBasicMaterial color="#9aa7b2" transparent opacity={0.7} depthTest={false} depthWrite={false} />
+            </line>
+          ))}
+          {boidNeighborHeadingGeometries.map((geometry, n) => (
+            <line
+              key={`boid-neighbor-heading-${n}`}
+              ref={el => { boidNeighborHeadingRefs.current[n] = el }}
+              geometry={geometry}
+              visible={false}
+              raycast={() => null}
+            >
+              <lineBasicMaterial color="#7df9ff" transparent opacity={0.9} depthTest={false} depthWrite={false} />
+            </line>
+          ))}
           <Text
             ref={boidLabelRef}
             fontSize={DEBUG_LABEL_SCALE}

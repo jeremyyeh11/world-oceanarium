@@ -52,8 +52,8 @@ const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
 const SMALL_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(220)
 const LARGE_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(42)
 const MAX_PATH_Y_GRADIENT = 0.2
-const PATH_VERTICAL_TRAVERSAL_BIAS = 0.82
-const PATH_VERTICAL_TRAVERSAL_JITTER = 0.16
+const PATH_VERTICAL_TRAVERSAL_BIAS = 0.9
+const PATH_VERTICAL_TRAVERSAL_JITTER = 0.22
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -267,6 +267,7 @@ const debugForwardStart = new THREE.Vector3()
 const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
+const frameMove = new THREE.Vector3()
 const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
 const agentMoveDirection = new THREE.Vector3()
@@ -2495,7 +2496,11 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias)) * chainWeight
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
         const idleSway = Math.sin(idleSwayPhase - ratio * idleSwayPhaseOffset) * idleSwayAngle * idleSwaySpeedBoost * tailWeight
-        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough + idleSway)
+        // Clamp the turn-driven bend per bone to the configured max. tailWeight
+        // (chainMultiplier^index) and followThrough could otherwise push tail bones well
+        // past maxAngle on sharp turns, kinking the tail. Idle sway stays additive.
+        const turnBend = THREE.MathUtils.clamp(baseAngle * tailWeight + followThrough, -maxAngle, maxAngle)
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, turnBend + idleSway)
         bone.quaternion.multiply(curveDeformQuatRef.current)
         curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
         curveState.postAdditiveQuaternions[index].copy(bone.quaternion)
@@ -3156,7 +3161,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const soloTurnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, soloForwardSpeed, delta)
         if (agentHasTarget.current) {
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-          rotateDirectionToward(tangent, agentMoveDirection, Math.min(soloAgentSteeringTurnRate(swim) * delta, soloTurnRadiusStep))
+          // Turn purely on the body-length arc radius at the current swim speed. The old
+          // fixed-degrees cap turned slower than the radius implied, which meant an even
+          // wider effective radius than configured — so the shark swept along tank
+          // boundaries instead of completing a forward arc.
+          rotateDirectionToward(tangent, agentMoveDirection, soloTurnRadiusStep)
         }
 
         // Authored behaviors (e.g. the mola sun-bask approach/exit) own the steering
@@ -3172,7 +3181,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
             targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
             if (targetDesiredDirection.lengthSq() > 0.0001) {
-              rotateDirectionToward(tangent, targetDesiredDirection.normalize(), Math.min(soloAgentSteeringTurnRate(swim) * 0.45 * delta, soloTurnRadiusStep))
+              rotateDirectionToward(tangent, targetDesiredDirection.normalize(), soloTurnRadiusStep)
             }
           }
         } else {
@@ -3396,7 +3405,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     } else {
       currentPath.getTangentAt(t, splineVisualTangent).normalize()
     }
-    const targetVisualPitch = clampedVisualPitch(splineVisualTangent, pitchLimit)
+    // Pitch reflects ACTUAL vertical travel this frame, not the direction to the target.
+    // A creature genuinely swimming up/down to a higher/lower destination pitches into it,
+    // but one hovering along the XZ plane (e.g. blocked under the surface, or a target it
+    // is not vertically closing on) stays level — no swim-bladder-dysfunction look.
+    frameMove.subVectors(fish.position, previousPosition.current)
+    const frameHorizontalMove = Math.hypot(frameMove.x, frameMove.z)
+    const targetVisualPitch = (frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
+      ? THREE.MathUtils.clamp(Math.atan2(frameMove.y, Math.max(frameHorizontalMove, 1e-4)), -pitchLimit, pitchLimit)
+      : 0
     if (!hasVisualForward.current) {
       visualPitch.current = targetVisualPitch
     } else {

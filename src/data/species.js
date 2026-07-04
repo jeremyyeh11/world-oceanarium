@@ -157,7 +157,8 @@ export const SPECIES = [
       turnRadius: 0.78,
       // Turn radius in body lengths — nimble bait, but still arcs forward through turns.
       turnRadiusBodyLengths: 1.3,
-      boundsYMin: -7,
+      // Bait balls range through the upper column; deepened for vertical spread.
+      boundsYMin: -10,
       boundsZMin: -15,
       boundsZMax: 8,
       boids: {
@@ -270,7 +271,8 @@ export const SPECIES = [
       speedMultiplier: 1.0,
       movementBoundsScale: 1.18,
       boundsUseSpeciesSize: false,
-      boundsYMin: -6,
+      // Surface-associated (often near floating cover) — stays in the upper column.
+      boundsYMin: -7,
       boundsZMin: -23,
       boundsZMax: 4,
       boids: {
@@ -414,7 +416,8 @@ export const SPECIES = [
       soloSteeringTurnRateDegrees: 6,
       soloTargetVerticalBodyLengths: 0.18,
       boundsUseSpeciesSize: false,
-      boundsYMin: -8,
+      // Ranges from the surface into deeper offshore water — deep diver.
+      boundsYMin: -14,
       boundsZMin: -36,
       boundsZMax: 4,
       boids: {
@@ -564,7 +567,8 @@ export const SPECIES = [
       movementBoundsScale: 1.35,
       boundsBodyLengthWU: 1.08,
       boundsUseSpeciesSize: false,
-      boundsYMin: -7,
+      // Basks at the surface but also makes deep dives — full-column diver.
+      boundsYMin: -14,
       boundsZMin: -25,
       boundsZMax: 0,
       boids: {

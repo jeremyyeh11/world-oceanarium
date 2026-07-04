@@ -39,7 +39,12 @@ Subtasks:
 - [x] `v0.10.0-dev_8` Fix schools clumping: re-enable a soft travel destination (school path far exit + intermediate waypoints) with boids as the local overlay; `SCHOOL_TRAVEL_ENABLED` flag, position stays boid-driven.
 - [x] `v0.10.0-dev_8` Body-length turn-radius kinematics for schools and solo agents so creatures arc forward through turns instead of pivoting/strafing (`turnRadiusBodyLengths` per species, `maxTurnRadiansForSpeed` = speed/radius).
 - [x] `v0.10.0-dev_8` Cut over-frequent swim SFX via a longer global ambient throttle (1.15s) with a responsive follow gap (0.3s).
+- [x] `v0.10.0-dev_9` Pitch safeguard: derive visual pitch from actual per-frame vertical travel, not target direction, so hovering fish read level (no swim-bladder look) while genuine ascents/descents still pitch.
+- [x] `v0.10.0-dev_9` Clamp per-bone curve-deform turn bend to `maxAngle` so mahi/mako tails stop over-rotating into a kink on sharp turns.
+- [x] `v0.10.0-dev_9` Solo turns purely arc-radius based (dropped the fixed-degree cap that widened the effective radius and caused boundary sweeps); mako/mola bank through turns at swim speed.
+- [x] `v0.10.0-dev_9` Depth diversity: deepen per-species `boundsYMin` by ecology (mahi shallow/surface-associated, mako + mola deep divers) and widen school vertical traversal (`PATH_VERTICAL_TRAVERSAL_BIAS/JITTER`).
 - [x] Browser-smoke both tanks; lint clean, production build passes, no runtime errors.
+- [ ] Jeremy feel review (dev_9): pitch relaxes to level when hovering; tails clean on sharp turns; mako/mahi arc wide at swim speed (no spot turns/sweeps); more vertical spread with periodic off-frame excursions. Tune `turnRadiusBodyLengths`, per-species `boundsYMin`, and traversal bias if needed.
 - [ ] Jeremy feel review: is the jitter gone and does cross-species reaction (flee mako / tolerate mola) read right? Do schools now travel with forward-arcing turns (no clumping/strafing)? Is audio calm? Tune knobs below if needed.
 - [ ] Confirm the sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic is preserved — hold stage untouched).
 - [ ] dev_8 visual confirmation was blocked by a stuck preview-screenshot tool this session; app ran error-free (evals/logs live). Re-verify travel + turn arcs visually on next run.

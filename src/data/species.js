@@ -331,15 +331,18 @@ export const SPECIES = [
       curveDeform: {
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
-        strength: 1.2,
-        maxAngleDegrees: 16,
+        strength: 1.0,
+        // Kept gentle: the mahi drives its bend from sustained heading misalignment
+        // (turnIntent), unlike the mako which uses only the tiny per-frame turn rate. A
+        // wide-arc turn holds a large misalignment, so a high maxAngle × 5 spine bones
+        // saturated into a held C-curl. Lower per-bone max + drive so it reads as a
+        // subtle banana-bank through the turn, not a curl.
+        maxAngleDegrees: 8,
         response: 8.5,
         tailBias: 0.85,
         baseWeight: 0.28,
         chainMultiplier: 1.05,
-        // Lowered so the spine bend scales with actual turn magnitude (gentle bank on a
-        // wide arc) instead of saturating to a full C-curl on any turn.
-        turnIntentScale: 2.2,
+        turnIntentScale: 0.25,
         burstBoost: 0.72,
         speedBoost: 0.28,
         // Ease the bend back to straight when forward travel slows (e.g. crawling out of

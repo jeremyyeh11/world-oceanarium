@@ -308,8 +308,12 @@ export const SPECIES = [
       moveset: {
         cruise: 'idle',
         drift: 'idle',
-        turnLeft: 'snap_left',
-        turnRight: 'snap_right',
+        // Turns stay on the looping idle swim clip and bank via curve-deform (same as the
+        // mako). The old snap_left/snap_right were 5.61s non-looping turn-sweep clips that
+        // replayed through a sustained wide-arc turn, sweeping the tail over and over
+        // (reading as the tail spinning in circles).
+        turnLeft: 'idle',
+        turnRight: 'idle',
         burst: 'burst',
       },
       animationFadeDuration: 0.16,

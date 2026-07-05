@@ -33,7 +33,10 @@ const TANK_CAMERA_Z = 12
 const TANK_CAMERA_FOV_DEG = 60
 const TANK_CAMERA_ASPECT = 16 / 9
 const SCREEN_X_SAFE_FRACTION = 0.78
-const GLOBAL_X_DESTINATION_RANGE_SCALE = 0.9
+// Widened ~1.5x (0.9 -> 1.35) so the left/right swim volume extends past the visible
+// frame. Fish deliberately swim off-screen to the sides, which hides hard-reset
+// u-turns at the boundary and declutters the tank when it is crowded.
+const GLOBAL_X_DESTINATION_RANGE_SCALE = 1.35
 
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
@@ -109,7 +112,7 @@ const SCHOOL_TRAVEL_ENABLED = true
 // arcing forward on this radius (angular rate = speed / radius), so creatures swim
 // through their turns instead of pivoting or strafing. >=1 arcs; <1 would allow a
 // future spin-in-place creature.
-const DEFAULT_TURN_RADIUS_BODY_LENGTHS = 1.6
+const DEFAULT_TURN_RADIUS_BODY_LENGTHS = 2.5
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35

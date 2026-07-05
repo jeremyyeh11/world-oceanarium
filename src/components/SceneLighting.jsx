@@ -92,8 +92,10 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
 
   ctx.globalCompositeOperation = 'screen'
   const beamPhase = (rng() - 0.5) * 0.09
+  // Evenly spaced across the full width (period W/9) so the beams tile perfectly around the
+  // u-wrap — an uneven gap at the seam would survive as a faint vertical brightness step.
   for (let i = 0; i < 9; i += 1) {
-    const x = W * (0.12 + i * 0.11 + beamPhase)
+    const x = W * (i / 9 + beamPhase)
     drawWrapped((off) => {
       const beam = ctx.createRadialGradient(x + off, 0, 0, x + off, canvas.height * 0.28, W * 0.18)
       beam.addColorStop(0, `rgba(190, 225, 255, ${beamAlpha})`)
@@ -173,7 +175,7 @@ export default function SceneLighting({ biome = 'ocean', seed = 0, paletteOverri
   const envTexture = useMemo(() => paintEquirectGradient(palette), [palette])
   const backgroundTexture = useMemo(
     () => (palette.backgroundStops
-      ? paintEquirectGradient(palette, { stops: palette.backgroundStops, beamAlpha: palette.backgroundBeamAlpha ?? 0.18, mottle: palette.backgroundMottle ?? 1, blur: palette.backgroundBlur ?? 3, rng: mulberry32((seed >>> 0) || 1) })
+      ? paintEquirectGradient(palette, { stops: palette.backgroundStops, beamAlpha: palette.backgroundBeamAlpha ?? 0.18, mottle: palette.backgroundMottle ?? 1, blur: palette.backgroundBlur ?? 10, rng: mulberry32((seed >>> 0) || 1) })
       : null),
     [palette, seed],
   )

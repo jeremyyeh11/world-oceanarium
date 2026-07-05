@@ -338,6 +338,11 @@ export const SPECIES = [
         turnIntentScale: 2.2,
         burstBoost: 0.72,
         speedBoost: 0.28,
+        // Ease the bend back to straight when forward travel slows (e.g. crawling out of
+        // a turn), so the tail straightens before the mahi swims on rather than holding a
+        // full sideways bend while barely moving.
+        easeStraightenBySpeed: true,
+        straightenFloor: 0.1,
       },
       debugForwardOrigin: 'head',
       // GLB origin sits near mid-body; nose is at +4.55 / 9.79 of the source length.

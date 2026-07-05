@@ -2466,8 +2466,18 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       )
       const burstBoost = 1 + (Number.isFinite(curveConfig.burstBoost) ? curveConfig.burstBoost : 0) * THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1)
       const speedBoost = 1 + (Number.isFinite(curveConfig.speedBoost) ? curveConfig.speedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      // Optionally ease the turn bend back toward straight as actual forward speed drops,
+      // so a fish crawling out of a turn straightens its tail before swimming on instead
+      // of holding a full sideways bend while barely moving.
+      const speedEase = curveConfig.easeStraightenBySpeed
+        ? THREE.MathUtils.lerp(
+          Number.isFinite(curveConfig.straightenFloor) ? curveConfig.straightenFloor : 0.12,
+          1,
+          THREE.MathUtils.clamp(input.speedEase01 ?? 1, 0, 1),
+        )
+        : 1
       const baseAngle = THREE.MathUtils.clamp(
-        curveDeformTurnRef.current * strength * burstBoost * speedBoost * maxAngle,
+        curveDeformTurnRef.current * strength * burstBoost * speedBoost * speedEase * maxAngle,
         -maxAngle,
         maxAngle,
       )
@@ -2644,6 +2654,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
   const curveDeformTurnIntent = useRef(0)
+  // Smoothed ratio of actual forward travel to intended cruise speed. Drops when a
+  // fish is throttled (e.g. crawling out of a turn), used to ease the curve-deform
+  // bend back toward straight before forward swimming resumes.
+  const curveDeformSpeedEase = useRef(1)
   const nextBurstAt = useRef(0)
   const nextDriftAt = useRef(0)
   const driftUntil = useRef(0)
@@ -2660,7 +2674,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
-  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, burst01: 0, phase: 0 })
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, speedEase01: 1, burst01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
@@ -3851,6 +3865,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
       curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5 + curveDeformTurnIntent.current, -1, 1)
       curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
+      // Actual forward travel this frame vs the intended cruise rate. Movement is
+      // clamped to the follow-target distance, so a fish crawling out of a turn reads
+      // slow here even though velocity.current still says "cruise". Curve-deform uses
+      // this to straighten the tail before the fish resumes swimming forward.
+      const actualForwardSpeed = frameMove.length() / Math.max(1e-4, delta)
+      const cruiseSpeedRef = Math.max(1e-3, motion.idleSpeed * organicMotion.speedScale)
+      curveDeformSpeedEase.current = THREE.MathUtils.damp(
+        curveDeformSpeedEase.current,
+        THREE.MathUtils.clamp(actualForwardSpeed / cruiseSpeedRef, 0, 1),
+        6,
+        delta,
+      )
+      curveDeformInputRef.current.speedEase01 = curveDeformSpeedEase.current
       curveDeformInputRef.current.burst01 = activeAnimation === resolveMoveAnimation(model, 'burst')
         ? THREE.MathUtils.clamp((animationHoldUntil.current - now) / Math.max(0.001, modelActionAnimationDuration(model, activeAnimation, motion.burstActionDuration)), 0, 1)
         : 0

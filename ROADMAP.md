@@ -15,11 +15,11 @@ Status labels:
 
 ### Boid schooling overlay
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy shared a classic boids logic screenshot — separation / alignment / cohesion / speed limit — and asked whether WO can adopt it.
-- Branch: `feat/boid-schooling-overlay`, rebased onto `v0.9.0` main; review builds renumbered `v0.8.18-dev_#` → `v0.10.0-dev_#`.
+- Branch: `feat/boid-schooling-overlay`; accepted and promoted to clean `v0.10.0` after Jeremy reju (`v0.10.0-dev_14` → clean). Lint clean, production build passes.
 - `v0.10.0-dev_1` prototypes local boid steering as an overlay on existing shared school paths, keeping the path as calm migration/current bias while nearby schoolmates add capped alignment and cohesion.
 - `v0.10.0-dev_2` removes the legacy standalone separation pass, makes boid separation/alignment/cohesion the generic steering layer for all species, and adds species-specific biases for sardines, Mahi-mahi, and Giant Sunfish.
 - `v0.10.0-dev_3` exposes boid debug vectors/readouts in debug mode so review can see separation, alignment, cohesion, and final steering.
@@ -49,7 +49,13 @@ Subtasks:
 - [x] `v0.10.0-dev_12` Stop mahi tail spinning in circles during turns: mapped mahi `turnLeft`/`turnRight` to the looping `idle` clip (like the mako) so turns no longer replay the 5.61s non-looping snap-sweep clip; the mahi swims continuously and banks via curve-deform.
 - [x] `v0.10.0-dev_13` Fix mahi held C-curl during turns: its curve-deform was driven by sustained heading misalignment (the mako's is unused, driven only by per-frame turn rate) and saturated the 5-bone spine. Lowered `maxAngleDegrees` 16 → 8, `turnIntentScale` → 0.25, `strength` → 1.0 so the mahi banks in a subtle curve, not a curl.
 - [x] `v0.10.0-dev_14` Widen horizontal swim volume ~1.5x (`GLOBAL_X_DESTINATION_RANGE_SCALE` 0.9 → 1.35) so fish swim off-screen left/right, hiding boundary hard-reset u-turns and decluttering. Widen turn radii (`turnRadiusBodyLengths` per species; default → 2.5) so opposite-direction retargets sweep wide instead of pivoting.
-- [ ] Jeremy feel review (dev_14): fish use the full width and swim off-frame to hide resets / declutter; opposite-direction retargets read as wide arcs (fewer on-the-spot rotations); mahi banks gently (no C-curl/spin); pitch relaxes when hovering; vertical spread. Tune `GLOBAL_X_DESTINATION_RANGE_SCALE`, per-species `turnRadiusBodyLengths`, `turnIntentScale`/`maxAngleDegrees` as needed. Note: radii now exceed the tank depth so u-turns exit frame and may hard-reset off-screen (intended per Jeremy) — revisit if any on-screen reset remains visible.
+- [x] Jeremy feel review (dev_14): accepted with reju — fish use the full width and swim off-frame to hide resets / declutter; opposite-direction retargets read as wide arcs; mahi banks gently (no C-curl/spin); pitch relaxes when hovering; vertical spread. Promoted to clean `v0.10.0`.
+
+Follow-ups (post-release, if wanted):
+- Radii now exceed the tank depth so u-turns exit frame and may hard-reset off-screen (intended). Revisit only if an on-screen reset becomes visible.
+- Movement briefly throttles near a close follow-target on some opposite retargets (possible residual on-the-spot rotation) — could keep forward momentum through turns.
+- Mahi `snap_left`/`snap_right` clips are unused for turns — repurpose for sharp evasive turns later if wanted.
+- Tuning knobs: `GLOBAL_X_DESTINATION_RANGE_SCALE`, per-species `turnRadiusBodyLengths`, `boundsYMin`, curve-deform `turnIntentScale`/`maxAngleDegrees`/`straightenFloor`, audio `SFX_AMBIENT/FOLLOW_MIN_GAP_SECONDS`.
 - [ ] Jeremy feel review: is the jitter gone and does cross-species reaction (flee mako / tolerate mola) read right? Do schools now travel with forward-arcing turns (no clumping/strafing)? Is audio calm? Tune knobs below if needed.
 - [ ] Confirm the sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic is preserved — hold stage untouched).
 - [ ] dev_8 visual confirmation was blocked by a stuck preview-screenshot tool this session; app ran error-free (evals/logs live). Re-verify travel + turn arcs visually on next run.

@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.10.0 (in progress) — Boid schooling movement
+## v0.10.0 — Boid schooling movement
 
-Status: in development as `v0.10.0-dev_14` on branch `feat/boid-schooling-overlay` for Jeremy schooling-motion review.
+Status: accepted and promoted as clean `v0.10.0` from `v0.10.0-dev_14` after Jeremy reju (merged from `feat/boid-schooling-overlay`).
 
 ### Creature behavior
 

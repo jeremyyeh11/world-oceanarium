@@ -15,7 +15,10 @@ const SFX_VOLUME = 1.0
 const AUDIO_FADE_SECONDS = 0.45
 const AUDIO_SUSPEND_AFTER_FADE_MS = 560
 const FOLLOW_MODE_SFX_BOOST = 4.5
-const SFX_MIN_GAP_SECONDS = 0.09
+// Global throttle on swim SFX. Ambient (non-followed) swim sounds are occasional
+// texture, so keep a long gap; the followed creature stays responsive on a short gap.
+const SFX_AMBIENT_MIN_GAP_SECONDS = 1.15
+const SFX_FOLLOW_MIN_GAP_SECONDS = 0.3
 const UI_SFX_MIN_GAP_SECONDS = 0.035
 const FISH_SFX_ASSETS = {
   turn: [
@@ -303,7 +306,8 @@ function playFishSwimSfx(context, graph, detail = {}) {
   if (!context || !graph) return
 
   const now = context.currentTime
-  if (now - (graph.lastSfxAt ?? 0) < SFX_MIN_GAP_SECONDS) return
+  const minGap = detail.followMode ? SFX_FOLLOW_MIN_GAP_SECONDS : SFX_AMBIENT_MIN_GAP_SECONDS
+  if (now - (graph.lastSfxAt ?? 0) < minGap) return
   graph.lastSfxAt = now
 
   const type = detail.type === 'burst' ? 'burst' : 'turn'

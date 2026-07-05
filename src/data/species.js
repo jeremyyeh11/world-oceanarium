@@ -155,9 +155,23 @@ export const SPECIES = [
       burstInterval: [5.5, 9.5],
       erraticness: 0.24,
       turnRadius: 0.78,
-      boundsYMin: -7,
+      // Turn radius in body lengths — nimble bait, but still arcs forward through turns.
+      turnRadiusBodyLengths: 2.0,
+      // Bait balls range through the upper column; deepened for vertical spread.
+      boundsYMin: -10,
       boundsZMin: -15,
       boundsZMax: 8,
+      boids: {
+        neighborCap: 14,
+        perceptionBodyLengths: 3.4,
+        separationWeight: 0.38,
+        alignmentWeight: 0.24,
+        cohesionWeight: 0.16,
+        maxWeight: 0.38,
+        // Harmless bait, but very skittish — flees anything menacing (the mako most of all).
+        menace: 0,
+        wariness: 0.85,
+      },
     },
     // Normalized individual size maps to roughly 15–27 cm total length for Amblygaster sirm.
     sizeRange: [0.55, 1.0],
@@ -249,15 +263,32 @@ export const SPECIES = [
       driftDuration: [3.0, 5.5],
       burstActionDuration: 1.6,
       turnActionDuration: 1.05,
-      turnTriggerThreshold: 0.03,
+      // Raised so gentle sustained arcs keep swimming on the looping idle clip (tail
+      // waving) and bank via curve-deform, rather than firing the long non-looping
+      // snap clip that froze the body in a C-curl. Only sharp turns trigger the snap.
+      turnTriggerThreshold: 0.3,
       erraticness: 0.08,
       turnRadius: 1.45,
+      // Cruiser: broad, committed turns.
+      turnRadiusBodyLengths: 2.8,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.18,
       boundsUseSpeciesSize: false,
-      boundsYMin: -6,
+      // Surface-associated (often near floating cover) — stays in the upper column.
+      boundsYMin: -7,
       boundsZMin: -23,
       boundsZMax: 4,
+      boids: {
+        neighborCap: 1,
+        perceptionBodyLengths: 2.1,
+        separationWeight: 0.18,
+        alignmentWeight: 0.05,
+        cohesionWeight: 0.025,
+        maxWeight: 0.18,
+        // A capable mid predator: mildly menacing to bait, moderately wary of the mako.
+        menace: 0.4,
+        wariness: 0.5,
+      },
     },
     // Normalized individual size maps directly to the 0–1 share of the 1.8 m max; DB rows use a truncated normal distribution centered near the 0.91 m average.
     sizeRange: [0, 1],
@@ -277,8 +308,12 @@ export const SPECIES = [
       moveset: {
         cruise: 'idle',
         drift: 'idle',
-        turnLeft: 'snap_left',
-        turnRight: 'snap_right',
+        // Turns stay on the looping idle swim clip and bank via curve-deform (same as the
+        // mako). The old snap_left/snap_right were 5.61s non-looping turn-sweep clips that
+        // replayed through a sustained wide-arc turn, sweeping the tail over and over
+        // (reading as the tail spinning in circles).
+        turnLeft: 'idle',
+        turnRight: 'idle',
         burst: 'burst',
       },
       animationFadeDuration: 0.16,
@@ -296,15 +331,25 @@ export const SPECIES = [
       curveDeform: {
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
-        strength: 1.55,
-        maxAngleDegrees: 16,
+        strength: 1.0,
+        // Kept gentle: the mahi drives its bend from sustained heading misalignment
+        // (turnIntent), unlike the mako which uses only the tiny per-frame turn rate. A
+        // wide-arc turn holds a large misalignment, so a high maxAngle × 5 spine bones
+        // saturated into a held C-curl. Lower per-bone max + drive so it reads as a
+        // subtle banana-bank through the turn, not a curl.
+        maxAngleDegrees: 8,
         response: 8.5,
         tailBias: 0.85,
         baseWeight: 0.28,
         chainMultiplier: 1.05,
-        turnIntentScale: 5.5,
+        turnIntentScale: 0.25,
         burstBoost: 0.72,
         speedBoost: 0.28,
+        // Ease the bend back to straight when forward travel slows (e.g. crawling out of
+        // a turn), so the tail straightens before the mahi swims on rather than holding a
+        // full sideways bend while barely moving.
+        easeStraightenBySpeed: true,
+        straightenFloor: 0.1,
       },
       debugForwardOrigin: 'head',
       // GLB origin sits near mid-body; nose is at +4.55 / 9.79 of the source length.
@@ -381,14 +426,30 @@ export const SPECIES = [
       turnTriggerThreshold: 0.042,
       erraticness: 0.018,
       turnRadius: 1.32,
+      // Apex pelagic shark: long glides and wide banking turns, never a pivot.
+      turnRadiusBodyLengths: 2.6,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.48,
       soloSteeringTurnRateDegrees: 6,
       soloTargetVerticalBodyLengths: 0.18,
       boundsUseSpeciesSize: false,
-      boundsYMin: -8,
+      // Ranges from the surface into deeper offshore water — deep diver.
+      boundsYMin: -14,
       boundsZMin: -36,
       boundsZMax: 4,
+      boids: {
+        // Apex solo hunter: sees few neighbors, is unbothered by others, but reads as
+        // maximally menacing so nearly everything else steers away from it.
+        neighborCap: 3,
+        perceptionBodyLengths: 1.4,
+        separationWeight: 0.05,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.06,
+        selfAvoidanceScale: 0.1,
+        menace: 0.95,
+        wariness: 0.08,
+      },
     },
     // Review spread maps individuals to roughly 2.6–4.0 m while the Atlas shows the species maximum.
     sizeRange: [0.65, 1.0],
@@ -517,13 +578,29 @@ export const SPECIES = [
       turnTriggerThreshold: 0.0045,
       erraticness: 0.055,
       turnRadius: 1.0,
+      // Slow gelatinous drifter: gentle, wide turns.
+      turnRadiusBodyLengths: 2.0,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.35,
       boundsBodyLengthWU: 1.08,
       boundsUseSpeciesSize: false,
-      boundsYMin: -7,
+      // Basks at the surface but also makes deep dives — full-column diver.
+      boundsYMin: -14,
       boundsZMin: -25,
       boundsZMax: 0,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 1.25,
+        separationWeight: 0.05,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.05,
+        selfAvoidanceScale: 0.04,
+        repulsionScale: 2.8,
+        // A gentle giant: harmless, so nobody flees it, and it barely reacts to anything.
+        menace: 0.03,
+        wariness: 0.12,
+      },
     },
     // Normalized individual size maps to roughly 248–330 cm total length (male average → female maximum).
     sizeRange: [0.75, 1.0],

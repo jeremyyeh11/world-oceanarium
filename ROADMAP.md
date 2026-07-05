@@ -13,6 +13,66 @@ Status labels:
 
 ## Current work
 
+### Boid schooling overlay
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy shared a classic boids logic screenshot — separation / alignment / cohesion / speed limit — and asked whether WO can adopt it.
+- Branch: `feat/boid-schooling-overlay`; accepted and promoted to clean `v0.10.0` after Jeremy reju (`v0.10.0-dev_14` → clean). Lint clean, production build passes.
+- `v0.10.0-dev_1` prototypes local boid steering as an overlay on existing shared school paths, keeping the path as calm migration/current bias while nearby schoolmates add capped alignment and cohesion.
+- `v0.10.0-dev_2` removes the legacy standalone separation pass, makes boid separation/alignment/cohesion the generic steering layer for all species, and adds species-specific biases for sardines, Mahi-mahi, and Giant Sunfish.
+- `v0.10.0-dev_3` exposes boid debug vectors/readouts in debug mode so review can see separation, alignment, cohesion, and final steering.
+- `v0.10.0-dev_4` disables spline/path-follow movement so schools now swim from local heading plus boid steering instead of following a hidden route.
+
+Subtasks:
+- [x] Create `feat/boid-schooling-overlay` branch from latest `origin/main`.
+- [x] Add local alignment/cohesion steering beside existing separation avoidance for schooling fish.
+- [x] Replace standalone separation with generic interspecies boid steering for all species.
+- [x] Add species-biased boid parameters: sardine high-neighbor schooling, Mahi one-neighbor pair bias, Giant Sunfish low self-avoid / high repulsion.
+- [x] Add debug vectors/readouts for separation, alignment, cohesion, and final boid steering.
+- [x] Disable spline/path-follow movement for the boid review build.
+- [x] `v0.10.0-dev_5` Fix jitter: commit each fish to a boid decision for ~one animation cycle (clamped, per-fish jittered) instead of steering every frame; select a stable nearest-N neighbor set instead of registry-iteration order.
+- [x] `v0.10.0-dev_5` Add species reaction hierarchy — `menace`/`wariness` per species; prey flee the mako at a wide radius, nobody minds the mola; add missing mako boid profile.
+- [x] `v0.10.0-dev_6` Rework debug overlay: focused fish draws relation-colored connectors to each remembered neighbor (green follow / red avoid / gray neutral), a cyan heading tick per neighbor, and a magenta threat vector; webs gated to the focused fish to stay legible.
+- [x] `v0.10.0-dev_7` Suppress boid steering during the mola sun-bask so authored behavior owns the path.
+- [x] `v0.10.0-dev_8` Fix schools clumping: re-enable a soft travel destination (school path far exit + intermediate waypoints) with boids as the local overlay; `SCHOOL_TRAVEL_ENABLED` flag, position stays boid-driven.
+- [x] `v0.10.0-dev_8` Body-length turn-radius kinematics for schools and solo agents so creatures arc forward through turns instead of pivoting/strafing (`turnRadiusBodyLengths` per species, `maxTurnRadiansForSpeed` = speed/radius).
+- [x] `v0.10.0-dev_8` Cut over-frequent swim SFX via a longer global ambient throttle (1.15s) with a responsive follow gap (0.3s).
+- [x] `v0.10.0-dev_9` Pitch safeguard: derive visual pitch from actual per-frame vertical travel, not target direction, so hovering fish read level (no swim-bladder look) while genuine ascents/descents still pitch.
+- [x] `v0.10.0-dev_9` Clamp per-bone curve-deform turn bend to `maxAngle` so mahi/mako tails stop over-rotating into a kink on sharp turns.
+- [x] `v0.10.0-dev_9` Solo turns purely arc-radius based (dropped the fixed-degree cap that widened the effective radius and caused boundary sweeps); mako/mola bank through turns at swim speed.
+- [x] `v0.10.0-dev_9` Depth diversity: deepen per-species `boundsYMin` by ecology (mahi shallow/surface-associated, mako + mola deep divers) and widen school vertical traversal (`PATH_VERTICAL_TRAVERSAL_BIAS/JITTER`).
+- [x] Browser-smoke both tanks; lint clean, production build passes, no runtime errors.
+- [x] `v0.10.0-dev_10` Fix mahi freezing in a C-curl while turning: raise mahi `turnTriggerThreshold` (0.03 → 0.3) so gentle arcs stay on the looping idle clip and bank via curve-deform instead of firing the 5.61s snap; clamp only the static curve-deform bend (keep follow-through/idle-sway oscillation so the tail keeps waving); scale mahi spine bend with turn magnitude (`turnIntentScale` 5.5 → 2.2, `strength` 1.55 → 1.2).
+- [x] `v0.10.0-dev_11` Ease mahi curve-deform bend back to straight as forward travel slows (`speedEase01` input + `easeStraightenBySpeed`/`straightenFloor`), so the tail straightens on turn-exit instead of holding a one-sided bend while crawling.
+- [x] `v0.10.0-dev_12` Stop mahi tail spinning in circles during turns: mapped mahi `turnLeft`/`turnRight` to the looping `idle` clip (like the mako) so turns no longer replay the 5.61s non-looping snap-sweep clip; the mahi swims continuously and banks via curve-deform.
+- [x] `v0.10.0-dev_13` Fix mahi held C-curl during turns: its curve-deform was driven by sustained heading misalignment (the mako's is unused, driven only by per-frame turn rate) and saturated the 5-bone spine. Lowered `maxAngleDegrees` 16 → 8, `turnIntentScale` → 0.25, `strength` → 1.0 so the mahi banks in a subtle curve, not a curl.
+- [x] `v0.10.0-dev_14` Widen horizontal swim volume ~1.5x (`GLOBAL_X_DESTINATION_RANGE_SCALE` 0.9 → 1.35) so fish swim off-screen left/right, hiding boundary hard-reset u-turns and decluttering. Widen turn radii (`turnRadiusBodyLengths` per species; default → 2.5) so opposite-direction retargets sweep wide instead of pivoting.
+- [x] Jeremy feel review (dev_14): accepted with reju — fish use the full width and swim off-frame to hide resets / declutter; opposite-direction retargets read as wide arcs; mahi banks gently (no C-curl/spin); pitch relaxes when hovering; vertical spread. Promoted to clean `v0.10.0`.
+
+Follow-ups (post-release, if wanted):
+- Radii now exceed the tank depth so u-turns exit frame and may hard-reset off-screen (intended). Revisit only if an on-screen reset becomes visible.
+- Movement briefly throttles near a close follow-target on some opposite retargets (possible residual on-the-spot rotation) — could keep forward momentum through turns.
+- Mahi `snap_left`/`snap_right` clips are unused for turns — repurpose for sharp evasive turns later if wanted.
+- Tuning knobs: `GLOBAL_X_DESTINATION_RANGE_SCALE`, per-species `turnRadiusBodyLengths`, `boundsYMin`, curve-deform `turnIntentScale`/`maxAngleDegrees`/`straightenFloor`, audio `SFX_AMBIENT/FOLLOW_MIN_GAP_SECONDS`.
+- [ ] Jeremy feel review: is the jitter gone and does cross-species reaction (flee mako / tolerate mola) read right? Do schools now travel with forward-arcing turns (no clumping/strafing)? Is audio calm? Tune knobs below if needed.
+- [ ] Confirm the sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic is preserved — hold stage untouched).
+- [ ] dev_8 visual confirmation was blocked by a stuck preview-screenshot tool this session; app ran error-free (evals/logs live). Re-verify travel + turn arcs visually on next run.
+
+Review gates:
+- Sardines travel as a school toward a destination (not clumping in place), reading alive and locally responsive, not chaotic or jittery.
+- Creatures bank through turns on a body-length radius — forward motion during turns, no pivoting/strafing/drifting.
+- Mahi-mahi pair behavior and Mola solo behavior remain unchanged in intent; sun-bask still fires.
+- Cross-species reaction reads: bait steers clear of the mako, tolerates the mola.
+- Swim audio is occasional ambient texture, not a constant stream.
+- Build passes and desktop browser smoke shows no runtime errors.
+
+Tuning knobs (in `src/data/species.js` per-species `swim.boids`/`swim`, and constants in `Fish.jsx`):
+- Per species: `menace`, `wariness`, `neighborCap`, `perceptionBodyLengths`, `separation/alignment/cohesion/maxWeight`, `turnRadiusBodyLengths`.
+- Global (`Fish.jsx`): `BOID_DECISION_MIN/MAX_INTERVAL`, `BOID_DECISION_JITTER`, `BOID_THREAT_PERCEPTION_SCALE`, `BOID_THREAT_WEIGHT`, `DEFAULT_TURN_RADIUS_BODY_LENGTHS`, `SCHOOL_TRAVEL_ENABLED`.
+- Audio (`useOceanAudio.js`): `SFX_AMBIENT_MIN_GAP_SECONDS`, `SFX_FOLLOW_MIN_GAP_SECONDS`.
+
 ### Tank assemblages & curation
 
 Status: `Archive candidate`

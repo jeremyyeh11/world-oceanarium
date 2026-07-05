@@ -93,7 +93,8 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
       {visibleCreatures.map(creature => {
         const selected = String(creature.id) === String(selectedCreatureId)
         const school = schoolByCreatureId.get(creature.id) ?? null
-        const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))
+        const showBoidSampleDebug = debugView === 'focused' && school && school.index % 16 === 0
+        const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && (selected || showBoidSampleDebug)))
         return (
           <Fish
             key={creature.id}

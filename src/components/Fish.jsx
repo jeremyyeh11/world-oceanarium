@@ -33,7 +33,10 @@ const TANK_CAMERA_Z = 12
 const TANK_CAMERA_FOV_DEG = 60
 const TANK_CAMERA_ASPECT = 16 / 9
 const SCREEN_X_SAFE_FRACTION = 0.78
-const GLOBAL_X_DESTINATION_RANGE_SCALE = 0.9
+// Widened ~1.5x (0.9 -> 1.35) so the left/right swim volume extends past the visible
+// frame. Fish deliberately swim off-screen to the sides, which hides hard-reset
+// u-turns at the boundary and declutters the tank when it is crowded.
+const GLOBAL_X_DESTINATION_RANGE_SCALE = 1.35
 
 const DEFAULT_SWIM = {
   bodyLengthWU: 1,
@@ -52,8 +55,8 @@ const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
 const SMALL_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(220)
 const LARGE_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(42)
 const MAX_PATH_Y_GRADIENT = 0.2
-const PATH_VERTICAL_TRAVERSAL_BIAS = 0.82
-const PATH_VERTICAL_TRAVERSAL_JITTER = 0.16
+const PATH_VERTICAL_TRAVERSAL_BIAS = 0.9
+const PATH_VERTICAL_TRAVERSAL_JITTER = 0.22
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -98,6 +101,18 @@ const DEBUG_FORWARD_MIN_LENGTH = 0.11
 const DEBUG_LABEL_SCALE = 0.0525
 const DEBUG_NAME_LABEL_SCALE = 0.034
 const DEBUG_AGENT_LABEL_SCALE = 0.045
+const DEBUG_BOID_VECTOR_SCALE = 5.0
+const SPLINE_MOVEMENT_ENABLED = false
+// Schools travel toward a real destination (the shared school path's far exit, via its
+// intermediate waypoints) instead of hovering in place — boids only adjust the local
+// formation on top. Position stays boid-driven, so this is a soft destination, not the
+// old rigid path-lock (which is still gated behind SPLINE_MOVEMENT_ENABLED).
+const SCHOOL_TRAVEL_ENABLED = true
+// Turn radius as a multiple of body length. Heading rotates no faster than a fish
+// arcing forward on this radius (angular rate = speed / radius), so creatures swim
+// through their turns instead of pivoting or strafing. >=1 arcs; <1 would allow a
+// future spin-in-place creature.
+const DEFAULT_TURN_RADIUS_BODY_LENGTHS = 2.5
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
@@ -116,8 +131,31 @@ const FISH_SEPARATION_PADDING = 0.18
 const DENSE_SCHOOL_MIN_COUNT = 12
 const DENSE_SCHOOL_RADIUS_SCALE = 0.58
 const DENSE_SCHOOL_PADDING_SCALE = 0.2
-const AVOIDANCE_SMOOTHING = 3.4
-const AVOIDANCE_MAX_WEIGHT = 0.28
+const BOID_STEERING_SMOOTHING = 3.4
+const BOID_NEIGHBOR_CAP = 12
+const BOID_PERCEPTION_MIN = 0.95
+const BOID_PERCEPTION_BODY_LENGTHS = 3.15
+const BOID_PERCEPTION_MAX = 4.2
+const BOID_SEPARATION_WEIGHT = 0.34
+const BOID_ALIGNMENT_WEIGHT = 0.18
+const BOID_COHESION_WEIGHT = 0.12
+const BOID_MAX_WEIGHT = 0.34
+const BOID_SAME_GROUP_SOCIAL_WEIGHT = 1
+const BOID_SAME_SPECIES_SOCIAL_WEIGHT = 0.28
+// A fish commits to a boid steering decision and holds it for roughly one
+// animation cycle, then re-decides. This stops the per-frame re-evaluation that
+// made fish jitter and flip direction several times a second.
+const BOID_DECISION_MIN_INTERVAL = 1.0
+const BOID_DECISION_MAX_INTERVAL = 2.6
+const BOID_DECISION_JITTER = 0.3
+// Species reaction hierarchy: a neighbor's `menace` and the observer's `wariness`
+// combine into a threat-avoidance push sensed at a wider radius than collision
+// separation. Prey flee the mako; nobody minds the mola.
+const BOID_THREAT_PERCEPTION_SCALE = 1.9
+const BOID_THREAT_WEIGHT = 0.62
+const BOID_DEFAULT_MENACE = 0.25
+const BOID_DEFAULT_WARINESS = 0.35
+const BOID_MAX_DEBUG_NEIGHBORS = 12
 const REPULSER_DRIFT_INNER_RADIUS = 5.8
 const REPULSER_DRIFT_OUTER_RADIUS = 17
 const REPULSER_DRIFT_MAX = 2.2
@@ -232,6 +270,7 @@ const debugForwardStart = new THREE.Vector3()
 const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
 const pitchedForward = new THREE.Vector3()
+const frameMove = new THREE.Vector3()
 const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
 const agentMoveDirection = new THREE.Vector3()
@@ -276,7 +315,24 @@ const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
 const separationDelta = new THREE.Vector3()
+const boidDelta = new THREE.Vector3()
+const boidAlignment = new THREE.Vector3()
+const boidCenter = new THREE.Vector3()
+const boidCohesion = new THREE.Vector3()
+const boidThreat = new THREE.Vector3()
+const debugBoidVectorEnd = new THREE.Vector3()
+const debugNeighborStart = new THREE.Vector3()
+const debugNeighborEnd = new THREE.Vector3()
+const debugNeighborHeadingEnd = new THREE.Vector3()
+const BOID_RELATION_COLORS = {
+  follow: new THREE.Color('#80ff72'),
+  avoid: new THREE.Color('#ff5a36'),
+  neutral: new THREE.Color('#9aa7b2'),
+}
 const debugFollowTargetColor = new THREE.Color()
+// Reused candidate buffer for nearest-N neighbor selection so a decision tick does
+// not allocate. Entries are { id, other, distanceSq } and are re-sorted each tick.
+const boidNeighborScratch = []
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
 
@@ -390,6 +446,15 @@ function maxVisualPitch(creature, swim) {
 
 function turnRateForCreature(creature, swim) {
   return THREE.MathUtils.lerp(SMALL_CREATURE_TURN_RATE, LARGE_CREATURE_TURN_RATE, largeCreatureFactor(creature, swim))
+}
+
+// Maximum heading change this frame if the creature turns on an arc of radius
+// (turnRadiusBodyLengths * bodyLength) while moving forward at `speed` (WU/s).
+// ω = v / r, so faster fish and tighter radii turn quicker, but never pivot.
+function maxTurnRadiansForSpeed(swim, bodyLength, speed, delta) {
+  const bodyLengths = Math.max(0.05, swim.turnRadiusBodyLengths ?? DEFAULT_TURN_RADIUS_BODY_LENGTHS)
+  const radius = Math.max(0.05, bodyLengths * bodyLength)
+  return (Math.max(0, speed) / radius) * Math.max(0, delta)
 }
 
 function schoolMaxAvoidanceAngle(creature, swim, school) {
@@ -1576,52 +1641,186 @@ function separationPaddingForPair(school, other) {
   return FISH_SEPARATION_PADDING
 }
 
-function avoidanceWeightForPair(creature, swim, school, other) {
-  const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
-  const bodyScale = THREE.MathUtils.clamp(bodyLength, 0.35, 1.8)
-  const sameSchool = school?.id && other.schoolId === school.id
-  const otherBodyLength = other.bodyLength ?? other.radius * 2
-  const sizeRatio = otherBodyLength / Math.max(0.001, bodyLength)
-  const sizeYieldBias = sizeRatio >= 1
-    ? THREE.MathUtils.lerp(1, 2.2, THREE.MathUtils.clamp(sizeRatio - 1, 0, 1))
-    : THREE.MathUtils.clamp(sizeRatio ** 1.5, 0.08, 1)
-
-  // TODO(species-dominance): add a species hierarchy override so specific timid
-  // species can yield to dominant species regardless of raw body size.
-  if (!sameSchool) return bodyScale * sizeYieldBias
-
-  const density = 1 / Math.sqrt(Math.max(1, school.count))
-  const denseScale = school.count >= DENSE_SCHOOL_MIN_COUNT ? 0.34 : 0.75
-  return bodyScale * density * denseScale * sizeYieldBias
+function boidParamsForCreature(creature, swim) {
+  const config = swim.boids ?? {}
+  return {
+    neighborCap: Math.max(0, Math.floor(config.neighborCap ?? BOID_NEIGHBOR_CAP)),
+    perceptionBodyLengths: config.perceptionBodyLengths ?? BOID_PERCEPTION_BODY_LENGTHS,
+    perceptionMin: config.perceptionMin ?? BOID_PERCEPTION_MIN,
+    perceptionMax: config.perceptionMax ?? BOID_PERCEPTION_MAX,
+    separationWeight: config.separationWeight ?? BOID_SEPARATION_WEIGHT,
+    alignmentWeight: config.alignmentWeight ?? BOID_ALIGNMENT_WEIGHT,
+    cohesionWeight: config.cohesionWeight ?? BOID_COHESION_WEIGHT,
+    maxWeight: config.maxWeight ?? BOID_MAX_WEIGHT,
+    selfAvoidanceScale: config.selfAvoidanceScale ?? 1,
+    repulsionScale: config.repulsionScale ?? (creatureRepulsesOthers(resolveSpecies(creature)) ? 2.2 : 1),
+    // How threatening this species reads to others, and how strongly it reacts to
+    // threatening neighbors. Prey want high wariness; the mako wants high menace.
+    menace: config.menace ?? BOID_DEFAULT_MENACE,
+    wariness: config.wariness ?? BOID_DEFAULT_WARINESS,
+  }
 }
 
-function computeSoftAvoidance(out, fish, creature, swim, school = null) {
-  const radius = fishCollisionRadius(creature, swim, school)
-  out.set(0, 0, 0)
+function boidSocialWeight(school, creature, other) {
+  if (school?.id && other.schoolId === school.id) return BOID_SAME_GROUP_SOCIAL_WEIGHT
+  if (other.species === creature.species) return BOID_SAME_SPECIES_SOCIAL_WEIGHT
+  return 0
+}
 
+function recordDebugNeighbor(debugState, id, other, relation, socialWeight) {
+  if (!debugState || debugState.neighborActive >= BOID_MAX_DEBUG_NEIGHBORS) return
+  const slot = debugState.neighbors[debugState.neighborActive]
+  slot.id = id
+  slot.pos.copy(other.position)
+  if (other.forward?.lengthSq?.() > 0.0001) slot.forward.copy(other.forward)
+  else slot.forward.set(0, 0, -1)
+  slot.relation = relation
+  slot.socialWeight = socialWeight
+  debugState.neighborActive += 1
+}
+
+// Nearest-N neighbor selection: gather everything inside the (wider) threat radius,
+// sort by distance, and only treat the nearest N as school/collision neighbors. This
+// stabilizes who a fish reacts to from tick to tick, which is what kills the jitter —
+// alignment/cohesion targets stop flickering frame to frame. Threat avoidance is
+// applied to any menacing neighbor in range, capped or not, so a shark is never missed.
+function computeBoidSteering(out, fish, creature, swim, school = null, followDirection = null, debugState = null) {
+  out.set(0, 0, 0)
+  if (debugState) {
+    debugState.separation.set(0, 0, 0)
+    debugState.alignment.set(0, 0, 0)
+    debugState.cohesion.set(0, 0, 0)
+    debugState.threat.set(0, 0, 0)
+    debugState.result.set(0, 0, 0)
+    debugState.neighborCount = 0
+    debugState.neighborActive = 0
+    debugState.socialWeightTotal = 0
+    debugState.perceptionRadius = 0
+  }
+  const params = boidParamsForCreature(creature, swim)
+  if (params.neighborCap <= 0 || params.maxWeight <= 0) return out
+
+  const radius = fishCollisionRadius(creature, swim, school)
+  const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
+  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
+  const perceptionRadius = THREE.MathUtils.clamp(
+    bodyLength * params.perceptionBodyLengths * Math.sqrt(Math.max(0.45, spacingScale)),
+    params.perceptionMin,
+    params.perceptionMax,
+  )
+  const perceptionRadiusSq = perceptionRadius * perceptionRadius
+  const threatRadius = perceptionRadius * BOID_THREAT_PERCEPTION_SCALE
+  const threatRadiusSq = threatRadius * threatRadius
+  const forward = followDirection?.lengthSq?.() > 0.0001 ? followDirection : null
+  if (debugState) debugState.perceptionRadius = perceptionRadius
+
+  // Phase 1 — gather candidates within the widest (threat) radius, then sort nearest-first.
+  boidNeighborScratch.length = 0
   FISH_REGISTRY.forEach((other, id) => {
     if (id === creature.id || other.biome !== creature.biome) return
-    separationDelta.subVectors(fish.position, other.position)
-    separationDelta.y *= 0.35
-    const distanceSq = separationDelta.lengthSq()
-    const pairPadding = separationPaddingForPair(school, other)
-    const minDistance = radius + other.radius + pairPadding
-    if (distanceSq >= minDistance * minDistance) return
+    boidDelta.subVectors(fish.position, other.position)
+    boidDelta.y *= 0.55
+    const distanceSq = boidDelta.lengthSq()
+    if (distanceSq < 0.000001 || distanceSq > threatRadiusSq) return
+    boidNeighborScratch.push({ id, other, distanceSq })
+  })
+  boidNeighborScratch.sort((a, b) => a.distanceSq - b.distanceSq)
 
-    if (distanceSq < 0.000001) {
-      const fallback = hashString(`${creature.id}:${id}:separate`) % 6283 / 1000
-      separationDelta.set(Math.cos(fallback), 0, Math.sin(fallback))
-    } else {
-      separationDelta.normalize()
+  let neighborCount = 0
+  let socialWeightTotal = 0
+  boidAlignment.set(0, 0, 0)
+  boidCenter.set(0, 0, 0)
+  separationDelta.set(0, 0, 0)
+  boidThreat.set(0, 0, 0)
+
+  for (let i = 0; i < boidNeighborScratch.length; i += 1) {
+    const { id: otherId, other, distanceSq } = boidNeighborScratch[i]
+    const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
+    const withinPerception = distanceSq <= perceptionRadiusSq
+    const canUseSocial = withinPerception && neighborCount < params.neighborCap
+    let relation = 'neutral'
+    let socialWeight = 0
+
+    // Threat avoidance — a wide-radius push away from menacing neighbors.
+    const threatPair = (other.menace ?? BOID_DEFAULT_MENACE) * params.wariness
+    if (threatPair > 0.06) {
+      const proximity = THREE.MathUtils.clamp(1 - distance / threatRadius, 0, 1)
+      boidDelta.subVectors(fish.position, other.position)
+      boidDelta.y *= 0.55
+      if (boidDelta.lengthSq() > 0.000001) {
+        boidDelta.normalize()
+        boidThreat.addScaledVector(boidDelta, threatPair * proximity * proximity * BOID_THREAT_WEIGHT)
+        relation = 'avoid'
+      }
     }
 
-    const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
-    const overlap = THREE.MathUtils.clamp((minDistance - distance) / minDistance, 0, 1)
-    const easedOverlap = overlap * overlap
-    out.addScaledVector(separationDelta, easedOverlap * avoidanceWeightForPair(creature, swim, school, other))
-  })
+    if (canUseSocial) {
+      const sameSchool = school?.id && other.schoolId === school.id
+      const pairPadding = separationPaddingForPair(school, other)
+      const minDistance = radius + other.radius + pairPadding
+      if (distanceSq < minDistance * minDistance) {
+        const overlap = THREE.MathUtils.clamp((minDistance - distance) / minDistance, 0, 1)
+        const otherBodyLength = other.bodyLength ?? other.radius * 2
+        const sizeRatio = otherBodyLength / Math.max(0.001, bodyLength)
+        const sizeYieldBias = sizeRatio >= 1
+          ? THREE.MathUtils.lerp(1, 2.2, THREE.MathUtils.clamp(sizeRatio - 1, 0, 1))
+          : THREE.MathUtils.clamp(sizeRatio ** 1.5, 0.08, 1)
+        const densityScale = sameSchool ? 1 / Math.sqrt(Math.max(1, school.count)) : 1
+        const denseScale = sameSchool && school.count >= DENSE_SCHOOL_MIN_COUNT ? 0.34 : 1
+        const repulsionScale = other.repulsionScale ?? 1
+        boidDelta.subVectors(fish.position, other.position)
+        boidDelta.y *= 0.55
+        boidDelta.normalize()
+        separationDelta.addScaledVector(
+          boidDelta,
+          overlap * overlap * params.separationWeight * sizeYieldBias * densityScale * denseScale * repulsionScale * params.selfAvoidanceScale,
+        )
+      }
 
-  out.clampLength(0, AVOIDANCE_MAX_WEIGHT)
+      socialWeight = boidSocialWeight(school, creature, other)
+      if (socialWeight > 0) {
+        if (other.forward?.lengthSq?.() > 0.0001) boidAlignment.addScaledVector(other.forward, socialWeight)
+        boidCenter.addScaledVector(other.position, socialWeight)
+        socialWeightTotal += socialWeight
+        if (relation !== 'avoid') relation = 'follow'
+      }
+      neighborCount += 1
+      recordDebugNeighbor(debugState, otherId, other, relation, socialWeight)
+    } else if (relation === 'avoid') {
+      recordDebugNeighbor(debugState, otherId, other, relation, socialWeight)
+    }
+  }
+
+  out.add(separationDelta)
+  out.add(boidThreat)
+  if (debugState) {
+    debugState.separation.copy(separationDelta)
+    debugState.threat.copy(boidThreat)
+    debugState.neighborCount = neighborCount
+    debugState.socialWeightTotal = socialWeightTotal
+  }
+
+  if (socialWeightTotal > 0) {
+    if (boidAlignment.lengthSq() > 0.0001) {
+      boidAlignment.normalize()
+      if (forward) boidAlignment.sub(forward).clampLength(0, params.alignmentWeight)
+      else boidAlignment.multiplyScalar(params.alignmentWeight)
+      if (debugState) debugState.alignment.copy(boidAlignment)
+      out.add(boidAlignment)
+    }
+
+    boidCenter.multiplyScalar(1 / socialWeightTotal)
+    boidCohesion.subVectors(boidCenter, fish.position)
+    boidCohesion.y *= 0.45
+    if (boidCohesion.lengthSq() > 0.0001) {
+      boidCohesion.normalize().multiplyScalar(params.cohesionWeight)
+      if (debugState) debugState.cohesion.copy(boidCohesion)
+      out.add(boidCohesion)
+    }
+  }
+
+  out.clampLength(0, params.maxWeight)
+  if (debugState) debugState.result.copy(out)
   return out
 }
 
@@ -1633,28 +1832,37 @@ function limitAvoidanceAngle(out, followDirection, maxAngle) {
   return out
 }
 
-function updateFishRegistry(fish, creature, swim, school = null) {
+function updateFishRegistry(fish, creature, swim, school = null, forward = null) {
   const radius = fishCollisionRadius(creature, swim, school)
   const species = resolveSpecies(creature)
   const repulser = creatureRepulsesOthers(species)
+  const boidParams = boidParamsForCreature(creature, swim)
   const entry = FISH_REGISTRY.get(creature.id)
+  const registryForward = forward?.lengthSq?.() > 0.0001 ? forward : null
   if (entry) {
     entry.position.copy(fish.position)
+    if (registryForward) entry.forward.copy(registryForward)
+    else entry.forward.set(0, 0, -1)
     entry.radius = radius
     entry.bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
     entry.species = creature.species
     entry.biome = creature.biome
     entry.schoolId = school?.id ?? null
+    entry.repulsionScale = boidParams.repulsionScale
     entry.repulser = repulser
+    entry.menace = boidParams.menace
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
+      forward: registryForward ? registryForward.clone() : new THREE.Vector3(0, 0, -1),
       radius,
       bodyLength: swim.bodyLengthWU * (creature.size ?? 1),
       species: creature.species,
       biome: creature.biome,
       schoolId: school?.id ?? null,
+      repulsionScale: boidParams.repulsionScale,
       repulser,
+      menace: boidParams.menace,
     })
   }
 }
@@ -1678,6 +1886,11 @@ function updateDebugLine(lineRef, start, end) {
   positions.setXYZ(1, end.x, end.y, end.z)
   positions.needsUpdate = true
   geometry.computeBoundingSphere()
+}
+
+function updateDebugVectorLine(lineRef, start, vector, scale = 1) {
+  debugBoidVectorEnd.copy(start).addScaledVector(vector, scale)
+  updateDebugLine(lineRef, start, debugBoidVectorEnd)
 }
 
 function depthFadeFromScreenZ(z) {
@@ -1857,6 +2070,15 @@ function modelActionAnimationDuration(model, animation, fallback) {
   const duration = model?.actionAnimationDurations?.[resolvedAnimation]
     ?? model?.actionAnimationDurations?.[animation]
   return Number.isFinite(duration) && duration > 0 ? duration : fallback
+}
+
+// How long a fish holds a boid decision before re-deciding: about one cycle of its
+// current swim clip (so a movement decision lasts as long as the animation driving it),
+// clamped and per-fish jittered so a school does not re-decide in lockstep.
+function boidDecisionInterval(model, animation, jitterUnit) {
+  const clip = modelActionAnimationDuration(model, animation, 1.4)
+  const base = THREE.MathUtils.clamp(clip, BOID_DECISION_MIN_INTERVAL, BOID_DECISION_MAX_INTERVAL)
+  return base * (1 + (jitterUnit - 0.5) * 2 * BOID_DECISION_JITTER)
 }
 
 function modelActionMovementDelay(model, animation, fallback = 0) {
@@ -2247,8 +2469,18 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       )
       const burstBoost = 1 + (Number.isFinite(curveConfig.burstBoost) ? curveConfig.burstBoost : 0) * THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1)
       const speedBoost = 1 + (Number.isFinite(curveConfig.speedBoost) ? curveConfig.speedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      // Optionally ease the turn bend back toward straight as actual forward speed drops,
+      // so a fish crawling out of a turn straightens its tail before swimming on instead
+      // of holding a full sideways bend while barely moving.
+      const speedEase = curveConfig.easeStraightenBySpeed
+        ? THREE.MathUtils.lerp(
+          Number.isFinite(curveConfig.straightenFloor) ? curveConfig.straightenFloor : 0.12,
+          1,
+          THREE.MathUtils.clamp(input.speedEase01 ?? 1, 0, 1),
+        )
+        : 1
       const baseAngle = THREE.MathUtils.clamp(
-        curveDeformTurnRef.current * strength * burstBoost * speedBoost * maxAngle,
+        curveDeformTurnRef.current * strength * burstBoost * speedBoost * speedEase * maxAngle,
         -maxAngle,
         maxAngle,
       )
@@ -2277,7 +2509,12 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         const tailWeight = THREE.MathUtils.lerp(baseWeight, 1, Math.pow(ratio, tailBias)) * chainWeight
         const followThrough = Math.sin(phase - ratio * 1.15) * 0.24 * Math.abs(baseAngle)
         const idleSway = Math.sin(idleSwayPhase - ratio * idleSwayPhaseOffset) * idleSwayAngle * idleSwaySpeedBoost * tailWeight
-        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, baseAngle * tailWeight + followThrough + idleSway)
+        // Clamp only the STATIC turn bend to the configured max (tailWeight /
+        // chainMultiplier^index can otherwise overshoot into a kink). Follow-through and
+        // idle sway stay additive on top so the tail keeps waving (swimming) through a
+        // sustained turn instead of freezing at the clamp.
+        const staticBend = THREE.MathUtils.clamp(baseAngle * tailWeight, -maxAngle, maxAngle)
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, staticBend + followThrough + idleSway)
         bone.quaternion.multiply(curveDeformQuatRef.current)
         curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
         curveState.postAdditiveQuaternions[index].copy(bone.quaternion)
@@ -2316,6 +2553,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const ref = useRef()
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
+  const boidSeparationLineRef = useRef()
+  const boidAlignmentLineRef = useRef()
+  const boidCohesionLineRef = useRef()
+  const boidThreatLineRef = useRef()
+  const boidResultLineRef = useRef()
+  const boidLabelRef = useRef()
+  // Per-neighbor debug lines: a connector fish->neighbor (colored by relation) and a
+  // short tick showing the neighbor's own heading. Fixed pools so nothing allocates.
+  const boidNeighborLineRefs = useRef([])
+  const boidNeighborHeadingRefs = useRef([])
   const speedLabelRef = useRef()
   const driftLabelRef = useRef()
   const agentLabelRef = useRef()
@@ -2364,8 +2611,32 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const lastFollowRecoveryExitAt = useRef(-Infinity)
   const runtimeRecoveryFade = useRef({ phase: 'idle', startedAt: 0 })
   const simulationTime = useRef(null)
-  const rawAvoidance = useRef(new THREE.Vector3())
-  const smoothedAvoidance = useRef(new THREE.Vector3())
+  const rawBoidSteering = useRef(new THREE.Vector3())
+  const smoothedBoidSteering = useRef(new THREE.Vector3())
+  // Boid decisions are committed and held for ~one animation cycle, then re-decided.
+  // Between ticks the committed vector is eased in, so heading changes are smooth and
+  // infrequent instead of recomputed every frame.
+  const committedBoidSteering = useRef(new THREE.Vector3())
+  const boidDecisionNextAt = useRef(0)
+  const boidDecisionJitter = useRef(Math.random())
+  const boidDebugState = useRef({
+    separation: new THREE.Vector3(),
+    alignment: new THREE.Vector3(),
+    cohesion: new THREE.Vector3(),
+    threat: new THREE.Vector3(),
+    result: new THREE.Vector3(),
+    neighborCount: 0,
+    socialWeightTotal: 0,
+    perceptionRadius: 0,
+    neighborActive: 0,
+    neighbors: Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => ({
+      id: null,
+      pos: new THREE.Vector3(),
+      forward: new THREE.Vector3(0, 0, -1),
+      relation: 'neutral',
+      socialWeight: 0,
+    })),
+  })
   const repulserDrift = useRef(new THREE.Vector3())
   const desiredDirection = useRef(new THREE.Vector3())
   const labelPosition = useRef(new THREE.Vector3())
@@ -2386,6 +2657,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
   const curveDeformTurnIntent = useRef(0)
+  // Smoothed ratio of actual forward travel to intended cruise speed. Drops when a
+  // fish is throttled (e.g. crawling out of a turn), used to ease the curve-deform
+  // bend back toward straight before forward swimming resumes.
+  const curveDeformSpeedEase = useRef(1)
   const nextBurstAt = useRef(0)
   const nextDriftAt = useRef(0)
   const driftUntil = useRef(0)
@@ -2402,7 +2677,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
-  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, burst01: 0, phase: 0 })
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, speedEase01: 1, burst01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
@@ -2413,6 +2688,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     [path, schoolState?.path],
   )
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidSeparationGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidAlignmentGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidCohesionGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidThreatGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidResultGeometry = useMemo(() => makeDebugLineGeometry(), [])
+  const boidNeighborGeometries = useMemo(
+    () => Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => makeDebugLineGeometry()),
+    [],
+  )
+  const boidNeighborHeadingGeometries = useMemo(
+    () => Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => makeDebugLineGeometry()),
+    [],
+  )
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
     const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
@@ -2517,8 +2805,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     nextBurstAt.current = motion.burstPhase + motion.burstInterval
     nextDriftAt.current = motion.driftPhase
     driftUntil.current = 0
-    rawAvoidance.current.set(0, 0, 0)
-    smoothedAvoidance.current.set(0, 0, 0)
+    rawBoidSteering.current.set(0, 0, 0)
+    smoothedBoidSteering.current.set(0, 0, 0)
+    committedBoidSteering.current.set(0, 0, 0)
+    boidDecisionNextAt.current = 0
+    boidDebugState.current.separation.set(0, 0, 0)
+    boidDebugState.current.alignment.set(0, 0, 0)
+    boidDebugState.current.cohesion.set(0, 0, 0)
+    boidDebugState.current.threat.set(0, 0, 0)
+    boidDebugState.current.result.set(0, 0, 0)
+    boidDebugState.current.neighborCount = 0
+    boidDebugState.current.neighborActive = 0
+    boidDebugState.current.socialWeightTotal = 0
     repulserDrift.current.set(0, 0, 0)
     hasVisualForward.current = false
     hasBaseLookQuaternion.current = false
@@ -2595,15 +2893,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    if (isSchooling) {
-      if (isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
-    } else if (!isSoloAgent) {
-      progress.current += delta * velocity.current / pathLength
+    if (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) {
+      if (isSchooling) {
+        if ((SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) && isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
+      } else if (!isSoloAgent && SPLINE_MOVEMENT_ENABLED) {
+        progress.current += delta * velocity.current / pathLength
+      }
     }
 
     const pathProgress = isSchooling ? schoolState.progress : progress.current
-    const shouldAdvanceSchoolPath = isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
-    if ((!isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath) {
+    const shouldAdvanceSchoolPath = (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) && isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
+    if ((SPLINE_MOVEMENT_ENABLED && !isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath) {
       const endPoint = activePath.getPointAt(1)
       const endTangent = activePath.getTangentAt(1).normalize()
 
@@ -2657,8 +2957,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const followDistance = followLookaheadDistance(creature, swim, isSchooling)
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
-      offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
-      followTarget.current.add(repulserDrift.current)
+      if (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED || !hasFollowPosition.current) {
+        offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
+        followTarget.current.add(repulserDrift.current)
+      } else {
+        const freeSwimForward = desiredDirection.current.lengthSq() > 0.0001
+          ? desiredDirection.current
+          : (hasVisualForward.current ? visualForward.current : tangent)
+        if (freeSwimForward.lengthSq() < 0.0001) freeSwimForward.set(0, 0, -1)
+        freeSwimForward.normalize()
+        followTarget.current.copy(fish.position).addScaledVector(freeSwimForward, followDistance)
+      }
     } else if (isSoloAgent) {
       position = hasFollowPosition.current ? fish.position : position
       const currentForward = desiredDirection.current.lengthSq() > 0.0001
@@ -2864,9 +3173,39 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
         agentBehaviorDistance.current = 0
       } else {
+        // Cap solo-agent heading changes to a forward arc of body-length turn radius,
+        // so large solo swimmers (mako) bank through turns instead of pivoting on the spot.
+        const soloForwardSpeed = (Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed) * organicMotion.speedScale
+        const soloTurnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, soloForwardSpeed, delta)
         if (agentHasTarget.current) {
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-          rotateDirectionToward(tangent, agentMoveDirection, soloAgentSteeringTurnRate(swim) * delta)
+          // Turn purely on the body-length arc radius at the current swim speed. The old
+          // fixed-degrees cap turned slower than the radius implied, which meant an even
+          // wider effective radius than configured — so the shark swept along tank
+          // boundaries instead of completing a forward arc.
+          rotateDirectionToward(tangent, agentMoveDirection, soloTurnRadiusStep)
+        }
+
+        // Authored behaviors (e.g. the mola sun-bask approach/exit) own the steering
+        // outright — boid forces are suppressed so they never nudge the animation off
+        // its path. The bask hold stage above already bypasses boids entirely.
+        const authoredBehaviorActive = agentBehavior.current?.type === 'sun-bask'
+        if (!authoredBehaviorActive) {
+          if (now >= boidDecisionNextAt.current) {
+            computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, tangent, boidDebugState.current)
+            boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
+          }
+          smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+          if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
+            targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
+            if (targetDesiredDirection.lengthSq() > 0.0001) {
+              rotateDirectionToward(tangent, targetDesiredDirection.normalize(), soloTurnRadiusStep)
+            }
+          }
+        } else {
+          // Keep the committed vector decaying so it does not snap back in when the
+          // authored behavior ends.
+          smoothedBoidSteering.current.multiplyScalar(Math.exp(-delta * BOID_STEERING_SMOOTHING))
         }
 
         desiredDirection.current.copy(tangent)
@@ -2954,9 +3293,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const targetDistance = schoolFollowDirection.length()
       if (targetDistance > 0.0001) {
         schoolFollowDirection.normalize()
-        computeSoftAvoidance(rawAvoidance.current, fish, creature, swim, school)
-        smoothedAvoidance.current.lerp(rawAvoidance.current, 1 - Math.exp(-delta * AVOIDANCE_SMOOTHING))
-        targetDesiredDirection.copy(schoolFollowDirection).add(smoothedAvoidance.current)
+        if (now >= boidDecisionNextAt.current) {
+          computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, schoolFollowDirection, boidDebugState.current)
+          boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
+        }
+        smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+        targetDesiredDirection
+          .copy(schoolFollowDirection)
+          .add(smoothedBoidSteering.current)
         const maxAvoidanceAngle = schoolMaxAvoidanceAngle(creature, swim, school)
         limitAvoidanceAngle(
           targetDesiredDirection,
@@ -2974,23 +3318,33 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
           curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
         }
-        rotateDirectionToward(
-          desiredDirection.current,
-          targetDesiredDirection,
-          maxAvoidanceAngle * (1 - Math.exp(-delta * schoolDirectionResponse(swim))),
-        )
-
         const catchup = THREE.MathUtils.clamp(
           targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
           0.50,
           1.82,
         )
+        // Turn no faster than an arc of (turnRadiusBodyLengths * bodyLength) allows at
+        // the current forward speed, so the school banks through turns instead of
+        // pivoting/strafing. The response-based step still smooths within that cap.
+        const forwardSpeed = velocity.current * organicMotion.speedScale * catchup
+        const responseStep = maxAvoidanceAngle * (1 - Math.exp(-delta * schoolDirectionResponse(swim)))
+        const turnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
+        rotateDirectionToward(
+          desiredDirection.current,
+          targetDesiredDirection,
+          Math.min(responseStep, turnRadiusStep),
+        )
+
         const movementScale = velocity.current * organicMotion.speedScale * catchup * delta
         agentMoveDirection.copy(desiredDirection.current)
         fish.position.addScaledVector(
           agentMoveDirection,
           Math.min(targetDistance, movementScale),
         )
+        if (!SPLINE_MOVEMENT_ENABLED) {
+          const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+          clampToSwimBounds(fish.position, bounds)
+        }
         tangent.subVectors(fish.position, previousPosition.current)
         if (tangent.lengthSq() > 0.000001) {
           tangent.normalize()
@@ -3007,7 +3361,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         : (behavior?.type ?? 'choose-behavior')
     }
 
-    updateFishRegistry(fish, creature, swim, school)
+    updateFishRegistry(fish, creature, swim, school, desiredDirection.current)
 
     let runtimeRecoveryOpacity = 1
     let recoveryFadeState = runtimeRecoveryFade.current
@@ -3062,14 +3416,22 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
     horizontalForward.normalize()
 
-    if (showAgentDebug) {
+    if (showAgentDebug || !SPLINE_MOVEMENT_ENABLED) {
       splineVisualTangent.subVectors(followTarget.current, fish.position)
       if (splineVisualTangent.lengthSq() < 0.0001) splineVisualTangent.copy(tangent)
       else splineVisualTangent.normalize()
     } else {
       currentPath.getTangentAt(t, splineVisualTangent).normalize()
     }
-    const targetVisualPitch = clampedVisualPitch(splineVisualTangent, pitchLimit)
+    // Pitch reflects ACTUAL vertical travel this frame, not the direction to the target.
+    // A creature genuinely swimming up/down to a higher/lower destination pitches into it,
+    // but one hovering along the XZ plane (e.g. blocked under the surface, or a target it
+    // is not vertically closing on) stays level — no swim-bladder-dysfunction look.
+    frameMove.subVectors(fish.position, previousPosition.current)
+    const frameHorizontalMove = Math.hypot(frameMove.x, frameMove.z)
+    const targetVisualPitch = (frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
+      ? THREE.MathUtils.clamp(Math.atan2(frameMove.y, Math.max(frameHorizontalMove, 1e-4)), -pitchLimit, pitchLimit)
+      : 0
     if (!hasVisualForward.current) {
       visualPitch.current = targetVisualPitch
     } else {
@@ -3123,6 +3485,54 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
       if (forwardLineRef.current) forwardLineRef.current.visible = showDirection && !showAgentDebug
+      const showBoidDebug = showDirection && (selected || showAgentDebug || (isSchooling && school.index % 16 === 0))
+      const boidDebug = boidDebugState.current
+      updateDebugVectorLine(boidSeparationLineRef, debugForwardStart, boidDebug.separation, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidAlignmentLineRef, debugForwardStart, boidDebug.alignment, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidCohesionLineRef, debugForwardStart, boidDebug.cohesion, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidThreatLineRef, debugForwardStart, boidDebug.threat, DEBUG_BOID_VECTOR_SCALE)
+      updateDebugVectorLine(boidResultLineRef, debugForwardStart, smoothedBoidSteering.current, DEBUG_BOID_VECTOR_SCALE)
+      if (boidSeparationLineRef.current) boidSeparationLineRef.current.visible = showBoidDebug && boidDebug.separation.lengthSq() > 0.000001
+      if (boidAlignmentLineRef.current) boidAlignmentLineRef.current.visible = showBoidDebug && boidDebug.alignment.lengthSq() > 0.000001
+      if (boidCohesionLineRef.current) boidCohesionLineRef.current.visible = showBoidDebug && boidDebug.cohesion.lengthSq() > 0.000001
+      if (boidThreatLineRef.current) boidThreatLineRef.current.visible = showBoidDebug && boidDebug.threat.lengthSq() > 0.000001
+      if (boidResultLineRef.current) boidResultLineRef.current.visible = showBoidDebug && smoothedBoidSteering.current.lengthSq() > 0.000001
+
+      // Neighbor connectors (colored by relation) + heading ticks, tracking live positions.
+      // Only drawn for the focused fish (selected or agent-debug) so one individual's
+      // perception is legible instead of every sampled fish webbing the whole school.
+      const showNeighborWeb = showBoidDebug && (selected || showAgentDebug)
+      const headingTickLength = Math.max(0.35, bodyLength * 0.9)
+      for (let n = 0; n < BOID_MAX_DEBUG_NEIGHBORS; n += 1) {
+        const connector = boidNeighborLineRefs.current[n]
+        const headingTick = boidNeighborHeadingRefs.current[n]
+        const active = showNeighborWeb && n < boidDebug.neighborActive
+        if (connector) {
+          if (active) {
+            const slot = boidDebug.neighbors[n]
+            const live = FISH_REGISTRY.get(slot.id)
+            debugNeighborEnd.copy(live?.position ?? slot.pos)
+            updateDebugLine({ current: connector }, debugForwardStart, debugNeighborEnd)
+            const color = BOID_RELATION_COLORS[slot.relation] ?? BOID_RELATION_COLORS.neutral
+            if (connector.material?.color) connector.material.color.copy(color)
+            if (headingTick) {
+              debugNeighborStart.copy(debugNeighborEnd)
+              debugNeighborHeadingEnd.copy(debugNeighborStart).addScaledVector(live?.forward ?? slot.forward, headingTickLength)
+              updateDebugLine({ current: headingTick }, debugNeighborStart, debugNeighborHeadingEnd)
+              headingTick.visible = true
+            }
+          } else if (headingTick) {
+            headingTick.visible = false
+          }
+          connector.visible = active
+        }
+      }
+      if (boidLabelRef.current) {
+        boidLabelRef.current.position.copy(debugForwardStart).addScaledVector(up, 0.30 + size * 0.06)
+        boidLabelRef.current.text = `boid n${boidDebug.neighborCount} social ${boidDebug.socialWeightTotal.toFixed(1)}\nsep ${boidDebug.separation.length().toFixed(2)} align ${boidDebug.alignment.length().toFixed(2)} coh ${boidDebug.cohesion.length().toFixed(2)} threat ${boidDebug.threat.length().toFixed(2)} out ${smoothedBoidSteering.current.length().toFixed(2)}`
+        boidLabelRef.current.lookAt(camera.position)
+        boidLabelRef.current.visible = showBoidDebug
+      }
       if (followTargetMarkerRef.current) {
         followTargetMarkerRef.current.position.copy(followTarget.current)
         const markerMaterial = followTargetMarkerRef.current.material
@@ -3458,6 +3868,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
       curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5 + curveDeformTurnIntent.current, -1, 1)
       curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
+      // Actual forward travel this frame vs the intended cruise rate. Movement is
+      // clamped to the follow-target distance, so a fish crawling out of a turn reads
+      // slow here even though velocity.current still says "cruise". Curve-deform uses
+      // this to straighten the tail before the fish resumes swimming forward.
+      const actualForwardSpeed = frameMove.length() / Math.max(1e-4, delta)
+      const cruiseSpeedRef = Math.max(1e-3, motion.idleSpeed * organicMotion.speedScale)
+      curveDeformSpeedEase.current = THREE.MathUtils.damp(
+        curveDeformSpeedEase.current,
+        THREE.MathUtils.clamp(actualForwardSpeed / cruiseSpeedRef, 0, 1),
+        6,
+        delta,
+      )
+      curveDeformInputRef.current.speedEase01 = curveDeformSpeedEase.current
       curveDeformInputRef.current.burst01 = activeAnimation === resolveMoveAnimation(model, 'burst')
         ? THREE.MathUtils.clamp((animationHoldUntil.current - now) / Math.max(0.001, modelActionAnimationDuration(model, activeAnimation, motion.burstActionDuration)), 0, 1)
         : 0
@@ -3498,7 +3921,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     <group>
       {debug && (
         <>
-          {(debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug || selected) && (
+          {SPLINE_MOVEMENT_ENABLED && (debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug || selected) && (
             <line geometry={splineGeometry} raycast={() => null}>
               <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
             </line>
@@ -3506,6 +3929,56 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>
+          <line ref={boidSeparationLineRef} geometry={boidSeparationGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ff5a36" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <line ref={boidAlignmentLineRef} geometry={boidAlignmentGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#80ff72" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <line ref={boidCohesionLineRef} geometry={boidCohesionGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ffd166" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <line ref={boidThreatLineRef} geometry={boidThreatGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ff2fa0" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          <line ref={boidResultLineRef} geometry={boidResultGeometry} raycast={() => null}>
+            <lineBasicMaterial color="#ffffff" transparent opacity={0.95} depthTest={false} depthWrite={false} />
+          </line>
+          {boidNeighborGeometries.map((geometry, n) => (
+            <line
+              key={`boid-neighbor-${n}`}
+              ref={el => { boidNeighborLineRefs.current[n] = el }}
+              geometry={geometry}
+              visible={false}
+              raycast={() => null}
+            >
+              <lineBasicMaterial color="#9aa7b2" transparent opacity={0.7} depthTest={false} depthWrite={false} />
+            </line>
+          ))}
+          {boidNeighborHeadingGeometries.map((geometry, n) => (
+            <line
+              key={`boid-neighbor-heading-${n}`}
+              ref={el => { boidNeighborHeadingRefs.current[n] = el }}
+              geometry={geometry}
+              visible={false}
+              raycast={() => null}
+            >
+              <lineBasicMaterial color="#7df9ff" transparent opacity={0.9} depthTest={false} depthWrite={false} />
+            </line>
+          ))}
+          <Text
+            ref={boidLabelRef}
+            fontSize={DEBUG_LABEL_SCALE}
+            font={DEBUG_LABEL_FONT}
+            color="#ffffff"
+            anchorX="center"
+            anchorY="middle"
+            depthTest={false}
+            renderOrder={22}
+            raycast={() => null}
+          >
+            boid n0
+          </Text>
           <mesh ref={followTargetMarkerRef} scale={debugTargetScale} raycast={() => null}>
             <sphereGeometry args={[0.055, 8, 8]} />
             <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />

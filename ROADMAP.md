@@ -13,162 +13,10 @@ Status labels:
 
 ## Current work
 
-### Boid schooling overlay
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy shared a classic boids logic screenshot — separation / alignment / cohesion / speed limit — and asked whether WO can adopt it.
-- Branch: `feat/boid-schooling-overlay`; accepted and promoted to clean `v0.10.0` after Jeremy reju (`v0.10.0-dev_14` → clean). Lint clean, production build passes.
-- `v0.10.0-dev_1` prototypes local boid steering as an overlay on existing shared school paths, keeping the path as calm migration/current bias while nearby schoolmates add capped alignment and cohesion.
-- `v0.10.0-dev_2` removes the legacy standalone separation pass, makes boid separation/alignment/cohesion the generic steering layer for all species, and adds species-specific biases for sardines, Mahi-mahi, and Giant Sunfish.
-- `v0.10.0-dev_3` exposes boid debug vectors/readouts in debug mode so review can see separation, alignment, cohesion, and final steering.
-- `v0.10.0-dev_4` disables spline/path-follow movement so schools now swim from local heading plus boid steering instead of following a hidden route.
-
-Subtasks:
-- [x] Create `feat/boid-schooling-overlay` branch from latest `origin/main`.
-- [x] Add local alignment/cohesion steering beside existing separation avoidance for schooling fish.
-- [x] Replace standalone separation with generic interspecies boid steering for all species.
-- [x] Add species-biased boid parameters: sardine high-neighbor schooling, Mahi one-neighbor pair bias, Giant Sunfish low self-avoid / high repulsion.
-- [x] Add debug vectors/readouts for separation, alignment, cohesion, and final boid steering.
-- [x] Disable spline/path-follow movement for the boid review build.
-- [x] `v0.10.0-dev_5` Fix jitter: commit each fish to a boid decision for ~one animation cycle (clamped, per-fish jittered) instead of steering every frame; select a stable nearest-N neighbor set instead of registry-iteration order.
-- [x] `v0.10.0-dev_5` Add species reaction hierarchy — `menace`/`wariness` per species; prey flee the mako at a wide radius, nobody minds the mola; add missing mako boid profile.
-- [x] `v0.10.0-dev_6` Rework debug overlay: focused fish draws relation-colored connectors to each remembered neighbor (green follow / red avoid / gray neutral), a cyan heading tick per neighbor, and a magenta threat vector; webs gated to the focused fish to stay legible.
-- [x] `v0.10.0-dev_7` Suppress boid steering during the mola sun-bask so authored behavior owns the path.
-- [x] `v0.10.0-dev_8` Fix schools clumping: re-enable a soft travel destination (school path far exit + intermediate waypoints) with boids as the local overlay; `SCHOOL_TRAVEL_ENABLED` flag, position stays boid-driven.
-- [x] `v0.10.0-dev_8` Body-length turn-radius kinematics for schools and solo agents so creatures arc forward through turns instead of pivoting/strafing (`turnRadiusBodyLengths` per species, `maxTurnRadiansForSpeed` = speed/radius).
-- [x] `v0.10.0-dev_8` Cut over-frequent swim SFX via a longer global ambient throttle (1.15s) with a responsive follow gap (0.3s).
-- [x] `v0.10.0-dev_9` Pitch safeguard: derive visual pitch from actual per-frame vertical travel, not target direction, so hovering fish read level (no swim-bladder look) while genuine ascents/descents still pitch.
-- [x] `v0.10.0-dev_9` Clamp per-bone curve-deform turn bend to `maxAngle` so mahi/mako tails stop over-rotating into a kink on sharp turns.
-- [x] `v0.10.0-dev_9` Solo turns purely arc-radius based (dropped the fixed-degree cap that widened the effective radius and caused boundary sweeps); mako/mola bank through turns at swim speed.
-- [x] `v0.10.0-dev_9` Depth diversity: deepen per-species `boundsYMin` by ecology (mahi shallow/surface-associated, mako + mola deep divers) and widen school vertical traversal (`PATH_VERTICAL_TRAVERSAL_BIAS/JITTER`).
-- [x] Browser-smoke both tanks; lint clean, production build passes, no runtime errors.
-- [x] `v0.10.0-dev_10` Fix mahi freezing in a C-curl while turning: raise mahi `turnTriggerThreshold` (0.03 → 0.3) so gentle arcs stay on the looping idle clip and bank via curve-deform instead of firing the 5.61s snap; clamp only the static curve-deform bend (keep follow-through/idle-sway oscillation so the tail keeps waving); scale mahi spine bend with turn magnitude (`turnIntentScale` 5.5 → 2.2, `strength` 1.55 → 1.2).
-- [x] `v0.10.0-dev_11` Ease mahi curve-deform bend back to straight as forward travel slows (`speedEase01` input + `easeStraightenBySpeed`/`straightenFloor`), so the tail straightens on turn-exit instead of holding a one-sided bend while crawling.
-- [x] `v0.10.0-dev_12` Stop mahi tail spinning in circles during turns: mapped mahi `turnLeft`/`turnRight` to the looping `idle` clip (like the mako) so turns no longer replay the 5.61s non-looping snap-sweep clip; the mahi swims continuously and banks via curve-deform.
-- [x] `v0.10.0-dev_13` Fix mahi held C-curl during turns: its curve-deform was driven by sustained heading misalignment (the mako's is unused, driven only by per-frame turn rate) and saturated the 5-bone spine. Lowered `maxAngleDegrees` 16 → 8, `turnIntentScale` → 0.25, `strength` → 1.0 so the mahi banks in a subtle curve, not a curl.
-- [x] `v0.10.0-dev_14` Widen horizontal swim volume ~1.5x (`GLOBAL_X_DESTINATION_RANGE_SCALE` 0.9 → 1.35) so fish swim off-screen left/right, hiding boundary hard-reset u-turns and decluttering. Widen turn radii (`turnRadiusBodyLengths` per species; default → 2.5) so opposite-direction retargets sweep wide instead of pivoting.
-- [x] Jeremy feel review (dev_14): accepted with reju — fish use the full width and swim off-frame to hide resets / declutter; opposite-direction retargets read as wide arcs; mahi banks gently (no C-curl/spin); pitch relaxes when hovering; vertical spread. Promoted to clean `v0.10.0`.
-
-Follow-ups (post-release, if wanted):
-- Radii now exceed the tank depth so u-turns exit frame and may hard-reset off-screen (intended). Revisit only if an on-screen reset becomes visible.
-- Movement briefly throttles near a close follow-target on some opposite retargets (possible residual on-the-spot rotation) — could keep forward momentum through turns.
-- Mahi `snap_left`/`snap_right` clips are unused for turns — repurpose for sharp evasive turns later if wanted.
-- Tuning knobs: `GLOBAL_X_DESTINATION_RANGE_SCALE`, per-species `turnRadiusBodyLengths`, `boundsYMin`, curve-deform `turnIntentScale`/`maxAngleDegrees`/`straightenFloor`, audio `SFX_AMBIENT/FOLLOW_MIN_GAP_SECONDS`.
-- [ ] Jeremy feel review: is the jitter gone and does cross-species reaction (flee mako / tolerate mola) read right? Do schools now travel with forward-arcing turns (no clumping/strafing)? Is audio calm? Tune knobs below if needed.
-- [ ] Confirm the sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic is preserved — hold stage untouched).
-- [ ] dev_8 visual confirmation was blocked by a stuck preview-screenshot tool this session; app ran error-free (evals/logs live). Re-verify travel + turn arcs visually on next run.
-
-Review gates:
-- Sardines travel as a school toward a destination (not clumping in place), reading alive and locally responsive, not chaotic or jittery.
-- Creatures bank through turns on a body-length radius — forward motion during turns, no pivoting/strafing/drifting.
-- Mahi-mahi pair behavior and Mola solo behavior remain unchanged in intent; sun-bask still fires.
-- Cross-species reaction reads: bait steers clear of the mako, tolerates the mola.
-- Swim audio is occasional ambient texture, not a constant stream.
-- Build passes and desktop browser smoke shows no runtime errors.
-
-Tuning knobs (in `src/data/species.js` per-species `swim.boids`/`swim`, and constants in `Fish.jsx`):
-- Per species: `menace`, `wariness`, `neighborCap`, `perceptionBodyLengths`, `separation/alignment/cohesion/maxWeight`, `turnRadiusBodyLengths`.
-- Global (`Fish.jsx`): `BOID_DECISION_MIN/MAX_INTERVAL`, `BOID_DECISION_JITTER`, `BOID_THREAT_PERCEPTION_SCALE`, `BOID_THREAT_WEIGHT`, `DEFAULT_TURN_RADIUS_BODY_LENGTHS`, `SCHOOL_TRAVEL_ENABLED`.
-- Audio (`useOceanAudio.js`): `SFX_AMBIENT_MIN_GAP_SECONDS`, `SFX_FOLLOW_MIN_GAP_SECONDS`.
-
-### Tank assemblages & curation
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy felt the pelagic ocean tank read as "rojak" (a haphazard mix): a slow-drifting sunfish sharing water with fast pursuit hunters. Root cause — a "tank" was just a biome and rendered every creature tagged with it, with no curation layer.
-- Branch: `feat/tank-assemblages`; accepted and merged to `main` after Jeremy chat approval (lint clean, production build passes).
-- Design doc: `docs/tank-design.md` (full model + how to edit by hand).
-- Approach approved in chat: hybrid membership — tanks list species explicitly (deliberate curation) and species carry a `tempo` so a dev-only coherence guard can flag drifter/fast-swimmer clashes.
-
-Subtasks:
-- [x] Add `tempo` (`drift`/`cruise`/`sprint`) to the four ocean species.
-- [x] Add `TANKS` curation layer + `DEFAULT_TANK_ID` in `species.js`; split the roster into `open-sea` (bait → mahi → mako) and `the-drift` (sunfish).
-- [x] `creaturesForTank` resolver + dev coherence guard in `speciesLookup.js`.
-- [x] Filter `Biome` by active tank (biome still drives environment); `TankView` shows tank name.
-- [x] `activeTankId` state + bottom-center tank switcher in `App.jsx` + styles.
-- [x] Per-tank description above the switcher (one line on desktop, wraps only when the viewport is too narrow).
-- [x] Per-tank visual signature: `seed` varies surface caustics + background mottle; optional `lighting` palette overrides (The Drift reads calmer/dimmer).
-- [x] Document the model in `docs/tank-design.md` and update `AGENTS.md` paths.
-- [x] Jeremy review: switcher placement/feel, names/taglines/descriptions, and The Drift lighting — all approved.
-- [x] Decision: The Drift stays in `epipelagic` for now (revisit a twilight depth zone later).
-- [ ] Backlog: decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
-
-Switcher scalability (revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4):
-- Phase 1 (now, 2–4 tanks): inline segmented pill switcher. Keep.
-- Phase 2 (~5–8 tanks): group by biome. Switcher becomes biome-scoped; promote the biome choice to a lightweight lobby. Entry point already exists — `TankView` has a latent `onBack` → "Back to biome menu" hook that `App` does not currently wire up.
-- Phase 3 (many tanks / depth stratification): two-axis navigator. `DEPTH_ZONES` exists but is unused for navigation; model is pick biome → move vertically through depth zones (scroll-down = deeper) with tanks as stops. Turns the depth axis from a label into real navigation.
-- Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes. Full write-up in `docs/tank-design.md`.
-
-### Underwater depth & atmosphere pass
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy asked to fix visual-feel problems from the upward camera: no depth cues, scale mismatch (mola not reading as huge), empty top two-thirds, god rays reading as a pasted decal, and no marine snow.
-- Branch: `feat/underwater-depth-atmosphere`; accepted for clean `v0.8.20` release from `v0.8.20-dev_1` after Jeremy approval.
-- Direction approved in chat: deep saturated ocean blue (not teal), luminous surface with bottom-up light absorption; atmosphere-only fill for the empty column (no fake creatures); sunfish bumped to factual 3.3 m.
-
-Subtasks:
-- [x] Depth cues: dedicated moody background gradient + aerial-perspective fog haze, decoupled from creature-lighting env map.
-- [x] Marine snow: densify (96 → 240) and redistribute into the creature/camera column with sink + height glow.
-- [x] God rays: fan divergence from an off-screen sun + dusty grain octave so they read volumetric.
-- [x] Scale: Giant Sunfish to factual 3.3 m (`bodyLengthWU` 13.2, GLB `scale` 0.638); verify other species proportionate.
-- [x] Camera: ease resting up-pitch (`lookY` 0.35 → -1.5) so fish can occupy the top half of frame.
-- [x] Collect Jeremy feel review across color/banding/absorption/UI-stacking iterations; accepted and promoted to clean `v0.8.20`.
-
-Review gates:
-- Distant creatures should fade/desaturate into haze; near subjects keep form and color.
-- Mola must read dramatically larger than the mahi-mahi.
-- God rays should read as volumetric light, not a flat decal layer.
-- Build passes; public review build remains `-dev` until explicit approval.
-
-### Shortfin Mako Shark import
-
-Status: `Current in development`
-
-Reference:
-- Jeremy supplied `short fin mako.zip` and asked to add it on a new branch.
-- Branch: `feat/shortfin-mako`; current review build after animation/movement smoothing: `v0.8.19-dev_3`.
-
-Subtasks:
-- [x] Inspect supplied GLB source scale, mesh count, rig, and animation clips.
-- [x] Add `Isurus oxyrinchus` species data, tank model path/scale, movement profile, and static-dev review creature.
-- [x] Add Atlas source-length scaling and fixed pose for the mako GLB.
-- [x] Add one canonical `isurus-oxyrinchus` row to `creatures_dev` for Vercel review, with before/after JSON backups.
-- [x] Build/lint/browser-smoke the first review build.
-- [x] Patch mako animation snap by keeping burst movement on the continuous swim loop (`v0.8.19-dev_2`).
-- [x] Address Jeremy feedback that mako movement was still snappy and the animation was barely visible (`v0.8.19-dev_3`).
-- [ ] Collect Jeremy/YK scale/feel review.
-
-Review gates:
-- Mako should read as a solitary fast pelagic shark: long committed glides, broad turns, rare acceleration.
-- Atlas scale should show the supplied 40.18-unit source model as a 4.0 m review maximum beside the diver.
-- Build passes; public review build remains `-dev` until explicit approval.
-
-### Push-away boundary review
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy asked for a new branch to push everything away from the camera, then clarified not to move camera/follow constants because swim/reset boundaries are hard-coded.
-- Branch: `feat/push-away-camera`; accepted for clean `v0.8.18` release from `v0.8.18-dev_3`.
-
-Subtasks:
-- [x] Create fresh branch/worktree from `origin/main`.
-- [x] Revert camera/follow-distance pullback from `v0.8.18-dev_1`.
-- [x] Push swim boundary start/end Z planes farther away from camera (`-15 WU` in `v0.8.18-dev_3`).
-- [x] Keep solo-agent hard reset/runtime envelope derived from shifted swim bounds.
-- [x] Build/lint/browser-smoke review build.
-- [x] Collect Jeremy/YK feel review — Jeremy approved with `reju`.
-
-Review gates:
-- [x] Desktop tank default view keeps original camera feel while fish swim farther from camera.
-- [x] Follow mode keeps original zoom constants but targets shifted fish positions cleanly.
-- [x] No boundary/reset fighting near the front plane.
-- [x] No blank/empty first view on phone-sized smoke.
+No feature branch is mid-review. The last shipped release is clean `v0.10.0`
+(boid schooling overlay); everything through it has been drained into
+`Released / archived` below. Promote the next item from `Backlog` into this
+section when work actually starts on it.
 
 ## Code cleanup / maintenance
 
@@ -220,167 +68,19 @@ Subtasks:
 - [ ] When an item is completed and pushed to clean public release, remove it from active sections or archive it under a dated/archive section.
 - [ ] Keep ordering: current work first, then priority, then chronological discovery order unless Jeremy/YK manually asks to reorder.
 
-## Feature list
+## Feature backlog
 
-### Mahi-mahi spline-follow body deformation
+Future content ideas and parked experiments. None of these are in flight — promote to `Current work` when picked up.
 
-Status: `Archive candidate`
+#### Small-fish follow / trail moment
 
-Reference:
-- Jeremy rejected speed-only Mahi-mahi movement tuning and asked whether a general curve deformation can ride on top of the authored animation while the fish follows the spline.
-- Accepted for clean `v0.8.15` from `v0.8.15-dev_15` after Jeremy approval.
-- Jeremy reviewed `v0.8.15-dev_2` and said deformation was not enough; `v0.8.15-dev_3` raises the visible bend while keeping the same additive-after-mixer architecture.
-- Jeremy screenshot review of `v0.8.15-dev_3` showed fish still flat in turns. Cause: GLB runtime bone names are `spine001`–`spine007` and the bend axis should be local `z`, so previous deformation was either not finding bones or twisting instead of side-bending.
-- Jeremy review of `v0.8.15-dev_4` showed catastrophic pretzel deformation; emergency rollback was `v0.8.15-dev_5` with curve deformation disabled until additive posing was non-accumulating and safely previewed.
-- Jeremy rejected leaving deformation disabled; `v0.8.15-dev_6` restores visible deformation with previous-additive removal and safer visible strength.
-- Jeremy asked to show bones in debug; `v0.8.15-dev_7` adds a default-on `B` overlay for curve-deform bone chain visibility.
-- Jeremy refined bone debug: smaller labels, all bones on selected creatures, unavailable in `View all`, and selected schooling fish should show their shared movement/follow spline.
-- Jeremy added male/female Mahi-mahi GLBs and asked for general school logic that mixes available sex variants at approximately 1:1, exactly 1:1 for two-creature Mahi pairs.
-- Jeremy asked for selected bone-name fonts to be billboards, unbold, and always rendered in front.
-- Jeremy asked for bone-name fonts even smaller, matching the selected name label font.
-- Jeremy noticed the forward vector coming from mid-body; GLB origin/pivot is near mid-body, but debug heading should start at the nose.
-- Jeremy asked to increase spline deformation while only touching `spine003` through `spine007`.
-- Jeremy review of `v0.8.15-dev_13`: effect still not visible; Mahi still seems to rotate on the spot with a flat/straight body. It should bend/curl in the direction it is turning.
-- Jeremy review of `v0.8.15-dev_14`: better, but the Mahi curve can be slightly stronger down-chain, random pitch snaps should be eliminated or interpolated, and generated school splines should preserve incoming direction and delay the first turn for all schooling fish.
-
-Subtasks:
-- [x] Keep authored GLB animation playback first and additive deformation after mixer update.
-- [x] Add model-level deformation tunables for strength, max angle, response, tail bias, burst boost, and speed boost.
-- [x] Drive Mahi-mahi spine deformation from live path/follow turn pressure without changing accepted movement speeds.
-- [x] Build and browser-smoke `v0.8.15-dev_2`.
-- [x] Increase deformation and browser-smoke `v0.8.15-dev_3`.
-- [x] Fix bone-name matching / bend axis and browser-smoke `v0.8.15-dev_4`.
-- [x] Emergency-disable curve deformation in `v0.8.15-dev_5` after `dev_4` deformation failure.
-- [x] Restore non-accumulating deformation and browser-smoke `v0.8.15-dev_6`.
-- [x] Add curve-deform bone debug overlay and browser-smoke `v0.8.15-dev_7`.
-- [x] Refine selected-creature all-bone debug overlay and browser-smoke `v0.8.15-dev_8`.
-- [x] Add Mahi male/female variants plus balanced school sex-model assignment and browser-smoke `v0.8.15-dev_9`.
-- [x] Make bone-name labels billboards, normal weight, front-rendered and browser-smoke `v0.8.15-dev_10`.
-- [x] Shrink bone-name labels to match selected name label font and browser-smoke `v0.8.15-dev_11`.
-- [x] Move model forward-vector debug start to Mahi nose/head offset and browser-smoke `v0.8.15-dev_12`.
-- [x] Increase Mahi spline deformation and restrict curve-deform bones to `spine003`-`spine007`; browser-smoke `v0.8.15-dev_13`.
-- [x] Drive Mahi curve deformation from sustained follow-spline turn intent, add base `spine003` bend, and browser-smoke `v0.8.15-dev_14`.
-- [x] Add 1.05× down-chain bend multiplier, smooth pitch changes, preserve new-school-spline direction, and browser-smoke `v0.8.15-dev_15`.
-
-Review gates:
-- Mahi-mahi no longer reads as a rigid root rotating through curves.
-- Idle/burst/snap authored clips still play at accepted timing.
-- Deformation strength can be dialed or disabled from species/model config.
-
-### Hotfix: follow camera retargeting
-
-Status: `Archive candidate`
+Status: `Backlog`
 
 Reference:
-- Jeremy reported that follow cam cannot jump to another fish while already following; a tap exits follow cam before the new fish can be selected.
-- Root cause: follow-mode pointerdown captured the pointer immediately for possible orbit drag, so direct fish taps in follow mode could be retargeted to the stage and interpreted as a follow-mode exit.
-- Jeremy approved `v0.8.14-dev_1` for clean `v0.8.14` promotion.
+- Deferred follow-up from creature-moments repulser v1 (clean `v0.8.4`): consider a separate small-fish follow/trail moment later without making it feel magnetized.
 
 Subtasks:
-- [x] Move pointer capture from follow-mode pointerdown to the moment an orbit drag is actually confirmed.
-- [x] Keep empty-water tap exiting follow mode.
-- [x] Keep orbit-drag release suppression so releasing over another fish does not accidentally retarget.
-- [x] Build and browser-smoke `v0.8.14-dev_1`.
-- [x] Promote clean `v0.8.14` after approval.
-
-Review gates:
-- [x] While following fish A, direct tap fish B switches follow target to B without an intermediate exit.
-- [x] While following fish A, drag-orbit then release over fish B keeps following fish A.
-- [x] Empty-water tap still exits follow mode.
-- [x] `npm run build` passes and local browser smoke shows clean `v0.8.14`.
-
-### Hotfix: mobile empty tank on clean deployment
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy reported clean `v0.8.12` mobile showed UI/water/version but no visible fish on the Vercel deployment URL.
-- Local reproduction with missing browser Supabase env vars showed `0/0` debug load and the same visually empty tank because clean builds did not use static fallback.
-- Local mobile smoke with real Supabase data showed fish visible, so the hotfix target is missing-env release fallback, not mobile camera framing.
-
-Subtasks:
-- [x] Reproduce the empty tank on clean `v0.8.12` with missing browser Supabase env vars.
-- [x] Verify production creature data contains 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus`.
-- [x] Ship `v0.8.13-dev_1` fallback for missing-env deployments only, with bundled release creature rows matching production counts.
-- [x] Mobile-smoke the missing-env path and the real-data path.
-- [x] Jeremy approved `v0.8.13-dev_1` for clean `v0.8.13` promotion.
-
-### Active feature bucket
-
-#### 1. Mahi mahi
-
-Status: `Archive candidate`
-
-Reference:
-- `v0.8.8-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.7`.
-- `v0.8.8-dev_2` shrinks tank-view Mahi-mahi and expands school spacing after Jeremy review: previous fish read too large and tight schooling risked spin-in-place behavior.
-- `v0.8.8-dev_3` makes the wired `snap_left` / `snap_right` turn clips visible again after Jeremy reported not seeing turning animations in `dev_2`.
-- `v0.8.8-dev_4` reduces the unnatural abruptness from `dev_3` by making snap turns rare/short accents with softer fades and smoother path variation.
-- `v0.8.8-dev_10` keeps the stacked Atlas species-group review moving: schooling Atlas groups now use per-fish phase/speed/burst offsets, with Jeremy's latest Mahi-mahi and Giant Sunfish diver silhouette placements.
-- `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes for Mahi-mahi and spotted sardinella.
-- `v0.8.8-dev_12` uppercases Atlas species-list common names for consistency with the right info panel.
-- `v0.8.8-dev_13` pushes the spotted sardinella upper-left companion deeper behind the diver silhouette after Jeremy's marked screenshot.
-- `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it remains visible behind the hero.
-- `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
-- `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
-- `v0.8.12-dev_1` reopens the Mahi-mahi branch after the accidental merge: keeps Mahi-mahi hidden from Atlas, removes adult Mahi-mahi from schooling behavior, and moves it onto the faster solo-agent movement path for solo/pair adult travel.
-- `v0.8.12-dev_2` unhides Mahi-mahi in The Atlas for species-page review.
-- `v0.8.12-dev_3` fixes Mahi-mahi solo-agent drift/glitchiness by aligning turn/burst triggers to the current visible forward vector and increasing only Mahi-mahi's solo steering rate so turns read as forward swimming.
-- `v0.8.12-dev_4` fixes Mahi-mahi blitzing up/down across the screen by constraining solo-agent vertical target changes and reducing the Mahi-mahi speed envelope.
-- `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: edge recovery no longer snaps all the way back to inner swim bounds, live course corrections keep the continuous swim loop rather than forcing snap-left/right clips, and burst movement duration now stays inside the authored burst clip.
-- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail.
-- `v0.8.12-dev_7` locks Mahi-mahi GLB animation clips to authored 1× speed, restores snap-left/right turn clips with shorter blending, and tightens/slows solo U-turns so turn motion reads forward instead of backward drift.
-- `v0.8.12-dev_8` switches Mahi-mahi to shared pair-group movement capped at two fish per group, reusing the sardine-style pathing blueprint while keeping adult social copy as solo/pairs. Mahi clips stay in-place: idle default, burst/turn animations as accents, movement translation handled by simulation. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
-- `v0.8.12-dev_9` keeps Mahi-mahi authored snap-left/right clips at 1× and lets them play for their full GLB duration after a turn trigger; movement still uses the short turn impulse, so the fish does not get five seconds of forced translation.
-- `v0.8.12-dev_10` applies Jeremy's global animation-speed rule: base GLB playback is 1×, each individual varies only from 0.9× to 1.1× regardless of species, and sardinella action holds are long enough for burst/snap clips to finish before returning to idle.
-- `v0.8.12-dev_11` fixes Mahi-mahi/schooling authored action recovery: one-shot snap/burst clips now hand back to the cruise/drift loop after their hold when no new snap or burst is triggered.
-- `v0.8.12-dev_12` delays only the Mahi-mahi burst movement impulse by 0.45s so it lands with the authored burst body action, while the GLB burst clip plays through at 1×.
-- `v0.8.12-dev_13` makes the authored-action movement delay an explicit model override with a 0s default, and raises Mahi-mahi's burst movement delay override to 0.8s after Jeremy's review.
-- Jeremy approved `v0.8.12-dev_13` for clean `v0.8.12` promotion.
-- Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
-- Jeremy requested this as the next species sequence item after creature moments.
-
-Subtasks:
-- [x] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, and animation set. Licensing/source approval remains tied to Jeremy-supplied asset provenance.
-- [x] Add species data, movement profile, selection copy, static-dev review creatures, and model render path.
-- [x] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
-- [x] Reduce tank-view scale and increase loose-school spacing so Mahi-mahi do not dominate the tank or spin in place.
-- [x] Retune turn trigger/action timing so authored turn clips fire visibly in the looser-school build.
-- [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
-- [x] Stage Atlas schooling groups without synchronized/flock-stiff animation, and apply latest approved diver silhouette positions.
-- [x] Add Jeremy's supplied Mahi-mahi Atlas thumbnail image.
-- [x] Reopen Mahi-mahi adult behavior after accidental merge; move adult Mahi-mahi off schooling and onto a faster solo-agent path for solo/pair travel.
-- [x] Fix Mahi-mahi solo-agent drift/glitchy turn triggers so turns use live forward motion instead of stale debug path tangents.
-- [x] Fix Mahi-mahi full-screen up/down dashes by limiting vertical target deltas and calming the speed profile.
-- [x] Fix follow-up Mahi-mahi teleport/backward/frozen-animation glitches by removing inner-bound recovery snaps, keeping live turns on the continuous swim loop, and shortening burst movement to match the authored clip.
-- [x] Restore Mahi-mahi authored snap-left/right visibility, play GLB animations at 1×, and tighten solo U-turn motion.
-- [x] Replace solo-agent Mahi-mahi with capped pair-group movement: shared pathing in groups of two, idle as default clip, burst/turn clips as in-place accents with simulation-driven translation.
-- [x] Fix Mahi-mahi snap-left/right interruption by decoupling the short movement impulse from the full authored turn-clip playback duration.
-- [x] Set global fish GLB playback to 1× with only 0.9×–1.1× per-individual variation, and extend spotted sardinella action holds so burst/snap clips are not cut off.
-- [x] Fix one-shot authored actions freezing on their final frame by returning to cruise/drift after the action hold when no new snap/burst fires.
-- [x] Align Mahi-mahi burst movement with the authored burst clip by delaying the speed impulse until the body action begins.
-- [x] Make authored action movement delay an explicit model override and tune Mahi-mahi burst delay to 0.8s after review.
-- [x] Review whether the pair-group Mahi-mahi movement now reads natural enough in tank view, or needs looser spacing/speed tweaks.
-- [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
-
-### Feature backlog
-
-#### 1. Creature moments — schooling behavior around large fish
-
-Status: `Archive candidate`
-
-Reference:
-- `v0.8.4-dev_1` starts this feature sequence item and visible review patch.
-- `v0.8.4-dev_3` added a temporary forced `repel` debug demo for review; `v0.8.4-dev_4` removes it after Jeremy accepted repulser v1.
-- Jeremy approved repulser v1 for clean `v0.8.4`; mobile already looked good.
-- Intended feel: authored animal moments, not quests or gamification — the tank should read less like isolated loops and more like creatures sharing space.
-
-Subtasks:
-- [x] Add schooling response where small fish subtly repel/part around large fish passing nearby.
-- [ ] Follow-up: consider a separate small-fish follow/trail moment later without making v1 feel magnetized.
-- [x] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
-- [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
-- [x] Remove the temporary forced `repel` debug demo before clean public release.
+- [ ] Add an optional, rare follow/trail response for small fish behind a larger creature, kept soft and observed rather than scripted.
 
 #### Shared deterministic world clock / same living moment
 
@@ -428,7 +128,181 @@ Subtasks:
 - [ ] If a future visual experiment looks bad, revert main quickly while preserving the experiment in a separate dev branch/bucket for reference.
 - [ ] Document branch/bucket name here when such a saved experiment is created.
 
+#### New tank / depth-zone content
+
+Status: `Backlog`
+
+Reference:
+- From the tank assemblages work (clean `v0.9.0`): The Drift stays in `epipelagic` for now — revisit a twilight/mesopelagic depth zone later.
+- Open backlog decision: whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
+
+Subtasks:
+- [ ] Decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
+- [ ] Consider a twilight/mesopelagic depth zone as a home for The Drift or a new tank.
+
+#### Tank switcher scalability
+
+Status: `Backlog`
+
+Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Full write-up in `docs/tank-design.md`.
+- Phase 1 (now, 2–4 tanks): inline segmented pill switcher. Keep.
+- Phase 2 (~5–8 tanks): group by biome. Switcher becomes biome-scoped; promote the biome choice to a lightweight lobby. Entry point already exists — `TankView` has a latent `onBack` → "Back to biome menu" hook that `App` does not currently wire up.
+- Phase 3 (many tanks / depth stratification): two-axis navigator. `DEPTH_ZONES` exists but is unused for navigation; model is pick biome → move vertically through depth zones (scroll-down = deeper) with tanks as stops. Turns the depth axis from a label into real navigation.
+- Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
+
 ## Released / archived
+
+Newest first. Each entry shipped as a clean public release and was drained here per the roadmap-hygiene rule.
+
+### v0.10.0 — Boid schooling overlay
+
+Status: accepted and promoted as clean `v0.10.0` from `v0.10.0-dev_14` after Jeremy feel review. Lint clean, production build passes.
+
+Reference:
+- Jeremy shared a classic boids logic screenshot — separation / alignment / cohesion / speed limit — and asked whether WO can adopt it.
+- Branch: `feat/boid-schooling-overlay`.
+- `v0.10.0-dev_1` prototypes local boid steering as an overlay on existing shared school paths, keeping the path as calm migration/current bias while nearby schoolmates add capped alignment and cohesion.
+- `v0.10.0-dev_2` removes the legacy standalone separation pass, makes boid separation/alignment/cohesion the generic steering layer for all species, and adds species-specific biases for sardines, Mahi-mahi, and Giant Sunfish.
+- `v0.10.0-dev_3` exposes boid debug vectors/readouts in debug mode so review can see separation, alignment, cohesion, and final steering.
+- `v0.10.0-dev_4` disables spline/path-follow movement so schools now swim from local heading plus boid steering instead of following a hidden route.
+
+Subtasks:
+- [x] Create `feat/boid-schooling-overlay` branch from latest `origin/main`.
+- [x] Add local alignment/cohesion steering beside existing separation avoidance for schooling fish.
+- [x] Replace standalone separation with generic interspecies boid steering for all species.
+- [x] Add species-biased boid parameters: sardine high-neighbor schooling, Mahi one-neighbor pair bias, Giant Sunfish low self-avoid / high repulsion.
+- [x] Add debug vectors/readouts for separation, alignment, cohesion, and final boid steering.
+- [x] Disable spline/path-follow movement for the boid review build.
+- [x] `v0.10.0-dev_5` Fix jitter: commit each fish to a boid decision for ~one animation cycle (clamped, per-fish jittered) instead of steering every frame; select a stable nearest-N neighbor set instead of registry-iteration order.
+- [x] `v0.10.0-dev_5` Add species reaction hierarchy — `menace`/`wariness` per species; prey flee the mako at a wide radius, nobody minds the mola; add missing mako boid profile.
+- [x] `v0.10.0-dev_6` Rework debug overlay: focused fish draws relation-colored connectors to each remembered neighbor (green follow / red avoid / gray neutral), a cyan heading tick per neighbor, and a magenta threat vector; webs gated to the focused fish to stay legible.
+- [x] `v0.10.0-dev_7` Suppress boid steering during the mola sun-bask so authored behavior owns the path.
+- [x] `v0.10.0-dev_8` Fix schools clumping: re-enable a soft travel destination (school path far exit + intermediate waypoints) with boids as the local overlay; `SCHOOL_TRAVEL_ENABLED` flag, position stays boid-driven.
+- [x] `v0.10.0-dev_8` Body-length turn-radius kinematics for schools and solo agents so creatures arc forward through turns instead of pivoting/strafing (`turnRadiusBodyLengths` per species, `maxTurnRadiansForSpeed` = speed/radius).
+- [x] `v0.10.0-dev_8` Cut over-frequent swim SFX via a longer global ambient throttle (1.15s) with a responsive follow gap (0.3s).
+- [x] `v0.10.0-dev_9` Pitch safeguard: derive visual pitch from actual per-frame vertical travel, not target direction, so hovering fish read level (no swim-bladder look) while genuine ascents/descents still pitch.
+- [x] `v0.10.0-dev_9` Clamp per-bone curve-deform turn bend to `maxAngle` so mahi/mako tails stop over-rotating into a kink on sharp turns.
+- [x] `v0.10.0-dev_9` Solo turns purely arc-radius based (dropped the fixed-degree cap that widened the effective radius and caused boundary sweeps); mako/mola bank through turns at swim speed.
+- [x] `v0.10.0-dev_9` Depth diversity: deepen per-species `boundsYMin` by ecology (mahi shallow/surface-associated, mako + mola deep divers) and widen school vertical traversal (`PATH_VERTICAL_TRAVERSAL_BIAS/JITTER`).
+- [x] Browser-smoke both tanks; lint clean, production build passes, no runtime errors.
+- [x] `v0.10.0-dev_10` Fix mahi freezing in a C-curl while turning: raise mahi `turnTriggerThreshold` (0.03 → 0.3) so gentle arcs stay on the looping idle clip and bank via curve-deform instead of firing the 5.61s snap; clamp only the static curve-deform bend (keep follow-through/idle-sway oscillation so the tail keeps waving); scale mahi spine bend with turn magnitude (`turnIntentScale` 5.5 → 2.2, `strength` 1.55 → 1.2).
+- [x] `v0.10.0-dev_11` Ease mahi curve-deform bend back to straight as forward travel slows (`speedEase01` input + `easeStraightenBySpeed`/`straightenFloor`), so the tail straightens on turn-exit instead of holding a one-sided bend while crawling.
+- [x] `v0.10.0-dev_12` Stop mahi tail spinning in circles during turns: mapped mahi `turnLeft`/`turnRight` to the looping `idle` clip (like the mako) so turns no longer replay the 5.61s non-looping snap-sweep clip; the mahi swims continuously and banks via curve-deform.
+- [x] `v0.10.0-dev_13` Fix mahi held C-curl during turns: its curve-deform was driven by sustained heading misalignment (the mako's is unused, driven only by per-frame turn rate) and saturated the 5-bone spine. Lowered `maxAngleDegrees` 16 → 8, `turnIntentScale` → 0.25, `strength` → 1.0 so the mahi banks in a subtle curve, not a curl.
+- [x] `v0.10.0-dev_14` Widen horizontal swim volume ~1.5x (`GLOBAL_X_DESTINATION_RANGE_SCALE` 0.9 → 1.35) so fish swim off-screen left/right, hiding boundary hard-reset u-turns and decluttering. Widen turn radii (`turnRadiusBodyLengths` per species; default → 2.5) so opposite-direction retargets sweep wide instead of pivoting.
+- [x] Jeremy feel review (dev_14): accepted with reju — fish use the full width and swim off-frame to hide resets / declutter; opposite-direction retargets read as wide arcs; mahi banks gently (no C-curl/spin); pitch relaxes when hovering; vertical spread. Promoted to clean `v0.10.0`.
+
+Post-release follow-ups (not release-blocking):
+- Radii now exceed the tank depth so u-turns exit frame and may hard-reset off-screen (intended). Revisit only if an on-screen reset becomes visible.
+- Movement briefly throttles near a close follow-target on some opposite retargets (possible residual on-the-spot rotation) — could keep forward momentum through turns.
+- Mahi `snap_left`/`snap_right` clips are unused for turns — repurpose for sharp evasive turns later if wanted.
+- Still worth an on-device confirmation pass (not done at release): sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic preserved — hold stage untouched); and a visual re-verify of dev_8 travel + turn arcs (preview-screenshot tool was stuck that session; app ran error-free).
+- Tuning knobs: `GLOBAL_X_DESTINATION_RANGE_SCALE`, per-species `turnRadiusBodyLengths`, `boundsYMin`, curve-deform `turnIntentScale`/`maxAngleDegrees`/`straightenFloor`, audio `SFX_AMBIENT/FOLLOW_MIN_GAP_SECONDS`.
+
+Accepted gates:
+- Sardines travel as a school toward a destination (not clumping in place), reading alive and locally responsive, not chaotic or jittery.
+- Creatures bank through turns on a body-length radius — forward motion during turns, no pivoting/strafing/drifting.
+- Mahi-mahi pair behavior and Mola solo behavior remain unchanged in intent; sun-bask still fires.
+- Cross-species reaction reads: bait steers clear of the mako, tolerates the mola.
+- Swim audio is occasional ambient texture, not a constant stream.
+- Build passes and desktop browser smoke shows no runtime errors.
+
+Tuning knobs (in `src/data/species.js` per-species `swim.boids`/`swim`, and constants in `Fish.jsx`):
+- Per species: `menace`, `wariness`, `neighborCap`, `perceptionBodyLengths`, `separation/alignment/cohesion/maxWeight`, `turnRadiusBodyLengths`.
+- Global (`Fish.jsx`): `BOID_DECISION_MIN/MAX_INTERVAL`, `BOID_DECISION_JITTER`, `BOID_THREAT_PERCEPTION_SCALE`, `BOID_THREAT_WEIGHT`, `DEFAULT_TURN_RADIUS_BODY_LENGTHS`, `SCHOOL_TRAVEL_ENABLED`.
+- Audio (`useOceanAudio.js`): `SFX_AMBIENT_MIN_GAP_SECONDS`, `SFX_FOLLOW_MIN_GAP_SECONDS`.
+
+### v0.9.0 — Tank assemblages & curation
+
+Status: accepted and promoted as clean `v0.9.0` (merged to `main`) after Jeremy chat approval. Lint clean, production build passes.
+
+Reference:
+- Jeremy felt the pelagic ocean tank read as "rojak" (a haphazard mix): a slow-drifting sunfish sharing water with fast pursuit hunters. Root cause — a "tank" was just a biome and rendered every creature tagged with it, with no curation layer.
+- Branch: `feat/tank-assemblages`.
+- Design doc: `docs/tank-design.md` (full model + how to edit by hand).
+- Approach approved in chat: hybrid membership — tanks list species explicitly (deliberate curation) and species carry a `tempo` so a dev-only coherence guard can flag drifter/fast-swimmer clashes.
+
+Subtasks:
+- [x] Add `tempo` (`drift`/`cruise`/`sprint`) to the four ocean species.
+- [x] Add `TANKS` curation layer + `DEFAULT_TANK_ID` in `species.js`; split the roster into `open-sea` (bait → mahi → mako) and `the-drift` (sunfish).
+- [x] `creaturesForTank` resolver + dev coherence guard in `speciesLookup.js`.
+- [x] Filter `Biome` by active tank (biome still drives environment); `TankView` shows tank name.
+- [x] `activeTankId` state + bottom-center tank switcher in `App.jsx` + styles.
+- [x] Per-tank description above the switcher (one line on desktop, wraps only when the viewport is too narrow).
+- [x] Per-tank visual signature: `seed` varies surface caustics + background mottle; optional `lighting` palette overrides (The Drift reads calmer/dimmer).
+- [x] Document the model in `docs/tank-design.md` and update `AGENTS.md` paths.
+- [x] Jeremy review: switcher placement/feel, names/taglines/descriptions, and The Drift lighting — all approved.
+- [x] Decision: The Drift stays in `epipelagic` for now (revisit a twilight depth zone later — see Feature backlog).
+
+(Open follow-ups moved to Feature backlog: per-tank Supabase seeding, twilight depth zone, switcher scalability phases 2/3.)
+
+### v0.8.20 — Underwater depth & atmosphere pass
+
+Status: accepted and promoted as clean `v0.8.20` from `v0.8.20-dev_1` after Jeremy approval.
+
+Reference:
+- Jeremy asked to fix visual-feel problems from the upward camera: no depth cues, scale mismatch (mola not reading as huge), empty top two-thirds, god rays reading as a pasted decal, and no marine snow.
+- Branch: `feat/underwater-depth-atmosphere`.
+- Direction approved in chat: deep saturated ocean blue (not teal), luminous surface with bottom-up light absorption; atmosphere-only fill for the empty column (no fake creatures); sunfish bumped to factual 3.3 m.
+
+Subtasks:
+- [x] Depth cues: dedicated moody background gradient + aerial-perspective fog haze, decoupled from creature-lighting env map.
+- [x] Marine snow: densify (96 → 240) and redistribute into the creature/camera column with sink + height glow.
+- [x] God rays: fan divergence from an off-screen sun + dusty grain octave so they read volumetric.
+- [x] Scale: Giant Sunfish to factual 3.3 m (`bodyLengthWU` 13.2, GLB `scale` 0.638); verify other species proportionate.
+- [x] Camera: ease resting up-pitch (`lookY` 0.35 → -1.5) so fish can occupy the top half of frame.
+- [x] Collect Jeremy feel review across color/banding/absorption/UI-stacking iterations; accepted and promoted to clean `v0.8.20`.
+
+Accepted gates:
+- Distant creatures fade/desaturate into haze; near subjects keep form and color.
+- Mola reads dramatically larger than the mahi-mahi.
+- God rays read as volumetric light, not a flat decal layer.
+- Build passes.
+
+### v0.8.19 — Shortfin Mako Shark import
+
+Status: accepted and merged to `main` (mako shark branch merge) from `v0.8.19-dev_3` after animation/movement smoothing. Species is live (`Isurus oxyrinchus` in `src/data/species.js`) and later integrated as a boid profile / deep diver in `v0.10.0`.
+
+Reference:
+- Jeremy supplied `short fin mako.zip` and asked to add it on a new branch.
+- Branch: `feat/shortfin-mako`.
+
+Subtasks:
+- [x] Inspect supplied GLB source scale, mesh count, rig, and animation clips.
+- [x] Add `Isurus oxyrinchus` species data, tank model path/scale, movement profile, and static-dev review creature.
+- [x] Add Atlas source-length scaling and fixed pose for the mako GLB.
+- [x] Add one canonical `isurus-oxyrinchus` row to `creatures_dev` for Vercel review, with before/after JSON backups.
+- [x] Build/lint/browser-smoke the first review build.
+- [x] Patch mako animation snap by keeping burst movement on the continuous swim loop (`v0.8.19-dev_2`).
+- [x] Address Jeremy feedback that mako movement was still snappy and the animation was barely visible (`v0.8.19-dev_3`).
+- [x] Merged to `main`; scale/feel accepted (later refined via the `v0.10.0` boid + depth passes).
+
+Accepted gates:
+- Mako reads as a solitary fast pelagic shark: long committed glides, broad turns, rare acceleration.
+- Atlas scale shows the supplied 40.18-unit source model as a 4.0 m review maximum beside the diver.
+- Build passes.
+
+### v0.8.18 — Push-away boundary review
+
+Status: accepted and promoted as clean `v0.8.18` from `v0.8.18-dev_3` after Jeremy approval (`reju`).
+
+Reference:
+- Jeremy asked for a new branch to push everything away from the camera, then clarified not to move camera/follow constants because swim/reset boundaries are hard-coded.
+- Branch: `feat/push-away-camera`.
+
+Subtasks:
+- [x] Create fresh branch/worktree from `origin/main`.
+- [x] Revert camera/follow-distance pullback from `v0.8.18-dev_1`.
+- [x] Push swim boundary start/end Z planes farther away from camera (`-15 WU` in `v0.8.18-dev_3`).
+- [x] Keep solo-agent hard reset/runtime envelope derived from shifted swim bounds.
+- [x] Build/lint/browser-smoke review build.
+- [x] Collect Jeremy/YK feel review — Jeremy approved with `reju`.
+
+Accepted gates:
+- [x] Desktop tank default view keeps original camera feel while fish swim farther from camera.
+- [x] Follow mode keeps original zoom constants but targets shifted fish positions cleanly.
+- [x] No boundary/reset fighting near the front plane.
+- [x] No blank/empty first view on phone-sized smoke.
 
 ### v0.8.17 — Vercel Speed Insights
 
@@ -441,6 +315,142 @@ Accepted gates:
 
 Implementation summary:
 - Adds `@vercel/speed-insights` and renders `<SpeedInsights />` at the app root.
+
+### v0.8.15 — Mahi-mahi spline-follow body deformation
+
+Status: accepted and promoted as clean `v0.8.15` from `v0.8.15-dev_15` after Jeremy approval.
+
+Reference:
+- Jeremy rejected speed-only Mahi-mahi movement tuning and asked whether a general curve deformation can ride on top of the authored animation while the fish follows the spline.
+- Jeremy reviewed `v0.8.15-dev_2` and said deformation was not enough; `v0.8.15-dev_3` raises the visible bend while keeping the same additive-after-mixer architecture.
+- Jeremy screenshot review of `v0.8.15-dev_3` showed fish still flat in turns. Cause: GLB runtime bone names are `spine001`–`spine007` and the bend axis should be local `z`, so previous deformation was either not finding bones or twisting instead of side-bending.
+- Jeremy review of `v0.8.15-dev_4` showed catastrophic pretzel deformation; emergency rollback was `v0.8.15-dev_5` with curve deformation disabled until additive posing was non-accumulating and safely previewed.
+- Jeremy rejected leaving deformation disabled; `v0.8.15-dev_6` restores visible deformation with previous-additive removal and safer visible strength.
+- Jeremy asked to show bones in debug; `v0.8.15-dev_7` adds a default-on `B` overlay for curve-deform bone chain visibility.
+- Jeremy refined bone debug: smaller labels, all bones on selected creatures, unavailable in `View all`, and selected schooling fish should show their shared movement/follow spline.
+- Jeremy added male/female Mahi-mahi GLBs and asked for general school logic that mixes available sex variants at approximately 1:1, exactly 1:1 for two-creature Mahi pairs.
+- Jeremy asked for selected bone-name fonts to be billboards, unbold, and always rendered in front.
+- Jeremy asked for bone-name fonts even smaller, matching the selected name label font.
+- Jeremy noticed the forward vector coming from mid-body; GLB origin/pivot is near mid-body, but debug heading should start at the nose.
+- Jeremy asked to increase spline deformation while only touching `spine003` through `spine007`.
+- Jeremy review of `v0.8.15-dev_13`: effect still not visible; Mahi still seems to rotate on the spot with a flat/straight body. It should bend/curl in the direction it is turning.
+- Jeremy review of `v0.8.15-dev_14`: better, but the Mahi curve can be slightly stronger down-chain, random pitch snaps should be eliminated or interpolated, and generated school splines should preserve incoming direction and delay the first turn for all schooling fish.
+
+Subtasks:
+- [x] Keep authored GLB animation playback first and additive deformation after mixer update.
+- [x] Add model-level deformation tunables for strength, max angle, response, tail bias, burst boost, and speed boost.
+- [x] Drive Mahi-mahi spine deformation from live path/follow turn pressure without changing accepted movement speeds.
+- [x] Build and browser-smoke `v0.8.15-dev_2`.
+- [x] Increase deformation and browser-smoke `v0.8.15-dev_3`.
+- [x] Fix bone-name matching / bend axis and browser-smoke `v0.8.15-dev_4`.
+- [x] Emergency-disable curve deformation in `v0.8.15-dev_5` after `dev_4` deformation failure.
+- [x] Restore non-accumulating deformation and browser-smoke `v0.8.15-dev_6`.
+- [x] Add curve-deform bone debug overlay and browser-smoke `v0.8.15-dev_7`.
+- [x] Refine selected-creature all-bone debug overlay and browser-smoke `v0.8.15-dev_8`.
+- [x] Add Mahi male/female variants plus balanced school sex-model assignment and browser-smoke `v0.8.15-dev_9`.
+- [x] Make bone-name labels billboards, normal weight, front-rendered and browser-smoke `v0.8.15-dev_10`.
+- [x] Shrink bone-name labels to match selected name label font and browser-smoke `v0.8.15-dev_11`.
+- [x] Move model forward-vector debug start to Mahi nose/head offset and browser-smoke `v0.8.15-dev_12`.
+- [x] Increase Mahi spline deformation and restrict curve-deform bones to `spine003`-`spine007`; browser-smoke `v0.8.15-dev_13`.
+- [x] Drive Mahi curve deformation from sustained follow-spline turn intent, add base `spine003` bend, and browser-smoke `v0.8.15-dev_14`.
+- [x] Add 1.05× down-chain bend multiplier, smooth pitch changes, preserve new-school-spline direction, and browser-smoke `v0.8.15-dev_15`.
+
+Accepted gates:
+- Mahi-mahi no longer reads as a rigid root rotating through curves.
+- Idle/burst/snap authored clips still play at accepted timing.
+- Deformation strength can be dialed or disabled from species/model config.
+
+### v0.8.14 — Hotfix: follow camera retargeting
+
+Status: accepted and promoted as clean `v0.8.14` from `v0.8.14-dev_1` after Jeremy approval.
+
+Reference:
+- Jeremy reported that follow cam cannot jump to another fish while already following; a tap exits follow cam before the new fish can be selected.
+- Root cause: follow-mode pointerdown captured the pointer immediately for possible orbit drag, so direct fish taps in follow mode could be retargeted to the stage and interpreted as a follow-mode exit.
+
+Subtasks:
+- [x] Move pointer capture from follow-mode pointerdown to the moment an orbit drag is actually confirmed.
+- [x] Keep empty-water tap exiting follow mode.
+- [x] Keep orbit-drag release suppression so releasing over another fish does not accidentally retarget.
+- [x] Build and browser-smoke `v0.8.14-dev_1`.
+- [x] Promote clean `v0.8.14` after approval.
+
+Accepted gates:
+- [x] While following fish A, direct tap fish B switches follow target to B without an intermediate exit.
+- [x] While following fish A, drag-orbit then release over fish B keeps following fish A.
+- [x] Empty-water tap still exits follow mode.
+- [x] `npm run build` passes and local browser smoke shows clean `v0.8.14`.
+
+### v0.8.13 — Hotfix: mobile empty tank on clean deployment
+
+Status: accepted and promoted as clean `v0.8.13` from `v0.8.13-dev_1` after Jeremy approval.
+
+Reference:
+- Jeremy reported clean `v0.8.12` mobile showed UI/water/version but no visible fish on the Vercel deployment URL.
+- Local reproduction with missing browser Supabase env vars showed `0/0` debug load and the same visually empty tank because clean builds did not use static fallback.
+- Local mobile smoke with real Supabase data showed fish visible, so the hotfix target is missing-env release fallback, not mobile camera framing.
+
+Subtasks:
+- [x] Reproduce the empty tank on clean `v0.8.12` with missing browser Supabase env vars.
+- [x] Verify production creature data contains 88 `amblygaster-sirm`, 1 `mola-alexandrini`, and 4 `coryphaena-hippurus`.
+- [x] Ship `v0.8.13-dev_1` fallback for missing-env deployments only, with bundled release creature rows matching production counts.
+- [x] Mobile-smoke the missing-env path and the real-data path.
+- [x] Jeremy approved `v0.8.13-dev_1` for clean `v0.8.13` promotion.
+
+### v0.8.10 / v0.8.12 — Mahi mahi
+
+Status: accepted and promoted as clean `v0.8.10` (from `v0.8.8-dev_16`) and reopened/finished as clean `v0.8.12` (from `v0.8.12-dev_13`) after Jeremy approval.
+
+Reference:
+- `v0.8.8-dev_1` starts the isolated Mahi mahi implementation branch from clean `v0.8.7`.
+- `v0.8.8-dev_2` shrinks tank-view Mahi-mahi and expands school spacing after Jeremy review: previous fish read too large and tight schooling risked spin-in-place behavior.
+- `v0.8.8-dev_3` makes the wired `snap_left` / `snap_right` turn clips visible again after Jeremy reported not seeing turning animations in `dev_2`.
+- `v0.8.8-dev_4` reduces the unnatural abruptness from `dev_3` by making snap turns rare/short accents with softer fades and smoother path variation.
+- `v0.8.8-dev_10` keeps the stacked Atlas species-group review moving: schooling Atlas groups now use per-fish phase/speed/burst offsets, with Jeremy's latest Mahi-mahi and Giant Sunfish diver silhouette placements.
+- `v0.8.8-dev_11` updates Atlas lifecycle facts from Jeremy's notes for Mahi-mahi and spotted sardinella.
+- `v0.8.8-dev_12` uppercases Atlas species-list common names for consistency with the right info panel.
+- `v0.8.8-dev_13` pushes the spotted sardinella upper-left companion deeper behind the diver silhouette after Jeremy's marked screenshot.
+- `v0.8.8-dev_14` restores the spotted sardinella hero position and moves the deeper background companion downward so it remains visible behind the hero.
+- `v0.8.8-dev_15` moves that deeper spotted sardinella background companion farther down after Jeremy's follow-up mark.
+- `v0.8.8-dev_16` corrects the marked spotted sardinella companion: restores the left-deep companion and moves the lower-left background companion farther down beneath the hero.
+- `v0.8.12-dev_1` reopens the Mahi-mahi branch after the accidental merge: keeps Mahi-mahi hidden from Atlas, removes adult Mahi-mahi from schooling behavior, and moves it onto the faster solo-agent movement path for solo/pair adult travel.
+- `v0.8.12-dev_2` unhides Mahi-mahi in The Atlas for species-page review.
+- `v0.8.12-dev_3` fixes Mahi-mahi solo-agent drift/glitchiness by aligning turn/burst triggers to the current visible forward vector and increasing only Mahi-mahi's solo steering rate so turns read as forward swimming.
+- `v0.8.12-dev_4` fixes Mahi-mahi blitzing up/down across the screen by constraining solo-agent vertical target changes and reducing the Mahi-mahi speed envelope.
+- `v0.8.12-dev_5` fixes the follow-up Mahi-mahi solo-agent glitches: edge recovery no longer snaps all the way back to inner swim bounds, live course corrections keep the continuous swim loop rather than forcing snap-left/right clips, and burst movement duration now stays inside the authored burst clip.
+- `v0.8.12-dev_6` adds Jeremy's supplied Mahi-mahi portrait as the Atlas species-list thumbnail.
+- `v0.8.12-dev_7` locks Mahi-mahi GLB animation clips to authored 1× speed, restores snap-left/right turn clips with shorter blending, and tightens/slows solo U-turns so turn motion reads forward instead of backward drift.
+- `v0.8.12-dev_8` switches Mahi-mahi to shared pair-group movement capped at two fish per group, reusing the sardine-style pathing blueprint while keeping adult social copy as solo/pairs. Mahi clips stay in-place: idle default, burst/turn animations as accents, movement translation handled by simulation. Static-dev fallback now carries ten `coryphaena-hippurus` rows so local/no-env review also forms pairs.
+- `v0.8.12-dev_9` keeps Mahi-mahi authored snap-left/right clips at 1× and lets them play for their full GLB duration after a turn trigger; movement still uses the short turn impulse, so the fish does not get five seconds of forced translation.
+- `v0.8.12-dev_10` applies Jeremy's global animation-speed rule: base GLB playback is 1×, each individual varies only from 0.9× to 1.1× regardless of species, and sardinella action holds are long enough for burst/snap clips to finish before returning to idle.
+- `v0.8.12-dev_11` fixes Mahi-mahi/schooling authored action recovery: one-shot snap/burst clips now hand back to the cruise/drift loop after their hold when no new snap or burst is triggered.
+- `v0.8.12-dev_12` delays only the Mahi-mahi burst movement impulse by 0.45s so it lands with the authored burst body action, while the GLB burst clip plays through at 1×.
+- `v0.8.12-dev_13` makes the authored-action movement delay an explicit model override with a 0s default, and raises Mahi-mahi's burst movement delay override to 0.8s after Jeremy's review.
+- Jeremy approved `v0.8.12-dev_13` for clean `v0.8.12` promotion.
+- Jeremy approved `v0.8.8-dev_16` for clean `v0.8.10` promotion and merge after `v0.8.9` landed on `main` first.
+
+Subtasks:
+- [x] Source/prepare Mahi mahi asset and confirm scientific name, scale, orientation, and animation set. Licensing/source approval remains tied to Jeremy-supplied asset provenance.
+- [x] Add species data, movement profile, selection copy, static-dev review creatures, and model render path.
+- [x] Tune behavior for fast, confident pelagic cruising with readable flashes/turns rather than generic fish movement.
+- [x] Reduce tank-view scale and increase loose-school spacing so Mahi-mahi do not dominate the tank or spin in place.
+- [x] Retune turn trigger/action timing so authored turn clips fire visibly in the looser-school build.
+- [x] Calm abrupt turn feel after review: restore smoother path-led turning and reserve snap clips for larger turns.
+- [x] Stage Atlas schooling groups without synchronized/flock-stiff animation, and apply latest approved diver silhouette positions.
+- [x] Add Jeremy's supplied Mahi-mahi Atlas thumbnail image.
+- [x] Reopen Mahi-mahi adult behavior after accidental merge; move adult Mahi-mahi off schooling and onto a faster solo-agent path for solo/pair travel.
+- [x] Fix Mahi-mahi solo-agent drift/glitchy turn triggers so turns use live forward motion instead of stale debug path tangents.
+- [x] Fix Mahi-mahi full-screen up/down dashes by limiting vertical target deltas and calming the speed profile.
+- [x] Fix follow-up Mahi-mahi teleport/backward/frozen-animation glitches by removing inner-bound recovery snaps, keeping live turns on the continuous swim loop, and shortening burst movement to match the authored clip.
+- [x] Restore Mahi-mahi authored snap-left/right visibility, play GLB animations at 1×, and tighten solo U-turn motion.
+- [x] Replace solo-agent Mahi-mahi with capped pair-group movement: shared pathing in groups of two, idle as default clip, burst/turn clips as in-place accents with simulation-driven translation.
+- [x] Fix Mahi-mahi snap-left/right interruption by decoupling the short movement impulse from the full authored turn-clip playback duration.
+- [x] Set global fish GLB playback to 1× with only 0.9×–1.1× per-individual variation, and extend spotted sardinella action holds so burst/snap clips are not cut off.
+- [x] Fix one-shot authored actions freezing on their final frame by returning to cruise/drift after the action hold when no new snap/burst fires.
+- [x] Align Mahi-mahi burst movement with the authored burst clip by delaying the speed impulse until the body action begins.
+- [x] Make authored action movement delay an explicit model override and tune Mahi-mahi burst delay to 0.8s after review.
+- [x] Review whether the pair-group Mahi-mahi movement now reads natural enough in tank view, or needs looser spacing/speed tweaks.
+- [x] Verify desktop/mobile performance, follow-camera framing, and creature database backup before release.
 
 ### v0.8.9 — Camera position polish
 
@@ -499,6 +509,22 @@ Implementation summary:
 - Handles touch end/cancel in capture and clears stale pinch state after touch-up so mobile follow controls remain responsive.
 - Keeps direct tap-to-select behavior available when there was no orbit/zoom manipulation.
 
+### v0.8.4 — Creature moments (schooling behavior around large fish)
+
+Status: accepted and promoted as clean `v0.8.4` after Jeremy approval (repulser v1). Mobile already looked good.
+
+Reference:
+- `v0.8.4-dev_1` starts this feature sequence item and visible review patch.
+- `v0.8.4-dev_3` added a temporary forced `repel` debug demo for review; `v0.8.4-dev_4` removes it after Jeremy accepted repulser v1.
+- Intended feel: authored animal moments, not quests or gamification — the tank should read less like isolated loops and more like creatures sharing space.
+
+Subtasks:
+- [x] Add schooling response where small fish subtly repel/part around large fish passing nearby.
+- [x] Keep behavior legible, soft, and rare enough that it feels observed rather than scripted.
+- [x] Verify sardine school cohesion, performance, and follow-camera readability on desktop and phone for repulser v1.
+- [x] Remove the temporary forced `repel` debug demo before clean public release.
+- [ ] Follow-up (moved to Feature backlog): consider a separate small-fish follow/trail moment later without making v1 feel magnetized.
+
 ### v0.8.3 — Code hygiene and debug-runtime cleanup
 
 Status: accepted and promoted as clean `v0.8.3` after Jeremy approval.
@@ -524,7 +550,6 @@ Implementation summary:
 - Keeps follow-camera orbit state stable when duplicate same-creature selection events arrive after drag release.
 - Removes unused starter files and centralizes creature helper logic for cleaner future species work.
 
-
 ### v0.8.2 — Follow-camera orbit polish
 
 Status: accepted and promoted as clean `v0.8.2` after Jeremy approval.
@@ -543,7 +568,6 @@ Implementation summary:
 - Adds persistent limited follow-camera orbit after Jeremy asked for camera orbiting with limits but no snapback.
 - Adds incremental pointer-delta dragging for follow orbit, using the current clamped orbit as the baseline for each move instead of recalculating from the original drag start.
 - Keeps horizontal follow orbit at ±36° and vertical pitch at ±30° for safer surface/body framing.
-
 
 ### v0.8.1 — Mola recovery polish
 
@@ -565,7 +589,6 @@ Implementation summary:
 - Preserves current heading during visible X/front recovery, avoiding sideways clamp-vector snap-turns.
 - Adds debug-only simulation speed controls (`1x`, `4x`, `10x`) for faster chance/timer review.
 - Smooths Mola solo-agent look-at orientation with quaternion interpolation and extra easing after behavior/stage changes.
-
 
 ### v0.8.0 — Mola alexandrini + solo-agent movement
 

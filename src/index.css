@@ -1096,6 +1096,13 @@ body:has(.debug-panel) .app-version-footnote {
   body:has(.tank-viewport.is-following-fish) .app-version-footnote {
     bottom: calc(var(--mobile-follow-card-height, 0px) + 0.7rem);
   }
+
+  /* The mobile info card is a full-width bottom sheet that sits right on top of the
+     centered tank switcher. While following a creature, hide the switcher so the two
+     don't collide — it reappears the moment focus is released. */
+  body:has(.tank-viewport.is-following-fish) .tank-switcher-dock {
+    display: none;
+  }
 }
 
 .tank-viewport.is-following-fish.has-debug-panel .info-card {
@@ -2060,6 +2067,13 @@ body:has(.debug-panel) .app-version-footnote {
   gap: 0.5rem;
   z-index: 30;
   pointer-events: none;
+}
+
+/* Debug mode docks a full-width stats bar at the very bottom (.debug-panel--floating).
+   Lift the tank switcher above it, keeping the same 1.4rem gap it normally holds off
+   the bottom edge — now measured above the debug bar instead of the viewport floor. */
+body:has(.tank-viewport.has-debug-panel) .tank-switcher-dock {
+  bottom: calc(var(--floating-debug-panel-height, 4rem) + 1.4rem);
 }
 
 .tank-switcher-description {

@@ -93,8 +93,10 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
       {visibleCreatures.map(creature => {
         const selected = String(creature.id) === String(selectedCreatureId)
         const school = schoolByCreatureId.get(creature.id) ?? null
-        const showBoidSampleDebug = debugView === 'focused' && school && school.index % 16 === 0
-        const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && (selected || showBoidSampleDebug)))
+        // Debug visuals only draw for what you actually select (or agent-focus). Previously
+        // every 16th school member force-drew its vectors in focused view even with nothing
+        // selected, which read as stray "neighbour lines" hanging off random fish.
+        const showDebug = debug && (debugView === 'all' || (debugView === 'focused' && selected))
         return (
           <Fish
             key={creature.id}

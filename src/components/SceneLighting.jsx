@@ -78,21 +78,29 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
   canvas.height = 768
   const ctx = canvas.getContext('2d')
 
+  const W = canvas.width
+  // This canvas wraps 360° around the horizon as an equirect. Any horizontal feature must
+  // be drawn at x and at x ± W so it continues across the u=0/u=1 seam; otherwise the wrap
+  // meridian shows a hard vertical line once the follow cam can orbit to face it.
+  const drawWrapped = (draw) => { draw(-W); draw(0); draw(W) }
+
   const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
   const gradientStops = stops ?? [[0, envTop], [0.34, envHorizon], [0.72, '#062433'], [1, envDeep]]
   for (const [offset, color] of gradientStops) gradient.addColorStop(offset, color)
   ctx.fillStyle = gradient
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, W, canvas.height)
 
   ctx.globalCompositeOperation = 'screen'
   const beamPhase = (rng() - 0.5) * 0.09
   for (let i = 0; i < 9; i += 1) {
-    const x = canvas.width * (0.12 + i * 0.11 + beamPhase)
-    const beam = ctx.createRadialGradient(x, 0, 0, x, canvas.height * 0.28, canvas.width * 0.18)
-    beam.addColorStop(0, `rgba(190, 225, 255, ${beamAlpha})`)
-    beam.addColorStop(1, 'rgba(190, 225, 255, 0)')
-    ctx.fillStyle = beam
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    const x = W * (0.12 + i * 0.11 + beamPhase)
+    drawWrapped((off) => {
+      const beam = ctx.createRadialGradient(x + off, 0, 0, x + off, canvas.height * 0.28, W * 0.18)
+      beam.addColorStop(0, `rgba(190, 225, 255, ${beamAlpha})`)
+      beam.addColorStop(1, 'rgba(190, 225, 255, 0)')
+      ctx.fillStyle = beam
+      ctx.fillRect(0, 0, W, canvas.height)
+    })
   }
 
   // Soft, organic light mottling: large blurry caustic-style patches (lighter and darker)
@@ -101,24 +109,27 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
   // horizontal 8-bit gradient bands — without any per-pixel grain.
   if (mottle > 0) {
     for (let i = 0; i < 46; i += 1) {
-      const cx = rng() * canvas.width
+      const cx = rng() * W
       const cy = rng() * canvas.height * 0.92
-      const radius = canvas.width * (0.10 + rng() * 0.24)
+      const radius = W * (0.10 + rng() * 0.24)
       // Fade the effect with depth — the surface has the most light play.
       const depthFalloff = 1.0 - (cy / canvas.height) * 0.55
       const strength = (0.035 + rng() * 0.055) * mottle * depthFalloff
-      const patch = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius)
-      if (rng() > 0.42) {
-        ctx.globalCompositeOperation = 'screen'
-        patch.addColorStop(0, `rgba(90, 165, 255, ${strength})`)
-        patch.addColorStop(1, 'rgba(90, 165, 255, 0)')
-      } else {
-        ctx.globalCompositeOperation = 'multiply'
-        patch.addColorStop(0, `rgba(2, 10, 40, ${strength * 1.5})`)
-        patch.addColorStop(1, 'rgba(2, 10, 40, 0)')
-      }
-      ctx.fillStyle = patch
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      const bright = rng() > 0.42
+      drawWrapped((off) => {
+        const patch = ctx.createRadialGradient(cx + off, cy, 0, cx + off, cy, radius)
+        if (bright) {
+          ctx.globalCompositeOperation = 'screen'
+          patch.addColorStop(0, `rgba(90, 165, 255, ${strength})`)
+          patch.addColorStop(1, 'rgba(90, 165, 255, 0)')
+        } else {
+          ctx.globalCompositeOperation = 'multiply'
+          patch.addColorStop(0, `rgba(2, 10, 40, ${strength * 1.5})`)
+          patch.addColorStop(1, 'rgba(2, 10, 40, 0)')
+        }
+        ctx.fillStyle = patch
+        ctx.fillRect(0, 0, W, canvas.height)
+      })
     }
   }
   ctx.globalCompositeOperation = 'source-over'
@@ -127,17 +138,27 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
   // step edges survive as visible bands. Runs once at init via a temp canvas.
   let sourceCanvas = canvas
   if (blur > 0) {
+    // Blur across the u-wrap by tiling the canvas three times, blurring the wide strip, then
+    // keeping the middle third — so the edges blur against real neighbours instead of the
+    // clamped canvas border (which would reintroduce a seam).
+    const wide = document.createElement('canvas')
+    wide.width = W * 3
+    wide.height = canvas.height
+    const wideCtx = wide.getContext('2d')
+    wideCtx.filter = `blur(${blur}px)`
+    wideCtx.drawImage(canvas, 0, 0)
+    wideCtx.drawImage(canvas, W, 0)
+    wideCtx.drawImage(canvas, W * 2, 0)
     const blurred = document.createElement('canvas')
-    blurred.width = canvas.width
+    blurred.width = W
     blurred.height = canvas.height
-    const blurCtx = blurred.getContext('2d')
-    blurCtx.filter = `blur(${blur}px)`
-    blurCtx.drawImage(canvas, 0, 0)
+    blurred.getContext('2d').drawImage(wide, -W, 0)
     sourceCanvas = blurred
   }
 
   const texture = new THREE.CanvasTexture(sourceCanvas)
   texture.mapping = THREE.EquirectangularReflectionMapping
+  texture.wrapS = THREE.RepeatWrapping
   texture.colorSpace = THREE.SRGBColorSpace
   texture.needsUpdate = true
   return texture

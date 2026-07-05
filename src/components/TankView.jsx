@@ -12,15 +12,23 @@ import { creatureBodyLengthWU, DEPTH_ZONE_BY_ID, isMolaCreature, resolveSpecies 
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
-const MAX_FOLLOW_ORBIT_YAW = Math.PI / 5
+// Full turn-around: yaw can swing all the way behind the creature (±180°) — this is the
+// "flexibility" the follow cam gains. Pitch stays modest (±30°): at large follow distances
+// even a small pitch swings the camera far vertically, and too much tips it into the surface
+// ceiling or down past the seabed edge, which is what breaks immersion. Distant floor/haze is
+// faded by the enlarged seabed + scene fog rather than shown as a hard edge.
+const MAX_FOLLOW_ORBIT_YAW = Math.PI
 const MAX_FOLLOW_ORBIT_PITCH = Math.PI / 6
 const FOLLOW_ORBIT_DRAG_SPEED = 0.006
 const DEFAULT_FOLLOW_DISTANCE = 3.2
-const MIN_FOLLOW_DISTANCE = 1.35
+const MIN_FOLLOW_DISTANCE = 0.95
 const MOLA_MIN_FOLLOW_BODY_LENGTHS = 1.05
 const MAX_FOLLOW_DISTANCE = 18
 const LARGE_CREATURE_FOLLOW_BODY_LENGTHS = 1.9
-const LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS = 4.0
+// Cap how far the camera can pull back from big creatures. At 4× body length the camera
+// roamed far enough that orbiting swung it into the surface/seabed edges; 2.6× keeps it in
+// the fogged near-field around the animal while still framing the whole body.
+const LARGE_CREATURE_MAX_FOLLOW_BODY_LENGTHS = 2.6
 const FOLLOW_WHEEL_ZOOM_SPEED = 0.0016
 const FOLLOW_PINCH_ZOOM_SPEED = 0.012
 const PAN_DRAG_THRESHOLD_PX = 5
@@ -359,6 +367,13 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
     setFollowDistance(DEFAULT_FOLLOW_DISTANCE)
   }
 
+  // Switching tanks drops any followed creature so the new tank opens at its resting camera
+  // (the previous creature's ref belongs to the unmounting tank anyway).
+  useEffect(() => {
+    releaseFocus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tank?.id])
+
   const releaseFocusForRuntimeRecovery = (creature) => {
     const name = creatureDisplayName(creature)
     setRecoveryNotice({ id: `${creature?.id ?? name}-${performance.now()}`, text: `${name} will be back in a bit!` })
@@ -646,6 +661,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           <Camera
             biome={biome.id}
             focusTarget={focusedFishRef?.current ?? null}
+            focusCenterBoneName={selectedCreature ? resolveSpecies(selectedCreature)?.model?.followBone ?? null : null}
             followOrbit={followOrbit}
             followDistance={followDistance}
             followScreenOffset={followScreenOffset}

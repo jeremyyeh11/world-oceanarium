@@ -8,7 +8,7 @@ import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
-import { creatureRepulsesOthers, lerpRepulserDrift, repulserDebugIntensity, resolveRepulserDriftVector } from '../utils/creatureMoments'
+import { creatureRepulsesOthers, lerpRepulserDrift, resolveRepulserDriftVector } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
@@ -79,8 +79,6 @@ const LEADER_OUTLINE_COLOR = '#80ff72'
 const LOD0_DEBUG_COLOR = '#00ff28'
 const SELECTED_RIM_INTENSITY = 1.65
 const LEADER_RIM_INTENSITY = 0.8
-const DEBUG_FOLLOW_TARGET_YELLOW = new THREE.Color('#ffd166')
-const DEBUG_FOLLOW_TARGET_REPULSER_RED = new THREE.Color('#ff3b30')
 const RIM_POWER = 3.1
 const FISH_LIGHT_MASK_ENABLED = true
 const SARDINE_INSTANCE_HYSTERESIS = 0.65
@@ -99,8 +97,11 @@ const ORGANIC_NOISE_INTERVAL = [1.8, 3.8]
 const DEBUG_FORWARD_SPEED_SCALE = 0.625
 const DEBUG_FORWARD_MIN_LENGTH = 0.11
 const DEBUG_LABEL_SCALE = 0.0525
-const DEBUG_NAME_LABEL_SCALE = 0.034
+const DEBUG_NAME_LABEL_SCALE = 0.045
 const DEBUG_AGENT_LABEL_SCALE = 0.045
+// Multiplies camera distance to keep world-space debug labels a near-constant on-screen
+// size (see nameLabel update). Tuned so a mid-tank creature reads at ~1x.
+const DEBUG_LABEL_DISTANCE_SCALE = 0.09
 const DEBUG_BOID_VECTOR_SCALE = 5.0
 const SPLINE_MOVEMENT_ENABLED = false
 // Schools travel toward a real destination (the shared school path's far exit, via its
@@ -329,7 +330,6 @@ const BOID_RELATION_COLORS = {
   avoid: new THREE.Color('#ff5a36'),
   neutral: new THREE.Color('#9aa7b2'),
 }
-const debugFollowTargetColor = new THREE.Color()
 // Reused candidate buffer for nearest-N neighbor selection so a decision tick does
 // not allocate. Entries are { id, other, distanceSq } and are re-sorted each tick.
 const boidNeighborScratch = []
@@ -2564,10 +2564,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const boidNeighborLineRefs = useRef([])
   const boidNeighborHeadingRefs = useRef([])
   const speedLabelRef = useRef()
-  const driftLabelRef = useRef()
   const agentLabelRef = useRef()
   const nameLabelRef = useRef()
-  const followTargetMarkerRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const species = useMemo(() => resolveSpecies(creature), [creature])
   const model = useMemo(() => resolveModel(creature, modelVariantKey), [creature, modelVariantKey])
@@ -3480,12 +3478,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const effectiveDebugVelocity = velocity.current * organicMotion.speedScale
       const effectiveDebugSpeedMeters = effectiveDebugVelocity * WORLD_UNIT_METERS
       const debugVectorLength = DEBUG_FORWARD_MIN_LENGTH + effectiveDebugVelocity * DEBUG_FORWARD_SPEED_SCALE
-      const drift = currentSchoolDrift(schoolOffset, now)
       debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
       if (forwardLineRef.current) forwardLineRef.current.visible = showDirection && !showAgentDebug
-      const showBoidDebug = showDirection && (selected || showAgentDebug || (isSchooling && school.index % 16 === 0))
+      const showBoidDebug = showDirection && (selected || showAgentDebug)
       const boidDebug = boidDebugState.current
       updateDebugVectorLine(boidSeparationLineRef, debugForwardStart, boidDebug.separation, DEBUG_BOID_VECTOR_SCALE)
       updateDebugVectorLine(boidAlignmentLineRef, debugForwardStart, boidDebug.alignment, DEBUG_BOID_VECTOR_SCALE)
@@ -3533,28 +3530,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         boidLabelRef.current.lookAt(camera.position)
         boidLabelRef.current.visible = showBoidDebug
       }
-      if (followTargetMarkerRef.current) {
-        followTargetMarkerRef.current.position.copy(followTarget.current)
-        const markerMaterial = followTargetMarkerRef.current.material
-        if (markerMaterial?.color) {
-          const repulserAlpha = repulserDebugIntensity(repulserDrift.current, REPULSER_DRIFT_MAX)
-          debugFollowTargetColor.copy(DEBUG_FOLLOW_TARGET_YELLOW).lerp(DEBUG_FOLLOW_TARGET_REPULSER_RED, repulserAlpha)
-          markerMaterial.color.copy(debugFollowTargetColor)
-        }
-        followTargetMarkerRef.current.visible = showDirection && !showAgentDebug
-      }
       if (speedLabelRef.current) {
         speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
         speedLabelRef.current.text = `${effectiveDebugSpeedMeters.toFixed(2)} m/s`
         speedLabelRef.current.lookAt(camera.position)
         speedLabelRef.current.visible = showDirection && !showAgentDebug
-      }
-      if (driftLabelRef.current) {
-        labelPosition.current.copy(followTarget.current).addScaledVector(up, 0.10 + size * 0.04)
-        driftLabelRef.current.position.copy(labelPosition.current)
-        driftLabelRef.current.text = `drift ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}`
-        driftLabelRef.current.lookAt(camera.position)
-        driftLabelRef.current.visible = showDirection && !showAgentDebug
       }
       if (agentLabelRef.current) {
         const bodyLength = creatureBodyLength(creature, swim)
@@ -3572,6 +3552,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (nameLabelRef.current) {
         nameLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.16 + 0.045)
         nameLabelRef.current.lookAt(camera.position)
+        // World-space text shrinks with distance, so far-off labels became unreadable.
+        // Scale ~linearly with camera distance to hold a roughly constant on-screen size,
+        // clamped so it neither vanishes far away nor overwhelms up close.
+        const nameLabelDistance = fish.position.distanceTo(camera.position)
+        nameLabelRef.current.scale.setScalar(THREE.MathUtils.clamp(nameLabelDistance * DEBUG_LABEL_DISTANCE_SCALE, 0.85, 3.2))
         nameLabelRef.current.visible = showName && !showAgentDebug
       }
     }
@@ -3896,7 +3881,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
   const focusScale = 1
   const bodyLength = creatureBodyLength(creature, swim)
-  const debugTargetScale = THREE.MathUtils.clamp(Math.sqrt(size) * 0.72, 0.62, 1.7)
   const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
   const showSelectedOutline = selected && debug && !hideSelectionSilhouette
   const renderModel = model && !instancedSardineLod
@@ -3979,10 +3963,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           >
             boid n0
           </Text>
-          <mesh ref={followTargetMarkerRef} scale={debugTargetScale} raycast={() => null}>
-            <sphereGeometry args={[0.055, 8, 8]} />
-            <meshBasicMaterial color="#ffd166" transparent opacity={0.9} depthWrite={false} />
-          </mesh>
           <Text
             ref={speedLabelRef}
             fontSize={DEBUG_LABEL_SCALE}
@@ -3994,18 +3974,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             raycast={() => null}
           >
             0.00 m/s
-          </Text>
-          <Text
-            ref={driftLabelRef}
-            fontSize={DEBUG_LABEL_SCALE}
-            font={DEBUG_LABEL_FONT}
-            color="#f7ff9a"
-            anchorX="center"
-            anchorY="middle"
-            depthTest={false}
-            raycast={() => null}
-          >
-            drift +0.00
           </Text>
           {showAgentDebug && (
             <Text

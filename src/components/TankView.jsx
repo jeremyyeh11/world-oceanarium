@@ -124,6 +124,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const [debugView, setDebugView] = useState('focused')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false, bones: true })
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
+  const [missingFollowBone, setMissingFollowBone] = useState(null)
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
@@ -667,6 +668,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             followScreenOffset={followScreenOffset}
             onDefaultCameraSettledChange={setDefaultCameraSettled}
             onFollowCameraClip={releaseFollowForCameraClip}
+            onFocusBoneMissingChange={setMissingFollowBone}
           />
           <Biome
             key={tank?.id ?? biome.id}
@@ -708,6 +710,17 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
       )}
 
       {!screenshotMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
+
+      {!screenshotMode && debugMode && missingFollowBone && (
+        <div style={{
+          position: 'absolute', top: '1.5rem', left: '1.5rem',
+          color: '#ff6b6b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.78rem',
+          background: 'rgba(0,0,0,0.6)', padding: '0.4rem 0.6rem', borderRadius: '0.4rem',
+          pointerEvents: 'none', zIndex: 40, maxWidth: '60%',
+        }}>
+          {`follow bone ${missingFollowBone} does not exist`}
+        </div>
+      )}
 
       {!screenshotMode && (
         <div style={{

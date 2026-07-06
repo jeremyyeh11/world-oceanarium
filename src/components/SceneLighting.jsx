@@ -147,14 +147,18 @@ function paintEquirectGradient({ envTop, envHorizon, envDeep }, { stops = null, 
     wide.width = W * 3
     wide.height = canvas.height
     const wideCtx = wide.getContext('2d')
-    wideCtx.filter = `blur(${blur}px)`
+    // Assemble the three copies first with NO filter, then blur the whole strip in one pass
+    // below. Blurring each copy as it's stamped would fade its edges against transparency
+    // instead of against its neighbour, reintroducing a faint band right at the u-wrap seam.
     wideCtx.drawImage(canvas, 0, 0)
     wideCtx.drawImage(canvas, W, 0)
     wideCtx.drawImage(canvas, W * 2, 0)
     const blurred = document.createElement('canvas')
     blurred.width = W
     blurred.height = canvas.height
-    blurred.getContext('2d').drawImage(wide, -W, 0)
+    const blurredCtx = blurred.getContext('2d')
+    blurredCtx.filter = `blur(${blur * 1.5}px)`
+    blurredCtx.drawImage(wide, -W, 0)
     sourceCanvas = blurred
   }
 

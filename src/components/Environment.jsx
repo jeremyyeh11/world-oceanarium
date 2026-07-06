@@ -1,17 +1,41 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
+
+// Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
+// hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
+// ±180 (360 wide); fade the outer band to transparent so the background shows through
+// seamlessly. depthWrite stays on — nothing renders below the floor.
+function makeFloorMaterial(color) {
+  const material = new THREE.MeshStandardMaterial({
+    color, roughness: 0.92, envMapIntensity: 0.28, side: THREE.DoubleSide, transparent: true, depthWrite: true,
+  })
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFloorRadial = length(position.xy) / 180.0;')
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;')
+      .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(0.5, 0.94, vFloorRadial);')
+  }
+  return material
+}
 
 function noise(x, z) {
   const n = Math.sin(x * 127.1 + z * 311.7) * 43758.5453
   return (n - Math.floor(n)) * 2 - 1
 }
 
-const FLOOR_Y = { ocean: -52, 'tropical-river': -12, lake: -20 }
+export const FLOOR_Y = { ocean: -52, 'tropical-river': -12, lake: -20 }
 const FLOOR_COLORS = { ocean: '#0e1f33', 'tropical-river': '#1a2e14', lake: '#1a2e1c' }
 
 function NoiseFloor({ biome }) {
   const ref = useRef()
   const floorY = FLOOR_Y[biome] ?? -20
+  const material = useMemo(() => makeFloorMaterial(FLOOR_COLORS[biome] ?? '#0e1f33'), [biome])
+
+  // Material is created imperatively (not as a JSX tag), so R3F won't auto-dispose it.
+  // Free the old shader program/GPU resources when the biome changes or the floor unmounts.
+  useEffect(() => () => material.dispose(), [material])
 
   useEffect(() => {
     if (!ref.current) return
@@ -27,9 +51,12 @@ function NoiseFloor({ biome }) {
   }, [])
 
   return (
-    <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]} position={[0, floorY, 0]}>
-      <planeGeometry args={[120, 40, 60, 30]} />
-      <meshStandardMaterial color={FLOOR_COLORS[biome] ?? '#0e1f33'} roughness={0.92} envMapIntensity={0.28} side={THREE.DoubleSide} />
+    // Oversized seabed: the extra span pushes the plane's edges far out into the distance
+    // fog so orbiting the follow cam never reveals a hard rim — the floor reads as fading
+    // into the horizon. The visible near-floor is unchanged (it sits well below the swim
+    // zone and is already fog-dimmed), so this only affects grazing/low orbit angles.
+    <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]} position={[0, floorY, 0]} material={material}>
+      <planeGeometry args={[360, 360, 96, 96]} />
     </mesh>
   )
 }

@@ -114,7 +114,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
 
     // Stronger lower dissolve keeps the bottom edge from becoming a horizon band.
-    float farEdge = smoothstep(0.05, 0.20, uv.y);
+    // Raised the far-edge onset (0.05→0.13) so the most distant strip of the ceiling
+    // dissolves earlier, pulling the visible shimmer band nearer and stopping the far
+    // surface from reading as a heavy slab across the top of frame.
+    float farEdge = smoothstep(0.13, 0.28, uv.y);
     float bottomFade = 1.0 - smoothstep(0.34, 0.68, uv.y);
     float sideFade = smoothstep(0.0, 0.08, uv.x) * smoothstep(1.0, 0.08, 1.0 - uv.x);
     float streakMask = farEdge * bottomFade * sideFade;

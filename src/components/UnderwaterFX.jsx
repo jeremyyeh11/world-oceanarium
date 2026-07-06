@@ -8,8 +8,16 @@ const SUSPENDED_PARTICLE_COUNT = 240
 
 const BASIC_VERTEX = /* glsl */ `
   varying vec2 vUv;
+  varying float vFacing;
   void main() {
     vUv = uv;
+    // God-ray shafts are flat planes at a fixed orientation. Viewed edge-on (e.g. when the
+    // follow cam orbits behind a creature) they collapse to a hard bright vertical seam, so
+    // pass how squarely the camera faces the plane and fade the shaft out at grazing angles.
+    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+    vec3 worldNormal = normalize(mat3(modelMatrix) * vec3(0.0, 0.0, 1.0));
+    vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
+    vFacing = abs(dot(worldNormal, viewDir));
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `
@@ -20,6 +28,7 @@ const RAY_FRAGMENT = /* glsl */ `
   uniform float uStrength;
   uniform float uFadeLength;
   varying vec2 vUv;
+  varying float vFacing;
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(91.7, 271.3))) * 43758.5453123);
@@ -65,7 +74,9 @@ const RAY_FRAGMENT = /* glsl */ `
       0.88 + sin(uTime * 0.068 + uSeed * 1.17) * 0.12,
       topInfluence
     );
-    float alpha = center * sideFade * vertical * shimmer * breath * uStrength * 0.32;
+    // Fade the shaft out as the view grazes the plane so it never reads as an edge-on seam.
+    float facingFade = smoothstep(0.12, 0.42, vFacing);
+    float alpha = center * sideFade * vertical * shimmer * breath * facingFade * uStrength * 0.32;
     gl_FragColor = vec4(0.34, 0.70, 0.90, alpha);
   }
 `

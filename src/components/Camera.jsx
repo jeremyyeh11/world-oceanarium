@@ -1,7 +1,8 @@
 import { useThree, useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
-import { SURFACE_PLANE_DEPTH, SURFACE_PLANE_WIDTH, SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z } from './WaterSurface'
+import { SURFACE_PLANE_Y } from './WaterSurface'
+import { FLOOR_Y } from './Environment'
 
 const CAMERA_LIMITS = {
   ocean: { min: -50, max: 3 },
@@ -12,9 +13,13 @@ const DEFAULT_CAMERA_SETTINGS = {
   y: -3.35,
   z: 10,
   // Ease the resting up-pitch (was +0.35 / ~20° up, which pinned creatures to the
-  // bottom edge) to ~10° up so animals can swim into the top half while the surface
-  // band and god rays still crown the very top of frame.
-  lookY: -1.5,
+  // bottom edge) so animals can swim into the top half while the surface band and god
+  // rays still crown the very top of frame. Softened further (−1.5 → −2.1, ~10.5° →
+  // ~7° up) so the horizontal water ceiling stops filling the upper frame — the plane's
+  // screen share is set by pitch, not focal length, so lowering pitch (not narrowing
+  // fov) is what actually shrinks the distant surface. Camera position is unchanged so
+  // the scale read from where the camera sits is preserved.
+  lookY: -2.1,
   fov: 61,
 }
 
@@ -22,9 +27,7 @@ const DEFAULT_CAMERA_Z = DEFAULT_CAMERA_SETTINGS.z
 const DEFAULT_CAMERA_Y = DEFAULT_CAMERA_SETTINGS.y
 const DEFAULT_CAMERA_LOOK_Y = DEFAULT_CAMERA_SETTINGS.lookY
 const DEFAULT_CAMERA_FOV = DEFAULT_CAMERA_SETTINGS.fov
-const MAX_FOLLOW_CAMERA_FOV = 76
 const FOLLOW_FOV_DAMPING = 3.4
-const FOLLOW_FRAME_MARGIN = 1.32
 const FOLLOW_HEIGHT = 0.85
 const FOLLOW_SURFACE_CLEARANCE = 0.35
 const FOLLOW_TARGET_DAMPING = 2.8
@@ -52,14 +55,28 @@ const yawQuaternion = new THREE.Quaternion()
 const pitchQuaternion = new THREE.Quaternion()
 
 const MAX_FOLLOW_CAMERA_Y = SURFACE_PLANE_Y - FOLLOW_SURFACE_CLEARANCE
-const FOLLOW_SURFACE_XZ_CLEARANCE = 1.25
-const MIN_FOLLOW_CAMERA_X = SURFACE_PLANE_X - SURFACE_PLANE_WIDTH * 0.5 + FOLLOW_SURFACE_XZ_CLEARANCE
-const MAX_FOLLOW_CAMERA_X = SURFACE_PLANE_X + SURFACE_PLANE_WIDTH * 0.5 - FOLLOW_SURFACE_XZ_CLEARANCE
-const MIN_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z - SURFACE_PLANE_DEPTH * 0.5 + FOLLOW_SURFACE_XZ_CLEARANCE
-const MAX_FOLLOW_CAMERA_Z = SURFACE_PLANE_Z + SURFACE_PLANE_DEPTH * 0.5 - FOLLOW_SURFACE_XZ_CLEARANCE
+// Keep the camera this far above the biome floor so it never dips under the terrain and
+// exposes the underside of the world. This is the only positional guard the orbit needs now
+// that horizontal edges/floor/background all fade cleanly.
+const FOLLOW_FLOOR_CLEARANCE = 1.6
 
-export default function Camera({ biome = 'ocean', focusTarget = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
+// Walks up the parent chain to check that `node` is still part of `root`'s subtree. Used to
+// detect when a cached focus bone has been detached by a model remount.
+function isDescendantOf(node, root) {
+  let current = node
+  while (current) {
+    if (current === root) return true
+    current = current.parent
+  }
+  return false
+}
+
+export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
   const { camera } = useThree()
+  const focusBoneRef = useRef(null)
+  const focusBoneTargetRef = useRef(null)
+  const focusBoneNameRef = useRef(null)
+  const reportedMissingBoneRef = useRef(null)
   const smoothedFocus = useRef(new THREE.Vector3())
   const smoothedLookTarget = useRef(new THREE.Vector3())
   const smoothedDefaultLookTarget = useRef(new THREE.Vector3())
@@ -71,11 +88,44 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
   const cameraClipStartedAt = useRef(null)
   const lastCameraClipExitAt = useRef(-Infinity)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
+  const minFollowCameraY = (FLOOR_Y[biome] ?? -20) + FOLLOW_FLOOR_CLEARANCE
 
   const setDefaultCameraSettled = (settled) => {
     if (defaultCameraSettled.current === settled) return
     defaultCameraSettled.current = settled
     onDefaultCameraSettledChange?.(settled)
+  }
+
+  // Notify (only on change) which followBone name failed to resolve, or null when the aim
+  // point is fine. The camera still falls back to the AABB/mesh center so there's no visual
+  // issue — this just surfaces the mis-named bone in the debug overlay so it can be fixed.
+  const reportFocusBoneMissing = (missingName) => {
+    const missing = missingName ?? null
+    if (reportedMissingBoneRef.current === missing) return
+    reportedMissingBoneRef.current = missing
+    onFocusBoneMissingChange?.(missing)
+  }
+
+  // Resolve (and cache) the named body-center bone within the focused creature so the
+  // camera can aim at its mass center. The cache is re-validated every call: toggling debug
+  // mode swaps the fish's rim material, which remounts its model and detaches the old bone —
+  // a stale cached bone would strand the camera on empty water until you reselect. If the
+  // cached bone is no longer part of the target subtree, re-resolve against the live graph.
+  const resolveFocusBone = (target, name) => {
+    if (!target || !name) return null
+    const cached = focusBoneRef.current
+    if (cached && focusBoneTargetRef.current === target && focusBoneNameRef.current === name && isDescendantOf(cached, target)) {
+      return cached
+    }
+    // three.js sanitizes glТF node names (drops '.', ':' etc. — "spine.001" becomes
+    // "spine001"), so try the given name first, then the sanitized form.
+    const bone = target.getObjectByName(name)
+      ?? target.getObjectByName(name.replace(/[\s.:/[\]]/g, ''))
+      ?? null
+    focusBoneRef.current = bone
+    focusBoneTargetRef.current = target
+    focusBoneNameRef.current = name
+    return bone
   }
 
   useEffect(() => {
@@ -95,6 +145,13 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       } else {
         focusTarget.getWorldPosition(focusPosition)
       }
+
+      // Prefer the species' body-center bone as the aim point (mass center) over the AABB
+      // center, which skews toward tails/fins on elongated creatures. Radius still comes
+      // from the full bounding box so framing/zoom behaviour is unchanged.
+      const focusBone = resolveFocusBone(focusTarget, focusCenterBoneName)
+      if (focusBone) focusBone.getWorldPosition(focusPosition)
+      reportFocusBoneMissing(focusCenterBoneName && !focusBone ? focusCenterBoneName : null)
 
       focusPosition.y = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
 
@@ -125,8 +182,6 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       smoothedFocus.current.y = THREE.MathUtils.damp(smoothedFocus.current.y, focusPosition.y, FOLLOW_TARGET_DAMPING, delta)
       smoothedFocus.current.z = THREE.MathUtils.damp(smoothedFocus.current.z, focusPosition.z, FOLLOW_TARGET_DAMPING, delta)
 
-      const baseHalfFov = THREE.MathUtils.degToRad(DEFAULT_CAMERA_FOV) * 0.5
-      const aspect = Math.max(0.1, camera.aspect ?? 1)
       const activeFollowDistance = followDistance
 
       followOffset.set(0, FOLLOW_HEIGHT, activeFollowDistance)
@@ -142,26 +197,23 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
       const visibleHeightAtFocus = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5) * activeFollowDistance
       framedFocus.copy(smoothedFocus.current).addScaledVector(THREE.Object3D.DEFAULT_UP, -visibleHeightAtFocus * followFramingShift)
 
+      // Pure fixed-distance orbit: the camera sits at focus + offset and is only clamped in Y
+      // (below the surface, above the seabed). The old X/Z bounds pinned the camera whenever a
+      // creature drifted near the edge of its volume, which made dragging to that side feel dead
+      // and the orbit lurch — the world now fades cleanly at every angle, so those bounds are gone.
       desiredCameraPosition.copy(framedFocus).add(followOffset)
-      desiredCameraPosition.x = THREE.MathUtils.clamp(desiredCameraPosition.x, MIN_FOLLOW_CAMERA_X, MAX_FOLLOW_CAMERA_X)
-      desiredCameraPosition.y = Math.min(desiredCameraPosition.y, MAX_FOLLOW_CAMERA_Y)
-      desiredCameraPosition.z = THREE.MathUtils.clamp(desiredCameraPosition.z, MIN_FOLLOW_CAMERA_Z, MAX_FOLLOW_CAMERA_Z)
+      desiredCameraPosition.y = THREE.MathUtils.clamp(desiredCameraPosition.y, minFollowCameraY, MAX_FOLLOW_CAMERA_Y)
       camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredCameraPosition.x, FOLLOW_POSITION_DAMPING, delta)
       camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredCameraPosition.y, FOLLOW_POSITION_DAMPING, delta)
       camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredCameraPosition.z, FOLLOW_POSITION_DAMPING, delta)
-      camera.position.x = THREE.MathUtils.clamp(camera.position.x, MIN_FOLLOW_CAMERA_X, MAX_FOLLOW_CAMERA_X)
-      camera.position.y = Math.min(camera.position.y, MAX_FOLLOW_CAMERA_Y)
-      camera.position.z = THREE.MathUtils.clamp(camera.position.z, MIN_FOLLOW_CAMERA_Z, MAX_FOLLOW_CAMERA_Z)
+      camera.position.y = THREE.MathUtils.clamp(camera.position.y, minFollowCameraY, MAX_FOLLOW_CAMERA_Y)
 
       const actualFocusDistance = Math.max(0.1, camera.position.distanceTo(framedFocus))
-      const clampedShortOfRequestedDistance = activeFollowDistance - actualFocusDistance > focusRadius * 0.25
-      const requiredVerticalHalfFov = focusRadius > 0 && clampedShortOfRequestedDistance ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / actualFocusDistance) : baseHalfFov
-      const requiredHorizontalHalfFov = focusRadius > 0 && clampedShortOfRequestedDistance ? Math.atan((focusRadius * FOLLOW_FRAME_MARGIN) / (actualFocusDistance * aspect)) : baseHalfFov
-      const targetFov = THREE.MathUtils.clamp(
-        THREE.MathUtils.radToDeg(Math.max(baseHalfFov, requiredVerticalHalfFov, requiredHorizontalHalfFov) * 2),
-        DEFAULT_CAMERA_FOV,
-        MAX_FOLLOW_CAMERA_FOV,
-      )
+      // Constant follow FOV. Distance to the creature is controlled only by scroll/pinch, so
+      // orbiting is a pure rotation at a fixed distance. (Previously the camera auto-widened
+      // FOV whenever a position clamp cut it short of the requested distance, which made the
+      // orbit feel like it lurched toward and away from the animal.)
+      const targetFov = DEFAULT_CAMERA_FOV
       const nextFov = THREE.MathUtils.damp(camera.fov, targetFov, FOLLOW_FOV_DAMPING, delta)
       if (Math.abs(nextFov - camera.fov) > 0.01) {
         camera.fov = nextFov
@@ -202,6 +254,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, followOrbi
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
     hasSmoothedLookTarget.current = false
+    reportFocusBoneMissing(null)
     const targetDefaultFov = Number.isFinite(cameraSettings.fov) ? cameraSettings.fov : DEFAULT_CAMERA_FOV
     const targetDefaultY = Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y
     const targetDefaultZ = Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z

@@ -259,6 +259,11 @@ export const SPECIES = [
       // Raised from 0.48: mahi are fast open-water cruisers in reality and should
       // visibly outpace bait/drifters, not match their speed.
       visualTimeScale: 0.75,
+      // Glide near-level. At the faster cruise speed the mahi tracks the vertical waviness of
+      // its path eagerly enough to bob its nose up and down toward the generic ~13° limit;
+      // with the follow-cam centring it, that pitch bob was the only apparent motion and read
+      // as the fish hovering in place staring up and down. Cap it to a gentle glide.
+      maxVisualPitchDegrees: 6,
       idleBLPerSec: [0.28, 0.44],
       idleDriftBLPerSec: [0.05, 0.10],
       snapBLPerSec: [0.52, 0.76],

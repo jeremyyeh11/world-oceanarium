@@ -465,6 +465,11 @@ function verticalPathScale(creature, swim) {
 }
 
 function maxVisualPitch(creature, swim) {
+  // Per-species override for surface cruisers that should glide near-level: without it a
+  // faster fish traverses the vertical waviness of its path quickly enough to keep pitching
+  // toward the generic limit, which — with the follow-cam holding it centred — reads as the
+  // fish hovering in place nosing up and down.
+  if (Number.isFinite(swim.maxVisualPitchDegrees)) return THREE.MathUtils.degToRad(swim.maxVisualPitchDegrees)
   return THREE.MathUtils.lerp(MAX_MODEL_PITCH, MIN_LARGE_CREATURE_PITCH, largeCreatureFactor(creature, swim))
 }
 

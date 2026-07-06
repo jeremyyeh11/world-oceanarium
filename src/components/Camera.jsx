@@ -60,6 +60,17 @@ const MAX_FOLLOW_CAMERA_Y = SURFACE_PLANE_Y - FOLLOW_SURFACE_CLEARANCE
 // that horizontal edges/floor/background all fade cleanly.
 const FOLLOW_FLOOR_CLEARANCE = 1.6
 
+// Walks up the parent chain to check that `node` is still part of `root`'s subtree. Used to
+// detect when a cached focus bone has been detached by a model remount.
+function isDescendantOf(node, root) {
+  let current = node
+  while (current) {
+    if (current === root) return true
+    current = current.parent
+  }
+  return false
+}
+
 export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
   const { camera } = useThree()
   const focusBoneRef = useRef(null)
@@ -85,11 +96,15 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
   }
 
   // Resolve (and cache) the named body-center bone within the focused creature so the
-  // camera can aim at its mass center. Re-resolves only when the target or name changes.
+  // camera can aim at its mass center. The cache is re-validated every call: toggling debug
+  // mode swaps the fish's rim material, which remounts its model and detaches the old bone —
+  // a stale cached bone would strand the camera on empty water until you reselect. If the
+  // cached bone is no longer part of the target subtree, re-resolve against the live graph.
   const resolveFocusBone = (target, name) => {
     if (!target || !name) return null
-    if (focusBoneRef.current && focusBoneTargetRef.current === target && focusBoneNameRef.current === name) {
-      return focusBoneRef.current
+    const cached = focusBoneRef.current
+    if (cached && focusBoneTargetRef.current === target && focusBoneNameRef.current === name && isDescendantOf(cached, target)) {
+      return cached
     }
     // three.js sanitizes glТF node names (drops '.', ':' etc. — "spine.001" becomes
     // "spine001"), so try the given name first, then the sanitized form.

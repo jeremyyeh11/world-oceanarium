@@ -125,6 +125,14 @@ const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
 const SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS = 1.55
 const VISUAL_PITCH_RESPONSE = 4.8
+// Fade the swim pitch toward level as forward speed drops below a fraction of the fish's own
+// cruise speed. Without this, a fish coasting to a near-stop (a drift beat, or settling onto a
+// reached follow-target) has its tiny horizontal travel swamped by the vertical bob, and
+// atan2 snaps the nose to the full pitch limit — it looks parked and staring up and down.
+// Referencing each fish's own idle speed keeps genuine dives (mako, mola) pitching normally,
+// since those happen at speed.
+const PITCH_FADE_SPEED_FRACTION_LO = 0.1
+const PITCH_FADE_SPEED_FRACTION_HI = 0.45
 const SUN_BASK_ANIMATION_NAMES = new Set(['sun_bask_l', 'sun_bask_r'])
 const MOLA_SUN_BASK_ANIMATION_FADE_DURATION = 3.5
 const MOLA_SUN_BASK_ANIMATION_ENTRY_FADE_DURATION = 0.55
@@ -3490,9 +3498,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     // is not vertically closing on) stays level — no swim-bladder-dysfunction look.
     frameMove.subVectors(fish.position, previousPosition.current)
     const frameHorizontalMove = Math.hypot(frameMove.x, frameMove.z)
-    const targetVisualPitch = (frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
+    // Weight pitch by how fast the fish is actually swimming forward relative to its own cruise
+    // speed, so a near-stopped fish stays level instead of pitching on residual vertical bob.
+    const horizontalSpeed = frameHorizontalMove / Math.max(delta, 1e-4)
+    const pitchSpeedReference = Math.max(1e-3, motion.idleSpeed)
+    const pitchSpeedWeight = THREE.MathUtils.smoothstep(
+      horizontalSpeed,
+      pitchSpeedReference * PITCH_FADE_SPEED_FRACTION_LO,
+      pitchSpeedReference * PITCH_FADE_SPEED_FRACTION_HI,
+    )
+    const targetVisualPitch = pitchSpeedWeight * ((frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
       ? THREE.MathUtils.clamp(Math.atan2(frameMove.y, Math.max(frameHorizontalMove, 1e-4)), -pitchLimit, pitchLimit)
-      : 0
+      : 0)
     if (!hasVisualForward.current) {
       visualPitch.current = targetVisualPitch
     } else {

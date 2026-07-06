@@ -183,6 +183,9 @@ export const SPECIES = [
     model: {
       path: '/models/fish/sardine/sardine.glb',
       scale: 0.42,
+      // Bone used as the follow-cam aim point. Names are the in-scene (dot-stripped)
+      // three.js names; falls back to the model bounding-box center if not found.
+      followBone: 'Bone',
       actionAnimationDurations: {
         burst: 1.39,
         snap_left: 1.12,
@@ -305,6 +308,8 @@ export const SPECIES = [
       },
       // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 1.8 m / 7.2 WU max.
       scale: 0.735,
+      // Head-end spine bone used as the follow-cam aim point (shared by both sex variants).
+      followBone: 'spine001',
       moveset: {
         cruise: 'idle',
         drift: 'idle',
@@ -462,6 +467,8 @@ export const SPECIES = [
       path: '/models/fish/isurus-oxyrinchus/isurus-oxyrinchus.glb',
       // Source GLB is ~40.18 units nose-to-tail; scale maps size 1.0 to 4.0 m / 16 WU.
       scale: 0.398,
+      // Head-end spine bone used as the follow-cam aim point.
+      followBone: 'spine001',
       moveset: {
         cruise: 'idle',
         drift: 'idle',
@@ -616,6 +623,8 @@ export const SPECIES = [
       rotation: [0, 0, 0],
       // Source body length is ~20.69 model units; scale maps size 1.0 to 3.3 m / 13.2 WU max.
       scale: 0.638,
+      // Mola has no spine chain; 'face' is the front-body bone used as the follow-cam aim point.
+      followBone: 'face',
       moveset: {
         cruise: 'slow_cruise',
         drift: 'idle_drift',

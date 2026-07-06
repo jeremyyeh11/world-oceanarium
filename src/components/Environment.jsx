@@ -33,6 +33,10 @@ function NoiseFloor({ biome }) {
   const floorY = FLOOR_Y[biome] ?? -20
   const material = useMemo(() => makeFloorMaterial(FLOOR_COLORS[biome] ?? '#0e1f33'), [biome])
 
+  // Material is created imperatively (not as a JSX tag), so R3F won't auto-dispose it.
+  // Free the old shader program/GPU resources when the biome changes or the floor unmounts.
+  useEffect(() => () => material.dispose(), [material])
+
   useEffect(() => {
     if (!ref.current) return
     const pos = ref.current.geometry.attributes.position

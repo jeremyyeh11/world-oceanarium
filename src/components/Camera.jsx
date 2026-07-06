@@ -71,11 +71,12 @@ function isDescendantOf(node, root) {
   return false
 }
 
-export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
   const { camera } = useThree()
   const focusBoneRef = useRef(null)
   const focusBoneTargetRef = useRef(null)
   const focusBoneNameRef = useRef(null)
+  const reportedMissingBoneRef = useRef(null)
   const smoothedFocus = useRef(new THREE.Vector3())
   const smoothedLookTarget = useRef(new THREE.Vector3())
   const smoothedDefaultLookTarget = useRef(new THREE.Vector3())
@@ -93,6 +94,16 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
     if (defaultCameraSettled.current === settled) return
     defaultCameraSettled.current = settled
     onDefaultCameraSettledChange?.(settled)
+  }
+
+  // Notify (only on change) which followBone name failed to resolve, or null when the aim
+  // point is fine. The camera still falls back to the AABB/mesh center so there's no visual
+  // issue — this just surfaces the mis-named bone in the debug overlay so it can be fixed.
+  const reportFocusBoneMissing = (missingName) => {
+    const missing = missingName ?? null
+    if (reportedMissingBoneRef.current === missing) return
+    reportedMissingBoneRef.current = missing
+    onFocusBoneMissingChange?.(missing)
   }
 
   // Resolve (and cache) the named body-center bone within the focused creature so the
@@ -140,6 +151,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
       // from the full bounding box so framing/zoom behaviour is unchanged.
       const focusBone = resolveFocusBone(focusTarget, focusCenterBoneName)
       if (focusBone) focusBone.getWorldPosition(focusPosition)
+      reportFocusBoneMissing(focusCenterBoneName && !focusBone ? focusCenterBoneName : null)
 
       focusPosition.y = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
 
@@ -242,6 +254,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
     hasSmoothedLookTarget.current = false
+    reportFocusBoneMissing(null)
     const targetDefaultFov = Number.isFinite(cameraSettings.fov) ? cameraSettings.fov : DEFAULT_CAMERA_FOV
     const targetDefaultY = Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y
     const targetDefaultZ = Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z

@@ -256,7 +256,9 @@ export const SPECIES = [
       schoolSpacingScale: 5.2,
       schoolMaxAvoidanceAngleDegrees: 18,
       schoolDirectionResponse: 3.2,
-      visualTimeScale: 0.48,
+      // Raised from 0.48: mahi are fast open-water cruisers in reality and should
+      // visibly outpace bait/drifters, not match their speed.
+      visualTimeScale: 0.75,
       idleBLPerSec: [0.28, 0.44],
       idleDriftBLPerSec: [0.05, 0.10],
       snapBLPerSec: [0.52, 0.76],
@@ -418,7 +420,9 @@ export const SPECIES = [
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Review max maps 4.0 m to 16 WU.
       bodyLengthWU: 16,
-      visualTimeScale: 0.38,
+      // Raised from 0.38: the mako is the fastest cruiser in the ocean tank and
+      // should read faster than the mahi it shares the tank with, not the same speed.
+      visualTimeScale: 0.95,
       idleBLPerSec: [0.16, 0.24],
       idleDriftBLPerSec: [0.03, 0.055],
       snapBLPerSec: [0.24, 0.36],

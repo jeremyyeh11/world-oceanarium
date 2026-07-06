@@ -114,6 +114,12 @@ const SCHOOL_TRAVEL_ENABLED = true
 // through their turns instead of pivoting or strafing. >=1 arcs; <1 would allow a
 // future spin-in-place creature.
 const DEFAULT_TURN_RADIUS_BODY_LENGTHS = 2.5
+// Ceiling on a single simulation step (before the debug speed multiplier). On a smooth
+// display rawDelta is ~0.016s so this never engages; it only caps genuine hitches / very
+// low frame rates, where an unbounded step would let a fast swimmer leap clear across its
+// boundary envelope in one frame (tunnelling) and get snapped back. Capping the step makes
+// slow frames dilate time slightly instead of teleporting — invisible in an ambient tank.
+const MAX_SIMULATION_RAW_DELTA = 0.05
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
 const SCHOOL_PHASE_WINDOW = 0.07
 const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
@@ -204,6 +210,16 @@ const SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS = 0.18
 const SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS = 0.55
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MIN = 2.0
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
+// Predictive boundary avoidance for fast solo swimmers (the mako). Its open-water turn
+// radius is far wider than the tank, so at speed it reaches a wall before its gentle arc
+// can redirect, overshoots the runtime envelope, and gets snapped back inward (reads as
+// strafing backward). To prevent that, when the fish is heading at a wall within a
+// look-ahead distance, its allowed per-frame turn tightens toward BOUNDARY_MIN_TURN_RADIUS
+// so it can carve away in time. The look-ahead is a fixed multiple of that minimum radius'
+// quarter-arc run-up, and both scale with body length so the effect is size-agnostic. Open
+// water is untouched, so the mako keeps its wide banking arcs everywhere but the edges.
+const SOLO_AGENT_BOUNDARY_MIN_TURN_BODY_LENGTHS = 0.7
+const SOLO_AGENT_BOUNDARY_LOOKAHEAD_ARC_SCALE = 1.35
 const MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS = 1.75
 const MOLA_RUNTIME_OVERSHOOT_XZ_MIN = 9.0
 const MOLA_RUNTIME_OVERSHOOT_XZ_MAX = 18.0
@@ -672,6 +688,47 @@ function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength, creature) {
 }
 
 
+
+// Smallest positive distance from `position` travelling along `forward` before it crosses a
+// swim-bounds wall. Infinity when the heading is not aimed at any wall. Because it is a
+// ray-to-box time, a fish skimming parallel to a wall reads as "far" even when hugging it —
+// only a heading actually aimed at a wall returns a short distance.
+function distanceToSwimBoundaryAhead(position, forward, bounds) {
+  let best = Infinity
+  const { xMin, xMax } = swimXRangeAtZ(bounds, position.z)
+  const axes = [
+    [forward.x, position.x, xMin, xMax],
+    [forward.y, position.y, bounds.yMin, bounds.yMax],
+    [forward.z, position.z, bounds.zMin, bounds.zMax],
+  ]
+  for (const [comp, pos, lo, hi] of axes) {
+    if (comp > 1e-4) {
+      const t = (hi - pos) / comp
+      if (t >= 0 && t < best) best = t
+    } else if (comp < -1e-4) {
+      const t = (lo - pos) / comp
+      if (t >= 0 && t < best) best = t
+    }
+  }
+  return best
+}
+
+// Per-frame heading-turn cap for a solo agent, tightened as it bears down on a wall so it can
+// bank away before overshooting the runtime envelope. Away from walls (or skimming parallel to
+// one) it returns `baseStep` unchanged, preserving the wide open-water arc; as the aimed-at
+// wall closes inside the look-ahead the effective radius eases from the open-water radius
+// toward a tight minimum, raising the cap so the fish can complete the turn in the room it has.
+function boundaryAvoidanceTurnStep(baseStep, position, forward, bounds, swim, bodyLength, speed, delta) {
+  const minRadius = Math.max(0.4, bodyLength * SOLO_AGENT_BOUNDARY_MIN_TURN_BODY_LENGTHS)
+  const lookAhead = minRadius * (Math.PI / 2) * SOLO_AGENT_BOUNDARY_LOOKAHEAD_ARC_SCALE
+  const hitDistance = distanceToSwimBoundaryAhead(position, forward, bounds)
+  if (!(hitDistance < lookAhead)) return baseStep
+  const urgency = THREE.MathUtils.clamp(1 - hitDistance / lookAhead, 0, 1)
+  const openRadius = Math.max(minRadius, (swim.turnRadiusBodyLengths ?? DEFAULT_TURN_RADIUS_BODY_LENGTHS) * bodyLength)
+  const effectiveRadius = THREE.MathUtils.lerp(openRadius, minRadius, urgency)
+  const tightenedStep = (Math.max(0, speed) / effectiveRadius) * Math.max(0, delta)
+  return Math.max(baseStep, tightenedStep)
+}
 
 function nearestSwimBoundaryNormal(out, point, bounds, bodyLength) {
   const xRangeAtZ = swimXRangeAtZ(bounds, point.z)
@@ -2852,7 +2909,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       1,
       10,
     )
-    const delta = rawDelta * simulationSpeed
+    const delta = Math.min(rawDelta, MAX_SIMULATION_RAW_DELTA) * simulationSpeed
     if (simulationTime.current === null) simulationTime.current = rawNow
     simulationTime.current += delta
     const now = simulationTime.current
@@ -3174,7 +3231,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // Cap solo-agent heading changes to a forward arc of body-length turn radius,
         // so large solo swimmers (mako) bank through turns instead of pivoting on the spot.
         const soloForwardSpeed = (Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed) * organicMotion.speedScale
-        const soloTurnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, soloForwardSpeed, delta)
+        const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        let soloTurnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, soloForwardSpeed, delta)
+        // Let the mako tighten its arc as it bears down on a wall so it carves away instead of
+        // overshooting the envelope and getting snapped back. The mola keeps its own boundary
+        // and surface handling untouched.
+        if (!isMolaCreature(creature)) {
+          soloTurnRadiusStep = boundaryAvoidanceTurnStep(soloTurnRadiusStep, fish.position, tangent, bounds, swim, bodyLength, soloForwardSpeed, delta)
+        }
         if (agentHasTarget.current) {
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
           // Turn purely on the body-length arc radius at the current swim speed. The old
@@ -3228,7 +3292,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
         const movementScale = soloAgentSpeed * approachSpeedScale * organicMotion.speedScale * delta
         fish.position.addScaledVector(agentMoveDirection, movementScale)
-        const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         const surfaceYMax = agentBehavior.current?.type === 'sun-bask'
           ? molaSunBaskSurfaceCenterYMax(creature, swim, bounds)
           : null

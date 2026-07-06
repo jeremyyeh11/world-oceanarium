@@ -420,12 +420,13 @@ export const SPECIES = [
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Review max maps 4.0 m to 16 WU.
       bodyLengthWU: 16,
-      // Raised from 0.38 (~1.6×, in step with the mahi) so the mako reads as a fast
-      // open-water cruiser rather than drifting with the bait. Kept at 0.62 rather than
-      // pushed higher: above ~0.65 the faster travel overshoots the solo-agent boundary
-      // envelope on U-turns and gets snapped back inward (reads as strafing backward),
-      // so this is the ceiling that preserves its wide banking turns without that hitch.
-      visualTimeScale: 0.62,
+      // Raised from 0.38 to 0.95 (~2.5×) so the mako clearly leads the tank at roughly the
+      // real mako-vs-mahi cruise ratio (~1.5×). This speed used to make it overshoot the
+      // solo-agent boundary envelope on U-turns and get snapped back inward (reading as
+      // strafing backward); it is now held cleanly by the predictive boundary-avoidance
+      // steering in Fish.jsx (boundaryAvoidanceTurnStep), so it keeps its wide banking
+      // turns in open water and simply carves tighter as it nears a wall.
+      visualTimeScale: 0.95,
       idleBLPerSec: [0.16, 0.24],
       idleDriftBLPerSec: [0.03, 0.055],
       snapBLPerSec: [0.24, 0.36],

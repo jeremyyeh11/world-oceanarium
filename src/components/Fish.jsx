@@ -140,14 +140,10 @@ const MOLA_SUN_BASK_ANIMATION_SPEED_SCALE = 0.5
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
 const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
-// Anti-stuck watchdog for schooling fish (see the movement integration). Over CHECK_WINDOW
-// seconds a normally-swimming fish covers many world units; if it has translated less than
-// MIN_NET_TRAVEL it is pinned (follow-target collapsed onto it), so bypass the no-overshoot
-// cap and drive it forward along the path for BYPASS_DURATION to break free. The threshold sits
-// well below the slowest legitimate cruising observed, so normal schooling never trips it.
-const STUCK_CHECK_WINDOW = 2.5
-const STUCK_MIN_NET_TRAVEL = 0.6
-const STUCK_BYPASS_DURATION = 0.9
+// A school travels toward a shared roaming goal (pure boids alone just mill in place). The
+// leader picks a new goal once the group is within SCHOOL_GOAL_REACHED of the current one.
+const SCHOOL_GOAL_REACHED_BODY_LENGTHS = 3.0
+const SCHOOL_GOAL_REACHED_MIN = 2.0
 const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
@@ -373,13 +369,22 @@ function getSchoolState(school, creature, swim) {
   let state = SCHOOL_STATES.get(key)
   if (!state) {
     const seed = hashString(key)
-    const path = makeSchoolPath(creature, swim, seed)
+    const rand = mulberry32(seed)
+    const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+    // Seeded spawn centre and first roaming goal. The whole school shares these; members
+    // spread around them via their formation offset and boid separation/cohesion.
+    const centerZ = randomRange(rand, bounds.zMin, bounds.zMax)
+    const center = new THREE.Vector3(
+      randomXInSwimBoundsAtZ(rand, bounds, centerZ),
+      randomRange(rand, bounds.yMin, bounds.yMax),
+      centerZ,
+    )
+    const goal = pickSoloAgentTarget(new THREE.Vector3(), creature, swim, rand, center)
     state = {
       seed,
-      path,
-      pathLength: path.getLength(),
-      progress: 0,
-      version: 0,
+      rand,
+      center,
+      goal,
     }
     SCHOOL_STATES.set(key, state)
   }
@@ -2740,11 +2745,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const nextBurstAt = useRef(0)
   const nextDriftAt = useRef(0)
   const driftUntil = useRef(0)
-  // Anti-stuck watchdog state: anchor position/time to measure net progress over a window, and
-  // the sim time until which the fish drives forward through the no-overshoot cap to break free.
-  const stuckAnchorPos = useRef(new THREE.Vector3())
-  const stuckAnchorTime = useRef(0)
-  const stuckBypassUntil = useRef(0)
   const lastSwimSfxAt = useRef(0)
   const organicRand = useRef(mulberry32(organicMotion.noiseSeed))
   const organicNoise = useRef({
@@ -2974,31 +2974,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    if (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) {
-      if (isSchooling) {
-        if ((SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) && isSchoolLeader) schoolState.progress += delta * velocity.current / pathLength
-      } else if (!isSoloAgent && SPLINE_MOVEMENT_ENABLED) {
-        progress.current += delta * velocity.current / pathLength
-      }
-    }
-
-    const pathProgress = isSchooling ? schoolState.progress : progress.current
-    const shouldAdvanceSchoolPath = (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED) && isSchooling && isSchoolLeader && pathProgress >= 1 - SCHOOL_PHASE_WINDOW
-    if ((SPLINE_MOVEMENT_ENABLED && !isSchooling && !isSoloAgent && progress.current >= 1) || shouldAdvanceSchoolPath) {
-      const endPoint = activePath.getPointAt(1)
-      const endTangent = activePath.getTangentAt(1).normalize()
-
-      if (isSchooling) {
-        schoolState.seed = Math.imul(schoolState.seed ^ 0x9E3779B9, 1664525) >>> 0
-        const nextPath = makeSchoolPath(creature, swim, schoolState.seed, endPoint, endTangent)
-        schoolState.path = nextPath
-        schoolState.pathLength = nextPath.getLength()
-        schoolState.progress = 0
-        schoolState.version += 1
-        pathRef.current = nextPath
-        pathLengthRef.current = schoolState.pathLength
-        setPath(nextPath)
-      } else {
+    // Legacy spline advance for non-schooling, non-agent fish (gated off by default).
+    // Schooling fish no longer use a spline at all — they steer toward the shared boid goal.
+    if (SPLINE_MOVEMENT_ENABLED && !isSchooling && !isSoloAgent) {
+      progress.current += delta * velocity.current / pathLength
+      if (progress.current >= 1) {
+        const endPoint = activePath.getPointAt(1)
+        const endTangent = activePath.getTangentAt(1).normalize()
         pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
         const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
         pathRef.current = nextPath
@@ -3008,47 +2990,44 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       }
     }
 
-    if (isSchooling && schoolState.path !== pathRef.current) {
-      pathRef.current = schoolState.path
-      pathLengthRef.current = schoolState.pathLength
-      setPath(schoolState.path)
-    }
-
-    const t = THREE.MathUtils.clamp((isSchooling ? schoolState.progress : progress.current) + (schoolOffset?.phase ?? 0), 0, 1)
     const currentPath = pathRef.current
     curveDeformTurnIntent.current = 0
-    let position = isSchooling
-      ? offsetFromSchoolPoint(schoolBasePosition, currentPath, t, schoolOffset, now, organicNoise.current)
-      : currentPath.getPointAt(t)
+    const t = isSchooling ? 0 : THREE.MathUtils.clamp(progress.current, 0, 1)
+    let position
     if (isSchooling) {
-      const targetDrift = resolveRepulserDriftVector(position, FISH_REGISTRY.values(), {
-        selfId: creature.id,
-        biome: creature.biome,
-        innerRadius: REPULSER_DRIFT_INNER_RADIUS,
-        outerRadius: REPULSER_DRIFT_OUTER_RADIUS,
-        maxDrift: REPULSER_DRIFT_MAX,
-      })
-      const easedDrift = lerpRepulserDrift(repulserDrift.current, targetDrift, delta, REPULSER_DRIFT_RESPONSE)
-      repulserDrift.current.set(easedDrift.x, easedDrift.y, easedDrift.z)
-      position.add(repulserDrift.current)
+      // Boids: the fish owns its own position. Seed the first frame from the school's spawn
+      // centre plus this member's formation offset, then track fish.position thereafter.
+      if (hasFollowPosition.current) {
+        position = fish.position
+      } else {
+        position = schoolBasePosition.copy(schoolState.center)
+        position.x += schoolOffset.lateral
+        position.y += schoolOffset.vertical
+        position.z += schoolOffset.longitudinal
+        clampToSwimBounds(position, swimBounds(creature.depthZone, swim, creature.size ?? 1))
+      }
+      // Heading estimate for steering/boids until the movement step recomputes the tangent.
+      if (desiredDirection.current.lengthSq() > 0.0001) tangent.copy(desiredDirection.current)
+      else if (hasVisualForward.current) tangent.copy(visualForward.current)
+      else tangent.set(0, 0, -1)
+      if (tangent.lengthSq() > 0.000001) tangent.normalize()
+      else tangent.set(0, 0, -1)
+    } else {
+      position = currentPath.getPointAt(t)
+      currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
+      tangent.subVectors(nextPoint, currentPath.getPointAt(t))
+      if (tangent.lengthSq() > 0.000001) tangent.normalize()
     }
-    currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
-    tangent.subVectors(nextPoint, currentPath.getPointAt(t)).normalize()
 
     const followDistance = followLookaheadDistance(creature, swim, isSchooling)
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
-      if (SPLINE_MOVEMENT_ENABLED || SCHOOL_TRAVEL_ENABLED || !hasFollowPosition.current) {
-        offsetFromSchoolPoint(followTarget.current, currentPath, followTargetT, schoolOffset, now, organicNoise.current)
-        followTarget.current.add(repulserDrift.current)
-      } else {
-        const freeSwimForward = desiredDirection.current.lengthSq() > 0.0001
-          ? desiredDirection.current
-          : (hasVisualForward.current ? visualForward.current : tangent)
-        if (freeSwimForward.lengthSq() < 0.0001) freeSwimForward.set(0, 0, -1)
-        freeSwimForward.normalize()
-        followTarget.current.copy(fish.position).addScaledVector(freeSwimForward, followDistance)
-      }
+      // Steering target = the shared roaming goal, biased by this member's formation offset
+      // so the group spreads into its shape rather than converging to one point.
+      followTarget.current.copy(schoolState.goal)
+      followTarget.current.x += schoolOffset.lateral
+      followTarget.current.y += schoolOffset.vertical
+      followTarget.current.z += schoolOffset.longitudinal
     } else if (isSoloAgent) {
       position = hasFollowPosition.current ? fish.position : position
       const currentForward = desiredDirection.current.lengthSq() > 0.0001
@@ -3375,86 +3354,63 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (tangent.lengthSq() > 0.000001) tangent.normalize()
       else tangent.copy(agentMoveDirection)
     } else {
+      // --- Boids schooling movement ---
+      // No spline, no follow-target distance cap. Steer toward the shared roaming goal
+      // (already biased by this member's formation offset in followTarget), blended with
+      // first-class boid forces, capped to a body-length turn arc, then integrate velocity
+      // freely — so the target can never pin the fish in place the way the old spline
+      // endpoint did.
       previousPosition.current.copy(fish.position)
-      schoolFollowDirection.subVectors(followTarget.current, fish.position)
-      const targetDistance = schoolFollowDirection.length()
-      if (targetDistance > 0.0001) {
-        schoolFollowDirection.normalize()
-        if (now >= boidDecisionNextAt.current) {
-          computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, schoolFollowDirection, boidDebugState.current)
-          boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
-        }
-        smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
-        targetDesiredDirection
-          .copy(schoolFollowDirection)
-          .add(smoothedBoidSteering.current)
-        const maxAvoidanceAngle = schoolMaxAvoidanceAngle(creature, swim, school)
-        limitAvoidanceAngle(
-          targetDesiredDirection,
-          schoolFollowDirection,
-          maxAvoidanceAngle,
-        )
-        if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
-        if (desiredDirection.current.lengthSq() < 0.0001 || desiredDirection.current.dot(schoolFollowDirection) <= 0) {
-          desiredDirection.current.copy(schoolFollowDirection)
-        }
-        const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
-          ? model.curveDeform.turnIntentScale
-          : 0
-        if (turnIntentScale > 0) {
-          const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
-          curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
-        }
-        const catchup = THREE.MathUtils.clamp(
-          targetDistance / Math.max(0.001, followDistance) * organicMotion.catchupScale,
-          0.50,
-          1.82,
-        )
-        // Turn no faster than an arc of (turnRadiusBodyLengths * bodyLength) allows at
-        // the current forward speed, so the school banks through turns instead of
-        // pivoting/strafing. The response-based step still smooths within that cap.
-        const forwardSpeed = velocity.current * organicMotion.speedScale * catchup
-        const responseStep = maxAvoidanceAngle * (1 - Math.exp(-delta * schoolDirectionResponse(swim)))
-        const turnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
-        rotateDirectionToward(
-          desiredDirection.current,
-          targetDesiredDirection,
-          Math.min(responseStep, turnRadiusStep),
-        )
+      const schoolBounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
 
-        const movementScale = velocity.current * organicMotion.speedScale * catchup * delta
-        agentMoveDirection.copy(desiredDirection.current)
-        // Anti-stuck watchdog. Movement is normally capped to targetDistance so a fish never
-        // overshoots its follow-target. If that target ever collapses onto the fish and only
-        // jitters there (repulser drift / boid noise), the cap pins the fish in place while it
-        // keeps yawing and pitching to chase the jitter — it looks frozen mid-swim. Detect a
-        // fish that has made almost no net progress over a window despite intending to move,
-        // and for a moment push it forward along the path tangent (bypassing the cap) to break
-        // free. In normal schooling the fish trails ~2.5 body lengths back and never trips this.
-        if (now - stuckAnchorTime.current >= STUCK_CHECK_WINDOW) {
-          if (fish.position.distanceTo(stuckAnchorPos.current) < STUCK_MIN_NET_TRAVEL && movementScale > 1e-4) {
-            stuckBypassUntil.current = now + STUCK_BYPASS_DURATION
-          }
-          stuckAnchorPos.current.copy(fish.position)
-          stuckAnchorTime.current = now
-        }
-        let schoolStepDistance = Math.min(targetDistance, movementScale)
-        if (now < stuckBypassUntil.current) {
-          if (tangent.lengthSq() > 0.0001) agentMoveDirection.copy(tangent).normalize()
-          schoolStepDistance = movementScale
-        }
-        fish.position.addScaledVector(agentMoveDirection, schoolStepDistance)
-        if (!SPLINE_MOVEMENT_ENABLED) {
-          const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-          clampToSwimBounds(fish.position, bounds)
-        }
-        tangent.subVectors(fish.position, previousPosition.current)
-        if (tangent.lengthSq() > 0.000001) {
-          tangent.normalize()
-        } else {
-          tangent.copy(desiredDirection.current)
+      // Leader advances the shared goal once the group reaches it.
+      if (isSchoolLeader) {
+        const reached = Math.max(bodyLength * SCHOOL_GOAL_REACHED_BODY_LENGTHS, SCHOOL_GOAL_REACHED_MIN)
+        if (fish.position.distanceTo(schoolState.goal) <= reached) {
+          const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
+          pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.goal, heading)
         }
       }
+
+      // Desired heading toward the (offset) goal, shaped to glide along nearby boundaries.
+      shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, followTarget.current, tangent, creature, swim)
+
+      // Boid forces as a first-class steering input (separation / alignment / cohesion / threat).
+      if (now >= boidDecisionNextAt.current) {
+        computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, agentMoveDirection, boidDebugState.current)
+        boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
+      }
+      smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+      targetDesiredDirection.copy(agentMoveDirection).add(smoothedBoidSteering.current)
+      if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
+      else targetDesiredDirection.copy(agentMoveDirection)
+
+      if (desiredDirection.current.lengthSq() < 0.0001) desiredDirection.current.copy(targetDesiredDirection)
+
+      // Spine bend intent: signed yaw between current and desired heading.
+      const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
+        ? model.curveDeform.turnIntentScale
+        : 0
+      if (turnIntentScale > 0) {
+        const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
+        curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
+      }
+
+      // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
+      const forwardSpeed = velocity.current * organicMotion.speedScale
+      let turnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
+      turnStep = boundaryAvoidanceTurnStep(turnStep, fish.position, desiredDirection.current, schoolBounds, swim, bodyLength, forwardSpeed, delta)
+      rotateDirectionToward(desiredDirection.current, targetDesiredDirection, turnStep)
+
+      // Integrate velocity along the heading — no follow-target distance cap.
+      const movementScale = velocity.current * organicMotion.speedScale * delta
+      agentMoveDirection.copy(desiredDirection.current)
+      fish.position.addScaledVector(agentMoveDirection, movementScale)
+      clampToSwimBounds(fish.position, schoolBounds)
+
+      tangent.subVectors(fish.position, previousPosition.current)
+      if (tangent.lengthSq() > 0.000001) tangent.normalize()
+      else tangent.copy(desiredDirection.current)
     }
 
     if (showAgentDebug) {

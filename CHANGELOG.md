@@ -8,6 +8,12 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.12.0 — Unified boids movement
+
+### Creature behavior
+
+- `v0.12.0-dev_1` removes the schooling spline entirely and moves schools onto pure boids, fixing the mahi-mahi freeze/backward-swim bug at its root. Schooling fish used to chase a follow-target sampled on a shared spline, with motion capped to the distance-to-target (no overshoot). The follow-target parameter `clamp(t + followDistance/pathLength, 0, 1)` saturated at the path endpoint whenever `followDistance` was large relative to the path — true for the big-bodied mahi in its confined bounds — so the target pinned to the curve's end, the fish caught up, and `targetDistance→0` froze it in place (turning/animating but not translating) until the leader regenerated the path; a fish nudged past the pinned target then swam backward to return. This replaces `getSchoolState`'s path/progress with a shared roaming **goal point** (the leader repicks it via `pickSoloAgentContinuationTarget` on arrival), and rewrites the school-follower step to steer toward that goal (offset per member by its formation slot) blended with first-class boid separation/alignment/cohesion, capped to a body-length turn arc, integrating velocity freely with no distance cap. Also deletes the `v0.12.0-dev` anti-stuck watchdog and the no-overshoot clamp that were band-aiding the freeze. Verified over sustained runs: no mahi freeze, zero backward-swim frames, sardine schools stay tight balls (rms radius ~1.7 WU) and mahi hold loose pairs.
+
 ## v0.10.0 — Boid schooling movement
 
 Status: accepted and promoted as clean `v0.10.0` from `v0.10.0-dev_14` after Jeremy reju (merged from `feat/boid-schooling-overlay`).

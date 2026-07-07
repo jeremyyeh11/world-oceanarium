@@ -144,6 +144,13 @@ const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
 // leader picks a new goal once the group is within SCHOOL_GOAL_REACHED of the current one.
 const SCHOOL_GOAL_REACHED_BODY_LENGTHS = 3.0
 const SCHOOL_GOAL_REACHED_MIN = 2.0
+// School steering blends a shared migration urge (travel along goal - centroid) with a pull
+// toward this member's formation slot (its designed place in the travel frame). The slot pull
+// gives the school a stable 3D shape so it holds width instead of collapsing to single-file —
+// a plain "seek the goal point" funnels every fish into a conga line. Boid separation/threat
+// then ride on top for anti-overlap and predator avoidance.
+const SCHOOL_MIGRATION_WEIGHT = 0.55
+const SCHOOL_FORMATION_WEIGHT = 0.75
 const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
@@ -385,6 +392,11 @@ function getSchoolState(school, creature, swim) {
       rand,
       center,
       goal,
+      // Live school centroid and the shared migration direction (goal - centroid), both
+      // maintained by the leader each frame. Members migrate along the shared direction so
+      // they travel parallel and fan into a cloud instead of funnelling toward one point.
+      centroid: center.clone(),
+      migrationDir: new THREE.Vector3(),
     }
     SCHOOL_STATES.set(key, state)
   }
@@ -3022,12 +3034,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const followDistance = followLookaheadDistance(creature, swim, isSchooling)
     const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
-      // Steering target = the shared roaming goal, biased by this member's formation offset
-      // so the group spreads into its shape rather than converging to one point.
+      // Every member steers toward the SAME shared goal. Spread is emergent from boid
+      // separation/cohesion, not from offsetting each fish's target (which strung them into a
+      // conga line and held a permanent yaw offset that cocked the tails).
       followTarget.current.copy(schoolState.goal)
-      followTarget.current.x += schoolOffset.lateral
-      followTarget.current.y += schoolOffset.vertical
-      followTarget.current.z += schoolOffset.longitudinal
     } else if (isSoloAgent) {
       position = hasFollowPosition.current ? fish.position : position
       const currentForward = desiredDirection.current.lengthSq() > 0.0001
@@ -3363,16 +3373,50 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       previousPosition.current.copy(fish.position)
       const schoolBounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
 
-      // Leader advances the shared goal once the group reaches it.
+      // Leader maintains the shared school centroid + migration direction, and advances the
+      // goal once the group's centroid reaches it.
       if (isSchoolLeader) {
+        let cx = 0, cy = 0, cz = 0, cn = 0
+        FISH_REGISTRY.forEach(entry => {
+          if (entry.schoolId === school.id) { cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1 }
+        })
+        if (cn > 0) schoolState.centroid.set(cx / cn, cy / cn, cz / cn)
         const reached = Math.max(bodyLength * SCHOOL_GOAL_REACHED_BODY_LENGTHS, SCHOOL_GOAL_REACHED_MIN)
-        if (fish.position.distanceTo(schoolState.goal) <= reached) {
+        if (schoolState.centroid.distanceTo(schoolState.goal) <= reached) {
           const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
-          pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.goal, heading)
+          pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
         }
+        // Shared direction (goal - centroid), identical for every member.
+        schoolState.migrationDir.subVectors(schoolState.goal, schoolState.centroid)
+        if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
+        else schoolState.migrationDir.set(0, 0, -1)
       }
 
-      // Desired heading toward the (offset) goal, shaped to glide along nearby boundaries.
+      // Shared migration direction (leader-computed) — parallel travel, never a funnel.
+      schoolFollowDirection.copy(schoolState.migrationDir)
+      if (schoolFollowDirection.lengthSq() < 1e-6) {
+        schoolFollowDirection.subVectors(schoolState.goal, fish.position)
+        if (schoolFollowDirection.lengthSq() > 1e-6) schoolFollowDirection.normalize()
+        else schoolFollowDirection.set(0, 0, -1)
+      }
+      // This member's formation slot, placed in the travel frame around the school centroid
+      // (right = perpendicular to heading in XZ, up = world Y). Anchoring the shape here means
+      // a single-file line is no longer an equilibrium, so the ball keeps its width.
+      const hx = schoolFollowDirection.x, hz = schoolFollowDirection.z
+      schoolBasePosition.copy(schoolState.centroid)
+      schoolBasePosition.x += hz * schoolOffset.lateral + hx * schoolOffset.longitudinal
+      schoolBasePosition.z += -hx * schoolOffset.lateral + hz * schoolOffset.longitudinal
+      schoolBasePosition.y += schoolOffset.vertical
+      // Desired heading = migration urge + pull toward the formation slot.
+      agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
+      targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
+      if (targetDesiredDirection.lengthSq() > 1e-6) {
+        agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), SCHOOL_FORMATION_WEIGHT)
+      }
+      if (agentMoveDirection.lengthSq() < 1e-6) agentMoveDirection.copy(schoolFollowDirection)
+      agentMoveDirection.normalize()
+      // Boundary shaping via a projected lookahead point.
+      followTarget.current.copy(fish.position).addScaledVector(agentMoveDirection, bodyLength * 6)
       shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, followTarget.current, tangent, creature, swim)
 
       // Boid forces as a first-class steering input (separation / alignment / cohesion / threat).
@@ -3381,6 +3425,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
       }
       smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
+      // agentMoveDirection is already the migration+formation heading (unit); add boid forces
+      // (separation/threat) on top for anti-overlap and predator avoidance.
       targetDesiredDirection.copy(agentMoveDirection).add(smoothedBoidSteering.current)
       if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
       else targetDesiredDirection.copy(agentMoveDirection)

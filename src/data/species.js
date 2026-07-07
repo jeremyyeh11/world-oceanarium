@@ -164,10 +164,13 @@ export const SPECIES = [
       boids: {
         neighborCap: 14,
         perceptionBodyLengths: 3.4,
-        separationWeight: 0.38,
-        alignmentWeight: 0.24,
-        cohesionWeight: 0.16,
-        maxWeight: 0.38,
+        // Under the boids-only model the goal is a weak migration urge, so these forces now
+        // shape the school directly. Stronger separation (with headroom in maxWeight) fattens
+        // the bait ball into a 3D cloud; lower alignment stops it stringing nose-to-tail.
+        separationWeight: 0.55,
+        alignmentWeight: 0.16,
+        cohesionWeight: 0.15,
+        maxWeight: 0.62,
         // Harmless bait, but very skittish — flees anything menacing (the mako most of all).
         menace: 0,
         wariness: 0.85,

@@ -140,6 +140,14 @@ const MOLA_SUN_BASK_ANIMATION_SPEED_SCALE = 0.5
 const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
 const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
+// Anti-stuck watchdog for schooling fish (see the movement integration). Over CHECK_WINDOW
+// seconds a normally-swimming fish covers many world units; if it has translated less than
+// MIN_NET_TRAVEL it is pinned (follow-target collapsed onto it), so bypass the no-overshoot
+// cap and drive it forward along the path for BYPASS_DURATION to break free. The threshold sits
+// well below the slowest legitimate cruising observed, so normal schooling never trips it.
+const STUCK_CHECK_WINDOW = 2.5
+const STUCK_MIN_NET_TRAVEL = 0.6
+const STUCK_BYPASS_DURATION = 0.9
 const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
@@ -2732,6 +2740,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const nextBurstAt = useRef(0)
   const nextDriftAt = useRef(0)
   const driftUntil = useRef(0)
+  // Anti-stuck watchdog state: anchor position/time to measure net progress over a window, and
+  // the sim time until which the fish drives forward through the no-overshoot cap to break free.
+  const stuckAnchorPos = useRef(new THREE.Vector3())
+  const stuckAnchorTime = useRef(0)
+  const stuckBypassUntil = useRef(0)
   const lastSwimSfxAt = useRef(0)
   const organicRand = useRef(mulberry32(organicMotion.noiseSeed))
   const organicNoise = useRef({
@@ -3411,10 +3424,26 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
         const movementScale = velocity.current * organicMotion.speedScale * catchup * delta
         agentMoveDirection.copy(desiredDirection.current)
-        fish.position.addScaledVector(
-          agentMoveDirection,
-          Math.min(targetDistance, movementScale),
-        )
+        // Anti-stuck watchdog. Movement is normally capped to targetDistance so a fish never
+        // overshoots its follow-target. If that target ever collapses onto the fish and only
+        // jitters there (repulser drift / boid noise), the cap pins the fish in place while it
+        // keeps yawing and pitching to chase the jitter — it looks frozen mid-swim. Detect a
+        // fish that has made almost no net progress over a window despite intending to move,
+        // and for a moment push it forward along the path tangent (bypassing the cap) to break
+        // free. In normal schooling the fish trails ~2.5 body lengths back and never trips this.
+        if (now - stuckAnchorTime.current >= STUCK_CHECK_WINDOW) {
+          if (fish.position.distanceTo(stuckAnchorPos.current) < STUCK_MIN_NET_TRAVEL && movementScale > 1e-4) {
+            stuckBypassUntil.current = now + STUCK_BYPASS_DURATION
+          }
+          stuckAnchorPos.current.copy(fish.position)
+          stuckAnchorTime.current = now
+        }
+        let schoolStepDistance = Math.min(targetDistance, movementScale)
+        if (now < stuckBypassUntil.current) {
+          if (tangent.lengthSq() > 0.0001) agentMoveDirection.copy(tangent).normalize()
+          schoolStepDistance = movementScale
+        }
+        fish.position.addScaledVector(agentMoveDirection, schoolStepDistance)
         if (!SPLINE_MOVEMENT_ENABLED) {
           const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
           clampToSwimBounds(fish.position, bounds)

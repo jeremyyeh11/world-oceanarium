@@ -164,13 +164,14 @@ export const SPECIES = [
       boids: {
         neighborCap: 14,
         perceptionBodyLengths: 3.4,
-        // Under the boids-only model the goal is a weak migration urge, so these forces now
-        // shape the school directly. Stronger separation (with headroom in maxWeight) fattens
-        // the bait ball into a 3D cloud; lower alignment stops it stringing nose-to-tail.
-        separationWeight: 0.55,
-        alignmentWeight: 0.16,
-        cohesionWeight: 0.15,
-        maxWeight: 0.62,
+        // Boids-only model: strong alignment keeps the bait ball heading generally one way,
+        // moderate cohesion + lighter separation keep it a tight-but-not-packed cloud (sparser
+        // than the old spline ball, denser than a loose scatter). The formation slot supplies
+        // the 3D shape so separation no longer needs to be cranked up to avoid a conga line.
+        separationWeight: 0.30,
+        alignmentWeight: 0.38,
+        cohesionWeight: 0.20,
+        maxWeight: 0.70,
         // Harmless bait, but very skittish — flees anything menacing (the mako most of all).
         menace: 0,
         wariness: 0.85,
@@ -347,17 +348,16 @@ export const SPECIES = [
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
         strength: 1.0,
-        // Kept gentle: the mahi drives its bend from sustained heading misalignment
-        // (turnIntent), unlike the mako which uses only the tiny per-frame turn rate. A
-        // wide-arc turn holds a large misalignment, so a high maxAngle × 5 spine bones
-        // saturated into a held C-curl. Lower per-bone max + drive so it reads as a
-        // subtle banana-bank through the turn, not a curl.
+        // Bend is driven purely by the actual per-frame turn rate now (like the mako), not by
+        // sustained heading misalignment. Under boids the mahi steers continuously toward its
+        // formation slot, so a misalignment-driven bend (turnIntent) baked in a permanent
+        // sideways tail cock; turnIntentScale is 0 so the tail only banks when it truly turns.
         maxAngleDegrees: 8,
         response: 8.5,
         tailBias: 0.85,
         baseWeight: 0.28,
         chainMultiplier: 1.05,
-        turnIntentScale: 0.25,
+        turnIntentScale: 0,
         burstBoost: 0.72,
         speedBoost: 0.28,
         // Ease the bend back to straight when forward travel slows (e.g. crawling out of

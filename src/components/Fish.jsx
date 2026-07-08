@@ -141,16 +141,20 @@ const SCHOOL_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 2.5
 const SOLO_FOLLOW_LOOKAHEAD_BODY_LENGTHS = 1.5
 const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
 // A school travels toward a shared roaming goal (pure boids alone just mill in place). The
-// leader picks a new goal once the group is within SCHOOL_GOAL_REACHED of the current one.
+// leader picks a new (forward-biased) goal once the group is within SCHOOL_GOAL_REACHED of it.
 const SCHOOL_GOAL_REACHED_BODY_LENGTHS = 3.0
 const SCHOOL_GOAL_REACHED_MIN = 2.0
+// The shared migration direction is low-pass filtered so per-frame goal re-picks (which nudge
+// the goal laterally) can't accumulate into a constant slow turn — the school glides straight
+// and only swings when the goal genuinely shifts. Time constant in 1/seconds.
+const SCHOOL_MIGRATION_SMOOTH = 1.6
 // School steering blends a shared migration urge (travel along goal - centroid) with a pull
 // toward this member's formation slot (its designed place in the travel frame). The slot pull
 // gives the school a stable 3D shape so it holds width instead of collapsing to single-file —
 // a plain "seek the goal point" funnels every fish into a conga line. Boid separation/threat
 // then ride on top for anti-overlap and predator avoidance.
-const SCHOOL_MIGRATION_WEIGHT = 0.55
-const SCHOOL_FORMATION_WEIGHT = 0.75
+const SCHOOL_MIGRATION_WEIGHT = 0.6
+const SCHOOL_FORMATION_WEIGHT = 0.65
 const PATH_EDGE_PADDING = 0.75
 const PATH_VERTICAL_PADDING = 0.16
 const FISH_SEPARATION_PADDING = 0.18
@@ -3385,11 +3389,25 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (schoolState.centroid.distanceTo(schoolState.goal) <= reached) {
           const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
           pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
+          // Inset the goal from the walls so a wide-turning school (big fish, tight bounds)
+          // banks away early instead of driving into a boundary it can't out-turn and thrashing.
+          const gm = Math.min(bodyLength * 2, (schoolBounds.zMax - schoolBounds.zMin) * 0.28)
+          schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, schoolBounds.xMin + gm, schoolBounds.xMax - gm)
+          schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, schoolBounds.yMin + gm * 0.5, schoolBounds.yMax - gm * 0.5)
+          schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, schoolBounds.zMin + gm, schoolBounds.zMax - gm)
         }
-        // Shared direction (goal - centroid), identical for every member.
-        schoolState.migrationDir.subVectors(schoolState.goal, schoolState.centroid)
-        if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
-        else schoolState.migrationDir.set(0, 0, -1)
+        // Shared direction (goal - centroid), identical for every member, low-pass filtered so
+        // frame-to-frame goal jitter doesn't accumulate into a constant turn.
+        nextPoint.subVectors(schoolState.goal, schoolState.centroid)
+        if (nextPoint.lengthSq() > 1e-6) {
+          nextPoint.normalize()
+          if (schoolState.migrationDir.lengthSq() < 1e-6) schoolState.migrationDir.copy(nextPoint)
+          else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * SCHOOL_MIGRATION_SMOOTH))
+          if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
+          else schoolState.migrationDir.copy(nextPoint)
+        } else if (schoolState.migrationDir.lengthSq() < 1e-6) {
+          schoolState.migrationDir.set(0, 0, -1)
+        }
       }
 
       // Shared migration direction (leader-computed) — parallel travel, never a funnel.
@@ -3407,11 +3425,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       schoolBasePosition.x += hz * schoolOffset.lateral + hx * schoolOffset.longitudinal
       schoolBasePosition.z += -hx * schoolOffset.lateral + hz * schoolOffset.longitudinal
       schoolBasePosition.y += schoolOffset.vertical
-      // Desired heading = migration urge + pull toward the formation slot.
+      // Desired heading = migration urge + pull toward the formation slot. The slot pull is
+      // scaled down for tiny schools: with only a couple of members the slots sit right beside
+      // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
+      // cocks the tail). A pair instead just travels parallel on the shared migration + boid
+      // separation; big schools get the full formation shaping.
+      const formationWeight = SCHOOL_FORMATION_WEIGHT * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
       agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
       targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
       if (targetDesiredDirection.lengthSq() > 1e-6) {
-        agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), SCHOOL_FORMATION_WEIGHT)
+        agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), formationWeight)
       }
       if (agentMoveDirection.lengthSq() < 1e-6) agentMoveDirection.copy(schoolFollowDirection)
       agentMoveDirection.normalize()

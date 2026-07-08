@@ -234,6 +234,10 @@ const SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS = 0.18
 const SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS = 0.55
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MIN = 2.0
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
+// Non-mola solo agents (the mako) get a hard surface ceiling this far below the water plane, so
+// their tall runtime-overshoot envelope can't carry them up through the surface. Tuned to keep
+// the mako's body visibly submerged while still leaving a little headroom above its swim bounds.
+const SOLO_AGENT_SURFACE_CLEARANCE = 2.0
 // Predictive boundary avoidance for fast solo swimmers (the mako). Its open-water turn
 // radius is far wider than the tank, so at speed it reaches a wall before its gentle arc
 // can redirect, overshoots the runtime envelope, and gets snapped back inward (reads as
@@ -934,6 +938,19 @@ function clampToMolaSurfaceCeiling(point, creature, swim, bounds, direction = nu
   const maxY = Number.isFinite(yMaxOverride) ? yMaxOverride : molaSurfaceCenterYMax(creature, swim, bounds)
   if (point.y <= maxY) return false
   point.y = maxY
+  if (direction && direction.y > 0) {
+    direction.y = 0
+    if (direction.lengthSq() > 0.0001) direction.normalize()
+  }
+  return true
+}
+
+// Generic surface ceiling for non-mola solo agents (the mako): keep the body below the water
+// plane and flatten any upward heading so it glides along the ceiling instead of hovering with
+// its nose pushing up through the surface.
+function clampToSurfaceCeiling(point, direction, ceilingY) {
+  if (point.y <= ceilingY) return false
+  point.y = ceilingY
   if (direction && direction.y > 0) {
     direction.y = 0
     if (direction.lengthSq() > 0.0001) direction.normalize()
@@ -3316,6 +3333,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           ? molaSunBaskSurfaceCenterYMax(creature, swim, bounds)
           : null
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
+        if (!isMolaCreature(creature)) {
+          clampToSurfaceCeiling(fish.position, agentMoveDirection, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
+        }
         const recoveryNeeded = clampToSoloAgentRuntimeEnvelope(agentRuntimeEnvelopeProbe.copy(fish.position), bounds, bodyLength, creature)
         if (zoomActive && selected && recoveryNeeded && now - lastFollowRecoveryExitAt.current > 1.0) {
           lastFollowRecoveryExitAt.current = now

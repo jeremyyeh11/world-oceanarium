@@ -283,8 +283,11 @@ export const SPECIES = [
       turnTriggerThreshold: 0.3,
       erraticness: 0.08,
       turnRadius: 1.45,
-      // Cruiser: broad, committed turns.
-      turnRadiusBodyLengths: 2.8,
+      // Cruiser turns, but sized to the mahi's confined upper-column bounds. The old 2.8 gave a
+      // ~20 WU turn radius in a ~27 WU-wide box, so a pair that reached a wall/corner could not
+      // out-turn it and just orbited in place (a constant curve that cocked the tails). 1.3 keeps
+      // a broad, committed arc that still fits the box, so the mahi carves away and straightens.
+      turnRadiusBodyLengths: 1.3,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.18,
       boundsUseSpeciesSize: false,
@@ -347,7 +350,11 @@ export const SPECIES = [
       curveDeform: {
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
-        strength: 1.0,
+        // Lowered from 1.0: the mahi cruises its confined upper-column bounds in continuous
+        // gentle arcs, and the tail-bend `turn * 10.5` amplification turned even a ~2°/frame
+        // cruise-arc into a visible sideways tail. At 0.45 the tail stays near-straight while
+        // gliding and still banks subtly through genuine turns.
+        strength: 0.45,
         // Bend is driven purely by the actual per-frame turn rate now (like the mako), not by
         // sustained heading misalignment. Under boids the mahi steers continuously toward its
         // formation slot, so a misalignment-driven bend (turnIntent) baked in a permanent

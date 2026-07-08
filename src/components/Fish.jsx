@@ -144,9 +144,10 @@ const SOLO_FOLLOW_LOOKAHEAD_MIN = 0.35
 // leader picks a new (forward-biased) goal once the group is within SCHOOL_GOAL_REACHED of it.
 const SCHOOL_GOAL_REACHED_BODY_LENGTHS = 3.0
 const SCHOOL_GOAL_REACHED_MIN = 2.0
-// The shared migration direction is low-pass filtered so per-frame goal re-picks (which nudge
-// the goal laterally) can't accumulate into a constant slow turn — the school glides straight
-// and only swings when the goal genuinely shifts. Time constant in 1/seconds.
+// The shared migration direction is low-pass filtered so goal re-picks (which nudge the goal
+// laterally) can't accumulate into a constant slow turn — the school holds straight glides and
+// only swings when the goal genuinely shifts. Time constant in 1/seconds. Kept moderate: too low
+// lags the direction behind actual travel and the school's headings spread (coherence drops).
 const SCHOOL_MIGRATION_SMOOTH = 1.6
 // School steering blends a shared migration urge (travel along goal - centroid) with a pull
 // toward this member's formation slot (its designed place in the travel frame). The slot pull

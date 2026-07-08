@@ -520,17 +520,6 @@ function maxTurnRadiansForSpeed(swim, bodyLength, speed, delta) {
   return (Math.max(0, speed) / radius) * Math.max(0, delta)
 }
 
-function schoolMaxAvoidanceAngle(creature, swim, school) {
-  if (Number.isFinite(swim.schoolMaxAvoidanceAngleDegrees)) {
-    return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(swim.schoolMaxAvoidanceAngleDegrees, 0, 62))
-  }
-  return school?.count >= DENSE_SCHOOL_MIN_COUNT ? DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE : DEFAULT_MAX_AVOIDANCE_ANGLE
-}
-
-function schoolDirectionResponse(swim) {
-  return THREE.MathUtils.clamp(Number.isFinite(swim.schoolDirectionResponse) ? swim.schoolDirectionResponse : 5.0, 1.5, 14)
-}
-
 function soloAgentSteeringTurnRate(swim) {
   if (!Number.isFinite(swim.soloSteeringTurnRateDegrees)) return SOLO_AGENT_STEERING_MAX_TURN_RATE
   return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(
@@ -1984,10 +1973,6 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
   }
 }
 
-function makePathGeometry(path) {
-  return new THREE.BufferGeometry().setFromPoints(path.getPoints(120))
-}
-
 function makeDebugLineGeometry() {
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0], 3))
@@ -2798,10 +2783,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
   const pathRef = useRef(schoolState?.path ?? path)
   const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
-  const splineGeometry = useMemo(
-    () => makePathGeometry(schoolState?.path ?? path),
-    [path, schoolState?.path],
-  )
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidSeparationGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidAlignmentGeometry = useMemo(() => makeDebugLineGeometry(), [])
@@ -4069,11 +4050,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     <group>
       {debug && (
         <>
-          {SPLINE_MOVEMENT_ENABLED && (debugLayers?.direction ?? true) && (!isSchooling || isSchoolLeader || showAgentDebug || selected) && (
-            <line geometry={splineGeometry} raycast={() => null}>
-              <lineBasicMaterial color="#7df9ff" transparent opacity={0.55} depthWrite={false} />
-            </line>
-          )}
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>

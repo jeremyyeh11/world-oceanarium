@@ -454,16 +454,21 @@ export const SPECIES = [
       turnTriggerThreshold: 0.042,
       erraticness: 0.018,
       turnRadius: 1.32,
-      // Apex pelagic shark: long glides and wide banking turns, never a pivot.
-      turnRadiusBodyLengths: 2.6,
+      // Apex pelagic shark: long glides and wide banking turns, never a pivot. Sized to the
+      // tightened bounds below (the old 2.6 gave a ~41 WU radius that could not out-turn the
+      // envelope and overshot into hard clamps at the tank edges); 1.7 keeps a broad, committed
+      // arc that still fits so the mako carves away cleanly instead of snapping back.
+      turnRadiusBodyLengths: 1.7,
       speedMultiplier: 1.0,
-      movementBoundsScale: 1.48,
+      // Pulled in from 1.48 / z -36 so the mako stays a visible presence in the main tank instead
+      // of roaming far off-screen most of the time; still the widest-ranging fish in the tank.
+      movementBoundsScale: 1.22,
       soloSteeringTurnRateDegrees: 6,
       soloTargetVerticalBodyLengths: 0.18,
       boundsUseSpeciesSize: false,
       // Ranges from the surface into deeper offshore water — deep diver.
       boundsYMin: -14,
-      boundsZMin: -36,
+      boundsZMin: -26,
       boundsZMax: 4,
       boids: {
         // Apex solo hunter: sees few neighbors, is unbothered by others, but reads as

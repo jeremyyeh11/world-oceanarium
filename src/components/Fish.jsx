@@ -3344,22 +3344,26 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             if (fadeState.phase !== 'fade-out' && fadeState.phase !== 'fade-in') {
               runtimeRecoveryFade.current = { phase: 'fade-out', startedAt: now }
             }
-          } else {
+          } else if (isMolaCreature(creature)) {
+            // Mola: keep the snap-and-retarget recovery — its authored surface/depth behaviour
+            // relies on being reset to the envelope edge here.
             agentRuntimeClamp.copy(fish.position)
-            // Keep solo-agent recovery at the expanded runtime envelope edge. Snapping
-            // non-Mola agents all the way back to swim bounds made fast Mahi-mahi
-            // read as repeated teleports near the tank edges.
             clampToSoloAgentRuntimeEnvelope(agentRuntimeClamp, bounds, bodyLength, creature)
-            agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
-            if (!isMolaCreature(creature) && agentMoveDirection.lengthSq() > 0.0001) {
-              desiredDirection.current.copy(agentMoveDirection.normalize())
-            }
             fish.position.copy(agentRuntimeClamp)
             agentBehavior.current = null
             agentHasTarget.current = false
             agentBehaviorDistance.current = 0
             nextAgentRetargetAt.current = now
-            if (isMolaCreature(creature)) runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
+            runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
+          } else {
+            // Mako (and any other non-mola solo agent): gentle boundary handling, matching the
+            // boids schools. Clamp the position back inside the envelope and let steering +
+            // boundary-avoidance turning carve the heading away over the next frames. The old
+            // path forced the heading to the pure inward normal and re-targeted every frame — at
+            // high sim speed a fast agent that overshot the vertical envelope got pointed
+            // straight in, snapped, then re-accelerated straight back out, reading as a vertical
+            // thrash. A plain clamp can't create that loop.
+            clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)
           }
         }
         agentBehaviorDistance.current += movementScale

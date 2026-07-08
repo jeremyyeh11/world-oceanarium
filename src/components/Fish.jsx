@@ -3315,10 +3315,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           : null
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
         if (!isMolaCreature(creature)) {
+          // Mako: gentle boundary handling applied every frame — even while the follow cam is on
+          // it. Surface ceiling + a plain clamp back into the runtime envelope, letting steering
+          // and boundary-avoidance carve the heading away over the next frames. Because this keeps
+          // the mako inside its envelope continuously (no teleport, no snap-retarget), the follow
+          // cam no longer needs to be kicked out when it reaches an edge.
           clampToSurfaceCeiling(fish.position, agentMoveDirection, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
+          clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)
         }
         const recoveryNeeded = clampToSoloAgentRuntimeEnvelope(agentRuntimeEnvelopeProbe.copy(fish.position), bounds, bodyLength, creature)
-        if (zoomActive && selected && recoveryNeeded && now - lastFollowRecoveryExitAt.current > 1.0) {
+        // Only the mola's recovery is disruptive enough (snap-back / negative-Z fade-out) to
+        // warrant dropping the follow cam. The mako is handled gently above and stays trackable,
+        // so following it no longer gets interrupted with a "back in a bit" every time it roams
+        // to an envelope edge.
+        if (isMolaCreature(creature) && zoomActive && selected && recoveryNeeded && now - lastFollowRecoveryExitAt.current > 1.0) {
           lastFollowRecoveryExitAt.current = now
           onRuntimeRecoveryNeeded?.(creature)
         }
@@ -3345,9 +3355,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             if (fadeState.phase !== 'fade-out' && fadeState.phase !== 'fade-in') {
               runtimeRecoveryFade.current = { phase: 'fade-out', startedAt: now }
             }
-          } else if (isMolaCreature(creature)) {
-            // Mola: keep the snap-and-retarget recovery — its authored surface/depth behaviour
-            // relies on being reset to the envelope edge here.
+          } else {
+            // Mola snap-and-retarget recovery — its authored surface/depth behaviour relies on
+            // being reset to the envelope edge here. (The mako is clamped gently every frame
+            // above, so it never reaches this branch.)
             agentRuntimeClamp.copy(fish.position)
             clampToSoloAgentRuntimeEnvelope(agentRuntimeClamp, bounds, bodyLength, creature)
             fish.position.copy(agentRuntimeClamp)
@@ -3356,15 +3367,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             agentBehaviorDistance.current = 0
             nextAgentRetargetAt.current = now
             runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
-          } else {
-            // Mako (and any other non-mola solo agent): gentle boundary handling, matching the
-            // boids schools. Clamp the position back inside the envelope and let steering +
-            // boundary-avoidance turning carve the heading away over the next frames. The old
-            // path forced the heading to the pure inward normal and re-targeted every frame — at
-            // high sim speed a fast agent that overshot the vertical envelope got pointed
-            // straight in, snapped, then re-accelerated straight back out, reading as a vertical
-            // thrash. A plain clamp can't create that loop.
-            clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)
           }
         }
         agentBehaviorDistance.current += movementScale

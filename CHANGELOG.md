@@ -10,6 +10,8 @@ Versioning convention notes:
 
 ## v0.12.0 — Unified boids movement
 
+Status: accepted and promoted as clean `v0.12.0` from `v0.12.0-dev_12` after Jeremy reju (merged via #62).
+
 ### Creature behavior
 
 - `v0.12.0-dev_12` unifies schools and solo agents onto one movement pipeline: every creature now runs the same per-frame steer → boids → turn-cap → integrate → clamp integrator, differing only in how its base desired heading is produced (schools: shared migration goal + formation slot; solo agents: personal roaming/authored target) and in species-shaped clamps. The solo agent is a "school of one" — its two-step capped steering, `soloAgentSpeed` fallback, and the entire `clampToSoloAgentRuntimeEnvelope` overshoot-envelope machinery (margins, probe, mola snap-and-retarget recovery) are deleted; the mako is held by the shared `clampToSwimBounds` + its surface ceiling, and now applies spine-bend turn intent (its `curveDeform.turnIntentScale` was authored but previously unread in the solo path). The mola keeps its authored layer on top of the unified integrator: sun-bask state machine (boids suppressed while active, approach-decel/exit-ramp now shape the shared integrator's speed), depth-residency targets, surface ceilings, a hard forward wall at the end of its authored target range (its front-excursion/bask targets extend past the shared zMax), and a soft rear wall — past it the negative-Z fade-out/snap/fade-in recovery still runs (`isMolaDeepZExit`). `boundaryAvoidanceTurnStep` now applies to the mola too (it was mako/school-only). Inert tuning fields removed: `turnRadius` (all species + default) and `soloSteeringTurnRateDegrees` (mako).

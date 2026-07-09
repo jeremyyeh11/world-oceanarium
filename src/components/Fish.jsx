@@ -48,7 +48,6 @@ const DEFAULT_SWIM = {
   burstInterval: [5.5, 9.5],
   speedMultiplier: 1,
   erraticness: 0.35,
-  turnRadius: 0.65,
 }
 const MAX_MODEL_PITCH = THREE.MathUtils.degToRad(15)
 const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
@@ -187,29 +186,26 @@ const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MAX = 1.4
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
 const MOLA_STEERING_REACHED_BODY_LENGTHS = 0.32
 const MOLA_STEERING_REACHED_MAX = 3.0
-const SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS = 0.55
-const SOLO_AGENT_RUNTIME_OVERSHOOT_MIN = 2.0
-const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
 // Non-mola solo agents (the mako) get a hard surface ceiling this far below the water plane, so
-// their tall runtime-overshoot envelope can't carry them up through the surface. Tuned to keep
-// the mako's body visibly submerged while still leaving a little headroom above its swim bounds.
+// the swim bounds can't carry them up through the surface. Tuned to keep the mako's body visibly
+// submerged while still leaving a little headroom above its swim bounds.
 const SOLO_AGENT_SURFACE_CLEARANCE = 2.0
-// Predictive boundary avoidance for fast solo swimmers (the mako). Its open-water turn
-// radius is far wider than the tank, so at speed it reaches a wall before its gentle arc
-// can redirect, overshoots the runtime envelope, and gets snapped back inward (reads as
-// strafing backward). To prevent that, when the fish is heading at a wall within a
-// look-ahead distance, its allowed per-frame turn tightens toward BOUNDARY_MIN_TURN_RADIUS
-// so it can carve away in time. The look-ahead is a fixed multiple of that minimum radius'
-// quarter-arc run-up, and both scale with body length so the effect is size-agnostic. Open
-// water is untouched, so the mako keeps its wide banking arcs everywhere but the edges.
+// Predictive boundary avoidance (all creatures). A fast swimmer's open-water turn radius is
+// far wider than the tank, so at speed it reaches a wall before its gentle arc can redirect
+// and gets pinned against the clamp (reads as strafing backward). To prevent that, when the
+// fish is heading at a wall within a look-ahead distance, its allowed per-frame turn tightens
+// toward BOUNDARY_MIN_TURN_RADIUS so it can carve away in time. The look-ahead is a fixed
+// multiple of that minimum radius' quarter-arc run-up, and both scale with body length so the
+// effect is size-agnostic. Open water is untouched, so wide banking arcs survive everywhere
+// but the edges.
 const SOLO_AGENT_BOUNDARY_MIN_TURN_BODY_LENGTHS = 0.7
 const SOLO_AGENT_BOUNDARY_LOOKAHEAD_ARC_SCALE = 1.35
-const MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS = 1.75
-const MOLA_RUNTIME_OVERSHOOT_XZ_MIN = 9.0
-const MOLA_RUNTIME_OVERSHOOT_XZ_MAX = 18.0
-const MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_BODY_LENGTHS = 3.0
-const MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MIN = 18.0
-const MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MAX = 30.0
+// How far past the rear (negative-Z) swim wall the mola may drift before the fade-out
+// recovery kicks in. The rear stays soft — a blown deep U-turn exits into the dark and fades
+// out instead of sliding along a wall the mola cannot out-turn.
+const MOLA_DEEP_EXIT_Z_MARGIN_BODY_LENGTHS = 1.75
+const MOLA_DEEP_EXIT_Z_MARGIN_MIN = 9.0
+const MOLA_DEEP_EXIT_Z_MARGIN_MAX = 18.0
 const MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION = 8
 const MOLA_RUNTIME_RECOVERY_FADE_IN_DURATION = 3.5
 const MOLA_DEEP_ZONE_Z_MAX = -10
@@ -279,7 +275,6 @@ const curveDeformAxisY = new THREE.Vector3(0, 1, 0)
 const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentBoundaryInward = new THREE.Vector3()
 const agentRuntimeClamp = new THREE.Vector3()
-const agentRuntimeEnvelopeProbe = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
 const targetLookQuaternion = new THREE.Quaternion()
 const bankQuaternion = new THREE.Quaternion()
@@ -372,7 +367,6 @@ function resolveSwimProfile(creature) {
     burstInterval: speciesSwim.burstInterval ?? DEFAULT_SWIM.burstInterval,
     speedMultiplier: speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
     erraticness: speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
-    turnRadius: speciesSwim.turnRadius ?? DEFAULT_SWIM.turnRadius,
     driftInterval: speciesSwim.driftInterval ?? DEFAULT_DRIFT_INTERVAL,
     driftDuration: speciesSwim.driftDuration ?? DEFAULT_DRIFT_DURATION,
     burstActionDuration: speciesSwim.burstActionDuration ?? DEFAULT_BURST_ACTION_DURATION,
@@ -380,7 +374,6 @@ function resolveSwimProfile(creature) {
     turnTriggerThreshold: speciesSwim.turnTriggerThreshold ?? SNAP_TURN_THRESHOLD,
     schoolMaxAvoidanceAngleDegrees: speciesSwim.schoolMaxAvoidanceAngleDegrees,
     schoolDirectionResponse: speciesSwim.schoolDirectionResponse,
-    soloSteeringTurnRateDegrees: speciesSwim.soloSteeringTurnRateDegrees,
     soloTargetVerticalBodyLengths: speciesSwim.soloTargetVerticalBodyLengths,
   }
 }
@@ -571,58 +564,14 @@ function clampToSwimBounds(point, bounds) {
   return point
 }
 
-function soloAgentRuntimeMargins(bodyLength, creature) {
-  const verticalMargin = THREE.MathUtils.clamp(
-    bodyLength * SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS,
-    SOLO_AGENT_RUNTIME_OVERSHOOT_MIN,
-    SOLO_AGENT_RUNTIME_OVERSHOOT_MAX,
+function isMolaDeepZExit(point, bounds, bodyLength) {
+  const zMargin = THREE.MathUtils.clamp(
+    bodyLength * MOLA_DEEP_EXIT_Z_MARGIN_BODY_LENGTHS,
+    MOLA_DEEP_EXIT_Z_MARGIN_MIN,
+    MOLA_DEEP_EXIT_Z_MARGIN_MAX,
   )
-  if (!isMolaCreature(creature)) {
-    return {
-      verticalMargin,
-      xMargin: verticalMargin,
-      zMinMargin: verticalMargin,
-      zMaxMargin: verticalMargin,
-    }
-  }
-
-  const xzMargin = THREE.MathUtils.clamp(
-    bodyLength * MOLA_RUNTIME_OVERSHOOT_XZ_BODY_LENGTHS,
-    MOLA_RUNTIME_OVERSHOOT_XZ_MIN,
-    MOLA_RUNTIME_OVERSHOOT_XZ_MAX,
-  )
-  const positiveZMargin = THREE.MathUtils.clamp(
-    bodyLength * MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_BODY_LENGTHS,
-    MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MIN,
-    MOLA_RUNTIME_OVERSHOOT_POSITIVE_Z_MAX,
-  )
-
-  return {
-    verticalMargin,
-    xMargin: xzMargin,
-    zMinMargin: xzMargin,
-    zMaxMargin: positiveZMargin,
-  }
+  return point.z < bounds.zMin - zMargin
 }
-
-function isNegativeZRuntimeEnvelopeExit(point, bounds, bodyLength, creature) {
-  const { zMinMargin } = soloAgentRuntimeMargins(bodyLength, creature)
-  return point.z < bounds.zMin - zMinMargin
-}
-
-function clampToSoloAgentRuntimeEnvelope(point, bounds, bodyLength, creature) {
-  const { verticalMargin, xMargin, zMinMargin, zMaxMargin } = soloAgentRuntimeMargins(bodyLength, creature)
-  agentRuntimeClamp.copy(point)
-  agentRuntimeClamp.z = THREE.MathUtils.clamp(agentRuntimeClamp.z, bounds.zMin - zMinMargin, bounds.zMax + zMaxMargin)
-  const { xMin, xMax } = swimXRangeAtZ(bounds, agentRuntimeClamp.z)
-  agentRuntimeClamp.x = THREE.MathUtils.clamp(agentRuntimeClamp.x, xMin - xMargin, xMax + xMargin)
-  agentRuntimeClamp.y = THREE.MathUtils.clamp(agentRuntimeClamp.y, bounds.yMin - verticalMargin, bounds.yMax + verticalMargin)
-  const clamped = agentRuntimeClamp.distanceToSquared(point) > 0.000001
-  if (clamped) point.copy(agentRuntimeClamp)
-  return clamped
-}
-
-
 
 // Smallest positive distance from `position` travelling along `forward` before it crosses a
 // swim-bounds wall. Infinity when the heading is not aimed at any wall. Because it is a
@@ -1913,7 +1862,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const lastFollowRecoveryExitAt = useRef(-Infinity)
   const runtimeRecoveryFade = useRef({ phase: 'idle', startedAt: 0 })
   const simulationTime = useRef(null)
-  const rawBoidSteering = useRef(new THREE.Vector3())
   const smoothedBoidSteering = useRef(new THREE.Vector3())
   // Boid decisions are committed and held for ~one animation cycle, then re-decided.
   // Between ticks the committed vector is eased in, so heading changes are smooth and
@@ -2096,7 +2044,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     nextBurstAt.current = motion.burstPhase + motion.burstInterval
     nextDriftAt.current = motion.driftPhase
     driftUntil.current = 0
-    rawBoidSteering.current.set(0, 0, 0)
     smoothedBoidSteering.current.set(0, 0, 0)
     committedBoidSteering.current.set(0, 0, 0)
     boidDecisionNextAt.current = 0
@@ -2384,14 +2331,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       fish.position.copy(position)
       previousPosition.current.copy(fish.position)
       hasFollowPosition.current = true
-    } else if (isSoloAgent) {
+    } else {
+      // --- Unified movement: one steer → boids → turn-cap → integrate → clamp pipeline. ---
+      // Schools and solo agents differ only in how the base desired heading is produced
+      // (shared migration goal + formation slot vs. a personal roaming/authored target) and
+      // in which clamps shape the result; the integrator itself is identical.
       previousPosition.current.copy(fish.position)
       tangent.copy(desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : (hasVisualForward.current ? visualForward.current : tangent))
       if (tangent.lengthSq() < 0.0001) tangent.set(0, 0, -1)
       tangent.normalize()
 
+      const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
+        // Authored mola sun-bask hold: the behavior owns position outright (coast to a stop,
+        // surface drift), bypassing the shared integrator entirely.
         desiredDirection.current.copy(tangent)
         agentMoveDirection.copy(tangent)
         const driftElapsed = now - agentBehavior.current.stageStartedAt
@@ -2403,61 +2357,124 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
         fish.position.x += Math.sin(driftPhase) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * driftIntroAlpha * delta
         fish.position.z += Math.cos(driftPhase * 0.73) * MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE * driftIntroAlpha * delta
-        const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
         velocity.current = THREE.MathUtils.damp(velocity.current, 0, 1.4, delta)
         const driftY = Math.sin(driftPhase * 0.57 + 1.7) * MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE * driftIntroAlpha
         fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSunBaskSurfaceCenterYMax(creature, swim, bounds) + driftY, 1.2, delta)
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
         agentBehaviorDistance.current = 0
       } else {
-        // Cap solo-agent heading changes to a forward arc of body-length turn radius,
-        // so large solo swimmers (mako) bank through turns instead of pivoting on the spot.
-        const soloForwardSpeed = (Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed) * organicMotion.speedScale
-        const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-        let soloTurnRadiusStep = maxTurnRadiansForSpeed(swim, bodyLength, soloForwardSpeed, delta)
-        // Let the mako tighten its arc as it bears down on a wall so it carves away instead of
-        // overshooting the envelope and getting snapped back. The mola keeps its own boundary
-        // and surface handling untouched.
-        if (!isMolaCreature(creature)) {
-          soloTurnRadiusStep = boundaryAvoidanceTurnStep(soloTurnRadiusStep, fish.position, tangent, bounds, swim, bodyLength, soloForwardSpeed, delta)
-        }
-        if (agentHasTarget.current) {
+        // Base desired heading — the only mode-specific step.
+        if (isSchooling) {
+          // Leader maintains the shared school centroid + migration direction, and advances the
+          // goal once the group's centroid reaches it.
+          if (isSchoolLeader) {
+            let cx = 0, cy = 0, cz = 0, cn = 0
+            FISH_REGISTRY.forEach(entry => {
+              if (entry.schoolId === school.id) { cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1 }
+            })
+            if (cn > 0) schoolState.centroid.set(cx / cn, cy / cn, cz / cn)
+            const reached = Math.max(bodyLength * SCHOOL_GOAL_REACHED_BODY_LENGTHS, SCHOOL_GOAL_REACHED_MIN)
+            if (schoolState.centroid.distanceTo(schoolState.goal) <= reached) {
+              const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
+              pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
+              // Inset the goal from the walls so a wide-turning school (big fish, tight bounds)
+              // banks away early instead of driving into a boundary it can't out-turn and thrashing.
+              const gm = Math.min(bodyLength * 2, (bounds.zMax - bounds.zMin) * 0.28)
+              schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, bounds.xMin + gm, bounds.xMax - gm)
+              schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, bounds.yMin + gm * 0.5, bounds.yMax - gm * 0.5)
+              schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, bounds.zMin + gm, bounds.zMax - gm)
+            }
+            // Shared direction (goal - centroid), identical for every member, low-pass filtered so
+            // frame-to-frame goal jitter doesn't accumulate into a constant turn.
+            nextPoint.subVectors(schoolState.goal, schoolState.centroid)
+            if (nextPoint.lengthSq() > 1e-6) {
+              nextPoint.normalize()
+              if (schoolState.migrationDir.lengthSq() < 1e-6) schoolState.migrationDir.copy(nextPoint)
+              else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * SCHOOL_MIGRATION_SMOOTH))
+              if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
+              else schoolState.migrationDir.copy(nextPoint)
+            } else if (schoolState.migrationDir.lengthSq() < 1e-6) {
+              schoolState.migrationDir.set(0, 0, -1)
+            }
+          }
+
+          // Shared migration direction (leader-computed) — parallel travel, never a funnel.
+          schoolFollowDirection.copy(schoolState.migrationDir)
+          if (schoolFollowDirection.lengthSq() < 1e-6) {
+            schoolFollowDirection.subVectors(schoolState.goal, fish.position)
+            if (schoolFollowDirection.lengthSq() > 1e-6) schoolFollowDirection.normalize()
+            else schoolFollowDirection.set(0, 0, -1)
+          }
+          // This member's formation slot, placed in the travel frame around the school centroid
+          // (right = perpendicular to heading in XZ, up = world Y). Anchoring the shape here means
+          // a single-file line is no longer an equilibrium, so the ball keeps its width.
+          const hx = schoolFollowDirection.x, hz = schoolFollowDirection.z
+          schoolBasePosition.copy(schoolState.centroid)
+          schoolBasePosition.x += hz * schoolOffset.lateral + hx * schoolOffset.longitudinal
+          schoolBasePosition.z += -hx * schoolOffset.lateral + hz * schoolOffset.longitudinal
+          schoolBasePosition.y += schoolOffset.vertical
+          // Desired heading = migration urge + pull toward the formation slot. The slot pull is
+          // scaled down for tiny schools: with only a couple of members the slots sit right beside
+          // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
+          // cocks the tail). A pair instead just travels parallel on the shared migration + boid
+          // separation; big schools get the full formation shaping.
+          const formationWeight = SCHOOL_FORMATION_WEIGHT * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
+          agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
+          targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
+          if (targetDesiredDirection.lengthSq() > 1e-6) {
+            agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), formationWeight)
+          }
+          if (agentMoveDirection.lengthSq() < 1e-6) agentMoveDirection.copy(schoolFollowDirection)
+          agentMoveDirection.normalize()
+          // Boundary shaping via a projected lookahead point.
+          agentCandidateTarget.copy(fish.position).addScaledVector(agentMoveDirection, bodyLength * 6)
+          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentCandidateTarget, tangent, creature, swim)
+        } else if (agentHasTarget.current) {
+          // Solo agent: steer toward the personal roaming/authored target (boundary-shaped for
+          // non-mola species).
           shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
-          // Turn purely on the body-length arc radius at the current swim speed. The old
-          // fixed-degrees cap turned slower than the radius implied, which meant an even
-          // wider effective radius than configured — so the shark swept along tank
-          // boundaries instead of completing a forward arc.
-          rotateDirectionToward(tangent, agentMoveDirection, soloTurnRadiusStep)
+        } else {
+          // Between targets: hold the current heading and let boids/clamps shape it.
+          agentMoveDirection.copy(tangent)
         }
 
-        // Authored behaviors (e.g. the mola sun-bask approach/exit) own the steering
-        // outright — boid forces are suppressed so they never nudge the animation off
-        // its path. The bask hold stage above already bypasses boids entirely.
+        // Boid forces as a first-class steering input (separation / alignment / cohesion /
+        // threat). Authored behaviors (the mola sun-bask approach/exit) own the steering
+        // outright — boid forces are suppressed so they never nudge the animation off its
+        // path. The bask hold stage above already bypasses boids entirely.
         const authoredBehaviorActive = agentBehavior.current?.type === 'sun-bask'
         if (!authoredBehaviorActive) {
           if (now >= boidDecisionNextAt.current) {
-            computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, tangent, boidDebugState.current)
+            computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, agentMoveDirection, boidDebugState.current)
             boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
           }
           smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
-          if (smoothedBoidSteering.current.lengthSq() > 0.000001) {
-            targetDesiredDirection.copy(tangent).add(smoothedBoidSteering.current)
-            if (targetDesiredDirection.lengthSq() > 0.0001) {
-              rotateDirectionToward(tangent, targetDesiredDirection.normalize(), soloTurnRadiusStep)
-            }
-          }
         } else {
           // Keep the committed vector decaying so it does not snap back in when the
           // authored behavior ends.
           smoothedBoidSteering.current.multiplyScalar(Math.exp(-delta * BOID_STEERING_SMOOTHING))
         }
+        // agentMoveDirection is the base heading (unit); add boid forces on top for
+        // anti-overlap and predator avoidance.
+        targetDesiredDirection.copy(agentMoveDirection).add(smoothedBoidSteering.current)
+        if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
+        else targetDesiredDirection.copy(agentMoveDirection)
 
-        desiredDirection.current.copy(tangent)
-        agentMoveDirection.copy(tangent)
-        const soloAgentSpeed = Number.isFinite(velocity.current) && velocity.current > 0 ? velocity.current : motion.idleSpeed
-        const sunBaskApproaching = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'approach'
-        let approachSpeedScale = 1
-        if (sunBaskApproaching) {
+        if (desiredDirection.current.lengthSq() < 0.0001) desiredDirection.current.copy(targetDesiredDirection)
+
+        // Spine bend intent: signed yaw between current and desired heading.
+        const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
+          ? model.curveDeform.turnIntentScale
+          : 0
+        if (turnIntentScale > 0) {
+          const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
+          curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
+        }
+
+        // Authored speed shaping: the sun-bask approach eases the mola to a crawl at the bask
+        // point, and the exit ramps it back up to cruise. 1 for everything else.
+        let authoredSpeedScale = 1
+        if (agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
           const plannedDistance = Math.max(0.001, agentBehavior.current.approachDistance ?? 0)
           const remainingDistance = agentHasTarget.current ? fish.position.distanceTo(agentTarget.current) : 0
           const progressToBask = THREE.MathUtils.clamp(1 - (remainingDistance / plannedDistance), 0, 1)
@@ -2467,191 +2484,81 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             1,
           )
           const easedDecel = decelAlpha * decelAlpha * (3 - 2 * decelAlpha)
-          approachSpeedScale = THREE.MathUtils.lerp(1, MOLA_SUN_BASK_APPROACH_MIN_SPEED_SCALE, easedDecel)
+          authoredSpeedScale = THREE.MathUtils.lerp(1, MOLA_SUN_BASK_APPROACH_MIN_SPEED_SCALE, easedDecel)
         } else if (agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'exit') {
           const exitElapsed = Math.max(0, now - (agentBehavior.current.stageStartedAt ?? agentBehaviorStartedAt.current))
-          approachSpeedScale = THREE.MathUtils.smoothstep(exitElapsed, 0, MOLA_SUN_BASK_EXIT_SPEED_RAMP_DURATION)
+          authoredSpeedScale = THREE.MathUtils.smoothstep(exitElapsed, 0, MOLA_SUN_BASK_EXIT_SPEED_RAMP_DURATION)
         }
-        const movementScale = soloAgentSpeed * approachSpeedScale * organicMotion.speedScale * delta
+
+        // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
+        const forwardSpeed = velocity.current * authoredSpeedScale * organicMotion.speedScale
+        let turnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
+        turnStep = boundaryAvoidanceTurnStep(turnStep, fish.position, desiredDirection.current, bounds, swim, bodyLength, forwardSpeed, delta)
+        rotateDirectionToward(desiredDirection.current, targetDesiredDirection, turnStep)
+
+        // Integrate velocity along the heading — no follow-target distance cap.
+        const movementScale = forwardSpeed * delta
+        agentMoveDirection.copy(desiredDirection.current)
         fish.position.addScaledVector(agentMoveDirection, movementScale)
-        const surfaceYMax = agentBehavior.current?.type === 'sun-bask'
-          ? molaSunBaskSurfaceCenterYMax(creature, swim, bounds)
-          : null
-        clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
-        if (!isMolaCreature(creature)) {
-          // Mako: gentle boundary handling applied every frame — even while the follow cam is on
-          // it. Surface ceiling + a plain clamp back into the runtime envelope, letting steering
-          // and boundary-avoidance carve the heading away over the next frames. Because this keeps
-          // the mako inside its envelope continuously (no teleport, no snap-retarget), the follow
-          // cam no longer needs to be kicked out when it reaches an edge.
-          clampToSurfaceCeiling(fish.position, agentMoveDirection, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
-          clampToSoloAgentRuntimeEnvelope(fish.position, bounds, bodyLength, creature)
+
+        // Species-shaped clamps on the shared swim bounds.
+        if (isMolaCreature(creature)) {
+          // The mola's authored targets (front excursions, sun-bask approach) extend past the
+          // shared zMax, so its forward wall sits where those targets end. The rear stays soft:
+          // a blown deep U-turn exits into the dark and the fade-out recovery below brings it
+          // back, instead of the mola sliding along a wall it cannot out-turn.
+          fish.position.z = Math.min(fish.position.z, MOLA_SUN_BASK_APPROACH_Z[1])
+          const { xMin, xMax } = swimXRangeAtZ(bounds, fish.position.z)
+          fish.position.x = THREE.MathUtils.clamp(fish.position.x, xMin, xMax)
+          fish.position.y = Math.max(fish.position.y, bounds.yMin)
+          const surfaceYMax = agentBehavior.current?.type === 'sun-bask'
+            ? molaSunBaskSurfaceCenterYMax(creature, swim, bounds)
+            : null
+          clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
+        } else {
+          clampToSwimBounds(fish.position, bounds)
+          if (isSoloAgent) {
+            // Keep the body below the water plane and flatten any upward heading so it glides
+            // along the ceiling instead of nosing through the surface.
+            clampToSurfaceCeiling(fish.position, agentMoveDirection, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
+          }
         }
-        const recoveryNeeded = clampToSoloAgentRuntimeEnvelope(agentRuntimeEnvelopeProbe.copy(fish.position), bounds, bodyLength, creature)
-        // Only the mola's recovery is disruptive enough (snap-back / negative-Z fade-out) to
-        // warrant dropping the follow cam. The mako is handled gently above and stays trackable,
-        // so following it no longer gets interrupted with a "back in a bit" every time it roams
-        // to an envelope edge.
-        if (isMolaCreature(creature) && zoomActive && selected && recoveryNeeded && now - lastFollowRecoveryExitAt.current > 1.0) {
-          lastFollowRecoveryExitAt.current = now
-          onRuntimeRecoveryNeeded?.(creature)
-        }
-        const runtimeRecoveryEnabled = !zoomActive && soloRuntimeRecoveryEnabled
-        const fadeState = runtimeRecoveryFade.current
-        const molaFadeOutReady = runtimeRecoveryEnabled
-          && isMolaCreature(creature)
-          && fadeState.phase === 'fade-out'
-          && now - fadeState.startedAt >= MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION
-        if (molaFadeOutReady) {
-          agentRuntimeClamp.copy(fish.position)
-          clampToSwimBounds(agentRuntimeClamp, bounds)
-          agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
-          if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
-          fish.position.copy(agentRuntimeClamp)
-          agentBehavior.current = null
-          agentHasTarget.current = false
-          agentBehaviorDistance.current = 0
-          nextAgentRetargetAt.current = now
-          runtimeRecoveryFade.current = { phase: 'fade-in', startedAt: now }
-        } else if (runtimeRecoveryEnabled && recoveryNeeded) {
-          const negativeZRecoveryNeeded = isNegativeZRuntimeEnvelopeExit(fish.position, bounds, bodyLength, creature)
-          if (isMolaCreature(creature) && negativeZRecoveryNeeded) {
-            if (fadeState.phase !== 'fade-out' && fadeState.phase !== 'fade-in') {
-              runtimeRecoveryFade.current = { phase: 'fade-out', startedAt: now }
-            }
-          } else {
-            // Mola snap-and-retarget recovery — its authored surface/depth behaviour relies on
-            // being reset to the envelope edge here. (The mako is clamped gently every frame
-            // above, so it never reaches this branch.)
+
+        // Mola deep-exit recovery: past the soft rear wall it fades out, snaps back inside the
+        // shared bounds, retargets, and fades back in. While the follow cam is on it, recovery
+        // is deferred and the cam is asked to let go instead (a teleport under the camera reads
+        // as a glitch).
+        if (isMolaCreature(creature)) {
+          const deepExit = isMolaDeepZExit(fish.position, bounds, bodyLength)
+          if (zoomActive && selected && deepExit && now - lastFollowRecoveryExitAt.current > 1.0) {
+            lastFollowRecoveryExitAt.current = now
+            onRuntimeRecoveryNeeded?.(creature)
+          }
+          const runtimeRecoveryEnabled = !zoomActive && soloRuntimeRecoveryEnabled
+          const fadeState = runtimeRecoveryFade.current
+          if (runtimeRecoveryEnabled && fadeState.phase === 'fade-out'
+            && now - fadeState.startedAt >= MOLA_RUNTIME_RECOVERY_FADE_OUT_DURATION) {
             agentRuntimeClamp.copy(fish.position)
-            clampToSoloAgentRuntimeEnvelope(agentRuntimeClamp, bounds, bodyLength, creature)
+            clampToSwimBounds(agentRuntimeClamp, bounds)
+            agentMoveDirection.subVectors(agentRuntimeClamp, fish.position)
+            if (agentMoveDirection.lengthSq() > 0.0001) desiredDirection.current.copy(agentMoveDirection.normalize())
             fish.position.copy(agentRuntimeClamp)
             agentBehavior.current = null
             agentHasTarget.current = false
             agentBehaviorDistance.current = 0
             nextAgentRetargetAt.current = now
-            runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
+            runtimeRecoveryFade.current = { phase: 'fade-in', startedAt: now }
+          } else if (runtimeRecoveryEnabled && deepExit && fadeState.phase !== 'fade-out' && fadeState.phase !== 'fade-in') {
+            runtimeRecoveryFade.current = { phase: 'fade-out', startedAt: now }
           }
         }
-        agentBehaviorDistance.current += movementScale
+
+        if (isSoloAgent) agentBehaviorDistance.current += movementScale
       }
       followTarget.current.copy(fish.position).addScaledVector(agentMoveDirection, followDistance)
       tangent.subVectors(fish.position, previousPosition.current)
       if (tangent.lengthSq() > 0.000001) tangent.normalize()
       else tangent.copy(agentMoveDirection)
-    } else {
-      // --- Boids schooling movement ---
-      // No spline, no follow-target distance cap. Steer toward the shared roaming goal
-      // (already biased by this member's formation offset in followTarget), blended with
-      // first-class boid forces, capped to a body-length turn arc, then integrate velocity
-      // freely — so the target can never pin the fish in place the way the old spline
-      // endpoint did.
-      previousPosition.current.copy(fish.position)
-      const schoolBounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-
-      // Leader maintains the shared school centroid + migration direction, and advances the
-      // goal once the group's centroid reaches it.
-      if (isSchoolLeader) {
-        let cx = 0, cy = 0, cz = 0, cn = 0
-        FISH_REGISTRY.forEach(entry => {
-          if (entry.schoolId === school.id) { cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1 }
-        })
-        if (cn > 0) schoolState.centroid.set(cx / cn, cy / cn, cz / cn)
-        const reached = Math.max(bodyLength * SCHOOL_GOAL_REACHED_BODY_LENGTHS, SCHOOL_GOAL_REACHED_MIN)
-        if (schoolState.centroid.distanceTo(schoolState.goal) <= reached) {
-          const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
-          pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
-          // Inset the goal from the walls so a wide-turning school (big fish, tight bounds)
-          // banks away early instead of driving into a boundary it can't out-turn and thrashing.
-          const gm = Math.min(bodyLength * 2, (schoolBounds.zMax - schoolBounds.zMin) * 0.28)
-          schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, schoolBounds.xMin + gm, schoolBounds.xMax - gm)
-          schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, schoolBounds.yMin + gm * 0.5, schoolBounds.yMax - gm * 0.5)
-          schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, schoolBounds.zMin + gm, schoolBounds.zMax - gm)
-        }
-        // Shared direction (goal - centroid), identical for every member, low-pass filtered so
-        // frame-to-frame goal jitter doesn't accumulate into a constant turn.
-        nextPoint.subVectors(schoolState.goal, schoolState.centroid)
-        if (nextPoint.lengthSq() > 1e-6) {
-          nextPoint.normalize()
-          if (schoolState.migrationDir.lengthSq() < 1e-6) schoolState.migrationDir.copy(nextPoint)
-          else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * SCHOOL_MIGRATION_SMOOTH))
-          if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
-          else schoolState.migrationDir.copy(nextPoint)
-        } else if (schoolState.migrationDir.lengthSq() < 1e-6) {
-          schoolState.migrationDir.set(0, 0, -1)
-        }
-      }
-
-      // Shared migration direction (leader-computed) — parallel travel, never a funnel.
-      schoolFollowDirection.copy(schoolState.migrationDir)
-      if (schoolFollowDirection.lengthSq() < 1e-6) {
-        schoolFollowDirection.subVectors(schoolState.goal, fish.position)
-        if (schoolFollowDirection.lengthSq() > 1e-6) schoolFollowDirection.normalize()
-        else schoolFollowDirection.set(0, 0, -1)
-      }
-      // This member's formation slot, placed in the travel frame around the school centroid
-      // (right = perpendicular to heading in XZ, up = world Y). Anchoring the shape here means
-      // a single-file line is no longer an equilibrium, so the ball keeps its width.
-      const hx = schoolFollowDirection.x, hz = schoolFollowDirection.z
-      schoolBasePosition.copy(schoolState.centroid)
-      schoolBasePosition.x += hz * schoolOffset.lateral + hx * schoolOffset.longitudinal
-      schoolBasePosition.z += -hx * schoolOffset.lateral + hz * schoolOffset.longitudinal
-      schoolBasePosition.y += schoolOffset.vertical
-      // Desired heading = migration urge + pull toward the formation slot. The slot pull is
-      // scaled down for tiny schools: with only a couple of members the slots sit right beside
-      // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
-      // cocks the tail). A pair instead just travels parallel on the shared migration + boid
-      // separation; big schools get the full formation shaping.
-      const formationWeight = SCHOOL_FORMATION_WEIGHT * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
-      agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
-      targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
-      if (targetDesiredDirection.lengthSq() > 1e-6) {
-        agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), formationWeight)
-      }
-      if (agentMoveDirection.lengthSq() < 1e-6) agentMoveDirection.copy(schoolFollowDirection)
-      agentMoveDirection.normalize()
-      // Boundary shaping via a projected lookahead point.
-      followTarget.current.copy(fish.position).addScaledVector(agentMoveDirection, bodyLength * 6)
-      shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, followTarget.current, tangent, creature, swim)
-
-      // Boid forces as a first-class steering input (separation / alignment / cohesion / threat).
-      if (now >= boidDecisionNextAt.current) {
-        computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, agentMoveDirection, boidDebugState.current)
-        boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
-      }
-      smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
-      // agentMoveDirection is already the migration+formation heading (unit); add boid forces
-      // (separation/threat) on top for anti-overlap and predator avoidance.
-      targetDesiredDirection.copy(agentMoveDirection).add(smoothedBoidSteering.current)
-      if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
-      else targetDesiredDirection.copy(agentMoveDirection)
-
-      if (desiredDirection.current.lengthSq() < 0.0001) desiredDirection.current.copy(targetDesiredDirection)
-
-      // Spine bend intent: signed yaw between current and desired heading.
-      const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
-        ? model.curveDeform.turnIntentScale
-        : 0
-      if (turnIntentScale > 0) {
-        const turnIntent = desiredDirection.current.z * targetDesiredDirection.x - desiredDirection.current.x * targetDesiredDirection.z
-        curveDeformTurnIntent.current = THREE.MathUtils.clamp(turnIntent * turnIntentScale, -1, 1)
-      }
-
-      // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
-      const forwardSpeed = velocity.current * organicMotion.speedScale
-      let turnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
-      turnStep = boundaryAvoidanceTurnStep(turnStep, fish.position, desiredDirection.current, schoolBounds, swim, bodyLength, forwardSpeed, delta)
-      rotateDirectionToward(desiredDirection.current, targetDesiredDirection, turnStep)
-
-      // Integrate velocity along the heading — no follow-target distance cap.
-      const movementScale = velocity.current * organicMotion.speedScale * delta
-      agentMoveDirection.copy(desiredDirection.current)
-      fish.position.addScaledVector(agentMoveDirection, movementScale)
-      clampToSwimBounds(fish.position, schoolBounds)
-
-      tangent.subVectors(fish.position, previousPosition.current)
-      if (tangent.lengthSq() > 0.000001) tangent.normalize()
-      else tangent.copy(desiredDirection.current)
     }
 
     if (showAgentDebug) {

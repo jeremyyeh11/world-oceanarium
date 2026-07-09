@@ -154,7 +154,6 @@ export const SPECIES = [
       burstBLPerSec: [5.0, 8.0],
       burstInterval: [5.5, 9.5],
       erraticness: 0.24,
-      turnRadius: 0.78,
       // Turn radius in body lengths — nimble bait, but still arcs forward through turns.
       turnRadiusBodyLengths: 2.0,
       // Bait balls range through the upper column; deepened for vertical spread.
@@ -282,7 +281,6 @@ export const SPECIES = [
       // snap clip that froze the body in a C-curl. Only sharp turns trigger the snap.
       turnTriggerThreshold: 0.3,
       erraticness: 0.08,
-      turnRadius: 1.45,
       // Cruiser turns, but sized to the mahi's confined upper-column bounds. The old 2.8 gave a
       // ~20 WU turn radius in a ~27 WU-wide box, so a pair that reached a wall/corner could not
       // out-turn it and just orbited in place (a constant curve that cocked the tails). 1.3 keeps
@@ -453,7 +451,6 @@ export const SPECIES = [
       turnActionDuration: 3.2,
       turnTriggerThreshold: 0.042,
       erraticness: 0.018,
-      turnRadius: 1.32,
       // Apex pelagic shark: long glides and wide banking turns, never a pivot. Sized to the
       // tightened bounds below (the old 2.6 gave a ~41 WU radius that could not out-turn the
       // envelope and overshot into hard clamps at the tank edges); 1.7 keeps a broad, committed
@@ -463,7 +460,6 @@ export const SPECIES = [
       // Pulled in from 1.48 / z -36 so the mako stays a visible presence in the main tank instead
       // of roaming far off-screen most of the time; still the widest-ranging fish in the tank.
       movementBoundsScale: 1.22,
-      soloSteeringTurnRateDegrees: 6,
       soloTargetVerticalBodyLengths: 0.18,
       boundsUseSpeciesSize: false,
       // Ranges from the surface into deeper offshore water — deep diver.
@@ -612,7 +608,6 @@ export const SPECIES = [
       turnActionDuration: 10.0,
       turnTriggerThreshold: 0.0045,
       erraticness: 0.055,
-      turnRadius: 1.0,
       // Slow gelatinous drifter: gentle, wide turns.
       turnRadiusBodyLengths: 2.0,
       speedMultiplier: 1.0,

@@ -12,6 +12,7 @@ import { creatureRepulsesOthers } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
+import { getFishRuntime } from './fishRuntimeStore'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -1810,6 +1811,11 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
 
 export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
+  // Persistent kinematic snapshot for this creature. Survives unmount/remount so switching tanks
+  // resumes movement instead of re-seeding. Object-valued fields below are shared by reference
+  // (the sim writes through to the store); scalar fields are hydrated here and mirrored back at
+  // the end of each frame. See fishRuntimeStore.js.
+  const runtime = useMemo(() => getFishRuntime(creature.id), [creature.id])
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
   const boidSeparationLineRef = useRef()
@@ -1870,13 +1876,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const queuedSunBaskRequestId = useRef(0)
   const lastFollowRecoveryExitAt = useRef(-Infinity)
   const runtimeRecoveryFade = useRef({ phase: 'idle', startedAt: 0 })
-  const simulationTime = useRef(null)
-  const smoothedBoidSteering = useRef(new THREE.Vector3())
+  const simulationTime = useRef(runtime.simulationTime)
+  const smoothedBoidSteering = useRef(runtime.smoothedBoidSteering)
   // Boid decisions are committed and held for ~one animation cycle, then re-decided.
   // Between ticks the committed vector is eased in, so heading changes are smooth and
   // infrequent instead of recomputed every frame.
-  const committedBoidSteering = useRef(new THREE.Vector3())
-  const boidDecisionNextAt = useRef(0)
+  const committedBoidSteering = useRef(runtime.committedBoidSteering)
+  const boidDecisionNextAt = useRef(runtime.boidDecisionNextAt)
   const boidDecisionJitter = useRef(Math.random())
   const boidDebugState = useRef({
     separation: new THREE.Vector3(),
@@ -1897,21 +1903,25 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     })),
   })
   const repulserDrift = useRef(new THREE.Vector3())
-  const desiredDirection = useRef(new THREE.Vector3())
+  const desiredDirection = useRef(runtime.desiredDirection)
   const labelPosition = useRef(new THREE.Vector3())
-  const previousPosition = useRef(new THREE.Vector3())
-  const hasFollowPosition = useRef(false)
-  const previousTangent = useRef(new THREE.Vector3())
-  const visualForward = useRef(new THREE.Vector3())
-  const visualPitch = useRef(0)
-  const hasVisualForward = useRef(false)
-  const baseLookQuaternion = useRef(new THREE.Quaternion())
-  const hasBaseLookQuaternion = useRef(false)
+  const previousPosition = useRef(runtime.previousPosition)
+  const hasFollowPosition = useRef(runtime.hasFollowPosition)
+  const previousTangent = useRef(runtime.previousTangent)
+  const visualForward = useRef(runtime.visualForward)
+  const visualPitch = useRef(runtime.visualPitch)
+  const hasVisualForward = useRef(runtime.hasVisualForward)
+  const baseLookQuaternion = useRef(runtime.baseLookQuaternion)
+  const hasBaseLookQuaternion = useRef(runtime.hasBaseLookQuaternion)
+  // Mount-scoped (not persisted): applies the stored world position back onto the freshly-mounted
+  // group exactly once, before its first frame renders, so a resumed fish appears where it froze
+  // rather than flashing at the origin.
+  const restoredPositionRef = useRef(false)
   const lookBehaviorKey = useRef('')
   const lookBehaviorTransitionStartedAt = useRef(-Infinity)
   const animationCooldown = useRef(0)
   const animationHoldUntil = useRef(0)
-  const velocity = useRef(0)
+  const velocity = useRef(runtime.velocity ?? 0)
   const actionSpeedStartAt = useRef(0)
   const actionSpeedUntil = useRef(0)
   const actionSpeedTarget = useRef(0)
@@ -1920,9 +1930,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // fish is throttled (e.g. crawling out of a turn), used to ease the curve-deform
   // bend back toward straight before forward swimming resumes.
   const curveDeformSpeedEase = useRef(1)
-  const nextBurstAt = useRef(0)
-  const nextDriftAt = useRef(0)
-  const driftUntil = useRef(0)
+  const nextBurstAt = useRef(runtime.nextBurstAt)
+  const nextDriftAt = useRef(runtime.nextDriftAt)
+  const driftUntil = useRef(runtime.driftUntil)
   const lastSwimSfxAt = useRef(0)
   const organicRand = useRef(mulberry32(organicMotion.noiseSeed))
   const organicNoise = useRef({
@@ -2049,6 +2059,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   }, [isSchoolLeader, school?.id, schoolState])
 
   useEffect(() => {
+    // One-time kinematic seed: establishes the starting speed, burst/drift schedule and steering
+    // state. Once a fish has spawned (hasFollowPosition, persisted in the runtime store), a later
+    // remount on a tank switch skips this so the resumed fish keeps its persisted motion — without
+    // the guard it would snap back to idle speed and re-trigger an immediate burst on return.
+    // Gating on hasFollowPosition (only set true after the first frame actually seeds a position)
+    // rather than a mount-time flag keeps this correct under React StrictMode's dev double-mount.
+    if (runtime.hasFollowPosition) return
     velocity.current = motion.idleSpeed
     nextBurstAt.current = motion.burstPhase + motion.burstInterval
     nextDriftAt.current = motion.driftPhase
@@ -2070,6 +2087,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     lookBehaviorKey.current = ''
     lookBehaviorTransitionStartedAt.current = -Infinity
     curveDeformInputRef.current.phase = motion.bobPhase
+    // runtime.hasFollowPosition is a one-time seed guard, not a reactive input — re-running this on
+    // its change would defeat the purpose (it flips true after the first seed).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [motion])
 
   const playAnimation = (name) => {
@@ -2094,6 +2114,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   useFrame(({ clock, camera }, rawDelta) => {
     const fish = ref.current
     if (!fish) return
+
+    // Restore the persisted position onto this mount's group before anything reads it. Runs once;
+    // hasFollowPosition (hydrated from the store) then routes the fish down the "already spawned"
+    // branch below so it continues from here instead of re-seeding at spawn.
+    if (!restoredPositionRef.current) {
+      restoredPositionRef.current = true
+      if (runtime.hasPosition && hasFollowPosition.current) {
+        fish.position.copy(runtime.position)
+        previousPosition.current.copy(runtime.position)
+      }
+    }
 
     const rawNow = clock.getElapsedTime()
     const simulationSpeed = THREE.MathUtils.clamp(
@@ -3100,6 +3131,22 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
       previousTangent.current.copy(animationForward)
     }
+
+    // Snapshot this frame's kinematic state so a later remount (tank switch) resumes from here.
+    // Vector/quaternion state is shared by reference with the store and needs no copy; only the
+    // group position and the scalar bookkeeping are mirrored back.
+    runtime.hasPosition = true
+    runtime.position.copy(fish.position)
+    runtime.hasFollowPosition = hasFollowPosition.current
+    runtime.hasVisualForward = hasVisualForward.current
+    runtime.hasBaseLookQuaternion = hasBaseLookQuaternion.current
+    runtime.visualPitch = visualPitch.current
+    runtime.velocity = velocity.current
+    runtime.simulationTime = simulationTime.current
+    runtime.boidDecisionNextAt = boidDecisionNextAt.current
+    runtime.nextBurstAt = nextBurstAt.current
+    runtime.nextDriftAt = nextDriftAt.current
+    runtime.driftUntil = driftUntil.current
   })
 
   const focusScale = 1

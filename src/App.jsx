@@ -4,6 +4,7 @@ import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
 import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
+import { pruneFishRuntime } from './components/fishRuntimeStore'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
 import { DEBUG_TOGGLE_EVENT } from './utils/debugIdentifiers'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from './version'
@@ -64,6 +65,13 @@ export default function App() {
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
+
+  // Persisted swim state (fishRuntimeStore) is keyed by creature id and only ever grows as tanks
+  // are visited. When the live data set changes, drop snapshots for creatures that no longer
+  // exist so the store tracks the union of all tanks' creatures, not stale/removed ones.
+  useEffect(() => {
+    pruneFishRuntime(new Set(creatureData.creatures.map(creature => String(creature.id))))
+  }, [creatureData.creatures])
 
   useEffect(() => {
     const syncFullscreen = () => setIsFullscreen(Boolean(fullscreenElement()))

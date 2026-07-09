@@ -1842,8 +1842,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
   }, [creature, isSchooling, school?.id])
   const isSchoolLeader = isSchooling && school.index === 0
-  const isSoloAgent = Boolean(species && species.schooling === false && !isSchooling)
-  const showAgentDebug = isSoloAgent
+  // Any creature not currently part of a school runs the solo-agent movement path: the
+  // designed solitary hunters (mako/mola, schooling === false) and — critically — a schooling
+  // species that failed to pair up (an odd-count / orphaned mahi that Biome dropped from its
+  // school). Without covering that orphan it matched neither movement mode, held its heading
+  // into a wall, and froze there. This is data-dependent: it surfaces when the live creature
+  // set has an odd count in a biome/depthZone (e.g. a paired mahi died), not on the even
+  // static/dev set.
+  const isSoloAgent = Boolean(species) && !isSchooling
+  // Only the designed solitary hunters surface the agent debug readout; an orphaned schooling
+  // fish roams on the same path but shouldn't spawn debug labels/vectors in the tank.
+  const showAgentDebug = isSoloAgent && species.schooling === false
   const schoolState = useMemo(() => (isSchooling ? getSchoolState(school, creature, swim) : null), [isSchooling, school, creature, swim])
   const followTarget = useRef(new THREE.Vector3())
   const agentTarget = useRef(new THREE.Vector3())

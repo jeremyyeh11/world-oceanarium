@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.12.1 — Frozen-mahi regression fix
+
+Status: patch on `v0.12.0`. Fixes a data-dependent freeze that surfaced only on the live (production Supabase) creature set, not the static/dev set.
+
+### Creature behavior
+
+- Fixes a mahi freezing in place, a regression from the `v0.12.0` school/solo unification (#62). That change classified movement as `isSchooling` (in a school) vs `isSoloAgent` (`species.schooling === false`), so a **schooling** species that failed to pair up matched *neither* mode: it never got a steering target, held its heading straight into a swim-bounds wall, and `clampToSwimBounds` pinned it there every frame (animating but not translating). A mahi ends up unschooled because `Biome.jsx` drops any group of `< 2` from schooling and mahi's `schoolMaxSize` is 2 — so an **odd** count of alive mahi in one `biome:depthZone` orphans exactly one. This is data-dependent: production held 5 alive mahi in `ocean:epipelagic` (→ pairs `[2] [2]` + a frozen `[1]`), while the static/dev seed has 4 (two clean pairs), so it never reproduced locally. Fix: `isSoloAgent` now covers *any* creature not currently in a school (`Boolean(species) && !isSchooling`), so an orphaned schooling fish roams on the solo-agent path (personal target + boundary-avoidance steering) instead of freezing; the designed solitary hunters (mako/mola) are unchanged and still solely own the agent debug readout. Note the same orphaning happens whenever a paired mahi dies (its partner becomes a live singleton), independent of any deploy. Verified in preview against the live data: all 5 mahi translate (net 4.5–13 WU over ~2s, smooth), the former orphan cruises freely, eslint/build clean.
+
 ## v0.12.0 — Unified boids movement
 
 Status: accepted and promoted as clean `v0.12.0` from `v0.12.0-dev_12` after Jeremy reju (merged via #62).

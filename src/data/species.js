@@ -164,10 +164,14 @@ export const SPECIES = [
       boids: {
         neighborCap: 14,
         perceptionBodyLengths: 3.4,
-        separationWeight: 0.38,
-        alignmentWeight: 0.24,
-        cohesionWeight: 0.16,
-        maxWeight: 0.38,
+        // Boids-only model: strong alignment keeps the bait ball heading generally one way,
+        // moderate cohesion + lighter separation keep it a tight-but-not-packed cloud (sparser
+        // than the old spline ball, denser than a loose scatter). The formation slot supplies
+        // the 3D shape so separation no longer needs to be cranked up to avoid a conga line.
+        separationWeight: 0.30,
+        alignmentWeight: 0.38,
+        cohesionWeight: 0.20,
+        maxWeight: 0.70,
         // Harmless bait, but very skittish — flees anything menacing (the mako most of all).
         menace: 0,
         wariness: 0.85,
@@ -256,7 +260,14 @@ export const SPECIES = [
       schoolSpacingScale: 5.2,
       schoolMaxAvoidanceAngleDegrees: 18,
       schoolDirectionResponse: 3.2,
-      visualTimeScale: 0.48,
+      // Raised from 0.48: mahi are fast open-water cruisers in reality and should
+      // visibly outpace bait/drifters, not match their speed.
+      visualTimeScale: 0.75,
+      // Glide near-level. At the faster cruise speed the mahi tracks the vertical waviness of
+      // its path eagerly enough to bob its nose up and down toward the generic ~13° limit;
+      // with the follow-cam centring it, that pitch bob was the only apparent motion and read
+      // as the fish hovering in place staring up and down. Cap it to a gentle glide.
+      maxVisualPitchDegrees: 6,
       idleBLPerSec: [0.28, 0.44],
       idleDriftBLPerSec: [0.05, 0.10],
       snapBLPerSec: [0.52, 0.76],
@@ -272,8 +283,11 @@ export const SPECIES = [
       turnTriggerThreshold: 0.3,
       erraticness: 0.08,
       turnRadius: 1.45,
-      // Cruiser: broad, committed turns.
-      turnRadiusBodyLengths: 2.8,
+      // Cruiser turns, but sized to the mahi's confined upper-column bounds. The old 2.8 gave a
+      // ~20 WU turn radius in a ~27 WU-wide box, so a pair that reached a wall/corner could not
+      // out-turn it and just orbited in place (a constant curve that cocked the tails). 1.3 keeps
+      // a broad, committed arc that still fits the box, so the mahi carves away and straightens.
+      turnRadiusBodyLengths: 1.3,
       speedMultiplier: 1.0,
       movementBoundsScale: 1.18,
       boundsUseSpeciesSize: false,
@@ -336,18 +350,21 @@ export const SPECIES = [
       curveDeform: {
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
-        strength: 1.0,
-        // Kept gentle: the mahi drives its bend from sustained heading misalignment
-        // (turnIntent), unlike the mako which uses only the tiny per-frame turn rate. A
-        // wide-arc turn holds a large misalignment, so a high maxAngle × 5 spine bones
-        // saturated into a held C-curl. Lower per-bone max + drive so it reads as a
-        // subtle banana-bank through the turn, not a curl.
+        // Lowered from 1.0: the mahi cruises its confined upper-column bounds in continuous
+        // gentle arcs, and the tail-bend `turn * 10.5` amplification turned even a ~2°/frame
+        // cruise-arc into a visible sideways tail. At 0.45 the tail stays near-straight while
+        // gliding and still banks subtly through genuine turns.
+        strength: 0.45,
+        // Bend is driven purely by the actual per-frame turn rate now (like the mako), not by
+        // sustained heading misalignment. Under boids the mahi steers continuously toward its
+        // formation slot, so a misalignment-driven bend (turnIntent) baked in a permanent
+        // sideways tail cock; turnIntentScale is 0 so the tail only banks when it truly turns.
         maxAngleDegrees: 8,
         response: 8.5,
         tailBias: 0.85,
         baseWeight: 0.28,
         chainMultiplier: 1.05,
-        turnIntentScale: 0.25,
+        turnIntentScale: 0,
         burstBoost: 0.72,
         speedBoost: 0.28,
         // Ease the bend back to straight when forward travel slows (e.g. crawling out of
@@ -418,7 +435,13 @@ export const SPECIES = [
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Review max maps 4.0 m to 16 WU.
       bodyLengthWU: 16,
-      visualTimeScale: 0.38,
+      // Raised from 0.38 to 0.95 (~2.5×) so the mako clearly leads the tank at roughly the
+      // real mako-vs-mahi cruise ratio (~1.5×). This speed used to make it overshoot the
+      // solo-agent boundary envelope on U-turns and get snapped back inward (reading as
+      // strafing backward); it is now held cleanly by the predictive boundary-avoidance
+      // steering in Fish.jsx (boundaryAvoidanceTurnStep), so it keeps its wide banking
+      // turns in open water and simply carves tighter as it nears a wall.
+      visualTimeScale: 0.95,
       idleBLPerSec: [0.16, 0.24],
       idleDriftBLPerSec: [0.03, 0.055],
       snapBLPerSec: [0.24, 0.36],
@@ -431,16 +454,21 @@ export const SPECIES = [
       turnTriggerThreshold: 0.042,
       erraticness: 0.018,
       turnRadius: 1.32,
-      // Apex pelagic shark: long glides and wide banking turns, never a pivot.
-      turnRadiusBodyLengths: 2.6,
+      // Apex pelagic shark: long glides and wide banking turns, never a pivot. Sized to the
+      // tightened bounds below (the old 2.6 gave a ~41 WU radius that could not out-turn the
+      // envelope and overshot into hard clamps at the tank edges); 1.7 keeps a broad, committed
+      // arc that still fits so the mako carves away cleanly instead of snapping back.
+      turnRadiusBodyLengths: 1.7,
       speedMultiplier: 1.0,
-      movementBoundsScale: 1.48,
+      // Pulled in from 1.48 / z -36 so the mako stays a visible presence in the main tank instead
+      // of roaming far off-screen most of the time; still the widest-ranging fish in the tank.
+      movementBoundsScale: 1.22,
       soloSteeringTurnRateDegrees: 6,
       soloTargetVerticalBodyLengths: 0.18,
       boundsUseSpeciesSize: false,
       // Ranges from the surface into deeper offshore water — deep diver.
       boundsYMin: -14,
-      boundsZMin: -36,
+      boundsZMin: -26,
       boundsZMax: 4,
       boids: {
         // Apex solo hunter: sees few neighbors, is unbothered by others, but reads as

@@ -55,8 +55,6 @@ const MIN_LARGE_CREATURE_PITCH = THREE.MathUtils.degToRad(7)
 const SMALL_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(220)
 const LARGE_CREATURE_TURN_RATE = THREE.MathUtils.degToRad(42)
 const MAX_PATH_Y_GRADIENT = 0.2
-const PATH_VERTICAL_TRAVERSAL_BIAS = 0.9
-const PATH_VERTICAL_TRAVERSAL_JITTER = 0.22
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const SNAP_TURN_THRESHOLD = 0.014
 const BURST_STRAIGHT_THRESHOLD = 0.004
@@ -102,7 +100,6 @@ const DEBUG_AGENT_LABEL_SCALE = 0.045
 // size (see nameLabel update). Tuned so a mid-tank creature reads at ~1x.
 const DEBUG_LABEL_DISTANCE_SCALE = 0.09
 const DEBUG_BOID_VECTOR_SCALE = 5.0
-const SPLINE_MOVEMENT_ENABLED = false
 // Turn radius as a multiple of body length. Heading rotates no faster than a fish
 // arcing forward on this radius (angular rate = speed / radius), so creatures swim
 // through their turns instead of pivoting or strafing. >=1 arcs; <1 would allow a
@@ -184,17 +181,12 @@ const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
 const SOLO_AGENT_TARGET_ATTEMPTS = 16
 const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 3.0
-const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
-const SOLO_AGENT_STEERING_TURN_RATE_MIN = 6
-const SOLO_AGENT_STEERING_TURN_RATE_MAX = 52
 const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_DEFAULT = 0.32
 const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MIN = 0.05
 const SOLO_AGENT_TARGET_VERTICAL_BODY_LENGTHS_MAX = 1.4
 const SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS = 0.95
 const MOLA_STEERING_REACHED_BODY_LENGTHS = 0.32
 const MOLA_STEERING_REACHED_MAX = 3.0
-const SOLO_AGENT_STEERING_DEBUG_STEPS = 72
-const SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS = 0.18
 const SOLO_AGENT_RUNTIME_OVERSHOOT_BODY_LENGTHS = 0.55
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MIN = 2.0
 const SOLO_AGENT_RUNTIME_OVERSHOOT_MAX = 5.5
@@ -275,8 +267,6 @@ const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
 const agentMoveDirection = new THREE.Vector3()
 const targetDesiredDirection = new THREE.Vector3()
-const agentPathPoint = new THREE.Vector3()
-const agentPathTangent = new THREE.Vector3()
 const agentCandidateTarget = new THREE.Vector3()
 const agentContinuationForward = new THREE.Vector3()
 const agentContinuationCenter = new THREE.Vector3()
@@ -348,16 +338,6 @@ function getSchoolState(school, creature, swim) {
   return state
 }
 
-function randomSeed() {
-  if (globalThis.crypto?.getRandomValues) {
-    const values = new Uint32Array(1)
-    globalThis.crypto.getRandomValues(values)
-    return values[0]
-  }
-
-  return Math.floor(Math.random() * 0xFFFFFFFF) >>> 0
-}
-
 function mulberry32(seed) {
   return function rand() {
     let t = seed += 0x6D2B79F5
@@ -426,14 +406,6 @@ function largeCreatureFactor(creature, swim) {
   return THREE.MathUtils.clamp((creatureBodyLength(creature, swim) - 1.0) / 6.5, 0, 1)
 }
 
-function effectiveTurnRadius(creature, swim) {
-  return THREE.MathUtils.clamp(swim.turnRadius + largeCreatureFactor(creature, swim) * 0.32, 0, 1)
-}
-
-function verticalPathScale(creature, swim) {
-  return THREE.MathUtils.lerp(1, 0.32, largeCreatureFactor(creature, swim))
-}
-
 function maxVisualPitch(creature, swim) {
   // Per-species override for surface cruisers that should glide near-level: without it a
   // faster fish traverses the vertical waviness of its path quickly enough to keep pitching
@@ -454,15 +426,6 @@ function maxTurnRadiansForSpeed(swim, bodyLength, speed, delta) {
   const bodyLengths = Math.max(0.05, swim.turnRadiusBodyLengths ?? DEFAULT_TURN_RADIUS_BODY_LENGTHS)
   const radius = Math.max(0.05, bodyLengths * bodyLength)
   return (Math.max(0, speed) / radius) * Math.max(0, delta)
-}
-
-function soloAgentSteeringTurnRate(swim) {
-  if (!Number.isFinite(swim.soloSteeringTurnRateDegrees)) return SOLO_AGENT_STEERING_MAX_TURN_RATE
-  return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(
-    swim.soloSteeringTurnRateDegrees,
-    SOLO_AGENT_STEERING_TURN_RATE_MIN,
-    SOLO_AGENT_STEERING_TURN_RATE_MAX,
-  ))
 }
 
 function soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim) {
@@ -890,29 +853,6 @@ function shapeSoloAgentSteeringDesired(out, position, target, forward, creature,
   return out
 }
 
-function makeSoloAgentSteeringDebugPath(creature, swim, start, startForward, target) {
-  const bodyLength = creatureBodyLength(creature, swim)
-  const stepDistance = Math.max(0.28, bodyLength * SOLO_AGENT_STEERING_DEBUG_STEP_BODY_LENGTHS)
-  const turnStep = soloAgentSteeringTurnRate(swim) * (stepDistance / Math.max(0.1, bodyLength * 0.08))
-  const points = [start.clone()]
-  agentPathPoint.copy(start)
-  agentPathTangent.copy(startForward)
-  if (agentPathTangent.lengthSq() < 0.0001) agentPathTangent.set(0, 0, -1)
-  agentPathTangent.normalize()
-
-  for (let i = 0; i < SOLO_AGENT_STEERING_DEBUG_STEPS; i += 1) {
-    shapeSoloAgentSteeringDesired(agentMoveDirection, agentPathPoint, target, agentPathTangent, creature, swim)
-    rotateDirectionToward(agentPathTangent, agentMoveDirection, turnStep)
-    agentPathPoint.addScaledVector(agentPathTangent, stepDistance)
-    points.push(agentPathPoint.clone())
-    if (agentPathPoint.distanceTo(target) <= Math.max(0.7, bodyLength * SOLO_AGENT_STEERING_REACHED_BODY_LENGTHS)) break
-  }
-
-  const path = new THREE.CatmullRomCurve3(points, false, 'centripetal')
-  path.userData = { steeringDebug: true, curvatureAccepted: true }
-  return path
-}
-
 function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)
@@ -979,80 +919,6 @@ function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startF
   return clampToSwimBounds(out, bounds)
 }
 
-
-function limitPathYGradient(points, bounds, maxGradient = MAX_PATH_Y_GRADIENT) {
-  for (let i = 1; i < points.length; i += 1) {
-    const prev = points[i - 1]
-    const point = points[i]
-    const horizontalDistance = Math.max(0.001, Math.hypot(point.x - prev.x, point.z - prev.z))
-    const maxDeltaY = horizontalDistance * maxGradient
-    point.y = THREE.MathUtils.clamp(
-      point.y,
-      Math.max(bounds.yMin, prev.y - maxDeltaY),
-      Math.min(bounds.yMax, prev.y + maxDeltaY),
-    )
-  }
-  return points
-}
-
-function traversalY(rand, bounds, swim, index = 0, verticalScale = 1, rangeFloor = 0.42) {
-  const midY = (bounds.yMin + bounds.yMax) / 2
-  const halfY = (bounds.yMax - bounds.yMin) / 2
-  const verticalRange = THREE.MathUtils.clamp(
-    THREE.MathUtils.lerp(rangeFloor, 1.0, swim.erraticness) * verticalScale,
-    0,
-    1,
-  )
-  const direction = index % 2 === 0 ? -1 : 1
-  const bandCenter = midY + direction * halfY * verticalRange * PATH_VERTICAL_TRAVERSAL_BIAS
-  const jitter = halfY * verticalRange * PATH_VERTICAL_TRAVERSAL_JITTER
-  return THREE.MathUtils.clamp(bandCenter + randomRange(rand, -jitter, jitter), bounds.yMin, bounds.yMax)
-}
-
-function randomPoint(rand, bounds, swim, index = 0, verticalScale = 1) {
-  const side = index % 2 === 0 ? -1 : 1
-  const z = randomRange(rand, bounds.zMin, bounds.zMax)
-  const xRangeAtZ = swimXRangeAtZ(bounds, z)
-  const xRange = xRangeAtZ.xMax - xRangeAtZ.xMin
-  const laneJitter = xRange * 0.06
-  const laneX = side < 0
-    ? THREE.MathUtils.lerp(xRangeAtZ.xMin, xRangeAtZ.xMax, 0.14)
-    : THREE.MathUtils.lerp(xRangeAtZ.xMin, xRangeAtZ.xMax, 0.86)
-
-  return new THREE.Vector3(
-    laneX + randomRange(rand, -laneJitter, laneJitter),
-    traversalY(rand, bounds, swim, index, verticalScale, 0.52),
-    z,
-  )
-}
-
-function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.species ?? 'fish'), start = null, exitTangent = null) {
-  const rand = mulberry32(seed)
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const turnRadius = effectiveTurnRadius(creature, swim)
-  const verticalScale = verticalPathScale(creature, swim)
-  const pointCount = Math.round(THREE.MathUtils.lerp(8, 4, turnRadius))
-  const points = []
-
-  if (start && exitTangent) {
-    points.push(start.clone())
-
-    const leadDistance = THREE.MathUtils.lerp(1.8, 7.2, turnRadius) * THREE.MathUtils.lerp(1, 1.45, largeCreatureFactor(creature, swim)) * randomRange(rand, 0.86, 1.12)
-    const lead = start.clone().add(exitTangent.clone().normalize().multiplyScalar(leadDistance))
-    const verticalKick = THREE.MathUtils.lerp(0.12, 0.85, swim.erraticness) * verticalScale
-    lead.y += randomRange(rand, -verticalKick, verticalKick)
-    lead.z += randomRange(rand, -0.55, 0.55)
-    points.push(clampToSwimBounds(lead, bounds))
-
-    for (let i = 2; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i, verticalScale))
-  } else {
-    for (let i = 0; i < pointCount; i += 1) points.push(randomPoint(rand, bounds, swim, i, verticalScale))
-  }
-
-  limitPathYGradient(points, bounds)
-  const tension = THREE.MathUtils.lerp(0.32, 0.78, turnRadius)
-  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
-}
 
 function schoolFormationOffset(school, creature) {
   if (!school) return null
@@ -2030,14 +1896,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const isSoloAgent = Boolean(species && species.schooling === false && !isSchooling)
   const showAgentDebug = isSoloAgent
   const schoolState = useMemo(() => (isSchooling ? getSchoolState(school, creature, swim) : null), [isSchooling, school, creature, swim])
-  const pathSeed = useRef((hashString(creature.id ?? creature.species ?? 'fish') ^ randomSeed()) >>> 0)
-  const progress = useRef(0)
   const followTarget = useRef(new THREE.Vector3())
   const agentTarget = useRef(new THREE.Vector3())
-  const agentPath = useRef(null)
-  const agentPathProgress = useRef(0)
-  const agentPathLength = useRef(1)
-  const agentPathExitTangent = useRef(new THREE.Vector3())
   const agentRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`)))
   const agentHasTarget = useRef(false)
   const nextAgentRetargetAt = useRef(0)
@@ -2122,9 +1982,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const curveDeformInputRef = useRef({ turn: 0, speed01: 0, speedEase01: 1, burst01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
-  const [path, setPath] = useState(() => (schoolState?.path ?? makeSwimPath(creature, swim, pathSeed.current)))
-  const pathRef = useRef(schoolState?.path ?? path)
-  const pathLengthRef = useRef(schoolState?.pathLength ?? path.getLength())
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidSeparationGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidAlignmentGeometry = useMemo(() => makeDebugLineGeometry(), [])
@@ -2213,10 +2070,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
   useEffect(() => {
     agentRand.current = mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`))
-    agentPath.current = null
-    agentPathProgress.current = 0
-    agentPathLength.current = 1
-    agentPathExitTangent.current.set(0, 0, 0)
     agentHasTarget.current = false
     nextAgentRetargetAt.current = 0
     agentStatus.current = 'cruise'
@@ -2312,8 +2165,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       noise.longitudinal = THREE.MathUtils.lerp(noise.longitudinal, noise.targetLongitudinal, noiseAlpha)
     }
 
-    const activePath = schoolState?.path ?? pathRef.current
-    const pathLength = Math.max(0.001, schoolState?.pathLength ?? pathLengthRef.current)
     const idleVelocity = Math.max(
       0.08,
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
@@ -2331,25 +2182,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       1 - Math.exp(-delta * velocityResponse),
     )
 
-    // Legacy spline advance for non-schooling, non-agent fish (gated off by default).
-    // Schooling fish no longer use a spline at all — they steer toward the shared boid goal.
-    if (SPLINE_MOVEMENT_ENABLED && !isSchooling && !isSoloAgent) {
-      progress.current += delta * velocity.current / pathLength
-      if (progress.current >= 1) {
-        const endPoint = activePath.getPointAt(1)
-        const endTangent = activePath.getTangentAt(1).normalize()
-        pathSeed.current = Math.imul(pathSeed.current ^ 0x9E3779B9, 1664525) >>> 0
-        const nextPath = makeSwimPath(creature, swim, pathSeed.current, endPoint, endTangent)
-        pathRef.current = nextPath
-        pathLengthRef.current = nextPath.getLength()
-        setPath(nextPath)
-        progress.current = 0
-      }
-    }
-
-    const currentPath = pathRef.current
     curveDeformTurnIntent.current = 0
-    const t = isSchooling ? 0 : THREE.MathUtils.clamp(progress.current, 0, 1)
     let position
     if (isSchooling) {
       // Boids: the fish owns its own position. Seed the first frame from the school's spawn
@@ -2370,14 +2203,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (tangent.lengthSq() > 0.000001) tangent.normalize()
       else tangent.set(0, 0, -1)
     } else {
-      position = currentPath.getPointAt(t)
-      currentPath.getPointAt(Math.min(t + 0.006, 1), nextPoint)
-      tangent.subVectors(nextPoint, currentPath.getPointAt(t))
-      if (tangent.lengthSq() > 0.000001) tangent.normalize()
+      // Solo agents own their position too. Seed the first frame from a deterministic point in
+      // bounds (same idea as the school spawn centre); track fish.position thereafter.
+      if (hasFollowPosition.current) {
+        position = fish.position
+      } else {
+        position = pickSoloAgentTarget(schoolBasePosition, creature, swim, agentRand.current)
+      }
+      if (desiredDirection.current.lengthSq() > 0.0001) tangent.copy(desiredDirection.current)
+      else if (hasVisualForward.current) tangent.copy(visualForward.current)
+      else tangent.set(0, 0, -1)
+      tangent.normalize()
     }
 
     const followDistance = followLookaheadDistance(creature, swim, isSchooling)
-    const followTargetT = THREE.MathUtils.clamp(t + followDistance / pathLength, 0, 1)
     if (isSchooling) {
       // Every member steers toward the SAME shared goal. Spread is emergent from boid
       // separation/cohesion, not from offsetting each fish's target (which strung them into a
@@ -2469,12 +2308,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           agentHasTarget.current = true
           agentDepthMode.current = 'front'
           agentDepthTargetsRemaining.current = 0
-          agentPath.current = makeSoloAgentSteeringDebugPath(creature, swim, position, currentForward, agentTarget.current)
-          agentPathProgress.current = 0
-          agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
-          pathRef.current = agentPath.current
-          pathLengthRef.current = agentPathLength.current
-          setPath(agentPath.current)
         } else {
           if (usesDepthResidency && agentDepthTargetsRemaining.current <= 0) {
             const nextMode = agentDepthMode.current === 'deep' && agentRand.current() < MOLA_FRONT_EXCURSION_CHANCE ? 'front' : 'deep'
@@ -2501,12 +2334,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             agentBehaviorDistance.current = 0
             agentTarget.current.copy(destination)
             agentHasTarget.current = true
-            agentPath.current = makeSoloAgentSteeringDebugPath(creature, swim, position, currentForward, agentTarget.current)
-            agentPathProgress.current = 0
-            agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
-            pathRef.current = agentPath.current
-            pathLengthRef.current = agentPathLength.current
-            setPath(agentPath.current)
           } else {
             agentBehavior.current = null
             agentHasTarget.current = false
@@ -2542,20 +2369,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         agentBehaviorDistance.current = 0
         animationHoldUntil.current = now + MOLA_SUN_BASK_EXIT_ROLL_DURATION
         animationCooldown.current = now + MOLA_SUN_BASK_EXIT_ROLL_DURATION
-        agentPath.current = makeSoloAgentSteeringDebugPath(creature, swim, position, currentForward, agentTarget.current)
-        agentPathProgress.current = 0
-        agentPathLength.current = Math.max(0.001, agentPath.current.getLength())
-        pathRef.current = agentPath.current
-        pathLengthRef.current = agentPathLength.current
-        setPath(agentPath.current)
       }
 
       if (agentHasTarget.current) {
         followTarget.current.copy(fish.position).addScaledVector(currentForward, followDistance)
       }
     } else {
-      currentPath.getPointAt(followTargetT, followTarget.current)
-      followTarget.current.y += Math.sin(clock.getElapsedTime() * 1.7 + motion.bobPhase) * motion.bobAmount
+      // Not schooling and not a solo agent (shouldn't occur in practice): project the follow
+      // target ahead along the current heading so downstream orientation stays sane.
+      followTarget.current.copy(fish.position).addScaledVector(tangent, followDistance)
     }
 
     if (!hasFollowPosition.current) {
@@ -2894,13 +2716,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (horizontalForward.lengthSq() < 0.0001) horizontalForward.set(0, 0, -1)
     horizontalForward.normalize()
 
-    if (showAgentDebug || !SPLINE_MOVEMENT_ENABLED) {
-      splineVisualTangent.subVectors(followTarget.current, fish.position)
-      if (splineVisualTangent.lengthSq() < 0.0001) splineVisualTangent.copy(tangent)
-      else splineVisualTangent.normalize()
-    } else {
-      currentPath.getTangentAt(t, splineVisualTangent).normalize()
-    }
+    splineVisualTangent.subVectors(followTarget.current, fish.position)
+    if (splineVisualTangent.lengthSq() < 0.0001) splineVisualTangent.copy(tangent)
+    else splineVisualTangent.normalize()
     // Pitch reflects ACTUAL vertical travel this frame, not the direction to the target.
     // A creature genuinely swimming up/down to a higher/lower destination pitches into it,
     // but one hovering along the XZ plane (e.g. blocked under the surface, or a target it

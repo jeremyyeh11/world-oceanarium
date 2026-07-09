@@ -8,7 +8,7 @@ import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
-import { creatureRepulsesOthers, lerpRepulserDrift, resolveRepulserDriftVector } from '../utils/creatureMoments'
+import { creatureRepulsesOthers } from '../utils/creatureMoments'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
@@ -88,7 +88,6 @@ const SCHOOL_FORMATION_RADIUS_SCALE = 0.55
 const SCHOOL_VERTICAL_SPREAD = 0.92
 const SCHOOL_LONGITUDINAL_SPREAD = 0.55
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
-const SCHOOL_DRIFT = 0.10
 const PERSONAL_SPEED_SCALE = [0.94, 1.08]
 const PERSONAL_CATCHUP_SCALE = [0.90, 1.15]
 const ORGANIC_NOISE_AMPLITUDE = 0.055
@@ -104,11 +103,6 @@ const DEBUG_AGENT_LABEL_SCALE = 0.045
 const DEBUG_LABEL_DISTANCE_SCALE = 0.09
 const DEBUG_BOID_VECTOR_SCALE = 5.0
 const SPLINE_MOVEMENT_ENABLED = false
-// Schools travel toward a real destination (the shared school path's far exit, via its
-// intermediate waypoints) instead of hovering in place — boids only adjust the local
-// formation on top. Position stays boid-driven, so this is a soft destination, not the
-// old rigid path-lock (which is still gated behind SPLINE_MOVEMENT_ENABLED).
-const SCHOOL_TRAVEL_ENABLED = true
 // Turn radius as a multiple of body length. Heading rotates no faster than a fish
 // arcing forward on this radius (angular rate = speed / radius), so creatures swim
 // through their turns instead of pivoting or strafing. >=1 arcs; <1 would allow a
@@ -121,9 +115,6 @@ const DEFAULT_TURN_RADIUS_BODY_LENGTHS = 2.5
 // slow frames dilate time slightly instead of teleporting — invisible in an ambient tank.
 const MAX_SIMULATION_RAW_DELTA = 0.05
 const DEBUG_LABEL_FONT = '/fonts/DejaVuSansMono.ttf'
-const SCHOOL_PHASE_WINDOW = 0.07
-const SCHOOL_PATH_CONTINUATION_BODY_LENGTHS = 2.35
-const SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS = 1.55
 const VISUAL_PITCH_RESPONSE = 4.8
 // Fade the swim pitch toward level as forward speed drops below a fraction of the fish's own
 // cruise speed. Without this, a fish coasting to a near-stop (a drift beat, or settling onto a
@@ -187,39 +178,12 @@ const BOID_THREAT_WEIGHT = 0.62
 const BOID_DEFAULT_MENACE = 0.25
 const BOID_DEFAULT_WARINESS = 0.35
 const BOID_MAX_DEBUG_NEIGHBORS = 12
-const REPULSER_DRIFT_INNER_RADIUS = 5.8
-const REPULSER_DRIFT_OUTER_RADIUS = 17
-const REPULSER_DRIFT_MAX = 2.2
-const REPULSER_DRIFT_RESPONSE = 1.65
-const DENSE_SCHOOL_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(28)
-const DEFAULT_MAX_AVOIDANCE_ANGLE = THREE.MathUtils.degToRad(62)
-const SOLO_AGENT_ARC_MIN_SPEED_SCALE = 0.36
-const SOLO_AGENT_ARC_ALIGNMENT_START = -0.55
-const SOLO_AGENT_ARC_ALIGNMENT_FULL = 0.58
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
-const SOLO_AGENT_DESIRED_DIRECTION_RESPONSE = 1.8
 const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
 const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
-const SOLO_AGENT_PATH_REBUILD_EPSILON = 0.015
 const SOLO_AGENT_TARGET_ATTEMPTS = 16
 const SOLO_AGENT_MIN_TARGET_BODY_LENGTHS = 3.0
-const SOLO_AGENT_CURVE_BUILD_ATTEMPTS = 8
-const SOLO_AGENT_CURVE_SAMPLE_COUNT = 56
-const SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA = THREE.MathUtils.degToRad(3)
-const SOLO_AGENT_CURVE_MAX_TOTAL_TURN = THREE.MathUtils.degToRad(165)
-const SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN = THREE.MathUtils.degToRad(7)
-const SOLO_AGENT_CURVE_PLANE_TWIST_EPSILON = THREE.MathUtils.degToRad(0.25)
-const SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR = THREE.MathUtils.degToRad(0.5)
-const SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS = 1.2
-const SOLO_AGENT_CURVE_TWIST_EPSILON = THREE.MathUtils.degToRad(0.35)
-const SOLO_AGENT_CURVE_LEAD_BODY_LENGTHS = [1.1, 2.4]
-const SOLO_AGENT_CURVE_MIN_LEAD_SCALE = 0.24
-const SOLO_AGENT_CURVE_MAX_LEAD_SCALE = 0.52
-const SOLO_AGENT_MAX_TANGENT_DELTA = THREE.MathUtils.degToRad(8)
-const SOLO_AGENT_CURVE_MIN_SPEED_SCALE = 0.46
-const SOLO_AGENT_RETARGET_PROGRESS = 0.82
-const SOLO_AGENT_RETARGET_COOLDOWN = [2.8, 5.2]
 const SOLO_AGENT_STEERING_MAX_TURN_RATE = THREE.MathUtils.degToRad(10.5)
 const SOLO_AGENT_STEERING_TURN_RATE_MIN = 6
 const SOLO_AGENT_STEERING_TURN_RATE_MAX = 52
@@ -291,16 +255,9 @@ const MOLA_SURFACE_CENTER_CLEARANCE_MAX = 4.85
 const MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_BODY_LENGTHS = 0.12
 const MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_MIN = 0.85
 const MOLA_SUN_BASK_SURFACE_CENTER_CLEARANCE_MAX = 1.25
-const SOLO_AGENT_RETRY_COOLDOWN = 1.2
-const SOLO_AGENT_AVOIDANCE_OFFSET_BODY_LENGTHS = 0.42
 const AGENT_FORWARD_DESTINATION_MAX_ANGLE = Math.PI / 2
 const AGENT_BEHAVIOR_RETRY_COOLDOWN = 1.2
-const AGENT_BOUNDARY_TANGENT_MAX_ANGLE = THREE.MathUtils.degToRad(15)
-const AGENT_BOUNDARY_TANGENT_MAX_NORMAL_COMPONENT = Math.sin(AGENT_BOUNDARY_TANGENT_MAX_ANGLE)
 const AGENT_BOUNDARY_TANGENT_DISTANCE_BODY_LENGTHS = 0.72
-const AGENT_BOUNDARY_GLIDE_LENGTH_BODY_LENGTHS = 2.35
-const AGENT_BOUNDARY_GLIDE_INWARD_BODY_LENGTHS = 0.24
-const AGENT_BOUNDARY_GLIDE_MAX_TOTAL_TURN = THREE.MathUtils.degToRad(95)
 
 
 const tangent = new THREE.Vector3()
@@ -308,8 +265,6 @@ const lookTarget = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
 const nextPoint = new THREE.Vector3()
 const schoolBasePosition = new THREE.Vector3()
-const schoolTargetTangent = new THREE.Vector3()
-const schoolLateral = new THREE.Vector3()
 const schoolFollowDirection = new THREE.Vector3()
 const debugForwardStart = new THREE.Vector3()
 const debugForwardEnd = new THREE.Vector3()
@@ -319,30 +274,13 @@ const frameMove = new THREE.Vector3()
 const rawVisualForward = new THREE.Vector3()
 const splineVisualTangent = new THREE.Vector3()
 const agentMoveDirection = new THREE.Vector3()
-const agentForwardFlat = new THREE.Vector3()
 const targetDesiredDirection = new THREE.Vector3()
 const agentPathPoint = new THREE.Vector3()
-const agentPathLookaheadPoint = new THREE.Vector3()
 const agentPathTangent = new THREE.Vector3()
-const agentPathOffset = new THREE.Vector3()
 const agentCandidateTarget = new THREE.Vector3()
-const agentBestTarget = new THREE.Vector3()
-const agentCurveControlA = new THREE.Vector3()
-const agentCurveControlB = new THREE.Vector3()
-const agentCurveEndForward = new THREE.Vector3()
-const agentCurveStartForward = new THREE.Vector3()
-const agentCurvePrevTangent = new THREE.Vector3()
-const agentCurveNextTangent = new THREE.Vector3()
-const agentCurvePrevPoint = new THREE.Vector3()
-const agentCurveNextPoint = new THREE.Vector3()
 const agentContinuationForward = new THREE.Vector3()
 const agentContinuationCenter = new THREE.Vector3()
 const agentContinuationDirection = new THREE.Vector3()
-const agentRecoverySide = new THREE.Vector3()
-const agentRecoveryRadial = new THREE.Vector3()
-const agentRecoveryEndRadial = new THREE.Vector3()
-const agentRecoveryEndForward = new THREE.Vector3()
-const agentRecoveryEnd = new THREE.Vector3()
 const agentDestinationDirection = new THREE.Vector3()
 const agentBoundaryNormal = new THREE.Vector3()
 const agentBoundaryPlaneTangent = new THREE.Vector3()
@@ -350,8 +288,6 @@ const curveDeformAxisX = new THREE.Vector3(1, 0, 0)
 const curveDeformAxisY = new THREE.Vector3(0, 1, 0)
 const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentBoundaryInward = new THREE.Vector3()
-const agentBoundaryGlideMid = new THREE.Vector3()
-const agentBoundaryGlideEnd = new THREE.Vector3()
 const agentRuntimeClamp = new THREE.Vector3()
 const agentRuntimeEnvelopeProbe = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
@@ -805,65 +741,11 @@ function projectTangentToBoundaryPlane(out, tangent, normal, fallbackForward) {
   return out.normalize()
 }
 
-function shapeBoundaryEndpointTangent(tangent, target, bounds, bodyLength, fallbackForward) {
-  const proximity = nearestSwimBoundaryNormal(agentBoundaryNormal, target, bounds, bodyLength)
-  if (proximity <= 0) return tangent.normalize()
-
-  projectTangentToBoundaryPlane(agentBoundaryPlaneTangent, tangent, agentBoundaryNormal, fallbackForward)
-  const blend = THREE.MathUtils.lerp(0.45, 1, proximity)
-  tangent.lerp(agentBoundaryPlaneTangent, blend)
-  if (tangent.lengthSq() < 0.0001) tangent.copy(agentBoundaryPlaneTangent)
-  tangent.normalize()
-
-  if (Math.abs(tangent.dot(agentBoundaryNormal)) > AGENT_BOUNDARY_TANGENT_MAX_NORMAL_COMPONENT) {
-    tangent.copy(agentBoundaryPlaneTangent)
-  }
-
-  return tangent.normalize()
-}
-
-function soloAgentEndpointTangentMeetsBoundaryPlane(path, target, bounds, bodyLength) {
-  const proximity = nearestSwimBoundaryNormal(agentBoundaryNormal, target, bounds, bodyLength)
-  if (proximity <= 0) return true
-  path.getTangentAt(1, agentCurveEndForward)
-  if (agentCurveEndForward.lengthSq() < 0.0001) return false
-  agentCurveEndForward.normalize()
-  return Math.abs(agentCurveEndForward.dot(agentBoundaryNormal)) <= AGENT_BOUNDARY_TANGENT_MAX_NORMAL_COMPONENT
-}
-
 function destinationInForwardCone(destination, position, forward, maxAngle = AGENT_FORWARD_DESTINATION_MAX_ANGLE) {
   agentDestinationDirection.subVectors(destination, position)
   if (agentDestinationDirection.lengthSq() < 0.0001) return false
   agentDestinationDirection.normalize()
   return forward.angleTo(agentDestinationDirection) <= maxAngle
-}
-
-function pickSoloAgentDestination(out, creature, swim, rand, from, forward) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const bodyLength = creatureBodyLength(creature, swim)
-  const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
-  const targetYMax = isMolaCreature(creature) ? molaSurfaceCenterYMax(creature, swim, bounds) : bounds.yMax
-  const [targetYMin, limitedTargetYMax] = soloAgentTargetVerticalRange(from, bounds, targetYMax, bodyLength, swim)
-
-  for (let attempt = 0; attempt < SOLO_AGENT_TARGET_ATTEMPTS; attempt += 1) {
-    const wideTarget = from && rand() < SOLO_AGENT_WIDE_TARGET_CHANCE
-    const zMid = (bounds.zMin + bounds.zMax) / 2
-    const zRange = bounds.zMax - bounds.zMin
-    const targetLeft = !from ? rand() < 0.5 : from.x >= 0
-    const targetBack = !from ? rand() < 0.5 : from.z >= zMid
-    const targetZ = wideTarget
-      ? randomRange(rand, targetBack ? bounds.zMin : bounds.zMax - zRange * 0.52, targetBack ? bounds.zMin + zRange * 0.52 : bounds.zMax)
-      : randomRange(rand, bounds.zMin, bounds.zMax)
-    const targetX = wideTarget
-      ? randomXInSwimBoundsAtZ(rand, bounds, targetZ, targetLeft ? 0 : 0.58, targetLeft ? 0.42 : 1)
-      : randomXInSwimBoundsAtZ(rand, bounds, targetZ)
-    out.set(targetX, randomRange(rand, targetYMin, limitedTargetYMax), targetZ)
-    if (from && out.distanceTo(from) < minDistance) continue
-    if (from && forward && !destinationInForwardCone(out, from, forward)) continue
-    return out
-  }
-
-  return null
 }
 
 function pickSoloAgentSteeringDestination(out, creature, swim, rand, from, forward, depthMode = 'any') {
@@ -1098,411 +980,6 @@ function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startF
 }
 
 
-function makeSoloAgentBoundaryGlidePath(creature, swim, start, startForward) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const bodyLength = creatureBodyLength(creature, swim)
-  const proximity = nearestSwimBoundaryNormal(agentBoundaryNormal, start, bounds, bodyLength)
-  if (proximity <= 0) return null
-
-  agentContinuationForward.copy(startForward)
-  if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
-  agentContinuationForward.normalize()
-
-  projectTangentToBoundaryPlane(agentBoundaryPlaneTangent, agentContinuationForward, agentBoundaryNormal, agentContinuationForward)
-  agentBoundaryInward.copy(agentBoundaryNormal).multiplyScalar(-1)
-  const glideDistance = Math.max(1.8, bodyLength * AGENT_BOUNDARY_GLIDE_LENGTH_BODY_LENGTHS)
-  const inwardBias = Math.max(0.12, bodyLength * AGENT_BOUNDARY_GLIDE_INWARD_BODY_LENGTHS)
-  agentBoundaryGlideMid.copy(start)
-    .addScaledVector(agentBoundaryPlaneTangent, glideDistance * 0.55)
-    .addScaledVector(agentBoundaryInward, inwardBias * 0.12)
-  agentBoundaryGlideEnd.copy(start)
-    .addScaledVector(agentBoundaryPlaneTangent, glideDistance)
-    .addScaledVector(agentBoundaryInward, inwardBias)
-
-  clampToSwimBounds(agentBoundaryGlideMid, bounds)
-  clampToSwimBounds(agentBoundaryGlideEnd, bounds)
-  if (agentBoundaryGlideEnd.distanceTo(start) < Math.max(0.8, bodyLength * 0.45)) return null
-
-  agentRecoveryEndForward.copy(agentBoundaryPlaneTangent)
-
-  const midTangent = agentBoundaryPlaneTangent.clone()
-  const points = [start.clone(), agentBoundaryGlideMid.clone(), agentBoundaryGlideEnd.clone()]
-  const tangents = [agentContinuationForward.clone(), midTangent, agentRecoveryEndForward.clone()]
-  const path = new THREE.CurvePath()
-  for (let i = 0; i < points.length - 1; i += 1) {
-    const segmentStart = points[i]
-    const segmentEnd = points[i + 1]
-    const segmentLength = Math.max(0.001, segmentStart.distanceTo(segmentEnd))
-    const handleLength = Math.min(segmentLength * 0.32, bodyLength * 1.25)
-    agentCurveControlA.copy(segmentStart).addScaledVector(tangents[i], handleLength)
-    agentCurveControlB.copy(segmentEnd).addScaledVector(tangents[i + 1], -handleLength)
-    path.add(new THREE.CubicBezierCurve3(
-      segmentStart.clone(),
-      agentCurveControlA.clone(),
-      agentCurveControlB.clone(),
-      segmentEnd.clone(),
-    ))
-  }
-
-  const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
-  const measure = measureSoloAgentCurve(path, agentContinuationForward, minTurnRadius, AGENT_BOUNDARY_GLIDE_MAX_TOTAL_TURN)
-  path.userData = {
-    ...(path.userData ?? {}),
-    maxSampleTangentDelta: measure.maxDelta,
-    minTurnRadius: measure.minRadius,
-    startTangentDelta: measure.startTangentDelta,
-    totalTurn: measure.totalTurn,
-    hasTangentReversal: measure.hasTangentReversal,
-    hasAxisTangentReversal: measure.hasAxisTangentReversal,
-    curvatureAccepted: measure.accepted,
-    fallbackReason: 'boundary-glide',
-  }
-  return path
-}
-
-function makeSoloAgentRecoveryArc(creature, swim, start, startForward) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const bodyLength = creatureBodyLength(creature, swim)
-  const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
-  const radius = minTurnRadius * 1.25
-  const handleScale = 4 / 3
-
-  agentContinuationForward.copy(startForward)
-  if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
-  agentContinuationForward.normalize()
-
-  agentRecoverySide.set(-agentContinuationForward.z, 0, agentContinuationForward.x)
-  if (agentRecoverySide.lengthSq() < 0.0001) agentRecoverySide.set(1, 0, 0)
-  agentRecoverySide.normalize()
-
-  let bestPath = null
-  let bestMeasure = null
-  let bestScore = Infinity
-  for (const turnSign of [-1, 1]) {
-    for (let angleDeg = 28; angleDeg <= 145; angleDeg += 7) {
-      const angle = THREE.MathUtils.degToRad(angleDeg) * turnSign
-      agentCurveControlA.copy(start).addScaledVector(agentContinuationForward, radius * handleScale * Math.tan(Math.abs(angle) / 4))
-      agentRecoveryRadial.copy(agentRecoverySide).multiplyScalar(turnSign * radius)
-      agentRecoveryEndRadial.copy(agentRecoveryRadial).applyAxisAngle(up, angle)
-      agentRecoveryEnd.copy(start).sub(agentRecoveryRadial).add(agentRecoveryEndRadial)
-      agentRecoveryEnd.y = THREE.MathUtils.clamp(start.y, bounds.yMin, bounds.yMax)
-      if (!pointInsideSwimBounds(agentRecoveryEnd, bounds)) continue
-
-      agentRecoveryEndForward.copy(agentContinuationForward).applyAxisAngle(up, angle).normalize()
-      agentCurveControlB.copy(agentRecoveryEnd).addScaledVector(
-        agentRecoveryEndForward,
-        -radius * handleScale * Math.tan(Math.abs(angle) / 4),
-      )
-      const path = new THREE.CubicBezierCurve3(
-        start.clone(),
-        agentCurveControlA.clone(),
-        agentCurveControlB.clone(),
-        agentRecoveryEnd.clone(),
-      )
-      const measure = measureSoloAgentCurve(path, agentContinuationForward, minTurnRadius)
-      path.userData = {
-        ...(path.userData ?? {}),
-        maxSampleTangentDelta: measure.maxDelta,
-        minTurnRadius: measure.minRadius,
-        startTangentDelta: measure.startTangentDelta,
-        hasTangentReversal: measure.hasTangentReversal,
-        hasAxisTangentReversal: measure.hasAxisTangentReversal,
-        totalTurn: measure.totalTurn,
-        curvatureAccepted: measure.accepted,
-        fallbackReason: 'endpoint-recovery-arc',
-      }
-      if (measure.score < bestScore) {
-        bestScore = measure.score
-        bestMeasure = measure
-        bestPath = path
-      }
-      if (measure.accepted) return path
-    }
-  }
-
-  if (bestPath && bestMeasure) {
-    bestPath.userData = {
-      ...(bestPath.userData ?? {}),
-      curvatureAccepted: false,
-    }
-  }
-  return bestPath
-}
-
-function makeSoloAgentForwardFallbackPath(creature, swim, start, startForward) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const bodyLength = creatureBodyLength(creature, swim)
-  agentContinuationForward.copy(startForward)
-  if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
-  agentContinuationForward.normalize()
-
-  agentRecoveryEnd.copy(start).addScaledVector(agentContinuationForward, Math.max(2.4, bodyLength * 1.1))
-  agentRecoveryEnd.y = THREE.MathUtils.clamp(agentRecoveryEnd.y, bounds.yMin, bounds.yMax)
-  if (!pointInsideSwimBounds(agentRecoveryEnd, bounds)) {
-    const center = agentRecoveryRadial.set(0, THREE.MathUtils.clamp(start.y, bounds.yMin, bounds.yMax), (bounds.zMin + bounds.zMax) * 0.5)
-    agentContinuationForward.subVectors(center, start)
-    if (agentContinuationForward.lengthSq() < 0.0001) agentContinuationForward.set(0, 0, -1)
-    agentContinuationForward.normalize()
-    agentRecoveryEnd.copy(start).addScaledVector(agentContinuationForward, Math.max(2.4, bodyLength * 1.1))
-    clampToSwimBounds(agentRecoveryEnd, bounds)
-  }
-
-  const path = new THREE.LineCurve3(start.clone(), agentRecoveryEnd.clone())
-  path.userData = {
-    ...(path.userData ?? {}),
-    curvatureAccepted: true,
-    fallbackReason: 'forward-fallback',
-    minTurnRadius: Infinity,
-    maxSampleTangentDelta: 0,
-    startTangentDelta: 0,
-    hasTangentReversal: false,
-  }
-  return path
-}
-
-function soloAgentPathMeetsEndpointGate(path, creature, swim) {
-  const bodyLength = creatureBodyLength(creature, swim)
-  const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
-  return (path?.userData?.startTangentDelta ?? Infinity) <= SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR
-    && (path?.userData?.minTurnRadius ?? 0) >= minTurnRadius
-    && path?.userData?.boundaryTangentAccepted !== false
-    && !path?.userData?.hasTangentReversal
-    && !path?.userData?.hasAxisTangentReversal
-}
-
-function measureSoloAgentCurve(path, expectedStartTangent, minTurnRadius, maxTotalTurn = SOLO_AGENT_CURVE_MAX_TOTAL_TURN) {
-  let maxDelta = 0
-  let minRadius = Infinity
-  let totalTurn = 0
-  let positiveTurn = 0
-  let negativeTurn = 0
-  let xzPositiveTurn = 0
-  let xzNegativeTurn = 0
-  let xyPositiveTurn = 0
-  let xyNegativeTurn = 0
-  let yzPositiveTurn = 0
-  let yzNegativeTurn = 0
-  let hasPrevious = false
-  let turnSign = 0
-  let hasTangentReversal = false
-  let hasAxisTangentReversal = false
-
-  path.getTangentAt(0, agentCurveNextTangent).normalize()
-  const startTangentDelta = expectedStartTangent.lengthSq() > 0.0001
-    ? agentCurveNextTangent.angleTo(expectedStartTangent)
-    : 0
-
-  for (let i = 0; i <= SOLO_AGENT_CURVE_SAMPLE_COUNT; i += 1) {
-    const sampleT = i / SOLO_AGENT_CURVE_SAMPLE_COUNT
-    path.getTangentAt(sampleT, agentCurveNextTangent)
-    if (agentCurveNextTangent.lengthSq() < 0.0001) continue
-    agentCurveNextTangent.normalize()
-    path.getPointAt(sampleT, agentCurveNextPoint)
-
-    if (hasPrevious) {
-      const tangentDelta = agentCurvePrevTangent.angleTo(agentCurveNextTangent)
-      const segmentLength = Math.max(0.001, agentCurvePrevPoint.distanceTo(agentCurveNextPoint))
-      const radius = tangentDelta > 0.0001 ? segmentLength / tangentDelta : Infinity
-      const signedTurn = agentCurvePrevTangent.x * agentCurveNextTangent.z - agentCurvePrevTangent.z * agentCurveNextTangent.x
-      const signedTurnXY = agentCurvePrevTangent.x * agentCurveNextTangent.y - agentCurvePrevTangent.y * agentCurveNextTangent.x
-      const signedTurnYZ = agentCurvePrevTangent.y * agentCurveNextTangent.z - agentCurvePrevTangent.z * agentCurveNextTangent.y
-      if (tangentDelta > SOLO_AGENT_CURVE_TWIST_EPSILON && Math.abs(signedTurn) > 0.0001) {
-        const sampleSign = Math.sign(signedTurn)
-        const signedDelta = tangentDelta * sampleSign
-        if (signedDelta > 0) positiveTurn += signedDelta
-        else negativeTurn += -signedDelta
-        if (turnSign === 0) turnSign = sampleSign
-        else if (sampleSign !== turnSign) hasTangentReversal = true
-      }
-      if (tangentDelta > SOLO_AGENT_CURVE_PLANE_TWIST_EPSILON) {
-        if (Math.abs(signedTurn) > 0.0001) {
-          if (signedTurn > 0) xzPositiveTurn += tangentDelta
-          else xzNegativeTurn += tangentDelta
-        }
-        if (Math.abs(signedTurnXY) > 0.0001) {
-          if (signedTurnXY > 0) xyPositiveTurn += tangentDelta
-          else xyNegativeTurn += tangentDelta
-        }
-        if (Math.abs(signedTurnYZ) > 0.0001) {
-          if (signedTurnYZ > 0) yzPositiveTurn += tangentDelta
-          else yzNegativeTurn += tangentDelta
-        }
-      }
-      if (positiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && negativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN) {
-        hasTangentReversal = true
-      }
-      if (
-        (xzPositiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && xzNegativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN)
-        || (xyPositiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && xyNegativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN)
-        || (yzPositiveTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN && yzNegativeTurn > SOLO_AGENT_CURVE_MAX_OPPOSITE_TURN)
-      ) {
-        hasAxisTangentReversal = true
-      }
-      totalTurn += tangentDelta
-      maxDelta = Math.max(maxDelta, tangentDelta)
-      minRadius = Math.min(minRadius, radius)
-    }
-
-    agentCurvePrevTangent.copy(agentCurveNextTangent)
-    agentCurvePrevPoint.copy(agentCurveNextPoint)
-    hasPrevious = true
-  }
-
-  const radiusShortfall = minTurnRadius / Math.max(0.001, minRadius)
-  const totalTurnOverflow = Math.max(0, totalTurn - maxTotalTurn)
-  return {
-    maxDelta,
-    minRadius,
-    startTangentDelta,
-    totalTurn,
-    positiveTurn,
-    negativeTurn,
-    xzPositiveTurn,
-    xzNegativeTurn,
-    xyPositiveTurn,
-    xyNegativeTurn,
-    yzPositiveTurn,
-    yzNegativeTurn,
-    hasTangentReversal,
-    hasAxisTangentReversal,
-    accepted: startTangentDelta <= SOLO_AGENT_CURVE_MAX_START_TANGENT_ERROR
-      && maxDelta <= SOLO_AGENT_CURVE_MAX_SAMPLE_DELTA
-      && minRadius >= minTurnRadius
-      && totalTurn <= maxTotalTurn
-      && !hasTangentReversal
-      && !hasAxisTangentReversal,
-    score: startTangentDelta * 120
-      + maxDelta * 20
-      + totalTurn * 1.8
-      + totalTurnOverflow * 140
-      + radiusShortfall
-      + (hasTangentReversal ? 1000 : 0)
-      + (hasAxisTangentReversal ? 1000 : 0),
-  }
-}
-
-function makeSoloAgentBezier(creature, swim, start, startForward, target, rand, leadScale = 1) {
-  const bodyLength = creatureBodyLength(creature, swim)
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const distance = Math.max(0.001, start.distanceTo(target))
-
-  agentCurveStartForward.copy(startForward)
-  if (agentCurveStartForward.lengthSq() < 0.0001) agentCurveStartForward.subVectors(target, start)
-  if (agentCurveStartForward.lengthSq() < 0.0001) agentCurveStartForward.set(0, 0, -1)
-  agentCurveStartForward.normalize()
-
-  agentCurveEndForward.subVectors(target, start)
-  if (agentCurveEndForward.lengthSq() < 0.0001) agentCurveEndForward.copy(agentCurveStartForward)
-  else agentCurveEndForward.normalize()
-
-  const alignment = THREE.MathUtils.clamp(agentCurveStartForward.dot(agentCurveEndForward), -1, 1)
-  if (alignment < 0.35) {
-    agentCurveEndForward.lerp(agentCurveStartForward, THREE.MathUtils.lerp(0.72, 0.22, (alignment + 1) / 1.35)).normalize()
-  }
-  shapeBoundaryEndpointTangent(agentCurveEndForward, target, bounds, bodyLength, agentCurveStartForward)
-
-  agentRecoverySide.set(-agentCurveStartForward.z, 0, agentCurveStartForward.x)
-  if (agentRecoverySide.lengthSq() < 0.0001) agentRecoverySide.set(1, 0, 0)
-  agentRecoverySide.normalize()
-  const targetSide = Math.sign(agentRecoverySide.dot(agentCurveEndForward)) || (rand() < 0.5 ? -1 : 1)
-  const lateralOffset = distance * THREE.MathUtils.clamp((1 - alignment) * 0.16, 0.035, 0.24) * targetSide
-
-  const points = [
-    start.clone(),
-    start.clone().addScaledVector(agentCurveStartForward, distance * 0.24),
-    start.clone().lerp(target, 0.52).addScaledVector(agentRecoverySide, lateralOffset),
-    target.clone().addScaledVector(agentCurveEndForward, -distance * 0.22),
-    target.clone(),
-  ]
-  points[1].y = THREE.MathUtils.lerp(start.y, target.y, 0.18)
-  points[2].y = THREE.MathUtils.lerp(start.y, target.y, 0.52)
-  points[3].y = THREE.MathUtils.lerp(start.y, target.y, 0.82)
-
-  const tangents = points.map((point, index) => {
-    if (index === 0) return agentCurveStartForward.clone()
-    if (index === points.length - 1) return agentCurveEndForward.clone()
-    const prev = points[index - 1]
-    const next = points[index + 1]
-    const tangentAtPoint = next.clone().sub(prev)
-    if (tangentAtPoint.lengthSq() < 0.0001) tangentAtPoint.copy(agentCurveStartForward)
-    return tangentAtPoint.normalize()
-  })
-
-  const path = new THREE.CurvePath()
-  for (let i = 0; i < points.length - 1; i += 1) {
-    const segmentStart = points[i]
-    const segmentEnd = points[i + 1]
-    const segmentLength = Math.max(0.001, segmentStart.distanceTo(segmentEnd))
-    const handleLength = Math.min(
-      segmentLength * THREE.MathUtils.lerp(0.20, 0.32, THREE.MathUtils.clamp(leadScale, 0, 1.4)),
-      bodyLength * 1.15,
-    )
-    agentCurveControlA.copy(segmentStart).addScaledVector(tangents[i], handleLength)
-    agentCurveControlB.copy(segmentEnd).addScaledVector(tangents[i + 1], -handleLength)
-    path.add(new THREE.CubicBezierCurve3(
-      segmentStart.clone(),
-      agentCurveControlA.clone(),
-      agentCurveControlB.clone(),
-      segmentEnd.clone(),
-    ))
-  }
-
-  path.userData = {
-    ...(path.userData ?? {}),
-    segmentCount: points.length - 1,
-  }
-  return path
-}
-
-function makeSoloAgentPath(creature, swim, start, startForward, target, rand) {
-  const bodyLength = creatureBodyLength(creature, swim)
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const minTurnRadius = Math.max(1.5, bodyLength * SOLO_AGENT_CURVE_MIN_RADIUS_BODY_LENGTHS)
-  agentCurveStartForward.copy(startForward)
-  if (agentCurveStartForward.lengthSq() < 0.0001) agentCurveStartForward.subVectors(target, start)
-  if (agentCurveStartForward.lengthSq() < 0.0001) agentCurveStartForward.set(0, 0, -1)
-  agentCurveStartForward.normalize()
-
-  let bestPath = null
-  let bestMeasure = null
-  let bestScore = Infinity
-
-  for (let attempt = 0; attempt < SOLO_AGENT_CURVE_BUILD_ATTEMPTS; attempt += 1) {
-    const leadScale = 0.72 + attempt * 0.04
-    const path = makeSoloAgentBezier(creature, swim, start, agentCurveStartForward, target, rand, leadScale)
-    const measure = measureSoloAgentCurve(path, agentCurveStartForward, minTurnRadius)
-    const boundaryTangentAccepted = soloAgentEndpointTangentMeetsBoundaryPlane(path, target, bounds, bodyLength)
-    const accepted = measure.accepted && boundaryTangentAccepted
-    path.userData = {
-      ...(path.userData ?? {}),
-      maxSampleTangentDelta: measure.maxDelta,
-      minTurnRadius: measure.minRadius,
-      startTangentDelta: measure.startTangentDelta,
-      hasTangentReversal: measure.hasTangentReversal,
-      hasAxisTangentReversal: measure.hasAxisTangentReversal,
-      totalTurn: measure.totalTurn,
-      boundaryTangentAccepted,
-      curvatureAccepted: accepted,
-    }
-    const score = measure.score + (boundaryTangentAccepted ? 0 : 800)
-    if (score < bestScore) {
-      bestScore = score
-      bestMeasure = measure
-      bestPath = path
-    }
-    if (accepted) return path
-  }
-
-  if (bestPath && bestMeasure) {
-    bestPath.userData = {
-      ...(bestPath.userData ?? {}),
-      curvatureAccepted: false,
-      fallbackReason: 'rejected-min-radius',
-    }
-  }
-  return bestPath
-}
-
 function limitPathYGradient(points, bounds, maxGradient = MAX_PATH_Y_GRADIENT) {
   for (let i = 1; i < points.length; i += 1) {
     const prev = points[i - 1]
@@ -1577,106 +1054,6 @@ function makeSwimPath(creature, swim, seed = hashString(creature.id ?? creature.
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
 }
 
-function rotatedSchoolPoint(rand, bounds, swim, index, pointCount, verticalScale, rotation, weavePhase, pattern = {}) {
-  const sideIndex = index + (pattern.laneFlip ?? 0)
-  const depthIndex = Math.floor(index / 2) + (pattern.depthFlip ?? 0)
-  const yIndex = index + (pattern.yFlip ?? 0)
-  const side = sideIndex % 2 === 0 ? -1 : 1
-  const depthSide = depthIndex % 2 === 0 ? -1 : 1
-  const normalized = pointCount <= 1 ? 0 : index / (pointCount - 1)
-  const zRange = bounds.zMax - bounds.zMin
-  const hasExplicitBounds = ['boundsZMin', 'boundsZMax', 'boundsYMin', 'boundsYMax'].some(key => Number.isFinite(swim[key]))
-
-  if (hasExplicitBounds) {
-    const laneT = side < 0
-      ? randomRange(rand, 0.04, 0.22)
-      : randomRange(rand, 0.78, 0.96)
-    const depthT = depthSide < 0
-      ? randomRange(rand, 0.04, 0.30)
-      : randomRange(rand, 0.70, 0.96)
-    const weave = Math.sin(normalized * Math.PI * 2.35 + weavePhase) * zRange * 0.08
-
-    const z = THREE.MathUtils.lerp(bounds.zMin, bounds.zMax, depthT) + weave
-    return clampToSwimBounds(new THREE.Vector3(
-      randomXInSwimBoundsAtZ(rand, bounds, z, laneT, laneT),
-      traversalY(rand, bounds, swim, yIndex, verticalScale, 0.62),
-      z,
-    ), bounds)
-  }
-
-  const weave = Math.sin(normalized * Math.PI * 2.35 + weavePhase) * bounds.z * 0.26
-  const localX = side * bounds.x * randomRange(rand, 0.54, 0.82) + randomRange(rand, -bounds.x * 0.14, bounds.x * 0.14)
-  const localZ = depthSide * bounds.z * randomRange(rand, 0.36, 0.74) + weave + randomRange(rand, -bounds.z * 0.18, bounds.z * 0.18)
-  const cos = Math.cos(rotation)
-  const sin = Math.sin(rotation)
-
-  return clampToSwimBounds(new THREE.Vector3(
-    localX * cos - localZ * sin,
-    traversalY(rand, bounds, swim, yIndex, verticalScale, 0.62),
-    localX * sin + localZ * cos,
-  ), bounds)
-}
-
-function makeSchoolPath(creature, swim, seed = hashString(creature.species ?? 'school'), start = null, exitTangent = null) {
-  const rand = mulberry32(seed)
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-  const turnRadius = effectiveTurnRadius(creature, swim)
-  const pointCount = Math.round(THREE.MathUtils.lerp(8, 5, turnRadius))
-  const verticalScale = verticalPathScale(creature, swim)
-  const rotation = randomRange(rand, -Math.PI, Math.PI)
-  const weavePhase = randomRange(rand, 0, Math.PI * 2)
-  const pattern = {
-    laneFlip: rand() < 0.5 ? 0 : 1,
-    depthFlip: rand() < 0.5 ? 0 : 1,
-    yFlip: rand() < 0.5 ? 0 : 1,
-  }
-  const points = []
-  const hasContinuation = Boolean(start && exitTangent)
-
-  if (hasContinuation) {
-    points.push(start.clone())
-    schoolTargetTangent.copy(exitTangent)
-    if (schoolTargetTangent.lengthSq() < 0.0001) schoolTargetTangent.set(0, 0, -1)
-    schoolTargetTangent.normalize()
-
-    const bodyLength = creatureBodyLength(creature, swim)
-    const firstTurnDistance = Math.max(
-      bodyLength * SCHOOL_PATH_MIN_FIRST_TURN_BODY_LENGTHS,
-      THREE.MathUtils.lerp(1.35, 3.6, turnRadius),
-    )
-    const leadDistance = Math.max(
-      firstTurnDistance + bodyLength * 0.4,
-      bodyLength * SCHOOL_PATH_CONTINUATION_BODY_LENGTHS * THREE.MathUtils.lerp(0.9, 1.28, turnRadius),
-    ) * randomRange(rand, 0.94, 1.08)
-    const lead = start.clone().addScaledVector(schoolTargetTangent, leadDistance)
-    points.push(clampToSwimBounds(lead, bounds))
-
-    const minTurnPointDistance = firstTurnDistance + bodyLength * 0.65
-    let firstTurnPoint = null
-    for (let attempt = 0; attempt < 6; attempt += 1) {
-      const candidate = rotatedSchoolPoint(rand, bounds, swim, points.length, pointCount, verticalScale, rotation, weavePhase, pattern)
-      if (candidate.distanceTo(start) >= minTurnPointDistance) {
-        firstTurnPoint = candidate
-        break
-      }
-    }
-    if (!firstTurnPoint) {
-      firstTurnPoint = start.clone().addScaledVector(schoolTargetTangent, minTurnPointDistance)
-      firstTurnPoint.y = traversalY(rand, bounds, swim, 2, verticalScale, 0.62)
-      clampToSwimBounds(firstTurnPoint, bounds)
-    }
-    points.push(firstTurnPoint)
-  }
-
-  for (let i = points.length; i < pointCount; i += 1) {
-    points.push(rotatedSchoolPoint(rand, bounds, swim, i, pointCount, verticalScale, rotation, weavePhase, pattern))
-  }
-
-  limitPathYGradient(points, bounds)
-  const tension = THREE.MathUtils.lerp(0.42, 0.76, turnRadius)
-  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension)
-}
-
 function schoolFormationOffset(school, creature) {
   if (!school) return null
   const rand = mulberry32(hashString(`${school.id}:${creature.id}:formation`))
@@ -1691,38 +1068,11 @@ function schoolFormationOffset(school, creature) {
     : (
       Math.sin(school.index * GOLDEN_ANGLE * 0.73) * 0.55 + randomRange(rand, -0.45, 0.45)
     ) * schoolRadius * SCHOOL_LONGITUDINAL_SPREAD
-  const phaseRank = isLeader ? 1 : (count - 1 - school.index) / count
-
   return {
-    phase: phaseRank * SCHOOL_PHASE_WINDOW + randomRange(rand, -0.006, 0.006),
     lateral: Math.cos(angle) * schoolRadius * indexRadius + randomRange(rand, -0.045, 0.045),
     vertical: Math.sin(angle) * schoolRadius * indexRadius * SCHOOL_VERTICAL_SPREAD + randomRange(rand, -0.045, 0.045),
     longitudinal,
-    driftPhase: randomRange(rand, 0, Math.PI * 2),
-    driftSpeed: randomRange(rand, 0.75, 1.25),
   }
-}
-
-function currentSchoolDrift(schoolOffset, now) {
-  if (!schoolOffset) return 0
-  return Math.sin(now * schoolOffset.driftSpeed + schoolOffset.driftPhase) * SCHOOL_DRIFT
-}
-
-function offsetFromSchoolPoint(target, path, t, schoolOffset, now, organicNoise = null) {
-  path.getPointAt(t, target)
-  path.getTangentAt(t, schoolTargetTangent).normalize()
-
-  schoolLateral.set(schoolTargetTangent.z, 0, -schoolTargetTangent.x)
-  if (schoolLateral.lengthSq() < 0.0001) schoolLateral.set(1, 0, 0)
-  schoolLateral.normalize()
-
-  const drift = currentSchoolDrift(schoolOffset, now)
-  target
-    .addScaledVector(schoolLateral, schoolOffset.lateral + drift + (organicNoise?.lateral ?? 0))
-    .addScaledVector(up, schoolOffset.vertical + (organicNoise?.vertical ?? 0))
-    .addScaledVector(schoolTargetTangent, schoolOffset.longitudinal + (organicNoise?.longitudinal ?? 0))
-
-  return target
 }
 
 function followLookaheadDistance(creature, swim, isSchooling) {
@@ -1927,14 +1277,6 @@ function computeBoidSteering(out, fish, creature, swim, school = null, followDir
 
   out.clampLength(0, params.maxWeight)
   if (debugState) debugState.result.copy(out)
-  return out
-}
-
-function limitAvoidanceAngle(out, followDirection, maxAngle) {
-  if (out.lengthSq() < 0.000001) return out.copy(followDirection)
-  out.normalize()
-  const angle = followDirection.angleTo(out)
-  if (angle > maxAngle) out.lerpVectors(followDirection, out, maxAngle / angle).normalize()
   return out
 }
 

@@ -21,16 +21,20 @@ The project values:
 
 ## Current Focus
 
-The current tank contains a single sardine in the ocean sunlight zone.
+The current clean release is `v0.12.2`. The ocean sunlight zone contains two deliberately curated tanks:
 
-This sardine is the reference creature for the project’s core standards:
+- **The Open Sea** — spotted sardinella, Mahi-mahi, and a Shortfin Mako Shark form a bait → mid-predator → apex-predator assemblage.
+- **The Drift** — a Giant Sunfish occupies a calmer, dimmer tank built around its slower rhythm and authored sun-bask behavior.
+
+Current foundations:
 
 - real-world scale: `1 WU = 25 cm`
-- body-length-based swim speed
-- idle swimming, snap turns, and straight-line bursts
-- Blender-authored GLB animation clips
-- follow camera for close observation
-- local creature records shaped for future persistence
+- body-length-scaled speed, turn radius, and camera framing
+- one unified boids movement pipeline for schools, pairs, and solitary creatures
+- Blender-authored GLB animation with species-specific procedural shaping where useful
+- bone-aware follow camera for close observation
+- Supabase-backed individual creature records, with browser-safe production credentials
+- session continuity across tank switches: hidden tanks freeze and resume without respawning their inhabitants
 
 ## Long-Term Direction
 
@@ -45,7 +49,7 @@ Eventually, World Oceanarium should support real simulation state over time:
 - curator-introduced species
 - persistent individual histories
 
-For now, creature data lives locally in versioned source files. This keeps the early project simple and reliable. The data is intentionally shaped like future database records, so it can later migrate to Supabase/Postgres without resetting existing creatures.
+Production creature data now lives in Supabase/Postgres. Versioned static creature rows remain as a development and missing-environment fallback; both sources normalize into the same runtime creature shape.
 
 ## Documentation
 
@@ -64,4 +68,6 @@ Index of the project's Markdown references, for both human and future-agent use.
 ```bash
 npm install
 npm run dev
+npm run lint
+npm run build
 ```

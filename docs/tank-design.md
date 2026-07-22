@@ -162,15 +162,41 @@ species.js (TANKS, tempo)
 Key detail: `Biome` keeps a fallback — if no `tank` prop is passed it reverts to the
 old `c.biome === name` filter, so nothing breaks if a tank is ever missing.
 
+## Tank switching and session continuity
+
+Only the active tank is mounted and rendered. Switching tanks therefore unmounts every
+`Fish` in the tank being left; hidden tanks consume no background simulation time.
+
+Since `v0.12.2`, each fish writes its continuity-critical state through a module-level
+store keyed by `creature.id` (`src/components/fishRuntimeStore.js`). When the creature
+remounts, it resumes its stored position, heading, velocity, committed boid steering,
+simulation clock, and seed/reset gates before the first frame is shown. This avoids both
+the old respawn and a one-frame flash at the model origin.
+
+Lifecycle rules:
+
+- **Tank switch:** freeze the departing tank; resume inhabitants when it is revisited.
+- **Creature-data refresh:** `App.jsx` prunes snapshots whose creature ids are no longer live.
+- **Page reload:** intentionally clears the module store and starts a fresh session.
+- **School remount:** members keep their individual position/heading, but the shared school
+  migration goal currently repicks when the leader remounts. The school can leave in a new
+  direction without any member teleporting.
+
+Do not mount every tank simultaneously to preserve continuity; that scales runtime work
+with total tank count. Extend the snapshot only when a newly added simulation field is
+visibly continuity-critical.
+
 Files touched by this system:
 
 - `src/data/species.js` — `tempo` on species, `TANKS`, `DEFAULT_TANK_ID`
 - `src/utils/speciesLookup.js` — `creaturesForTank`, `TANK_BY_ID`, dev guard
 - `src/components/Biome.jsx` — tank-based creature filter
+- `src/components/Fish.jsx` — hydrates and continuously mirrors each creature's runtime snapshot
+- `src/components/fishRuntimeStore.js` — get-or-create snapshot store + live-id pruning
 - `src/components/TankView.jsx` — accepts `tank`, shows its name/description, threads seed + lighting to the scene
 - `src/components/SceneLighting.jsx` — background/env painting; seeds the mottle RNG and merges `lighting` overrides
 - `src/components/WaterSurface.jsx` — surface caustic shader; `uSeed` uniform offsets the noise domain per tank
-- `src/App.jsx` — `activeTankId` state, tank→biome resolution, the switcher + description
+- `src/App.jsx` — `activeTankId` state, tank→biome resolution, switcher + description, and snapshot pruning after creature-data refresh
 - `src/index.css` — `.tank-switcher-dock` / `.tank-switcher` / `.tank-switch-button` styles (bottom-center)
 
 ## Visual signature

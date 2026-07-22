@@ -23,7 +23,8 @@ Reference:
 
 Subtasks:
 - [x] Raise the shared-school cap to 180 while preserving Mahi-mahi's explicit pair cap.
-- [ ] Build, browser-smoke, and collect Jeremy visual review with the 275-fish production population.
+- [x] Build and browser-smoke `v0.12.3-dev_1`.
+- [ ] Collect Jeremy visual review with the 275-fish production population.
 
 Review gate:
 - 275 live Sardinellas resolve into two logical schools (180 + 95) without obvious frame-rate or formation regressions.

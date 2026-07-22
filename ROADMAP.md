@@ -15,19 +15,19 @@ Status labels:
 
 ### Larger Sardinella schools
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy asked to increase the code-level school-size cap from 64 to 180 after adding 187 production Sardinellas.
-- Branch: `feat/sardinella-school-size`; review build: `v0.12.3-dev_1`.
+- Branch: `feat/sardinella-school-size`; accepted for clean `v0.12.3` release from `v0.12.3-dev_1` after Jeremy approval.
 
 Subtasks:
 - [x] Raise the shared-school cap to 180 while preserving Mahi-mahi's explicit pair cap.
 - [x] Build and browser-smoke `v0.12.3-dev_1`.
-- [ ] Collect Jeremy visual review with the 275-fish production population.
+- [x] Collect Jeremy release approval.
 
 Review gate:
-- 275 live Sardinellas resolve into two logical schools (180 + 95) without obvious frame-rate or formation regressions.
+- [x] 275 live Sardinellas resolve into two logical schools (180 + 95) without obvious frame-rate or formation regressions.
 
 ## Code cleanup / maintenance
 

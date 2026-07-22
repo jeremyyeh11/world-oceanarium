@@ -10,11 +10,11 @@ Versioning convention notes:
 
 ## v0.12.3 — Larger Sardinella schools
 
-Status: in development as `v0.12.3-dev_1` for Jeremy review.
+Status: accepted and promoted as clean `v0.12.3` from `v0.12.3-dev_1` after Jeremy approval.
 
 ### Creature behavior
 
-- `v0.12.3-dev_1` raises the shared-school cap from 64 to 180 fish. The current 275 live Spotted Sardinellas now resolve into two logical schools (180 + 95) instead of five (64 + 64 + 64 + 64 + 19); Mahi-mahi remain explicitly capped at pairs via `schoolMaxSize: 2`.
+- Raises the shared-school cap from 64 to 180 fish. The current 275 live Spotted Sardinellas now resolve into two logical schools (180 + 95) instead of five (64 + 64 + 64 + 64 + 19); Mahi-mahi remain explicitly capped at pairs via `schoolMaxSize: 2`.
 
 ## v0.12.2 — Persistent tank sessions
 

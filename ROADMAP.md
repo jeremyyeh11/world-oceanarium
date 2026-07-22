@@ -13,11 +13,21 @@ Status labels:
 
 ## Current work
 
-No feature branch is mid-review. The last shipped release is clean `v0.12.2`
-(persistent tank sessions), and Jeremy has cleared its visual pass with no
-further changes required. Everything through it is drained into
-`Released / archived` below. Promote the next item from `Backlog` into this
-section when work actually starts on it.
+### Larger Sardinella schools
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy asked to increase the code-level school-size cap from 64 to 180 after adding 187 production Sardinellas.
+- Branch: `feat/sardinella-school-size`; accepted for clean `v0.12.3` release from `v0.12.3-dev_1` after Jeremy approval.
+
+Subtasks:
+- [x] Raise the shared-school cap to 180 while preserving Mahi-mahi's explicit pair cap.
+- [x] Build and browser-smoke `v0.12.3-dev_1`.
+- [x] Collect Jeremy release approval.
+
+Review gate:
+- [x] 275 live Sardinellas resolve into two logical schools (180 + 95) without obvious frame-rate or formation regressions.
 
 ## Code cleanup / maintenance
 

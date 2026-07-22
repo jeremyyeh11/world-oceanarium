@@ -29,6 +29,7 @@ Design rule: every mechanic must answer **what it feels like to do, and why that
 Important paths:
 
 - `src/components/Fish.jsx` — creature rendering, movement, animation, debug labels
+- `src/components/fishRuntimeStore.js` — session-lifetime fish snapshots that survive active-tank unmount/remount
 - `src/components/Biome.jsx` — renders a tank's curated creature assemblage (see `docs/tank-design.md`)
 - `src/components/TankView.jsx` — tank UI, debug mode, follow selection, controls
 - `src/hooks/useCreatures.js` — Supabase/local creature source routing
@@ -107,8 +108,17 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 - Keep legacy aliases working while old rows age out.
 - `1 WU = 25 cm` for real-world scale.
 - Use body-length-scaled movement and camera framing for large animals.
-- Sardines stay on shared-school movement; large non-schooling species use solo-agent behavior.
+- Every creature uses the unified steer → boids → turn-cap → integrate → clamp pipeline. Schools derive their base heading from a shared migration goal + formation slot; creatures outside a school use a personal roaming/authored target.
+- A normally-schooling creature that is currently unpaired must still use the solo fallback (`Boolean(species) && !isSchooling`) so odd live counts cannot create a movement dead zone.
 - Current Mola axis convention: GLB `+Y` up, `+Z` forward.
+
+## Tank-session continuity
+
+- Only the active tank is mounted/rendered. Hidden tanks do not simulate in the background.
+- `fishRuntimeStore.js` persists continuity-critical state by creature id so switching tanks freezes/resumes fish instead of reseeding them.
+- Preserve the page reload boundary: module state intentionally clears on reload; do not add durable browser/server persistence without a separate design decision.
+- Prune snapshots against the current live creature ids after data refreshes.
+- School-member positions/headings persist, but the shared school migration goal currently repicks after remount. Treat exact school-goal continuity as an optional refinement, not a bug in individual persistence.
 
 ## Visual / UX taste
 
@@ -118,12 +128,13 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 - Mobile matters: touch controls, follow mode, debug access, audio unlock, and layout should be tested conceptually for phone use.
 - Controls/debug affordances should be compact and unobtrusive.
 
-## Mola / large solo-agent notes
+## Mola authored-behavior notes
 
-- Destinations stay in bounds; large solo agents may traverse outside X/Z destination bounds for broad maneuvers.
+- Mola cruise movement uses the unified integrator; its sun-bask, depth-residency targets, surface ceilings, and deep-exit recovery are authored layers on top.
 - Keep Mola Y protected by a hard surface ceiling below `SURFACE_PLANE_Y`.
 - Sun-bask lifecycle: approach → side-up hold/drift/animation → exit.
 - Runtime root roll owns the whole-animal bask pose; do not let authored animation root tracks fight it.
+- The rear boundary is intentionally soft so a blown deep U-turn can exit into darkness and use the fade-out/snap/fade-in recovery instead of wall-sliding.
 - Debug sun-bask shortcut: debug mode + selected/followed Mola + `Ctrl+Shift+X` queues bask; mobile debug panel has the same action.
 - Solo-agent debug label format:
 

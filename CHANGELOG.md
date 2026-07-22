@@ -8,6 +8,21 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.12.2 — Persistent tank sessions
+
+Status: accepted and promoted as clean `v0.12.2` after Jeremy's visual pass. No further visual changes are required.
+
+### Tank continuity
+
+- Switching tanks no longer resets every inhabitant. Continuity-critical fish state now lives in `src/components/fishRuntimeStore.js`, keyed by creature id, so position, heading, velocity, committed boid steering, simulation clock, and seed/reset gates survive the active tank's unmount/remount cycle.
+- Only the active tank remains mounted and rendered, preserving the existing `O(active tank)` runtime cost. Hidden tanks do not simulate in the background; they freeze and resume when revisited.
+- `App.jsx` prunes stored snapshots whenever live creature data changes, preventing removed creatures from leaving stale runtime entries. A page reload clears the module store and intentionally starts a fresh session.
+- Returning schools preserve each member's position and heading without teleporting. The shared school migration goal is still recreated when its leader remounts, so a school may choose a new travel direction after resuming; this is an optional continuity refinement, not a release blocker.
+
+### Validation
+
+- Production build and lint passed, GitHub Build and Vercel Production completed successfully, the public alias serves clean `v0.12.2`, and Jeremy cleared the visual pass.
+
 ## v0.12.1 — Frozen-mahi regression fix
 
 Status: patch on `v0.12.0`. Fixes a data-dependent freeze that surfaced only on the live (production Supabase) creature set, not the static/dev set.
@@ -34,6 +49,23 @@ Status: accepted and promoted as clean `v0.12.0` from `v0.12.0-dev_12` after Jer
 - `v0.12.0-dev_3` tightens the school tuning after review feedback (schools too loose / facing random directions, mahi tails still cocked). Sardinella now form a coherent directional cloud: measured heading coherence ~0.95 (fish generally face the same way) at rms radius ~2.3 WU — looser than the old spline ball but tighter than the dev_2 scatter — via stronger alignment (0.16→0.38) with lighter separation (0.55→0.30) so separation stops fighting the formation slot. The mahi tail cock is driven by `curveDeform` bend, which sums the actual per-frame turn rate with a `turnIntent` (heading-vs-desired) term; under continuous boid steering that term stayed high and baked in a permanent sideways tail, so mahi `turnIntentScale` is now 0 (bend follows real turning only, like the mako). Also: formation-slot pull is scaled down for tiny schools so a pair travels parallel instead of orbiting their slots; the shared migration direction is low-pass filtered so per-frame goal re-picks don't accumulate into a constant turn; and school goals are inset from the walls so a wide-turning school (big body, tight bounds) banks away early instead of thrashing into a boundary it can't out-turn.
 - `v0.12.0-dev_2` fixes two regressions from the dev_1 boids swap: schooling fish strung into a single-file conga line and the mahi held their tails cocked at a fixed angle. Both came from steering every member toward the same goal *point* offset by its formation slot in world axes — that funnels the group single-file and holds a permanent yaw. Schools now migrate along a shared *direction* (goal − live school centroid, leader-computed and identical for all members) so they travel parallel, and each fish is pulled toward its formation slot placed in the travel frame (right = perpendicular-to-heading, up = world Y) around the centroid, so the shape is designed rather than emergent — a single-file line is no longer a stable equilibrium. Boid separation/threat ride on top for anti-overlap and predator avoidance. Retuned the sardinella boids for the new model (separation 0.38→0.55, alignment 0.24→0.16, maxWeight 0.38→0.62). Measured: sardine along:lateral spread ratio 18:1 → ~1.2:1 (a rounded cloud), mahi tail-bend intent down to ≤0.18 (gentle bank, not a cocked C-curl), with no freeze or backward-swim regression.
 - `v0.12.0-dev_1` removes the schooling spline entirely and moves schools onto pure boids, fixing the mahi-mahi freeze/backward-swim bug at its root. Schooling fish used to chase a follow-target sampled on a shared spline, with motion capped to the distance-to-target (no overshoot). The follow-target parameter `clamp(t + followDistance/pathLength, 0, 1)` saturated at the path endpoint whenever `followDistance` was large relative to the path — true for the big-bodied mahi in its confined bounds — so the target pinned to the curve's end, the fish caught up, and `targetDistance→0` froze it in place (turning/animating but not translating) until the leader regenerated the path; a fish nudged past the pinned target then swam backward to return. This replaces `getSchoolState`'s path/progress with a shared roaming **goal point** (the leader repicks it via `pickSoloAgentContinuationTarget` on arrival), and rewrites the school-follower step to steer toward that goal (offset per member by its formation slot) blended with first-class boid separation/alignment/cohesion, capped to a body-length turn arc, integrating velocity freely with no distance cap. Also deletes the `v0.12.0-dev` anti-stuck watchdog and the no-overshoot clamp that were band-aiding the freeze. Verified over sustained runs: no mahi freeze, zero backward-swim frames, sardine schools stay tight balls (rms radius ~1.7 WU) and mahi hold loose pairs.
+
+## v0.11.0 — Visual/UI refinement
+
+Status: accepted and promoted as clean `v0.11.0` after the visual/UI refinement pass and review fixes.
+
+### Camera / follow
+
+- Lowers the resting camera pitch and tightens the water-surface far fade so the ceiling no longer dominates the upper frame while preserving camera position, FOV, and scale-by-position.
+- Follow mode now aims at an optional per-species body bone, supports closer zoom and full-yaw orbit at constant distance/FOV, and releases cleanly when switching tanks.
+- Revalidates the cached follow bone after model remounts, fixing the camera becoming stranded when debug mode swaps fish materials. Missing configured bones fall back safely and produce a debug warning.
+
+### Environment / UI / debug
+
+- Makes the equirectangular background and god-ray pattern wrap seamlessly, fades god rays edge-on, fades the seabed rim, and blurs across the assembled wrap so orbiting exposes no obvious seam.
+- Restricts direction, boid, and name overlays to the selected creature; removes deprecated drift/follow-target markers; and scales name labels with camera distance.
+- Keeps the tank switcher clear of the debug toolbar and hides it on mobile while the creature info card is open.
+- Disposes the imperatively-created floor material on biome change/unmount, preventing a shader/material leak.
 
 ## v0.10.0 — Boid schooling movement
 
@@ -87,7 +119,7 @@ Status: accepted and promoted as clean `v0.8.20` from `v0.8.20-dev_1` after Jere
 
 ## v0.8.19 — Shortfin Mako Shark review
 
-Status: in development as `v0.8.19-dev_3` for Jeremy review.
+Status: accepted and merged directly to `main` from `v0.8.19-dev_3` (`79dccfe`) after animation/movement smoothing. The shark is live and was subsequently integrated into the tank assemblage and unified boids movement releases.
 
 ### Creature data / Atlas / asset
 

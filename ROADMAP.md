@@ -13,8 +13,9 @@ Status labels:
 
 ## Current work
 
-No feature branch is mid-review. The last shipped release is clean `v0.10.0`
-(boid schooling overlay); everything through it has been drained into
+No feature branch is mid-review. The last shipped release is clean `v0.12.2`
+(persistent tank sessions), and Jeremy has cleared its visual pass with no
+further changes required. Everything through it is drained into
 `Released / archived` below. Promote the next item from `Backlog` into this
 section when work actually starts on it.
 
@@ -51,8 +52,8 @@ Status: `Backlog`
 
 Reference:
 - Backups are JSON snapshots/diffs under `.supabase-creature-backups/`, not Markdown.
-- Latest refreshed production snapshot after `v0.8.3`: `.supabase-creature-backups/snapshots/2026-06-03_03-49-58-066Z_creatures.json`.
-- Current live table check: 89 total active creatures = 88 `amblygaster-sirm` + 1 `mola-alexandrini`; `creatures` and `creatures_dev` matched at time of check.
+- Latest committed production snapshot after `v0.8.3`: `.supabase-creature-backups/snapshots/2026-06-03_03-49-58-066Z_creatures.json`.
+- Latest production read during the `v0.12.2` documentation refresh: 95 active creatures = 88 `amblygaster-sirm` + 5 `coryphaena-hippurus` + 1 `isurus-oxyrinchus` + 1 `mola-alexandrini`. `creatures_dev` was not compared in that read.
 
 Subtasks:
 - [ ] Before direct Supabase creature writes, run `npm run backup:creatures`; verify after writes and back up again.
@@ -154,6 +155,62 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 
 Newest first. Each entry shipped as a clean public release and was drained here per the roadmap-hygiene rule.
 
+### v0.12.2 — Persistent tank sessions
+
+Status: accepted and promoted as clean `v0.12.2`; Jeremy cleared the visual pass and requested no further changes.
+
+Reference:
+- PR: `#63` (`persist-tank-session`).
+- Active-tank-only rendering remains intact; hidden tanks freeze rather than consuming background simulation time.
+
+Subtasks:
+- [x] Persist each creature's continuity-critical runtime state by creature id across tank unmount/remount.
+- [x] Resume position, heading, velocity, committed boid steering, simulation clock, and seed/reset gates without an origin flash or spawn reset.
+- [x] Prune runtime snapshots when the live creature set changes.
+- [x] Preserve page reload as the intentional fresh-session boundary.
+- [x] Build/lint and production deployment passed.
+- [x] Jeremy visual pass cleared; no change needed.
+
+Optional future refinement (not release-blocking):
+- Persist the shared school migration goal if schools should resume the exact same travel direction; members already resume without teleporting.
+
+### v0.12.1 — Frozen-mahi regression fix
+
+Status: shipped as clean `v0.12.1` after validation against the live production creature set.
+
+Reference:
+- Production had five Mahi-mahi, leaving one unpaired creature outside the schooling path.
+
+Subtasks:
+- [x] Route every creature not currently in a school through solo roaming, including orphaned members of normally-schooling species.
+- [x] Verify all five live Mahi-mahi translate normally; paired and solitary species behavior remains intact.
+
+### v0.12.0 — Unified boids movement
+
+Status: accepted and promoted as clean `v0.12.0` from `v0.12.0-dev_12` after Jeremy approval.
+
+Reference:
+- PRs: `#61` (boids-only movement and spline removal) and `#62` (unified schools/solo integrator).
+
+Subtasks:
+- [x] Move every creature onto one steer → boids → turn-cap → integrate → clamp pipeline.
+- [x] Remove the remaining spline/path plumbing and obsolete solo runtime-envelope machinery.
+- [x] Fix Mahi-mahi freeze/backward-swim behavior and preserve coherent sardine clouds / mahi pairs.
+- [x] Keep the Mako submerged, visible, smooth at boundaries, and stable in follow mode.
+- [x] Preserve Mola sun-bask, depth excursions, surface ceilings, and deep-exit recovery.
+- [x] Validate schools, Mako, Mola, cross-species threat response, build, and lint.
+
+### v0.11.0 — Visual/UI refinement
+
+Status: accepted and promoted as clean `v0.11.0` after the visual/UI review pass.
+
+Subtasks:
+- [x] Reduce surface domination without changing FOV/position scale cues.
+- [x] Remove background/god-ray/seabed seams exposed by orbiting.
+- [x] Make follow mode bone-aware, closer, full-yaw, tank-switch safe, and resilient to debug remounts.
+- [x] Restrict debug vectors/labels to the selected creature and resolve switcher/debug/mobile overlaps.
+- [x] Dispose the biome floor material correctly and expose missing follow-bone diagnostics.
+
 ### v0.10.0 — Boid schooling overlay
 
 Status: accepted and promoted as clean `v0.10.0` from `v0.10.0-dev_14` after Jeremy feel review. Lint clean, production build passes.
@@ -196,7 +253,7 @@ Post-release follow-ups (not release-blocking):
 - Radii now exceed the tank depth so u-turns exit frame and may hard-reset off-screen (intended). Revisit only if an on-screen reset becomes visible.
 - Movement briefly throttles near a close follow-target on some opposite retargets (possible residual on-the-spot rotation) — could keep forward momentum through turns.
 - Mahi `snap_left`/`snap_right` clips are unused for turns — repurpose for sharp evasive turns later if wanted.
-- Still worth an on-device confirmation pass (not done at release): sun-bask still fires and holds cleanly on device (couldn't land a synthetic raycast selection in headless smoke; logic preserved — hold stage untouched); and a visual re-verify of dev_8 travel + turn arcs (preview-screenshot tool was stuck that session; app ran error-free).
+- Later `v0.12.0` movement verification reconfirmed the full Mola approach → hold → exit bask sequence and unified turn/travel behavior; Jeremy's `v0.12.2` visual pass is cleared. No on-device visual gate remains open from this release.
 - Tuning knobs: `GLOBAL_X_DESTINATION_RANGE_SCALE`, per-species `turnRadiusBodyLengths`, `boundsYMin`, curve-deform `turnIntentScale`/`maxAngleDegrees`/`straightenFloor`, audio `SFX_AMBIENT/FOLLOW_MIN_GAP_SECONDS`.
 
 Accepted gates:

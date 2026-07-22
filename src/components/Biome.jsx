@@ -6,7 +6,7 @@ import SardineInstancedLayer from './SardineInstancedLayer'
 import { SPECIES_BY_KEY, creaturesForTank } from '../utils/speciesLookup'
 import { hashString } from '../utils/hash'
 
-const SCHOOL_MAX_SIZE = 64
+const SCHOOL_MAX_SIZE = 180
 const ENABLE_SARDINE_INSTANCED_LAYER = true
 
 function schoolMaxSizeForSpecies(species) {

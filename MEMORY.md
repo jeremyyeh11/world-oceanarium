@@ -16,5 +16,7 @@ WO debug UI prefs: flat full-width bottom toolbar; no bevel/glow/rounding/margin
 
 WO movement gotcha: a **schooling** species not currently in a school is a movement dead zone unless `isSoloAgent` covers it (`Boolean(species) && !isSchooling`) — otherwise it holds heading into a wall and freezes. `Biome.jsx` drops any `< 2` group from schooling, so an odd count of one species in a `biome:depthZone` (or a paired fish dying) orphans one. This is data-dependent: reproduce it by pointing local at live data.
 
+WO tank sessions mount/render only the active tank. `fishRuntimeStore.js` keeps per-creature position, heading, velocity, boid commitment, simulation clock, and seed/reset state across tank unmount/remount; page reload intentionally clears it. Individual school members resume exactly, while the shared school migration goal may repick after remount.
+
 WO local↔live data: local dev falls back to the static `CREATURES` seed unless a **gitignored** `.env.local` sets `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`; with those (and a non-`-dev_` `APP_VERSION`) local reads the same production `creatures` table the deploy serves. Supabase project is `world_oceanarium` (ref `atecqjxrnuilblprhljs`). Use this to reproduce data-dependent bugs that only appear on the Vercel deploy.
 

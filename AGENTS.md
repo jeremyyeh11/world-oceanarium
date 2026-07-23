@@ -163,38 +163,25 @@ Keep replies concise. No markdown tables.
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph
 
-**IMPORTANT: This project has a knowledge graph. ALWAYS use the
-code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
-the codebase.** The graph is faster, cheaper (fewer tokens), and gives
-you structural context (callers, dependents, test coverage) that file
-scanning cannot.
+This project uses code-review-graph through Hermes Agent and Codex. When the
+MCP tools are available, use them before broad file searches for dependency
+exploration, change review, and blast-radius analysis. Hermes prefixes these
+tools with `mcp_crg_`; the underlying tool names end in `_tool`.
 
-### When to use graph tools FIRST
+Pass this repository's root explicitly through `repo_root` when the tool accepts
+it. The shared Hermes MCP server can serve multiple repositories, so relying on
+its default repository can query the wrong project.
 
-- **Exploring code**: `semantic_search_nodes` or `query_graph` instead of Grep
-- **Understanding impact**: `get_impact_radius` instead of manually tracing imports
-- **Code review**: `detect_changes` + `get_review_context` instead of reading entire files
-- **Finding relationships**: `query_graph` with callers_of/callees_of/imports_of/tests_for
-- **Architecture questions**: `get_architecture_overview` + `list_communities`
+The graph is structural context, not ground truth. Fall back to direct file reads
+for static assets/configuration or whenever the graph is stale or incomplete.
 
-Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
+### Useful tools
 
-### Key Tools
+- Exploration: `semantic_search_nodes_tool`, `query_graph_tool`
+- Change review: `detect_changes_tool`, `get_review_context_tool`
+- Impact: `get_impact_radius_tool`, `get_affected_flows_tool`
+- Architecture: `get_architecture_overview_tool`, `list_communities_tool`
+- Test relationships: `query_graph_tool` with `pattern="tests_for"`
 
-| Tool | Use when |
-| ------ | ---------- |
-| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
-| `get_review_context` | Need source snippets for review — token-efficient |
-| `get_impact_radius` | Understanding blast radius of a change |
-| `get_affected_flows` | Finding which execution paths are impacted |
-| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
-| `semantic_search_nodes` | Finding functions/classes by name or keyword |
-| `get_architecture_overview` | Understanding high-level codebase structure |
-| `refactor_tool` | Planning renames, finding dead code |
-
-### Workflow
-
-1. The graph auto-updates on file changes (via hooks).
-2. Use `detect_changes` for code review.
-3. Use `get_affected_flows` to understand impact.
-4. Use `query_graph` pattern="tests_for" to check coverage.
+After source changes, refresh the graph with `build_or_update_graph_tool` or
+`code-review-graph update --repo .` before relying on review results.

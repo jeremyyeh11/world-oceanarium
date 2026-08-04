@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: accepted and promoted as clean `v0.14.0` from `v0.14.0-dev_12` after Jeremy reju. This feature remained separate from the cinematic-camera branch.
+Status: accepted and promoted as clean `v0.13.0` from the historically labeled `v0.14.0-dev_12` review build after Jeremy reju. The clean number was corrected to follow `v0.12.3`; this feature remained separate from the cinematic-camera branch.
 
 ## Felt intention
 

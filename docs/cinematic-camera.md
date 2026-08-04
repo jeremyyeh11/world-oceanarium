@@ -1,6 +1,6 @@
 # Cinematic Camera
 
-Status: `v0.13.0-dev_4` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
+Status: `v0.13.0-dev_5` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
 
 ## Felt intention
 
@@ -51,7 +51,7 @@ At four evaluations per second, the director first filters valid entries to the 
 - two members sharing a school id become a `pair` hero;
 - three or more members sharing a school id become a `school` hero.
 
-A school contributes one queue entry, not one entry per fish. This prevents an abundant selected species from generating hundreds of near-identical queue entries. A school or pair shot may temporarily use one readable member as a cutaway while the group remains the queued hero.
+A school contributes one queue entry, not one entry per fish. This prevents an abundant selected species from generating hundreds of near-identical queue entries. A school or pair shot may temporarily use one readable member as a cutaway while the group remains the queued hero. Independent pair/school aggregates are always separate documentary subjects; the director never points between two aggregates in an attempt to cover both.
 
 Each aggregate carries:
 
@@ -87,24 +87,34 @@ The current generic vocabulary is:
 
 - `profile-track` — camera maintains a broad side or three-quarter relationship as the hero moves;
 - `lead-track` — camera stays ahead and offset, giving the animal room to enter the composition;
-- `hero-static` — camera position holds while its gaze tracks the moving hero, allowing the animal to create the shot;
+- `hero-static` — camera and gaze can hold completely still, allowing the animal to create or leave the composition;
 - `school-wide` — frames an aggregate using live radius and body scale;
 - `member-cutaway` — follows one member while retaining the school as the narrative context;
-- `relationship` — frames current and queued heroes of the selected species together before promoting the queued hero.
+- `relationship` — frames two coherent individual heroes of the selected species together before promoting the queued hero; it never averages between separate pair/school aggregates.
 
 Shot offsets derive from body length, group radius, heading, and spatial spread. No template names a species.
+
+Every shot also chooses exactly one camera behavior:
+
+- `still` — position and gaze remain locked;
+- `track` — the established damped camera follows one living subject;
+- `dolly` — translation only along the viewing axis;
+- `truck` — lateral translation with fixed camera orientation;
+- `tilt` — vertical gaze rotation from a fixed camera position.
+
+Movement distances derive from subject scale and stay deliberately restrained. A shot never combines dolly + truck, truck + tilt, or another stacked move; variety comes between shots rather than from an amateurish compound move inside one shot.
 
 The transition grammar is:
 
 1. hold a current-hero shot;
 2. inspect the rolling queue;
-3. if the queued hero can share a useful frame, create a relationship bridge;
+3. if two individual heroes can share a useful frame, create a relationship bridge; pair/school aggregates always stay separate;
 4. promote that secondary hero in the following shot;
 5. preflight the proposed camera, subject framing, viewing angle, and FOV before committing it;
 6. if invalid, keep the current valid shot on screen and ask the planner for another candidate;
 7. if valid, jump cut directly—never visibly fly the camera through empty water or geometry.
 
-Within-shot position, gaze, and FOV use damped motion to follow living subjects. Shot changes are intentional jump cuts. Before the camera sees a new shot id, a reusable virtual camera confirms finite position/look/FOV, safe projected framing, profile/lead viewing-angle rules, and—on relationship bridges—both same-species subjects inside frame. Invalid candidates never reach the camera.
+Within-shot application remains damped, but the director supplies only the shot's chosen still/track/dolly/truck/tilt behavior. Shot changes are intentional jump cuts. Before the camera sees a new shot id, a reusable virtual camera confirms finite position/look/FOV, safe projected framing, profile/lead viewing-angle rules, no dominant different-species foreground animal, and—on individual relationship bridges—both same-species subjects inside frame. Invalid candidates never reach the camera.
 
 ## Shot timing and failure detection
 
@@ -119,6 +129,7 @@ A shot may end early when:
 - projected scale becomes too small or too large;
 - profile/static/member coverage sustains a poor head-on or tail-on angle;
 - lead coverage loses its intended forward angle;
+- a different-species animal becomes more visually prominent than the selected subject;
 - the camera-to-subject distance becomes unsafe.
 
 Camera height is clamped above the tank floor and below the water surface. This protects the most obvious floor/surface crossings while visual review remains responsible for judging authored environment edges.
@@ -145,7 +156,7 @@ Before clean promotion:
 - watch at least 60–90 seconds for one Open Sea species;
 - confirm shots usually hold 5–10 seconds;
 - confirm available individuals/groups vary without another species becoming the main subject;
-- confirm at least one shared-frame handoff when spatially available;
+- confirm at least one individual shared-frame handoff when spatially available, while separate Mahi-mahi pairs receive distinct shots rather than an averaged midpoint frame;
 - confirm poor sustained angles recover without oscillation;
 - confirm no hard tank boundary or geometry traversal is revealed;
 - test The Drift's single-hero fallback;

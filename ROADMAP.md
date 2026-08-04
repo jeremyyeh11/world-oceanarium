@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy redirected the feature toward a Nat Geo-style species documentary: follow a fish first, then enter Cinematic Mode from that fish's info card. The selected species remains the main subject while shots may move between its individuals and groups.
-- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_4`.
+- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_5`.
 - Detailed architecture and review contract: [`docs/cinematic-camera.md`](docs/cinematic-camera.md).
 
 Subtasks:
@@ -29,6 +29,8 @@ Subtasks:
 - [x] Add 5–10 second holds, low-frequency shot evaluation, hysteresis, and early bad-shot replacement.
 - [x] Add Cinematic Mode beside Atlas in the followed fish's info card, with clean presentation UI, desktop any-key exit, inert mouse input, and mobile long-press exit.
 - [x] Use validity-gated jump cuts for shot changes: preflight framing/facing/finite pose and both bridge subjects before committing the cut; retain damped within-shot tracking.
+- [x] Add restrained still, tracking, dolly, truck, and tilt coverage with exactly one camera movement vocabulary per shot.
+- [x] Fix pair/school aggregate bridges averaging the camera into empty water between separate groups; independent aggregate heroes now receive separate shots and direct validated cuts.
 - [x] Preserve resting/manual follow-camera code paths and avoid frame-by-frame React state updates.
 - [x] Build, lint, and browser-smoke both multi-hero and single-hero tanks.
 - [ ] Collect Jeremy desktop visual review of a sustained 60–90 second sequence.
@@ -37,7 +39,7 @@ Subtasks:
 
 Review gates:
 - No species, creature id, hero count, or fixed narrative sequence is encoded in the director.
-- Open Sea keeps the selected species as its main documentary subject while producing readable individual/group coverage and same-species shared-frame handoffs without rapid repetition, arbitrary oscillation, or snappy long-distance camera jumps.
+- Open Sea keeps the selected species as its main documentary subject while producing readable individual/group coverage and coherent same-species individual handoffs without rapid repetition, arbitrary oscillation, or snappy long-distance camera jumps. Separate pairs/schools must never be averaged into one empty midpoint composition.
 - The Drift remains useful with one available hero, varying generic shot classes and replacing sustained poor angles early.
 - Shots generally hold 5–10 seconds, but invalid targets, poor scale/framing, or sustained head-/tail-on angles are replaced gracefully.
 - The camera does not reveal hard tank boundaries or travel visibly through geometry.

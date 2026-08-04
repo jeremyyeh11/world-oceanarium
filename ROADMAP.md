@@ -13,6 +13,37 @@ Status labels:
 
 ## Current work
 
+### Deforming ocean surface
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
+- Branch: `feat/deforming-ocean-surface`; accepted for clean `v0.14.0` from review build `v0.14.0-dev_12` after Jeremy reju.
+- Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
+
+Subtasks:
+- [x] Replace the flat plane with a subdivided, vertex-displaced surface.
+- [x] Use layered mobile-conscious Gerstner waves with analytic normals.
+- [x] Replace the localized fragment treatment with a full-plane physical water material and material-specific CC0 HDR environment.
+- [x] Overscan beyond camera range and use a half-resolution refraction target for mobile-conscious physical transmission.
+- [x] Retune the material from cyan toward muted cobalt and dissolve its grazing-angle horizon with distance + facing fades.
+- [x] Remove the repeated low-angle reflection bands from portrait/level views while retaining the physical surface in steeper upward views.
+- [x] Restore low-angle HDR reflection with a much tighter `4.2–8.5 WU` Gerstner spectrum for smaller reflected ripples.
+- [x] Break the remaining periodic rhythm into three crossed scales, each pairing waves with different directions, speeds, phases, and incommensurate wavelengths.
+- [x] Brighten the material-local HDR reflection without changing global tank or creature lighting.
+- [x] Increase coarse-to-fine wavelength separation and lower the resting camera up-pitch so the surface reads less tiled and crowns portrait framing instead of filling half the screen.
+- [x] Raise the minimum wave scale from `3.1` to `4.5 WU` and brighten the water-local HDR reflection from `1.15` to `2.2`.
+- [x] Increase the water-local HDR intensity to `8.0` so reflected sky highlights shine above the blue water body.
+- [x] Render the authored fake god-ray planes only in the settled default camera view; disable them throughout follow/orbit and the return transition.
+- [x] Give coarse, medium, and fine wave pairs descending displacement magnitudes while preserving the existing `0.119 WU` maximum summed excursion.
+- [x] Collect desktop and physical-phone visual/performance review and Jeremy release approval.
+
+Review gates:
+- [x] The ceiling reads as calm moving water, not cloth, chrome, or a noisy special effect.
+- [x] No rectangular plane edge appears during upward camera angles.
+- [x] Fish remain legible and normal tank performance remains stable on phone.
+
 ### Larger Sardinella schools
 
 Status: `Archive candidate`

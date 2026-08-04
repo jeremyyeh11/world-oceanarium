@@ -236,12 +236,12 @@ function SuspendedParticles() {
   )
 }
 
-export default function UnderwaterFX({ biome = 'ocean' }) {
+export default function UnderwaterFX({ biome = 'ocean', showGodRays = true }) {
   if (biome !== 'ocean') return null
 
   return (
     <group>
-      <LightRays />
+      {showGodRays && <LightRays />}
       <SuspendedParticles />
       {/* Surface shimmer now lives in WaterSurface; keep this disabled to avoid a duplicate mid-screen horizon band. */}
     </group>

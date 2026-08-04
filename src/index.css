@@ -69,7 +69,6 @@ button { font: inherit; }
 .fullscreen-toggle,
 .audio-toggle,
 .screenshot-toggle,
-.cinematic-toggle,
 .top-menu-toggle,
 .encyclopedia-toggle,
 .fish-search-button {
@@ -114,7 +113,6 @@ button { font: inherit; }
 }
 
 .top-controls-menu > .screenshot-toggle,
-.top-controls-menu > .cinematic-toggle,
 .top-controls-menu > .audio-toggle,
 .top-controls-menu > .fullscreen-toggle {
   opacity: 0;
@@ -127,7 +125,6 @@ button { font: inherit; }
 }
 
 .top-controls.is-open .top-controls-menu > .screenshot-toggle,
-.top-controls.is-open .top-controls-menu > .cinematic-toggle,
 .top-controls.is-open .top-controls-menu > .audio-toggle,
 .top-controls.is-open .top-controls-menu > .fullscreen-toggle {
   opacity: 1;
@@ -139,23 +136,15 @@ button { font: inherit; }
   transition-delay: 0ms;
 }
 
-.top-controls.is-open .top-controls-menu > .cinematic-toggle {
+.top-controls.is-open .top-controls-menu > .audio-toggle {
   transition-delay: 35ms;
 }
 
-.top-controls.is-open .top-controls-menu > .audio-toggle {
+.top-controls.is-open .top-controls-menu > .fullscreen-toggle {
   transition-delay: 70ms;
 }
 
-.top-controls.is-open .top-controls-menu > .fullscreen-toggle {
-  transition-delay: 105ms;
-}
-
 .top-controls:not(.is-open) .top-controls-menu > .screenshot-toggle {
-  transition-delay: 105ms;
-}
-
-.top-controls:not(.is-open) .top-controls-menu > .cinematic-toggle {
   transition-delay: 70ms;
 }
 
@@ -170,7 +159,6 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .top-control-icon,
   .top-controls-menu > .screenshot-toggle,
-  .top-controls-menu > .cinematic-toggle,
   .top-controls-menu > .audio-toggle,
   .top-controls-menu > .fullscreen-toggle {
     animation: none;
@@ -194,8 +182,6 @@ button { font: inherit; }
 .audio-toggle.is-active,
 .screenshot-toggle:hover,
 .screenshot-toggle:focus-visible,
-.cinematic-toggle:hover,
-.cinematic-toggle:focus-visible,
 .top-menu-toggle:hover,
 .top-menu-toggle:focus-visible,
 .encyclopedia-toggle:hover,
@@ -224,7 +210,6 @@ button { font: inherit; }
 .fullscreen-toggle:focus-visible,
 .audio-toggle:focus-visible,
 .screenshot-toggle:focus-visible,
-.cinematic-toggle:focus-visible,
 .top-menu-toggle:focus-visible,
 .encyclopedia-toggle:focus-visible,
 .fish-search-button:focus-visible,
@@ -322,7 +307,6 @@ button { font: inherit; }
   .fullscreen-toggle,
   .audio-toggle,
   .screenshot-toggle,
-  .cinematic-toggle,
   .top-menu-toggle,
   .fish-search-button {
     width: var(--top-control-size);
@@ -421,16 +405,19 @@ button { font: inherit; }
   line-height: 1.45;
 }
 
-.screenshot-help-copy--mobile {
+.screenshot-help-copy--mobile,
+.cinematic-help-copy--mobile {
   display: none;
 }
 
 @media (hover: none), (pointer: coarse), (max-width: 768px) {
-  .screenshot-help-copy--desktop {
+  .screenshot-help-copy--desktop,
+  .cinematic-help-copy--desktop {
     display: none;
   }
 
-  .screenshot-help-copy--mobile {
+  .screenshot-help-copy--mobile,
+  .cinematic-help-copy--mobile {
     display: block;
   }
 }

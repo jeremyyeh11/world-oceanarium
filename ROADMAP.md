@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
-- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_4`.
+- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_5`.
 - Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
 
 Subtasks:
@@ -29,6 +29,7 @@ Subtasks:
 - [x] Overscan beyond camera range and use a half-resolution refraction target for mobile-conscious physical transmission.
 - [x] Retune the material from cyan toward muted cobalt and dissolve its grazing-angle horizon with distance + facing fades.
 - [x] Remove the repeated low-angle reflection bands from portrait/level views while retaining the physical surface in steeper upward views.
+- [x] Restore low-angle HDR reflection with a much tighter `4.2–8.5 WU` Gerstner spectrum for smaller reflected ripples.
 - [ ] Collect desktop and physical-phone visual/performance review.
 
 Review gates:

@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_4` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: `v0.14.0-dev_5` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
 
 ## Felt intention
 
@@ -18,17 +18,17 @@ World Oceanarium uses layered Gerstner waves: enough directional interaction to 
 
 ## Implemented shape
 
-- one `600 × 600 WU` plane extending beyond the camera range, so the physical material has no exposed rectangular edge;
-- `160 × 160` segments, about 25.9k vertices and one surface draw call;
+- one `320 × 320 WU` plane whose distance fade reaches zero before any geometric edge;
+- `256 × 256` segments, 66,049 vertices, 131,072 triangles, and one surface draw call;
 - three directional Gerstner layers:
-  - wavelength `22 WU`, amplitude `0.24 WU`;
-  - wavelength `13 WU`, amplitude `0.14 WU`;
-  - wavelength `12 WU`, amplitude `0.075 WU`;
+  - wavelength `8.5 WU`, amplitude `0.08 WU`;
+  - wavelength `5.5 WU`, amplitude `0.045 WU`;
+  - wavelength `4.2 WU`, amplitude `0.025 WU`;
 - restrained steepness and independent speeds;
 - deterministic tank-seeded phase offsets;
 - all displacement runs in the vertex shader—no per-frame CPU geometry mutation or allocation.
 
-Total vertical excursion remains below `0.455 WU` (about 11.4 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
+Total vertical excursion remains below `0.15 WU` (3.75 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
 
 ## Normals and physical shading
 
@@ -40,7 +40,7 @@ This avoids `computeVertexNormals()` on the CPU every frame and keeps the HDR hi
 
 ## Edge treatment
 
-The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end and the fragment alpha mask showed material only across a near strip. The physical mesh now extends `600 × 600 WU`, beyond the camera range, and its material is continuous across the full ceiling. Camera-distance fade (`55–180 WU`) combines with a stronger view-facing fade (`0.22–0.55`) at grazing angles, dissolving distant fragments into the existing water fog before either the geometric edge, natural horizon, or repeated low-angle HDR reflections can draw bands across frame. Nearby overhead water remains fully physical.
+The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end and the fragment alpha mask showed material only across a near strip. The physical material is continuous across the full `320 × 320 WU` ceiling. Camera-distance fade (`45–120 WU`) reaches zero before the plane edge, while a gentler view-facing fade (`0.08–0.34`) preserves low-angle HDR reflection. Nearby overhead water remains fully physical.
 
 ## Performance contract
 

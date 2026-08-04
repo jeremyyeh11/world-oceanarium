@@ -57,9 +57,9 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
     vec3 tangentY = vec3(0.0, 1.0, 0.0);
     vec2 samplePosition = basePosition.xy;
 
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(1.0, 0.22), 22.0, 0.24, 0.34, 0.54, dot(uSurfaceSeed, vec2(0.071, 0.043)));
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.38, 1.0), 13.0, 0.14, 0.28, 0.76, dot(uSurfaceSeed, vec2(-0.037, 0.083)));
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.72, -1.0), 12.0, 0.075, 0.22, 1.08, dot(uSurfaceSeed, vec2(0.113, -0.029)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(1.0, 0.52), 8.5, 0.08, 0.26, 0.62, dot(uSurfaceSeed, vec2(0.071, 0.043)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.86, 1.0), 5.5, 0.045, 0.21, 0.88, dot(uSurfaceSeed, vec2(-0.037, 0.083)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.7, -0.48), 4.2, 0.025, 0.16, 1.18, dot(uSurfaceSeed, vec2(0.113, -0.029)));
 
     SurfaceWave wave;
     wave.position = displaced;
@@ -69,19 +69,19 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 `
 
 const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
-const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v2'
+const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v3'
 
 export const SURFACE_PLANE_Y = 4.6
 export const SURFACE_PLANE_X = 0
 export const SURFACE_PLANE_Z = -4
-export const SURFACE_PLANE_WIDTH = 600
-export const SURFACE_PLANE_DEPTH = 600
+export const SURFACE_PLANE_WIDTH = 320
+export const SURFACE_PLANE_DEPTH = 320
 
 const SURFACE_PLANE_POSITION = [SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z]
 const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
-// ~26k vertices. The 600 WU overscan pushes every geometric edge beyond the
-// camera range, while 160 subdivisions keep the shortest 12 WU ripple smooth.
-const SURFACE_PLANE_SEGMENTS = [160, 160]
+// ~66k vertices. Distance fade removes the 320 WU plane before its geometric
+// edge, while 256 subdivisions support the tight 4.2 WU reflection spectrum.
+const SURFACE_PLANE_SEGMENTS = [256, 256]
 const SURFACE_PLANE_SIZE = [SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH, ...SURFACE_PLANE_SEGMENTS]
 
 function seedOffset(seed) {
@@ -127,9 +127,9 @@ export default function WaterSurface({ seed = 0 }) {
        // At grazing angles an infinite plane resolves into a hard horizon line.
        // Fade by true camera distance before that limit, leaving nearby overhead
        // water fully physical while dissolving the distant surface into the fog.
-       float surfaceDistanceFade = 1.0 - smoothstep(55.0, 180.0, length(vViewPosition));
+       float surfaceDistanceFade = 1.0 - smoothstep(45.0, 120.0, length(vViewPosition));
        float surfaceFacing = abs(dot(normalize(normal), normalize(vViewPosition)));
-       float surfaceGrazingFade = smoothstep(0.22, 0.55, surfaceFacing);
+       float surfaceGrazingFade = smoothstep(0.08, 0.34, surfaceFacing);
        gl_FragColor.a *= surfaceDistanceFade * surfaceGrazingFade;`,
     )
   }, [uniforms])
@@ -143,7 +143,7 @@ export default function WaterSurface({ seed = 0 }) {
       <planeGeometry args={SURFACE_PLANE_SIZE} />
       <meshPhysicalMaterial
         color="#4f78a8"
-        roughness={0.32}
+        roughness={0.26}
         metalness={0}
         transmission={0.88}
         thickness={0.08}
@@ -153,9 +153,9 @@ export default function WaterSurface({ seed = 0 }) {
         specularIntensity={0.92}
         specularColor="#d5e8f7"
         clearcoat={0.06}
-        clearcoatRoughness={0.3}
+        clearcoatRoughness={0.28}
         envMap={environment}
-        envMapIntensity={0.65}
+        envMapIntensity={0.8}
         transparent
         depthWrite={false}
         side={THREE.DoubleSide}

@@ -129,7 +129,7 @@ export default function WaterSurface({ seed = 0 }) {
        // water fully physical while dissolving the distant surface into the fog.
        float surfaceDistanceFade = 1.0 - smoothstep(55.0, 180.0, length(vViewPosition));
        float surfaceFacing = abs(dot(normalize(normal), normalize(vViewPosition)));
-       float surfaceGrazingFade = smoothstep(0.04, 0.28, surfaceFacing);
+       float surfaceGrazingFade = smoothstep(0.22, 0.55, surfaceFacing);
        gl_FragColor.a *= surfaceDistanceFade * surfaceGrazingFade;`,
     )
   }, [uniforms])
@@ -143,7 +143,7 @@ export default function WaterSurface({ seed = 0 }) {
       <planeGeometry args={SURFACE_PLANE_SIZE} />
       <meshPhysicalMaterial
         color="#4f78a8"
-        roughness={0.11}
+        roughness={0.32}
         metalness={0}
         transmission={0.88}
         thickness={0.08}
@@ -152,10 +152,10 @@ export default function WaterSurface({ seed = 0 }) {
         attenuationDistance={80}
         specularIntensity={0.92}
         specularColor="#d5e8f7"
-        clearcoat={0.16}
-        clearcoatRoughness={0.14}
+        clearcoat={0.06}
+        clearcoatRoughness={0.3}
         envMap={environment}
-        envMapIntensity={1.4}
+        envMapIntensity={0.65}
         transparent
         depthWrite={false}
         side={THREE.DoubleSide}

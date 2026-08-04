@@ -10,7 +10,12 @@ Versioning convention notes:
 
 ## v0.13.0 — Procedural cinematic camera
 
-Status: `v0.13.0-dev_5` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+Status: `v0.13.0-dev_6` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+
+### v0.13.0-dev_6
+
+- Rebalances the shot grammar away from repeated still compositions and increases dolly, truck, and tilt travel enough for each selected movement to read clearly over a 5–10 second hold.
+- Tracks the exact creature members owned by the accepted cinematic shot. If a current subject crosses into a hard boundary recovery, Cinematic Mode exits before the off-screen reset and shows the existing “will be back in a bit” notice.
 
 ### v0.13.0-dev_5
 

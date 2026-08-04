@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
@@ -333,6 +333,17 @@ export default function App() {
     }
   }, [screenshotMode])
 
+  const exitCinematicMode = useCallback(() => {
+    if (cinematicExitHold.current) {
+      window.clearTimeout(cinematicExitHold.current.timer)
+      cinematicExitHold.current = null
+    }
+    setCinematicMode(false)
+    setCinematicSpecies(null)
+    setCinematicOriginCreatureId(null)
+    setCinematicHelpVisible(false)
+  }, [])
+
   useEffect(() => {
     if (!cinematicMode) return undefined
 
@@ -342,13 +353,6 @@ export default function App() {
       if (!cinematicExitHold.current) return
       window.clearTimeout(cinematicExitHold.current.timer)
       cinematicExitHold.current = null
-    }
-    const exitCinematicMode = () => {
-      clearExitHold()
-      setCinematicMode(false)
-      setCinematicSpecies(null)
-      setCinematicOriginCreatureId(null)
-      setCinematicHelpVisible(false)
     }
     const exitOnKey = (event) => {
       event.preventDefault()
@@ -388,7 +392,7 @@ export default function App() {
       window.removeEventListener('pointerup', endExitHold, { capture: true })
       window.removeEventListener('pointercancel', endExitHold, { capture: true })
     }
-  }, [cinematicMode])
+  }, [cinematicMode, exitCinematicMode])
 
   const toggleFullscreen = async () => {
     try {
@@ -476,7 +480,7 @@ export default function App() {
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} cinematicMode={cinematicMode} cinematicSpecies={cinematicSpecies} cinematicOriginCreatureId={cinematicOriginCreatureId} onOpenEncyclopedia={openEncyclopedia} onEnterCinematic={enterCinematicMode} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} cinematicMode={cinematicMode} cinematicSpecies={cinematicSpecies} cinematicOriginCreatureId={cinematicOriginCreatureId} onOpenEncyclopedia={openEncyclopedia} onEnterCinematic={enterCinematicMode} onExitCinematic={exitCinematicMode} />
   }
 
   return (

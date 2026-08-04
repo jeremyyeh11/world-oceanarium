@@ -10,7 +10,13 @@ Versioning convention notes:
 
 ## v0.13.0 — Procedural cinematic camera
 
-Status: `v0.13.0-dev_3` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+Status: `v0.13.0-dev_4` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+
+### v0.13.0-dev_4
+
+- Replaces long shot-change camera travel with intentional documentary jump cuts; moving subjects remain damped and smoothly tracked within each shot.
+- Preflights every new composition with a virtual camera before exposing its shot id: position/look/FOV must be finite, the subject must project safely inside frame, profile/lead facing rules must pass, and relationship bridges must keep both same-species subjects visible.
+- Rejects invalid candidates while the current valid shot remains on screen, then asks the existing seeded queue, viability, recency, diversity, bridge, and spatial-continuity planner for another shot.
 
 ### v0.13.0-dev_3
 

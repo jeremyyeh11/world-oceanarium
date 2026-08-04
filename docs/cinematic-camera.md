@@ -1,6 +1,6 @@
 # Cinematic Camera
 
-Status: `v0.13.0-dev_3` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
+Status: `v0.13.0-dev_4` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
 
 ## Felt intention
 
@@ -100,9 +100,11 @@ The transition grammar is:
 2. inspect the rolling queue;
 3. if the queued hero can share a useful frame, create a relationship bridge;
 4. promote that secondary hero in the following shot;
-5. otherwise ease through a controlled pose/FOV handoff to the next viable hero rather than snapping, flying through empty water, or promoting another species.
+5. preflight the proposed camera, subject framing, viewing angle, and FOV before committing it;
+6. if invalid, keep the current valid shot on screen and ask the planner for another candidate;
+7. if valid, jump cut directly—never visibly fly the camera through empty water or geometry.
 
-Within-shot position and gaze use damped camera motion. Shot changes use a 2.8s smoothstep blend of position, look target, and FOV, while the director favors nearby same-species heroes and uses bridge shots before larger intra-species moves so the camera does not snap across the tank.
+Within-shot position, gaze, and FOV use damped motion to follow living subjects. Shot changes are intentional jump cuts. Before the camera sees a new shot id, a reusable virtual camera confirms finite position/look/FOV, safe projected framing, profile/lead viewing-angle rules, and—on relationship bridges—both same-species subjects inside frame. Invalid candidates never reach the camera.
 
 ## Shot timing and failure detection
 

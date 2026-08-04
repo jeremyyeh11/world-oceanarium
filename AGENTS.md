@@ -127,7 +127,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 
 - Preserve tank brightness/color unless specifically asked to grade/darken.
 - Favor readable motion and elegant presentation over visual noise.
-- Follow and Cinematic modes should feel smooth; avoid camera snaps, raw `lookAt()` jumps, sudden target shifts, and hard intra-species cinematic jumps across the tank.
+- Follow mode and within-shot Cinematic tracking should feel smooth. Cinematic shot changes are intentional validity-gated jump cuts: preflight the composition before changing shot id, and never lerp the camera visibly across the tank between shots.
 - Mobile matters: touch controls, follow mode, debug access, audio unlock, and layout should be tested conceptually for phone use.
 - Controls/debug affordances should be compact and unobtrusive.
 

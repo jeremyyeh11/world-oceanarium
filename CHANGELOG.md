@@ -10,7 +10,14 @@ Versioning convention notes:
 
 ## v0.13.0 — Procedural cinematic camera
 
-Status: `v0.13.0-dev_4` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+Status: `v0.13.0-dev_5` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+
+### v0.13.0-dev_5
+
+- Gives each shot one restrained camera behavior—still, track, dolly, truck, or tilt—rather than making every composition continuously follow its subject or layering multiple moves.
+- Keeps pure stillness fully locked, trucks with fixed camera orientation, dollies on the viewing axis, and tilts from a fixed camera position; existing validity checks and bad-shot replacement protect moving subjects that leave a deliberately locked frame.
+- Fixes Mahi-mahi pair coverage that could average between two independent pairs: pair/school aggregate heroes can no longer become both ends of a relationship bridge, so each coherent school is framed separately before a validated direct cut.
+- Extends destination preflight to reject a frame when a different-species animal would dominate the foreground, preserving the selected species as the documentary subject.
 
 ### v0.13.0-dev_4
 

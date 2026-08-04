@@ -17,6 +17,16 @@ const CAMERA_FLOOR_CLEARANCE = 1.8
 const CAMERA_SURFACE_CLEARANCE = 0.45
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
 
+const MOVEMENTS_BY_TEMPLATE = {
+  'school-wide': ['still', 'still', 'truck'],
+  'pair-wide': ['still', 'truck', 'dolly'],
+  'member-cutaway': ['still', 'track', 'tilt'],
+  'profile-track': ['track', 'truck', 'still'],
+  'hero-static': ['still', 'still', 'tilt'],
+  'lead-track': ['dolly', 'track', 'still'],
+  'relationship-wide': ['still', 'truck'],
+}
+
 function vectorIsFinite(vector) {
   return Number.isFinite(vector.x) && Number.isFinite(vector.y) && Number.isFinite(vector.z)
 }
@@ -171,6 +181,14 @@ function shotDuration(random) {
   return THREE.MathUtils.lerp(MIN_SHOT_SECONDS, MAX_SHOT_SECONDS, random())
 }
 
+function movementForTemplate(template, random, previousMovement) {
+  const movements = MOVEMENTS_BY_TEMPLATE[template] ?? ['still']
+  const movement = movements[Math.floor(random() * movements.length)]
+  if (movement !== previousMovement || movements.every(candidate => candidate === previousMovement)) return movement
+  const alternatives = movements.filter(candidate => candidate !== previousMovement)
+  return random() < 0.72 ? alternatives[Math.floor(random() * alternatives.length)] : movement
+}
+
 function createHeroShot(state, hero, now) {
   const templates = hero.kind === 'school'
     ? ['school-wide', 'member-cutaway', 'school-wide']
@@ -178,11 +196,13 @@ function createHeroShot(state, hero, now) {
       ? ['pair-wide', 'member-cutaway', 'profile-track', 'hero-static']
       : ['profile-track', 'hero-static', 'lead-track']
   const template = templates[Math.floor(state.random() * templates.length)]
+  const movement = movementForTemplate(template, state.random, state.lastMovement)
   state.shotSerial += 1
   return {
     id: state.shotSerial,
     type: 'hero',
     template,
+    movement,
     heroId: hero.id,
     nextHeroId: null,
     side: state.random() < 0.5 ? -1 : 1,
@@ -190,16 +210,20 @@ function createHeroShot(state, hero, now) {
     startedAt: now,
     duration: shotDuration(state.random),
     lockedPosition: null,
+    movementState: null,
     badSince: null,
   }
 }
 
 function createBridgeShot(state, hero, nextHero, now) {
+  const template = 'relationship-wide'
+  const movement = movementForTemplate(template, state.random, state.lastMovement)
   state.shotSerial += 1
   return {
     id: state.shotSerial,
     type: 'bridge',
-    template: 'relationship-wide',
+    template,
+    movement,
     heroId: hero.id,
     nextHeroId: nextHero.id,
     side: state.shot?.side ?? (state.random() < 0.5 ? -1 : 1),
@@ -207,6 +231,7 @@ function createBridgeShot(state, hero, nextHero, now) {
     startedAt: now,
     duration: THREE.MathUtils.lerp(5, 8, state.random()),
     lockedPosition: null,
+    movementState: null,
     badSince: null,
   }
 }
@@ -295,10 +320,54 @@ function calculateBridgePose(shot, current, next, pose, scratch, minCameraY, max
   pose.fov = THREE.MathUtils.clamp(54 + spread * 0.35, 56, 66)
 }
 
-function shotCompositionIsBad(camera, shot, subject, scratch) {
+function applyShotMovement(shot, subject, pose, now, scratch) {
+  if (!shot.movementState) {
+    if (shot.movement !== 'track') {
+      const lead = THREE.MathUtils.clamp(subject.bodyLength * 0.65, 0.8, 4.5)
+      pose.lookAt.addScaledVector(subject.forward, lead)
+      pose.fov = THREE.MathUtils.clamp(pose.fov + 7, 35, 75)
+    }
+    const viewForward = scratch.motionForward.subVectors(pose.lookAt, pose.position)
+    if (viewForward.lengthSq() < 0.0001) viewForward.set(0, 0, -1)
+    else viewForward.normalize()
+    const viewRight = scratch.motionRight.crossVectors(viewForward, WORLD_UP)
+    if (viewRight.lengthSq() < 0.0001) viewRight.set(1, 0, 0)
+    else viewRight.normalize()
+    shot.movementState = {
+      position: pose.position.clone(),
+      lookAt: pose.lookAt.clone(),
+      fov: pose.fov,
+      forward: viewForward.clone(),
+      right: viewRight.clone().multiplyScalar(shot.side),
+      travel: THREE.MathUtils.clamp(subject.bodyLength * 0.35 + subject.radius * 0.12, 0.8, 4.5),
+      tilt: THREE.MathUtils.clamp(subject.bodyLength * 0.18 + 0.45, 0.55, 2.2),
+    }
+  }
+
+  const movement = shot.movementState
+  pose.fov = movement.fov
+  if (shot.movement === 'track') return
+
+  const progress = THREE.MathUtils.clamp((now - shot.startedAt) / Math.max(0.001, shot.duration), 0, 1)
+  pose.position.copy(movement.position)
+  pose.lookAt.copy(movement.lookAt)
+
+  if (shot.movement === 'dolly') {
+    pose.position.addScaledVector(movement.forward, movement.travel * (progress - 0.35))
+  } else if (shot.movement === 'truck') {
+    const offset = movement.travel * (progress - 0.5)
+    pose.position.addScaledVector(movement.right, offset)
+    pose.lookAt.addScaledVector(movement.right, offset)
+  } else if (shot.movement === 'tilt') {
+    pose.lookAt.y += movement.tilt * (progress - 0.5)
+  }
+}
+
+function shotCompositionIsBad(camera, shot, subject, scratch, checkFacing = true) {
   scratch.projected.copy(subject.position).project(camera)
   if (scratch.projected.z < -1 || scratch.projected.z > 1) return true
   if (Math.abs(scratch.projected.x) > 0.78 || Math.abs(scratch.projected.y) > 0.72) return true
+  if (!checkFacing) return false
 
   scratch.toCamera.subVectors(camera.position, subject.position).normalize()
   const facing = subject.forward.dot(scratch.toCamera)
@@ -315,7 +384,21 @@ function subjectIsInFrame(camera, subject, scratch, maxX = 0.84, maxY = 0.76) {
     && Math.abs(scratch.projected.y) <= maxY
 }
 
-function shotPoseIsValid(sourceCamera, shot, subject, nextSubject, targetPose, scratch) {
+function hasDominantForeignSubject(camera, selectedSpecies, subject, scratch) {
+  const subjectProminence = subject.bodyLength / Math.max(1, camera.position.distanceTo(subject.position))
+  let dominated = false
+  FISH_REGISTRY.forEach(entry => {
+    if (dominated || entry.species === selectedSpecies || !entry.object?.parent) return
+    scratch.foreignProjected.copy(entry.position).project(camera)
+    if (scratch.foreignProjected.z < -1 || scratch.foreignProjected.z > 1) return
+    if (Math.abs(scratch.foreignProjected.x) > 0.96 || Math.abs(scratch.foreignProjected.y) > 0.9) return
+    const prominence = (entry.bodyLength ?? 1) / Math.max(1, camera.position.distanceTo(entry.position))
+    if (prominence > subjectProminence * 1.6) dominated = true
+  })
+  return dominated
+}
+
+function shotPoseIsValid(sourceCamera, shot, selectedSpecies, subject, nextSubject, targetPose, scratch) {
   if (!vectorIsFinite(targetPose.position) || !vectorIsFinite(targetPose.lookAt)) return false
   if (!Number.isFinite(targetPose.fov) || targetPose.fov < 35 || targetPose.fov > 75) return false
   if (targetPose.position.distanceToSquared(targetPose.lookAt) < 1) return false
@@ -330,6 +413,7 @@ function shotPoseIsValid(sourceCamera, shot, subject, nextSubject, targetPose, s
   camera.lookAt(targetPose.lookAt)
   camera.updateProjectionMatrix()
   camera.updateMatrixWorld(true)
+  if (hasDominantForeignSubject(camera, selectedSpecies, subject, scratch)) return false
 
   if (shot.type === 'bridge') {
     return Boolean(nextSubject)
@@ -337,6 +421,12 @@ function shotPoseIsValid(sourceCamera, shot, subject, nextSubject, targetPose, s
       && subjectIsInFrame(camera, nextSubject, scratch)
   }
   return !shotCompositionIsBad(camera, shot, subject, scratch)
+}
+
+function canBridgeHeroes(currentHero, nextHero) {
+  // Independent pairs/schools are separate documentary subjects. Bridging two
+  // aggregates points the lens at empty water between them instead of either group.
+  return currentHero?.kind === 'individual' && nextHero?.kind === 'individual'
 }
 
 function advanceShot(state, heroes, now) {
@@ -360,14 +450,14 @@ function advanceShot(state, heroes, now) {
 
   refillQueue(state, heroes, currentHero)
   const nextHero = heroById(heroes, state.queue[0])
-  if (nextHero && currentHero.position.distanceTo(nextHero.position) <= MAX_BRIDGE_DISTANCE) {
+  if (nextHero && canBridgeHeroes(currentHero, nextHero) && currentHero.position.distanceTo(nextHero.position) <= MAX_BRIDGE_DISTANCE) {
     state.shot = createBridgeShot(state, currentHero, nextHero, now)
     return
   }
 
   if (nextHero) {
     const distance = currentHero.position.distanceTo(nextHero.position)
-    if (distance <= FAR_BRIDGE_DISTANCE || state.random() < 0.45) {
+    if (canBridgeHeroes(currentHero, nextHero) && (distance <= FAR_BRIDGE_DISTANCE || state.random() < 0.45)) {
       state.shot = createBridgeShot(state, currentHero, nextHero, now)
       return
     }
@@ -390,7 +480,10 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     right: new THREE.Vector3(),
     midpoint: new THREE.Vector3(),
     desiredPosition: new THREE.Vector3(),
+    motionForward: new THREE.Vector3(),
+    motionRight: new THREE.Vector3(),
     projected: new THREE.Vector3(),
+    foreignProjected: new THREE.Vector3(),
     toCamera: new THREE.Vector3(),
     targetPose: { position: new THREE.Vector3(), lookAt: new THREE.Vector3(), fov: 55 },
     preflightCamera: new THREE.PerspectiveCamera(),
@@ -404,6 +497,7 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
       recent: new Map(),
       shot: null,
       shotSerial: 0,
+      lastMovement: null,
       nextEvaluationAt: 0,
       outputShotId: null,
       hasValidOutput: false,
@@ -460,12 +554,14 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     } else {
       calculateHeroPose(shot, subject, targetPose, scratchRef.current, minCameraY, maxCameraY)
     }
+    applyShotMovement(shot, subject, targetPose, now, scratchRef.current)
 
     if (state.outputShotId !== shot.id) {
-      if (!shotPoseIsValid(camera, shot, subject, nextSubject, targetPose, scratchRef.current)) {
+      if (!shotPoseIsValid(camera, shot, species, subject, nextSubject, targetPose, scratchRef.current)) {
         advanceShot(state, state.heroes, now)
         return
       }
+      state.lastMovement = shot.movement
       state.outputShotId = shot.id
     }
 
@@ -473,7 +569,7 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     pose.lookAt.copy(targetPose.lookAt)
     pose.fov = targetPose.fov
     pose.shotId = shot.id
-    pose.shotName = shot.template
+    pose.shotName = `${shot.template}:${shot.movement}`
     state.hasValidOutput = true
     pose.active = true
 
@@ -484,7 +580,9 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     }
 
     if (age < BAD_SHOT_GRACE_SECONDS || shot.type === 'bridge') return
-    if (shotCompositionIsBad(camera, shot, subject, scratchRef.current)) {
+    const shotIsBad = shotCompositionIsBad(camera, shot, subject, scratchRef.current, shot.movement === 'track')
+      || hasDominantForeignSubject(camera, species, subject, scratchRef.current)
+    if (shotIsBad) {
       if (shot.badSince === null) shot.badSince = now
       if (now - shot.badSince >= BAD_SHOT_HOLD_SECONDS) advanceShot(state, state.heroes, now)
     } else {

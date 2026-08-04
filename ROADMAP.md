@@ -13,6 +13,26 @@ Status labels:
 
 ## Current work
 
+### Deforming ocean surface
+
+Status: `Current in development`
+
+Reference:
+- Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
+- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_1`.
+- Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
+
+Subtasks:
+- [x] Replace the flat plane with a subdivided, vertex-displaced surface.
+- [x] Use layered mobile-conscious Gerstner waves with analytic normals.
+- [x] Overscan the whole tank ceiling while preserving the existing caustic-band scale.
+- [ ] Collect desktop and physical-phone visual/performance review.
+
+Review gates:
+- The ceiling reads as calm moving water, not cloth, chrome, or a noisy special effect.
+- No rectangular plane edge appears during upward camera angles.
+- Fish remain legible and normal tank performance remains stable on phone.
+
 ### Larger Sardinella schools
 
 Status: `Archive candidate`

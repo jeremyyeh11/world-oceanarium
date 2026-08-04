@@ -4,11 +4,75 @@ import * as THREE from 'three'
 import { hashString } from '../utils/hash'
 
 const SURFACE_VERTEX = /* glsl */ `
+  uniform float uTime;
+  uniform vec2 uSeed;
+
   varying vec2 vUv;
+  varying float vSurfaceBandUvY;
+  varying float vWaveHeight;
+  varying vec3 vWorldNormal;
+  varying vec3 vWorldPosition;
+
+  const float TAU = 6.28318530718;
+
+  void applyWave(
+    inout vec3 displaced,
+    inout vec3 tangentX,
+    inout vec3 tangentY,
+    vec2 samplePosition,
+    vec2 direction,
+    float wavelength,
+    float amplitude,
+    float steepness,
+    float speed,
+    float phaseOffset
+  ) {
+    vec2 waveDirection = normalize(direction);
+    float frequency = TAU / wavelength;
+    float phase = frequency * dot(waveDirection, samplePosition) + uTime * speed + phaseOffset;
+    float waveSin = sin(phase);
+    float waveCos = cos(phase);
+    float horizontal = steepness * amplitude;
+    float derivative = horizontal * frequency * waveSin;
+    float verticalDerivative = amplitude * frequency * waveCos;
+
+    displaced.xy += waveDirection * horizontal * waveCos;
+    displaced.z += amplitude * waveSin;
+
+    tangentX += vec3(
+      -derivative * waveDirection.x * waveDirection.x,
+      -derivative * waveDirection.x * waveDirection.y,
+      verticalDerivative * waveDirection.x
+    );
+    tangentY += vec3(
+      -derivative * waveDirection.x * waveDirection.y,
+      -derivative * waveDirection.y * waveDirection.y,
+      verticalDerivative * waveDirection.y
+    );
+  }
 
   void main() {
     vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    // Preserve the approved 32 WU shimmer-band scale even though the physical
+    // mesh now overscans the whole tank ceiling.
+    vSurfaceBandUvY = (position.y + 16.0) / 32.0;
+    vec2 samplePosition = position.xy;
+    vec3 displaced = position;
+    vec3 tangentX = vec3(1.0, 0.0, 0.0);
+    vec3 tangentY = vec3(0.0, 1.0, 0.0);
+
+    // Three restrained Gerstner layers give the ceiling real volume without the
+    // render-target cost of an FFT ocean. Phase remains deterministic per tank.
+    applyWave(displaced, tangentX, tangentY, samplePosition, vec2(1.0, 0.22), 22.0, 0.24, 0.34, 0.54, dot(uSeed, vec2(0.071, 0.043)));
+    applyWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.38, 1.0), 13.0, 0.14, 0.28, 0.76, dot(uSeed, vec2(-0.037, 0.083)));
+    applyWave(displaced, tangentX, tangentY, samplePosition, vec2(0.72, -1.0), 9.0, 0.075, 0.22, 1.08, dot(uSeed, vec2(0.113, -0.029)));
+
+    vec3 localNormal = normalize(cross(tangentX, tangentY));
+    vec4 worldPosition = modelMatrix * vec4(displaced, 1.0);
+    vWaveHeight = displaced.z;
+    vWorldNormal = normalize(mat3(modelMatrix) * localNormal);
+    vWorldPosition = worldPosition.xyz;
+    gl_Position = projectionMatrix * viewMatrix * worldPosition;
   }
 `
 
@@ -16,6 +80,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
   uniform float uTime;
   uniform vec2 uSeed;
   varying vec2 vUv;
+  varying float vSurfaceBandUvY;
+  varying float vWaveHeight;
+  varying vec3 vWorldNormal;
+  varying vec3 vWorldPosition;
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -62,9 +130,10 @@ const SURFACE_FRAGMENT = /* glsl */ `
   }
 
   void main() {
-    vec2 uv = vUv;
+    vec2 uv = vec2(vUv.x, vSurfaceBandUvY);
     // uSeed offsets the noise domain per tank so each tank's caustics read as a
-    // different stretch of water. Screen-position fades below still use raw uv.
+    // different stretch of water. The Y coordinate preserves the approved
+    // 32 WU shimmer-band scale independently of the overscan mesh dimensions.
     vec2 patternUv = vec2(uv.x * 3.0, uv.y) + uSeed;
 
     // Large Perlin mask makes the fake caustics occasional: bright streaks
@@ -129,9 +198,20 @@ const SURFACE_FRAGMENT = /* glsl */ `
     vec3 color = mix(darkWater, deepCyan, 0.18 + occasionMask * 0.62);
     color = mix(color, brightCyan, clamp(maskedCaustic * 0.90 + maskedStreaks * 0.48, 0.0, 1.0));
     color = mix(color, whiteGlint, maskedGlints * 0.42 + maskedCaustic * 0.18 + surfaceGlints * 0.68);
-    color *= 0.8;
+
+    // Analytic Gerstner normals make the lighting move with the geometry. Keep
+    // the response quiet: this is an underwater ceiling, not a chrome ocean.
+    vec3 worldNormal = normalize(vWorldNormal);
+    vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
+    vec3 sunDirection = normalize(vec3(-0.32, 0.91, 0.27));
+    float slope = 1.0 - clamp(dot(worldNormal, sunDirection), 0.0, 1.0);
+    float fresnel = pow(1.0 - clamp(abs(dot(worldNormal, viewDirection)), 0.0, 1.0), 3.0);
+    float crest = smoothstep(0.10, 0.38, vWaveHeight);
+    color *= 0.76 + slope * 0.16 + fresnel * 0.22;
+    color = mix(color, brightCyan, (crest * 0.10 + fresnel * 0.08) * streakMask);
 
     float alpha = (0.035 + occasionMask * 0.09 + shimmer * 0.17 + maskedGlints * 0.055 + surfaceGlints * 0.185) * streakMask;
+    alpha *= 0.92 + slope * 0.10 + fresnel * 0.16;
     gl_FragColor = vec4(color, alpha);
   }
 `
@@ -140,11 +220,14 @@ export const SURFACE_PLANE_Y = 4.6
 export const SURFACE_PLANE_X = 0
 export const SURFACE_PLANE_Z = -4
 export const SURFACE_PLANE_WIDTH = 210
-export const SURFACE_PLANE_DEPTH = 32
+export const SURFACE_PLANE_DEPTH = 210
 
 const SURFACE_PLANE_POSITION = [SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z]
 const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
-const SURFACE_PLANE_SIZE = [SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH, 1, 1]
+// ~9.4k vertices: about four samples across the shortest 9 WU wave while still
+// remaining a modest, single-draw-call vertex load on mobile GPUs.
+const SURFACE_PLANE_SEGMENTS = [96, 96]
+const SURFACE_PLANE_SIZE = [SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH, ...SURFACE_PLANE_SEGMENTS]
 
 function seedOffset(seed) {
   const h = hashString(`tank-surface:${seed}`)

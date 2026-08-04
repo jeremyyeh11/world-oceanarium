@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.14.0 — Deforming ocean surface
+
+Status: `v0.14.0-dev_1` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
+
+### Environment / atmosphere
+
+- Replaces the visually animated but physically flat two-triangle ceiling with a 210×210 WU, 96×96-segment water mesh displaced in the vertex shader by three deterministic Gerstner wave layers.
+- Derives surface tangents and normals analytically in the same vertex pass, letting restrained Fresnel, slope, and crest lighting follow the real deformation without CPU geometry updates or FFT render targets.
+- Preserves the approved 32 WU caustic/shimmer band in world scale while the underlying mesh overscans the full tank ceiling, removing the exposed rectangular edge during upward camera angles.
+
 ## v0.12.3 — Larger Sardinella schools
 
 Status: accepted and promoted as clean `v0.12.3` from `v0.12.3-dev_1` after Jeremy approval.

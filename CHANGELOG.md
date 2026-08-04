@@ -10,17 +10,18 @@ Versioning convention notes:
 
 ## v0.14.0 — Deforming ocean surface
 
-Status: `v0.14.0-dev_5` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
+Status: `v0.14.0-dev_6` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
 
 ### Environment / atmosphere
 
-- Replaces the visually animated but physically flat two-triangle ceiling with a 320×320 WU, 256×256-segment water mesh displaced in the vertex shader by three deterministic Gerstner wave layers.
+- Replaces the visually animated but physically flat two-triangle ceiling with a 320×320 WU, 256×256-segment water mesh displaced in the vertex shader by six deterministic Gerstner waves arranged as three crossed scales.
 - Derives surface tangents and normals analytically in the same vertex pass and feeds them into a real `MeshPhysicalMaterial` with water IOR, transmission, thickness, absorption, roughness, Fresnel reflection, and clearcoat across the full plane—no front-only fragment alpha strip.
 - Gives the water material its own licensed 1K Qwantani Pure Sky HDR environment for underside reflection/refraction without changing creature lighting or the scene background.
 - Keeps physical transmission mobile-conscious with a half-linear-resolution refraction target, and distance-fades the material before the plane edge can enter upward views.
 - Retunes the physical tint from saturated cyan toward the tanks' muted cobalt/steel-blue palette, then combines camera-distance and grazing-angle alpha fades so the far surface dissolves into water fog before it can form a hard horizon line.
 - Suppresses the surface more decisively at shallow viewing angles, removing the repeated reflected bands seen in portrait and level views without adding a replacement noise texture; steeper upward views retain the physical HDR material and Gerstner deformation.
 - Restores the low-angle HDR reflection with a denser, lower-amplitude `4.2–8.5 WU` Gerstner spectrum, so reflected wave lines are materially smaller than the prior `12–22 WU` ribbons; the closer distance fade hides the smaller plane before its edge.
+- Pairs each coarse, medium, and fine displacement scale with a second incommensurate wave moving in a different direction and at a different speed, then balances their amplitudes so no single sinusoid dominates the reflection.
 
 ## v0.12.3 — Larger Sardinella schools
 

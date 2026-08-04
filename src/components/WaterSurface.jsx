@@ -57,9 +57,16 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
     vec3 tangentY = vec3(0.0, 1.0, 0.0);
     vec2 samplePosition = basePosition.xy;
 
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(1.0, 0.52), 8.5, 0.08, 0.26, 0.62, dot(uSurfaceSeed, vec2(0.071, 0.043)));
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.86, 1.0), 5.5, 0.045, 0.21, 0.88, dot(uSurfaceSeed, vec2(-0.037, 0.083)));
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.7, -0.48), 4.2, 0.025, 0.16, 1.18, dot(uSurfaceSeed, vec2(0.113, -0.029)));
+    // Three crossed scales. Each pair uses an incommensurate wavelength,
+    // direction, and speed so no single sinusoid owns the reflected pattern.
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(1.0, 0.37), 9.2, 0.030, 0.24, 0.54, dot(uSurfaceSeed, vec2(0.071, 0.043)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.43, 1.0), 7.4, 0.027, 0.22, 0.69, dot(uSurfaceSeed, vec2(-0.037, 0.083)));
+
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.18, -1.0), 5.8, 0.024, 0.18, 0.86, dot(uSurfaceSeed, vec2(0.113, -0.029)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-1.0, -0.61), 4.9, 0.022, 0.16, 1.02, dot(uSurfaceSeed, vec2(0.052, 0.127)));
+
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.78, 1.0), 4.1, 0.019, 0.13, 1.19, dot(uSurfaceSeed, vec2(-0.097, 0.061)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.73, 0.26), 3.7, 0.016, 0.11, 1.36, dot(uSurfaceSeed, vec2(0.139, -0.047)));
 
     SurfaceWave wave;
     wave.position = displaced;
@@ -69,7 +76,7 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 `
 
 const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
-const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v3'
+const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v4'
 
 export const SURFACE_PLANE_Y = 4.6
 export const SURFACE_PLANE_X = 0
@@ -80,7 +87,7 @@ export const SURFACE_PLANE_DEPTH = 320
 const SURFACE_PLANE_POSITION = [SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z]
 const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
 // ~66k vertices. Distance fade removes the 320 WU plane before its geometric
-// edge, while 256 subdivisions support the tight 4.2 WU reflection spectrum.
+// edge, while 256 subdivisions support the tight 3.7 WU reflection spectrum.
 const SURFACE_PLANE_SEGMENTS = [256, 256]
 const SURFACE_PLANE_SIZE = [SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH, ...SURFACE_PLANE_SEGMENTS]
 

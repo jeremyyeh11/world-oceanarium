@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
-- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_9`.
+- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_10`.
 - Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
 
 Subtasks:
@@ -34,6 +34,7 @@ Subtasks:
 - [x] Brighten the material-local HDR reflection without changing global tank or creature lighting.
 - [x] Increase coarse-to-fine wavelength separation and lower the resting camera up-pitch so the surface reads less tiled and crowns portrait framing instead of filling half the screen.
 - [x] Raise the minimum wave scale from `3.1` to `4.5 WU` and brighten the water-local HDR reflection from `1.15` to `2.2`.
+- [x] Increase the water-local HDR intensity to `8.0` so reflected sky highlights shine above the blue water body.
 - [ ] Collect desktop and physical-phone visual/performance review.
 
 Review gates:

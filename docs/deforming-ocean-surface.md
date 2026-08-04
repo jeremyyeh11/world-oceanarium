@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_6` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: `v0.14.0-dev_7` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
 
 ## Felt intention
 
@@ -34,7 +34,7 @@ Total vertical excursion remains below `0.138 WU` (3.45 cm at `1 WU = 25 cm`). E
 
 Each wave contributes analytic derivatives to two surface tangents. Their cross product produces the displaced normal in the same vertex pass. A real Three.js `MeshPhysicalMaterial` then uses those normals for Fresnel reflection, roughness, clearcoat, transmission, IOR `1.333`, thickness, and absorption. The material covers the entire mesh; there is no front-only alpha mask or bespoke fragment-color strip.
 
-The water material has its own 1K HDR environment, Qwantani Pure Sky by Poly Haven (CC0). This gives the underside bright sky energy to reflect and refract without replacing the scene background or the environment used to light creatures. The local attribution and source live in `public/hdr/README.md`.
+The water material has its own 1K HDR environment, Qwantani Pure Sky by Poly Haven (CC0), at environment intensity `1.15`. This gives the underside brighter sky energy to reflect and refract without replacing the scene background or the environment used to light creatures. The local attribution and source live in `public/hdr/README.md`.
 
 This avoids `computeVertexNormals()` on the CPU every frame and keeps the HDR highlights synchronized with the physical wave shape.
 

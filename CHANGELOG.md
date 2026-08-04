@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.14.0 — Deforming ocean surface
 
-Status: `v0.14.0-dev_6` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
+Status: `v0.14.0-dev_7` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
 
 ### Environment / atmosphere
 
@@ -22,6 +22,7 @@ Status: `v0.14.0-dev_6` is in development on `feat/deforming-ocean-surface`. It 
 - Suppresses the surface more decisively at shallow viewing angles, removing the repeated reflected bands seen in portrait and level views without adding a replacement noise texture; steeper upward views retain the physical HDR material and Gerstner deformation.
 - Restores the low-angle HDR reflection with a denser, lower-amplitude `4.2–8.5 WU` Gerstner spectrum, so reflected wave lines are materially smaller than the prior `12–22 WU` ribbons; the closer distance fade hides the smaller plane before its edge.
 - Pairs each coarse, medium, and fine displacement scale with a second incommensurate wave moving in a different direction and at a different speed, then balances their amplitudes so no single sinusoid dominates the reflection.
+- Raises only the water material's Qwantani Pure Sky HDR environment intensity from `0.8` to `1.15`, making the underside reflection brighter without relighting fish, fog, or either tank.
 
 ## v0.12.3 — Larger Sardinella schools
 

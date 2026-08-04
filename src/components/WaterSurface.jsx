@@ -162,7 +162,7 @@ export default function WaterSurface({ seed = 0 }) {
         clearcoat={0.06}
         clearcoatRoughness={0.28}
         envMap={environment}
-        envMapIntensity={0.8}
+        envMapIntensity={1.15}
         transparent
         depthWrite={false}
         side={THREE.DoubleSide}

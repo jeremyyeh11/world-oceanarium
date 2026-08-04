@@ -1112,6 +1112,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
     entry.radius = radius
     entry.bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
     entry.species = creature.species
+    entry.creatureId = creature.id
     entry.biome = creature.biome
     entry.schoolId = school?.id ?? null
     entry.repulsionScale = boidParams.repulsionScale
@@ -1125,6 +1126,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
       radius,
       bodyLength: swim.bodyLengthWU * (creature.size ?? 1),
       species: creature.species,
+      creatureId: creature.id,
       biome: creature.biome,
       schoolId: school?.id ?? null,
       repulsionScale: boidParams.repulsionScale,

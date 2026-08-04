@@ -12,9 +12,16 @@ const MAX_SHOT_SECONDS = 10
 const BAD_SHOT_GRACE_SECONDS = 2.2
 const BAD_SHOT_HOLD_SECONDS = 0.8
 const MAX_BRIDGE_DISTANCE = 34
+const FAR_BRIDGE_DISTANCE = 58
+const SHOT_TRANSITION_SECONDS = 2.8
 const CAMERA_FLOOR_CLEARANCE = 1.8
 const CAMERA_SURFACE_CLEARANCE = 0.45
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
+
+function smoothstep(value) {
+  const t = THREE.MathUtils.clamp(value, 0, 1)
+  return t * t * (3 - 2 * t)
+}
 
 function hashString(value) {
   let hash = 2166136261
@@ -86,7 +93,7 @@ function buildCinematicHeroes(entries = FISH_REGISTRY.values(), species = null) 
   }
 
   const heroes = individuals.map(entry => ({
-    id: `fish:${entry.object.uuid}`,
+    id: `fish:${entry.creatureId ?? entry.object.uuid}`,
     kind: 'individual',
     species: entry.species,
     members: [entry],
@@ -134,9 +141,15 @@ function chooseNextHero(heroes, currentHero, excludedIds, recent, random) {
     const recencyWeight = Number.isFinite(lastSeen) ? Math.min(2.8, 0.45 + (performance.now() - lastSeen) / 25000) : 2.8
     const typeContrast = currentHero && hero.kind !== currentHero.kind ? 1.18 : 1
     const distance = currentHero ? hero.position.distanceTo(currentHero.position) : 0
-    const bridgeWeight = currentHero ? THREE.MathUtils.clamp(1.45 - distance / 55, 0.65, 1.35) : 1
+    const bridgeWeight = currentHero ? THREE.MathUtils.clamp(1.7 - distance / 34, 0.18, 1.45) : 1
     return recencyWeight * typeContrast * bridgeWeight
   }, random)
+}
+
+function preferredHeroForOrigin(heroes, originCreatureId) {
+  if (!originCreatureId) return null
+  const origin = String(originCreatureId)
+  return heroes.find(hero => hero.members.some(member => String(member.creatureId) === origin)) ?? null
 }
 
 function refillQueue(state, heroes, currentHero) {
@@ -323,6 +336,11 @@ function advanceShot(state, heroes, now) {
   }
 
   if (nextHero) {
+    const distance = currentHero.position.distanceTo(nextHero.position)
+    if (distance <= FAR_BRIDGE_DISTANCE || state.random() < 0.45) {
+      state.shot = createBridgeShot(state, currentHero, nextHero, now)
+      return
+    }
     state.recent.set(currentHero.id, performance.now())
     state.queue.shift()
     state.shot = createHeroShot(state, nextHero, now)
@@ -333,7 +351,7 @@ function advanceShot(state, heroes, now) {
   state.shot = createHeroShot(state, currentHero, now)
 }
 
-export default function CinematicDirector({ active = false, biome = 'ocean', seed = 0, species = null, poseRef }) {
+export default function CinematicDirector({ active = false, biome = 'ocean', seed = 0, species = null, originCreatureId = null, poseRef }) {
   const stateRef = useRef(null)
   const scratchRef = useRef({
     subject: { position: new THREE.Vector3(), forward: new THREE.Vector3(), radius: 1, bodyLength: 1 },
@@ -344,24 +362,28 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     desiredPosition: new THREE.Vector3(),
     projected: new THREE.Vector3(),
     toCamera: new THREE.Vector3(),
+    targetPose: { position: new THREE.Vector3(), lookAt: new THREE.Vector3(), fov: 55 },
   })
 
   useEffect(() => {
     stateRef.current = {
-      random: mulberry32(hashString(`${seed}:${biome}:${species}:cinematic`)),
+      random: mulberry32(hashString(`${seed}:${biome}:${species}:${originCreatureId ?? 'species'}:cinematic`)),
       heroes: [],
       queue: [],
       recent: new Map(),
       shot: null,
       shotSerial: 0,
       nextEvaluationAt: 0,
+      outputShotId: null,
+      transition: null,
+      lastPose: null,
     }
     if (!poseRef.current) poseRef.current = {}
     poseRef.current.active = active && Boolean(species)
     return () => {
       if (poseRef.current) poseRef.current.active = false
     }
-  }, [active, biome, poseRef, seed, species])
+  }, [active, biome, originCreatureId, poseRef, seed, species])
 
   useFrame(({ camera, clock }) => {
     const pose = poseRef.current
@@ -378,7 +400,7 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
       state.heroes = buildCinematicHeroes(FISH_REGISTRY.values(), species)
       state.nextEvaluationAt = now + DIRECTOR_EVALUATION_SECONDS
       if (!state.shot && state.heroes.length) {
-        const firstHero = weightedChoice(state.heroes, () => 1, state.random)
+        const firstHero = preferredHeroForOrigin(state.heroes, originCreatureId) ?? weightedChoice(state.heroes, () => 1, state.random)
         state.shot = createHeroShot(state, firstHero, now)
         refillQueue(state, state.heroes, firstHero)
       }
@@ -396,13 +418,47 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     const minCameraY = (FLOOR_Y[biome] ?? -20) + CAMERA_FLOOR_CLEARANCE
     const maxCameraY = SURFACE_PLANE_Y - CAMERA_SURFACE_CLEARANCE
     const nextHero = shot.nextHeroId ? heroById(state.heroes, shot.nextHeroId) : null
+    const targetPose = scratchRef.current.targetPose
     if (shot.type === 'bridge' && nextHero && resolveShotSubject(nextHero, shot, scratchRef.current.nextSubject)) {
-      calculateBridgePose(shot, subject, scratchRef.current.nextSubject, pose, scratchRef.current, minCameraY, maxCameraY)
+      calculateBridgePose(shot, subject, scratchRef.current.nextSubject, targetPose, scratchRef.current, minCameraY, maxCameraY)
     } else {
-      calculateHeroPose(shot, subject, pose, scratchRef.current, minCameraY, maxCameraY)
+      calculateHeroPose(shot, subject, targetPose, scratchRef.current, minCameraY, maxCameraY)
+    }
+
+    if (state.outputShotId !== shot.id) {
+      state.outputShotId = shot.id
+      if (state.lastPose) {
+        state.transition = {
+          startedAt: now,
+          from: {
+            position: state.lastPose.position.clone(),
+            lookAt: state.lastPose.lookAt.clone(),
+            fov: state.lastPose.fov,
+          },
+        }
+      } else {
+        state.transition = null
+      }
+    }
+
+    const transition = state.transition
+    if (transition) {
+      const progress = smoothstep((now - transition.startedAt) / SHOT_TRANSITION_SECONDS)
+      pose.position.lerpVectors(transition.from.position, targetPose.position, progress)
+      pose.lookAt.lerpVectors(transition.from.lookAt, targetPose.lookAt, progress)
+      pose.fov = THREE.MathUtils.lerp(transition.from.fov, targetPose.fov, progress)
+      if (progress >= 0.999) state.transition = null
+    } else {
+      pose.position.copy(targetPose.position)
+      pose.lookAt.copy(targetPose.lookAt)
+      pose.fov = targetPose.fov
     }
     pose.shotId = shot.id
     pose.shotName = shot.template
+    if (!state.lastPose) state.lastPose = { position: new THREE.Vector3(), lookAt: new THREE.Vector3(), fov: pose.fov }
+    state.lastPose.position.copy(pose.position)
+    state.lastPose.lookAt.copy(pose.lookAt)
+    state.lastPose.fov = pose.fov
 
     const age = now - shot.startedAt
     if (age >= shot.duration) {

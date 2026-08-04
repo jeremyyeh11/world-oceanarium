@@ -10,7 +10,13 @@ Versioning convention notes:
 
 ## v0.13.0 — Procedural cinematic camera
 
-Status: `v0.13.0-dev_2` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+Status: `v0.13.0-dev_3` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+
+### v0.13.0-dev_3
+
+- Smooths intra-species camera changes so the species-locked documentary does not snap hard across the tank when moving between same-species individuals, pairs, or schools.
+- Keeps the selected fish's own individual/school as the opening cinematic hero, then uses stronger same-species continuity weighting, bridge shots, and 2.8s eased position/look/FOV transitions for later shot changes.
+- Maintains the `v0.13.0-dev_2` contextual info-card entry, species lock, mobile long-press exit, and desktop keyboard-exit / mouse-inert behavior.
 
 ### Camera / presentation
 
@@ -19,12 +25,12 @@ Status: `v0.13.0-dev_2` is in development and awaiting Jeremy's visual review. I
 - Maintains a seeded weighted rolling queue instead of uniform random cuts. Recent heroes are cooled down, underrepresented hero types gain weight, and spatially bridgeable candidates are preferred.
 - Uses generic profile, lead, static, member-cutaway, school-wide, and relationship-bridge compositions. Shots hold for 5–10 seconds unless sustained bad framing, scale, viewing angle, or runtime invalidation triggers an early replacement.
 - Hands subjects off through shared-frame relationship shots when a viable next hero is nearby. A school is one queue hero rather than one queue entry per member; a readable member may be used as a temporary cutaway.
-- Keeps planning/evaluation at low frequency while camera motion stays frame-smooth. Runtime telemetry uses mutable Three.js data rather than React state updates or repeated scene traversal.
+- Keeps planning/evaluation at low frequency while camera motion stays frame-smooth. Runtime telemetry and transition state use mutable Three.js data rather than React state updates or repeated scene traversal.
 - Desktop exits on any keyboard key; mouse input remains inert. Mobile touch/pen exits after the same movement-cancelled 900ms long press used by Screenshot Mode. Manual resting and selected-creature follow cameras remain separate and regain control on exit.
 
 ### Validation
 
-- Production build and lint pass locally for `dev_2`. Browser smoke confirmed contextual entry from followed Sardinella and Mako info cards, species-locked primary framing with other species only incidental, inert desktop mouse input, any-key desktop exit, and mobile-style touch simulation where short tap and moved hold stayed active while a stationary 900ms hold exited.
+- Production build and lint pass locally for `dev_2`. Browser smoke confirmed contextual entry from followed Sardinella and Mako info cards, species-locked primary framing with other species only incidental, inert desktop mouse input, any-key desktop exit, and mobile-style touch simulation where short tap and moved hold stayed active while a stationary 900ms hold exited. `dev_3` adds smoother intra-species transitions and needs renewed visual review.
 
 ## v0.13.0 — Deforming ocean surface
 

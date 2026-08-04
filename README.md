@@ -21,7 +21,7 @@ The project values:
 
 ## Current Focus
 
-The current clean release is `v0.13.0`; `v0.13.0-dev_2` is the in-review cinematic-camera build pending final retarget after rebase. The ocean sunlight zone contains two deliberately curated tanks:
+The current clean release is `v0.13.0`; `v0.13.0-dev_3` is the in-review cinematic-camera build pending final retarget after rebase. The ocean sunlight zone contains two deliberately curated tanks:
 
 - **The Open Sea** — spotted sardinella, Mahi-mahi, and a Shortfin Mako Shark form a bait → mid-predator → apex-predator assemblage.
 - **The Drift** — a Giant Sunfish occupies a calmer, dimmer tank built around its slower rhythm and authored sun-bask behavior.
@@ -33,7 +33,7 @@ Current foundations:
 - one unified boids movement pipeline for schools, pairs, and solitary creatures
 - Blender-authored GLB animation with species-specific procedural shaping where useful
 - bone-aware follow camera for close observation
-- species-locked documentary shot direction entered from a followed fish, built from that species' live individuals/pairs/schools with no hardcoded cast
+- species-locked documentary shot direction entered from a followed fish, built from that species' live individuals/pairs/schools with smooth same-species bridges and no hardcoded cast
 - Supabase-backed individual creature records, with browser-safe production credentials
 - session continuity across tank switches: hidden tanks freeze and resume without respawning their inhabitants
 

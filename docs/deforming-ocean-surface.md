@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_7` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: `v0.14.0-dev_8` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
 
 ## Felt intention
 
@@ -21,14 +21,14 @@ World Oceanarium uses layered Gerstner waves: enough directional interaction to 
 - one `320 × 320 WU` plane whose distance fade reaches zero before any geometric edge;
 - `256 × 256` segments, 66,049 vertices, 131,072 triangles, and one surface draw call;
 - six directional Gerstner waves arranged as three crossed scales:
-  - coarse: `9.2 WU / 0.030 WU` crossed with `7.4 WU / 0.027 WU`;
-  - medium: `5.8 WU / 0.024 WU` crossed with `4.9 WU / 0.022 WU`;
-  - fine: `4.1 WU / 0.019 WU` crossed with `3.7 WU / 0.016 WU`;
+  - coarse: `20 WU / 0.025 WU` crossed with `14 WU / 0.022 WU`;
+  - medium: `7 WU / 0.024 WU` crossed with `5 WU / 0.020 WU`;
+  - fine: `3.8 WU / 0.017 WU` crossed with `3.1 WU / 0.014 WU`;
 - restrained steepness and independent speeds;
 - deterministic tank-seeded phase offsets;
 - all displacement runs in the vertex shader—no per-frame CPU geometry mutation or allocation.
 
-Total vertical excursion remains below `0.138 WU` (3.45 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
+Total vertical excursion remains below `0.122 WU` (3.05 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
 
 ## Normals and physical shading
 
@@ -40,7 +40,7 @@ This avoids `computeVertexNormals()` on the CPU every frame and keeps the HDR hi
 
 ## Edge treatment
 
-The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end and the fragment alpha mask showed material only across a near strip. The physical material is continuous across the full `320 × 320 WU` ceiling. Camera-distance fade (`45–120 WU`) reaches zero before the plane edge, while a gentler view-facing fade (`0.08–0.34`) preserves low-angle HDR reflection. Nearby overhead water remains fully physical.
+The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end and the fragment alpha mask showed material only across a near strip. The physical material is continuous across the full `320 × 320 WU` ceiling. Camera-distance fade (`45–120 WU`) reaches zero before the plane edge, while view-facing fade (`0.16–0.44`) preserves nearby HDR reflection and dissolves grazing geometry. Nearby overhead water remains fully physical. The default camera now looks only about `3.4°` upward (`lookY=-2.75`), keeping the horizontal ceiling near the top of portrait framing without moving its physical world height or changing follow framing.
 
 ## Performance contract
 

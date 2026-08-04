@@ -12,14 +12,11 @@ const CAMERA_LIMITS = {
 const DEFAULT_CAMERA_SETTINGS = {
   y: -3.35,
   z: 10,
-  // Ease the resting up-pitch (was +0.35 / ~20° up, which pinned creatures to the
-  // bottom edge) so animals can swim into the top half while the surface band and god
-  // rays still crown the very top of frame. Softened further (−1.5 → −2.1, ~10.5° →
-  // ~7° up) so the horizontal water ceiling stops filling the upper frame — the plane's
-  // screen share is set by pitch, not focal length, so lowering pitch (not narrowing
-  // fov) is what actually shrinks the distant surface. Camera position is unchanged so
-  // the scale read from where the camera sits is preserved.
-  lookY: -2.1,
+  // Keep the resting camera almost level. On portrait screens even the previous ~7°
+  // up-pitch let the horizontal ceiling fill nearly half the frame. Lowering the look
+  // target to ~3.4° up keeps reflection as a top crown without moving the world surface,
+  // changing focal length, or affecting follow-camera framing.
+  lookY: -2.75,
   fov: 61,
 }
 

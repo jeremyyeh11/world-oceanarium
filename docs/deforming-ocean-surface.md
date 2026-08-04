@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_8` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: `v0.14.0-dev_9` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
 
 ## Felt intention
 
@@ -21,20 +21,20 @@ World Oceanarium uses layered Gerstner waves: enough directional interaction to 
 - one `320 × 320 WU` plane whose distance fade reaches zero before any geometric edge;
 - `256 × 256` segments, 66,049 vertices, 131,072 triangles, and one surface draw call;
 - six directional Gerstner waves arranged as three crossed scales:
-  - coarse: `20 WU / 0.025 WU` crossed with `14 WU / 0.022 WU`;
-  - medium: `7 WU / 0.024 WU` crossed with `5 WU / 0.020 WU`;
-  - fine: `3.8 WU / 0.017 WU` crossed with `3.1 WU / 0.014 WU`;
+  - coarse: `22 WU / 0.024 WU` crossed with `15 WU / 0.021 WU`;
+  - medium: `9 WU / 0.023 WU` crossed with `6.5 WU / 0.020 WU`;
+  - fine: `5.2 WU / 0.017 WU` crossed with `4.5 WU / 0.014 WU`;
 - restrained steepness and independent speeds;
 - deterministic tank-seeded phase offsets;
 - all displacement runs in the vertex shader—no per-frame CPU geometry mutation or allocation.
 
-Total vertical excursion remains below `0.122 WU` (3.05 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
+Total vertical excursion remains below `0.119 WU` (2.975 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
 
 ## Normals and physical shading
 
 Each wave contributes analytic derivatives to two surface tangents. Their cross product produces the displaced normal in the same vertex pass. A real Three.js `MeshPhysicalMaterial` then uses those normals for Fresnel reflection, roughness, clearcoat, transmission, IOR `1.333`, thickness, and absorption. The material covers the entire mesh; there is no front-only alpha mask or bespoke fragment-color strip.
 
-The water material has its own 1K HDR environment, Qwantani Pure Sky by Poly Haven (CC0), at environment intensity `1.15`. This gives the underside brighter sky energy to reflect and refract without replacing the scene background or the environment used to light creatures. The local attribution and source live in `public/hdr/README.md`.
+The water material has its own 1K HDR environment, Qwantani Pure Sky by Poly Haven (CC0), at environment intensity `2.2`. This gives the underside brighter sky energy to reflect and refract without replacing the scene background or the environment used to light creatures. The local attribution and source live in `public/hdr/README.md`.
 
 This avoids `computeVertexNormals()` on the CPU every frame and keeps the HDR highlights synchronized with the physical wave shape.
 

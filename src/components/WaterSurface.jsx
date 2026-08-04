@@ -59,14 +59,14 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 
     // Three crossed scales. Each pair uses an incommensurate wavelength,
     // direction, and speed so no single sinusoid owns the reflected pattern.
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(1.0, 0.37), 20.0, 0.025, 0.20, 0.34, dot(uSurfaceSeed, vec2(0.071, 0.043)));
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.43, 1.0), 14.0, 0.022, 0.19, 0.47, dot(uSurfaceSeed, vec2(-0.037, 0.083)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(1.0, 0.37), 22.0, 0.024, 0.20, 0.31, dot(uSurfaceSeed, vec2(0.071, 0.043)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.43, 1.0), 15.0, 0.021, 0.19, 0.44, dot(uSurfaceSeed, vec2(-0.037, 0.083)));
 
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.18, -1.0), 7.0, 0.024, 0.17, 0.78, dot(uSurfaceSeed, vec2(0.113, -0.029)));
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-1.0, -0.61), 5.0, 0.020, 0.15, 0.97, dot(uSurfaceSeed, vec2(0.052, 0.127)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.18, -1.0), 9.0, 0.023, 0.17, 0.68, dot(uSurfaceSeed, vec2(0.113, -0.029)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-1.0, -0.61), 6.5, 0.020, 0.15, 0.86, dot(uSurfaceSeed, vec2(0.052, 0.127)));
 
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.78, 1.0), 3.8, 0.017, 0.12, 1.28, dot(uSurfaceSeed, vec2(-0.097, 0.061)));
-    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.73, 0.26), 3.1, 0.014, 0.10, 1.51, dot(uSurfaceSeed, vec2(0.139, -0.047)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(0.78, 1.0), 5.2, 0.017, 0.12, 1.05, dot(uSurfaceSeed, vec2(-0.097, 0.061)));
+    addSurfaceWave(displaced, tangentX, tangentY, samplePosition, vec2(-0.73, 0.26), 4.5, 0.014, 0.10, 1.22, dot(uSurfaceSeed, vec2(0.139, -0.047)));
 
     SurfaceWave wave;
     wave.position = displaced;
@@ -76,7 +76,7 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 `
 
 const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
-const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v5'
+const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v6'
 
 export const SURFACE_PLANE_Y = 4.6
 export const SURFACE_PLANE_X = 0
@@ -162,7 +162,7 @@ export default function WaterSurface({ seed = 0 }) {
         clearcoat={0.06}
         clearcoatRoughness={0.28}
         envMap={environment}
-        envMapIntensity={1.15}
+        envMapIntensity={2.2}
         transparent
         depthWrite={false}
         side={THREE.DoubleSide}

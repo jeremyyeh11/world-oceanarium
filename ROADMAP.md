@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy redirected the feature toward a Nat Geo-style species documentary: follow a fish first, then enter Cinematic Mode from that fish's info card. The selected species remains the main subject while shots may move between its individuals and groups.
-- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_3`.
+- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_4`.
 - Detailed architecture and review contract: [`docs/cinematic-camera.md`](docs/cinematic-camera.md).
 
 Subtasks:
@@ -28,7 +28,7 @@ Subtasks:
 - [x] Add generic profile, lead, static, group, member-cutaway, and shared-frame bridge shots.
 - [x] Add 5–10 second holds, low-frequency shot evaluation, hysteresis, and early bad-shot replacement.
 - [x] Add Cinematic Mode beside Atlas in the followed fish's info card, with clean presentation UI, desktop any-key exit, inert mouse input, and mobile long-press exit.
-- [x] Smooth intra-species camera changes with selected-origin opening, stronger spatial continuity, bridge shots, and eased pose/FOV transitions.
+- [x] Use validity-gated jump cuts for shot changes: preflight framing/facing/finite pose and both bridge subjects before committing the cut; retain damped within-shot tracking.
 - [x] Preserve resting/manual follow-camera code paths and avoid frame-by-frame React state updates.
 - [x] Build, lint, and browser-smoke both multi-hero and single-hero tanks.
 - [ ] Collect Jeremy desktop visual review of a sustained 60–90 second sequence.

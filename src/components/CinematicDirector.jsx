@@ -13,14 +13,12 @@ const BAD_SHOT_GRACE_SECONDS = 2.2
 const BAD_SHOT_HOLD_SECONDS = 0.8
 const MAX_BRIDGE_DISTANCE = 34
 const FAR_BRIDGE_DISTANCE = 58
-const SHOT_TRANSITION_SECONDS = 2.8
 const CAMERA_FLOOR_CLEARANCE = 1.8
 const CAMERA_SURFACE_CLEARANCE = 0.45
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
 
-function smoothstep(value) {
-  const t = THREE.MathUtils.clamp(value, 0, 1)
-  return t * t * (3 - 2 * t)
+function vectorIsFinite(vector) {
+  return Number.isFinite(vector.x) && Number.isFinite(vector.y) && Number.isFinite(vector.z)
 }
 
 function hashString(value) {
@@ -309,6 +307,38 @@ function shotCompositionIsBad(camera, shot, subject, scratch) {
   return false
 }
 
+function subjectIsInFrame(camera, subject, scratch, maxX = 0.84, maxY = 0.76) {
+  scratch.projected.copy(subject.position).project(camera)
+  return scratch.projected.z >= -1
+    && scratch.projected.z <= 1
+    && Math.abs(scratch.projected.x) <= maxX
+    && Math.abs(scratch.projected.y) <= maxY
+}
+
+function shotPoseIsValid(sourceCamera, shot, subject, nextSubject, targetPose, scratch) {
+  if (!vectorIsFinite(targetPose.position) || !vectorIsFinite(targetPose.lookAt)) return false
+  if (!Number.isFinite(targetPose.fov) || targetPose.fov < 35 || targetPose.fov > 75) return false
+  if (targetPose.position.distanceToSquared(targetPose.lookAt) < 1) return false
+
+  const camera = scratch.preflightCamera
+  camera.aspect = sourceCamera.aspect
+  camera.near = sourceCamera.near
+  camera.far = sourceCamera.far
+  camera.fov = targetPose.fov
+  camera.position.copy(targetPose.position)
+  camera.up.copy(sourceCamera.up)
+  camera.lookAt(targetPose.lookAt)
+  camera.updateProjectionMatrix()
+  camera.updateMatrixWorld(true)
+
+  if (shot.type === 'bridge') {
+    return Boolean(nextSubject)
+      && subjectIsInFrame(camera, subject, scratch)
+      && subjectIsInFrame(camera, nextSubject, scratch)
+  }
+  return !shotCompositionIsBad(camera, shot, subject, scratch)
+}
+
 function advanceShot(state, heroes, now) {
   const currentHero = heroById(heroes, state.shot?.heroId)
   if (!currentHero) {
@@ -363,6 +393,7 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     projected: new THREE.Vector3(),
     toCamera: new THREE.Vector3(),
     targetPose: { position: new THREE.Vector3(), lookAt: new THREE.Vector3(), fov: 55 },
+    preflightCamera: new THREE.PerspectiveCamera(),
   })
 
   useEffect(() => {
@@ -375,11 +406,10 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
       shotSerial: 0,
       nextEvaluationAt: 0,
       outputShotId: null,
-      transition: null,
-      lastPose: null,
+      hasValidOutput: false,
     }
     if (!poseRef.current) poseRef.current = {}
-    poseRef.current.active = active && Boolean(species)
+    poseRef.current.active = false
     return () => {
       if (poseRef.current) poseRef.current.active = false
     }
@@ -388,13 +418,13 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
   useFrame(({ camera, clock }) => {
     const pose = poseRef.current
     if (!pose) return
+    const state = stateRef.current
     const enabled = active && Boolean(species)
-    pose.active = enabled
+    pose.active = enabled && Boolean(state?.hasValidOutput)
     if (!enabled) return
     if (!pose.position) pose.position = new THREE.Vector3()
     if (!pose.lookAt) pose.lookAt = new THREE.Vector3()
 
-    const state = stateRef.current
     const now = clock.getElapsedTime()
     if (now >= state.nextEvaluationAt || !state.heroes.length) {
       state.heroes = buildCinematicHeroes(FISH_REGISTRY.values(), species)
@@ -419,46 +449,33 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     const maxCameraY = SURFACE_PLANE_Y - CAMERA_SURFACE_CLEARANCE
     const nextHero = shot.nextHeroId ? heroById(state.heroes, shot.nextHeroId) : null
     const targetPose = scratchRef.current.targetPose
-    if (shot.type === 'bridge' && nextHero && resolveShotSubject(nextHero, shot, scratchRef.current.nextSubject)) {
-      calculateBridgePose(shot, subject, scratchRef.current.nextSubject, targetPose, scratchRef.current, minCameraY, maxCameraY)
+    let nextSubject = null
+    if (shot.type === 'bridge') {
+      if (!nextHero || !resolveShotSubject(nextHero, shot, scratchRef.current.nextSubject)) {
+        advanceShot(state, state.heroes, now)
+        return
+      }
+      nextSubject = scratchRef.current.nextSubject
+      calculateBridgePose(shot, subject, nextSubject, targetPose, scratchRef.current, minCameraY, maxCameraY)
     } else {
       calculateHeroPose(shot, subject, targetPose, scratchRef.current, minCameraY, maxCameraY)
     }
 
     if (state.outputShotId !== shot.id) {
-      state.outputShotId = shot.id
-      if (state.lastPose) {
-        state.transition = {
-          startedAt: now,
-          from: {
-            position: state.lastPose.position.clone(),
-            lookAt: state.lastPose.lookAt.clone(),
-            fov: state.lastPose.fov,
-          },
-        }
-      } else {
-        state.transition = null
+      if (!shotPoseIsValid(camera, shot, subject, nextSubject, targetPose, scratchRef.current)) {
+        advanceShot(state, state.heroes, now)
+        return
       }
+      state.outputShotId = shot.id
     }
 
-    const transition = state.transition
-    if (transition) {
-      const progress = smoothstep((now - transition.startedAt) / SHOT_TRANSITION_SECONDS)
-      pose.position.lerpVectors(transition.from.position, targetPose.position, progress)
-      pose.lookAt.lerpVectors(transition.from.lookAt, targetPose.lookAt, progress)
-      pose.fov = THREE.MathUtils.lerp(transition.from.fov, targetPose.fov, progress)
-      if (progress >= 0.999) state.transition = null
-    } else {
-      pose.position.copy(targetPose.position)
-      pose.lookAt.copy(targetPose.lookAt)
-      pose.fov = targetPose.fov
-    }
+    pose.position.copy(targetPose.position)
+    pose.lookAt.copy(targetPose.lookAt)
+    pose.fov = targetPose.fov
     pose.shotId = shot.id
     pose.shotName = shot.template
-    if (!state.lastPose) state.lastPose = { position: new THREE.Vector3(), lookAt: new THREE.Vector3(), fov: pose.fov }
-    state.lastPose.position.copy(pose.position)
-    state.lastPose.lookAt.copy(pose.lookAt)
-    state.lastPose.fov = pose.fov
+    state.hasValidOutput = true
+    pose.active = true
 
     const age = now - shot.startedAt
     if (age >= shot.duration) {

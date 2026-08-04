@@ -147,12 +147,19 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
       hasSmoothedDefaultLookTarget.current = false
       reportFocusBoneMissing(null)
 
-      if (!cinematicWasActive.current || cinematicShotId.current !== cinematicPose.shotId) {
-        camera.getWorldDirection(currentCameraForward)
-        cinematicLookTarget.current.copy(camera.position).addScaledVector(currentCameraForward, Math.max(2, camera.position.distanceTo(cinematicPose.lookAt)))
+      const isJumpCut = !cinematicWasActive.current || cinematicShotId.current !== cinematicPose.shotId
+      if (isJumpCut) {
+        camera.position.copy(cinematicPose.position)
+        camera.position.y = THREE.MathUtils.clamp(camera.position.y, minFollowCameraY, MAX_FOLLOW_CAMERA_Y)
+        cinematicLookTarget.current.copy(cinematicPose.lookAt)
+        camera.lookAt(cinematicLookTarget.current)
+        camera.fov = Number.isFinite(cinematicPose.fov) ? cinematicPose.fov : DEFAULT_CAMERA_FOV
+        camera.updateProjectionMatrix()
         cinematicShotId.current = cinematicPose.shotId
       }
       cinematicWasActive.current = true
+
+      if (isJumpCut) return
 
       camera.position.x = THREE.MathUtils.damp(camera.position.x, cinematicPose.position.x, CINEMATIC_POSITION_DAMPING, delta)
       camera.position.y = THREE.MathUtils.damp(camera.position.y, cinematicPose.position.y, CINEMATIC_POSITION_DAMPING, delta)

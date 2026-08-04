@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_12` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: accepted and promoted as clean `v0.14.0` from `v0.14.0-dev_12` after Jeremy reju. This feature remained separate from the cinematic-camera branch.
 
 ## Felt intention
 

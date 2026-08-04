@@ -15,11 +15,11 @@ Status labels:
 
 ### Deforming ocean surface
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
-- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_12`.
+- Branch: `feat/deforming-ocean-surface`; accepted for clean `v0.14.0` from review build `v0.14.0-dev_12` after Jeremy reju.
 - Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
 
 Subtasks:
@@ -37,12 +37,12 @@ Subtasks:
 - [x] Increase the water-local HDR intensity to `8.0` so reflected sky highlights shine above the blue water body.
 - [x] Render the authored fake god-ray planes only in the settled default camera view; disable them throughout follow/orbit and the return transition.
 - [x] Give coarse, medium, and fine wave pairs descending displacement magnitudes while preserving the existing `0.119 WU` maximum summed excursion.
-- [ ] Collect desktop and physical-phone visual/performance review.
+- [x] Collect desktop and physical-phone visual/performance review and Jeremy release approval.
 
 Review gates:
-- The ceiling reads as calm moving water, not cloth, chrome, or a noisy special effect.
-- No rectangular plane edge appears during upward camera angles.
-- Fish remain legible and normal tank performance remains stable on phone.
+- [x] The ceiling reads as calm moving water, not cloth, chrome, or a noisy special effect.
+- [x] No rectangular plane edge appears during upward camera angles.
+- [x] Fish remain legible and normal tank performance remains stable on phone.
 
 ### Larger Sardinella schools
 

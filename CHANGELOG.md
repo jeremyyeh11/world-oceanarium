@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.14.0 — Deforming ocean surface
 
-Status: `v0.14.0-dev_12` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
+Status: accepted and promoted as clean `v0.14.0` from `v0.14.0-dev_12` after Jeremy reju. The feature remained isolated from the cinematic-camera branch throughout review.
 
 ### Environment / atmosphere
 

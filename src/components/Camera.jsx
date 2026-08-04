@@ -25,6 +25,9 @@ const DEFAULT_CAMERA_Y = DEFAULT_CAMERA_SETTINGS.y
 const DEFAULT_CAMERA_LOOK_Y = DEFAULT_CAMERA_SETTINGS.lookY
 const DEFAULT_CAMERA_FOV = DEFAULT_CAMERA_SETTINGS.fov
 const FOLLOW_FOV_DAMPING = 3.4
+const CINEMATIC_POSITION_DAMPING = 1.65
+const CINEMATIC_LOOK_DAMPING = 2.15
+const CINEMATIC_FOV_DAMPING = 2.0
 const FOLLOW_HEIGHT = 0.85
 const FOLLOW_SURFACE_CLEARANCE = 0.35
 const FOLLOW_TARGET_DAMPING = 2.8
@@ -68,7 +71,7 @@ function isDescendantOf(node, root) {
   return false
 }
 
-export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cinematicPoseRef = null, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
   const { camera } = useThree()
   const focusBoneRef = useRef(null)
   const focusBoneTargetRef = useRef(null)
@@ -84,6 +87,9 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
   const defaultCameraSettled = useRef(true)
   const cameraClipStartedAt = useRef(null)
   const lastCameraClipExitAt = useRef(-Infinity)
+  const cinematicLookTarget = useRef(new THREE.Vector3())
+  const cinematicShotId = useRef(null)
+  const cinematicWasActive = useRef(false)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
   const minFollowCameraY = (FLOOR_Y[biome] ?? -20) + FOLLOW_FLOOR_CLEARANCE
 
@@ -131,6 +137,43 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
 
   useFrame(({ clock }, delta) => {
     const now = clock.getElapsedTime()
+    const cinematicPose = cinematicPoseRef?.current
+    if (cinematicPose?.active && cinematicPose.position && cinematicPose.lookAt) {
+      setDefaultCameraSettled(false)
+      cameraClipStartedAt.current = null
+      previousFocusTarget.current = null
+      hasSmoothedFocus.current = false
+      hasSmoothedLookTarget.current = false
+      hasSmoothedDefaultLookTarget.current = false
+      reportFocusBoneMissing(null)
+
+      if (!cinematicWasActive.current || cinematicShotId.current !== cinematicPose.shotId) {
+        camera.getWorldDirection(currentCameraForward)
+        cinematicLookTarget.current.copy(camera.position).addScaledVector(currentCameraForward, Math.max(2, camera.position.distanceTo(cinematicPose.lookAt)))
+        cinematicShotId.current = cinematicPose.shotId
+      }
+      cinematicWasActive.current = true
+
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, cinematicPose.position.x, CINEMATIC_POSITION_DAMPING, delta)
+      camera.position.y = THREE.MathUtils.damp(camera.position.y, cinematicPose.position.y, CINEMATIC_POSITION_DAMPING, delta)
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, cinematicPose.position.z, CINEMATIC_POSITION_DAMPING, delta)
+      camera.position.y = THREE.MathUtils.clamp(camera.position.y, minFollowCameraY, MAX_FOLLOW_CAMERA_Y)
+      cinematicLookTarget.current.x = THREE.MathUtils.damp(cinematicLookTarget.current.x, cinematicPose.lookAt.x, CINEMATIC_LOOK_DAMPING, delta)
+      cinematicLookTarget.current.y = THREE.MathUtils.damp(cinematicLookTarget.current.y, cinematicPose.lookAt.y, CINEMATIC_LOOK_DAMPING, delta)
+      cinematicLookTarget.current.z = THREE.MathUtils.damp(cinematicLookTarget.current.z, cinematicPose.lookAt.z, CINEMATIC_LOOK_DAMPING, delta)
+      camera.lookAt(cinematicLookTarget.current)
+
+      const targetFov = Number.isFinite(cinematicPose.fov) ? cinematicPose.fov : DEFAULT_CAMERA_FOV
+      const nextFov = THREE.MathUtils.damp(camera.fov, targetFov, CINEMATIC_FOV_DAMPING, delta)
+      if (Math.abs(nextFov - camera.fov) > 0.01) {
+        camera.fov = nextFov
+        camera.updateProjectionMatrix()
+      }
+      return
+    }
+
+    cinematicWasActive.current = false
+    cinematicShotId.current = null
     if (focusTarget) {
       setDefaultCameraSettled(false)
       focusBounds.setFromObject(focusTarget)

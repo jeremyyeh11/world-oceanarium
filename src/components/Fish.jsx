@@ -13,6 +13,7 @@ import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
+import { FISH_REGISTRY } from './fishRegistry'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -300,7 +301,7 @@ const BOID_RELATION_COLORS = {
 // not allocate. Entries are { id, other, distanceSq } and are re-sorted each tick.
 const boidNeighborScratch = []
 const SCHOOL_STATES = new Map()
-const FISH_REGISTRY = new Map()
+
 
 function getSchoolState(school, creature, swim) {
   const key = school.id
@@ -1104,6 +1105,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
   const entry = FISH_REGISTRY.get(creature.id)
   const registryForward = forward?.lengthSq?.() > 0.0001 ? forward : null
   if (entry) {
+    entry.object = fish
     entry.position.copy(fish.position)
     if (registryForward) entry.forward.copy(registryForward)
     else entry.forward.set(0, 0, -1)
@@ -1117,6 +1119,7 @@ function updateFishRegistry(fish, creature, swim, school = null, forward = null)
     entry.menace = boidParams.menace
   } else {
     FISH_REGISTRY.set(creature.id, {
+      object: fish,
       position: fish.position.clone(),
       forward: registryForward ? registryForward.clone() : new THREE.Vector3(0, 0, -1),
       radius,

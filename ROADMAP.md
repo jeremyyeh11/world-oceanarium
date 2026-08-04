@@ -13,6 +13,36 @@ Status labels:
 
 ## Current work
 
+### Procedural cinematic camera
+
+Status: `Current in development`
+
+Reference:
+- Jeremy approved a GTA V-style automatic shot director, with one correction made explicit: Mako/Sardinella was only a storytelling example. The camera must derive every hero and handoff from the live runtime population.
+- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_1`.
+- Detailed architecture and review contract: [`docs/cinematic-camera.md`](docs/cinematic-camera.md).
+
+Subtasks:
+- [x] Build individual, pair, and school hero candidates from the shared live fish registry without species-specific sequencing.
+- [x] Add a seeded weighted rolling queue with recency, diversity, viability, and spatial-continuity weighting.
+- [x] Add generic profile, lead, static, group, member-cutaway, and shared-frame bridge shots.
+- [x] Add 5–10 second holds, low-frequency shot evaluation, hysteresis, and early bad-shot replacement.
+- [x] Add a distinct Cinematic Camera control with clean presentation UI and immediate pointer/`Esc` exit.
+- [x] Preserve resting/manual follow-camera code paths and avoid frame-by-frame React state updates.
+- [x] Build, lint, and browser-smoke both multi-hero and single-hero tanks.
+- [ ] Collect Jeremy desktop visual review of a sustained 60–90 second sequence.
+- [ ] Run Jeremy/YK phone review for composition, exit behavior, and performance.
+- [ ] Collect explicit release approval before merge, clean promotion, deployment, or branch deletion.
+
+Review gates:
+- No species, creature id, hero count, or fixed narrative sequence is encoded in the director.
+- Open Sea produces readable individual/group coverage and shared-frame handoffs without rapid repetition or arbitrary oscillation.
+- The Drift remains useful with one available hero, varying generic shot classes and replacing sustained poor angles early.
+- Shots generally hold 5–10 seconds, but invalid targets, poor scale/framing, or sustained head-/tail-on angles are replaced gracefully.
+- The camera does not reveal hard tank boundaries or travel visibly through geometry.
+- Existing resting, selected-creature follow, Screenshot Mode, debug, and tank-switch behavior remain unchanged outside Cinematic Mode.
+- Pointer input and `Esc` return manual control immediately on desktop and mobile.
+
 ### Deforming ocean surface
 
 Status: `Archive candidate`

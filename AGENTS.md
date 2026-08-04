@@ -29,6 +29,9 @@ Design rule: every mechanic must answer **what it feels like to do, and why that
 Important paths:
 
 - `src/components/Fish.jsx` — creature rendering, movement, animation, debug labels
+- `src/components/fishRegistry.js` — shared mutable live-fish registry read by boids and cinematic hero discovery
+- `src/components/CinematicDirector.jsx` — generic live hero candidates, seeded rolling queue, shot grammar, and pose planning
+- `src/components/Camera.jsx` — resting, follow, and cinematic pose application; keep non-cinematic paths behaviorally isolated
 - `src/components/fishRuntimeStore.js` — session-lifetime fish snapshots that survive active-tank unmount/remount
 - `src/components/Biome.jsx` — renders a tank's curated creature assemblage (see `docs/tank-design.md`)
 - `src/components/TankView.jsx` — tank UI, debug mode, follow selection, controls

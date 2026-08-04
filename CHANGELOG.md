@@ -8,6 +8,23 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.13.0 — Procedural cinematic camera
+
+Status: `v0.13.0-dev_1` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+
+### Camera / presentation
+
+- Adds a separate Cinematic Camera mode beside Screenshot Mode. The director discovers eligible individual, pair, and school heroes from the live fish registry; no species name, creature id, cast size, or species-to-species sequence is hardcoded.
+- Maintains a seeded weighted rolling queue instead of uniform random cuts. Recent heroes are cooled down, underrepresented hero types/species gain weight, and spatially bridgeable candidates are preferred.
+- Uses generic profile, lead, static, member-cutaway, school-wide, and relationship-bridge compositions. Shots hold for 5–10 seconds unless sustained bad framing, scale, viewing angle, or runtime invalidation triggers an early replacement.
+- Hands subjects off through shared-frame relationship shots when a viable next hero is nearby. A school is one queue hero rather than one queue entry per member; a readable member may be used as a temporary cutaway.
+- Keeps planning/evaluation at low frequency while camera motion stays frame-smooth. Runtime telemetry uses mutable Three.js data rather than React state updates or repeated scene traversal.
+- Any pointer input or `Esc` exits cinematic mode immediately. Manual resting and selected-creature follow cameras remain separate and regain control on exit.
+
+### Validation
+
+- Production build and lint pass locally. Browser smoke covered a multi-hero Open Sea sequence (pair → shared-frame bridge → new composition), the single-hero Drift fallback, early recovery from a deteriorating head-on angle, clean presentation UI, and immediate `Esc` exit.
+
 ## v0.13.0 — Deforming ocean surface
 
 Status: accepted and promoted as clean `v0.13.0` from the historically labeled `v0.14.0-dev_12` review build after Jeremy reju. The clean number was corrected to follow `v0.12.3`; the feature remained isolated from the cinematic-camera branch throughout review.

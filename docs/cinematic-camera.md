@@ -1,6 +1,6 @@
 # Cinematic Camera
 
-Status: `v0.13.0-dev_5` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
+Status: `v0.13.0-dev_6` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
 
 ## Felt intention
 
@@ -37,6 +37,7 @@ While active:
 - Screenshot Mode remains separate;
 - desktop: any keyboard key exits; mouse input remains inert;
 - mobile: a stationary 900ms touch/pen long press exits, with movement cancelling the hold;
+- if a current cinematic subject enters an off-screen hard-reset recovery, the mode exits and shows the same “will be back in a bit” notice as manual follow;
 - resting/manual camera control resumes on exit.
 
 A brief non-interactive hint announces the mode and its exit controls, then fades.
@@ -102,7 +103,7 @@ Every shot also chooses exactly one camera behavior:
 - `truck` — lateral translation with fixed camera orientation;
 - `tilt` — vertical gaze rotation from a fixed camera position.
 
-Movement distances derive from subject scale and stay deliberately restrained. A shot never combines dolly + truck, truck + tilt, or another stacked move; variety comes between shots rather than from an amateurish compound move inside one shot.
+Movement distances derive from subject scale and camera distance. They stay restrained but must remain legible across a 5–10 second hold. Stillness is less frequent than moving coverage, and recent movement is discouraged from immediately repeating. A shot never combines dolly + truck, truck + tilt, or another stacked move; variety comes between shots rather than from an amateurish compound move inside one shot.
 
 The transition grammar is:
 
@@ -161,6 +162,7 @@ Before clean promotion:
 - confirm no hard tank boundary or geometry traversal is revealed;
 - test The Drift's single-hero fallback;
 - confirm desktop mouse input does nothing and any keyboard key exits;
+- confirm a current cinematic subject's hard-reset recovery exits the mode before the snap and displays its recovery notice;
 - confirm a short mobile tap does not exit, movement cancels the hold, and a stationary 900ms long press exits;
 - test desktop and phone framing/performance;
 - confirm manual follow and Screenshot Mode remain unchanged.

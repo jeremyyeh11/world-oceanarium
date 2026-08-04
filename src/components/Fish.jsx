@@ -1814,7 +1814,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, cinematicPoseRef = null, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   // Persistent kinematic snapshot for this creature. Survives unmount/remount so switching tanks
   // resumes movement instead of re-seeding. Object-valued fields below are shared by reference
@@ -2575,7 +2575,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // as a glitch).
         if (isMolaCreature(creature)) {
           const deepExit = isMolaDeepZExit(fish.position, bounds, bodyLength)
-          if (zoomActive && selected && deepExit && now - lastFollowRecoveryExitAt.current > 1.0) {
+          const isCinematicSubject = Boolean(
+            cinematicPoseRef?.current?.active
+            && cinematicPoseRef.current.subjectCreatureIds?.has(String(creature.id)),
+          )
+          if (((zoomActive && selected) || isCinematicSubject) && deepExit && now - lastFollowRecoveryExitAt.current > 1.0) {
             lastFollowRecoveryExitAt.current = now
             onRuntimeRecoveryNeeded?.(creature)
           }

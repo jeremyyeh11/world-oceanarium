@@ -18,13 +18,13 @@ const CAMERA_SURFACE_CLEARANCE = 0.45
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
 
 const MOVEMENTS_BY_TEMPLATE = {
-  'school-wide': ['still', 'still', 'truck'],
-  'pair-wide': ['still', 'truck', 'dolly'],
-  'member-cutaway': ['still', 'track', 'tilt'],
-  'profile-track': ['track', 'truck', 'still'],
-  'hero-static': ['still', 'still', 'tilt'],
-  'lead-track': ['dolly', 'track', 'still'],
-  'relationship-wide': ['still', 'truck'],
+  'school-wide': ['still', 'truck', 'truck', 'dolly'],
+  'pair-wide': ['still', 'truck', 'dolly', 'track'],
+  'member-cutaway': ['still', 'track', 'tilt', 'dolly'],
+  'profile-track': ['still', 'track', 'truck', 'dolly'],
+  'hero-static': ['still', 'tilt', 'dolly'],
+  'lead-track': ['dolly', 'dolly', 'track', 'truck'],
+  'relationship-wide': ['still', 'truck', 'dolly'],
 }
 
 function vectorIsFinite(vector) {
@@ -339,8 +339,8 @@ function applyShotMovement(shot, subject, pose, now, scratch) {
       fov: pose.fov,
       forward: viewForward.clone(),
       right: viewRight.clone().multiplyScalar(shot.side),
-      travel: THREE.MathUtils.clamp(subject.bodyLength * 0.35 + subject.radius * 0.12, 0.8, 4.5),
-      tilt: THREE.MathUtils.clamp(subject.bodyLength * 0.18 + 0.45, 0.55, 2.2),
+      travel: THREE.MathUtils.clamp(subject.bodyLength * 0.5 + subject.radius * 0.18, 1.8, 7),
+      tilt: THREE.MathUtils.clamp(pose.position.distanceTo(pose.lookAt) * 0.11, 0.8, 3.5),
     }
   }
 
@@ -504,8 +504,12 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     }
     if (!poseRef.current) poseRef.current = {}
     poseRef.current.active = false
+    poseRef.current.subjectCreatureIds = new Set()
     return () => {
-      if (poseRef.current) poseRef.current.active = false
+      if (poseRef.current) {
+        poseRef.current.active = false
+        poseRef.current.subjectCreatureIds?.clear()
+      }
     }
   }, [active, biome, originCreatureId, poseRef, seed, species])
 
@@ -518,6 +522,7 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     if (!enabled) return
     if (!pose.position) pose.position = new THREE.Vector3()
     if (!pose.lookAt) pose.lookAt = new THREE.Vector3()
+    if (!pose.subjectCreatureIds) pose.subjectCreatureIds = new Set()
 
     const now = clock.getElapsedTime()
     if (now >= state.nextEvaluationAt || !state.heroes.length) {
@@ -563,6 +568,20 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
       }
       state.lastMovement = shot.movement
       state.outputShotId = shot.id
+      pose.subjectCreatureIds.clear()
+      if (shot.template === 'member-cutaway') {
+        const member = hero.members[shot.memberIndex % hero.members.length]
+        if (member?.creatureId !== undefined) pose.subjectCreatureIds.add(String(member.creatureId))
+      } else {
+        hero.members.forEach(member => {
+          if (member?.creatureId !== undefined) pose.subjectCreatureIds.add(String(member.creatureId))
+        })
+      }
+      if (shot.type === 'bridge') {
+        nextHero?.members.forEach(member => {
+          if (member?.creatureId !== undefined) pose.subjectCreatureIds.add(String(member.creatureId))
+        })
+      }
     }
 
     pose.position.copy(targetPose.position)

@@ -118,7 +118,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, cinematicMode = false, cinematicSpecies = null, cinematicOriginCreatureId = null, onBack, onOpenEncyclopedia, onEnterCinematic }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, cinematicMode = false, cinematicSpecies = null, cinematicOriginCreatureId = null, onBack, onOpenEncyclopedia, onEnterCinematic, onExitCinematic }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -387,6 +387,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const releaseFocusForRuntimeRecovery = (creature) => {
     const name = creatureDisplayName(creature)
     setRecoveryNotice({ id: `${creature?.id ?? name}-${performance.now()}`, text: `${name} will be back in a bit!` })
+    if (cinematicMode) onExitCinematic?.()
     releaseFocus()
   }
 
@@ -698,6 +699,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             zoomActive={zoomActive}
             debugSunBaskRequestId={debugSunBaskRequestId}
             soloRuntimeRecoveryEnabled={!zoomActive && defaultCameraSettled}
+            cinematicPoseRef={cinematicPoseRef}
             hideSelectionSilhouette={presentationMode}
             debug={visibleDebugVisuals}
             debugView={debugView}

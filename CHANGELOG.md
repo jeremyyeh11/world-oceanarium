@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.14.0 — Deforming ocean surface
+## v0.13.0 — Deforming ocean surface
 
-Status: accepted and promoted as clean `v0.14.0` from `v0.14.0-dev_12` after Jeremy reju. The feature remained isolated from the cinematic-camera branch throughout review.
+Status: accepted and promoted as clean `v0.13.0` from the historically labeled `v0.14.0-dev_12` review build after Jeremy reju. The clean number was corrected to follow `v0.12.3`; the feature remained isolated from the cinematic-camera branch throughout review.
 
 ### Environment / atmosphere
 

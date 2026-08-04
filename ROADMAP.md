@@ -19,7 +19,7 @@ Status: `Archive candidate`
 
 Reference:
 - Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
-- Branch: `feat/deforming-ocean-surface`; accepted for clean `v0.14.0` from review build `v0.14.0-dev_12` after Jeremy reju.
+- Branch: `feat/deforming-ocean-surface`; accepted for clean `v0.13.0` from the historically labeled review build `v0.14.0-dev_12` after Jeremy reju.
 - Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
 
 Subtasks:

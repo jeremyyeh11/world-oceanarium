@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_1` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: `v0.14.0-dev_2` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
 
 ## Felt intention
 
@@ -18,37 +18,40 @@ World Oceanarium uses layered Gerstner waves: enough directional interaction to 
 
 ## Implemented shape
 
-- one `210 × 210 WU` plane overscanning the tank ceiling;
-- `96 × 96` segments, about 9.4k vertices and one draw call;
+- one `600 × 600 WU` plane extending beyond the camera range, so the physical material has no exposed rectangular edge;
+- `160 × 160` segments, about 25.9k vertices and one surface draw call;
 - three directional Gerstner layers:
   - wavelength `22 WU`, amplitude `0.24 WU`;
   - wavelength `13 WU`, amplitude `0.14 WU`;
-  - wavelength `9 WU`, amplitude `0.075 WU`;
+  - wavelength `12 WU`, amplitude `0.075 WU`;
 - restrained steepness and independent speeds;
 - deterministic tank-seeded phase offsets;
 - all displacement runs in the vertex shader—no per-frame CPU geometry mutation or allocation.
 
 Total vertical excursion remains below `0.455 WU` (about 11.4 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
 
-## Normals and shading
+## Normals and physical shading
 
-Each wave contributes analytic derivatives to two surface tangents. Their cross product produces the displaced normal in the same vertex pass. The fragment shader uses that normal for quiet slope, Fresnel, and crest response while preserving the existing procedural caustic/shimmer treatment.
+Each wave contributes analytic derivatives to two surface tangents. Their cross product produces the displaced normal in the same vertex pass. A real Three.js `MeshPhysicalMaterial` then uses those normals for Fresnel reflection, roughness, clearcoat, transmission, IOR `1.333`, thickness, and absorption. The material covers the entire mesh; there is no front-only alpha mask or bespoke fragment-color strip.
 
-This avoids `computeVertexNormals()` on the CPU every frame and keeps highlights synchronized with the physical wave shape.
+The water material has its own 1K HDR environment, Qwantani Pure Sky by Poly Haven (CC0). This gives the underside bright sky energy to reflect and refract without replacing the scene background or the environment used to light creatures. The local attribution and source live in `public/hdr/README.md`.
+
+This avoids `computeVertexNormals()` on the CPU every frame and keeps the HDR highlights synchronized with the physical wave shape.
 
 ## Edge treatment
 
-The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end. The physical mesh now overscans `210 × 210 WU`. The established shimmer region still uses the old 32 WU world-space scale, so expanding geometry does not stretch or retune the accepted caustic pattern.
+The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end and the fragment alpha mask showed material only across a near strip. The physical mesh now extends `600 × 600 WU`, beyond the camera range, and its material is continuous across the full ceiling. The low wavy boundary in a level shot is the natural grazing-angle surface horizon, not the plane's rectangular edge.
 
 ## Performance contract
 
-- one mesh, one material, one draw call;
-- about 9.4k vertices;
+- one mesh, one material, one surface draw call;
+- about 25.9k vertices;
 - three wave evaluations per vertex;
-- no FFT, simulation framebuffer, reflection/refraction pass, CPU vertex upload, or per-frame React state;
+- one Three.js transmission/refraction prepass at half linear resolution (quarter pixel count);
+- no FFT, simulation framebuffer, CPU vertex upload, or per-frame React state;
 - static geometry topology and mutable shader time uniform only.
 
-The initial review build favors predictable mobile cost over ocean-scale realism. A future quality tier could reduce grid density on very weak devices, but it should be justified by physical-phone profiling rather than user-agent guessing.
+The half-resolution refraction target preserves the blurred moving-water look while containing the physical material's main mobile cost. Physical-phone profiling remains a release gate; if needed, the next quality tier should reduce transmission resolution before removing deformation or reverting to fake water.
 
 ## Review checklist
 

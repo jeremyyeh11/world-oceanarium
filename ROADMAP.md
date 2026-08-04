@@ -19,13 +19,14 @@ Status: `Current in development`
 
 Reference:
 - Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
-- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_1`.
+- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_2`.
 - Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
 
 Subtasks:
 - [x] Replace the flat plane with a subdivided, vertex-displaced surface.
 - [x] Use layered mobile-conscious Gerstner waves with analytic normals.
-- [x] Overscan the whole tank ceiling while preserving the existing caustic-band scale.
+- [x] Replace the localized fragment treatment with a full-plane physical water material and material-specific CC0 HDR environment.
+- [x] Overscan beyond camera range and use a half-resolution refraction target for mobile-conscious physical transmission.
 - [ ] Collect desktop and physical-phone visual/performance review.
 
 Review gates:

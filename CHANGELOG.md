@@ -10,13 +10,14 @@ Versioning convention notes:
 
 ## v0.14.0 — Deforming ocean surface
 
-Status: `v0.14.0-dev_1` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
+Status: `v0.14.0-dev_2` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
 
 ### Environment / atmosphere
 
-- Replaces the visually animated but physically flat two-triangle ceiling with a 210×210 WU, 96×96-segment water mesh displaced in the vertex shader by three deterministic Gerstner wave layers.
-- Derives surface tangents and normals analytically in the same vertex pass, letting restrained Fresnel, slope, and crest lighting follow the real deformation without CPU geometry updates or FFT render targets.
-- Preserves the approved 32 WU caustic/shimmer band in world scale while the underlying mesh overscans the full tank ceiling, removing the exposed rectangular edge during upward camera angles.
+- Replaces the visually animated but physically flat two-triangle ceiling with a 600×600 WU, 160×160-segment water mesh displaced in the vertex shader by three deterministic Gerstner wave layers.
+- Derives surface tangents and normals analytically in the same vertex pass and feeds them into a real `MeshPhysicalMaterial` with water IOR, transmission, thickness, absorption, roughness, Fresnel reflection, and clearcoat across the full plane—no front-only fragment alpha strip.
+- Gives the water material its own licensed 1K Qwantani Pure Sky HDR environment for underside reflection/refraction without changing creature lighting or the scene background.
+- Keeps physical transmission mobile-conscious with a half-linear-resolution refraction target, and overscans beyond camera range so no rectangular geometry edge enters upward views.
 
 ## v0.12.3 — Larger Sardinella schools
 

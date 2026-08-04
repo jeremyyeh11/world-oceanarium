@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_2` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: `v0.14.0-dev_3` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
 
 ## Felt intention
 
@@ -40,7 +40,7 @@ This avoids `computeVertexNormals()` on the CPU every frame and keeps the HDR hi
 
 ## Edge treatment
 
-The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end and the fragment alpha mask showed material only across a near strip. The physical mesh now extends `600 × 600 WU`, beyond the camera range, and its material is continuous across the full ceiling. The low wavy boundary in a level shot is the natural grazing-angle surface horizon, not the plane's rectangular edge.
+The prior mesh was `210 × 32 WU`, so upward views could reveal its rectangular end and the fragment alpha mask showed material only across a near strip. The physical mesh now extends `600 × 600 WU`, beyond the camera range, and its material is continuous across the full ceiling. Camera-distance fade (`55–180 WU`) combines with a view-facing fade at grazing angles, dissolving distant fragments into the existing water fog before either the geometric edge or the otherwise-natural surface horizon can draw a line across frame. Nearby overhead water remains fully physical.
 
 ## Performance contract
 

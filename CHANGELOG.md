@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.14.0 — Deforming ocean surface
 
-Status: `v0.14.0-dev_2` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
+Status: `v0.14.0-dev_3` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
 
 ### Environment / atmosphere
 
@@ -18,6 +18,7 @@ Status: `v0.14.0-dev_2` is in development on `feat/deforming-ocean-surface`. It 
 - Derives surface tangents and normals analytically in the same vertex pass and feeds them into a real `MeshPhysicalMaterial` with water IOR, transmission, thickness, absorption, roughness, Fresnel reflection, and clearcoat across the full plane—no front-only fragment alpha strip.
 - Gives the water material its own licensed 1K Qwantani Pure Sky HDR environment for underside reflection/refraction without changing creature lighting or the scene background.
 - Keeps physical transmission mobile-conscious with a half-linear-resolution refraction target, and overscans beyond camera range so no rectangular geometry edge enters upward views.
+- Retunes the physical tint from saturated cyan toward the tanks' muted cobalt/steel-blue palette, then combines camera-distance and grazing-angle alpha fades so the far surface dissolves into water fog before it can form a hard horizon line.
 
 ## v0.12.3 — Larger Sardinella schools
 

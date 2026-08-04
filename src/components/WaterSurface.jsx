@@ -69,7 +69,7 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 `
 
 const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
-const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v1'
+const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v2'
 
 export const SURFACE_PLANE_Y = 4.6
 export const SURFACE_PLANE_X = 0
@@ -121,6 +121,17 @@ export default function WaterSurface({ seed = 0 }) {
         '#include <beginnormal_vertex>\nSurfaceWave surfaceWave = getSurfaceWave(position);\nobjectNormal = surfaceWave.normal;',
       )
       .replace('#include <begin_vertex>', 'vec3 transformed = surfaceWave.position;')
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <opaque_fragment>',
+      `#include <opaque_fragment>
+       // At grazing angles an infinite plane resolves into a hard horizon line.
+       // Fade by true camera distance before that limit, leaving nearby overhead
+       // water fully physical while dissolving the distant surface into the fog.
+       float surfaceDistanceFade = 1.0 - smoothstep(55.0, 180.0, length(vViewPosition));
+       float surfaceFacing = abs(dot(normalize(normal), normalize(vViewPosition)));
+       float surfaceGrazingFade = smoothstep(0.04, 0.28, surfaceFacing);
+       gl_FragColor.a *= surfaceDistanceFade * surfaceGrazingFade;`,
+    )
   }, [uniforms])
 
   useFrame(({ clock }) => {
@@ -131,20 +142,21 @@ export default function WaterSurface({ seed = 0 }) {
     <mesh position={SURFACE_PLANE_POSITION} rotation={SURFACE_PLANE_ROTATION} raycast={() => null}>
       <planeGeometry args={SURFACE_PLANE_SIZE} />
       <meshPhysicalMaterial
-        color="#2586ad"
+        color="#4f78a8"
         roughness={0.11}
         metalness={0}
         transmission={0.88}
         thickness={0.08}
         ior={1.333}
-        attenuationColor="#68c7dc"
+        attenuationColor="#3f709a"
         attenuationDistance={80}
         specularIntensity={0.92}
-        specularColor="#c8efff"
+        specularColor="#d5e8f7"
         clearcoat={0.16}
         clearcoatRoughness={0.14}
         envMap={environment}
-        envMapIntensity={1.65}
+        envMapIntensity={1.4}
+        transparent
         depthWrite={false}
         side={THREE.DoubleSide}
         onBeforeCompile={prepareMaterial}

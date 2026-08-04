@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
-- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_11`.
+- Branch: `feat/deforming-ocean-surface`; review build: `v0.14.0-dev_12`.
 - Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
 
 Subtasks:
@@ -36,6 +36,7 @@ Subtasks:
 - [x] Raise the minimum wave scale from `3.1` to `4.5 WU` and brighten the water-local HDR reflection from `1.15` to `2.2`.
 - [x] Increase the water-local HDR intensity to `8.0` so reflected sky highlights shine above the blue water body.
 - [x] Render the authored fake god-ray planes only in the settled default camera view; disable them throughout follow/orbit and the return transition.
+- [x] Give coarse, medium, and fine wave pairs descending displacement magnitudes while preserving the existing `0.119 WU` maximum summed excursion.
 - [ ] Collect desktop and physical-phone visual/performance review.
 
 Review gates:

@@ -21,7 +21,7 @@ The project values:
 
 ## Current Focus
 
-The current clean release is `v0.12.3`; `v0.14.0-dev_11` is the separate deforming-ocean-surface review build. The ocean sunlight zone contains two deliberately curated tanks:
+The current clean release is `v0.12.3`; `v0.14.0-dev_12` is the separate deforming-ocean-surface review build. The ocean sunlight zone contains two deliberately curated tanks:
 
 - **The Open Sea** — spotted sardinella, Mahi-mahi, and a Shortfin Mako Shark form a bait → mid-predator → apex-predator assemblage.
 - **The Drift** — a Giant Sunfish occupies a calmer, dimmer tank built around its slower rhythm and authored sun-bask behavior.

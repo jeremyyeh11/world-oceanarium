@@ -1,6 +1,6 @@
 # Deforming Ocean Surface
 
-Status: `v0.14.0-dev_11` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
+Status: `v0.14.0-dev_12` on `feat/deforming-ocean-surface`, awaiting visual and physical-phone review. This feature is intentionally separate from the cinematic-camera branch.
 
 ## Felt intention
 
@@ -21,14 +21,14 @@ World Oceanarium uses layered Gerstner waves: enough directional interaction to 
 - one `320 × 320 WU` plane whose distance fade reaches zero before any geometric edge;
 - `256 × 256` segments, 66,049 vertices, 131,072 triangles, and one surface draw call;
 - six directional Gerstner waves arranged as three crossed scales:
-  - coarse: `22 WU / 0.024 WU` crossed with `15 WU / 0.021 WU`;
-  - medium: `9 WU / 0.023 WU` crossed with `6.5 WU / 0.020 WU`;
-  - fine: `5.2 WU / 0.017 WU` crossed with `4.5 WU / 0.014 WU`;
+  - coarse: `22 WU / 0.035 WU` crossed with `15 WU / 0.029 WU` (`0.064 WU` pair magnitude);
+  - medium: `9 WU / 0.020 WU` crossed with `6.5 WU / 0.016 WU` (`0.036 WU` pair magnitude);
+  - fine: `5.2 WU / 0.011 WU` crossed with `4.5 WU / 0.008 WU` (`0.019 WU` pair magnitude);
 - restrained steepness and independent speeds;
 - deterministic tank-seeded phase offsets;
 - all displacement runs in the vertex shader—no per-frame CPU geometry mutation or allocation.
 
-Total vertical excursion remains below `0.119 WU` (2.975 cm at `1 WU = 25 cm`). Existing fish/camera surface clearances remain larger than the deformation envelope.
+Total vertical excursion remains below `0.119 WU` (2.975 cm at `1 WU = 25 cm`). The magnitude budget is redistributed rather than increased: coarse structure carries the largest physical displacement, medium waves articulate it, and fine waves break up reflected regularity without producing busy chop. Existing fish/camera surface clearances remain larger than the deformation envelope.
 
 ## Normals and physical shading
 

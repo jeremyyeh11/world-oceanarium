@@ -324,7 +324,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, onEnte
                 type="button"
                 className="info-card-cinematic-icon"
                 style={styles.atlasIconButton}
-                onClick={() => onEnterCinematic(creature.species)}
+                onClick={() => onEnterCinematic(creature)}
                 aria-label={`Watch ${creature.species} in cinematic mode`}
                 title="Cinematic mode"
               >

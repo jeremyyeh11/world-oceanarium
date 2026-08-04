@@ -1,6 +1,6 @@
 # Cinematic Camera
 
-Status: `v0.13.0-dev_2` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
+Status: `v0.13.0-dev_3` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
 
 ## Felt intention
 
@@ -100,9 +100,9 @@ The transition grammar is:
 2. inspect the rolling queue;
 3. if the queued hero can share a useful frame, create a relationship bridge;
 4. promote that secondary hero in the following shot;
-5. otherwise cut directly to the next viable hero rather than flying through empty water or geometry.
+5. otherwise ease through a controlled pose/FOV handoff to the next viable hero rather than snapping, flying through empty water, or promoting another species.
 
-Within-shot position and gaze use damped camera motion. Shot changes are controlled transitions, while the director avoids long spatial camera paths across the tank.
+Within-shot position and gaze use damped camera motion. Shot changes use a 2.8s smoothstep blend of position, look target, and FOV, while the director favors nearby same-species heroes and uses bridge shots before larger intra-species moves so the camera does not snap across the tank.
 
 ## Shot timing and failure detection
 

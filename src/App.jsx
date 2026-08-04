@@ -55,6 +55,7 @@ export default function App() {
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
   const [cinematicMode, setCinematicMode] = useState(false)
   const [cinematicSpecies, setCinematicSpecies] = useState(null)
+  const [cinematicOriginCreatureId, setCinematicOriginCreatureId] = useState(null)
   const [cinematicHelpVisible, setCinematicHelpVisible] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
@@ -346,6 +347,7 @@ export default function App() {
       clearExitHold()
       setCinematicMode(false)
       setCinematicSpecies(null)
+      setCinematicOriginCreatureId(null)
       setCinematicHelpVisible(false)
     }
     const exitOnKey = (event) => {
@@ -427,16 +429,19 @@ export default function App() {
     setTopMenuOpen(false)
     setCinematicMode(false)
     setCinematicSpecies(null)
+    setCinematicOriginCreatureId(null)
     setScreenshotMode(true)
     setScreenshotHelpVisible(true)
   }
 
-  const enterCinematicMode = (species) => {
+  const enterCinematicMode = (creature) => {
+    const species = creature?.species
     if (!species) return
     setTopMenuOpen(false)
     setScreenshotMode(false)
     setScreenshotHelpVisible(false)
     setCinematicSpecies(species)
+    setCinematicOriginCreatureId(creature?.id ?? null)
     setCinematicMode(true)
   }
 
@@ -471,7 +476,7 @@ export default function App() {
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} cinematicMode={cinematicMode} cinematicSpecies={cinematicSpecies} onOpenEncyclopedia={openEncyclopedia} onEnterCinematic={enterCinematicMode} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} cinematicMode={cinematicMode} cinematicSpecies={cinematicSpecies} cinematicOriginCreatureId={cinematicOriginCreatureId} onOpenEncyclopedia={openEncyclopedia} onEnterCinematic={enterCinematicMode} />
   }
 
   return (

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.14.0 — Deforming ocean surface
 
-Status: `v0.14.0-dev_10` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
+Status: `v0.14.0-dev_11` is in development on `feat/deforming-ocean-surface`. It is isolated from the cinematic-camera branch and has not been promoted to a clean release.
 
 ### Environment / atmosphere
 
@@ -27,6 +27,7 @@ Status: `v0.14.0-dev_10` is in development on `feat/deforming-ocean-surface`. It
 - Lowers the default camera target from `lookY=-2.1` to `-2.75` (about `3.4°` upward) so the horizontal ceiling crowns portrait framing rather than occupying nearly half the screen; the plane remains at its physical world height and follow framing is unchanged.
 - Raises the crossed spectrum's lower bound from `3.1` to `4.5 WU` (`4.5–22 WU` overall) and increases only the water-local Qwantani HDR environment intensity from `1.15` to `2.2`.
 - Increases that water-local HDR intensity again from `2.2` to `8.0`, making reflected sky highlights visibly brighter than the water body without changing global tank lighting.
+- Keeps the authored fake god-ray planes exclusive to the settled default camera view; follow/orbit and the transition back to default retain particles and physical water but render no fake shafts.
 
 ## v0.12.3 — Larger Sardinella schools
 

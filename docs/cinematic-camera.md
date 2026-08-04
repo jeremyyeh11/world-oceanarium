@@ -1,10 +1,10 @@
 # Cinematic Camera
 
-Status: `v0.13.0-dev_1` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
+Status: `v0.13.0-dev_2` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
 
 ## Felt intention
 
-Cinematic Camera should feel like the tank has noticed a living moment worth watching. It does not wander continuously or cycle presets blindly. It chooses a subject, gives the composition time to breathe, and hands attention to another subject when the animals make that transition possible.
+Cinematic Camera should feel like entering a patient wildlife documentary about one chosen species. It does not wander continuously, cycle presets blindly, or browse the whole tank. It gives a composition time to breathe, then moves among individuals and groups of the selected species when their motion makes another shot useful.
 
 Texture: calm, observant, lightly authored.
 
@@ -12,27 +12,31 @@ Rhythm: readable 5–10 second holds; early cuts only when a shot genuinely dete
 
 Legibility: one primary subject or coherent group should be obvious without labels.
 
-Resonance: the camera discovers relationships already present in the tank rather than scripting behavior for named species.
+Resonance: the player chooses what animal to observe; the camera discovers relationships among that species rather than scripting behavior for named animals.
 
 Surprise: the sequence is seeded and procedural, so an unexpected shared frame can become the next story beat without becoming arbitrary.
 
 ## Non-negotiable cast rule
 
-The director contains no species names, creature ids, fixed cast size, or authored species-to-species sequence.
+The director contains no hardcoded species names, creature ids, or fixed cast size. Its only species constraint is the runtime key supplied by the fish the player was following when they entered Cinematic Mode.
 
-Mako → Sardinella was a narrative example, never an implementation rule. The same system must work with the current production assemblage, another database population, a tank containing one animal, or a future tank with different species.
+The selected species remains the documentary's main subject until exit. Shots may switch among its individuals, pairs, and schools. Other species may cross the frame as environmental context, but they never enter the hero queue or become the promoted main subject. The same mechanism must work for any current or future species without authored cases.
 
 ## Controls
 
-Cinematic Camera is a separate option in the tank controls menu, beside Screenshot Mode.
+Entry is deliberately contextual:
+
+1. click or tap a fish to enter the existing follow camera;
+2. use the Cinematic button in that fish's info card, beside Atlas;
+3. Cinematic Mode starts with that fish's species locked as the documentary subject.
 
 While active:
 
 - ordinary tank UI is hidden;
 - selected-creature follow is released;
 - Screenshot Mode remains separate;
-- any pointer input exits immediately;
-- `Esc` exits immediately;
+- desktop: any keyboard key exits; mouse input remains inert;
+- mobile: a stationary 900ms touch/pen long press exits, with movement cancelling the hold;
 - resting/manual camera control resumes on exit.
 
 A brief non-interactive hint announces the mode and its exit controls, then fades.
@@ -41,20 +45,20 @@ A brief non-interactive hint announces the mode and its exit controls, then fade
 
 `Fish.jsx` writes mutable runtime entries to `fishRegistry.js`. The existing boid consumers and the cinematic director read the same registry; the director does not traverse the Three.js scene.
 
-At four evaluations per second, the director snapshots valid entries and creates stable candidates:
+At four evaluations per second, the director first filters valid entries to the selected species, then creates stable candidates:
 
 - an unschooled animal becomes an `individual` hero;
 - two members sharing a school id become a `pair` hero;
 - three or more members sharing a school id become a `school` hero.
 
-A school contributes one queue entry, not one entry per fish. This prevents a large Sardinella population from overwhelming every other subject. A school shot may temporarily use one readable member as a cutaway while the school remains the queued hero.
+A school contributes one queue entry, not one entry per fish. This prevents an abundant selected species from generating hundreds of near-identical queue entries. A school or pair shot may temporarily use one readable member as a cutaway while the group remains the queued hero.
 
 Each aggregate carries:
 
 - stable runtime key;
 - hero kind;
 - live member references;
-- representative species key for diversity weighting;
+- runtime species key used by the entry filter;
 - centroid;
 - average heading;
 - spatial radius;
@@ -69,13 +73,13 @@ The director maintains a rolling horizon of four future heroes. It repairs or re
 Selection is seeded weighted randomness, not uniform random choice. Candidate weight includes:
 
 - a strong cooldown for recently shown heroes;
-- a diversity bonus for a different species or hero kind;
+- a variety bonus for a different hero kind;
 - a continuity bonus when the candidate is spatially close enough to share a frame with the current hero;
 - a small base weight so a valid candidate can eventually return.
 
 Queue entries are revalidated before promotion. Missing candidates are dropped rather than forcing a broken shot. With only one hero, the queue remains empty and the director varies generic shot templates around that subject.
 
-The seed is derived from the tank visit seed, allowing reproducible QA without making different visits identical.
+The seed is derived from the tank visit seed and selected species, allowing reproducible QA without making different visits identical.
 
 ## Shot grammar
 
@@ -86,7 +90,7 @@ The current generic vocabulary is:
 - `hero-static` — camera position holds while its gaze tracks the moving hero, allowing the animal to create the shot;
 - `school-wide` — frames an aggregate using live radius and body scale;
 - `member-cutaway` — follows one member while retaining the school as the narrative context;
-- `relationship` — frames current and queued heroes together before promoting the queued hero.
+- `relationship` — frames current and queued heroes of the selected species together before promoting the queued hero.
 
 Shot offsets derive from body length, group radius, heading, and spatial spread. No template names a species.
 
@@ -123,7 +127,7 @@ Camera height is clamped above the tank floor and below the water surface. This 
 - Camera pose application: `useFrame`, using mutable refs and reusable Three.js vectors.
 - React state: only mode entry/exit and UI visibility.
 - School telemetry: sampled from mutable member vectors; no scene traversal or React renders.
-- Candidate raycasting: not included in `dev_1`; current obstruction safety relies on open tank geometry and framing checks. Add shortlisted raycasts only if review finds persistent geometry occlusion.
+- Candidate raycasting: not included in `dev_2`; current obstruction safety relies on open tank geometry and framing checks. Add shortlisted raycasts only if review finds persistent geometry occlusion.
 
 ## Existing-camera isolation
 
@@ -135,14 +139,16 @@ On cinematic exit, cinematic smoothing state is cleared and normal camera owners
 
 Before clean promotion:
 
-- watch at least 60–90 seconds in The Open Sea;
+- enter from a followed Mako, Mahi-mahi, and Sardinella separately and verify the selected species stays the primary subject;
+- watch at least 60–90 seconds for one Open Sea species;
 - confirm shots usually hold 5–10 seconds;
-- confirm the same hero or species does not dominate without cause;
+- confirm available individuals/groups vary without another species becoming the main subject;
 - confirm at least one shared-frame handoff when spatially available;
 - confirm poor sustained angles recover without oscillation;
 - confirm no hard tank boundary or geometry traversal is revealed;
 - test The Drift's single-hero fallback;
-- test pointer and `Esc` exits;
+- confirm desktop mouse input does nothing and any keyboard key exits;
+- confirm a short mobile tap does not exit, movement cancels the hold, and a stationary 900ms long press exits;
 - test desktop and phone framing/performance;
 - confirm manual follow and Screenshot Mode remain unchanged.
 

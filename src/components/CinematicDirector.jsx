@@ -69,12 +69,13 @@ function refreshHeroMetrics(hero) {
   return true
 }
 
-function buildCinematicHeroes(entries = FISH_REGISTRY.values()) {
+function buildCinematicHeroes(entries = FISH_REGISTRY.values(), species = null) {
   const schools = new Map()
   const individuals = []
 
   for (const entry of entries) {
     if (!entry?.object?.parent) continue
+    if (!species || entry.species !== species) continue
     if (!entry.schoolId) {
       individuals.push(entry)
       continue
@@ -131,11 +132,10 @@ function chooseNextHero(heroes, currentHero, excludedIds, recent, random) {
   return weightedChoice(candidates, hero => {
     const lastSeen = recent.get(hero.id) ?? -Infinity
     const recencyWeight = Number.isFinite(lastSeen) ? Math.min(2.8, 0.45 + (performance.now() - lastSeen) / 25000) : 2.8
-    const speciesDiversity = currentHero && hero.species !== currentHero.species ? 1.45 : 0.72
     const typeContrast = currentHero && hero.kind !== currentHero.kind ? 1.18 : 1
     const distance = currentHero ? hero.position.distanceTo(currentHero.position) : 0
     const bridgeWeight = currentHero ? THREE.MathUtils.clamp(1.45 - distance / 55, 0.65, 1.35) : 1
-    return recencyWeight * speciesDiversity * typeContrast * bridgeWeight
+    return recencyWeight * typeContrast * bridgeWeight
   }, random)
 }
 
@@ -164,7 +164,7 @@ function createHeroShot(state, hero, now) {
   const templates = hero.kind === 'school'
     ? ['school-wide', 'member-cutaway', 'school-wide']
     : hero.kind === 'pair'
-      ? ['pair-wide', 'profile-track', 'hero-static']
+      ? ['pair-wide', 'member-cutaway', 'profile-track', 'hero-static']
       : ['profile-track', 'hero-static', 'lead-track']
   const template = templates[Math.floor(state.random() * templates.length)]
   state.shotSerial += 1
@@ -333,7 +333,7 @@ function advanceShot(state, heroes, now) {
   state.shot = createHeroShot(state, currentHero, now)
 }
 
-export default function CinematicDirector({ active = false, biome = 'ocean', seed = 0, poseRef }) {
+export default function CinematicDirector({ active = false, biome = 'ocean', seed = 0, species = null, poseRef }) {
   const stateRef = useRef(null)
   const scratchRef = useRef({
     subject: { position: new THREE.Vector3(), forward: new THREE.Vector3(), radius: 1, bodyLength: 1 },
@@ -348,7 +348,7 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
 
   useEffect(() => {
     stateRef.current = {
-      random: mulberry32(hashString(`${seed}:${biome}:cinematic`)),
+      random: mulberry32(hashString(`${seed}:${biome}:${species}:cinematic`)),
       heroes: [],
       queue: [],
       recent: new Map(),
@@ -357,24 +357,25 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
       nextEvaluationAt: 0,
     }
     if (!poseRef.current) poseRef.current = {}
-    poseRef.current.active = active
+    poseRef.current.active = active && Boolean(species)
     return () => {
       if (poseRef.current) poseRef.current.active = false
     }
-  }, [active, biome, poseRef, seed])
+  }, [active, biome, poseRef, seed, species])
 
   useFrame(({ camera, clock }) => {
     const pose = poseRef.current
     if (!pose) return
-    pose.active = active
-    if (!active) return
+    const enabled = active && Boolean(species)
+    pose.active = enabled
+    if (!enabled) return
     if (!pose.position) pose.position = new THREE.Vector3()
     if (!pose.lookAt) pose.lookAt = new THREE.Vector3()
 
     const state = stateRef.current
     const now = clock.getElapsedTime()
     if (now >= state.nextEvaluationAt || !state.heroes.length) {
-      state.heroes = buildCinematicHeroes()
+      state.heroes = buildCinematicHeroes(FISH_REGISTRY.values(), species)
       state.nextEvaluationAt = now + DIRECTOR_EVALUATION_SECONDS
       if (!state.shot && state.heroes.length) {
         const firstHero = weightedChoice(state.heroes, () => 1, state.random)

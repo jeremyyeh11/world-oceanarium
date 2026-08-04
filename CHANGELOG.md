@@ -10,20 +10,21 @@ Versioning convention notes:
 
 ## v0.13.0 — Procedural cinematic camera
 
-Status: `v0.13.0-dev_1` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+Status: `v0.13.0-dev_2` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
 
 ### Camera / presentation
 
-- Adds a separate Cinematic Camera mode beside Screenshot Mode. The director discovers eligible individual, pair, and school heroes from the live fish registry; no species name, creature id, cast size, or species-to-species sequence is hardcoded.
-- Maintains a seeded weighted rolling queue instead of uniform random cuts. Recent heroes are cooled down, underrepresented hero types/species gain weight, and spatially bridgeable candidates are preferred.
+- Adds Cinematic Camera to the selected fish's follow info card beside its Atlas shortcut. The followed fish supplies a runtime species key; the director discovers eligible individual, pair, and school heroes of that species from the live registry without hardcoded species names, creature ids, or cast size.
+- Keeps that species as the documentary's main subject for the full session. Shots may move between its individuals, pairs, and schools while other species remain incidental background context rather than queue heroes.
+- Maintains a seeded weighted rolling queue instead of uniform random cuts. Recent heroes are cooled down, underrepresented hero types gain weight, and spatially bridgeable candidates are preferred.
 - Uses generic profile, lead, static, member-cutaway, school-wide, and relationship-bridge compositions. Shots hold for 5–10 seconds unless sustained bad framing, scale, viewing angle, or runtime invalidation triggers an early replacement.
 - Hands subjects off through shared-frame relationship shots when a viable next hero is nearby. A school is one queue hero rather than one queue entry per member; a readable member may be used as a temporary cutaway.
 - Keeps planning/evaluation at low frequency while camera motion stays frame-smooth. Runtime telemetry uses mutable Three.js data rather than React state updates or repeated scene traversal.
-- Any pointer input or `Esc` exits cinematic mode immediately. Manual resting and selected-creature follow cameras remain separate and regain control on exit.
+- Desktop exits on any keyboard key; mouse input remains inert. Mobile touch/pen exits after the same movement-cancelled 900ms long press used by Screenshot Mode. Manual resting and selected-creature follow cameras remain separate and regain control on exit.
 
 ### Validation
 
-- Production build and lint pass locally. Browser smoke covered a multi-hero Open Sea sequence (pair → shared-frame bridge → new composition), the single-hero Drift fallback, early recovery from a deteriorating head-on angle, clean presentation UI, and immediate `Esc` exit.
+- Production build and lint pass locally for `dev_2`. Browser smoke confirmed contextual entry from followed Sardinella and Mako info cards, species-locked primary framing with other species only incidental, inert desktop mouse input, any-key desktop exit, and mobile-style touch simulation where short tap and moved hold stayed active while a stationary 900ms hold exited.
 
 ## v0.13.0 — Deforming ocean surface
 

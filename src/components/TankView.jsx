@@ -118,7 +118,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, cinematicMode = false, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, cinematicMode = false, cinematicSpecies = null, onBack, onOpenEncyclopedia, onEnterCinematic }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -672,6 +672,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             active={cinematicMode}
             biome={biome.id}
             seed={`${tank?.seed ?? 0}:${tankVisitSeed}`}
+            species={cinematicSpecies}
             poseRef={cinematicPoseRef}
           />
           <Camera
@@ -783,7 +784,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
         </div>
       )}
       {!presentationMode && selectedCreature && (
-        <InfoCard creature={selectedCreature} onClose={releaseFocus} onOpenEncyclopedia={onOpenEncyclopedia} />
+        <InfoCard creature={selectedCreature} onClose={releaseFocus} onOpenEncyclopedia={onOpenEncyclopedia} onEnterCinematic={onEnterCinematic} />
       )}
     </div>
   )

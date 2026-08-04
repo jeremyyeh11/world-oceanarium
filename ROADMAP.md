@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy redirected the feature toward a Nat Geo-style species documentary: follow a fish first, then enter Cinematic Mode from that fish's info card. The selected species remains the main subject while shots may move between its individuals and groups.
-- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_6`.
+- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_7`.
 - Detailed architecture and review contract: [`docs/cinematic-camera.md`](docs/cinematic-camera.md).
 
 Subtasks:
@@ -31,6 +31,7 @@ Subtasks:
 - [x] Use validity-gated jump cuts for shot changes: preflight framing/facing/finite pose and both bridge subjects before committing the cut; retain damped within-shot tracking.
 - [x] Add restrained still, tracking, dolly, truck, and tilt coverage with exactly one camera movement vocabulary per shot.
 - [x] Rebalance away from repeated still shots, make planned movement visually legible, and exit Cinematic Mode with the existing recovery notice before a current subject hard-resets beyond its boundary.
+- [x] Make presentation rendering use the real device viewport, add portrait-aware camera distance/FOV/look-ahead/movement limits, validate full subject bounds, expand the presentation water ceiling, and hide light-ray shafts in Screenshot/Cinematic modes.
 - [x] Fix pair/school aggregate bridges averaging the camera into empty water between separate groups; independent aggregate heroes now receive separate shots and direct validated cuts.
 - [x] Preserve resting/manual follow-camera code paths and avoid frame-by-frame React state updates.
 - [x] Build, lint, and browser-smoke both multi-hero and single-hero tanks.

@@ -10,7 +10,12 @@ Versioning convention notes:
 
 ## v0.13.0 — Procedural cinematic camera
 
-Status: `v0.13.0-dev_6` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+Status: `v0.13.0-dev_7` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+
+### v0.13.0-dev_7
+
+- Renders Screenshot and Cinematic modes at the device's real viewport aspect instead of cropping a fixed 16:9 stage. Portrait shots use aspect-aware distance, fixed per-shot FOV, reduced look-ahead, restrained movement travel, and full-subject bounds validation so long animals keep safe side margins without becoming tiny.
+- Keeps the existing shallow ceiling strip for the resting view, but expands the water surface from 210×32 to 210×210 during Screenshot/Cinematic presentation and hides the separate underwater light-ray shafts in those modes.
 
 ### v0.13.0-dev_6
 

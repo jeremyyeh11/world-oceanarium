@@ -712,7 +712,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />
           <WaterSurface biome={biome.id} seed={tank?.seed ?? 0} />
-          <UnderwaterFX biome={biome.id} showGodRays={!zoomActive && defaultCameraSettled} />
+          <UnderwaterFX
+            biome={biome.id}
+            showGodRays={!zoomActive && defaultCameraSettled && !presentationMode}
+          />
         </Canvas>
       </div>
 

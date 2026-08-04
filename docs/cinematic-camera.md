@@ -1,6 +1,6 @@
 # Cinematic Camera
 
-Status: `v0.13.0-dev_6` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
+Status: `v0.13.0-dev_7` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
 
 ## Felt intention
 
@@ -38,6 +38,8 @@ While active:
 - desktop: any keyboard key exits; mouse input remains inert;
 - mobile: a stationary 900ms touch/pen long press exits, with movement cancelling the hold;
 - if a current cinematic subject enters an off-screen hard-reset recovery, the mode exits and shows the same “will be back in a bit” notice as manual follow;
+- Screenshot and Cinematic presentation use the device viewport itself rather than a center-cropped 16:9 stage; the resting tank keeps its existing landscape stage and pan behavior;
+- presentation expands the procedural water ceiling to full tank coverage and removes the separate light-ray shafts while retaining suspended particles;
 - resting/manual camera control resumes on exit.
 
 A brief non-interactive hint announces the mode and its exit controls, then fades.
@@ -94,6 +96,8 @@ The current generic vocabulary is:
 - `relationship` — frames two coherent individual heroes of the selected species together before promoting the queued hero; it never averages between separate pair/school aggregates.
 
 Shot offsets derive from body length, group radius, heading, and spatial spread. No template names a species.
+
+Portrait framing is capability-based rather than user-agent-based: the director reads the live camera aspect, classifies landscape, portrait, and narrow portrait layouts, and adapts distance, fixed shot FOV, look-ahead, and movement travel. Preflight accounts for the subject's approximate full body/group radius—not only its center point—so a valid portrait cut preserves side margins. Narrow layouts reduce horizontal lead rather than repeatedly rejecting otherwise useful profile shots.
 
 Every shot also chooses exactly one camera behavior:
 

@@ -16,6 +16,8 @@ const FAR_BRIDGE_DISTANCE = 58
 const CAMERA_FLOOR_CLEARANCE = 1.8
 const CAMERA_SURFACE_CLEARANCE = 0.45
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
+const PORTRAIT_ASPECT = 1
+const NARROW_PORTRAIT_ASPECT = 0.62
 
 const MOVEMENTS_BY_TEMPLATE = {
   'school-wide': ['still', 'truck', 'truck', 'dolly'],
@@ -189,6 +191,23 @@ function movementForTemplate(template, random, previousMovement) {
   return random() < 0.72 ? alternatives[Math.floor(random() * alternatives.length)] : movement
 }
 
+function framingForAspect(aspect) {
+  const safeAspect = THREE.MathUtils.clamp(Number.isFinite(aspect) ? aspect : 16 / 9, 0.4, 2.4)
+  if (safeAspect >= PORTRAIT_ASPECT) {
+    return { key: 'landscape', distanceScale: 1, fovBoost: 0, movementScale: 1, lookAheadScale: 1 }
+  }
+
+  const narrow = safeAspect < NARROW_PORTRAIT_ASPECT
+  const portraitAmount = THREE.MathUtils.clamp((PORTRAIT_ASPECT - safeAspect) / 0.55, 0, 1)
+  return {
+    key: narrow ? 'portrait-narrow' : 'portrait',
+    distanceScale: THREE.MathUtils.lerp(1.12, 1.35, portraitAmount),
+    fovBoost: THREE.MathUtils.lerp(3, 7, portraitAmount),
+    movementScale: THREE.MathUtils.lerp(0.82, 0.62, portraitAmount),
+    lookAheadScale: THREE.MathUtils.lerp(0.5, 0.08, portraitAmount),
+  }
+}
+
 function createHeroShot(state, hero, now) {
   const templates = hero.kind === 'school'
     ? ['school-wide', 'member-cutaway', 'school-wide']
@@ -257,29 +276,29 @@ function resolveShotSubject(hero, shot, out) {
   return true
 }
 
-function calculateHeroPose(shot, subject, pose, scratch, minCameraY, maxCameraY) {
+function calculateHeroPose(shot, subject, pose, scratch, minCameraY, maxCameraY, framing) {
   const forward = scratch.forward.copy(subject.forward)
   forward.y *= 0.35
   if (forward.lengthSq() < 0.0001) forward.set(0, 0, -1)
   else forward.normalize()
   const right = scratch.right.crossVectors(WORLD_UP, forward).normalize().multiplyScalar(shot.side)
   const subjectScale = Math.max(subject.bodyLength, subject.radius * 1.35)
-  const distance = THREE.MathUtils.clamp(subjectScale * 2.2 + 2.2, 3.8, 24)
+  const distance = THREE.MathUtils.clamp(subjectScale * 2.2 + 2.2, 3.8, 24) * framing.distanceScale
   const height = THREE.MathUtils.clamp(subjectScale * 0.3 + 0.55, 0.75, 3.4)
 
-  pose.lookAt.copy(subject.position).addScaledVector(forward, distance * 0.12)
+  pose.lookAt.copy(subject.position).addScaledVector(forward, distance * 0.12 * framing.lookAheadScale)
   if (shot.template === 'lead-track') {
     pose.position.copy(subject.position)
       .addScaledVector(forward, distance)
       .addScaledVector(right, distance * 0.22)
       .addScaledVector(WORLD_UP, height)
-    pose.fov = 54
+    pose.fov = 54 + framing.fovBoost
   } else if (shot.template === 'school-wide' || shot.template === 'pair-wide') {
     pose.position.copy(subject.position)
       .addScaledVector(right, distance * 1.15)
       .addScaledVector(forward, distance * 0.12)
       .addScaledVector(WORLD_UP, height * 1.2)
-    pose.fov = 60
+    pose.fov = 60 + framing.fovBoost
   } else {
     scratch.desiredPosition.copy(subject.position)
       .addScaledVector(right, distance)
@@ -291,14 +310,14 @@ function calculateHeroPose(shot, subject, pose, scratch, minCameraY, maxCameraY)
     } else {
       pose.position.copy(scratch.desiredPosition)
     }
-    pose.fov = shot.template === 'member-cutaway' ? 50 : 55
+    pose.fov = (shot.template === 'member-cutaway' ? 50 : 55) + framing.fovBoost
   }
 
   pose.position.y = THREE.MathUtils.clamp(pose.position.y, minCameraY, maxCameraY)
   pose.lookAt.y = THREE.MathUtils.clamp(pose.lookAt.y, minCameraY - 1.2, maxCameraY + 0.4)
 }
 
-function calculateBridgePose(shot, current, next, pose, scratch, minCameraY, maxCameraY) {
+function calculateBridgePose(shot, current, next, pose, scratch, minCameraY, maxCameraY, framing) {
   const midpoint = scratch.midpoint.copy(current.position).add(next.position).multiplyScalar(0.5)
   const spread = current.position.distanceTo(next.position) + current.radius + next.radius
   const forward = scratch.forward.copy(current.forward).add(next.forward)
@@ -306,7 +325,7 @@ function calculateBridgePose(shot, current, next, pose, scratch, minCameraY, max
   if (forward.lengthSq() < 0.0001) forward.set(0, 0, -1)
   else forward.normalize()
   const right = scratch.right.crossVectors(WORLD_UP, forward).normalize().multiplyScalar(shot.side)
-  const distance = THREE.MathUtils.clamp(spread * 0.78 + 4.5, 7, 28)
+  const distance = THREE.MathUtils.clamp(spread * 0.78 + 4.5, 7, 28) * framing.distanceScale
 
   pose.lookAt.copy(midpoint)
   scratch.desiredPosition.copy(midpoint)
@@ -317,13 +336,13 @@ function calculateBridgePose(shot, current, next, pose, scratch, minCameraY, max
   pose.position.copy(shot.lockedPosition)
   pose.position.y = THREE.MathUtils.clamp(pose.position.y, minCameraY, maxCameraY)
   pose.lookAt.y = THREE.MathUtils.clamp(pose.lookAt.y, minCameraY - 1.2, maxCameraY + 0.4)
-  pose.fov = THREE.MathUtils.clamp(54 + spread * 0.35, 56, 66)
+  pose.fov = THREE.MathUtils.clamp(54 + spread * 0.35 + framing.fovBoost, 56, 73)
 }
 
-function applyShotMovement(shot, subject, pose, now, scratch) {
+function applyShotMovement(shot, subject, pose, now, scratch, framing) {
   if (!shot.movementState) {
     if (shot.movement !== 'track') {
-      const lead = THREE.MathUtils.clamp(subject.bodyLength * 0.65, 0.8, 4.5)
+      const lead = THREE.MathUtils.clamp(subject.bodyLength * 0.65, 0.8, 4.5) * framing.lookAheadScale
       pose.lookAt.addScaledVector(subject.forward, lead)
       pose.fov = THREE.MathUtils.clamp(pose.fov + 7, 35, 75)
     }
@@ -339,8 +358,8 @@ function applyShotMovement(shot, subject, pose, now, scratch) {
       fov: pose.fov,
       forward: viewForward.clone(),
       right: viewRight.clone().multiplyScalar(shot.side),
-      travel: THREE.MathUtils.clamp(subject.bodyLength * 0.5 + subject.radius * 0.18, 1.8, 7),
-      tilt: THREE.MathUtils.clamp(pose.position.distanceTo(pose.lookAt) * 0.11, 0.8, 3.5),
+      travel: THREE.MathUtils.clamp(subject.bodyLength * 0.5 + subject.radius * 0.18, 1.8, 7) * framing.movementScale,
+      tilt: THREE.MathUtils.clamp(pose.position.distanceTo(pose.lookAt) * 0.11, 0.8, 3.5) * framing.movementScale,
     }
   }
 
@@ -364,9 +383,7 @@ function applyShotMovement(shot, subject, pose, now, scratch) {
 }
 
 function shotCompositionIsBad(camera, shot, subject, scratch, checkFacing = true) {
-  scratch.projected.copy(subject.position).project(camera)
-  if (scratch.projected.z < -1 || scratch.projected.z > 1) return true
-  if (Math.abs(scratch.projected.x) > 0.78 || Math.abs(scratch.projected.y) > 0.72) return true
+  if (!subjectIsInFrame(camera, subject, scratch, 0.86, 0.78)) return true
   if (!checkFacing) return false
 
   scratch.toCamera.subVectors(camera.position, subject.position).normalize()
@@ -378,10 +395,18 @@ function shotCompositionIsBad(camera, shot, subject, scratch, checkFacing = true
 
 function subjectIsInFrame(camera, subject, scratch, maxX = 0.84, maxY = 0.76) {
   scratch.projected.copy(subject.position).project(camera)
-  return scratch.projected.z >= -1
-    && scratch.projected.z <= 1
-    && Math.abs(scratch.projected.x) <= maxX
-    && Math.abs(scratch.projected.y) <= maxY
+  if (scratch.projected.z < -1 || scratch.projected.z > 1) return false
+
+  camera.getWorldDirection(scratch.cameraForward)
+  const depth = scratch.toSubject.subVectors(subject.position, camera.position).dot(scratch.cameraForward)
+  if (depth <= camera.near) return false
+  const halfHeight = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * depth
+  if (halfHeight <= 0.001) return false
+  const frameRadius = Math.max(subject.radius, subject.bodyLength * 0.5)
+  const radiusX = frameRadius / Math.max(0.001, halfHeight * camera.aspect)
+  const radiusY = frameRadius * 0.58 / halfHeight
+  return Math.abs(scratch.projected.x) + radiusX <= maxX
+    && Math.abs(scratch.projected.y) + radiusY <= maxY
 }
 
 function hasDominantForeignSubject(camera, selectedSpecies, subject, scratch) {
@@ -485,6 +510,8 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     projected: new THREE.Vector3(),
     foreignProjected: new THREE.Vector3(),
     toCamera: new THREE.Vector3(),
+    cameraForward: new THREE.Vector3(),
+    toSubject: new THREE.Vector3(),
     targetPose: { position: new THREE.Vector3(), lookAt: new THREE.Vector3(), fov: 55 },
     preflightCamera: new THREE.PerspectiveCamera(),
   })
@@ -546,6 +573,14 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
 
     const minCameraY = (FLOOR_Y[biome] ?? -20) + CAMERA_FLOOR_CLEARANCE
     const maxCameraY = SURFACE_PLANE_Y - CAMERA_SURFACE_CLEARANCE
+    const framing = framingForAspect(camera.aspect)
+    if (shot.framingKey !== framing.key) {
+      shot.framingKey = framing.key
+      shot.lockedPosition = null
+      shot.movementState = null
+      shot.startedAt = now
+      state.outputShotId = null
+    }
     const nextHero = shot.nextHeroId ? heroById(state.heroes, shot.nextHeroId) : null
     const targetPose = scratchRef.current.targetPose
     let nextSubject = null
@@ -555,19 +590,20 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
         return
       }
       nextSubject = scratchRef.current.nextSubject
-      calculateBridgePose(shot, subject, nextSubject, targetPose, scratchRef.current, minCameraY, maxCameraY)
+      calculateBridgePose(shot, subject, nextSubject, targetPose, scratchRef.current, minCameraY, maxCameraY, framing)
     } else {
-      calculateHeroPose(shot, subject, targetPose, scratchRef.current, minCameraY, maxCameraY)
+      calculateHeroPose(shot, subject, targetPose, scratchRef.current, minCameraY, maxCameraY, framing)
     }
-    applyShotMovement(shot, subject, targetPose, now, scratchRef.current)
+    applyShotMovement(shot, subject, targetPose, now, scratchRef.current, framing)
 
-    if (state.outputShotId !== shot.id) {
+    const outputShotId = `${shot.id}:${framing.key}`
+    if (state.outputShotId !== outputShotId) {
       if (!shotPoseIsValid(camera, shot, species, subject, nextSubject, targetPose, scratchRef.current)) {
         advanceShot(state, state.heroes, now)
         return
       }
       state.lastMovement = shot.movement
-      state.outputShotId = shot.id
+      state.outputShotId = outputShotId
       pose.subjectCreatureIds.clear()
       if (shot.template === 'member-cutaway') {
         const member = hero.members[shot.memberIndex % hero.members.length]
@@ -587,7 +623,7 @@ export default function CinematicDirector({ active = false, biome = 'ocean', see
     pose.position.copy(targetPose.position)
     pose.lookAt.copy(targetPose.lookAt)
     pose.fov = targetPose.fov
-    pose.shotId = shot.id
+    pose.shotId = outputShotId
     pose.shotName = `${shot.template}:${shot.movement}`
     state.hasValidOutput = true
     pose.active = true

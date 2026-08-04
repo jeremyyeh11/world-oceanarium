@@ -68,7 +68,7 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
   }
 `
 
-const SURFACE_ENVIRONMENT = '/hdr/qwantani-puresky-1k.hdr'
+const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
 const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v1'
 
 export const SURFACE_PLANE_Y = 4.6

@@ -53,6 +53,8 @@ export default function App() {
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
   const [screenshotMode, setScreenshotMode] = useState(false)
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
+  const [cinematicMode, setCinematicMode] = useState(false)
+  const [cinematicHelpVisible, setCinematicHelpVisible] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
   const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
@@ -65,6 +67,7 @@ export default function App() {
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
+  const presentationMode = screenshotMode || cinematicMode
 
   // Persisted swim state (fishRuntimeStore) is keyed by creature id and only ever grows as tanks
   // are visited. When the live data set changes, drop snapshots for creatures that no longer
@@ -108,12 +111,12 @@ export default function App() {
   }, [topMenuOpen])
 
   useEffect(() => {
-    if (screen !== 'tank' || screenshotMode) setTopMenuOpen(false)
-  }, [screen, screenshotMode])
+    if (screen !== 'tank' || presentationMode) setTopMenuOpen(false)
+  }, [presentationMode, screen])
 
   useEffect(() => {
-    if (screenshotMode) setEncyclopediaOpen(false)
-  }, [screenshotMode])
+    if (presentationMode) setEncyclopediaOpen(false)
+  }, [presentationMode])
 
   useEffect(() => {
     const playButtonSfx = (event) => {
@@ -327,6 +330,31 @@ export default function App() {
     }
   }, [screenshotMode])
 
+  useEffect(() => {
+    if (!cinematicMode) return undefined
+
+    setCinematicHelpVisible(true)
+    const hideHelpTimer = window.setTimeout(() => setCinematicHelpVisible(false), 4200)
+    const exitCinematicMode = () => {
+      setCinematicMode(false)
+      setCinematicHelpVisible(false)
+    }
+    const exitOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      exitCinematicMode()
+    }
+    const exitOnPointer = () => exitCinematicMode()
+
+    window.addEventListener('keydown', exitOnEscape)
+    window.addEventListener('pointerdown', exitOnPointer, { capture: true })
+    return () => {
+      window.clearTimeout(hideHelpTimer)
+      window.removeEventListener('keydown', exitOnEscape)
+      window.removeEventListener('pointerdown', exitOnPointer, { capture: true })
+    }
+  }, [cinematicMode])
+
   const toggleFullscreen = async () => {
     try {
       if (fullscreenElement()) {
@@ -364,8 +392,16 @@ export default function App() {
 
   const enterScreenshotMode = () => {
     setTopMenuOpen(false)
+    setCinematicMode(false)
     setScreenshotMode(true)
     setScreenshotHelpVisible(true)
+  }
+
+  const enterCinematicMode = () => {
+    setTopMenuOpen(false)
+    setScreenshotMode(false)
+    setScreenshotHelpVisible(false)
+    setCinematicMode(true)
   }
 
   const handleAudioToggle = () => {
@@ -399,13 +435,13 @@ export default function App() {
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onOpenEncyclopedia={openEncyclopedia} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} cinematicMode={cinematicMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (
     <>
       {page}
-      {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
+      {screen === 'tank' && !presentationMode && TANKS.length > 1 && (
         <div className="tank-switcher-dock">
           {(activeTank?.description || activeTank?.tagline) && (
             <p className="tank-switcher-description">{activeTank.description ?? activeTank.tagline}</p>
@@ -425,7 +461,7 @@ export default function App() {
           </div>
         </div>
       )}
-      {!screenshotMode && (
+      {!presentationMode && (
         <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
           {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
           {screen === 'tank' && (
@@ -470,6 +506,19 @@ export default function App() {
                 <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
                   <path d="M4 8.5h3.2l1.2-2h7.2l1.2 2H20v9.5H4V8.5Z" />
                   <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
+                </svg>
+              </button>
+              <button
+                className="cinematic-toggle"
+                type="button"
+                role="menuitem"
+                aria-label="Enter cinematic camera mode"
+                onClick={enterCinematicMode}
+              >
+                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 7.5h11.5v9H4v-9Z" />
+                  <path d="m15.5 10 4.5-2.2v8.4L15.5 14" />
+                  <path d="M7 5.2h5.5" />
                 </svg>
               </button>
               <button
@@ -540,10 +589,16 @@ export default function App() {
           </div>
         </div>
       )}
-      {!screenshotMode && encyclopediaOpen && (
+      {cinematicHelpVisible && (
+        <div className="cinematic-help" role="status" aria-live="polite">
+          <div className="cinematic-help-title">Cinematic camera</div>
+          <div className="cinematic-help-copy">Tap or press Esc to exit</div>
+        </div>
+      )}
+      {!presentationMode && encyclopediaOpen && (
         <EncyclopediaPage initialSpeciesId={encyclopediaSpeciesId} onClose={() => setEncyclopediaOpen(false)} />
       )}
-      {!screenshotMode && (
+      {!presentationMode && (
         <button
           className="app-version-footnote"
           type="button"

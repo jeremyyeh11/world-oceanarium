@@ -69,6 +69,7 @@ button { font: inherit; }
 .fullscreen-toggle,
 .audio-toggle,
 .screenshot-toggle,
+.cinematic-toggle,
 .top-menu-toggle,
 .encyclopedia-toggle,
 .fish-search-button {
@@ -113,6 +114,7 @@ button { font: inherit; }
 }
 
 .top-controls-menu > .screenshot-toggle,
+.top-controls-menu > .cinematic-toggle,
 .top-controls-menu > .audio-toggle,
 .top-controls-menu > .fullscreen-toggle {
   opacity: 0;
@@ -125,6 +127,7 @@ button { font: inherit; }
 }
 
 .top-controls.is-open .top-controls-menu > .screenshot-toggle,
+.top-controls.is-open .top-controls-menu > .cinematic-toggle,
 .top-controls.is-open .top-controls-menu > .audio-toggle,
 .top-controls.is-open .top-controls-menu > .fullscreen-toggle {
   opacity: 1;
@@ -136,20 +139,28 @@ button { font: inherit; }
   transition-delay: 0ms;
 }
 
+.top-controls.is-open .top-controls-menu > .cinematic-toggle {
+  transition-delay: 35ms;
+}
+
 .top-controls.is-open .top-controls-menu > .audio-toggle {
-  transition-delay: 45ms;
+  transition-delay: 70ms;
 }
 
 .top-controls.is-open .top-controls-menu > .fullscreen-toggle {
-  transition-delay: 90ms;
+  transition-delay: 105ms;
 }
 
 .top-controls:not(.is-open) .top-controls-menu > .screenshot-toggle {
-  transition-delay: 90ms;
+  transition-delay: 105ms;
+}
+
+.top-controls:not(.is-open) .top-controls-menu > .cinematic-toggle {
+  transition-delay: 70ms;
 }
 
 .top-controls:not(.is-open) .top-controls-menu > .audio-toggle {
-  transition-delay: 45ms;
+  transition-delay: 35ms;
 }
 
 .top-controls:not(.is-open) .top-controls-menu > .fullscreen-toggle {
@@ -159,6 +170,7 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .top-control-icon,
   .top-controls-menu > .screenshot-toggle,
+  .top-controls-menu > .cinematic-toggle,
   .top-controls-menu > .audio-toggle,
   .top-controls-menu > .fullscreen-toggle {
     animation: none;
@@ -182,6 +194,8 @@ button { font: inherit; }
 .audio-toggle.is-active,
 .screenshot-toggle:hover,
 .screenshot-toggle:focus-visible,
+.cinematic-toggle:hover,
+.cinematic-toggle:focus-visible,
 .top-menu-toggle:hover,
 .top-menu-toggle:focus-visible,
 .encyclopedia-toggle:hover,
@@ -210,6 +224,7 @@ button { font: inherit; }
 .fullscreen-toggle:focus-visible,
 .audio-toggle:focus-visible,
 .screenshot-toggle:focus-visible,
+.cinematic-toggle:focus-visible,
 .top-menu-toggle:focus-visible,
 .encyclopedia-toggle:focus-visible,
 .fish-search-button:focus-visible,
@@ -307,6 +322,7 @@ button { font: inherit; }
   .fullscreen-toggle,
   .audio-toggle,
   .screenshot-toggle,
+  .cinematic-toggle,
   .top-menu-toggle,
   .fish-search-button {
     width: var(--top-control-size);
@@ -438,6 +454,40 @@ button { font: inherit; }
   background: rgba(0, 78, 102, 0.82);
   outline: 2px solid rgba(125, 249, 255, 0.28);
   outline-offset: 3px;
+}
+
+.cinematic-help {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.3rem, env(safe-area-inset-bottom));
+  z-index: 1400;
+  transform: translateX(-50%);
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(180, 235, 255, 0.18);
+  background: rgba(1, 14, 26, 0.48);
+  color: rgba(238, 252, 255, 0.82);
+  text-align: center;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+  animation: cinematic-help-life 4.2s ease both;
+}
+
+.cinematic-help-title {
+  font: 0.66rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cinematic-help-copy {
+  margin-top: 0.38rem;
+  color: rgba(218, 242, 248, 0.58);
+  font-size: 0.7rem;
+}
+
+@keyframes cinematic-help-life {
+  0% { opacity: 0; transform: translate(-50%, 0.4rem); }
+  12%, 72% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
 }
 
 .tank-back-button {

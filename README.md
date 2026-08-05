@@ -21,7 +21,7 @@ The project values:
 
 ## Current Focus
 
-The current clean release is `v0.13.0`; `v0.13.0-dev_7` is the in-review cinematic-camera build pending final retarget after rebase. The ocean sunlight zone contains two deliberately curated tanks:
+The current clean release is `v0.13.0`; `v0.14.0-dev_7` is the in-review cinematic-camera build. The ocean sunlight zone contains two deliberately curated tanks:
 
 - **The Open Sea** — spotted sardinella, Mahi-mahi, and a Shortfin Mako Shark form a bait → mid-predator → apex-predator assemblage.
 - **The Drift** — a Giant Sunfish occupies a calmer, dimmer tank built around its slower rhythm and authored sun-bask behavior.

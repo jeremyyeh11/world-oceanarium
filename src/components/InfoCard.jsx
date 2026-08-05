@@ -284,12 +284,13 @@ function Stat({ label, value }) {
   )
 }
 
-export default function InfoCard({ creature, onClose, onOpenEncyclopedia, children }) {
+export default function InfoCard({ creature, onClose, onOpenEncyclopedia, onEnterCinematic, children }) {
   const species = SPECIES_BY_NAME.get(creature.species)
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
   const depthLabel = compactDepthLabel(depthZone, creature.depthZone)
   const customName = creature.customName?.trim()
   const canOpenAtlas = Boolean(onOpenEncyclopedia && species && !species.hiddenInAtlas)
+  const canEnterCinematic = Boolean(onEnterCinematic && creature.species)
   const individualDescription = namedIndividualDescription(creature, customName)
   const lengthMeters = bodyLengthMeters(creature, species)
   const massKg = estimateMassKg(lengthMeters, species)
@@ -315,6 +316,22 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
                   <path d="M5 5.5c1.8-.9 4.2-.9 6 0v13c-1.8-.9-4.2-.9-6 0v-13Z" />
                   <path d="M13 5.5c1.8-.9 4.2-.9 6 0v13c-1.8-.9-4.2-.9-6 0v-13Z" />
                   <path d="M11 5.5v13M13 5.5v13" />
+                </svg>
+              </button>
+            )}
+            {canEnterCinematic && (
+              <button
+                type="button"
+                className="info-card-cinematic-icon"
+                style={styles.atlasIconButton}
+                onClick={() => onEnterCinematic(creature)}
+                aria-label={`Watch ${creature.species} in cinematic mode`}
+                title="Cinematic mode"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" style={styles.atlasIcon}>
+                  <path d="M4 7.5h11.5v9H4v-9Z" />
+                  <path d="m15.5 10 4.5-2.2v8.4L15.5 14" />
+                  <path d="M7 5.2h5.5" />
                 </svg>
               </button>
             )}

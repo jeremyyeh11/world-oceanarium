@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import Camera from './Camera'
+import CinematicDirector from './CinematicDirector'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
@@ -117,7 +118,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, cinematicMode = false, cinematicSpecies = null, cinematicOriginCreatureId = null, onBack, onOpenEncyclopedia, onEnterCinematic, onExitCinematic }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -142,9 +143,11 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const focusChangeAtRef = useRef(0)
   const suppressCreatureFocusUntilRef = useRef(0)
   const fishRefsByCreatureId = useRef(new Map())
-  const zoomActive = Boolean(selectedCreature)
-  const visibleDebugVisuals = debugMode
-  const visibleDebugPanel = debugMode && !screenshotMode
+  const cinematicPoseRef = useRef({ active: false })
+  const presentationMode = screenshotMode || cinematicMode
+  const zoomActive = Boolean(selectedCreature) && !cinematicMode
+  const visibleDebugVisuals = debugMode && !cinematicMode
+  const visibleDebugPanel = debugMode && !presentationMode
   const boneDebugAvailable = debugView !== 'all'
   const activeDebugLayers = boneDebugAvailable ? debugLayers : { ...debugLayers, bones: false }
   const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
@@ -368,6 +371,12 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
     setFollowDistance(DEFAULT_FOLLOW_DISTANCE)
   }
 
+  useEffect(() => {
+    if (!cinematicMode) return
+    releaseFocus()
+    // Cinematic mode owns the camera until the user exits it.
+  }, [cinematicMode])
+
   // Switching tanks drops any followed creature so the new tank opens at its resting camera
   // (the previous creature's ref belongs to the unmounting tank anyway).
   useEffect(() => {
@@ -378,6 +387,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const releaseFocusForRuntimeRecovery = (creature) => {
     const name = creatureDisplayName(creature)
     setRecoveryNotice({ id: `${creature?.id ?? name}-${performance.now()}`, text: `${name} will be back in a bit!` })
+    if (cinematicMode) onExitCinematic?.()
     releaseFocus()
   }
 
@@ -646,26 +656,35 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
   return (
     <div
-      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}
+      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}${cinematicMode ? ' is-cinematic-mode' : ''}`}
       style={{ '--stage-pan-x': `${stagePan}px` }}
     >
       <div
         className="tank-stage"
-        onPointerDown={startStageDrag}
-        onPointerMove={moveStageDrag}
-        onPointerUpCapture={endStageDrag}
-        onPointerCancelCapture={endStageDrag}
-        onWheel={zoomFollowWithWheel}
+        onPointerDown={cinematicMode ? undefined : startStageDrag}
+        onPointerMove={cinematicMode ? undefined : moveStageDrag}
+        onPointerUpCapture={cinematicMode ? undefined : endStageDrag}
+        onPointerCancelCapture={cinematicMode ? undefined : endStageDrag}
+        onWheel={cinematicMode ? undefined : zoomFollowWithWheel}
       >
         <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
+          <CinematicDirector
+            active={cinematicMode}
+            biome={biome.id}
+            seed={`${tank?.seed ?? 0}:${tankVisitSeed}`}
+            species={cinematicSpecies}
+            originCreatureId={cinematicOriginCreatureId}
+            poseRef={cinematicPoseRef}
+          />
           <Camera
             biome={biome.id}
-            focusTarget={focusedFishRef?.current ?? null}
+            focusTarget={cinematicMode ? null : (focusedFishRef?.current ?? null)}
             focusCenterBoneName={selectedCreature ? resolveSpecies(selectedCreature)?.model?.followBone ?? null : null}
             followOrbit={followOrbit}
             followDistance={followDistance}
             followScreenOffset={followScreenOffset}
+            cinematicPoseRef={cinematicPoseRef}
             onDefaultCameraSettledChange={setDefaultCameraSettled}
             onFollowCameraClip={releaseFollowForCameraClip}
             onFocusBoneMissingChange={setMissingFollowBone}
@@ -680,19 +699,23 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             zoomActive={zoomActive}
             debugSunBaskRequestId={debugSunBaskRequestId}
             soloRuntimeRecoveryEnabled={!zoomActive && defaultCameraSettled}
-            hideSelectionSilhouette={screenshotMode}
+            cinematicPoseRef={cinematicPoseRef}
+            hideSelectionSilhouette={presentationMode}
             debug={visibleDebugVisuals}
             debugView={debugView}
             debugLayers={activeDebugLayers}
             debugLodView={visibleDebugVisuals && Boolean(activeDebugLayers.lod)}
             debugStatsEnabled={visibleDebugVisuals}
             debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
-            onCreatureClick={selectCreatureFromPointer}
+            onCreatureClick={cinematicMode ? undefined : selectCreatureFromPointer}
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />
           <WaterSurface biome={biome.id} seed={tank?.seed ?? 0} />
-          <UnderwaterFX biome={biome.id} showGodRays={!zoomActive && defaultCameraSettled} />
+          <UnderwaterFX
+            biome={biome.id}
+            showGodRays={!zoomActive && defaultCameraSettled && !presentationMode}
+          />
         </Canvas>
       </div>
 
@@ -709,9 +732,9 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
         </svg>
       )}
 
-      {!screenshotMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
+      {!presentationMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
-      {!screenshotMode && debugMode && missingFollowBone && (
+      {!presentationMode && debugMode && missingFollowBone && (
         <div style={{
           position: 'absolute', top: '1.5rem', left: '1.5rem',
           color: '#ff6b6b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.78rem',
@@ -722,7 +745,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
         </div>
       )}
 
-      {!screenshotMode && (
+      {!presentationMode && (
         <div style={{
           position: 'absolute', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
           color: 'rgba(255,255,255,0.7)', fontFamily: 'system-ui, sans-serif', textAlign: 'center',
@@ -760,14 +783,14 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
         />
       )}
 
-      {!screenshotMode && selectedCreature && <FocusHint />}
+      {!presentationMode && selectedCreature && <FocusHint />}
       {recoveryNotice && (
         <div key={recoveryNotice.id} className="runtime-recovery-notice" role="status" aria-live="polite">
           {recoveryNotice.text}
         </div>
       )}
-      {!screenshotMode && selectedCreature && (
-        <InfoCard creature={selectedCreature} onClose={releaseFocus} onOpenEncyclopedia={onOpenEncyclopedia} />
+      {!presentationMode && selectedCreature && (
+        <InfoCard creature={selectedCreature} onClose={releaseFocus} onOpenEncyclopedia={onOpenEncyclopedia} onEnterCinematic={onEnterCinematic} />
       )}
     </div>
   )

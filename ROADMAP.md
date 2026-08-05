@@ -13,6 +13,41 @@ Status labels:
 
 ## Current work
 
+### Procedural cinematic camera
+
+Status: `Current in development`
+
+Reference:
+- Jeremy redirected the feature toward a Nat Geo-style species documentary: follow a fish first, then enter Cinematic Mode from that fish's info card. The selected species remains the main subject while shots may move between its individuals and groups.
+- Branch: `feat/cinematic-camera`; development build: `v0.14.0-dev_7`.
+- Detailed architecture and review contract: [`docs/cinematic-camera.md`](docs/cinematic-camera.md).
+
+Subtasks:
+- [x] Build individual, pair, and school hero candidates from the shared live fish registry without species-specific sequencing.
+- [x] Filter the live hero set to the followed fish's species, then add a seeded weighted rolling queue with recency, hero-type variety, viability, and spatial-continuity weighting.
+- [x] Add generic profile, lead, static, group, member-cutaway, and shared-frame bridge shots.
+- [x] Add 5–10 second holds, low-frequency shot evaluation, hysteresis, and early bad-shot replacement.
+- [x] Add Cinematic Mode beside Atlas in the followed fish's info card, with clean presentation UI, desktop any-key exit, inert mouse input, and mobile long-press exit.
+- [x] Use validity-gated jump cuts for shot changes: preflight framing/facing/finite pose and both bridge subjects before committing the cut; retain damped within-shot tracking.
+- [x] Add restrained still, tracking, dolly, truck, and tilt coverage with exactly one camera movement vocabulary per shot.
+- [x] Rebalance away from repeated still shots, make planned movement visually legible, and exit Cinematic Mode with the existing recovery notice before a current subject hard-resets beyond its boundary.
+- [x] Make presentation rendering use the real device viewport, add portrait-aware camera distance/FOV/look-ahead/movement limits, validate full subject bounds, expand the presentation water ceiling, and hide light-ray shafts in Screenshot/Cinematic modes.
+- [x] Fix pair/school aggregate bridges averaging the camera into empty water between separate groups; independent aggregate heroes now receive separate shots and direct validated cuts.
+- [x] Preserve resting/manual follow-camera code paths and avoid frame-by-frame React state updates.
+- [x] Build, lint, and browser-smoke both multi-hero and single-hero tanks.
+- [ ] Collect Jeremy desktop visual review of a sustained 60–90 second sequence.
+- [ ] Run Jeremy/YK phone review for composition, exit behavior, and performance.
+- [ ] Collect explicit release approval before merge, clean promotion, deployment, or branch deletion.
+
+Review gates:
+- No species, creature id, hero count, or fixed narrative sequence is encoded in the director.
+- Open Sea keeps the selected species as its main documentary subject while producing readable individual/group coverage and coherent same-species individual handoffs without rapid repetition, arbitrary oscillation, or snappy long-distance camera jumps. Separate pairs/schools must never be averaged into one empty midpoint composition.
+- The Drift remains useful with one available hero, varying generic shot classes and replacing sustained poor angles early.
+- Shots generally hold 5–10 seconds, but invalid targets, poor scale/framing, or sustained head-/tail-on angles are replaced gracefully.
+- The camera does not reveal hard tank boundaries or travel visibly through geometry.
+- Existing resting, selected-creature follow, Screenshot Mode, debug, and tank-switch behavior remain unchanged outside Cinematic Mode.
+- Any desktop keyboard key returns manual control; desktop mouse input does nothing. A stationary 900ms touch/pen long press exits on mobile.
+
 ### Deforming ocean surface
 
 Status: `Archive candidate`

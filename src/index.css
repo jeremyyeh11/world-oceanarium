@@ -137,19 +137,19 @@ button { font: inherit; }
 }
 
 .top-controls.is-open .top-controls-menu > .audio-toggle {
-  transition-delay: 45ms;
+  transition-delay: 35ms;
 }
 
 .top-controls.is-open .top-controls-menu > .fullscreen-toggle {
-  transition-delay: 90ms;
+  transition-delay: 70ms;
 }
 
 .top-controls:not(.is-open) .top-controls-menu > .screenshot-toggle {
-  transition-delay: 90ms;
+  transition-delay: 70ms;
 }
 
 .top-controls:not(.is-open) .top-controls-menu > .audio-toggle {
-  transition-delay: 45ms;
+  transition-delay: 35ms;
 }
 
 .top-controls:not(.is-open) .top-controls-menu > .fullscreen-toggle {
@@ -405,16 +405,19 @@ button { font: inherit; }
   line-height: 1.45;
 }
 
-.screenshot-help-copy--mobile {
+.screenshot-help-copy--mobile,
+.cinematic-help-copy--mobile {
   display: none;
 }
 
 @media (hover: none), (pointer: coarse), (max-width: 768px) {
-  .screenshot-help-copy--desktop {
+  .screenshot-help-copy--desktop,
+  .cinematic-help-copy--desktop {
     display: none;
   }
 
-  .screenshot-help-copy--mobile {
+  .screenshot-help-copy--mobile,
+  .cinematic-help-copy--mobile {
     display: block;
   }
 }
@@ -438,6 +441,40 @@ button { font: inherit; }
   background: rgba(0, 78, 102, 0.82);
   outline: 2px solid rgba(125, 249, 255, 0.28);
   outline-offset: 3px;
+}
+
+.cinematic-help {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.3rem, env(safe-area-inset-bottom));
+  z-index: 1400;
+  transform: translateX(-50%);
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(180, 235, 255, 0.18);
+  background: rgba(1, 14, 26, 0.48);
+  color: rgba(238, 252, 255, 0.82);
+  text-align: center;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+  animation: cinematic-help-life 4.2s ease both;
+}
+
+.cinematic-help-title {
+  font: 0.66rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cinematic-help-copy {
+  margin-top: 0.38rem;
+  color: rgba(218, 242, 248, 0.58);
+  font-size: 0.7rem;
+}
+
+@keyframes cinematic-help-life {
+  0% { opacity: 0; transform: translate(-50%, 0.4rem); }
+  12%, 72% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
 }
 
 .tank-back-button {
@@ -776,6 +813,17 @@ button { font: inherit; }
   transform: translate(calc(-50% + var(--stage-pan-x, 0px)), -50%);
   overscroll-behavior: none;
   touch-action: none;
+}
+
+.tank-viewport.is-screenshot-mode .tank-stage,
+.tank-viewport.is-cinematic-mode .tank-stage {
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  aspect-ratio: auto;
+  transform: none;
 }
 
 .tank-viewport.can-pan .tank-stage {

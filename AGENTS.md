@@ -29,6 +29,9 @@ Design rule: every mechanic must answer **what it feels like to do, and why that
 Important paths:
 
 - `src/components/Fish.jsx` — creature rendering, movement, animation, debug labels
+- `src/components/fishRegistry.js` — shared mutable live-fish registry read by boids and cinematic hero discovery
+- `src/components/CinematicDirector.jsx` — selected-species live hero filtering, seeded rolling queue, generic shot grammar, one-movement-per-shot planning, aggregate-safe handoffs, and validity-gated poses
+- `src/components/Camera.jsx` — resting, follow, and cinematic pose application; keep non-cinematic paths behaviorally isolated
 - `src/components/fishRuntimeStore.js` — session-lifetime fish snapshots that survive active-tank unmount/remount
 - `src/components/Biome.jsx` — renders a tank's curated creature assemblage (see `docs/tank-design.md`)
 - `src/components/TankView.jsx` — tank UI, debug mode, follow selection, controls
@@ -124,7 +127,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 
 - Preserve tank brightness/color unless specifically asked to grade/darken.
 - Favor readable motion and elegant presentation over visual noise.
-- Follow mode should feel smooth; avoid camera snaps, raw `lookAt()` jumps, and sudden target shifts.
+- Follow mode and within-shot Cinematic tracking should feel smooth. Cinematic shot changes are intentional validity-gated jump cuts: preflight the composition before changing shot id, and never lerp the camera visibly across the tank between shots.
 - Mobile matters: touch controls, follow mode, debug access, audio unlock, and layout should be tested conceptually for phone use.
 - Controls/debug affordances should be compact and unobtrusive.
 

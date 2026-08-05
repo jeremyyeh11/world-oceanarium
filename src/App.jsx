@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
@@ -53,6 +53,10 @@ export default function App() {
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
   const [screenshotMode, setScreenshotMode] = useState(false)
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
+  const [cinematicMode, setCinematicMode] = useState(false)
+  const [cinematicSpecies, setCinematicSpecies] = useState(null)
+  const [cinematicOriginCreatureId, setCinematicOriginCreatureId] = useState(null)
+  const [cinematicHelpVisible, setCinematicHelpVisible] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
   const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
@@ -61,10 +65,12 @@ export default function App() {
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
   const screenshotExitHold = useRef(null)
+  const cinematicExitHold = useRef(null)
   const topControlsRef = useRef(null)
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
+  const presentationMode = screenshotMode || cinematicMode
 
   // Persisted swim state (fishRuntimeStore) is keyed by creature id and only ever grows as tanks
   // are visited. When the live data set changes, drop snapshots for creatures that no longer
@@ -108,12 +114,12 @@ export default function App() {
   }, [topMenuOpen])
 
   useEffect(() => {
-    if (screen !== 'tank' || screenshotMode) setTopMenuOpen(false)
-  }, [screen, screenshotMode])
+    if (screen !== 'tank' || presentationMode) setTopMenuOpen(false)
+  }, [presentationMode, screen])
 
   useEffect(() => {
-    if (screenshotMode) setEncyclopediaOpen(false)
-  }, [screenshotMode])
+    if (presentationMode) setEncyclopediaOpen(false)
+  }, [presentationMode])
 
   useEffect(() => {
     const playButtonSfx = (event) => {
@@ -327,6 +333,67 @@ export default function App() {
     }
   }, [screenshotMode])
 
+  const exitCinematicMode = useCallback(() => {
+    if (cinematicExitHold.current) {
+      window.clearTimeout(cinematicExitHold.current.timer)
+      cinematicExitHold.current = null
+    }
+    setCinematicMode(false)
+    setCinematicSpecies(null)
+    setCinematicOriginCreatureId(null)
+    setCinematicHelpVisible(false)
+  }, [])
+
+  useEffect(() => {
+    if (!cinematicMode) return undefined
+
+    setCinematicHelpVisible(true)
+    const hideHelpTimer = window.setTimeout(() => setCinematicHelpVisible(false), 4200)
+    const clearExitHold = () => {
+      if (!cinematicExitHold.current) return
+      window.clearTimeout(cinematicExitHold.current.timer)
+      cinematicExitHold.current = null
+    }
+    const exitOnKey = (event) => {
+      event.preventDefault()
+      exitCinematicMode()
+    }
+    const startExitHold = (event) => {
+      if (event.pointerType === 'mouse') return
+      clearExitHold()
+      const startX = event.clientX
+      const startY = event.clientY
+      const pointerId = event.pointerId
+      const timer = window.setTimeout(exitCinematicMode, SCREENSHOT_EXIT_HOLD_MS)
+      cinematicExitHold.current = { timer, pointerId, startX, startY }
+    }
+    const moveExitHold = (event) => {
+      const hold = cinematicExitHold.current
+      if (!hold || hold.pointerId !== event.pointerId) return
+      if (Math.hypot(event.clientX - hold.startX, event.clientY - hold.startY) > SCREENSHOT_EXIT_MOVE_TOLERANCE) clearExitHold()
+    }
+    const endExitHold = (event) => {
+      const hold = cinematicExitHold.current
+      if (!hold || hold.pointerId !== event.pointerId) return
+      clearExitHold()
+    }
+
+    window.addEventListener('keydown', exitOnKey)
+    window.addEventListener('pointerdown', startExitHold, { capture: true })
+    window.addEventListener('pointermove', moveExitHold, { capture: true })
+    window.addEventListener('pointerup', endExitHold, { capture: true })
+    window.addEventListener('pointercancel', endExitHold, { capture: true })
+    return () => {
+      clearExitHold()
+      window.clearTimeout(hideHelpTimer)
+      window.removeEventListener('keydown', exitOnKey)
+      window.removeEventListener('pointerdown', startExitHold, { capture: true })
+      window.removeEventListener('pointermove', moveExitHold, { capture: true })
+      window.removeEventListener('pointerup', endExitHold, { capture: true })
+      window.removeEventListener('pointercancel', endExitHold, { capture: true })
+    }
+  }, [cinematicMode, exitCinematicMode])
+
   const toggleFullscreen = async () => {
     try {
       if (fullscreenElement()) {
@@ -364,8 +431,22 @@ export default function App() {
 
   const enterScreenshotMode = () => {
     setTopMenuOpen(false)
+    setCinematicMode(false)
+    setCinematicSpecies(null)
+    setCinematicOriginCreatureId(null)
     setScreenshotMode(true)
     setScreenshotHelpVisible(true)
+  }
+
+  const enterCinematicMode = (creature) => {
+    const species = creature?.species
+    if (!species) return
+    setTopMenuOpen(false)
+    setScreenshotMode(false)
+    setScreenshotHelpVisible(false)
+    setCinematicSpecies(species)
+    setCinematicOriginCreatureId(creature?.id ?? null)
+    setCinematicMode(true)
   }
 
   const handleAudioToggle = () => {
@@ -399,13 +480,13 @@ export default function App() {
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onOpenEncyclopedia={openEncyclopedia} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} cinematicMode={cinematicMode} cinematicSpecies={cinematicSpecies} cinematicOriginCreatureId={cinematicOriginCreatureId} onOpenEncyclopedia={openEncyclopedia} onEnterCinematic={enterCinematicMode} onExitCinematic={exitCinematicMode} />
   }
 
   return (
     <>
       {page}
-      {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
+      {screen === 'tank' && !presentationMode && TANKS.length > 1 && (
         <div className="tank-switcher-dock">
           {(activeTank?.description || activeTank?.tagline) && (
             <p className="tank-switcher-description">{activeTank.description ?? activeTank.tagline}</p>
@@ -425,7 +506,7 @@ export default function App() {
           </div>
         </div>
       )}
-      {!screenshotMode && (
+      {!presentationMode && (
         <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
           {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
           {screen === 'tank' && (
@@ -472,6 +553,7 @@ export default function App() {
                   <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
                 </svg>
               </button>
+
               <button
                 className={`audio-toggle${audioEnabled ? ' is-active' : ''}`}
                 type="button"
@@ -540,10 +622,17 @@ export default function App() {
           </div>
         </div>
       )}
-      {!screenshotMode && encyclopediaOpen && (
+      {cinematicHelpVisible && (
+        <div className="cinematic-help" role="status" aria-live="polite">
+          <div className="cinematic-help-title">Cinematic camera</div>
+          <div className="cinematic-help-copy cinematic-help-copy--desktop">Press any key to exit</div>
+          <div className="cinematic-help-copy cinematic-help-copy--mobile">Long-press anywhere to exit</div>
+        </div>
+      )}
+      {!presentationMode && encyclopediaOpen && (
         <EncyclopediaPage initialSpeciesId={encyclopediaSpeciesId} onClose={() => setEncyclopediaOpen(false)} />
       )}
-      {!screenshotMode && (
+      {!presentationMode && (
         <button
           className="app-version-footnote"
           type="button"

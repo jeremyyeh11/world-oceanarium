@@ -1,6 +1,6 @@
 # Cinematic Camera
 
-Status: `v0.13.0-dev_7` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
+Status: `v0.14.0-dev_7` on `feat/cinematic-camera`, awaiting visual review. This document describes the implemented development build, not an approved clean release.
 
 ## Felt intention
 

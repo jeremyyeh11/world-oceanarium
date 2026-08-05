@@ -8,38 +8,38 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.13.0 — Procedural cinematic camera
+## v0.14.0 — Procedural cinematic camera
 
-Status: `v0.13.0-dev_7` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
+Status: `v0.14.0-dev_7` is in development and awaiting Jeremy's visual review. It has not been promoted to a clean release.
 
-### v0.13.0-dev_7
+### v0.14.0-dev_7
 
 - Renders Screenshot and Cinematic modes at the device's real viewport aspect instead of cropping a fixed 16:9 stage. Portrait shots use aspect-aware distance, fixed per-shot FOV, reduced look-ahead, restrained movement travel, and full-subject bounds validation so long animals keep safe side margins without becoming tiny.
-- Keeps the existing shallow ceiling strip for the resting view, but expands the water surface from 210×32 to 210×210 during Screenshot/Cinematic presentation and hides the separate underwater light-ray shafts in those modes.
+- Preserves the released full-coverage physical Gerstner water in resting, Screenshot, and Cinematic views while hiding the separate authored god-ray shafts in Screenshot/Cinematic presentation.
 
-### v0.13.0-dev_6
+### v0.14.0-dev_6
 
 - Rebalances the shot grammar away from repeated still compositions and increases dolly, truck, and tilt travel enough for each selected movement to read clearly over a 5–10 second hold.
 - Tracks the exact creature members owned by the accepted cinematic shot. If a current subject crosses into a hard boundary recovery, Cinematic Mode exits before the off-screen reset and shows the existing “will be back in a bit” notice.
 
-### v0.13.0-dev_5
+### v0.14.0-dev_5
 
 - Gives each shot one restrained camera behavior—still, track, dolly, truck, or tilt—rather than making every composition continuously follow its subject or layering multiple moves.
 - Keeps pure stillness fully locked, trucks with fixed camera orientation, dollies on the viewing axis, and tilts from a fixed camera position; existing validity checks and bad-shot replacement protect moving subjects that leave a deliberately locked frame.
 - Fixes Mahi-mahi pair coverage that could average between two independent pairs: pair/school aggregate heroes can no longer become both ends of a relationship bridge, so each coherent school is framed separately before a validated direct cut.
 - Extends destination preflight to reject a frame when a different-species animal would dominate the foreground, preserving the selected species as the documentary subject.
 
-### v0.13.0-dev_4
+### v0.14.0-dev_4
 
 - Replaces long shot-change camera travel with intentional documentary jump cuts; moving subjects remain damped and smoothly tracked within each shot.
 - Preflights every new composition with a virtual camera before exposing its shot id: position/look/FOV must be finite, the subject must project safely inside frame, profile/lead facing rules must pass, and relationship bridges must keep both same-species subjects visible.
 - Rejects invalid candidates while the current valid shot remains on screen, then asks the existing seeded queue, viability, recency, diversity, bridge, and spatial-continuity planner for another shot.
 
-### v0.13.0-dev_3
+### v0.14.0-dev_3
 
 - Smooths intra-species camera changes so the species-locked documentary does not snap hard across the tank when moving between same-species individuals, pairs, or schools.
 - Keeps the selected fish's own individual/school as the opening cinematic hero, then uses stronger same-species continuity weighting, bridge shots, and 2.8s eased position/look/FOV transitions for later shot changes.
-- Maintains the `v0.13.0-dev_2` contextual info-card entry, species lock, mobile long-press exit, and desktop keyboard-exit / mouse-inert behavior.
+- Maintains the `v0.14.0-dev_2` contextual info-card entry, species lock, mobile long-press exit, and desktop keyboard-exit / mouse-inert behavior.
 
 ### Camera / presentation
 

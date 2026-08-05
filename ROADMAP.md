@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy redirected the feature toward a Nat Geo-style species documentary: follow a fish first, then enter Cinematic Mode from that fish's info card. The selected species remains the main subject while shots may move between its individuals and groups.
-- Branch: `feat/cinematic-camera`; development build: `v0.13.0-dev_7`.
+- Branch: `feat/cinematic-camera`; development build: `v0.14.0-dev_7`.
 - Detailed architecture and review contract: [`docs/cinematic-camera.md`](docs/cinematic-camera.md).
 
 Subtasks:

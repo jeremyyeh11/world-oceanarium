@@ -10,10 +10,11 @@ Versioning convention notes:
 
 ## v0.14.0 — Procedural caudal-fish animation
 
-Status: `v0.14.0-dev_2` review build on `feat/procedural-fish-animation`; not promoted or merged.
+Status: `v0.14.0-dev_3` review build on `feat/procedural-fish-animation`; not promoted or merged.
 
 ### Creature motion
 
+- `v0.14.0-dev_3` replaces the male Mahi rigged/animated GLB with Jeremy's supplied neutral `mahi-combined` static mesh: zero bones, zero skin weights, zero clips, one 28,470-vertex mesh. A GPU vertex deformer derives flexible-body influence directly from local longitudinal Z bounds, preserves a rigid front, sends a travelling lateral wave into the tail, responds to live speed/turn/burst inputs, and analytically adjusts normals to match the bent surface. The female Mahi remains on the procedural bone-lattice bridge pending a matching static asset.
 - `v0.14.0-dev_2` fixes the severe Mahi tail fold found in review. The first pass computed a conservative desired angle for each spine bone but applied that complete angle at every joint; because those bones are hierarchical, rotations compounded down the chain into the photographed hinge. The pose now treats each computed value as cumulative spine curvature and applies only the difference from the previous joint, keeping the configured tail angle bounded across Sardinella, Mahi, and Mako. This was hierarchical bone accumulation—not an unintended vertex mask.
 - Completely disables authored GLB animation playback for Sardinella, both Mahi-mahi variants, and the Shortfin Mako. Their existing rigs now serve only as neutral deformation lattices driven directly by live movement state.
 - Replaces clip selection with species-shaped procedural cruise, drift, turn, and burst semantics. Actual speed, acceleration, signed turn, burst envelope, and forward-travel easing drive bend strength and stroke cadence every frame.

@@ -1158,26 +1158,110 @@ function depthFadeFromScreenZ(z) {
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
 }
 
-function applyFishLightMask(material, rim = null) {
-  if (!FISH_LIGHT_MASK_ENABLED && !rim) return
+function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
+  if (!FISH_LIGHT_MASK_ENABLED && !rim && !proceduralVertex) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
   const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
   const maskUniforms = { uTime: { value: 0 } }
+  const proceduralBounds = geometry?.boundingBox
+  const proceduralUniforms = proceduralVertex && proceduralBounds ? {
+    phase: { value: 0 },
+    speed: { value: 0 },
+    turn: { value: 0 },
+    burst: { value: 0 },
+    minZ: { value: proceduralBounds.min.z },
+    maxZ: { value: proceduralBounds.max.z },
+    tailAtMaxZ: { value: proceduralVertex.tailAtMaxZ ? 1 : 0 },
+    amplitude: { value: proceduralVertex.amplitude ?? 0.16 },
+    waveTravel: { value: proceduralVertex.waveTravel ?? 5.2 },
+    flexStart: { value: proceduralVertex.flexStart ?? 0.18 },
+    flexFull: { value: proceduralVertex.flexFull ?? 0.82 },
+    turnStrength: { value: proceduralVertex.turnStrength ?? 0.22 },
+    burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.55 },
+  } : null
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
     shader.uniforms.uRimColor = { value: rimColor }
     shader.uniforms.uRimIntensity = { value: rimIntensity }
     shader.uniforms.uRimPower = { value: rimPower }
+    if (proceduralUniforms) {
+      shader.uniforms.uProceduralPhase = proceduralUniforms.phase
+      shader.uniforms.uProceduralSpeed = proceduralUniforms.speed
+      shader.uniforms.uProceduralTurn = proceduralUniforms.turn
+      shader.uniforms.uProceduralBurst = proceduralUniforms.burst
+      shader.uniforms.uProceduralMinZ = proceduralUniforms.minZ
+      shader.uniforms.uProceduralMaxZ = proceduralUniforms.maxZ
+      shader.uniforms.uProceduralTailAtMaxZ = proceduralUniforms.tailAtMaxZ
+      shader.uniforms.uProceduralAmplitude = proceduralUniforms.amplitude
+      shader.uniforms.uProceduralWaveTravel = proceduralUniforms.waveTravel
+      shader.uniforms.uProceduralFlexStart = proceduralUniforms.flexStart
+      shader.uniforms.uProceduralFlexFull = proceduralUniforms.flexFull
+      shader.uniforms.uProceduralTurnStrength = proceduralUniforms.turnStrength
+      shader.uniforms.uProceduralBurstAmplitude = proceduralUniforms.burstAmplitude
+    }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vFishWorldPosition;`
+varying vec3 vFishWorldPosition;
+${proceduralUniforms ? `uniform float uProceduralPhase;
+uniform float uProceduralSpeed;
+uniform float uProceduralTurn;
+uniform float uProceduralBurst;
+uniform float uProceduralMinZ;
+uniform float uProceduralMaxZ;
+uniform float uProceduralTailAtMaxZ;
+uniform float uProceduralAmplitude;
+uniform float uProceduralWaveTravel;
+uniform float uProceduralFlexStart;
+uniform float uProceduralFlexFull;
+uniform float uProceduralTurnStrength;
+uniform float uProceduralBurstAmplitude;
+void proceduralFishCurve(float sourceZ, out float lateralOffset, out float lateralSlope) {
+  float bodyLength = max(0.0001, uProceduralMaxZ - uProceduralMinZ);
+  float tail01FromMin = (sourceZ - uProceduralMinZ) / bodyLength;
+  float tail01FromMax = (uProceduralMaxZ - sourceZ) / bodyLength;
+  float tail01 = clamp(mix(tail01FromMax, tail01FromMin, uProceduralTailAtMaxZ), 0.0, 1.0);
+  float flexRange = max(0.0001, uProceduralFlexFull - uProceduralFlexStart);
+  float flexT = clamp((tail01 - uProceduralFlexStart) / flexRange, 0.0, 1.0);
+  float flex = flexT * flexT * (3.0 - 2.0 * flexT);
+  float dTailDz = mix(-1.0, 1.0, uProceduralTailAtMaxZ) / bodyLength;
+  float dFlexDz = (tail01 > uProceduralFlexStart && tail01 < uProceduralFlexFull)
+    ? (6.0 * flexT * (1.0 - flexT) / flexRange) * dTailDz
+    : 0.0;
+  float wavePhase = uProceduralPhase - tail01 * uProceduralWaveTravel;
+  float wave = sin(wavePhase);
+  float dWaveDz = cos(wavePhase) * (-uProceduralWaveTravel * dTailDz);
+  float stroke = uProceduralAmplitude
+    * mix(0.42, 1.0, uProceduralSpeed)
+    * (1.0 + uProceduralBurst * uProceduralBurstAmplitude);
+  lateralOffset = wave * stroke * flex + uProceduralTurn * uProceduralTurnStrength * flex * flex;
+  lateralSlope = stroke * (dWaveDz * flex + wave * dFlexDz)
+    + uProceduralTurn * uProceduralTurnStrength * 2.0 * flex * dFlexDz;
+}` : ''}`
+      )
+    if (proceduralUniforms) {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <beginnormal_vertex>',
+        `#include <beginnormal_vertex>
+float proceduralNormalOffset;
+float proceduralNormalSlope;
+proceduralFishCurve(position.z, proceduralNormalOffset, proceduralNormalSlope);
+objectNormal = normalize(vec3(objectNormal.x, objectNormal.y, objectNormal.z - proceduralNormalSlope * objectNormal.x));`
       )
       .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+float proceduralLateralOffset;
+float proceduralLateralSlope;
+proceduralFishCurve(position.z, proceduralLateralOffset, proceduralLateralSlope);
+transformed.x += proceduralLateralOffset;`
+      )
+    }
+    shader.vertexShader = shader.vertexShader.replace(
         '#include <worldpos_vertex>',
         `#include <worldpos_vertex>
 vec4 fishWorldPosition = vec4(transformed, 1.0);
@@ -1245,12 +1329,13 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`
       )
   }
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralUniforms ? 'caudal-vertex' : 'static'}`
   material.userData.fishLightMaskUniforms = maskUniforms
+  if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -1270,7 +1355,13 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
         nextMaterial.emissive.set(lodDebugColor)
         nextMaterial.emissiveIntensity = 0.32
       }
-      applyFishLightMask(nextMaterial, rim)
+      if (proceduralAnimation?.type === 'caudal-vertex') child.geometry.computeBoundingBox()
+      applyFishLightMask(
+        nextMaterial,
+        rim,
+        proceduralAnimation?.type === 'caudal-vertex' ? proceduralAnimation : null,
+        child.geometry,
+      )
       materials.push(nextMaterial)
       return nextMaterial
     })
@@ -1701,8 +1792,8 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   })
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
-  }, [object, rim, lodDebugColor])
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation)
+  }, [object, rim, lodDebugColor, model])
 
   useFrame(({ clock }, rawDelta) => {
     const elapsed = clock.getElapsedTime()
@@ -1719,6 +1810,25 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       activeAction.setEffectiveTimeScale(baseTimeScale * runtimeAnimationScale * debugAnimationScale)
     }
     const curveConfig = model?.proceduralAnimation ?? model?.curveDeform
+    const proceduralInput = curveDeformInputRef?.current ?? {}
+    if (curveConfig?.type === 'caudal-vertex') {
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 7
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        THREE.MathUtils.clamp(proceduralInput.turn ?? 0, -1, 1),
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 2.3
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * (
+        1
+        + speed01 * (curveConfig.speedFrequencyBoost ?? 0.32)
+        + burst01 * (curveConfig.burstFrequencyBoost ?? 0.24)
+        + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
+      )
+    }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current
       ensureCurveDeformState(curveState, curveDeformBones.length)
@@ -1810,6 +1920,13 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms
       if (uniforms) uniforms.uTime.value = elapsed
+      const proceduralUniforms = material?.userData?.proceduralFishUniforms
+      if (proceduralUniforms) {
+        proceduralUniforms.phase.value = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
+        proceduralUniforms.speed.value = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+        proceduralUniforms.turn.value = curveDeformTurnRef.current
+        proceduralUniforms.burst.value = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      }
     })
   })
 

@@ -5,29 +5,49 @@ globalThis.self = globalThis
 globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
-  ['Sardinella', 'public/models/fish/sardine/sardine.glb', ['Bone', 'Bone001', 'Bone002', 'Bone003']],
-  ['Mahi-mahi male', 'public/models/fish/mahi-mahi/mahi-mahi_male.glb', ['spine003', 'spine004', 'spine005', 'spine006', 'spine007']],
-  ['Mahi-mahi female', 'public/models/fish/mahi-mahi/mahi-mahi_female.glb', ['spine003', 'spine004', 'spine005', 'spine006', 'spine007']],
-  ['Shortfin Mako', 'public/models/fish/isurus-oxyrinchus/isurus-oxyrinchus.glb', ['spine003', 'spine004', 'spine005', 'spine006']],
+  { name: 'Sardinella', path: 'public/models/fish/sardine/sardine.glb', expectedBones: ['Bone', 'Bone001', 'Bone002', 'Bone003'] },
+  { name: 'Mahi-mahi male static', path: 'public/models/fish/mahi-mahi/mahi-mahi_male_static.glb', staticMesh: true },
+  { name: 'Mahi-mahi female', path: 'public/models/fish/mahi-mahi/mahi-mahi_female.glb', expectedBones: ['spine003', 'spine004', 'spine005', 'spine006', 'spine007'] },
+  { name: 'Shortfin Mako', path: 'public/models/fish/isurus-oxyrinchus/isurus-oxyrinchus.glb', expectedBones: ['spine003', 'spine004', 'spine005', 'spine006'] },
 ]
 const loader = new GLTFLoader()
-for (const [name, path, expectedBones] of targets) {
-  const data = fs.readFileSync(new URL(`../${path}`, import.meta.url))
+for (const target of targets) {
+  const data = fs.readFileSync(new URL(`../${target.path}`, import.meta.url))
   const gltf = await loader.parseAsync(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength), '')
   const bones = []
-  let skinnedMeshes = 0
+  const meshes = []
   gltf.scene.traverse(node => {
     if (node.isBone) bones.push(node.name)
-    if (node.isSkinnedMesh) skinnedMeshes += 1
+    if (node.isMesh) {
+      node.geometry.computeBoundingBox()
+      meshes.push({
+        name: node.name,
+        skinned: Boolean(node.isSkinnedMesh),
+        vertices: node.geometry.getAttribute('position')?.count ?? 0,
+        minZ: node.geometry.boundingBox.min.z,
+        maxZ: node.geometry.boundingBox.max.z,
+      })
+    }
   })
+  const expectedBones = target.expectedBones ?? []
   const missingBones = expectedBones.filter(expected => !bones.includes(expected))
+  const staticContractFailed = Boolean(target.staticMesh && (
+    gltf.animations.length > 0
+    || bones.length > 0
+    || meshes.length !== 1
+    || meshes[0].skinned
+    || meshes[0].vertices < 1000
+    || meshes[0].maxZ - meshes[0].minZ < 1
+  ))
   console.log(JSON.stringify({
-    name,
-    path,
+    name: target.name,
+    path: target.path,
     authoredClipsIgnoredAtRuntime: gltf.animations.map(clip => clip.name),
-    skinnedMeshes,
+    proceduralMode: target.staticMesh ? 'longitudinal-vertex' : 'bone-lattice',
+    meshes,
     proceduralBones: expectedBones,
     missingBones,
+    staticContractFailed,
   }))
-  if (missingBones.length) process.exitCode = 1
+  if (missingBones.length || staticContractFailed) process.exitCode = 1
 }

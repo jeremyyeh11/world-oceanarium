@@ -334,7 +334,25 @@ export const SPECIES = [
     model: {
       path: '/models/fish/mahi-mahi/mahi-mahi_male.glb',
       sexVariants: {
-        male: { path: '/models/fish/mahi-mahi/mahi-mahi_male.glb' },
+        male: {
+          path: '/models/fish/mahi-mahi/mahi-mahi_male_static.glb',
+          // Static, rig-free asset supplied for the procedural test. Longitudinal
+          // influence derives from local Z bounds; no authored mask or skin weight.
+          proceduralAnimation: {
+            type: 'caudal-vertex',
+            tailAtMaxZ: true,
+            amplitude: 0.16,
+            waveSpeed: 2.15,
+            waveTravel: 4.8,
+            flexStart: 0.28,
+            flexFull: 0.88,
+            turnStrength: 0.18,
+            burstAmplitude: 0.55,
+            response: 7.5,
+            speedFrequencyBoost: 0.32,
+            burstFrequencyBoost: 0.24,
+          },
+        },
         female: { path: '/models/fish/mahi-mahi/mahi-mahi_female.glb' },
       },
       // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 1.8 m / 7.2 WU max.

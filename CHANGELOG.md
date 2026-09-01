@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.15.0 — CRT/pixel interface (in development)
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_10`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_11`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 
@@ -22,6 +22,7 @@ Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_10`. 
 
 ### The Atlas
 
+- `v0.15.0-dev_11` gives the specimen stage its own scanlines on top of the global `.crt-screen` film, so the specimen reads as something on a monitor rather than a window cut through one. Kept at the same 3px pitch as everywhere else — a second pitch would beat against the global film and shimmer — with a heavier line instead, landing at roughly double the banding of the surrounding page.
 - `v0.15.0-dev_10` returns `HUMAN_SCALE_METERS` to `1.7` on legibility grounds: Pixelify Sans renders "5" close enough to "S" that "1.65 M" reads as "1.6S M" at readout size. `1.65` remains the better statistic, and the constant documents why it was traded away — a reference figure nobody can read is worth less than a rounder one they can. `formatReferenceLength` stays, since it renders either value correctly and guards the rounding trap if the constant moves again.
 - `v0.15.0-dev_10` lifts the scale readout's legibility after review: the human bar moves from a near-invisible `#2c5f7a` to `--crt-drift`, the palette's established "legible but secondary" tone, keeping it subordinate to the lit specimen without hiding it. Value type goes from ~10px to ~12px, the track from 7px to 8px, and the label column widens to match.
 - `v0.15.0-dev_9` relabels the stage scale reference from "Diver" to "Typical human" and moves `HUMAN_SCALE_METERS` from `1.7` to `1.65`. The old figure was effectively the global *male* mean, which quietly picked a sex for a bar labelled as a typical human; `1.65` sits between the global means for men (~171cm) and women (~160cm) reported by the NCD Risk Factor Collaboration's pooled analysis of 1,472 studies (eLife, 2016).

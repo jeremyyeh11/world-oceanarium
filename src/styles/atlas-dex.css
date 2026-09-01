@@ -349,13 +349,26 @@
 
    Two pitches (fine 28px, major every fourth line) so the eye gets a countable
    unit rather than uniform texture. Alphas are deliberately low — this sits
-   over a live scene and must not compete with the specimen. */
+   over a live scene and must not compete with the specimen.
+
+   The stage also carries its own scanlines on top of the global .crt-screen
+   film, so the specimen reads as something on a monitor rather than a window
+   cut through one. Same 3px pitch as everywhere else — a second pitch here
+   would beat against the global film and shimmer — just a heavier line, which
+   lands at roughly double the banding of the surrounding page. */
 .atlas-stage-frame {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
   background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.17) 0,
+      rgba(0, 0, 0, 0.17) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
     linear-gradient(rgba(127, 220, 242, 0.09) 1px, transparent 1px) 0 0 / 112px 112px,
     linear-gradient(90deg, rgba(127, 220, 242, 0.09) 1px, transparent 1px) 0 0 / 112px 112px,
     linear-gradient(rgba(127, 220, 242, 0.04) 1px, transparent 1px) 0 0 / 28px 28px,

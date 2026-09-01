@@ -1332,9 +1332,10 @@ void proceduralMolaMotion(inout vec3 value) {
   float analRotation = sin(uMolaPhase * uMolaAnalPhaseRate + uMolaAnalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
   // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about
   // its own painted attachment root, creating a real tip arc instead of a
-  // side-to-side translation. Cubic easing retains the painter's continuous
-  // gradient while giving the rigid root a zero-slope handoff: no dead-zone kink.
-  float dorsalInfluence = dorsal * dorsal * (3.0 - 2.0 * dorsal);
+  // side-to-side translation. Quintic easing retains the painter's continuous
+  // gradient while holding the first few root loops gentler still: no dead-zone
+  // hinge, and zero first/second derivative at the rigid attachment.
+  float dorsalInfluence = dorsal * dorsal * dorsal * (dorsal * (dorsal * 6.0 - 15.0) + 10.0);
   float dorsalAngle = dorsalInfluence * dorsalRotation;
   float dorsalCos = cos(dorsalAngle);
   float dorsalSin = sin(dorsalAngle);
@@ -1342,7 +1343,7 @@ void proceduralMolaMotion(inout vec3 value) {
   float dorsalZ = value.z - uMolaDorsalRootYZ.y;
   value.y = uMolaDorsalRootYZ.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
   value.z = uMolaDorsalRootYZ.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
-  float analInfluence = anal * anal * (3.0 - 2.0 * anal);
+  float analInfluence = anal * anal * anal * (anal * (anal * 6.0 - 15.0) + 10.0);
   float analAngle = analInfluence * analRotation;
   float analCos = cos(analAngle);
   float analSin = sin(analAngle);
@@ -3263,6 +3264,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           bankQuaternion.setFromAxisAngle(pitchedForward, rollDrift)
           fish.quaternion.premultiply(bankQuaternion)
         }
+      } else if (isMolaCreature(creature) && isDrifting) {
+        // Idle drift has a little settling weight: only a shallow, slow roll,
+        // never the deliberate surface-bask bank owned by the behavior above.
+        const idleDriftRollRadians = Number.isFinite(model?.proceduralAnimation?.idleDriftRollRadians)
+          ? model.proceduralAnimation.idleDriftRollRadians
+          : 0.035
+        const idleDriftRollFrequency = Number.isFinite(model?.proceduralAnimation?.idleDriftRollFrequency)
+          ? model.proceduralAnimation.idleDriftRollFrequency
+          : 0.18
+        const idleDriftRoll = Math.sin(now * idleDriftRollFrequency + motion.bobPhase * 1.9 + 0.6)
+          * idleDriftRollRadians
+        bankQuaternion.setFromAxisAngle(pitchedForward, idleDriftRoll)
+        fish.quaternion.premultiply(bankQuaternion)
       }
     } else {
       lookTarget.copy(fish.position).add(pitchedForward)

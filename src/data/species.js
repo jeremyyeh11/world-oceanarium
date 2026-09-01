@@ -702,14 +702,15 @@ export const SPECIES = [
         // COLOR_0 remains white material data. Blender exported the painted mask as
         // COLOR_1, exposed by Three as color_1: R dorsal, G anal, B clavus, RGB-grey pectorals.
         maskAttribute: 'color_1',
-        waveSpeed: 0.92,
+        // Slow, deliberate sculling rather than a metronomic fin flap.
+        waveSpeed: 0.64,
         // Both fins rotate around the forward raw-X axis from their individual
         // mask-derived roots, so their tips trace arcs instead of translating.
         finRotationRadians: 0.30,
         dorsalRootYZ: [0, -0.08716],
         analRootYZ: [0, 0.14121],
         // Preserve the artist's uninterrupted soft mask ramp; the shader uses
-        // zero-slope cubic easing at each rigid root. Dorsal/anal de-sync.
+        // gentler zero-slope quintic easing at each rigid root. Dorsal/anal de-sync.
         dorsalPhaseOffset: 0,
         analPhaseOffset: 1.08,
         analPhaseRate: 0.91,
@@ -718,8 +719,11 @@ export const SPECIES = [
         turnStrength: 0.012,
         burstAmplitude: 0.38,
         response: 3.2,
-        speedFrequencyBoost: 0.22,
-        burstFrequencyBoost: 0.18,
+        speedFrequencyBoost: 0.16,
+        burstFrequencyBoost: 0.12,
+        // Only during the existing passive drift state: a subtle, slow settling roll.
+        idleDriftRollRadians: 0.035,
+        idleDriftRollFrequency: 0.18,
       },
     },
     placeholder: {

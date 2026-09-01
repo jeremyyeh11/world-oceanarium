@@ -8,9 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.15.1 — Atlas cleanup (in development)
+## v0.15.1 — Small type and Atlas cleanup
 
-Status: `in development` on `chore/atlas-dead-css-cleanup`, currently at `v0.15.1-dev_1`. Cleanup only; no user-visible change.
+Status: accepted and promoted as clean `v0.15.1` from `v0.15.1-dev_3`.
+
+### Typography
+
+- `v0.15.1-dev_3` returns `HUMAN_SCALE_METERS` to the better-sourced `1.65`. It had been rounded to `1.7` purely because Pixelify Sans rendered "1.65 M" as "1.6S M"; measured at the 12.96px the readout uses, Jersey 15's 5/S shapes overlap 53% against Pixelify's 75%, so the constraint is gone and the accurate figure is back.
+- `v0.15.1-dev_3` raises the IUCN conservation codes, the smallest text in the app. `index.css` set them at `0.62rem` desktop and `0.46rem` on mobile — the latter rendering at ~7.4px, and Jersey's shorter cap height would have made it smaller still. Now `0.7rem` and `0.57rem`, landing at 11.2px and 9.1px.
+
+- `v0.15.1-dev_2` resolves the `--crt-font-tiny` KIV: small type moves to **Jersey 15**, leaving Pixelify Sans on everything above `0.75rem`. Chosen on measurement rather than reputation — rasterising confusable glyph pairs at 10px and diffing the pixels put Jersey's `5`/`S` collision lowest of every candidate tested. Notably it beat Silkscreen, which is explicitly designed for small sizes and was the expected winner but scored *worse* than Pixelify Sans on that pair.
+- Nudges all 30 labelled small-type sites up 10%. Jersey 15 has a shorter cap height than Pixelify Sans, needing ~4% more size just to match apparent size; the remaining 6% is net legibility gain, affordable because Jersey runs 23% narrower — the scale readout ends up 273px wide against 278px before, despite larger text.
+- Verified at desktop and 375px: nothing clipped, no page overflow, the stage readout still fits inside the specimen stage, and the tank index still fits on screen.
 
 ### Housekeeping
 

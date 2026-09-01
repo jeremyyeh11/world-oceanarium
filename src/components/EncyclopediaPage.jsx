@@ -450,16 +450,16 @@ function ModelAsset({ species, pose, companion = null }) {
   return <primitive object={scene} rotation={rotation} scale={viewerScale} position={position} />
 }
 
-// Reference height for the stage scale bar.
+// Reference height for the stage scale bar: the global sex-averaged mean adult
+// height, sitting between the means for men (~171cm) and women (~160cm) in the
+// NCD Risk Factor Collaboration's pooled analysis of 1,472 studies (eLife,
+// 2016). 1.7 would be effectively the male mean alone.
 //
-// 1.65 is the better statistic — it sits between the global means for men
-// (~171cm) and women (~160cm) in the NCD Risk Factor Collaboration's pooled
-// analysis (eLife, 2016), where 1.7 is effectively the male mean alone. It was
-// reverted for legibility: Pixelify Sans renders "5" close enough to "S" that
-// "1.65 M" reads as "1.6S M" at this size. A reference figure nobody can read
-// is worth less than a rounder one they can, and 1.7 is still within the
-// spread of national means either way.
-const HUMAN_SCALE_METERS = 1.7
+// This was briefly rounded to 1.7 because Pixelify Sans rendered "1.65 M" as
+// "1.6S M". Moving small type to Jersey 15 removed that constraint — measured
+// at the 12.96px this readout uses, its 5/S shapes overlap 53% against
+// Pixelify's 75% — so the accurate figure is back.
+const HUMAN_SCALE_METERS = 1.65
 
 function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   const isLarge = species?.swim?.bodyLengthWU > 3

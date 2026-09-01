@@ -1196,7 +1196,7 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     speed: { value: 0 },
     turn: { value: 0 },
     burst: { value: 0 },
-    finAmplitude: { value: proceduralVertex.finAmplitude ?? 0.022 },
+    finYawRadians: { value: proceduralVertex.finYawRadians ?? 0.46 },
     pectoralAmplitude: { value: proceduralVertex.pectoralAmplitude ?? 0.014 },
     clavusAmplitude: { value: proceduralVertex.clavusAmplitude ?? 0.016 },
     turnStrength: { value: proceduralVertex.turnStrength ?? 0.012 },
@@ -1231,7 +1231,7 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaSpeed = molaMaskUniforms.speed
       shader.uniforms.uMolaTurn = molaMaskUniforms.turn
       shader.uniforms.uMolaBurst = molaMaskUniforms.burst
-      shader.uniforms.uMolaFinAmplitude = molaMaskUniforms.finAmplitude
+      shader.uniforms.uMolaFinYawRadians = molaMaskUniforms.finYawRadians
       shader.uniforms.uMolaPectoralAmplitude = molaMaskUniforms.pectoralAmplitude
       shader.uniforms.uMolaClavusAmplitude = molaMaskUniforms.clavusAmplitude
       shader.uniforms.uMolaTurnStrength = molaMaskUniforms.turnStrength
@@ -1298,7 +1298,7 @@ uniform float uMolaPhase;
 uniform float uMolaSpeed;
 uniform float uMolaTurn;
 uniform float uMolaBurst;
-uniform float uMolaFinAmplitude;
+uniform float uMolaFinYawRadians;
 uniform float uMolaPectoralAmplitude;
 uniform float uMolaClavusAmplitude;
 uniform float uMolaTurnStrength;
@@ -1313,10 +1313,18 @@ void proceduralMolaMotion(inout vec3 value) {
   float clavus = max(0.0, mask.b - pectoral);
   float speedStroke = mix(0.42, 1.0, uMolaSpeed);
   float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
-  float finStroke = sin(uMolaPhase) * uMolaFinAmplitude * speedStroke * burstStroke;
-  // The tall dorsal and anal fins row together along the swim axis. Their soft
-  // painted roots keep the round body heavy while the outer fins do the work.
-  value.z += (dorsal + anal) * finStroke;
+  float finYaw = sin(uMolaPhase) * uMolaFinYawRadians * speedStroke * burstStroke;
+  // Dorsal and anal fins scull as opposed local-Y yaw rotations: top leans one
+  // way while bottom leans the other, matching the broad sideways Mola stroke.
+  // Their painted ramps turn the body attachment into a soft hinge rather than
+  // compressing the fins up/down along the swim axis.
+  float finAngle = (dorsal - anal) * finYaw;
+  float finCos = cos(finAngle);
+  float finSin = sin(finAngle);
+  float finX = value.x;
+  float finZ = value.z;
+  value.x = finX * finCos - finZ * finSin;
+  value.z = finX * finSin + finZ * finCos;
   float side = value.x < 0.0 ? -1.0 : 1.0;
   float pectoralStroke = sin(uMolaPhase * 0.82 + side * 0.72) * uMolaPectoralAmplitude * speedStroke;
   value.z += pectoral * pectoralStroke;

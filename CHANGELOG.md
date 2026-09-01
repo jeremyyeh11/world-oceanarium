@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.15.0 — CRT/pixel interface (in development)
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_3`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_4`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 
@@ -18,6 +18,17 @@ Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_3`. N
 - Adds `src/styles/crt.css` (tokens plus primitives) and `src/styles/crt-retrofit.css` (overrides for the pre-existing chrome). The retrofit is deliberately quarantined in its own file imported last, so the entire look reverts by removing one import.
 - Suppresses the global tube film in screenshot mode, keeping captures of the scene free of interface framing.
 - `v0.15.0-dev_2` retunes the whole pass softer after `dev_1` read as too sharp: chromatic splits drop from 3px hard offsets to 1px at 1px blur and roughly half alpha, panel treatment drops from stacked 2px+3px hard keylines to a single 1px rule plus a wide bloom, scanline alpha falls from `0.20` to `0.12`, the global film from `0.40` to `0.30`, and the cyan/pink phosphors come off full saturation. Stepped transitions and one-frame title dropouts become eased, so no motion snaps hard enough to catch the eye.
+- `v0.15.0-dev_4` restyles the follow readout ("Following fish / scroll to zoom · drag to orbit"), the last element still speaking the pre-CRT glass-pill language. It becomes a notched HUD strip with a hairline rule and a blinking live indicator, and moves up from `4.8rem` to `3.4rem` now that the tank title removed in `dev_3` no longer sits above it. Its styling also moves out of component inline styles into the shared CRT sheet.
+
+### The Atlas
+
+- `v0.15.0-dev_4` reimagines the Atlas as a field dex, borrowing the grammar of Pokédex/HUD reference panels rather than their palette — it stays on the CRT tokens so the atlas still belongs to the same app. Four motifs carry it: corners chamfered on a single diagonal, L-brackets framing the specimen stage, section labels drawn as bracket tags (`-BIOLOGY-`, `-SOCIAL-`, `-AVERAGES-`, `-LIFECYCLE-`), and a zero-padded `№` on every specimen in both the index rail and the info panel.
+- Species selection reads as an illuminated left rail rather than a filled row, so a dense list does not turn into a block of colour. Quick facts regroup from three separate cards into one hairline-divided readout strip.
+- No information is dropped in the process: the same status bar, quick facts, description, and all ten data rows across Social/Averages/Lifecycle still render. The description gains a `-BIOLOGY-` heading so it matches the other sections instead of floating unlabelled.
+- Added as `src/styles/atlas-dex.css`, imported last and quarantined the same way as the CRT retrofit.
+
+### Interface / visual language
+
 - `v0.15.0-dev_3` removes the top-centre tank title and its depth-zone subtitle (`The Open Sea` / `Epipelagic · Sunlight Zone`). The switcher dock at the bottom already names the active tank, so the header was a second answer to a question the UI had answered once. Drops the now-unused `defaultDepthZone` lookup and its `DEPTH_ZONE_BY_ID` import with it.
 - `v0.15.0-dev_2` moves the UI from VT323 to Pixelify Sans. The practical gain is real weights (400–700): the single-weight face forced every emphasis to be faked with glow, and restoring weight-based hierarchy is what allowed the glow to come down globally. Type sizes return to roughly their pre-CRT values, since Pixelify Sans has a normal x-height where VT323 needed a ~1.3x bump.
 

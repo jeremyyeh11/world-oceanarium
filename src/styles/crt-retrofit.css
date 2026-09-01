@@ -298,3 +298,92 @@ body {
 .atlas-human-scale img {
   image-rendering: pixelated;
 }
+
+/* --- follow readout ------------------------------------------------------- */
+
+/* Was a rounded glass pill, which was the last thing on screen still speaking
+   the pre-CRT language. Now a notched HUD readout: hard edges, hairline rule,
+   and a live indicator square so it reads as telemetry rather than a tooltip.
+
+   Positioning moved here from the component's inline styles. The top offset
+   drops from 4.8rem to 3.4rem because the tank title that used to sit above it
+   is gone as of dev_3, and the old value left a visible hole. */
+.focus-hint {
+  position: absolute;
+  top: 3.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(82vw, 24rem);
+  padding: 0.42rem 0.9rem 0.36rem;
+  clip-path: var(--crt-notch);
+  background:
+    var(--crt-scanlines-soft),
+    linear-gradient(180deg, rgba(13, 48, 80, 0.72) 0 3px, rgba(4, 16, 28, 0.78) 3px);
+  box-shadow: inset 0 0 0 1px rgba(23, 70, 107, 0.85);
+  color: var(--crt-drift);
+  font-family: var(--crt-font);
+  text-align: center;
+  text-transform: uppercase;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+
+.focus-hint-title {
+  position: relative;
+  color: var(--crt-lumen);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.3);
+}
+
+/* Blinking indicator, offset far enough left to sit outside the centred text
+   without shifting it — the label stays optically centred in the readout. */
+.focus-hint-title::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -0.85rem;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  background: var(--crt-lumen);
+  box-shadow: 0 0 8px var(--crt-lumen);
+  animation: focus-hint-live 2.4s ease-in-out infinite;
+}
+
+@keyframes focus-hint-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.focus-hint-controls {
+  color: var(--crt-drift-dim);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 640px) and (orientation: portrait) {
+  .tank-viewport.is-following-fish .focus-hint {
+    top: 3.1rem !important;
+    width: min(84vw, 17rem) !important;
+    padding: 0.38rem 0.7rem 0.32rem !important;
+    border-radius: 0 !important;
+  }
+
+  .tank-viewport.is-following-fish .focus-hint-title {
+    color: var(--crt-lumen) !important;
+    font-size: 0.62rem !important;
+  }
+
+  .tank-viewport.is-following-fish .focus-hint-controls {
+    color: var(--crt-drift-dim) !important;
+    font-size: 0.52rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-hint-title::before {
+    animation: none;
+  }
+}

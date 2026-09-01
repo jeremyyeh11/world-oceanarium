@@ -998,16 +998,10 @@ function AudioDebugMeters({ levels }) {
 
 function FocusHint() {
   return (
-    <div className="focus-hint" style={{
-      position: 'absolute', top: '4.8rem', left: '50%', transform: 'translateX(-50%)',
-      // Keep above the screen-space water overlays (.tank-top-exposure / .tank-depth-absorption, z 4).
-      zIndex: 30,
-      color: 'rgba(230,245,255,0.55)', fontFamily: 'system-ui, sans-serif', fontSize: '0.56rem',
-      letterSpacing: '0.075em', textTransform: 'uppercase', pointerEvents: 'none',
-      background: 'rgba(0,10,30,0.35)', border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 999, padding: '0.38rem 0.85rem', backdropFilter: 'blur(6px)',
-      width: 'min(82vw, 25rem)', textAlign: 'center',
-    }}>
+    // Styling lives in styles/crt.css so the readout can share the CRT tokens;
+    // only the stacking order stays here, since it has to clear the
+    // screen-space water overlays (.tank-top-exposure / .tank-depth-absorption, z 4).
+    <div className="focus-hint" style={{ zIndex: 30 }}>
       <span className="focus-hint-title">Following fish</span>
       <span className="focus-hint-controls focus-hint-controls-desktop">scroll to zoom · drag to orbit</span>
       <span className="focus-hint-controls focus-hint-controls-mobile">pinch to zoom · drag to orbit</span>

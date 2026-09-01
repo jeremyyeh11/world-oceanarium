@@ -5,6 +5,7 @@ import { injectSpeedInsights } from '@vercel/speed-insights'
 import './styles/crt.css'
 import './index.css'
 import './styles/crt-retrofit.css'
+import './styles/atlas-dex.css'
 import App from './App.jsx'
 
 inject()

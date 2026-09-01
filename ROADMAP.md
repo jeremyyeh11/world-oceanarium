@@ -19,7 +19,8 @@ Status: `Current in development`
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
-- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header).
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex).
+- Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
 - Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
 
 Subtasks:
@@ -30,9 +31,12 @@ Subtasks:
 - [x] Soften the whole pass after `dev_1` read too sharp; move to Pixelify Sans for real weights.
 - [x] Trim landing copy to title, tagline, species count, follow hint.
 - [x] Remove the top-centre tank title/zone subtitle now that the switcher dock names the tank.
+- [x] Restyle the follow readout out of its glass pill and into the CRT language.
+- [x] Reimagine the Atlas as a field dex (chamfers, corner brackets, bracket tags, dex numbers) without losing any data.
 - [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
 - [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
 - [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
+- [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
 
 Review gates:
 - [ ] Reads soft rather than sharp at arm's length on a phone.

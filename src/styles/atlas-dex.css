@@ -1,0 +1,451 @@
+/* ============================================================================
+   The Atlas, restyled as a field dex.
+
+   Borrows the grammar of the Pokédex / Synduality reference HUDs rather than
+   their palette — it stays on the CRT tokens so the atlas still belongs to the
+   same app. Four motifs do the work:
+
+     1. Chamfer      corners cut on one diagonal (top-left / bottom-right), the
+                     angular cut those HUDs use instead of a rounded corner
+     2. Corner ticks L-brackets that frame a viewport without boxing it in
+     3. Bracket tags section labels drawn as -SOCIAL-, -BIOLOGY-, -AVERAGES-
+     4. Dex numbers  a zero-padded № on every specimen, list and panel alike
+
+   Imported last, so it wins over both index.css and the CRT retrofit. No
+   information is dropped relative to the previous layout; the same rows,
+   tables, and status bar are all still rendered, just re-framed.
+   ========================================================================== */
+
+.encyclopedia-page {
+  --dex-line: rgba(127, 220, 242, 0.3);
+  --dex-line-dim: rgba(127, 220, 242, 0.14);
+  --dex-chassis: #04121f;
+  --dex-inset: rgba(2, 10, 20, 0.62);
+
+  /* Cut top-left and bottom-right only. A single diagonal reads as deliberate
+     industrial design; chamfering all four corners just reads as an octagon. */
+  --dex-chamfer: polygon(
+    14px 0, 100% 0, 100% calc(100% - 14px),
+    calc(100% - 14px) 100%, 0 100%, 0 14px
+  );
+
+  background:
+    var(--crt-scanlines-soft),
+    radial-gradient(circle at 42% 12%, rgba(83, 162, 196, 0.16), transparent 42%),
+    linear-gradient(180deg, #06182a 0%, var(--dex-chassis) 55%, #020a12 100%);
+  color: var(--crt-foam);
+  backdrop-filter: none;
+}
+
+/* --- top bar -------------------------------------------------------------- */
+
+.encyclopedia-topbar {
+  align-items: center;
+  border-bottom: 1px solid var(--dex-line-dim);
+  background: linear-gradient(180deg, rgba(13, 48, 80, 0.5), transparent);
+}
+
+.encyclopedia-topbar h1 {
+  position: relative;
+  padding-left: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+/* Status LED. Reads as a device that is powered on rather than a page that is
+   merely open — the single cheapest way to make a panel feel like hardware. */
+.encyclopedia-topbar h1::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  background: var(--crt-lumen);
+  box-shadow: 0 0 10px var(--crt-lumen);
+  animation: dex-led 2.8s ease-in-out infinite;
+}
+
+@keyframes dex-led {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* --- shared panel language ------------------------------------------------ */
+
+.encyclopedia-species-list,
+.encyclopedia-info-panel {
+  margin: 0.7rem;
+  padding: 0.85rem;
+  clip-path: var(--dex-chamfer);
+  border: 0;
+  border-radius: 0;
+  background: var(--dex-inset);
+  box-shadow: none;
+  /* The chamfer clips a box-shadow ring, so the edge is drawn as a gradient
+     border-image-alike underneath instead. */
+  outline: 1px solid var(--dex-line-dim);
+  outline-offset: -1px;
+}
+
+/* Bracketed section label: -SOCIAL-, -BIOLOGY-, -AVERAGES-, -LIFECYCLE- */
+.atlas-section-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.5rem;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.25);
+}
+
+.atlas-section-tag::before {
+  content: '-';
+  opacity: 0.75;
+}
+
+/* The trailing rule finishes the bracket and doubles as a section divider. */
+.atlas-section-tag::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, var(--dex-line), transparent);
+}
+
+/* --- dex numbers ---------------------------------------------------------- */
+
+.atlas-dex-no {
+  display: block;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+}
+
+.atlas-dex-no--lg {
+  font-size: 0.78rem;
+  text-shadow: 0 0 10px rgba(127, 220, 242, 0.3);
+}
+
+.atlas-dex-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.15rem;
+}
+
+.atlas-dex-head .encyclopedia-panel-kicker {
+  margin: 0;
+  text-align: right;
+}
+
+/* --- species list, as a dex index rail ------------------------------------ */
+
+.encyclopedia-species-row {
+  position: relative;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  gap: 0.7rem;
+  margin-bottom: 0.4rem;
+  padding: 0.45rem 0.5rem 0.45rem 0.72rem;
+  border: 0;
+  border-radius: 0;
+  background: rgba(127, 220, 242, 0.03);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  transition: background 160ms ease, outline-color 160ms ease;
+}
+
+/* Selection is an illuminated left rail rather than a fill — it survives the
+   dense list without the rows turning into a block of colour. */
+.encyclopedia-species-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--dex-line-dim);
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.encyclopedia-species-row:hover {
+  background: rgba(127, 220, 242, 0.07);
+  outline-color: var(--dex-line-dim);
+}
+
+.encyclopedia-species-row.is-selected {
+  background: rgba(127, 220, 242, 0.1);
+  outline-color: var(--dex-line);
+  box-shadow: none;
+}
+
+.encyclopedia-species-row.is-selected::before {
+  background: var(--crt-lumen);
+  box-shadow: 0 0 12px var(--crt-lumen);
+}
+
+.encyclopedia-species-row .atlas-dex-no {
+  margin-bottom: 0.1rem;
+  opacity: 0.6;
+}
+
+.encyclopedia-species-row.is-selected .atlas-dex-no {
+  opacity: 1;
+}
+
+.encyclopedia-species-row strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.encyclopedia-species-row em {
+  color: var(--crt-drift-dim);
+  font-size: 0.66rem;
+}
+
+.encyclopedia-species-thumb {
+  height: 2.9rem;
+  border: 0;
+  border-radius: 0;
+  outline: 1px solid var(--dex-line-dim);
+  outline-offset: -1px;
+  background: rgba(2, 10, 20, 0.6);
+}
+
+/* --- specimen stage ------------------------------------------------------- */
+
+.encyclopedia-model-stage {
+  margin: 0.7rem 0;
+  border: 0;
+  border-radius: 0;
+  outline: 1px solid var(--dex-line-dim);
+  outline-offset: -1px;
+}
+
+/* L-brackets on the two chamfered corners. Framing the viewport at opposite
+   corners implies the whole rectangle without drawing a second full box. */
+.atlas-stage-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.atlas-stage-frame::before,
+.atlas-stage-frame::after {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--crt-lumen);
+  opacity: 0.55;
+}
+
+.atlas-stage-frame::before {
+  top: 12px;
+  left: 12px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.atlas-stage-frame::after {
+  right: 12px;
+  bottom: 12px;
+  border-top: 0;
+  border-left: 0;
+}
+
+.atlas-stage-chip {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.28rem 0.5rem;
+  background: rgba(2, 10, 20, 0.82);
+  outline: 1px solid var(--dex-line-dim);
+  outline-offset: -1px;
+  font-family: var(--crt-font);
+  pointer-events: none;
+}
+
+.atlas-stage-chip span {
+  color: var(--crt-drift-dim);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.atlas-stage-chip b {
+  color: var(--crt-lumen);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- info panel ----------------------------------------------------------- */
+
+.encyclopedia-info-panel h2 {
+  margin-top: 0.1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.encyclopedia-panel-kicker {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+}
+
+.encyclopedia-scientific {
+  color: var(--crt-drift);
+  font-size: 0.74rem;
+  font-style: italic;
+}
+
+/* Quick facts become a readout strip: three cells divided by hairlines rather
+   than three separate cards, which is how the reference HUDs group small data. */
+.atlas-quick-card-grid {
+  gap: 0;
+  margin-top: 0.7rem;
+  background: rgba(2, 10, 20, 0.5);
+  outline: 1px solid var(--dex-line-dim);
+  outline-offset: -1px;
+}
+
+.atlas-quick-card-grid div {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0.5rem 0.55rem;
+}
+
+.atlas-quick-card-grid div + div {
+  border-left: 1px solid var(--dex-line-dim);
+}
+
+.atlas-quick-card-grid span {
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+}
+
+.atlas-quick-card-grid strong {
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.atlas-table-section {
+  margin-top: 0.95rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.encyclopedia-description {
+  margin: 0;
+  color: var(--crt-drift);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+/* Data rows: label left, value right, hairline between. Dense and scannable,
+   which is the whole point of a dex entry. */
+.atlas-info-row {
+  padding: 0.34rem 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.atlas-info-row + .atlas-info-row {
+  border-top: 1px solid var(--dex-line-dim);
+}
+
+.atlas-info-label {
+  color: var(--crt-drift-dim);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.atlas-info-value {
+  color: var(--crt-foam);
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.atlas-sex-pair {
+  gap: 0.7rem;
+  color: var(--crt-foam);
+}
+
+/* --- conservation status -------------------------------------------------- */
+
+.iucn-status-card {
+  margin-top: 0.8rem;
+  padding: 0.6rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: rgba(2, 10, 20, 0.5);
+  outline: 1px solid var(--dex-line-dim);
+  outline-offset: -1px;
+}
+
+.iucn-status-track span {
+  border-radius: 0;
+}
+
+/* --- close / version chrome ----------------------------------------------- */
+
+.encyclopedia-close {
+  border-radius: 0;
+  outline: 1px solid var(--dex-line-dim);
+  outline-offset: -1px;
+  background: rgba(2, 10, 20, 0.7);
+}
+
+.encyclopedia-close:hover,
+.encyclopedia-close:focus-visible {
+  outline-color: var(--dex-line);
+  color: var(--crt-lumen);
+}
+
+.atlas-version-label {
+  font-family: var(--crt-font);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+}
+
+/* Narrow layouts stack the grid; the chamfer and side margins would waste the
+   little width there is, so both are dropped rather than scaled down. */
+@media (max-width: 880px) {
+  .encyclopedia-species-list,
+  .encyclopedia-info-panel {
+    margin: 0.5rem;
+    clip-path: none;
+  }
+
+  .encyclopedia-model-stage {
+    margin: 0.5rem;
+  }
+
+  .atlas-stage-frame::before,
+  .atlas-stage-frame::after {
+    width: 18px;
+    height: 18px;
+  }
+}

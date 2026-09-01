@@ -229,10 +229,16 @@ function AtlasQuickCards({ diet, biome, location }) {
   )
 }
 
+// Dex entries are 1-based and zero-padded to three digits — the padding is what
+// makes the number read as a catalogue index rather than a count.
+function dexNumber(index) {
+  return String(index + 1).padStart(3, '0')
+}
+
 function AtlasTableSection({ title, rows }) {
   return (
     <section className="atlas-table-section" aria-label={title}>
-      <h3>{title}</h3>
+      <h3 className="atlas-section-tag">{title}</h3>
       <div className="atlas-info-table">
         {rows.map(row => (
           <div className="atlas-info-row" key={row.label}>
@@ -668,7 +674,8 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const pageRef = useRef(null)
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
-  const selectedSpecies = ATLAS_SPECIES.find(species => species.id === selectedId) ?? ATLAS_SPECIES[0]
+  const selectedIndex = Math.max(0, ATLAS_SPECIES.findIndex(species => species.id === selectedId))
+  const selectedSpecies = ATLAS_SPECIES[selectedIndex]
   const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
   const biome = BIOME_BY_ID.get(selectedSpecies?.biome)
   const atlasDetails = selectedSpecies?.atlasDetails ?? {}
@@ -809,6 +816,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           >
             <SpeciesThumbnail species={species} index={index} />
             <span>
+              <span className="atlas-dex-no">№ {dexNumber(index)}</span>
               <strong>{species.name}</strong>
               {species.scientificName && <em>{species.scientificName}</em>}
             </span>
@@ -821,6 +829,13 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         aria-label={`${selectedSpecies.name} fixed side view`}
       >
         <SpeciesModel species={selectedSpecies} diverPoseOverride={diverPose} />
+        {/* Purely decorative dex framing: L-brackets on the two chamfered
+            corners, plus the specimen readout chip. */}
+        <div className="atlas-stage-frame" aria-hidden="true" />
+        <div className="atlas-stage-chip" aria-hidden="true">
+          <span>Specimen</span>
+          <b>№ {dexNumber(selectedIndex)}</b>
+        </div>
         {poseEditorOpen && (
           <AtlasDiverPoseEditor
             species={selectedSpecies}
@@ -832,7 +847,10 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
       </main>
 
       <aside className="encyclopedia-info-panel" aria-label={`${selectedSpecies.name} information`}>
-        <p className="encyclopedia-panel-kicker">{selectedSpecies.family ?? 'Oceanarium species'}</p>
+        <div className="atlas-dex-head">
+          <span className="atlas-dex-no atlas-dex-no--lg">№ {dexNumber(selectedIndex)}</span>
+          <p className="encyclopedia-panel-kicker">{selectedSpecies.family ?? 'Oceanarium species'}</p>
+        </div>
         <h2>{selectedSpecies.name}</h2>
         {selectedSpecies.scientificName && <p className="encyclopedia-scientific">{selectedSpecies.scientificName}</p>}
         <ConservationStatusBar status={selectedSpecies.conservationStatus} />
@@ -841,7 +859,10 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           biome={biome?.name ?? selectedSpecies.biome}
           location={atlasDetails.foundIn}
         />
-        <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
+        <section className="atlas-table-section" aria-label="Biology">
+          <h3 className="atlas-section-tag">Biology</h3>
+          <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
+        </section>
         <div className="atlas-table-stack">
           <AtlasTableSection
             title="Social"

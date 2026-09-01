@@ -1,0 +1,297 @@
+/* ============================================================================
+   CRT retrofit — overrides for the pre-existing chrome.
+
+   Imported after index.css so it wins on equal specificity without rewriting
+   the rules there; keeping it in its own file makes the whole look revertible
+   by deleting one import. Tokens and primitives live in crt.css.
+
+   Two moves drive every override: swap the rounded glassmorphic pill language
+   for hard notched edges, and let VT323 carry the text — it has a small
+   x-height, so sizes go up roughly 1.3x wherever it lands.
+   ========================================================================== */
+
+body {
+  font-family: var(--crt-font);
+}
+
+.app-version-footnote,
+.debug-mobile-version {
+  color: var(--crt-drift-dim);
+  font-family: var(--crt-font);
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* --- top controls: pills become notched keys ------------------------------ */
+
+.fullscreen-toggle,
+.audio-toggle,
+.screenshot-toggle,
+.top-menu-toggle,
+.encyclopedia-toggle,
+.fish-search-button,
+.tank-back-button {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--crt-notch);
+  background:
+    var(--crt-scanlines-soft),
+    linear-gradient(180deg, var(--crt-hull-lit) 0 3px, rgba(6, 26, 44, 0.92) 3px);
+  box-shadow: inset 0 0 0 2px rgba(2, 6, 13, 0.8);
+  color: var(--crt-drift);
+  font-family: var(--crt-font);
+  backdrop-filter: none;
+  transition: color 140ms steps(3), filter 140ms ease;
+}
+
+.fullscreen-toggle:hover,
+.fullscreen-toggle:focus-visible,
+.fullscreen-toggle.is-active,
+.audio-toggle:hover,
+.audio-toggle:focus-visible,
+.audio-toggle.is-active,
+.screenshot-toggle:hover,
+.screenshot-toggle:focus-visible,
+.top-menu-toggle:hover,
+.top-menu-toggle:focus-visible,
+.encyclopedia-toggle:hover,
+.encyclopedia-toggle:focus-visible,
+.encyclopedia-toggle[aria-pressed="true"],
+.top-controls.is-open .top-menu-toggle,
+.fish-search-button:hover,
+.fish-search-button:focus-visible,
+.fish-search.is-expanded .fish-search-button,
+.tank-back-button:hover,
+.tank-back-button:focus-visible {
+  border-color: transparent;
+  background:
+    var(--crt-scanlines-soft),
+    linear-gradient(180deg, #16496f 0 3px, rgba(10, 42, 66, 0.95) 3px);
+  color: var(--crt-lumen);
+}
+
+/* clip-path crops a normal outline, so focus has to read as a glow instead. */
+.fullscreen-toggle:focus-visible,
+.audio-toggle:focus-visible,
+.screenshot-toggle:focus-visible,
+.top-menu-toggle:focus-visible,
+.encyclopedia-toggle:focus-visible,
+.fish-search-button:focus-visible {
+  outline: none;
+  filter: drop-shadow(0 0 2px var(--crt-lumen)) drop-shadow(0 0 9px rgba(92, 225, 255, 0.55));
+}
+
+/* The icons are thin strokes; a flat cap and a whole-pixel width keep them from
+   anti-aliasing into mush next to the pixel type. */
+.top-control-icon {
+  stroke-width: 2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.fish-search-input {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--crt-notch);
+  background: rgba(4, 16, 28, 0.92);
+  box-shadow: inset 0 0 0 2px rgba(2, 6, 13, 0.8);
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  backdrop-filter: none;
+}
+
+.fish-search.is-expanded .fish-search-input {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--crt-rule), 0 0 16px rgba(92, 225, 255, 0.15);
+}
+
+.fish-search.has-error .fish-search-input {
+  border-color: transparent;
+  background: rgba(58, 8, 24, 0.9);
+  box-shadow: inset 0 0 0 2px var(--crt-bio);
+  color: #ffe3ec;
+}
+
+.fish-search-input::placeholder {
+  color: var(--crt-drift-dim);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* --- tank switcher -------------------------------------------------------- */
+
+.tank-switcher {
+  gap: 0.3rem;
+  border: 0;
+  border-radius: 0;
+  background:
+    var(--crt-scanlines-soft),
+    linear-gradient(180deg, var(--crt-hull-lit) 0 3px, rgba(6, 26, 44, 0.9) 3px);
+  box-shadow: 0 0 0 2px var(--crt-void), 0 0 0 3px var(--crt-rule);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.tank-switch-button {
+  padding: 0.4rem 0.95rem 0.28rem;
+  border-radius: 0;
+  color: var(--crt-drift);
+  font-family: var(--crt-font);
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  transition: color 140ms steps(3), background 140ms steps(3);
+}
+
+.tank-switch-button:hover {
+  color: var(--crt-lumen);
+  text-shadow: 0 0 9px rgba(92, 225, 255, 0.5);
+}
+
+.tank-switch-button.is-active {
+  background: var(--crt-lumen);
+  color: var(--crt-void);
+  text-shadow: none;
+}
+
+.tank-switcher-description {
+  color: var(--crt-drift);
+  font-family: var(--crt-font);
+  font-size: 0.95rem;
+  letter-spacing: 0.09em;
+  text-shadow: 0 0 10px rgba(2, 12, 26, 0.9);
+}
+
+/* --- screenshot help ------------------------------------------------------ */
+
+.screenshot-help-card {
+  border: 0;
+  border-radius: 0;
+  background:
+    var(--crt-scanlines-soft),
+    linear-gradient(180deg, var(--crt-hull-lit) 0 4px, var(--crt-hull) 4px);
+  box-shadow: 0 0 0 2px var(--crt-void), 0 0 0 3px var(--crt-rule), 0 0 30px rgba(92, 225, 255, 0.1);
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+  backdrop-filter: none;
+}
+
+.screenshot-help-kicker {
+  color: var(--crt-lumen);
+  font: 0.85rem/1 var(--crt-font);
+  letter-spacing: 0.24em;
+  text-shadow: 0 0 8px rgba(92, 225, 255, 0.45);
+}
+
+.screenshot-help-title {
+  font-size: 1.5rem;
+  letter-spacing: 0.14em;
+  text-shadow: -2px 1px 0 var(--crt-bio), 2px -1px 0 rgba(92, 225, 255, 0.8);
+}
+
+.screenshot-help-copy {
+  color: var(--crt-drift);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.screenshot-help-button {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--crt-notch);
+  background: linear-gradient(180deg, #9df0ff 0 4px, var(--crt-lumen) 4px calc(100% - 5px), #1c93b5 calc(100% - 5px));
+  color: var(--crt-void);
+  font: 1.05rem/1 var(--crt-font);
+  letter-spacing: 0.2em;
+}
+
+.screenshot-help-button:hover,
+.screenshot-help-button:focus-visible {
+  background: linear-gradient(180deg, #b8f5ff 0 4px, #7aeaff 4px calc(100% - 5px), #2aa8cc calc(100% - 5px));
+  outline: none;
+  filter: drop-shadow(0 0 12px rgba(92, 225, 255, 0.6));
+}
+
+/* --- debug panel: type only, the layout is deliberately dense -------------- */
+
+.debug-panel,
+.debug-panel-button,
+.debug-mode-button {
+  font-family: var(--crt-font);
+}
+
+.debug-panel {
+  font-size: 0.82rem;
+}
+
+.debug-panel-button,
+.debug-mode-button {
+  border-radius: 0;
+  font-size: 0.85rem;
+}
+
+/* --- the atlas ------------------------------------------------------------ */
+
+.encyclopedia-page {
+  font-family: var(--crt-font);
+}
+
+.encyclopedia-topbar h1 {
+  font-family: var(--crt-font);
+  letter-spacing: 0.1em;
+  text-shadow: -2px 1px 0 var(--crt-bio), 2px -1px 0 rgba(92, 225, 255, 0.8), 0 0 18px rgba(92, 225, 255, 0.25);
+}
+
+.encyclopedia-topbar p,
+.encyclopedia-panel-kicker,
+.encyclopedia-list-heading span,
+.encyclopedia-stat-grid span,
+.atlas-quick-card-grid span,
+.atlas-table-section h3,
+.encyclopedia-note-block strong,
+.encyclopedia-stage-label {
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  letter-spacing: 0.22em;
+  text-shadow: 0 0 8px rgba(92, 225, 255, 0.3);
+}
+
+.encyclopedia-species-list,
+.encyclopedia-info-panel,
+.atlas-quick-card-grid div,
+.encyclopedia-note-block,
+.encyclopedia-stat-grid div,
+.iucn-status-card,
+.atlas-pose-editor {
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 0 0 2px var(--crt-void), 0 0 0 3px var(--crt-rule);
+}
+
+.encyclopedia-species-row,
+.encyclopedia-close,
+.atlas-version-label,
+.encyclopedia-model-stage,
+.encyclopedia-species-thumb {
+  border-radius: 0;
+}
+
+.encyclopedia-species-row.is-selected {
+  box-shadow: inset 0 0 0 2px var(--crt-lumen);
+}
+
+.encyclopedia-info-panel h2 {
+  font-family: var(--crt-font);
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 14px rgba(92, 225, 255, 0.28);
+}
+
+/* Species thumbs and the human-scale silhouettes are the only raster surfaces
+   in the UI. Pixelating them stops the atlas from splitting into two visual
+   languages now that everything around them is hard-edged. */
+.encyclopedia-species-thumb img,
+.atlas-human-scale img {
+  image-rendering: pixelated;
+}

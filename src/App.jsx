@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
+import LandingGate from './components/LandingGate'
 import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { pruneFishRuntime } from './components/fishRuntimeStore'
@@ -54,6 +55,7 @@ export default function App() {
   const [screenshotMode, setScreenshotMode] = useState(false)
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
+  const [landingOpen, setLandingOpen] = useState(true)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
   const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
   const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
@@ -387,8 +389,16 @@ export default function App() {
     setEncyclopediaOpen(true)
   }
 
+  // Dismissing the gate is a guaranteed user gesture, which is also the most
+  // reliable moment to satisfy the Web Audio autoplay gate.
+  const leaveLandingGate = () => {
+    setLandingOpen(false)
+    if (!audioMuted && !audioStarted) startAudio()
+  }
+
   const activeTank = TANKS.find(t => t.id === activeTankId) ?? TANKS[0]
   const activeBiome = BIOME_BY_ID.get(activeTank?.biome)
+  const tankSpeciesCount = new Set(creatureData.creatures.map(creature => creature.species)).size
 
   const selectTank = (tankId) => {
     if (tankId === activeTankId) return
@@ -405,6 +415,16 @@ export default function App() {
   return (
     <>
       {page}
+      {landingOpen && !screenshotMode && (
+        <LandingGate
+          tankName={activeTank?.name ?? 'the open sea'}
+          speciesCount={tankSpeciesCount}
+          onEnter={leaveLandingGate}
+        />
+      )}
+      {/* Screenshot mode is the one place the tube effect has to go: captures are
+          meant to show the scene, not the interface it is framed by. */}
+      {!screenshotMode && <div className="crt-screen" aria-hidden="true" />}
       {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
         <div className="tank-switcher-dock">
           {(activeTank?.description || activeTank?.tagline) && (

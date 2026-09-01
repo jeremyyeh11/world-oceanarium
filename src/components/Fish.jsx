@@ -3713,11 +3713,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 // is never drawn — while the _static_parts models that *are* drawn were left to
 // load lazily on first sighting. Exactly backwards.
 //
-// mahi-mahi_male.glb is deliberately absent. It is still species.js's base
-// model.path, but resolveModel only falls back to it when a creature's sex
-// matches no sexVariant, and both mahi variants now define one. It therefore
-// never loads in practice, so preloading it would cost 4.76 MB for a fallback
-// that does not fire — and if it ever does, a lazy fetch is the right cost.
+// Every model species.js can resolve for the mahi is now covered: its base
+// model.path points at the male static mesh too, so the rigged mahi-mahi_male.glb
+// is gone entirely rather than sitting unreferenced.
+//
+// isurus-oxyrinchus_static_parts.glb is left out on purpose — one mako exists, so
+// a lazy fetch on first sighting is cheaper than 3.10 MB on every load.
 useGLTF.preload('/models/fish/sardine/sardine_static.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
 useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb')

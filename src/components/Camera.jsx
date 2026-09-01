@@ -150,7 +150,9 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
       const focusBone = resolveFocusBone(focusTarget, focusCenterBoneName)
       if (focusBone) focusBone.getWorldPosition(focusPosition)
       else if (focusMeshOrigin) focusTarget.getWorldPosition(focusPosition)
-      reportFocusBoneMissing(focusCenterBoneName && !focusBone ? focusCenterBoneName : null)
+      // An explicitly root-aimed static asset intentionally has no legacy follow bone.
+      // Keep diagnostics for every other broken/misnamed rigged-model target.
+      reportFocusBoneMissing(focusCenterBoneName && !focusBone && !focusMeshOrigin ? focusCenterBoneName : null)
 
       focusPosition.y = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)
 

@@ -150,7 +150,9 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const renderLoad = summarizeRenderLoad(creatures, biome?.id)
   const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isMolaCreature(selectedCreature)
   const selectedModel = selectedCreature ? resolveSpecies(selectedCreature)?.model ?? null : null
-  const followMeshOrigin = Boolean(selectedModel?.proceduralAnimation)
+  // Static assets declare root aim explicitly. `proceduralAnimation` can also describe a
+  // future rigged procedural model, whose valid follow bone must continue to win.
+  const followMeshOrigin = selectedModel?.followAim === 'root'
 
   const queueDebugSunBask = () => {
     if (!canQueueDebugSunBask) return
@@ -670,7 +672,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           <Camera
             biome={biome.id}
             focusTarget={focusedFishRef?.current ?? null}
-            focusCenterBoneName={followMeshOrigin ? null : selectedModel?.followBone ?? null}
+            focusCenterBoneName={selectedModel?.followBone ?? null}
             focusMeshOrigin={followMeshOrigin}
             followOrbit={followOrbit}
             followDistance={followDistance}

@@ -20,6 +20,7 @@ body {
 .debug-mobile-version {
   color: var(--crt-drift-dim);
   font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
   font-size: 0.79rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -167,8 +168,9 @@ body {
   margin: 0 0 0.4rem;
   color: var(--crt-lumen);
   font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
@@ -257,6 +259,7 @@ body {
   color: var(--crt-drift-dim);
   font-size: 0.66rem;
   font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
 }
@@ -282,6 +285,7 @@ body {
   border-top: 1px solid rgba(23, 70, 107, 0.9);
   color: var(--crt-drift-dim);
   font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
   font-size: 0.73rem;
   line-height: 1.45;
   letter-spacing: 0.02em;
@@ -497,6 +501,7 @@ body {
 .debug-panel {
   font-size: 0.77rem;
   font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
 }
 
 .debug-panel-button,
@@ -504,6 +509,7 @@ body {
   border-radius: 0;
   font-size: 0.79rem;
   font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
 }
 
 /* --- the atlas ------------------------------------------------------------ */
@@ -604,7 +610,8 @@ body {
   color: var(--crt-lumen);
   font-size: 0.75rem;
   font-family: var(--crt-font-tiny);
-  font-weight: 600;
+  font-synthesis-weight: none;
+  font-weight: 400;
   letter-spacing: 0.18em;
   text-shadow: 0 0 8px rgba(127, 220, 242, 0.3);
 }
@@ -633,6 +640,7 @@ body {
   color: var(--crt-drift-dim);
   font-size: 0.64rem;
   font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
   letter-spacing: 0.12em;
 }
 
@@ -648,12 +656,14 @@ body {
     color: var(--crt-lumen) !important;
     font-size: 0.68rem !important;
     font-family: var(--crt-font-tiny);
+    font-synthesis-weight: none;
   }
 
   .tank-viewport.is-following-fish .focus-hint-controls {
     color: var(--crt-drift-dim) !important;
     font-size: 0.57rem !important;
     font-family: var(--crt-font-tiny);
+    font-synthesis-weight: none;
   }
 }
 

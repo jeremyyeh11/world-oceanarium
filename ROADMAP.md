@@ -51,6 +51,7 @@ Review gates:
 - [x] Screenshot mode still captures the scene free of interface framing (verified: the tube film, tank dock, top controls and version footnote all clear on entry and restore on exit).
 - [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
 - [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
+- [x] Removed synthetic bold from small type: Jersey 15 is weight-400-only, so `font-weight: 600` was smearing glyphs shut rather than selecting a bold face (`v0.15.2-dev_1`).
 - [x] Small-type face chosen: **Jersey 15**, on `feat/jersey-small-type` (`v0.15.1-dev_2`). Picked by rasterising confusable glyph pairs at 10px and diffing pixels; beat Silkscreen, which was the expected winner. Sizes nudged +10% to compensate for its shorter cap height.
 - [x] `HUMAN_SCALE_METERS` back to the better-sourced `1.65`; Jersey 15's 5/S overlap measured 53% at the deployed size against Pixelify's 75%.
 - [x] IUCN conservation codes raised from ~7.4px to 9.1px on mobile (and 9.9px to 11.2px on desktop).

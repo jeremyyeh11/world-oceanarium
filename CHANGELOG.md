@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.2 — Synthetic bold fix
+
+Status: accepted and promoted as clean `v0.15.2` from `v0.15.2-dev_1` after Jeremy's review.
+
+### Typography
+
+- Removes the `font-weight: 600` (and one `500`) left on eleven small-type sites after `v0.15.1` moved them to Jersey 15. Jersey 15 ships **weight 400 only**, so those declarations were not selecting a bold face — the browser was synthesising one by smearing the glyph in place. Measured at the rendered 12.96px, the `6` went from 25 ink pixels at weight 400 to 38 at 600 with **no change in advance width**, which is the signature of faux bold; on a pixel font whose `6` has a one-pixel counter, that smear closes the hole and the digit reads as an `8` or a `0`. The weights were correct when Pixelify Sans, which has real 400–700, occupied those sites.
+- Adds `font-synthesis-weight: none` alongside every `--crt-font-tiny` declaration, so reintroducing a weight there fails visibly rather than silently filling the counters again.
+- No hierarchy is lost: every affected pair was already separated by colour and size, with weight adding nothing a real face was providing.
+
 ## v0.15.1 — Small type and Atlas cleanup
 
 Status: accepted and promoted as clean `v0.15.1` from `v0.15.1-dev_3`.

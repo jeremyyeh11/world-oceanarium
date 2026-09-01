@@ -64,6 +64,7 @@ export default function App() {
   const debugTapTimer = useRef(null)
   const screenshotExitHold = useRef(null)
   const topControlsRef = useRef(null)
+  const tankListRef = useRef(null)
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
@@ -112,6 +113,15 @@ export default function App() {
   useEffect(() => {
     if (screen !== 'tank' || screenshotMode) setTopMenuOpen(false)
   }, [screen, screenshotMode])
+
+  // The tank list scrolls once it outgrows its max height, so the active entry
+  // has to be pulled into view — otherwise selecting a tank deep in the list and
+  // returning later leaves the selection invisible. 'nearest' keeps it from
+  // yanking the list when the entry is already on screen.
+  useEffect(() => {
+    const activeRow = tankListRef.current?.querySelector('.tank-switch-button.is-active')
+    activeRow?.scrollIntoView({ block: 'nearest' })
+  }, [activeTankId])
 
   useEffect(() => {
     if (screenshotMode) setEncyclopediaOpen(false)
@@ -423,21 +433,25 @@ export default function App() {
       {!screenshotMode && <div className="crt-screen" aria-hidden="true" />}
       {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
         <div className="tank-switcher-dock">
-          {(activeTank?.description || activeTank?.tagline) && (
-            <p className="tank-switcher-description">{activeTank.description ?? activeTank.tagline}</p>
-          )}
-          <div className="tank-switcher">
-            {TANKS.map(tank => (
-              <button
-                key={tank.id}
-                type="button"
-                className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
-                aria-pressed={tank.id === activeTankId}
-                onClick={() => selectTank(tank.id)}
-              >
-                {tank.name}
-              </button>
-            ))}
+          <div className="tank-switcher" role="group" aria-label="Tank selection">
+            <p className="tank-switcher-heading">Tanks</p>
+            <div className="tank-switcher-list" ref={tankListRef}>
+              {TANKS.map((tank, index) => (
+                <button
+                  key={tank.id}
+                  type="button"
+                  className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
+                  aria-pressed={tank.id === activeTankId}
+                  onClick={() => selectTank(tank.id)}
+                >
+                  <span className="tank-switch-index">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="tank-switch-name">{tank.name}</span>
+                </button>
+              ))}
+            </div>
+            {(activeTank?.description || activeTank?.tagline) && (
+              <p className="tank-switcher-description">{activeTank.description ?? activeTank.tagline}</p>
+            )}
           </div>
         </div>
       )}

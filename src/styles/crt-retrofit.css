@@ -123,47 +123,179 @@ body {
   text-transform: uppercase;
 }
 
-/* --- tank switcher -------------------------------------------------------- */
+/* --- tank index: bottom-left vertical rail -------------------------------- */
+
+/* Moved off the bottom centre and rebuilt as a vertical list, for two reasons.
+   It now speaks the same language as the atlas species index — chamfered panel,
+   numbered rows, illuminated left rail for the selection — and vertical is the
+   axis with room to grow: the old horizontal row clipped off *both* screen
+   edges at five tanks on a 375px phone, and because html/body set
+   overflow:hidden those tanks were unreachable, not merely off-screen.
+
+   Bottom-left also balances the focus card, which is anchored bottom-right. */
+.tank-switcher-dock {
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: max(1.4rem, env(safe-area-inset-bottom));
+  align-items: flex-start;
+  gap: 0;
+  transform: none;
+}
 
 .tank-switcher {
-  gap: 0.3rem;
+  flex-direction: column;
+  gap: 0;
+  width: min(15rem, 60vw);
+  padding: 0.55rem;
+  clip-path: var(--crt-chamfer);
   border: 0;
   border-radius: 0;
   background:
     var(--crt-scanlines-soft),
-    linear-gradient(180deg, var(--crt-hull-lit) 0 3px, rgba(6, 26, 44, 0.9) 3px);
-  box-shadow: 0 0 0 1px var(--crt-rule), 0 10px 30px rgba(2, 6, 13, 0.4);
+    linear-gradient(180deg, rgba(13, 48, 80, 0.6) 0 3px, rgba(4, 16, 28, 0.82) 3px);
+  box-shadow: none;
+  outline: 1px solid rgba(23, 70, 107, 0.9);
+  outline-offset: -1px;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
+/* Bracket tag, matching the atlas section headings. */
+.tank-switcher-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.4rem;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.tank-switcher-heading::before {
+  content: '-';
+  opacity: 0.75;
+}
+
+.tank-switcher-heading::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(127, 220, 242, 0.3), transparent);
+}
+
+/* The scroll cap is what makes this scale: past ~7 entries the list scrolls
+   inside the panel instead of growing until it runs off the top of the screen. */
+.tank-switcher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  max-height: min(38vh, 16rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 220, 242, 0.3) transparent;
+  overscroll-behavior: contain;
+}
+
+.tank-switcher-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.tank-switcher-list::-webkit-scrollbar-thumb {
+  background: rgba(127, 220, 242, 0.3);
+}
+
 .tank-switch-button {
-  padding: 0.4rem 0.95rem 0.28rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.35rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.34rem 0.4rem 0.3rem 0.6rem;
   border-radius: 0;
+  background: transparent;
   color: var(--crt-drift);
   font-family: var(--crt-font);
   font-size: 0.76rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
+  text-align: left;
   transition: color 160ms ease, background 160ms ease;
 }
 
+/* Selection reads as an illuminated rail rather than a filled pill — the same
+   move as the atlas list, and it keeps a long list from becoming a colour block. */
+.tank-switch-button::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
 .tank-switch-button:hover {
+  background: rgba(127, 220, 242, 0.06);
   color: var(--crt-lumen);
-  text-shadow: 0 0 8px rgba(127, 220, 242, 0.35);
 }
 
 .tank-switch-button.is-active {
-  background: var(--crt-lumen);
-  color: var(--crt-void);
+  background: rgba(127, 220, 242, 0.1);
+  color: var(--crt-foam);
   text-shadow: none;
 }
 
-.tank-switcher-description {
-  color: var(--crt-drift);
-  font-family: var(--crt-font);
-  font-size: 0.78rem;
+.tank-switch-button.is-active::before {
+  background: var(--crt-lumen);
+  box-shadow: 0 0 10px var(--crt-lumen);
+}
+
+.tank-switch-index {
+  color: var(--crt-drift-dim);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
-  text-shadow: 0 0 10px rgba(2, 12, 26, 0.9);
+}
+
+.tank-switch-button.is-active .tank-switch-index {
+  color: var(--crt-lumen);
+}
+
+.tank-switch-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* Now sits inside the panel under a hairline, so the tank and its blurb read as
+   one module instead of a caption floating above a separate control. */
+.tank-switcher-description {
+  width: auto;
+  max-width: none;
+  margin: 0.45rem 0 0;
+  padding-top: 0.42rem;
+  border-top: 1px solid rgba(23, 70, 107, 0.9);
+  color: var(--crt-drift-dim);
+  font-family: var(--crt-font);
+  font-size: 0.66rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  text-align: left;
+  text-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .tank-switcher {
+    width: min(13.5rem, 58vw);
+  }
+
+  .tank-switcher-list {
+    max-height: min(32vh, 12rem);
+  }
 }
 
 /* --- screenshot help ------------------------------------------------------ */

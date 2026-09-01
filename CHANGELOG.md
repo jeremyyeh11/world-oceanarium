@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.15.0 — CRT/pixel interface (in development)
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_4`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_5`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 
@@ -26,6 +26,12 @@ Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_4`. N
 - Species selection reads as an illuminated left rail rather than a filled row, so a dense list does not turn into a block of colour. Quick facts regroup from three separate cards into one hairline-divided readout strip.
 - No information is dropped in the process: the same status bar, quick facts, description, and all ten data rows across Social/Averages/Lifecycle still render. The description gains a `-BIOLOGY-` heading so it matches the other sections instead of floating unlabelled.
 - Added as `src/styles/atlas-dex.css`, imported last and quarantined the same way as the CRT retrofit.
+
+### Tank switcher
+
+- `v0.15.0-dev_5` moves the tank switcher from the bottom centre to the bottom left and rebuilds it as a vertical index. It now speaks the same language as the Atlas species list — chamfered panel, `-TANKS-` bracket heading, two-digit row numbers, and an illuminated left rail for the selection instead of a filled pill — and it balances the focus card, which is anchored bottom right.
+- This also fixes a scaling failure measured on the old horizontal row. At 375px it clipped off *both* screen edges from five tanks onward, and because `html`/`body`/`#root` all set `overflow: hidden`, those tanks were unreachable rather than merely off-screen; four tanks already squeezed the labels to min-content. The vertical list stays fully on screen at every count tested from 2 to 12, capping its height at `min(38vh, 16rem)` and scrolling internally past roughly seven entries. The active row is pulled into view on selection so it cannot be left scrolled out of sight.
+- The tank description moves inside the panel beneath a hairline, so the tank and its blurb read as one module rather than a caption floating above a separate control.
 
 ### Interface / visual language
 

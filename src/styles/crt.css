@@ -60,6 +60,13 @@
     transparent 3px
   );
 
+  /* Corners cut on one diagonal (top-left / bottom-right) — the angular cut the
+     dex panels use. Shared so the atlas and the tank index agree on the shape. */
+  --crt-chamfer: polygon(
+    12px 0, 100% 0, 100% calc(100% - 12px),
+    calc(100% - 12px) 100%, 0 100%, 0 12px
+  );
+
   /* Notched 8px corners — the "pixel bevel" that replaces border-radius. */
   --crt-notch: polygon(
     0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0,

@@ -703,10 +703,11 @@ export const SPECIES = [
         // COLOR_1, exposed by Three as color_1: R dorsal, G anal, B clavus, RGB-grey pectorals.
         maskAttribute: 'color_1',
         waveSpeed: 0.92,
-        // Dorsal/anal masks bend together around scene-local Y (export local Z):
-        // a broad sideways scull,
-        // not a tail-fish fore/aft compression stroke.
-        finYawRadians: 0.46,
+        // Both fins rotate around the forward raw-X axis from their individual
+        // mask-derived roots, so their tips trace arcs instead of translating.
+        finRotationRadians: 0.46,
+        dorsalRootYZ: [0, -0.08716],
+        analRootYZ: [0, 0.14121],
         pectoralAmplitude: 0.014,
         clavusAmplitude: 0.016,
         turnStrength: 0.012,

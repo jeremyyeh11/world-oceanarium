@@ -1196,7 +1196,9 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     speed: { value: 0 },
     turn: { value: 0 },
     burst: { value: 0 },
-    finYawRadians: { value: proceduralVertex.finYawRadians ?? 0.46 },
+    finRotationRadians: { value: proceduralVertex.finRotationRadians ?? 0.46 },
+    dorsalRootYZ: { value: new THREE.Vector2(...(proceduralVertex.dorsalRootYZ ?? [0, -0.08716])) },
+    analRootYZ: { value: new THREE.Vector2(...(proceduralVertex.analRootYZ ?? [0, 0.14121])) },
     pectoralAmplitude: { value: proceduralVertex.pectoralAmplitude ?? 0.014 },
     clavusAmplitude: { value: proceduralVertex.clavusAmplitude ?? 0.016 },
     turnStrength: { value: proceduralVertex.turnStrength ?? 0.012 },
@@ -1231,7 +1233,9 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaSpeed = molaMaskUniforms.speed
       shader.uniforms.uMolaTurn = molaMaskUniforms.turn
       shader.uniforms.uMolaBurst = molaMaskUniforms.burst
-      shader.uniforms.uMolaFinYawRadians = molaMaskUniforms.finYawRadians
+      shader.uniforms.uMolaFinRotationRadians = molaMaskUniforms.finRotationRadians
+      shader.uniforms.uMolaDorsalRootYZ = molaMaskUniforms.dorsalRootYZ
+      shader.uniforms.uMolaAnalRootYZ = molaMaskUniforms.analRootYZ
       shader.uniforms.uMolaPectoralAmplitude = molaMaskUniforms.pectoralAmplitude
       shader.uniforms.uMolaClavusAmplitude = molaMaskUniforms.clavusAmplitude
       shader.uniforms.uMolaTurnStrength = molaMaskUniforms.turnStrength
@@ -1298,7 +1302,9 @@ uniform float uMolaPhase;
 uniform float uMolaSpeed;
 uniform float uMolaTurn;
 uniform float uMolaBurst;
-uniform float uMolaFinYawRadians;
+uniform float uMolaFinRotationRadians;
+uniform vec2 uMolaDorsalRootYZ;
+uniform vec2 uMolaAnalRootYZ;
 uniform float uMolaPectoralAmplitude;
 uniform float uMolaClavusAmplitude;
 uniform float uMolaTurnStrength;
@@ -1313,19 +1319,24 @@ void proceduralMolaMotion(inout vec3 value) {
   float clavus = max(0.0, mask.b - pectoral);
   float speedStroke = mix(0.42, 1.0, uMolaSpeed);
   float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
-  float finYaw = sin(uMolaPhase) * uMolaFinYawRadians * speedStroke * burstStroke;
-  // The export's raw Z axis becomes the scene-local vertical Y after its model
-  // transform. Rotate in raw X/Y around that Z axis so dorsal and anal bend
-  // sideways around their vertical roots, rather than pitching up/down.
-  // Their painted ramps turn the body attachment into a soft hinge rather than
-  // compressing the fins up/down along the swim axis.
-  float finAngle = (dorsal + anal) * finYaw;
-  float finCos = cos(finAngle);
-  float finSin = sin(finAngle);
-  float finX = value.x;
-  float finY = value.y;
-  value.x = finX * finCos - finY * finSin;
-  value.y = finX * finSin + finY * finCos;
+  float finRotation = sin(uMolaPhase) * uMolaFinRotationRadians * speedStroke * burstStroke;
+  // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about
+  // its own painted attachment root, creating a real tip arc instead of a
+  // side-to-side translation. The low-value mask ramp keeps the root anchored.
+  float dorsalAngle = dorsal * finRotation;
+  float dorsalCos = cos(dorsalAngle);
+  float dorsalSin = sin(dorsalAngle);
+  float dorsalY = value.y - uMolaDorsalRootYZ.x;
+  float dorsalZ = value.z - uMolaDorsalRootYZ.y;
+  value.y = uMolaDorsalRootYZ.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
+  value.z = uMolaDorsalRootYZ.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
+  float analAngle = anal * finRotation;
+  float analCos = cos(analAngle);
+  float analSin = sin(analAngle);
+  float analY = value.y - uMolaAnalRootYZ.x;
+  float analZ = value.z - uMolaAnalRootYZ.y;
+  value.y = uMolaAnalRootYZ.x + analY * analCos - analZ * analSin;
+  value.z = uMolaAnalRootYZ.y + analY * analSin + analZ * analCos;
   float side = value.x < 0.0 ? -1.0 : 1.0;
   float pectoralStroke = sin(uMolaPhase * 0.82 + side * 0.72) * uMolaPectoralAmplitude * speedStroke;
   value.z += pectoral * pectoralStroke;

@@ -15,7 +15,7 @@ Status labels:
 
 ### CRT/pixel interface
 
-Status: `Archive candidate`
+Status: `Archive candidate` — shipped clean as `v0.15.0`; follow-ups closed in `v0.15.1`.
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
@@ -52,8 +52,8 @@ Review gates:
 - [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
 - [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
 - [x] Small-type face chosen: **Jersey 15**, on `feat/jersey-small-type` (`v0.15.1-dev_2`). Picked by rasterising confusable glyph pairs at 10px and diffing pixels; beat Silkscreen, which was the expected winner. Sizes nudged +10% to compensate for its shorter cap height.
-- [ ] With Jersey 15 in place, re-test whether `HUMAN_SCALE_METERS` can go back to the better-sourced `1.65` — the rounding to 1.7 was purely a Pixelify Sans legibility workaround.
-- [ ] The IUCN status codes render at ~7.4px on mobile (`font-size: 0.46rem` in an `index.css` media query), the smallest text in the app. Letter-only codes so the digit ambiguity does not apply, but worth a look on device.
+- [x] `HUMAN_SCALE_METERS` back to the better-sourced `1.65`; Jersey 15's 5/S overlap measured 53% at the deployed size against Pixelify's 75%.
+- [x] IUCN conservation codes raised from ~7.4px to 9.1px on mobile (and 9.9px to 11.2px on desktop).
 
 ### Procedural caudal-fish animation
 

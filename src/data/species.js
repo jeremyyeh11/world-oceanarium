@@ -184,11 +184,8 @@ export const SPECIES = [
       exponent: 3,
     },
     model: {
-      path: '/models/fish/sardine/sardine.glb',
+      path: '/models/fish/sardine/sardine_static.glb',
       scale: 0.42,
-      // Bone used as the follow-cam aim point. Names are the in-scene (dot-stripped)
-      // three.js names; falls back to the model bounding-box center if not found.
-      followBone: 'Bone',
       moveset: {
         cruise: 'procedural_cruise',
         drift: 'procedural_drift',
@@ -197,21 +194,20 @@ export const SPECIES = [
         burst: 'procedural_burst',
       },
       proceduralAnimation: {
-        bones: ['Bone', 'Bone.001', 'Bone.002', 'Bone.003'],
-        axis: 'x',
-        strength: 0.82,
-        maxAngleDegrees: 18,
+        type: 'caudal-vertex',
+        sourceAxis: 'x',
+        lateralAxis: 'z',
+        tailAtMaxZ: false,
+        amplitude: 0.065,
+        waveSpeed: 5.2,
+        waveTravel: 5.6,
+        flexStart: 0.15,
+        flexFull: 0.82,
+        turnStrength: 0.04,
+        burstAmplitude: 0.9,
         response: 11,
-        tailBias: 1.15,
-        baseWeight: 0.08,
-        chainMultiplier: 1.05,
-        turnIntentScale: 0,
-        burstBoost: 0.72,
-        speedBoost: 0.42,
-        idleSwayDegrees: 7.2,
-        idleSwaySpeed: 4.8,
-        idleSwayPhaseOffset: 1.35,
-        idleSwaySpeedBoost: 0.58,
+        speedFrequencyBoost: 0.5,
+        burstFrequencyBoost: 0.42,
       },
     },
   },
@@ -286,7 +282,10 @@ export const SPECIES = [
       // with the follow-cam centring it, that pitch bob was the only apparent motion and read
       // as the fish hovering in place staring up and down. Cap it to a gentle glide.
       maxVisualPitchDegrees: 6,
-      idleBLPerSec: [0.28, 0.44],
+      // The rendered heading must be the actual forward-moving pair trajectory, not a
+      // faster visual smoothing pass that can make the long body pivot on its own.
+      visualHeadingFollowsMotion: true,
+      idleBLPerSec: [0.35, 0.55],
       idleDriftBLPerSec: [0.05, 0.10],
       snapBLPerSec: [0.52, 0.76],
       burstBLPerSec: [1.05, 1.35],
@@ -335,25 +334,55 @@ export const SPECIES = [
       path: '/models/fish/mahi-mahi/mahi-mahi_male.glb',
       sexVariants: {
         male: {
-          path: '/models/fish/mahi-mahi/mahi-mahi_male_static.glb',
+          path: '/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb',
           // Static, rig-free asset supplied for the procedural test. Longitudinal
           // influence derives from local Z bounds; no authored mask or skin weight.
           proceduralAnimation: {
             type: 'caudal-vertex',
+            bodyMeshNames: ['mahi-combined'],
+            sourceAxis: 'z',
+            lateralAxis: 'x',
             tailAtMaxZ: true,
-            amplitude: 0.32,
+            amplitude: 0.42,
             waveSpeed: 2.6,
-            waveTravel: 4.4,
-            flexStart: 0.16,
-            flexFull: 0.78,
-            turnStrength: 0.24,
-            burstAmplitude: 0.65,
+            // Mahi is a smaller, fast carangiform swimmer: hold the front firm and
+            // confine the stroke to a compact rear-body C/flick instead of a shark S.
+            waveTravel: 3.5,
+            flexStart: 0.24,
+            flexFull: 0.82,
+            turnStrength: 0.32,
+            burstAmplitude: 0.8,
             response: 7.5,
             speedFrequencyBoost: 0.32,
             burstFrequencyBoost: 0.24,
+            pectoralFinFlutter: 0.13,
+            pelvicFinFlutter: 0.075,
           },
         },
-        female: { path: '/models/fish/mahi-mahi/mahi-mahi_female.glb' },
+        female: {
+          path: '/models/fish/mahi-mahi/mahi-mahi_female_static_parts.glb',
+          proceduralAnimation: {
+            type: 'caudal-vertex',
+            bodyMeshNames: ['mahi-female'],
+            sourceAxis: 'z',
+            lateralAxis: 'x',
+            tailAtMaxZ: true,
+            amplitude: 0.4,
+            waveSpeed: 2.55,
+            // Keep the female's compact tail-led stroke matched to the male, without
+            // giving this smaller pelagic fish the mako's long S silhouette.
+            waveTravel: 3.5,
+            flexStart: 0.24,
+            flexFull: 0.82,
+            turnStrength: 0.3,
+            burstAmplitude: 0.78,
+            response: 7.5,
+            speedFrequencyBoost: 0.32,
+            burstFrequencyBoost: 0.24,
+            pectoralFinFlutter: 0.13,
+            pelvicFinFlutter: 0.075,
+          },
+        },
       },
       // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 1.8 m / 7.2 WU max.
       scale: 0.735,
@@ -460,13 +489,17 @@ export const SPECIES = [
       // steering in Fish.jsx (boundaryAvoidanceTurnStep), so it keeps its wide banking
       // turns in open water and simply carves tighter as it nears a wall.
       visualTimeScale: 0.95,
-      idleBLPerSec: [0.16, 0.24],
-      idleDriftBLPerSec: [0.03, 0.055],
-      snapBLPerSec: [0.24, 0.36],
-      burstBLPerSec: [0.44, 0.66],
+      // The shark's visual nose/heading must stay welded to its turn-capped patrol arc.
+      // Do not visually rotate it ahead of its body translation near walls or on U-turns.
+      visualHeadingFollowsMotion: true,
+      // Mako never settles into a hover/drift beat: it continually patrols forward,
+      // with only a small speed-breathing variation around its 20%-faster cruise.
+      driftEnabled: false,
+      idleBLPerSec: [0.24, 0.36],
+      idleDriftBLPerSec: [0.036, 0.066],
+      snapBLPerSec: [0.288, 0.432],
+      burstBLPerSec: [0.528, 0.792],
       burstInterval: [18.0, 30.0],
-      driftInterval: [18.0, 30.0],
-      driftDuration: [5.0, 8.0],
       burstActionDuration: 4.8,
       turnActionDuration: 3.2,
       turnTriggerThreshold: 0.042,
@@ -508,11 +541,9 @@ export const SPECIES = [
       exponent: 3,
     },
     model: {
-      path: '/models/fish/isurus-oxyrinchus/isurus-oxyrinchus.glb',
+      path: '/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb',
       // Source GLB is ~40.18 units nose-to-tail; scale maps size 1.0 to 4.0 m / 16 WU.
       scale: 0.398,
-      // Head-end spine bone used as the follow-cam aim point.
-      followBone: 'spine001',
       moveset: {
         cruise: 'procedural_cruise',
         drift: 'procedural_drift',
@@ -521,24 +552,27 @@ export const SPECIES = [
         burst: 'procedural_burst',
       },
       proceduralAnimation: {
-        bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006'],
-        axis: 'z',
-        strength: 1.1,
-        maxAngleDegrees: 12,
+        type: 'caudal-vertex',
+        bodyMeshNames: ['shortfinmako003'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        amplitude: 0.82,
+        // Large lamnid power: a strong travelling phase runs from the mid-body into a
+        // counter-curving tail. This exposes a broad S silhouette while the head stays
+        // on intent, rather than making the entire shark undulate like an eel.
+        waveSpeed: 1.86,
+        waveTravel: 7.4,
+        flexStart: 0.18,
+        flexFull: 0.86,
+        turnStrength: 0.58,
+        burstAmplitude: 0.82,
         response: 4.8,
-        tailBias: 0.72,
-        baseWeight: 0.18,
-        chainMultiplier: 1.04,
-        turnIntentScale: 3.6,
-        burstBoost: 0.38,
-        speedBoost: 0.18,
-        accelerationBoost: 0.14,
         speedFrequencyBoost: 0.28,
         burstFrequencyBoost: 0.22,
-        idleSwayDegrees: 3.6,
-        idleSwaySpeed: 2.1,
-        idleSwayPhaseOffset: 1.45,
-        idleSwaySpeedBoost: 0.35,
+        // Pelvic fins are welded into shortfinmako003 in the supplied replacement
+        // GLB, so they ride the same continuous body wave and cannot detach.
+        pectoralFinFlutter: 0.06,
       },
       debugForwardOrigin: 'head',
       // Nose is near +28.02 over the ~40.18 source-length span.
@@ -649,29 +683,48 @@ export const SPECIES = [
     },
     model: {
       path: '/models/fish/mola-alexandrini/mola-alexandrini.glb',
-      // Blender +Z exports as GLB +Y, so this asset's GLB axes are +Y up and +Z forward.
-      // The fish root also uses +Y up and +Z swim-forward, so no extra child rotation is needed.
+      // Jeremy's static GLB retains the established world bounds and +Z swim-forward
+      // orientation, while color_1 encodes dorsal/anal/clavus/pectoral motion masks.
       rotation: [0, 0, 0],
-      // Source body length is ~20.69 model units; scale maps size 1.0 to 3.3 m / 13.2 WU max.
       scale: 0.638,
-      // Mola has no spine chain; 'face' is the front-body bone used as the follow-cam aim point.
-      followBone: 'face',
       moveset: {
-        cruise: 'slow_cruise',
-        drift: 'idle_drift',
-        turnLeft: 'bank_l',
-        turnRight: 'bank_r',
-        burst: 'burst',
-        sunBaskLeft: 'sun_bask_r',
-        sunBaskRight: 'sun_bask_l',
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+        sunBaskLeft: 'procedural_sun_bask_left',
+        sunBaskRight: 'procedural_sun_bask_right',
       },
-      layeredAnimations: true,
-      layeredBaseAnimation: 'slow_cruise',
-      layeredOverlayAnimations: ['idle_drift', 'bank_l', 'bank_r', 'burst', 'sun_bask_l', 'sun_bask_r'],
-      layeredBaseWeight: 0.62,
-      layeredOverlayWeight: 0.72,
-      animationFadeDuration: 0.55,
-      loopAnimations: ['idle_drift', 'slow_cruise', 'sun_bask_l', 'sun_bask_r'],
+      proceduralAnimation: {
+        type: 'mola-mask-vertex',
+        bodyMeshNames: ['10001003'],
+        // COLOR_0 remains white material data. Blender exported the painted mask as
+        // COLOR_1, exposed by Three as color_1: R dorsal, G anal, B clavus, RGB-grey pectorals.
+        maskAttribute: 'color_1',
+        // Very slow, deliberate sculling: let the heavy disc settle between strokes.
+        waveSpeed: 0.46,
+        // Both fins rotate around the forward raw-X axis from their individual
+        // mask-derived roots, so their tips trace arcs instead of translating.
+        finRotationRadians: 0.30,
+        dorsalRootYZ: [0, -0.08716],
+        analRootYZ: [0, 0.14121],
+        // Preserve the artist's uninterrupted soft mask ramp; the shader uses
+        // gentler zero-slope quintic easing at each rigid root. Dorsal/anal de-sync.
+        dorsalPhaseOffset: 0,
+        analPhaseOffset: 1.08,
+        analPhaseRate: 0.91,
+        pectoralAmplitude: 0.014,
+        clavusAmplitude: 0.016,
+        turnStrength: 0.012,
+        burstAmplitude: 0.38,
+        response: 3.2,
+        speedFrequencyBoost: 0.10,
+        burstFrequencyBoost: 0.08,
+        // Only during the existing passive drift state: a subtle, slow settling roll.
+        idleDriftRollRadians: 0.035,
+        idleDriftRollFrequency: 0.18,
+      },
     },
     placeholder: {
       type: 'mola-mola',

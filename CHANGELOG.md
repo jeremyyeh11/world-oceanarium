@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.3-dev_5 — Static procedural fish review
+
+Status: `v0.15.3-dev_5` review build on `feat/static-procedural-fish-models`; rebased onto current `main`, not promoted or merged.
+
+### Creature motion
+
+- Uses Jeremy's static, rig-free runtime assets for Sardinella, both Mahi-mahi variants, Shortfin Mako, and Giant Sunfish. Caudal species receive GPU body deformation; the Mola keeps a rigid disc body and mask-driven appendage motion.
+- The Giant Sunfish’s dorsal/anal fins rotate from independent painted attachment pivots, use the refined low-value `COLOR_1` root gradients with continuous quintic easing, and row at a deliberately slow cadence. Its passive drift may settle through a tiny roll; its behavior-owned sun bask remains separate.
+- The static-asset contract requires expected mesh topology and `color_1` for Mola, while rejecting clips, bones, and skinning.
+
 ## v0.15.2 — Synthetic bold fix
 
 Status: accepted and promoted as clean `v0.15.2` from `v0.15.2-dev_1` after Jeremy's review.

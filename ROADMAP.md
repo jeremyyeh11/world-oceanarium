@@ -13,6 +13,26 @@ Status labels:
 
 ## Current work
 
+### Static procedural fish runtime assets
+
+Status: `Blocked / waiting review`
+
+Reference:
+- Branch: `feat/static-procedural-fish-models`; review build: `v0.15.3-dev_5`, rebased onto current `main` for final checks.
+- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
+
+Subtasks:
+- [x] Move supplied static Sardinella, Mahi, Mako, and Mola GLBs onto the procedural runtime path.
+- [x] Keep Mola’s heavy disc body stable while dorsal/anal fins use soft painted-root, independent rotational strokes.
+- [x] Replace Mola’s mask export with Jeremy’s finer attachment gradient; slow fin cadence and add only a subtle passive-drift roll.
+- [x] Rebase this review branch onto current `main` before final merge checks.
+- [ ] Await explicit clean-release / merge approval after final checks.
+
+Review gates:
+- [x] Static asset contracts reject clips, bones, and skinning; Mola requires `color_1`.
+- [x] Jeremy accepted the current Mola fin feel in `v0.14.0-dev_20` before this mainline rebase.
+- [ ] Final post-rebase technical and deployment checks pass.
+
 ### CRT/pixel interface
 
 Status: `Archive candidate` — shipped clean as `v0.15.0`; follow-ups closed in `v0.15.1`.

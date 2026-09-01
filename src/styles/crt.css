@@ -245,9 +245,25 @@
     radial-gradient(ellipse at 50% 45%, transparent 62%, rgba(2, 6, 13, 0.42) 100%),
     var(--crt-scanlines);
   opacity: 0.3;
-  mix-blend-mode: multiply;
   pointer-events: none;
 }
+
+/* Deliberately NOT mix-blend-mode: multiply.
+   This layer is fixed, full-viewport and sits above everything, so blending it
+   forces the compositor to re-blend the entire screen against its backdrop every
+   frame — and that backdrop contains the tank canvas, which repaints constantly.
+   It also stops the canvas being handed to the compositor as its own layer.
+
+   Dropping it is close to free here because the film is essentially black:
+   flattened, its source is rgb(5.9, 12.1, 18.0) at alpha 0.150. For a black
+   source, multiply and normal blending are identical (b x 0 == 0), and the
+   error grows only with how far the source sits from black. Worst case across
+   the scene palette is 2.7/255 on a single channel, in the deepest blacks —
+   about 1%, and 0.00 against white UI text.
+
+   The two tank overlays are NOT convertible this way and keep their blend
+   modes: .tank-depth-absorption would shift 16.2/255 and .tank-top-exposure
+   18.4/255, because both carry real colour rather than near-black. */
 
 /* A slow brightness breathe — a real tube never holds a perfectly steady level.
    Eased rather than stepped now: the stepped

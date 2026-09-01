@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.15.3-dev_5 — Static procedural fish review
+## v0.15.3 — Static procedural fish runtime assets
 
-Status: `v0.15.3-dev_5` review build on `feat/static-procedural-fish-models`; rebased onto current `main`, not promoted or merged.
+Status: accepted and promoted as clean `v0.15.3` from `v0.15.3-dev_5` after Jeremy's review.
 
 ### Creature motion
 

@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: clean `v0.14.0` established the procedural caudal runtime; `v0.15.3-dev_5` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, a pelvic-fin-welded Mako export, and a mask-driven Giant Sunfish with soft-root asymmetric fin arcs on `feat/static-procedural-fish-models`. This review build is rebased onto current `main` and remains unmerged.
+Status: clean `v0.14.0` established the procedural caudal runtime; clean `v0.15.3` ships Jeremy's static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, a pelvic-fin-welded Mako export, and a mask-driven Giant Sunfish with soft-root asymmetric fin arcs.
 
 ## Scope
 

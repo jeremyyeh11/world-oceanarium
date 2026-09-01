@@ -1158,26 +1158,110 @@ function depthFadeFromScreenZ(z) {
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
 }
 
-function applyFishLightMask(material, rim = null) {
-  if (!FISH_LIGHT_MASK_ENABLED && !rim) return
+function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
+  if (!FISH_LIGHT_MASK_ENABLED && !rim && !proceduralVertex) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
   const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
   const maskUniforms = { uTime: { value: 0 } }
+  const proceduralBounds = geometry?.boundingBox
+  const proceduralUniforms = proceduralVertex && proceduralBounds ? {
+    phase: { value: 0 },
+    speed: { value: 0 },
+    turn: { value: 0 },
+    burst: { value: 0 },
+    minZ: { value: proceduralBounds.min.z },
+    maxZ: { value: proceduralBounds.max.z },
+    tailAtMaxZ: { value: proceduralVertex.tailAtMaxZ ? 1 : 0 },
+    amplitude: { value: proceduralVertex.amplitude ?? 0.16 },
+    waveTravel: { value: proceduralVertex.waveTravel ?? 5.2 },
+    flexStart: { value: proceduralVertex.flexStart ?? 0.18 },
+    flexFull: { value: proceduralVertex.flexFull ?? 0.82 },
+    turnStrength: { value: proceduralVertex.turnStrength ?? 0.22 },
+    burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.55 },
+  } : null
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
     shader.uniforms.uRimColor = { value: rimColor }
     shader.uniforms.uRimIntensity = { value: rimIntensity }
     shader.uniforms.uRimPower = { value: rimPower }
+    if (proceduralUniforms) {
+      shader.uniforms.uProceduralPhase = proceduralUniforms.phase
+      shader.uniforms.uProceduralSpeed = proceduralUniforms.speed
+      shader.uniforms.uProceduralTurn = proceduralUniforms.turn
+      shader.uniforms.uProceduralBurst = proceduralUniforms.burst
+      shader.uniforms.uProceduralMinZ = proceduralUniforms.minZ
+      shader.uniforms.uProceduralMaxZ = proceduralUniforms.maxZ
+      shader.uniforms.uProceduralTailAtMaxZ = proceduralUniforms.tailAtMaxZ
+      shader.uniforms.uProceduralAmplitude = proceduralUniforms.amplitude
+      shader.uniforms.uProceduralWaveTravel = proceduralUniforms.waveTravel
+      shader.uniforms.uProceduralFlexStart = proceduralUniforms.flexStart
+      shader.uniforms.uProceduralFlexFull = proceduralUniforms.flexFull
+      shader.uniforms.uProceduralTurnStrength = proceduralUniforms.turnStrength
+      shader.uniforms.uProceduralBurstAmplitude = proceduralUniforms.burstAmplitude
+    }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vFishWorldPosition;`
+varying vec3 vFishWorldPosition;
+${proceduralUniforms ? `uniform float uProceduralPhase;
+uniform float uProceduralSpeed;
+uniform float uProceduralTurn;
+uniform float uProceduralBurst;
+uniform float uProceduralMinZ;
+uniform float uProceduralMaxZ;
+uniform float uProceduralTailAtMaxZ;
+uniform float uProceduralAmplitude;
+uniform float uProceduralWaveTravel;
+uniform float uProceduralFlexStart;
+uniform float uProceduralFlexFull;
+uniform float uProceduralTurnStrength;
+uniform float uProceduralBurstAmplitude;
+void proceduralFishCurve(float sourceZ, out float lateralOffset, out float lateralSlope) {
+  float bodyLength = max(0.0001, uProceduralMaxZ - uProceduralMinZ);
+  float tail01FromMin = (sourceZ - uProceduralMinZ) / bodyLength;
+  float tail01FromMax = (uProceduralMaxZ - sourceZ) / bodyLength;
+  float tail01 = clamp(mix(tail01FromMax, tail01FromMin, uProceduralTailAtMaxZ), 0.0, 1.0);
+  float flexRange = max(0.0001, uProceduralFlexFull - uProceduralFlexStart);
+  float flexT = clamp((tail01 - uProceduralFlexStart) / flexRange, 0.0, 1.0);
+  float flex = flexT * flexT * (3.0 - 2.0 * flexT);
+  float dTailDz = mix(-1.0, 1.0, uProceduralTailAtMaxZ) / bodyLength;
+  float dFlexDz = (tail01 > uProceduralFlexStart && tail01 < uProceduralFlexFull)
+    ? (6.0 * flexT * (1.0 - flexT) / flexRange) * dTailDz
+    : 0.0;
+  float wavePhase = uProceduralPhase - tail01 * uProceduralWaveTravel;
+  float wave = sin(wavePhase);
+  float dWaveDz = cos(wavePhase) * (-uProceduralWaveTravel * dTailDz);
+  float stroke = uProceduralAmplitude
+    * mix(0.42, 1.0, uProceduralSpeed)
+    * (1.0 + uProceduralBurst * uProceduralBurstAmplitude);
+  lateralOffset = wave * stroke * flex + uProceduralTurn * uProceduralTurnStrength * flex * flex;
+  lateralSlope = stroke * (dWaveDz * flex + wave * dFlexDz)
+    + uProceduralTurn * uProceduralTurnStrength * 2.0 * flex * dFlexDz;
+}` : ''}`
+      )
+    if (proceduralUniforms) {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <beginnormal_vertex>',
+        `#include <beginnormal_vertex>
+float proceduralNormalOffset;
+float proceduralNormalSlope;
+proceduralFishCurve(position.z, proceduralNormalOffset, proceduralNormalSlope);
+objectNormal = normalize(vec3(objectNormal.x, objectNormal.y, objectNormal.z - proceduralNormalSlope * objectNormal.x));`
       )
       .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+float proceduralLateralOffset;
+float proceduralLateralSlope;
+proceduralFishCurve(position.z, proceduralLateralOffset, proceduralLateralSlope);
+transformed.x += proceduralLateralOffset;`
+      )
+    }
+    shader.vertexShader = shader.vertexShader.replace(
         '#include <worldpos_vertex>',
         `#include <worldpos_vertex>
 vec4 fishWorldPosition = vec4(transformed, 1.0);
@@ -1245,12 +1329,13 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`
       )
   }
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralUniforms ? 'caudal-vertex' : 'static'}`
   material.userData.fishLightMaskUniforms = maskUniforms
+  if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -1270,7 +1355,13 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null) {
         nextMaterial.emissive.set(lodDebugColor)
         nextMaterial.emissiveIntensity = 0.32
       }
-      applyFishLightMask(nextMaterial, rim)
+      if (proceduralAnimation?.type === 'caudal-vertex') child.geometry.computeBoundingBox()
+      applyFishLightMask(
+        nextMaterial,
+        rim,
+        proceduralAnimation?.type === 'caudal-vertex' ? proceduralAnimation : null,
+        child.geometry,
+      )
       materials.push(nextMaterial)
       return nextMaterial
     })
@@ -1508,7 +1599,7 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
 }
 
 function collectCurveDeformBones(object, model) {
-  const names = model?.curveDeform?.bones
+  const names = (model?.proceduralAnimation ?? model?.curveDeform)?.bones
   if (!Array.isArray(names) || names.length === 0) return []
   const objectsByNormalizedName = new Map()
   object.traverse(child => {
@@ -1678,13 +1769,20 @@ function BoneDebugOverlay({ object, bones, modelScale = 1, parentScale = 1 }) {
 function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
+  // Procedural species intentionally ignore every authored GLB clip. The rig is
+  // only a deformation lattice: live speed/turn/burst signals drive its neutral
+  // bind pose directly, so future assets need no animation timeline.
+  const animations = useMemo(
+    () => (model?.proceduralAnimation ? [] : layeredAnimationClips(gltf.animations, model)),
+    [gltf.animations, model],
+  )
   const curveDeformBones = useMemo(() => collectCurveDeformBones(object, model), [object, model])
   const debugBones = useMemo(() => collectModelBones(object), [object])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
   const curveDeformTurnRef = useRef(0)
+  const proceduralWaveClockRef = useRef(0)
   const curveDeformQuatRef = useRef(new THREE.Quaternion())
   const curveDeformScratchQuatRef = useRef(new THREE.Quaternion())
   const curveDeformStateRef = useRef({
@@ -1694,8 +1792,8 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   })
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor)
-  }, [object, rim, lodDebugColor])
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation)
+  }, [object, rim, lodDebugColor, model])
 
   useFrame(({ clock }, rawDelta) => {
     const elapsed = clock.getElapsedTime()
@@ -1711,7 +1809,26 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const debugAnimationScale = model?.lockAnimationPlayback ? 1 : simulationSpeed
       activeAction.setEffectiveTimeScale(baseTimeScale * runtimeAnimationScale * debugAnimationScale)
     }
-    const curveConfig = model?.curveDeform
+    const curveConfig = model?.proceduralAnimation ?? model?.curveDeform
+    const proceduralInput = curveDeformInputRef?.current ?? {}
+    if (curveConfig?.type === 'caudal-vertex') {
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 7
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        THREE.MathUtils.clamp(proceduralInput.turn ?? 0, -1, 1),
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 2.3
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * (
+        1
+        + speed01 * (curveConfig.speedFrequencyBoost ?? 0.32)
+        + burst01 * (curveConfig.burstFrequencyBoost ?? 0.24)
+        + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
+      )
+    }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current
       ensureCurveDeformState(curveState, curveDeformBones.length)
@@ -1729,6 +1846,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       )
       const burstBoost = 1 + (Number.isFinite(curveConfig.burstBoost) ? curveConfig.burstBoost : 0) * THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1)
       const speedBoost = 1 + (Number.isFinite(curveConfig.speedBoost) ? curveConfig.speedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      const accelerationBoost = 1 + (Number.isFinite(curveConfig.accelerationBoost) ? curveConfig.accelerationBoost : 0) * Math.max(0, input.accel01 ?? 0)
       // Optionally ease the turn bend back toward straight as actual forward speed drops,
       // so a fish crawling out of a turn straightens its tail before swimming on instead
       // of holding a full sideways bend while barely moving.
@@ -1740,7 +1858,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         )
         : 1
       const baseAngle = THREE.MathUtils.clamp(
-        curveDeformTurnRef.current * strength * burstBoost * speedBoost * speedEase * maxAngle,
+        curveDeformTurnRef.current * strength * burstBoost * speedBoost * accelerationBoost * speedEase * maxAngle,
         -maxAngle,
         maxAngle,
       )
@@ -1752,6 +1870,8 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const idleSwaySpeed = Number.isFinite(curveConfig.idleSwaySpeed) ? Math.max(0.01, curveConfig.idleSwaySpeed) : 1.35
       const idleSwayPhaseOffset = Number.isFinite(curveConfig.idleSwayPhaseOffset) ? curveConfig.idleSwayPhaseOffset : 1.15
       const idleSwaySpeedBoost = 1 + (Number.isFinite(curveConfig.idleSwaySpeedBoost) ? curveConfig.idleSwaySpeedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      const speedFrequencyBoost = Number.isFinite(curveConfig.speedFrequencyBoost) ? curveConfig.speedFrequencyBoost : 0.45
+      const burstFrequencyBoost = Number.isFinite(curveConfig.burstFrequencyBoost) ? curveConfig.burstFrequencyBoost : 0.35
       const tailBias = Number.isFinite(curveConfig.tailBias) ? Math.max(0.1, curveConfig.tailBias) : 1
       const baseWeight = Number.isFinite(curveConfig.baseWeight)
         ? THREE.MathUtils.clamp(curveConfig.baseWeight, 0, 1)
@@ -1759,9 +1879,18 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const chainMultiplier = Number.isFinite(curveConfig.chainMultiplier)
         ? THREE.MathUtils.clamp(curveConfig.chainMultiplier, 0.5, 1.5)
         : 1
-      const phase = elapsed * 1.35 + (input.phase ?? 0)
-      const idleSwayPhase = elapsed * idleSwaySpeed + (input.phase ?? 0)
+      // Integrate frequency into a continuous per-fish clock. Multiplying global
+      // elapsed time by live speed would jump phase whenever speed/burst changes.
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * idleSwaySpeed * (
+        1
+        + THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1) * speedFrequencyBoost
+        + THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1) * burstFrequencyBoost
+        + Math.max(0, input.accel01 ?? 0) * 0.12
+      )
+      const idleSwayPhase = proceduralWaveClockRef.current + (input.phase ?? 0)
+      const phase = idleSwayPhase * 0.62
       const bendAxis = curveDeformAxis(curveConfig)
+      let previousCumulativeAngle = 0
       curveDeformBones.forEach((bone, index) => {
         removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
         const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
@@ -1774,7 +1903,14 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         // idle sway stay additive on top so the tail keeps waving (swimming) through a
         // sustained turn instead of freezing at the clamp.
         const staticBend = THREE.MathUtils.clamp(baseAngle * tailWeight, -maxAngle, maxAngle)
-        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, staticBend + followThrough + idleSway)
+        // Bone rotations accumulate down a hierarchy. Treat each formula result as
+        // desired CUMULATIVE spine curvature, then apply only its delta from the
+        // previous joint. Applying the full angle to every bone folds the tail like
+        // a hinge even when every individual angle looks conservative.
+        const cumulativeAngle = staticBend + followThrough + idleSway
+        const localAngle = cumulativeAngle - previousCumulativeAngle
+        previousCumulativeAngle = cumulativeAngle
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, localAngle)
         bone.quaternion.multiply(curveDeformQuatRef.current)
         curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
         curveState.postAdditiveQuaternions[index].copy(bone.quaternion)
@@ -1784,10 +1920,18 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
     materialsRef.current.forEach(material => {
       const uniforms = material?.userData?.fishLightMaskUniforms
       if (uniforms) uniforms.uTime.value = elapsed
+      const proceduralUniforms = material?.userData?.proceduralFishUniforms
+      if (proceduralUniforms) {
+        proceduralUniforms.phase.value = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
+        proceduralUniforms.speed.value = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+        proceduralUniforms.turn.value = curveDeformTurnRef.current
+        proceduralUniforms.burst.value = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      }
     })
   })
 
   useEffect(() => {
+    if (model?.proceduralAnimation) return
     if (model?.layeredAnimations) {
       playLayeredModelAction(actions, activeActionRef, model, animation, animationVariation)
       return
@@ -1930,6 +2074,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // fish is throttled (e.g. crawling out of a turn), used to ease the curve-deform
   // bend back toward straight before forward swimming resumes.
   const curveDeformSpeedEase = useRef(1)
+  const curveDeformPreviousSpeed = useRef(runtime.velocity)
   const nextBurstAt = useRef(runtime.nextBurstAt)
   const nextDriftAt = useRef(runtime.nextDriftAt)
   const driftUntil = useRef(runtime.driftUntil)
@@ -1946,7 +2091,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
-  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, speedEase01: 1, burst01: 0, phase: 0 })
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
@@ -3107,6 +3252,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
       curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5 + curveDeformTurnIntent.current, -1, 1)
       curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
+      curveDeformInputRef.current.accel01 = THREE.MathUtils.clamp(
+        (velocity.current - curveDeformPreviousSpeed.current) / Math.max(0.001, motion.burstSpeed * delta),
+        -1,
+        1,
+      )
+      curveDeformPreviousSpeed.current = velocity.current
       // Actual forward travel this frame vs the intended cruise rate. Movement is
       // clamped to the follow-target distance, so a fish crawling out of a turn reads
       // slow here even though velocity.current still says "cruise". Curve-deform uses

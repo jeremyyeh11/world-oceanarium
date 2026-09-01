@@ -1314,17 +1314,18 @@ void proceduralMolaMotion(inout vec3 value) {
   float speedStroke = mix(0.42, 1.0, uMolaSpeed);
   float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
   float finYaw = sin(uMolaPhase) * uMolaFinYawRadians * speedStroke * burstStroke;
-  // Dorsal and anal fins scull as one paired local-Y yaw rotation: both lean
-  // toward the same −X/+X extreme, then sweep together through the other side.
+  // The export's raw Z axis becomes the scene-local vertical Y after its model
+  // transform. Rotate in raw X/Y around that Z axis so dorsal and anal bend
+  // sideways around their vertical roots, rather than pitching up/down.
   // Their painted ramps turn the body attachment into a soft hinge rather than
   // compressing the fins up/down along the swim axis.
   float finAngle = (dorsal + anal) * finYaw;
   float finCos = cos(finAngle);
   float finSin = sin(finAngle);
   float finX = value.x;
-  float finZ = value.z;
-  value.x = finX * finCos - finZ * finSin;
-  value.z = finX * finSin + finZ * finCos;
+  float finY = value.y;
+  value.x = finX * finCos - finY * finSin;
+  value.y = finX * finSin + finY * finCos;
   float side = value.x < 0.0 ? -1.0 : 1.0;
   float pectoralStroke = sin(uMolaPhase * 0.82 + side * 0.72) * uMolaPectoralAmplitude * speedStroke;
   value.z += pectoral * pectoralStroke;

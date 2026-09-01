@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: `v0.14.0-dev_3` on `feat/procedural-fish-animation`, awaiting movement-feel review.
+Status: `v0.14.0-dev_4` on `feat/procedural-fish-animation`, awaiting movement-feel review.
 
 ## Scope
 

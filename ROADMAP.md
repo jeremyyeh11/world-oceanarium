@@ -19,7 +19,7 @@ Status: `Blocked / waiting review`
 
 Reference:
 - Jeremy requested a clean test that completely deprecates authored animation for Sardinella, Mahi-mahi, and Mako.
-- Branch: `feat/procedural-fish-animation`; review build: `v0.14.0-dev_3`.
+- Branch: `feat/procedural-fish-animation`; review build: `v0.14.0-dev_4`.
 - Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
 
 Subtasks:
@@ -29,6 +29,8 @@ Subtasks:
 - [x] Verify target bone chains for Sardinella, both Mahi variants, and Mako.
 - [x] Fix hierarchical angle accumulation that folded the Mahi tail in `v0.14.0-dev_1`.
 - [x] Replace male Mahi with Jeremy's static, rig-free mesh and derive deformation from local longitudinal bounds.
+- [x] Strengthen the static male Mahi body wave after `v0.14.0-dev_3` read too subtly.
+- [ ] Receive fin segmentation that survives GLB export (named mesh parts or vertex-color channels); Blender vertex groups are absent from the supplied GLB.
 - [ ] Collect Jeremy visual/feel review from deployed preview.
 - [ ] Replace the rig bridge with automatic longitudinal GPU vertex deformation for future truly static meshes after this motion direction passes review.
 

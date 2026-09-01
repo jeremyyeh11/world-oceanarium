@@ -15,11 +15,11 @@ Status labels:
 
 ### Procedural caudal-fish animation
 
-Status: `Blocked / waiting review`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy requested a clean test that completely deprecates authored animation for Sardinella, Mahi-mahi, and Mako.
-- Branch: `feat/procedural-fish-animation`; review build: `v0.14.0-dev_4`.
+- Branch: `feat/procedural-fish-animation`; accepted as clean `v0.14.0` from review build `v0.14.0-dev_4`.
 - Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
 
 Subtasks:
@@ -30,15 +30,16 @@ Subtasks:
 - [x] Fix hierarchical angle accumulation that folded the Mahi tail in `v0.14.0-dev_1`.
 - [x] Replace male Mahi with Jeremy's static, rig-free mesh and derive deformation from local longitudinal bounds.
 - [x] Strengthen the static male Mahi body wave after `v0.14.0-dev_3` read too subtly.
-- [ ] Receive fin segmentation that survives GLB export (named mesh parts or vertex-color channels); Blender vertex groups are absent from the supplied GLB.
-- [ ] Collect Jeremy visual/feel review from deployed preview.
-- [ ] Replace the rig bridge with automatic longitudinal GPU vertex deformation for future truly static meshes after this motion direction passes review.
+- [x] Preserve separate pectoral/pelvic objects in updated male and female Mahi Blender source files.
+- [x] Collect Jeremy release approval.
+- [ ] Export the named Mahi fin parts into a future runtime GLB and add independent fin motion; clean `v0.14.0` still uses the reviewed combined static male GLB.
+- [ ] Replace the Sardinella/Mako/female-Mahi rig bridges with automatic longitudinal GPU vertex deformation when matching static runtime assets are supplied.
 
 Review gates:
-- Sardinella reads lively, not twitchy or synchronized.
-- Mahi front body stays stable and rear-body bend follows real steering.
-- Mako reads heavy and caudal-powered, not eel-like.
-- No authored clip influences target-species pose; Mola behavior remains unchanged.
+- [x] Sardinella reads lively, not twitchy or synchronized.
+- [x] Mahi front body stays stable and rear-body bend follows real steering.
+- [x] Mako reads heavy and caudal-powered, not eel-like.
+- [x] No authored clip influences target-species pose; Mola behavior remains unchanged.
 
 ### Deforming ocean surface
 

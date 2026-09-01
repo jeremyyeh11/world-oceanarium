@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: `v0.14.0-dev_4` on `feat/procedural-fish-animation`, awaiting movement-feel review.
+Status: accepted and released as clean `v0.14.0` from `v0.14.0-dev_4`.
 
 ## Scope
 
@@ -36,6 +36,8 @@ Each procedural rig integrates its own continuous wave clock. Frequency changes 
 ## Current asset bridge
 
 Jeremy's replacement male Mahi is the first true static-mesh path: one combined 28,470-vertex mesh, no bones, no skin weights, and no clips. Its shader derives flexibility from local Z bounds and deforms both positions and normals. The female Mahi, Sardinella hero LOD, and Mako still reuse neutral bone chains as temporary deformation lattices while discarding authored timelines.
+
+The repository's updated male and female Mahi Blender source files now preserve separate left/right pectoral and pelvic fin objects. Those source objects are not yet present in the reviewed runtime GLB, so clean `v0.14.0` does not claim independent fin flutter; that requires a later export that preserves the named mesh parts.
 
 Future caudal assets may ship as neutral static meshes. They need consistent `+Z` swim-forward orientation, sufficient longitudinal topology, clean normals, and predictable bounds. A later GPU vertex-deformation path can derive head-to-tail influence from local longitudinal position; painted masks remain optional for fin isolation or anatomy that automatic bounds cannot classify cleanly.
 

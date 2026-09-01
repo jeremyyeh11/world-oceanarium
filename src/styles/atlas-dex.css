@@ -267,7 +267,9 @@
    share one baseline and the numbers stay in a readable column. */
 .atlas-scale-row {
   display: grid;
-  grid-template-columns: 3.9rem minmax(3rem, 7rem) auto;
+  /* Label column fits "Typical human" on one line; tracking is tighter than the
+     other dex labels for the same reason. */
+  grid-template-columns: 5.5rem minmax(3rem, 7rem) auto;
   align-items: center;
   gap: 0.45rem;
 }
@@ -275,7 +277,7 @@
 .atlas-scale-label {
   color: var(--crt-drift-dim);
   font-size: 0.58rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -292,9 +294,9 @@
   display: block;
 }
 
-/* The diver is the reference, so it reads quiet; the specimen is the subject
+/* The human is the reference, so it reads quiet; the specimen is the subject
    and gets the lit phosphor. */
-.atlas-scale-fill.is-diver {
+.atlas-scale-fill.is-human {
   background: #2c5f7a;
 }
 
@@ -320,8 +322,13 @@
   }
 
   .atlas-scale-row {
-    grid-template-columns: 3.4rem minmax(2.5rem, 5rem) auto;
-    gap: 0.35rem;
+    grid-template-columns: 4.6rem minmax(2.2rem, 4.5rem) auto;
+    gap: 0.32rem;
+  }
+
+  .atlas-scale-label {
+    font-size: 0.54rem;
+    letter-spacing: 0.05em;
   }
 
   .atlas-scale-value {

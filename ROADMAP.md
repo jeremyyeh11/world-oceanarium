@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
-- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar).
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar), `v0.15.0-dev_9` (scale reference relabelled and resourced).
 - Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
 - Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
 

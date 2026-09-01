@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.15.0 — CRT/pixel interface (in development)
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_8`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_9`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 
@@ -22,6 +22,8 @@ Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_8`. N
 
 ### The Atlas
 
+- `v0.15.0-dev_9` relabels the stage scale reference from "Diver" to "Typical human" and moves `HUMAN_SCALE_METERS` from `1.7` to `1.65`. The old figure was effectively the global *male* mean, which quietly picked a sex for a bar labelled as a typical human; `1.65` sits between the global means for men (~171cm) and women (~160cm) reported by the NCD Risk Factor Collaboration's pooled analysis of 1,472 studies (eLife, 2016).
+- `v0.15.0-dev_9` adds `formatReferenceLength` for that value. The existing `formatStageLength` rounds to one decimal, and `(1.65).toFixed(1)` is `"1.6"` — binary64 stores 1.65 as 1.64999…, so a figure stated as 165cm would have silently rendered as 1.6m.
 - `v0.15.0-dev_8` fixes the `dev_7` measurement grid, which was never visible: it was applied to the stage's CSS background, but `SceneLighting` sets `scene.background` on an opaque WebGL canvas sitting above it, so nothing behind that canvas can ever show. The grid moves onto `.atlas-stage-frame`, which paints above the canvas alongside the corner brackets. That is also the truer idea — the grid is etched on the viewport, not floating in the ocean. The stage's own background and its `is-tank-backdrop::after` layer are left documented as permanently hidden.
 - `v0.15.0-dev_8` replaces the in-scene diver sprite with a proportional scale bar in the stage readout. The sprite shared 3D space with the specimen and so was only legible at some sizes — against a 27cm sardinella a 1.7m diver cropped to a shapeless mass filling the frame. Two bars carry the same comparison and stay readable at every size: the longer subject fills the track and the shorter is measured against it, with a minimum width so a small specimen still shows a visible stub. Verified proportional across the range (sardinella 16%, mahi 94%, mako and sunfish pinning the track).
 - `v0.15.0-dev_8` removes everything that existed only to position that sprite: the pose tables, normalisation and merge helpers, localStorage persistence, the diver pose editor, and the three-tap/Ctrl+Shift+D toggle that opened it. The Atlas version label becomes an inert readout rather than a hidden debug button. Roughly 200 lines net.

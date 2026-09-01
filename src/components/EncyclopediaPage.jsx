@@ -240,6 +240,16 @@ function formatStageLength(meters) {
   return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
 }
 
+// The human reference is an exact constant rather than an estimated body
+// length, so it keeps whatever precision it was defined with. It cannot go
+// through formatStageLength: that rounds to one decimal, and (1.65).toFixed(1)
+// is "1.6" — binary64 stores 1.65 as 1.64999…, so a value we state as 165cm
+// would silently render as 1.6m. Number() then drops any trailing zero, so 1.7
+// still shows as "1.7 m" if the constant ever changes back.
+function formatReferenceLength(meters) {
+  return `${Number(meters.toFixed(2))} m`
+}
+
 /**
  * Scale reference for the specimen stage.
  *
@@ -264,11 +274,11 @@ function AtlasScaleBar({ species }) {
     <div className="atlas-stage-readout" aria-label="Scale reference">
       <span className="atlas-stage-readout-tag">Scale</span>
       <div className="atlas-scale-row">
-        <span className="atlas-scale-label">Diver</span>
+        <span className="atlas-scale-label">Typical human</span>
         <span className="atlas-scale-track">
-          <span className="atlas-scale-fill is-diver" style={{ width: widthFor(HUMAN_SCALE_METERS) }} />
+          <span className="atlas-scale-fill is-human" style={{ width: widthFor(HUMAN_SCALE_METERS) }} />
         </span>
-        <b className="atlas-scale-value">{formatStageLength(HUMAN_SCALE_METERS)}</b>
+        <b className="atlas-scale-value">{formatReferenceLength(HUMAN_SCALE_METERS)}</b>
       </div>
       <div className="atlas-scale-row">
         <span className="atlas-scale-label">Specimen</span>
@@ -440,7 +450,13 @@ function ModelAsset({ species, pose, companion = null }) {
   return <primitive object={scene} rotation={rotation} scale={viewerScale} position={position} />
 }
 
-const HUMAN_SCALE_METERS = 1.7
+// Global sex-averaged mean adult height, from the NCD Risk Factor Collaboration's
+// pooled analysis of 1,472 studies (eLife, 2016): for the 1996 birth cohort the
+// global means are ~171cm for men and ~160cm for women, so ~165cm sits between
+// them. The previous 1.7m was effectively the global *male* mean — fine as
+// shorthand, but it quietly picked a sex for a bar labelled "typical human".
+const HUMAN_SCALE_METERS = 1.65
+
 function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   const isLarge = species?.swim?.bodyLengthWU > 3
   const bodyLength = displayedSpeciesLengthUnits(species, pose) ?? (isLarge ? 4.2 : 2.4)

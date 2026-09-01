@@ -368,6 +368,9 @@ function resolveSwimProfile(creature) {
     burstInterval: speciesSwim.burstInterval ?? DEFAULT_SWIM.burstInterval,
     speedMultiplier: speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
     erraticness: speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
+    // Use the post-steering travel vector directly for species whose long bodies make
+    // a smoothed render heading read as a pivot detached from their actual arc.
+    visualHeadingFollowsMotion: speciesSwim.visualHeadingFollowsMotion ?? false,
     // Most fish may enter a low-travel drift beat. Obligate ram-ventilating pelagic
     // swimmers can opt out so their idle state remains a continuous forward patrol.
     driftEnabled: speciesSwim.driftEnabled ?? true,
@@ -2936,6 +2939,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (!hasVisualForward.current) {
       visualForward.current.copy(rawVisualForward)
       hasVisualForward.current = true
+    } else if (swim.visualHeadingFollowsMotion) {
+      // `rawVisualForward` comes from this frame's already turn-capped movement vector.
+      // Taking it directly means the model cannot rotate ahead of its body translation,
+      // which was making large procedural fish read as if they were spinning in place.
+      visualForward.current.copy(rawVisualForward)
     } else {
       const visualAlignment = visualForward.current.dot(rawVisualForward)
       const visualTurnRate = isSoloAgent

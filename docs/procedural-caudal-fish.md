@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_8` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, and a continuous Mako patrol on `feat/static-procedural-fish-models`.
+Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_9` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, and forward-led large-fish turning on `feat/static-procedural-fish-models`.
 
 ## Scope
 
@@ -33,9 +33,11 @@ Simulation writes live values every frame:
 
 Each procedural rig integrates its own continuous wave clock. Frequency changes from speed/burst therefore do not re-project global elapsed time onto a new phase or pop the pose.
 
+For larger procedural fish, the rendered heading follows the same already turn-capped vector used to advance the creature's position. This prevents render-only heading smoothing from rotating the long body ahead of its actual trajectory, which reads as spinning on the spot. Mahi pairs and Mako use this forward-led path; smaller fish retain their existing visual smoothing.
+
 ## Current asset bridge
 
-Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.14.0-dev_8` review extends that path to four supplied runtime GLBs: Sardinella, male Mahi, female Mahi, and Shortfin Mako. They contain no bones, skin weights, or animation clips; their body waves come from GPU vertex deformation. This pass widens caudal displacement, turn and burst response, and independent fin flutter while preserving each species' front-body rigidity; Mahi and Mako normal cruise speed are also raised 25%. Its longitudinal phase and flex envelope are now species-specific: Mako deformation begins much farther forward and travels far enough to counter-curve the tail into a visible S; Mahi remains tail-led, compact, and fast. The Mako's configured drift state is disabled, so it retains continuous forward motion at every normal behavior beat; its cruise, snap, and burst rates each receive a further 20% increase.
+Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.14.0-dev_9` review extends that path to four supplied runtime GLBs: Sardinella, male Mahi, female Mahi, and Shortfin Mako. They contain no bones, skin weights, or animation clips; their body waves come from GPU vertex deformation. This pass widens caudal displacement, turn and burst response, and independent fin flutter while preserving each species' front-body rigidity; Mahi and Mako normal cruise speed are also raised 25%. Its longitudinal phase and flex envelope are now species-specific: Mako deformation begins much farther forward and travels far enough to counter-curve the tail into a visible S; Mahi remains tail-led, compact, and fast. The Mako's configured drift state is disabled, so it retains continuous forward motion at every normal behavior beat; its cruise, snap, and burst rates each receive a further 20% increase. Mahi and Mako visible headings now remain locked to their actual turn-capped paths.
 
 The new Mahi and Mako runtime GLBs preserve separate pectoral/pelvic fin meshes. The body mesh receives the travelling caudal wave; fins are excluded from body bending and receive small procedural flutter from the same live movement clock.
 
@@ -54,7 +56,7 @@ Run `npm run verify:procedural-fish-assets` to prove the static target GLBs expo
 
 - Sardinella cruise reads fast but not twitchy; individuals remain desynchronized.
 - Mahi head/front body stays stable; rear body follows actual pair steering rather than holding a permanent sideways curl.
-- Mako keeps moving through every normal behavior beat, and shows a broad, unmistakable S from mid-body to tail while the head/shoulders carry its line; it remains powerful and deliberate, never eel-like.
+- Mahi and Mako visibly travel through every turn; neither rotates in place ahead of its motion. Mako keeps moving through every normal behavior beat, and shows a broad, unmistakable S from mid-body to tail while the head/shoulders carry its line; it remains powerful and deliberate, never eel-like.
 - Burst increases stroke force and cadence without a pose cut.
 - Follow/orbit selection, Atlas, LOD switching, audio cues, boids translation, and Mola authored behavior remain unchanged.
 - No runtime/WebGL errors.

@@ -282,6 +282,9 @@ export const SPECIES = [
       // with the follow-cam centring it, that pitch bob was the only apparent motion and read
       // as the fish hovering in place staring up and down. Cap it to a gentle glide.
       maxVisualPitchDegrees: 6,
+      // The rendered heading must be the actual forward-moving pair trajectory, not a
+      // faster visual smoothing pass that can make the long body pivot on its own.
+      visualHeadingFollowsMotion: true,
       idleBLPerSec: [0.35, 0.55],
       idleDriftBLPerSec: [0.05, 0.10],
       snapBLPerSec: [0.52, 0.76],
@@ -486,6 +489,9 @@ export const SPECIES = [
       // steering in Fish.jsx (boundaryAvoidanceTurnStep), so it keeps its wide banking
       // turns in open water and simply carves tighter as it nears a wall.
       visualTimeScale: 0.95,
+      // The shark's visual nose/heading must stay welded to its turn-capped patrol arc.
+      // Do not visually rotate it ahead of its body translation near walls or on U-turns.
+      visualHeadingFollowsMotion: true,
       // Mako never settles into a hover/drift beat: it continually patrols forward,
       // with only a small speed-breathing variation around its 20%-faster cruise.
       driftEnabled: false,

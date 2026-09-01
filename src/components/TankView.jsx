@@ -656,7 +656,14 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
         onPointerCancelCapture={endStageDrag}
         onWheel={zoomFollowWithWheel}
       >
-        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+        {/* dpr is capped rather than left at r3f's [1, 2] default. This scene is
+            fragment-bound — the water's transmission pass re-renders the opaque
+            scene, and the surface, god rays and suspended particles all overdraw —
+            so cost tracks pixel count almost linearly. At the [1, 2] default a
+            DPR-3 phone renders 4x the fragments of 1x for detail that the CRT
+            scanline film on top largely eats anyway. 1.5 matches the cap the
+            encyclopedia canvas already uses. */}
+        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}

@@ -486,13 +486,14 @@ export const SPECIES = [
       // steering in Fish.jsx (boundaryAvoidanceTurnStep), so it keeps its wide banking
       // turns in open water and simply carves tighter as it nears a wall.
       visualTimeScale: 0.95,
-      idleBLPerSec: [0.20, 0.30],
-      idleDriftBLPerSec: [0.03, 0.055],
-      snapBLPerSec: [0.24, 0.36],
-      burstBLPerSec: [0.44, 0.66],
+      // Mako never settles into a hover/drift beat: it continually patrols forward,
+      // with only a small speed-breathing variation around its 20%-faster cruise.
+      driftEnabled: false,
+      idleBLPerSec: [0.24, 0.36],
+      idleDriftBLPerSec: [0.036, 0.066],
+      snapBLPerSec: [0.288, 0.432],
+      burstBLPerSec: [0.528, 0.792],
       burstInterval: [18.0, 30.0],
-      driftInterval: [18.0, 30.0],
-      driftDuration: [5.0, 8.0],
       burstActionDuration: 4.8,
       turnActionDuration: 3.2,
       turnTriggerThreshold: 0.042,
@@ -550,16 +551,16 @@ export const SPECIES = [
         sourceAxis: 'z',
         lateralAxis: 'x',
         tailAtMaxZ: true,
-        amplitude: 0.58,
-        // Large lamnid power: a slow travelling phase runs from the mid-body into a
+        amplitude: 0.82,
+        // Large lamnid power: a strong travelling phase runs from the mid-body into a
         // counter-curving tail. This exposes a broad S silhouette while the head stays
         // on intent, rather than making the entire shark undulate like an eel.
-        waveSpeed: 1.55,
-        waveTravel: 6.6,
+        waveSpeed: 1.86,
+        waveTravel: 7.4,
         flexStart: 0.18,
         flexFull: 0.86,
         turnStrength: 0.58,
-        burstAmplitude: 0.66,
+        burstAmplitude: 0.82,
         response: 4.8,
         speedFrequencyBoost: 0.28,
         burstFrequencyBoost: 0.22,

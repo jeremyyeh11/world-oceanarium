@@ -368,6 +368,9 @@ function resolveSwimProfile(creature) {
     burstInterval: speciesSwim.burstInterval ?? DEFAULT_SWIM.burstInterval,
     speedMultiplier: speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
     erraticness: speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
+    // Most fish may enter a low-travel drift beat. Obligate ram-ventilating pelagic
+    // swimmers can opt out so their idle state remains a continuous forward patrol.
+    driftEnabled: speciesSwim.driftEnabled ?? true,
     driftInterval: speciesSwim.driftInterval ?? DEFAULT_DRIFT_INTERVAL,
     driftDuration: speciesSwim.driftDuration ?? DEFAULT_DRIFT_DURATION,
     burstActionDuration: speciesSwim.burstActionDuration ?? DEFAULT_BURST_ACTION_DURATION,
@@ -2389,7 +2392,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
     )
     const driftMove = resolveMoveAnimation(model, 'drift')
-    const hasDriftMove = Boolean(model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'))
+    const hasDriftMove = swim.driftEnabled && Boolean(
+      model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'),
+    )
     const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
     const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current
     const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)

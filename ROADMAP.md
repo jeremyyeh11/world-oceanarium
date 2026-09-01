@@ -13,6 +13,34 @@ Status labels:
 
 ## Current work
 
+### Procedural caudal-fish animation
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy requested a clean test that completely deprecates authored animation for Sardinella, Mahi-mahi, and Mako.
+- Branch: `feat/procedural-fish-animation`; accepted as clean `v0.14.0` from review build `v0.14.0-dev_4`.
+- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
+
+Subtasks:
+- [x] Ignore every authored GLB clip for the three target species.
+- [x] Drive procedural pose from live speed, acceleration, turn, burst, and drift/forward-travel state.
+- [x] Keep a continuous per-fish wave clock and deterministic phase offset.
+- [x] Verify target bone chains for Sardinella, both Mahi variants, and Mako.
+- [x] Fix hierarchical angle accumulation that folded the Mahi tail in `v0.14.0-dev_1`.
+- [x] Replace male Mahi with Jeremy's static, rig-free mesh and derive deformation from local longitudinal bounds.
+- [x] Strengthen the static male Mahi body wave after `v0.14.0-dev_3` read too subtly.
+- [x] Preserve separate pectoral/pelvic objects in updated male and female Mahi Blender source files.
+- [x] Collect Jeremy release approval.
+- [ ] Export the named Mahi fin parts into a future runtime GLB and add independent fin motion; clean `v0.14.0` still uses the reviewed combined static male GLB.
+- [ ] Replace the Sardinella/Mako/female-Mahi rig bridges with automatic longitudinal GPU vertex deformation when matching static runtime assets are supplied.
+
+Review gates:
+- [x] Sardinella reads lively, not twitchy or synchronized.
+- [x] Mahi front body stays stable and rear-body bend follows real steering.
+- [x] Mako reads heavy and caudal-powered, not eel-like.
+- [x] No authored clip influences target-species pose; Mola behavior remains unchanged.
+
 ### Deforming ocean surface
 
 Status: `Archive candidate`

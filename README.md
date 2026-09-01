@@ -21,7 +21,7 @@ The project values:
 
 ## Current Focus
 
-The current clean release is `v0.13.0`, adding the accepted deforming physical ocean surface. The ocean sunlight zone contains two deliberately curated tanks:
+The current clean release is `v0.14.0`, promoting the accepted procedural caudal-fish build. The ocean sunlight zone contains two deliberately curated tanks:
 
 - **The Open Sea** — spotted sardinella, Mahi-mahi, and a Shortfin Mako Shark form a bait → mid-predator → apex-predator assemblage.
 - **The Drift** — a Giant Sunfish occupies a calmer, dimmer tank built around its slower rhythm and authored sun-bask behavior.
@@ -31,7 +31,7 @@ Current foundations:
 - real-world scale: `1 WU = 25 cm`
 - body-length-scaled speed, turn radius, and camera framing
 - one unified boids movement pipeline for schools, pairs, and solitary creatures
-- Blender-authored GLB animation with species-specific procedural shaping where useful
+- movement-driven procedural animation for Sardinella, Mahi-mahi, and Mako; authored GLB playback remains only for unaffected species
 - bone-aware follow camera for close observation
 - Supabase-backed individual creature records, with browser-safe production credentials
 - session continuity across tank switches: hidden tanks freeze and resume without respawning their inhabitants
@@ -62,6 +62,7 @@ Index of the project's Markdown references, for both human and future-agent use.
 | [CHANGELOG.md](CHANGELOG.md) | Significant changes grouped by release bucket. |
 | [MEMORY.md](MEMORY.md) | Durable working preferences and conventions captured across sessions (Atlas/copy/debug prefs, release-judgement, workflow). |
 | [docs/tank-design.md](docs/tank-design.md) | The tank/assemblage model — how species map to tanks, the coherence rules, and how to edit tanks by hand. |
+| [docs/procedural-caudal-fish.md](docs/procedural-caudal-fish.md) | Review contract for replacing authored Sardinella, Mahi-mahi, and Mako clips with live movement-driven posing. |
 
 ## Development
 

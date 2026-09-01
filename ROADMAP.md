@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
-- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar), `v0.15.0-dev_9` (scale reference relabelled and resourced).
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar), `v0.15.0-dev_9` (scale reference relabelled and resourced), `v0.15.0-dev_10` (readout legibility).
 - Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
 - Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
 
@@ -51,6 +51,7 @@ Review gates:
 - [ ] Screenshot mode still captures the scene free of interface framing.
 - [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
 - [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
+- [ ] Pixelify Sans digit legibility at small sizes generally — "5" reads as "S" below ~12px, which forced `HUMAN_SCALE_METERS` back to 1.7. Check other small numeric readouts (debug panel, dex numbers) for the same problem.
 
 ### Procedural caudal-fish animation
 

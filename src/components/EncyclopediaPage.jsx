@@ -450,12 +450,16 @@ function ModelAsset({ species, pose, companion = null }) {
   return <primitive object={scene} rotation={rotation} scale={viewerScale} position={position} />
 }
 
-// Global sex-averaged mean adult height, from the NCD Risk Factor Collaboration's
-// pooled analysis of 1,472 studies (eLife, 2016): for the 1996 birth cohort the
-// global means are ~171cm for men and ~160cm for women, so ~165cm sits between
-// them. The previous 1.7m was effectively the global *male* mean — fine as
-// shorthand, but it quietly picked a sex for a bar labelled "typical human".
-const HUMAN_SCALE_METERS = 1.65
+// Reference height for the stage scale bar.
+//
+// 1.65 is the better statistic — it sits between the global means for men
+// (~171cm) and women (~160cm) in the NCD Risk Factor Collaboration's pooled
+// analysis (eLife, 2016), where 1.7 is effectively the male mean alone. It was
+// reverted for legibility: Pixelify Sans renders "5" close enough to "S" that
+// "1.65 M" reads as "1.6S M" at this size. A reference figure nobody can read
+// is worth less than a rounder one they can, and 1.7 is still within the
+// spread of national means either way.
+const HUMAN_SCALE_METERS = 1.7
 
 function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   const isLarge = species?.swim?.bodyLengthWU > 3

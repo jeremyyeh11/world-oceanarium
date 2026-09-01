@@ -257,7 +257,7 @@
 .atlas-stage-readout-tag {
   margin-bottom: 0.1rem;
   color: var(--crt-lumen);
-  font-size: 0.56rem;
+  font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -269,21 +269,21 @@
   display: grid;
   /* Label column fits "Typical human" on one line; tracking is tighter than the
      other dex labels for the same reason. */
-  grid-template-columns: 5.5rem minmax(3rem, 7rem) auto;
+  grid-template-columns: 6.1rem minmax(3rem, 7rem) auto;
   align-items: center;
   gap: 0.45rem;
 }
 
 .atlas-scale-label {
   color: var(--crt-drift-dim);
-  font-size: 0.58rem;
+  font-size: 0.64rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .atlas-scale-track {
   position: relative;
-  height: 7px;
+  height: 8px;
   background: rgba(127, 220, 242, 0.08);
   box-shadow: inset 0 0 0 1px var(--dex-line-dim);
 }
@@ -294,10 +294,12 @@
   display: block;
 }
 
-/* The human is the reference, so it reads quiet; the specimen is the subject
-   and gets the lit phosphor. */
+/* The human is the reference and the specimen is the subject, so the specimen
+   keeps the lit phosphor. But the first pass pushed the reference so dark it
+   nearly vanished against the track — drift is the palette's established
+   "legible but secondary" tone, which gives the hierarchy without hiding it. */
 .atlas-scale-fill.is-human {
-  background: #2c5f7a;
+  background: var(--crt-drift);
 }
 
 .atlas-scale-fill.is-specimen {
@@ -307,7 +309,7 @@
 
 .atlas-scale-value {
   color: var(--crt-foam);
-  font-size: 0.64rem;
+  font-size: 0.74rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
@@ -322,17 +324,17 @@
   }
 
   .atlas-scale-row {
-    grid-template-columns: 4.6rem minmax(2.2rem, 4.5rem) auto;
+    grid-template-columns: 5.3rem minmax(2.2rem, 4.5rem) auto;
     gap: 0.32rem;
   }
 
   .atlas-scale-label {
-    font-size: 0.54rem;
+    font-size: 0.58rem;
     letter-spacing: 0.05em;
   }
 
   .atlas-scale-value {
-    font-size: 0.58rem;
+    font-size: 0.66rem;
   }
 }
 

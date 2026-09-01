@@ -20,7 +20,7 @@ const styles = {
     background:
       'var(--crt-scanlines-soft), linear-gradient(180deg, var(--crt-hull-lit) 0 4px, rgba(6,26,44,0.94) 4px)',
     boxShadow:
-      '0 0 0 2px var(--crt-void), 0 0 0 3px var(--crt-rule), 0 0 34px rgba(92,225,255,0.12)',
+      '0 0 0 1px var(--crt-rule), 0 0 32px rgba(127,220,242,0.1), 0 18px 48px rgba(2,6,13,0.45)',
     backdropFilter: 'none',
     fontFamily: 'var(--crt-font)',
     pointerEvents: 'auto',
@@ -35,27 +35,26 @@ const styles = {
     flex: '1 1 auto',
     minWidth: 0,
   },
-  // VT323 has a small x-height and only ships a 400 weight, so every size here
-  // is roughly 1.3x its old value and the old bold weights are dropped —
-  // emphasis comes from the cyan phosphor glow instead.
+  // Pixelify Sans sits close to a normal UI x-height and ships 400-700, so
+  // sizes stay near their originals and emphasis is carried by weight rather
+  // than by the glow the single-weight first pass had to fake it with.
   eyebrow: {
     margin: 0,
     color: 'var(--crt-lumen)',
-    fontSize: '1rem',
-    fontWeight: 400,
-    letterSpacing: '0.2em',
+    fontSize: '0.78rem',
+    fontWeight: 500,
+    letterSpacing: '0.16em',
     textTransform: 'uppercase',
-    textShadow: '0 0 8px rgba(92,225,255,0.4)',
   },
   title: {
     margin: '0.22rem 0 0',
     minWidth: 0,
-    fontSize: 'clamp(1.55rem, 5.2vw, 2.1rem)',
-    lineHeight: 1,
-    fontWeight: 400,
-    letterSpacing: '0.04em',
+    fontSize: 'clamp(1.2rem, 4.2vw, 1.6rem)',
+    lineHeight: 1.05,
+    fontWeight: 700,
+    letterSpacing: '0.01em',
     textTransform: 'uppercase',
-    textShadow: '-2px 1px 0 var(--crt-bio), 2px -1px 0 rgba(92,225,255,0.8), 0 0 18px rgba(92,225,255,0.25)',
+    textShadow: '-1px 1px 1px rgba(240,127,164,0.4), 1px -1px 1px rgba(127,220,242,0.4), 0 0 16px rgba(127,220,242,0.18)',
     whiteSpace: 'nowrap',
   },
   titleLine: {
@@ -78,7 +77,7 @@ const styles = {
     border: 0,
     background: 'rgba(13, 48, 80, 0.7)',
     color: 'var(--crt-lumen)',
-    boxShadow: 'inset 0 0 0 2px var(--crt-rule)',
+    boxShadow: 'inset 0 0 0 1px var(--crt-rule)',
     cursor: 'pointer',
   },
   atlasIcon: {
@@ -94,9 +93,9 @@ const styles = {
   scientificName: {
     margin: '0.38rem 0 0',
     color: 'var(--crt-drift)',
-    fontSize: '0.95rem',
+    fontSize: '0.8rem',
     fontStyle: 'italic',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.02em',
   },
   nameTag: {
     display: 'inline-flex',
@@ -106,12 +105,12 @@ const styles = {
     border: 0,
     background: 'var(--crt-amber)',
     color: 'var(--crt-void)',
-    boxShadow: '0 0 0 2px var(--crt-void), 0 0 16px rgba(255,209,102,0.35)',
+    boxShadow: '0 0 14px rgba(240,205,140,0.25)',
     padding: '0.3rem 0.62rem 0.18rem',
     borderRadius: 0,
-    fontSize: '0.95rem',
-    fontWeight: 400,
-    letterSpacing: '0.12em',
+    fontSize: '0.78rem',
+    fontWeight: 600,
+    letterSpacing: '0.08em',
     textTransform: 'uppercase',
   },
   close: {
@@ -123,7 +122,7 @@ const styles = {
     borderRadius: 0,
     border: 0,
     background: 'rgba(4, 16, 28, 0.85)',
-    boxShadow: 'inset 0 0 0 2px var(--crt-rule)',
+    boxShadow: 'inset 0 0 0 1px var(--crt-rule)',
     color: 'var(--crt-drift)',
     cursor: 'pointer',
   },
@@ -147,12 +146,12 @@ const styles = {
     background: 'rgba(4, 16, 28, 0.85)',
     boxShadow: 'inset 0 0 0 1px var(--crt-rule)',
     color: 'var(--crt-lumen)',
-    padding: '0.26rem 0.52rem 0.14rem',
+    padding: '0.26rem 0.52rem',
     borderRadius: 0,
-    fontSize: '0.85rem',
-    letterSpacing: '0.16em',
+    fontSize: '0.7rem',
+    fontWeight: 500,
+    letterSpacing: '0.12em',
     textTransform: 'uppercase',
-    textShadow: '0 0 8px rgba(92,225,255,0.35)',
   },
   facts: {
     display: 'grid',
@@ -174,16 +173,16 @@ const styles = {
   },
   factLabel: {
     color: 'var(--crt-drift-dim)',
-    fontSize: '0.75rem',
-    fontWeight: 400,
-    letterSpacing: '0.18em',
+    fontSize: '0.62rem',
+    fontWeight: 600,
+    letterSpacing: '0.13em',
     textTransform: 'uppercase',
   },
   factValue: {
     color: 'var(--crt-foam)',
-    fontSize: '0.95rem',
+    fontSize: '0.8rem',
     fontWeight: 400,
-    letterSpacing: '0.04em',
+    letterSpacing: '0.01em',
     overflowWrap: 'anywhere',
   },
   grid: {
@@ -195,9 +194,9 @@ const styles = {
   individualDescription: {
     margin: '0.72rem 0 0',
     color: 'var(--crt-drift)',
-    fontSize: '0.95rem',
+    fontSize: '0.8rem',
     fontStyle: 'italic',
-    lineHeight: 1.35,
+    lineHeight: 1.4,
   },
   stat: {
     borderRadius: 0,
@@ -209,16 +208,17 @@ const styles = {
   label: {
     margin: 0,
     color: 'var(--crt-drift-dim)',
-    fontSize: '0.8rem',
-    letterSpacing: '0.2em',
+    fontSize: '0.65rem',
+    fontWeight: 600,
+    letterSpacing: '0.14em',
     textTransform: 'uppercase',
   },
   value: {
     margin: '0.18rem 0 0',
     color: 'var(--crt-foam)',
-    fontSize: '1.05rem',
+    fontSize: '0.88rem',
     fontWeight: 400,
-    letterSpacing: '0.04em',
+    letterSpacing: '0.01em',
     overflowWrap: 'anywhere',
   },
 }

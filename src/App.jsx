@@ -416,11 +416,7 @@ export default function App() {
     <>
       {page}
       {landingOpen && !screenshotMode && (
-        <LandingGate
-          tankName={activeTank?.name ?? 'the open sea'}
-          speciesCount={tankSpeciesCount}
-          onEnter={leaveLandingGate}
-        />
+        <LandingGate speciesCount={tankSpeciesCount} onEnter={leaveLandingGate} />
       )}
       {/* Screenshot mode is the one place the tube effect has to go: captures are
           meant to show the scene, not the interface it is framed by. */}

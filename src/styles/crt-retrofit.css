@@ -6,8 +6,10 @@
    by deleting one import. Tokens and primitives live in crt.css.
 
    Two moves drive every override: swap the rounded glassmorphic pill language
-   for hard notched edges, and let VT323 carry the text — it has a small
-   x-height, so sizes go up roughly 1.3x wherever it lands.
+   for notched edges, and let Pixelify Sans carry the text. Its x-height is
+   close to a normal UI face, so sizes stay near their originals — and because
+   it ships real weights, emphasis uses weight rather than the glow the
+   single-weight first pass had to lean on.
    ========================================================================== */
 
 body {
@@ -18,8 +20,8 @@ body {
 .debug-mobile-version {
   color: var(--crt-drift-dim);
   font-family: var(--crt-font);
-  font-size: 0.9rem;
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -38,11 +40,11 @@ body {
   background:
     var(--crt-scanlines-soft),
     linear-gradient(180deg, var(--crt-hull-lit) 0 3px, rgba(6, 26, 44, 0.92) 3px);
-  box-shadow: inset 0 0 0 2px rgba(2, 6, 13, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(23, 70, 107, 0.85);
   color: var(--crt-drift);
   font-family: var(--crt-font);
   backdrop-filter: none;
-  transition: color 140ms steps(3), filter 140ms ease;
+  transition: color 160ms ease, filter 160ms ease;
 }
 
 .fullscreen-toggle:hover,
@@ -79,7 +81,7 @@ body {
 .encyclopedia-toggle:focus-visible,
 .fish-search-button:focus-visible {
   outline: none;
-  filter: drop-shadow(0 0 2px var(--crt-lumen)) drop-shadow(0 0 9px rgba(92, 225, 255, 0.55));
+  filter: drop-shadow(0 0 1px var(--crt-lumen)) drop-shadow(0 0 8px rgba(127, 220, 242, 0.45));
 }
 
 /* The icons are thin strokes; a flat cap and a whole-pixel width keep them from
@@ -95,29 +97,29 @@ body {
   border-radius: 0;
   clip-path: var(--crt-notch);
   background: rgba(4, 16, 28, 0.92);
-  box-shadow: inset 0 0 0 2px rgba(2, 6, 13, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(23, 70, 107, 0.85);
   color: var(--crt-foam);
   font-family: var(--crt-font);
-  font-size: 1.05rem;
-  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
   backdrop-filter: none;
 }
 
 .fish-search.is-expanded .fish-search-input {
   border-color: transparent;
-  box-shadow: inset 0 0 0 2px var(--crt-rule), 0 0 16px rgba(92, 225, 255, 0.15);
+  box-shadow: inset 0 0 0 1px var(--crt-rule), 0 0 14px rgba(127, 220, 242, 0.12);
 }
 
 .fish-search.has-error .fish-search-input {
   border-color: transparent;
   background: rgba(58, 8, 24, 0.9);
-  box-shadow: inset 0 0 0 2px var(--crt-bio);
+  box-shadow: inset 0 0 0 1px var(--crt-bio);
   color: #ffe3ec;
 }
 
 .fish-search-input::placeholder {
   color: var(--crt-drift-dim);
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -130,7 +132,7 @@ body {
   background:
     var(--crt-scanlines-soft),
     linear-gradient(180deg, var(--crt-hull-lit) 0 3px, rgba(6, 26, 44, 0.9) 3px);
-  box-shadow: 0 0 0 2px var(--crt-void), 0 0 0 3px var(--crt-rule);
+  box-shadow: 0 0 0 1px var(--crt-rule), 0 10px 30px rgba(2, 6, 13, 0.4);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -140,14 +142,14 @@ body {
   border-radius: 0;
   color: var(--crt-drift);
   font-family: var(--crt-font);
-  font-size: 0.95rem;
-  letter-spacing: 0.18em;
-  transition: color 140ms steps(3), background 140ms steps(3);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  transition: color 160ms ease, background 160ms ease;
 }
 
 .tank-switch-button:hover {
   color: var(--crt-lumen);
-  text-shadow: 0 0 9px rgba(92, 225, 255, 0.5);
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.35);
 }
 
 .tank-switch-button.is-active {
@@ -159,8 +161,8 @@ body {
 .tank-switcher-description {
   color: var(--crt-drift);
   font-family: var(--crt-font);
-  font-size: 0.95rem;
-  letter-spacing: 0.09em;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
   text-shadow: 0 0 10px rgba(2, 12, 26, 0.9);
 }
 
@@ -172,7 +174,7 @@ body {
   background:
     var(--crt-scanlines-soft),
     linear-gradient(180deg, var(--crt-hull-lit) 0 4px, var(--crt-hull) 4px);
-  box-shadow: 0 0 0 2px var(--crt-void), 0 0 0 3px var(--crt-rule), 0 0 30px rgba(92, 225, 255, 0.1);
+  box-shadow: 0 0 0 1px var(--crt-rule), 0 0 30px rgba(127, 220, 242, 0.1), 0 16px 44px rgba(2, 6, 13, 0.45);
   color: var(--crt-foam);
   font-family: var(--crt-font);
   backdrop-filter: none;
@@ -180,38 +182,39 @@ body {
 
 .screenshot-help-kicker {
   color: var(--crt-lumen);
-  font: 0.85rem/1 var(--crt-font);
-  letter-spacing: 0.24em;
-  text-shadow: 0 0 8px rgba(92, 225, 255, 0.45);
+  font: 0.7rem/1 var(--crt-font);
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.32);
 }
 
 .screenshot-help-title {
-  font-size: 1.5rem;
-  letter-spacing: 0.14em;
-  text-shadow: -2px 1px 0 var(--crt-bio), 2px -1px 0 rgba(92, 225, 255, 0.8);
+  font-size: 1.15rem;
+  letter-spacing: 0.1em;
+  text-shadow: -1px 1px 1px rgba(240, 127, 164, 0.45), 1px -1px 1px rgba(127, 220, 242, 0.45);
 }
 
 .screenshot-help-copy {
   color: var(--crt-drift);
-  font-size: 1rem;
-  letter-spacing: 0.08em;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
 }
 
 .screenshot-help-button {
   border: 0;
   border-radius: 0;
   clip-path: var(--crt-notch);
-  background: linear-gradient(180deg, #9df0ff 0 4px, var(--crt-lumen) 4px calc(100% - 5px), #1c93b5 calc(100% - 5px));
-  color: var(--crt-void);
-  font: 1.05rem/1 var(--crt-font);
-  letter-spacing: 0.2em;
+  background: linear-gradient(180deg, var(--crt-lumen-hot) 0 4px, var(--crt-lumen) 4px calc(100% - 5px), #4a9cb3 calc(100% - 5px));
+  color: #04222c;
+  font: 0.85rem/1 var(--crt-font);
+  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 
 .screenshot-help-button:hover,
 .screenshot-help-button:focus-visible {
-  background: linear-gradient(180deg, #b8f5ff 0 4px, #7aeaff 4px calc(100% - 5px), #2aa8cc calc(100% - 5px));
+  background: linear-gradient(180deg, #c2f2ff 0 4px, #93e2f5 4px calc(100% - 5px), #59acc2 calc(100% - 5px));
   outline: none;
-  filter: drop-shadow(0 0 12px rgba(92, 225, 255, 0.6));
+  filter: drop-shadow(0 0 12px rgba(127, 220, 242, 0.45));
 }
 
 /* --- debug panel: type only, the layout is deliberately dense -------------- */
@@ -223,13 +226,13 @@ body {
 }
 
 .debug-panel {
-  font-size: 0.82rem;
+  font-size: 0.7rem;
 }
 
 .debug-panel-button,
 .debug-mode-button {
   border-radius: 0;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
 }
 
 /* --- the atlas ------------------------------------------------------------ */
@@ -241,7 +244,7 @@ body {
 .encyclopedia-topbar h1 {
   font-family: var(--crt-font);
   letter-spacing: 0.1em;
-  text-shadow: -2px 1px 0 var(--crt-bio), 2px -1px 0 rgba(92, 225, 255, 0.8), 0 0 18px rgba(92, 225, 255, 0.25);
+  text-shadow: -1px 1px 1px rgba(240, 127, 164, 0.45), 1px -1px 1px rgba(127, 220, 242, 0.45), 0 0 18px rgba(127, 220, 242, 0.2);
 }
 
 .encyclopedia-topbar p,
@@ -254,8 +257,8 @@ body {
 .encyclopedia-stage-label {
   color: var(--crt-lumen);
   font-family: var(--crt-font);
-  letter-spacing: 0.22em;
-  text-shadow: 0 0 8px rgba(92, 225, 255, 0.3);
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.24);
 }
 
 .encyclopedia-species-list,
@@ -267,7 +270,7 @@ body {
 .atlas-pose-editor {
   border: 0;
   border-radius: 0;
-  box-shadow: 0 0 0 2px var(--crt-void), 0 0 0 3px var(--crt-rule);
+  box-shadow: 0 0 0 1px var(--crt-rule), 0 10px 30px rgba(2, 6, 13, 0.4);
 }
 
 .encyclopedia-species-row,
@@ -279,13 +282,13 @@ body {
 }
 
 .encyclopedia-species-row.is-selected {
-  box-shadow: inset 0 0 0 2px var(--crt-lumen);
+  box-shadow: inset 0 0 0 1px var(--crt-lumen);
 }
 
 .encyclopedia-info-panel h2 {
   font-family: var(--crt-font);
   letter-spacing: 0.06em;
-  text-shadow: 0 0 14px rgba(92, 225, 255, 0.28);
+  text-shadow: 0 0 12px rgba(127, 220, 242, 0.22);
 }
 
 /* Species thumbs and the human-scale silhouettes are the only raster surfaces

@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.0 — CRT/pixel interface (in development)
+
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_2`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+
+### Interface / visual language
+
+- Adopts a CRT-terminal visual language for the UI, framing the tank as though watched through a phosphor monitor rather than restyling the scene itself. Three primitives carry it: scanline banding on a non-interactive film, phosphor glow with a chromatic-aberration split, and notched pixel edges via `clip-path` in place of `border-radius`.
+- Adds `src/styles/crt.css` (tokens plus primitives) and `src/styles/crt-retrofit.css` (overrides for the pre-existing chrome). The retrofit is deliberately quarantined in its own file imported last, so the entire look reverts by removing one import.
+- Suppresses the global tube film in screenshot mode, keeping captures of the scene free of interface framing.
+- `v0.15.0-dev_2` retunes the whole pass softer after `dev_1` read as too sharp: chromatic splits drop from 3px hard offsets to 1px at 1px blur and roughly half alpha, panel treatment drops from stacked 2px+3px hard keylines to a single 1px rule plus a wide bloom, scanline alpha falls from `0.20` to `0.12`, the global film from `0.40` to `0.30`, and the cyan/pink phosphors come off full saturation. Stepped transitions and one-frame title dropouts become eased, so no motion snaps hard enough to catch the eye.
+- `v0.15.0-dev_2` moves the UI from VT323 to Pixelify Sans. The practical gain is real weights (400–700): the single-weight face forced every emphasis to be faked with glow, and restoring weight-based hierarchy is what allowed the glow to come down globally. Type sizes return to roughly their pre-CRT values, since Pixelify Sans has a normal x-height where VT323 needed a ~1.3x bump.
+
+### Landing gate
+
+- Adds an entry modal that closes by "diving": the card sinks and blurs past a stationary scanline film while depth ticks rise past it. The film sits above the gate on purpose — scanlines belong to the glass, so the viewer descends past a fixed screen rather than watching a textured card move.
+- Dismissing the gate doubles as the user gesture that satisfies the Web Audio autoplay gate.
+- `v0.15.0-dev_2` cuts the copy to the title, tagline, species count, and the follow hint per Jeremy's review; the tagline becomes "just keep swimming", and the footnote now appears only during the dive.
+
 ## v0.14.0 — Procedural caudal-fish animation
 
 Status: accepted and promoted as clean `v0.14.0` from `v0.14.0-dev_4` after Jeremy requested the procedural and Blender-model branches be checked and merged.

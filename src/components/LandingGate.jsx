@@ -19,7 +19,7 @@ function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 }
 
-export default function LandingGate({ tankName, speciesCount, onEnter }) {
+export default function LandingGate({ speciesCount, onEnter }) {
   const [diving, setDiving] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const diveTimer = useRef(null)
@@ -73,13 +73,12 @@ export default function LandingGate({ tankName, speciesCount, onEnter }) {
       <div className="landing-card crt-panel">
         <p className="landing-eyebrow">Live feed · {APP_VERSION}</p>
         <h1 id="landing-title" className="landing-title">World<br />Oceanarium</h1>
-        <p className="landing-tagline">a tank that keeps swimming</p>
+        <p className="landing-tagline">just keep swimming</p>
 
         <div className="landing-rule" />
 
         <div className="landing-readout">
-          <span>Now showing · <b>{tankName}</b></span>
-          <span><b>{speciesCount}</b> species · real scale · real depth</span>
+          <span><b>{speciesCount}</b> species</span>
           <span>Tap a creature to follow it</span>
         </div>
 
@@ -93,7 +92,9 @@ export default function LandingGate({ tankName, speciesCount, onEnter }) {
           ▼ Dive in ▼
         </button>
 
-        <p className="landing-footnote">{diving ? 'descending…' : 'headphones recommended'}</p>
+        {/* Only occupies space during the dive — there is nothing worth saying
+            here before the viewer commits. */}
+        {diving && <p className="landing-footnote">descending…</p>}
       </div>
     </div>
   )

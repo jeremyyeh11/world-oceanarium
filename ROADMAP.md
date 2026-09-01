@@ -13,6 +13,32 @@ Status labels:
 
 ## Current work
 
+### CRT/pixel interface
+
+Status: `Current in development`
+
+Reference:
+- Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass) and `v0.15.0-dev_2` (softening + font + copy).
+- Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
+
+Subtasks:
+- [x] Extract the CRT recipe from the reference site rather than approximating it.
+- [x] Build tokens plus primitives: scanline banding, phosphor glow/split, notched pixel edges.
+- [x] Retrofit existing chrome (top controls, tank switcher, search, screenshot help, atlas, focus card).
+- [x] Add the landing gate with a dive-down dismissal that also unlocks Web Audio.
+- [x] Soften the whole pass after `dev_1` read too sharp; move to Pixelify Sans for real weights.
+- [x] Trim landing copy to title, tagline, species count, follow hint.
+- [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
+- [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
+- [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
+
+Review gates:
+- [ ] Reads soft rather than sharp at arm's length on a phone.
+- [ ] Scanlines do not shimmer or moire against the moving scene.
+- [ ] Dive timing feels like descending, not like a modal sliding away.
+- [ ] Screenshot mode still captures the scene free of interface framing.
+
 ### Procedural caudal-fish animation
 
 Status: `Archive candidate`

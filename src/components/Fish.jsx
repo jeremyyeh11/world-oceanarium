@@ -1199,7 +1199,6 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     finRotationRadians: { value: proceduralVertex.finRotationRadians ?? 0.46 },
     dorsalRootYZ: { value: new THREE.Vector2(...(proceduralVertex.dorsalRootYZ ?? [0, -0.08716])) },
     analRootYZ: { value: new THREE.Vector2(...(proceduralVertex.analRootYZ ?? [0, 0.14121])) },
-    finRootLock: { value: proceduralVertex.finRootLock ?? 0.1 },
     dorsalPhaseOffset: { value: proceduralVertex.dorsalPhaseOffset ?? 0 },
     analPhaseOffset: { value: proceduralVertex.analPhaseOffset ?? 1.08 },
     analPhaseRate: { value: proceduralVertex.analPhaseRate ?? 0.91 },
@@ -1240,7 +1239,6 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaFinRotationRadians = molaMaskUniforms.finRotationRadians
       shader.uniforms.uMolaDorsalRootYZ = molaMaskUniforms.dorsalRootYZ
       shader.uniforms.uMolaAnalRootYZ = molaMaskUniforms.analRootYZ
-      shader.uniforms.uMolaFinRootLock = molaMaskUniforms.finRootLock
       shader.uniforms.uMolaDorsalPhaseOffset = molaMaskUniforms.dorsalPhaseOffset
       shader.uniforms.uMolaAnalPhaseOffset = molaMaskUniforms.analPhaseOffset
       shader.uniforms.uMolaAnalPhaseRate = molaMaskUniforms.analPhaseRate
@@ -1313,7 +1311,6 @@ uniform float uMolaBurst;
 uniform float uMolaFinRotationRadians;
 uniform vec2 uMolaDorsalRootYZ;
 uniform vec2 uMolaAnalRootYZ;
-uniform float uMolaFinRootLock;
 uniform float uMolaDorsalPhaseOffset;
 uniform float uMolaAnalPhaseOffset;
 uniform float uMolaAnalPhaseRate;
@@ -1335,8 +1332,9 @@ void proceduralMolaMotion(inout vec3 value) {
   float analRotation = sin(uMolaPhase * uMolaAnalPhaseRate + uMolaAnalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
   // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about
   // its own painted attachment root, creating a real tip arc instead of a
-  // side-to-side translation. The low-value mask ramp keeps the root anchored.
-  float dorsalInfluence = smoothstep(uMolaFinRootLock, 1.0, dorsal);
+  // side-to-side translation. Cubic easing retains the painter's continuous
+  // gradient while giving the rigid root a zero-slope handoff: no dead-zone kink.
+  float dorsalInfluence = dorsal * dorsal * (3.0 - 2.0 * dorsal);
   float dorsalAngle = dorsalInfluence * dorsalRotation;
   float dorsalCos = cos(dorsalAngle);
   float dorsalSin = sin(dorsalAngle);
@@ -1344,7 +1342,7 @@ void proceduralMolaMotion(inout vec3 value) {
   float dorsalZ = value.z - uMolaDorsalRootYZ.y;
   value.y = uMolaDorsalRootYZ.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
   value.z = uMolaDorsalRootYZ.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
-  float analInfluence = smoothstep(uMolaFinRootLock, 1.0, anal);
+  float analInfluence = anal * anal * (3.0 - 2.0 * anal);
   float analAngle = analInfluence * analRotation;
   float analCos = cos(analAngle);
   float analSin = sin(analAngle);

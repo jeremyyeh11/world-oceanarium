@@ -705,12 +705,11 @@ export const SPECIES = [
         waveSpeed: 0.92,
         // Both fins rotate around the forward raw-X axis from their individual
         // mask-derived roots, so their tips trace arcs instead of translating.
-        finRotationRadians: 0.46,
+        finRotationRadians: 0.30,
         dorsalRootYZ: [0, -0.08716],
         analRootYZ: [0, 0.14121],
-        // Lock the darkest base loops solidly to the body, then ease into the
-        // painter's soft mask gradient. Dorsal/anal intentionally de-sync.
-        finRootLock: 0.1,
+        // Preserve the artist's uninterrupted soft mask ramp; the shader uses
+        // zero-slope cubic easing at each rigid root. Dorsal/anal de-sync.
         dorsalPhaseOffset: 0,
         analPhaseOffset: 1.08,
         analPhaseRate: 0.91,

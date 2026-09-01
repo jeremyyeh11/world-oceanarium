@@ -1174,7 +1174,7 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
   const proceduralBounds = geometry?.boundingBox
   const proceduralSourceAxis = proceduralAxisIndex(proceduralVertex?.sourceAxis, 2)
   const proceduralLateralAxis = proceduralAxisIndex(proceduralVertex?.lateralAxis, proceduralSourceAxis === 0 ? 2 : 0)
-  const proceduralUniforms = proceduralVertex && proceduralBounds ? {
+  const caudalUniforms = proceduralVertex?.type === 'caudal-vertex' && proceduralBounds ? {
     phase: { value: 0 },
     speed: { value: 0 },
     turn: { value: 0 },
@@ -1191,35 +1191,58 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     turnStrength: { value: proceduralVertex.turnStrength ?? 0.22 },
     burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.55 },
   } : null
+  const molaMaskUniforms = proceduralVertex?.type === 'mola-mask-vertex' && proceduralBounds ? {
+    phase: { value: 0 },
+    speed: { value: 0 },
+    turn: { value: 0 },
+    burst: { value: 0 },
+    finAmplitude: { value: proceduralVertex.finAmplitude ?? 0.022 },
+    pectoralAmplitude: { value: proceduralVertex.pectoralAmplitude ?? 0.014 },
+    clavusAmplitude: { value: proceduralVertex.clavusAmplitude ?? 0.016 },
+    turnStrength: { value: proceduralVertex.turnStrength ?? 0.012 },
+    burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.38 },
+  } : null
+  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
     shader.uniforms.uRimColor = { value: rimColor }
     shader.uniforms.uRimIntensity = { value: rimIntensity }
     shader.uniforms.uRimPower = { value: rimPower }
-    if (proceduralUniforms) {
-      shader.uniforms.uProceduralPhase = proceduralUniforms.phase
-      shader.uniforms.uProceduralSpeed = proceduralUniforms.speed
-      shader.uniforms.uProceduralTurn = proceduralUniforms.turn
-      shader.uniforms.uProceduralBurst = proceduralUniforms.burst
-      shader.uniforms.uProceduralMinSource = proceduralUniforms.minSource
-      shader.uniforms.uProceduralMaxSource = proceduralUniforms.maxSource
-      shader.uniforms.uProceduralSourceAxis = proceduralUniforms.sourceAxis
-      shader.uniforms.uProceduralLateralAxis = proceduralUniforms.lateralAxis
-      shader.uniforms.uProceduralTailAtMaxZ = proceduralUniforms.tailAtMaxZ
-      shader.uniforms.uProceduralAmplitude = proceduralUniforms.amplitude
-      shader.uniforms.uProceduralWaveTravel = proceduralUniforms.waveTravel
-      shader.uniforms.uProceduralFlexStart = proceduralUniforms.flexStart
-      shader.uniforms.uProceduralFlexFull = proceduralUniforms.flexFull
-      shader.uniforms.uProceduralTurnStrength = proceduralUniforms.turnStrength
-      shader.uniforms.uProceduralBurstAmplitude = proceduralUniforms.burstAmplitude
+    if (caudalUniforms) {
+      shader.uniforms.uProceduralPhase = caudalUniforms.phase
+      shader.uniforms.uProceduralSpeed = caudalUniforms.speed
+      shader.uniforms.uProceduralTurn = caudalUniforms.turn
+      shader.uniforms.uProceduralBurst = caudalUniforms.burst
+      shader.uniforms.uProceduralMinSource = caudalUniforms.minSource
+      shader.uniforms.uProceduralMaxSource = caudalUniforms.maxSource
+      shader.uniforms.uProceduralSourceAxis = caudalUniforms.sourceAxis
+      shader.uniforms.uProceduralLateralAxis = caudalUniforms.lateralAxis
+      shader.uniforms.uProceduralTailAtMaxZ = caudalUniforms.tailAtMaxZ
+      shader.uniforms.uProceduralAmplitude = caudalUniforms.amplitude
+      shader.uniforms.uProceduralWaveTravel = caudalUniforms.waveTravel
+      shader.uniforms.uProceduralFlexStart = caudalUniforms.flexStart
+      shader.uniforms.uProceduralFlexFull = caudalUniforms.flexFull
+      shader.uniforms.uProceduralTurnStrength = caudalUniforms.turnStrength
+      shader.uniforms.uProceduralBurstAmplitude = caudalUniforms.burstAmplitude
+    }
+    if (molaMaskUniforms) {
+      shader.uniforms.uMolaPhase = molaMaskUniforms.phase
+      shader.uniforms.uMolaSpeed = molaMaskUniforms.speed
+      shader.uniforms.uMolaTurn = molaMaskUniforms.turn
+      shader.uniforms.uMolaBurst = molaMaskUniforms.burst
+      shader.uniforms.uMolaFinAmplitude = molaMaskUniforms.finAmplitude
+      shader.uniforms.uMolaPectoralAmplitude = molaMaskUniforms.pectoralAmplitude
+      shader.uniforms.uMolaClavusAmplitude = molaMaskUniforms.clavusAmplitude
+      shader.uniforms.uMolaTurnStrength = molaMaskUniforms.turnStrength
+      shader.uniforms.uMolaBurstAmplitude = molaMaskUniforms.burstAmplitude
     }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
 varying vec3 vFishWorldPosition;
-${proceduralUniforms ? `uniform float uProceduralPhase;
+${caudalUniforms ? `uniform float uProceduralPhase;
 uniform float uProceduralSpeed;
 uniform float uProceduralTurn;
 uniform float uProceduralBurst;
@@ -1270,9 +1293,40 @@ void proceduralFishCurve(float sourceCoord, out float lateralOffset, out float l
   lateralOffset = wave * stroke * flex + uProceduralTurn * uProceduralTurnStrength * flex * flex;
   lateralSlope = stroke * (dWaveDz * flex + wave * dFlexDz)
     + uProceduralTurn * uProceduralTurnStrength * 2.0 * flex * dFlexDz;
+}` : ''}${molaMaskUniforms ? `attribute vec4 color_1;
+uniform float uMolaPhase;
+uniform float uMolaSpeed;
+uniform float uMolaTurn;
+uniform float uMolaBurst;
+uniform float uMolaFinAmplitude;
+uniform float uMolaPectoralAmplitude;
+uniform float uMolaClavusAmplitude;
+uniform float uMolaTurnStrength;
+uniform float uMolaBurstAmplitude;
+void proceduralMolaMotion(inout vec3 value) {
+  vec3 mask = clamp(color_1.rgb, 0.0, 1.0);
+  // White/grey is deliberately reserved for pectorals. Removing its shared value
+  // leaves the exclusive red/green/blue dorsal, anal, and clavus weights.
+  float pectoral = min(mask.r, min(mask.g, mask.b));
+  float dorsal = max(0.0, mask.r - pectoral);
+  float anal = max(0.0, mask.g - pectoral);
+  float clavus = max(0.0, mask.b - pectoral);
+  float speedStroke = mix(0.42, 1.0, uMolaSpeed);
+  float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
+  float finStroke = sin(uMolaPhase) * uMolaFinAmplitude * speedStroke * burstStroke;
+  // The tall dorsal and anal fins row together along the swim axis. Their soft
+  // painted roots keep the round body heavy while the outer fins do the work.
+  value.z += (dorsal + anal) * finStroke;
+  float side = value.x < 0.0 ? -1.0 : 1.0;
+  float pectoralStroke = sin(uMolaPhase * 0.82 + side * 0.72) * uMolaPectoralAmplitude * speedStroke;
+  value.z += pectoral * pectoralStroke;
+  value.x += pectoral * side * uMolaTurn * uMolaTurnStrength;
+  // The clavus is a restrained rear rudder, never a shark tail.
+  value.x += clavus * sin(uMolaPhase * 0.57 + 0.45) * uMolaClavusAmplitude * speedStroke;
+  value.z += clavus * uMolaTurn * uMolaTurnStrength;
 }` : ''}`
       )
-    if (proceduralUniforms) {
+    if (caudalUniforms) {
       shader.vertexShader = shader.vertexShader.replace(
         '#include <beginnormal_vertex>',
         `#include <beginnormal_vertex>
@@ -1288,6 +1342,13 @@ float proceduralLateralOffset;
 float proceduralLateralSlope;
 proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralLateralOffset, proceduralLateralSlope);
 proceduralAddAxis(transformed, uProceduralLateralAxis, proceduralLateralOffset);`
+      )
+    }
+    if (molaMaskUniforms) {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <project_vertex>',
+        `proceduralMolaMotion(transformed);
+#include <project_vertex>`
       )
     }
     shader.vertexShader = shader.vertexShader.replace(
@@ -1358,7 +1419,12 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`
       )
   }
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralUniforms ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}` : 'static'}`
+  const proceduralKey = !proceduralVertex
+    ? 'static'
+    : proceduralVertex.type === 'caudal-vertex'
+      ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
+      : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
@@ -1674,7 +1740,7 @@ function proceduralAxisMax(bounds, axisIndex) {
 }
 
 function shouldProcedurallyDeformMesh(mesh, proceduralAnimation) {
-  if (proceduralAnimation?.type !== 'caudal-vertex') return false
+  if (!['caudal-vertex', 'mola-mask-vertex'].includes(proceduralAnimation?.type)) return false
   const name = mesh.name?.toLowerCase() ?? ''
   if (proceduralAnimation.bodyMeshNames?.some(bodyName => name === bodyName.toLowerCase())) return true
   if (proceduralAnimation.bodyMeshPatterns?.some(pattern => name.includes(pattern.toLowerCase()))) return true
@@ -1921,6 +1987,23 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         ))
         fin.mesh.quaternion.copy(fin.baseQuaternion).multiply(curveDeformQuatRef.current)
       })
+    } else if (curveConfig?.type === 'mola-mask-vertex') {
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 3.2
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        THREE.MathUtils.clamp(proceduralInput.turn ?? 0, -1, 1),
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 0.92
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * (
+        1
+        + speed01 * (curveConfig.speedFrequencyBoost ?? 0.22)
+        + burst01 * (curveConfig.burstFrequencyBoost ?? 0.18)
+        + Math.max(0, proceduralInput.accel01 ?? 0) * 0.08
+      )
     }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current

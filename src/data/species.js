@@ -683,29 +683,35 @@ export const SPECIES = [
     },
     model: {
       path: '/models/fish/mola-alexandrini/mola-alexandrini.glb',
-      // Blender +Z exports as GLB +Y, so this asset's GLB axes are +Y up and +Z forward.
-      // The fish root also uses +Y up and +Z swim-forward, so no extra child rotation is needed.
+      // Jeremy's static GLB retains the established world bounds and +Z swim-forward
+      // orientation, while color_1 encodes dorsal/anal/clavus/pectoral motion masks.
       rotation: [0, 0, 0],
-      // Source body length is ~20.69 model units; scale maps size 1.0 to 3.3 m / 13.2 WU max.
       scale: 0.638,
-      // Mola has no spine chain; 'face' is the front-body bone used as the follow-cam aim point.
-      followBone: 'face',
       moveset: {
-        cruise: 'slow_cruise',
-        drift: 'idle_drift',
-        turnLeft: 'bank_l',
-        turnRight: 'bank_r',
-        burst: 'burst',
-        sunBaskLeft: 'sun_bask_r',
-        sunBaskRight: 'sun_bask_l',
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+        sunBaskLeft: 'procedural_sun_bask_left',
+        sunBaskRight: 'procedural_sun_bask_right',
       },
-      layeredAnimations: true,
-      layeredBaseAnimation: 'slow_cruise',
-      layeredOverlayAnimations: ['idle_drift', 'bank_l', 'bank_r', 'burst', 'sun_bask_l', 'sun_bask_r'],
-      layeredBaseWeight: 0.62,
-      layeredOverlayWeight: 0.72,
-      animationFadeDuration: 0.55,
-      loopAnimations: ['idle_drift', 'slow_cruise', 'sun_bask_l', 'sun_bask_r'],
+      proceduralAnimation: {
+        type: 'mola-mask-vertex',
+        bodyMeshNames: ['10001003'],
+        // COLOR_0 remains white material data. Blender exported the painted mask as
+        // COLOR_1, exposed by Three as color_1: R dorsal, G anal, B clavus, RGB-grey pectorals.
+        maskAttribute: 'color_1',
+        waveSpeed: 0.92,
+        finAmplitude: 0.022,
+        pectoralAmplitude: 0.014,
+        clavusAmplitude: 0.016,
+        turnStrength: 0.012,
+        burstAmplitude: 0.38,
+        response: 3.2,
+        speedFrequencyBoost: 0.22,
+        burstFrequencyBoost: 0.18,
+      },
     },
     placeholder: {
       type: 'mola-mola',

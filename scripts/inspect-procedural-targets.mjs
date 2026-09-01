@@ -39,6 +39,15 @@ const targets = [
     forbiddenMeshNames: ['shortfinmakopelvic-finsl', 'shortfinmakopelvic-finsr'],
     minBodyLength: 20,
   },
+  {
+    name: 'Giant Sunfish static motion mask',
+    path: 'public/models/fish/mola-alexandrini/mola-alexandrini.glb',
+    staticMesh: true,
+    bodyMeshNames: ['10001003'],
+    requiredBodyAttributes: ['color_1'],
+    minBodyLength: 0.5,
+    minVertices: 8000,
+  },
 ]
 
 const axisValue = (vector, axis) => axis === 'x' ? vector.x : (axis === 'y' ? vector.y : vector.z)
@@ -70,6 +79,9 @@ for (const target of targets) {
   const missingBodyMeshes = (target.bodyMeshNames ?? []).filter(name => !meshNames.includes(name))
   const missingFinMeshes = (target.requiredFinMeshes ?? []).filter(name => !meshNames.includes(name))
   const unexpectedMeshes = (target.forbiddenMeshNames ?? []).filter(name => meshNames.includes(name))
+  const missingBodyAttributes = (target.requiredBodyAttributes ?? []).filter(attribute => (
+    bodyMeshes.some(mesh => !mesh.attributes.includes(attribute))
+  ))
   const bodyContractFailed = bodyMeshes.some(mesh => (
     mesh.skinned
     || mesh.vertices < (target.minVertices ?? 1000)
@@ -81,6 +93,7 @@ for (const target of targets) {
     || missingBodyMeshes.length > 0
     || missingFinMeshes.length > 0
     || unexpectedMeshes.length > 0
+    || missingBodyAttributes.length > 0
     || bodyContractFailed
   ))
   console.log(JSON.stringify({
@@ -93,6 +106,7 @@ for (const target of targets) {
     missingBodyMeshes,
     missingFinMeshes,
     unexpectedMeshes,
+    missingBodyAttributes,
     proceduralBones: [],
     missingBones: [],
     staticContractFailed,

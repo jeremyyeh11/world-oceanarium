@@ -15,7 +15,7 @@ Status labels:
 
 ### CRT/pixel interface
 
-Status: `Current in development`
+Status: `Archive candidate`
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
@@ -45,10 +45,10 @@ Subtasks:
 - [ ] Anything meant to be visible on the specimen stage must live in `.atlas-stage-frame`. The stage's CSS background and its `is-tank-backdrop::after` layer are permanently hidden behind the opaque WebGL canvas.
 
 Review gates:
-- [ ] Reads soft rather than sharp at arm's length on a phone.
-- [ ] Scanlines do not shimmer or moire against the moving scene.
-- [ ] Dive timing feels like descending, not like a modal sliding away.
-- [ ] Screenshot mode still captures the scene free of interface framing.
+- [x] Reads soft rather than sharp at arm's length on a phone.
+- [x] Scanlines do not shimmer or moire against the moving scene.
+- [x] Dive timing feels like descending, not like a modal sliding away.
+- [x] Screenshot mode still captures the scene free of interface framing (verified: the tube film, tank dock, top controls and version footnote all clear on entry and restore on exit).
 - [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
 - [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
 - [ ] Pixelify Sans digit legibility at small sizes generally — "5" reads as "S" below ~12px, which forced `HUMAN_SCALE_METERS` back to 1.7. Check other small numeric readouts (debug panel, dex numbers) for the same problem.

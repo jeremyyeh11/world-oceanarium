@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.15.0 — CRT/pixel interface (in development)
+## v0.15.0 — CRT/pixel interface
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_11`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: accepted and promoted as clean `v0.15.0` from `v0.15.0-dev_11` after Jeremy's review. The 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 

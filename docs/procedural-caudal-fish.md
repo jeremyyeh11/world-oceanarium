@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_9` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, and forward-led large-fish turning on `feat/static-procedural-fish-models`.
+Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_10` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, and a pelvic-fin-welded Mako export on `feat/static-procedural-fish-models`.
 
 ## Scope
 
@@ -37,9 +37,9 @@ For larger procedural fish, the rendered heading follows the same already turn-c
 
 ## Current asset bridge
 
-Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.14.0-dev_9` review extends that path to four supplied runtime GLBs: Sardinella, male Mahi, female Mahi, and Shortfin Mako. They contain no bones, skin weights, or animation clips; their body waves come from GPU vertex deformation. This pass widens caudal displacement, turn and burst response, and independent fin flutter while preserving each species' front-body rigidity; Mahi and Mako normal cruise speed are also raised 25%. Its longitudinal phase and flex envelope are now species-specific: Mako deformation begins much farther forward and travels far enough to counter-curve the tail into a visible S; Mahi remains tail-led, compact, and fast. The Mako's configured drift state is disabled, so it retains continuous forward motion at every normal behavior beat; its cruise, snap, and burst rates each receive a further 20% increase. Mahi and Mako visible headings now remain locked to their actual turn-capped paths.
+Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.14.0-dev_10` review extends that path to four supplied runtime GLBs: Sardinella, male Mahi, female Mahi, and Shortfin Mako. They contain no bones, skin weights, or animation clips; their body waves come from GPU vertex deformation. This pass widens caudal displacement, turn and burst response, and independent fin flutter while preserving each species' front-body rigidity; Mahi and Mako normal cruise speed are also raised 25%. Its longitudinal phase and flex envelope are now species-specific: Mako deformation begins much farther forward and travels far enough to counter-curve the tail into a visible S; Mahi remains tail-led, compact, and fast. The Mako's configured drift state is disabled, so it retains continuous forward motion at every normal behavior beat; its cruise, snap, and burst rates each receive a further 20% increase. Mahi and Mako visible headings now remain locked to their actual turn-capped paths.
 
-The new Mahi and Mako runtime GLBs preserve separate pectoral/pelvic fin meshes. The body mesh receives the travelling caudal wave; fins are excluded from body bending and receive small procedural flutter from the same live movement clock.
+The new Mahi runtime GLBs preserve separate pectoral/pelvic fin meshes. The Mako keeps separate pectorals for subtle procedural flutter, while Jeremy's revised Mako export welds both pelvic fins into `shortfinmako003`; they now travel continuously with the body wave and cannot detach. Independent fin objects remain excluded from body bending.
 
 Future caudal assets may ship as neutral static meshes. They need consistent `+Z` swim-forward orientation, sufficient longitudinal topology, clean normals, and predictable bounds. A later GPU vertex-deformation path can derive head-to-tail influence from local longitudinal position; painted masks remain optional for fin isolation or anatomy that automatic bounds cannot classify cleanly.
 
@@ -48,7 +48,7 @@ Future caudal assets may ship as neutral static meshes. They need consistent `+Z
 - Sardinella body: `sardine`, source axis `x`, lateral axis `z`.
 - Mahi male body: `mahi-combined`; fins: `mahi-malepectoral-finsl/r`, `mahi-malepelvic-finsl/r`.
 - Mahi female body: `mahi-female`; fins: `mahi-femalepectoral-finsl/r`, `mahi-femalepelvic-finsl/r`.
-- Mako body: `shortfinmako003`; fins: `shortfinmakopectoral-finsl/r`, `shortfinmakopelvic-finsl/r`.
+- Mako body: `shortfinmako003` (includes welded pelvic fins); independently fluttered fins: `shortfinmakopectoral-finsl/r`.
 
 Run `npm run verify:procedural-fish-assets` to prove the static target GLBs expose the expected body/fin meshes and contain no authored clip, bone, or skinning data.
 

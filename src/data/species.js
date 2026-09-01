@@ -570,8 +570,9 @@ export const SPECIES = [
         response: 4.8,
         speedFrequencyBoost: 0.28,
         burstFrequencyBoost: 0.22,
+        // Pelvic fins are welded into shortfinmako003 in the supplied replacement
+        // GLB, so they ride the same continuous body wave and cannot detach.
         pectoralFinFlutter: 0.06,
-        pelvicFinFlutter: 0.035,
       },
       debugForwardOrigin: 'head',
       // Nose is near +28.02 over the ~40.18 source-length span.

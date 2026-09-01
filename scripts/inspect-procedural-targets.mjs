@@ -33,7 +33,10 @@ const targets = [
     path: 'public/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb',
     staticMesh: true,
     bodyMeshNames: ['shortfinmako003'],
-    requiredFinMeshes: ['shortfinmakopectoral-finsl', 'shortfinmakopectoral-finsr', 'shortfinmakopelvic-finsl', 'shortfinmakopelvic-finsr'],
+    // The replacement Mako welds pelvic fins into shortfinmako003 so they deform
+    // continuously with the body. Only pectorals remain independent flutter meshes.
+    requiredFinMeshes: ['shortfinmakopectoral-finsl', 'shortfinmakopectoral-finsr'],
+    forbiddenMeshNames: ['shortfinmakopelvic-finsl', 'shortfinmakopelvic-finsr'],
     minBodyLength: 20,
   },
 ]
@@ -66,6 +69,7 @@ for (const target of targets) {
   const bodyMeshes = meshes.filter(mesh => target.bodyMeshNames?.includes(mesh.name))
   const missingBodyMeshes = (target.bodyMeshNames ?? []).filter(name => !meshNames.includes(name))
   const missingFinMeshes = (target.requiredFinMeshes ?? []).filter(name => !meshNames.includes(name))
+  const unexpectedMeshes = (target.forbiddenMeshNames ?? []).filter(name => meshNames.includes(name))
   const bodyContractFailed = bodyMeshes.some(mesh => (
     mesh.skinned
     || mesh.vertices < (target.minVertices ?? 1000)
@@ -76,6 +80,7 @@ for (const target of targets) {
     || bones.length > 0
     || missingBodyMeshes.length > 0
     || missingFinMeshes.length > 0
+    || unexpectedMeshes.length > 0
     || bodyContractFailed
   ))
   console.log(JSON.stringify({
@@ -87,6 +92,7 @@ for (const target of targets) {
     bodyMeshes: target.bodyMeshNames ?? [],
     missingBodyMeshes,
     missingFinMeshes,
+    unexpectedMeshes,
     proceduralBones: [],
     missingBones: [],
     staticContractFailed,

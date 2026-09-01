@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.15.2 — Synthetic bold fix (in development)
+## v0.15.2 — Synthetic bold fix
 
-Status: `in development` on `fix/jersey-synthetic-bold`, currently at `v0.15.2-dev_1`.
+Status: accepted and promoted as clean `v0.15.2` from `v0.15.2-dev_1` after Jeremy's review.
 
 ### Typography
 

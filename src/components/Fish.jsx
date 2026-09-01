@@ -368,6 +368,12 @@ function resolveSwimProfile(creature) {
     burstInterval: speciesSwim.burstInterval ?? DEFAULT_SWIM.burstInterval,
     speedMultiplier: speciesSwim.speedMultiplier ?? DEFAULT_SWIM.speedMultiplier,
     erraticness: speciesSwim.erraticness ?? DEFAULT_SWIM.erraticness,
+    // Use the post-steering travel vector directly for species whose long bodies make
+    // a smoothed render heading read as a pivot detached from their actual arc.
+    visualHeadingFollowsMotion: speciesSwim.visualHeadingFollowsMotion ?? false,
+    // Most fish may enter a low-travel drift beat. Obligate ram-ventilating pelagic
+    // swimmers can opt out so their idle state remains a continuous forward patrol.
+    driftEnabled: speciesSwim.driftEnabled ?? true,
     driftInterval: speciesSwim.driftInterval ?? DEFAULT_DRIFT_INTERVAL,
     driftDuration: speciesSwim.driftDuration ?? DEFAULT_DRIFT_DURATION,
     burstActionDuration: speciesSwim.burstActionDuration ?? DEFAULT_BURST_ACTION_DURATION,
@@ -1166,13 +1172,17 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
   const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
   const maskUniforms = { uTime: { value: 0 } }
   const proceduralBounds = geometry?.boundingBox
-  const proceduralUniforms = proceduralVertex && proceduralBounds ? {
+  const proceduralSourceAxis = proceduralAxisIndex(proceduralVertex?.sourceAxis, 2)
+  const proceduralLateralAxis = proceduralAxisIndex(proceduralVertex?.lateralAxis, proceduralSourceAxis === 0 ? 2 : 0)
+  const caudalUniforms = proceduralVertex?.type === 'caudal-vertex' && proceduralBounds ? {
     phase: { value: 0 },
     speed: { value: 0 },
     turn: { value: 0 },
     burst: { value: 0 },
-    minZ: { value: proceduralBounds.min.z },
-    maxZ: { value: proceduralBounds.max.z },
+    minSource: { value: proceduralAxisMin(proceduralBounds, proceduralSourceAxis) },
+    maxSource: { value: proceduralAxisMax(proceduralBounds, proceduralSourceAxis) },
+    sourceAxis: { value: proceduralSourceAxis },
+    lateralAxis: { value: proceduralLateralAxis },
     tailAtMaxZ: { value: proceduralVertex.tailAtMaxZ ? 1 : 0 },
     amplitude: { value: proceduralVertex.amplitude ?? 0.16 },
     waveTravel: { value: proceduralVertex.waveTravel ?? 5.2 },
@@ -1181,38 +1191,75 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     turnStrength: { value: proceduralVertex.turnStrength ?? 0.22 },
     burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.55 },
   } : null
+  const molaMaskUniforms = proceduralVertex?.type === 'mola-mask-vertex' && proceduralBounds ? {
+    phase: { value: 0 },
+    speed: { value: 0 },
+    turn: { value: 0 },
+    burst: { value: 0 },
+    finRotationRadians: { value: proceduralVertex.finRotationRadians ?? 0.46 },
+    dorsalRootYZ: { value: new THREE.Vector2(...(proceduralVertex.dorsalRootYZ ?? [0, -0.08716])) },
+    analRootYZ: { value: new THREE.Vector2(...(proceduralVertex.analRootYZ ?? [0, 0.14121])) },
+    dorsalPhaseOffset: { value: proceduralVertex.dorsalPhaseOffset ?? 0 },
+    analPhaseOffset: { value: proceduralVertex.analPhaseOffset ?? 1.08 },
+    analPhaseRate: { value: proceduralVertex.analPhaseRate ?? 0.91 },
+    pectoralAmplitude: { value: proceduralVertex.pectoralAmplitude ?? 0.014 },
+    clavusAmplitude: { value: proceduralVertex.clavusAmplitude ?? 0.016 },
+    turnStrength: { value: proceduralVertex.turnStrength ?? 0.012 },
+    burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.38 },
+  } : null
+  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
     shader.uniforms.uRimColor = { value: rimColor }
     shader.uniforms.uRimIntensity = { value: rimIntensity }
     shader.uniforms.uRimPower = { value: rimPower }
-    if (proceduralUniforms) {
-      shader.uniforms.uProceduralPhase = proceduralUniforms.phase
-      shader.uniforms.uProceduralSpeed = proceduralUniforms.speed
-      shader.uniforms.uProceduralTurn = proceduralUniforms.turn
-      shader.uniforms.uProceduralBurst = proceduralUniforms.burst
-      shader.uniforms.uProceduralMinZ = proceduralUniforms.minZ
-      shader.uniforms.uProceduralMaxZ = proceduralUniforms.maxZ
-      shader.uniforms.uProceduralTailAtMaxZ = proceduralUniforms.tailAtMaxZ
-      shader.uniforms.uProceduralAmplitude = proceduralUniforms.amplitude
-      shader.uniforms.uProceduralWaveTravel = proceduralUniforms.waveTravel
-      shader.uniforms.uProceduralFlexStart = proceduralUniforms.flexStart
-      shader.uniforms.uProceduralFlexFull = proceduralUniforms.flexFull
-      shader.uniforms.uProceduralTurnStrength = proceduralUniforms.turnStrength
-      shader.uniforms.uProceduralBurstAmplitude = proceduralUniforms.burstAmplitude
+    if (caudalUniforms) {
+      shader.uniforms.uProceduralPhase = caudalUniforms.phase
+      shader.uniforms.uProceduralSpeed = caudalUniforms.speed
+      shader.uniforms.uProceduralTurn = caudalUniforms.turn
+      shader.uniforms.uProceduralBurst = caudalUniforms.burst
+      shader.uniforms.uProceduralMinSource = caudalUniforms.minSource
+      shader.uniforms.uProceduralMaxSource = caudalUniforms.maxSource
+      shader.uniforms.uProceduralSourceAxis = caudalUniforms.sourceAxis
+      shader.uniforms.uProceduralLateralAxis = caudalUniforms.lateralAxis
+      shader.uniforms.uProceduralTailAtMaxZ = caudalUniforms.tailAtMaxZ
+      shader.uniforms.uProceduralAmplitude = caudalUniforms.amplitude
+      shader.uniforms.uProceduralWaveTravel = caudalUniforms.waveTravel
+      shader.uniforms.uProceduralFlexStart = caudalUniforms.flexStart
+      shader.uniforms.uProceduralFlexFull = caudalUniforms.flexFull
+      shader.uniforms.uProceduralTurnStrength = caudalUniforms.turnStrength
+      shader.uniforms.uProceduralBurstAmplitude = caudalUniforms.burstAmplitude
+    }
+    if (molaMaskUniforms) {
+      shader.uniforms.uMolaPhase = molaMaskUniforms.phase
+      shader.uniforms.uMolaSpeed = molaMaskUniforms.speed
+      shader.uniforms.uMolaTurn = molaMaskUniforms.turn
+      shader.uniforms.uMolaBurst = molaMaskUniforms.burst
+      shader.uniforms.uMolaFinRotationRadians = molaMaskUniforms.finRotationRadians
+      shader.uniforms.uMolaDorsalRootYZ = molaMaskUniforms.dorsalRootYZ
+      shader.uniforms.uMolaAnalRootYZ = molaMaskUniforms.analRootYZ
+      shader.uniforms.uMolaDorsalPhaseOffset = molaMaskUniforms.dorsalPhaseOffset
+      shader.uniforms.uMolaAnalPhaseOffset = molaMaskUniforms.analPhaseOffset
+      shader.uniforms.uMolaAnalPhaseRate = molaMaskUniforms.analPhaseRate
+      shader.uniforms.uMolaPectoralAmplitude = molaMaskUniforms.pectoralAmplitude
+      shader.uniforms.uMolaClavusAmplitude = molaMaskUniforms.clavusAmplitude
+      shader.uniforms.uMolaTurnStrength = molaMaskUniforms.turnStrength
+      shader.uniforms.uMolaBurstAmplitude = molaMaskUniforms.burstAmplitude
     }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
 varying vec3 vFishWorldPosition;
-${proceduralUniforms ? `uniform float uProceduralPhase;
+${caudalUniforms ? `uniform float uProceduralPhase;
 uniform float uProceduralSpeed;
 uniform float uProceduralTurn;
 uniform float uProceduralBurst;
-uniform float uProceduralMinZ;
-uniform float uProceduralMaxZ;
+uniform float uProceduralMinSource;
+uniform float uProceduralMaxSource;
+uniform float uProceduralSourceAxis;
+uniform float uProceduralLateralAxis;
 uniform float uProceduralTailAtMaxZ;
 uniform float uProceduralAmplitude;
 uniform float uProceduralWaveTravel;
@@ -1220,10 +1267,25 @@ uniform float uProceduralFlexStart;
 uniform float uProceduralFlexFull;
 uniform float uProceduralTurnStrength;
 uniform float uProceduralBurstAmplitude;
-void proceduralFishCurve(float sourceZ, out float lateralOffset, out float lateralSlope) {
-  float bodyLength = max(0.0001, uProceduralMaxZ - uProceduralMinZ);
-  float tail01FromMin = (sourceZ - uProceduralMinZ) / bodyLength;
-  float tail01FromMax = (uProceduralMaxZ - sourceZ) / bodyLength;
+float proceduralAxisValue(vec3 value, float axis) {
+  return axis < 0.5 ? value.x : (axis < 1.5 ? value.y : value.z);
+}
+void proceduralAddAxis(inout vec3 value, float axis, float offset) {
+  if (axis < 0.5) value.x += offset;
+  else if (axis < 1.5) value.y += offset;
+  else value.z += offset;
+}
+void proceduralAdjustNormal(inout vec3 value, float sourceAxis, float lateralAxis, float slope) {
+  float lateralComponent = proceduralAxisValue(value, lateralAxis);
+  if (sourceAxis < 0.5) value.x -= slope * lateralComponent;
+  else if (sourceAxis < 1.5) value.y -= slope * lateralComponent;
+  else value.z -= slope * lateralComponent;
+  value = normalize(value);
+}
+void proceduralFishCurve(float sourceCoord, out float lateralOffset, out float lateralSlope) {
+  float bodyLength = max(0.0001, uProceduralMaxSource - uProceduralMinSource);
+  float tail01FromMin = (sourceCoord - uProceduralMinSource) / bodyLength;
+  float tail01FromMax = (uProceduralMaxSource - sourceCoord) / bodyLength;
   float tail01 = clamp(mix(tail01FromMax, tail01FromMin, uProceduralTailAtMaxZ), 0.0, 1.0);
   float flexRange = max(0.0001, uProceduralFlexFull - uProceduralFlexStart);
   float flexT = clamp((tail01 - uProceduralFlexStart) / flexRange, 0.0, 1.0);
@@ -1241,24 +1303,86 @@ void proceduralFishCurve(float sourceZ, out float lateralOffset, out float later
   lateralOffset = wave * stroke * flex + uProceduralTurn * uProceduralTurnStrength * flex * flex;
   lateralSlope = stroke * (dWaveDz * flex + wave * dFlexDz)
     + uProceduralTurn * uProceduralTurnStrength * 2.0 * flex * dFlexDz;
+}` : ''}${molaMaskUniforms ? `attribute vec4 color_1;
+uniform float uMolaPhase;
+uniform float uMolaSpeed;
+uniform float uMolaTurn;
+uniform float uMolaBurst;
+uniform float uMolaFinRotationRadians;
+uniform vec2 uMolaDorsalRootYZ;
+uniform vec2 uMolaAnalRootYZ;
+uniform float uMolaDorsalPhaseOffset;
+uniform float uMolaAnalPhaseOffset;
+uniform float uMolaAnalPhaseRate;
+uniform float uMolaPectoralAmplitude;
+uniform float uMolaClavusAmplitude;
+uniform float uMolaTurnStrength;
+uniform float uMolaBurstAmplitude;
+void proceduralMolaMotion(inout vec3 value) {
+  vec3 mask = clamp(color_1.rgb, 0.0, 1.0);
+  // White/grey is deliberately reserved for pectorals. Removing its shared value
+  // leaves the exclusive red/green/blue dorsal, anal, and clavus weights.
+  float pectoral = min(mask.r, min(mask.g, mask.b));
+  float dorsal = max(0.0, mask.r - pectoral);
+  float anal = max(0.0, mask.g - pectoral);
+  float clavus = max(0.0, mask.b - pectoral);
+  float speedStroke = mix(0.42, 1.0, uMolaSpeed);
+  float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
+  float dorsalRotation = sin(uMolaPhase + uMolaDorsalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
+  float analRotation = sin(uMolaPhase * uMolaAnalPhaseRate + uMolaAnalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
+  // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about
+  // its own painted attachment root, creating a real tip arc instead of a
+  // side-to-side translation. Quintic easing retains the painter's continuous
+  // gradient while holding the first few root loops gentler still: no dead-zone
+  // hinge, and zero first/second derivative at the rigid attachment.
+  float dorsalInfluence = dorsal * dorsal * dorsal * (dorsal * (dorsal * 6.0 - 15.0) + 10.0);
+  float dorsalAngle = dorsalInfluence * dorsalRotation;
+  float dorsalCos = cos(dorsalAngle);
+  float dorsalSin = sin(dorsalAngle);
+  float dorsalY = value.y - uMolaDorsalRootYZ.x;
+  float dorsalZ = value.z - uMolaDorsalRootYZ.y;
+  value.y = uMolaDorsalRootYZ.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
+  value.z = uMolaDorsalRootYZ.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
+  float analInfluence = anal * anal * anal * (anal * (anal * 6.0 - 15.0) + 10.0);
+  float analAngle = analInfluence * analRotation;
+  float analCos = cos(analAngle);
+  float analSin = sin(analAngle);
+  float analY = value.y - uMolaAnalRootYZ.x;
+  float analZ = value.z - uMolaAnalRootYZ.y;
+  value.y = uMolaAnalRootYZ.x + analY * analCos - analZ * analSin;
+  value.z = uMolaAnalRootYZ.y + analY * analSin + analZ * analCos;
+  float side = value.x < 0.0 ? -1.0 : 1.0;
+  float pectoralStroke = sin(uMolaPhase * 0.82 + side * 0.72) * uMolaPectoralAmplitude * speedStroke;
+  value.z += pectoral * pectoralStroke;
+  value.x += pectoral * side * uMolaTurn * uMolaTurnStrength;
+  // The clavus is a restrained rear rudder, never a shark tail.
+  value.x += clavus * sin(uMolaPhase * 0.57 + 0.45) * uMolaClavusAmplitude * speedStroke;
+  value.z += clavus * uMolaTurn * uMolaTurnStrength;
 }` : ''}`
       )
-    if (proceduralUniforms) {
+    if (caudalUniforms) {
       shader.vertexShader = shader.vertexShader.replace(
         '#include <beginnormal_vertex>',
         `#include <beginnormal_vertex>
 float proceduralNormalOffset;
 float proceduralNormalSlope;
-proceduralFishCurve(position.z, proceduralNormalOffset, proceduralNormalSlope);
-objectNormal = normalize(vec3(objectNormal.x, objectNormal.y, objectNormal.z - proceduralNormalSlope * objectNormal.x));`
+proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralNormalOffset, proceduralNormalSlope);
+proceduralAdjustNormal(objectNormal, uProceduralSourceAxis, uProceduralLateralAxis, proceduralNormalSlope);`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
 float proceduralLateralOffset;
 float proceduralLateralSlope;
-proceduralFishCurve(position.z, proceduralLateralOffset, proceduralLateralSlope);
-transformed.x += proceduralLateralOffset;`
+proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralLateralOffset, proceduralLateralSlope);
+proceduralAddAxis(transformed, uProceduralLateralAxis, proceduralLateralOffset);`
+      )
+    }
+    if (molaMaskUniforms) {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <project_vertex>',
+        `proceduralMolaMotion(transformed);
+#include <project_vertex>`
       )
     }
     shader.vertexShader = shader.vertexShader.replace(
@@ -1329,7 +1453,12 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`
       )
   }
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralUniforms ? 'caudal-vertex' : 'static'}`
+  const proceduralKey = !proceduralVertex
+    ? 'static'
+    : proceduralVertex.type === 'caudal-vertex'
+      ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
+      : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
@@ -1355,11 +1484,12 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
         nextMaterial.emissive.set(lodDebugColor)
         nextMaterial.emissiveIntensity = 0.32
       }
-      if (proceduralAnimation?.type === 'caudal-vertex') child.geometry.computeBoundingBox()
+      const proceduralMeshConfig = shouldProcedurallyDeformMesh(child, proceduralAnimation) ? proceduralAnimation : null
+      if (proceduralMeshConfig) child.geometry.computeBoundingBox()
       applyFishLightMask(
         nextMaterial,
         rim,
-        proceduralAnimation?.type === 'caudal-vertex' ? proceduralAnimation : null,
+        proceduralMeshConfig,
         child.geometry,
       )
       materials.push(nextMaterial)
@@ -1624,6 +1754,52 @@ function curveDeformAxis(config) {
   return curveDeformAxisZ
 }
 
+function proceduralAxisIndex(axis, fallback) {
+  if (axis === 'x') return 0
+  if (axis === 'y') return 1
+  if (axis === 'z') return 2
+  return fallback
+}
+
+function proceduralAxisMin(bounds, axisIndex) {
+  if (axisIndex === 0) return bounds.min.x
+  if (axisIndex === 1) return bounds.min.y
+  return bounds.min.z
+}
+
+function proceduralAxisMax(bounds, axisIndex) {
+  if (axisIndex === 0) return bounds.max.x
+  if (axisIndex === 1) return bounds.max.y
+  return bounds.max.z
+}
+
+function shouldProcedurallyDeformMesh(mesh, proceduralAnimation) {
+  if (!['caudal-vertex', 'mola-mask-vertex'].includes(proceduralAnimation?.type)) return false
+  const name = mesh.name?.toLowerCase() ?? ''
+  if (proceduralAnimation.bodyMeshNames?.some(bodyName => name === bodyName.toLowerCase())) return true
+  if (proceduralAnimation.bodyMeshPatterns?.some(pattern => name.includes(pattern.toLowerCase()))) return true
+  if (/pectoral|pelvic|fin|flipper|eye|jaw|mouth/.test(name)) return false
+  return true
+}
+
+function collectProceduralFinMeshes(object) {
+  const fins = []
+  object.traverse(child => {
+    if (!child.isMesh) return
+    const name = child.name?.toLowerCase() ?? ''
+    const isPectoral = name.includes('pectoral')
+    const isPelvic = name.includes('pelvic')
+    if (!isPectoral && !isPelvic) return
+    fins.push({
+      mesh: child,
+      baseQuaternion: child.quaternion.clone(),
+      side: name.endsWith('r') || name.includes('.r') || name.includes('-r') ? -1 : 1,
+      kind: isPectoral ? 'pectoral' : 'pelvic',
+    })
+  })
+  return fins
+}
+
 function curveDeformMaxAngle(config) {
   const degrees = Number.isFinite(config?.maxAngleDegrees) ? config.maxAngleDegrees : 0
   return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(degrees, 0, 24))
@@ -1777,6 +1953,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
     [gltf.animations, model],
   )
   const curveDeformBones = useMemo(() => collectCurveDeformBones(object, model), [object, model])
+  const proceduralFinMeshes = useMemo(() => collectProceduralFinMeshes(object), [object])
   const debugBones = useMemo(() => collectModelBones(object), [object])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
@@ -1827,6 +2004,39 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         + speed01 * (curveConfig.speedFrequencyBoost ?? 0.32)
         + burst01 * (curveConfig.burstFrequencyBoost ?? 0.24)
         + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
+      )
+      proceduralFinMeshes.forEach((fin, index) => {
+        const pectoralScale = Number.isFinite(curveConfig.pectoralFinFlutter) ? curveConfig.pectoralFinFlutter : 0.12
+        const pelvicScale = Number.isFinite(curveConfig.pelvicFinFlutter) ? curveConfig.pelvicFinFlutter : 0.07
+        const flutterScale = fin.kind === 'pectoral' ? pectoralScale : pelvicScale
+        const phase = proceduralWaveClockRef.current * (fin.kind === 'pectoral' ? 1.35 : 0.72)
+          + (proceduralInput.phase ?? 0)
+          + index * 0.83
+          + fin.side * 0.4
+        const stroke = flutterScale * (0.35 + speed01 * 0.5 + burst01 * 0.45)
+        curveDeformQuatRef.current.setFromEuler(new THREE.Euler(
+          Math.sin(phase) * stroke * 0.45,
+          fin.side * Math.sin(phase * 0.7 + 0.6) * stroke * 0.55,
+          fin.side * Math.sin(phase + 1.2) * stroke,
+        ))
+        fin.mesh.quaternion.copy(fin.baseQuaternion).multiply(curveDeformQuatRef.current)
+      })
+    } else if (curveConfig?.type === 'mola-mask-vertex') {
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 3.2
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        THREE.MathUtils.clamp(proceduralInput.turn ?? 0, -1, 1),
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 0.92
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * (
+        1
+        + speed01 * (curveConfig.speedFrequencyBoost ?? 0.22)
+        + burst01 * (curveConfig.burstFrequencyBoost ?? 0.18)
+        + Math.max(0, proceduralInput.accel01 ?? 0) * 0.08
       )
     }
     if (curveConfig && curveDeformBones.length > 0) {
@@ -2302,7 +2512,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
     )
     const driftMove = resolveMoveAnimation(model, 'drift')
-    const hasDriftMove = Boolean(model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'))
+    const hasDriftMove = swim.driftEnabled && Boolean(
+      model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'),
+    )
     const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
     const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current
     const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
@@ -2529,7 +2741,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
-        // Authored mola sun-bask hold: the behavior owns position outright (coast to a stop,
+        // Mola sun-bask hold: behavior owns position outright (coast to a stop,
         // surface drift), bypassing the shared integrator entirely.
         desiredDirection.current.copy(tangent)
         agentMoveDirection.copy(tangent)
@@ -2844,6 +3056,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (!hasVisualForward.current) {
       visualForward.current.copy(rawVisualForward)
       hasVisualForward.current = true
+    } else if (swim.visualHeadingFollowsMotion) {
+      // `rawVisualForward` comes from this frame's already turn-capped movement vector.
+      // Taking it directly means the model cannot rotate ahead of its body translation,
+      // which was making large procedural fish read as if they were spinning in place.
+      visualForward.current.copy(rawVisualForward)
     } else {
       const visualAlignment = visualForward.current.dot(rawVisualForward)
       const visualTurnRate = isSoloAgent
@@ -3047,6 +3264,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           bankQuaternion.setFromAxisAngle(pitchedForward, rollDrift)
           fish.quaternion.premultiply(bankQuaternion)
         }
+      } else if (isMolaCreature(creature) && isDrifting) {
+        // Idle drift has a little settling weight: only a shallow, slow roll,
+        // never the deliberate surface-bask bank owned by the behavior above.
+        const idleDriftRollRadians = Number.isFinite(model?.proceduralAnimation?.idleDriftRollRadians)
+          ? model.proceduralAnimation.idleDriftRollRadians
+          : 0.035
+        const idleDriftRollFrequency = Number.isFinite(model?.proceduralAnimation?.idleDriftRollFrequency)
+          ? model.proceduralAnimation.idleDriftRollFrequency
+          : 0.18
+        const idleDriftRoll = Math.sin(now * idleDriftRollFrequency + motion.bobPhase * 1.9 + 0.6)
+          * idleDriftRollRadians
+        bankQuaternion.setFromAxisAngle(pitchedForward, idleDriftRoll)
+        fish.quaternion.premultiply(bankQuaternion)
       }
     } else {
       lookTarget.copy(fish.position).add(pitchedForward)
@@ -3477,7 +3707,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   )
 }
 
-useGLTF.preload('/models/fish/sardine/sardine.glb')
+// Preload the assets species.js actually resolves to. This list drifted when the
+// static/procedural models landed: it kept naming the superseded rigged GLBs, so
+// every load eagerly fetched sardine.glb and mahi-mahi_female.glb — 5.79 MB that
+// is never drawn — while the _static_parts models that *are* drawn were left to
+// load lazily on first sighting. Exactly backwards.
+//
+// Every model species.js can resolve for the mahi is now covered: its base
+// model.path points at the male static mesh too, so the rigged mahi-mahi_male.glb
+// is gone entirely rather than sitting unreferenced.
+//
+// isurus-oxyrinchus_static_parts.glb is left out on purpose — one mako exists, so
+// a lazy fetch on first sighting is cheaper than 3.10 MB on every load.
+useGLTF.preload('/models/fish/sardine/sardine_static.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female_static_parts.glb')

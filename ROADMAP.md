@@ -13,6 +13,26 @@ Status labels:
 
 ## Current work
 
+### Static procedural fish runtime assets
+
+Status: `Archive candidate` — accepted for clean `v0.15.3` and ready to archive after merge verification.
+
+Reference:
+- Branch: `feat/static-procedural-fish-models`; accepted clean release: `v0.15.3` from review build `v0.15.3-dev_5`.
+- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
+
+Subtasks:
+- [x] Move supplied static Sardinella, Mahi, Mako, and Mola GLBs onto the procedural runtime path.
+- [x] Keep Mola’s heavy disc body stable while dorsal/anal fins use soft painted-root, independent rotational strokes.
+- [x] Replace Mola’s mask export with Jeremy’s finer attachment gradient; slow fin cadence and add only a subtle passive-drift roll.
+- [x] Rebase this review branch onto current `main` before final merge checks.
+- [x] Collect explicit clean-release / merge approval after final checks.
+
+Review gates:
+- [x] Static asset contracts reject clips, bones, and skinning; Mola requires `color_1`.
+- [x] Jeremy accepted the current Mola fin feel in `v0.14.0-dev_20` before this mainline rebase.
+- [x] Final post-rebase technical and deployment checks pass.
+
 ### CRT/pixel interface
 
 Status: `Archive candidate` — shipped clean as `v0.15.0`; follow-ups closed in `v0.15.1`.
@@ -180,6 +200,38 @@ Subtasks:
 - [ ] When actively working an item, move/set it to `Current in development`.
 - [ ] When an item is completed and pushed to clean public release, remove it from active sections or archive it under a dated/archive section.
 - [ ] Keep ordering: current work first, then priority, then chronological discovery order unless Jeremy/YK manually asks to reorder.
+
+#### Performance audit follow-ups (`v0.15.3` / `v0.15.4` buckets)
+
+Status: `Backlog` — remaining items deferred on measurement, not blocked.
+
+Reference:
+- Raised when Jeremy reported the app felt laggy. Root cause of the "now" was population growth rather than a code regression: the ocean biome holds 282 live creatures, 275 of them `amblygaster-sirm`, grown 21 (May 2026) -> 88 (June) -> 275 (July). Every alive creature mounts its own `<Fish>` with a per-frame `useFrame`, so frame cost tracks a Supabase row count that changes with no commit. Judge any future fix against the live count, not against a dev machine's stale data.
+- Accepted outcome, measured by Jeremy on 2026-09-02: **desktop 150 fps, mobile 60 fps**. Mobile is at the vsync ceiling, so there is no remaining frame-rate deficit to recover on either target. The follow cam reads slightly lower, but those fish are close enough to be LOD0 and would not have been touched by the staggering below.
+
+Shipped and accepted:
+- [x] Tank canvas `dpr` capped `[1, 2]` -> `[1, 1.5]` (`v0.15.3-dev_1`, #84) — ~44% fewer fragments per pass at the 375x812 review viewport.
+- [x] Dropped `mix-blend-mode: multiply` from `.crt-screen` (`v0.15.3-dev_2`, #85) — removed a full-viewport composite per frame. Free because the film flattens to near-black, where multiply and normal blending converge; worst drift 2.7/255.
+- [x] Sardine LOD textures down-res'd to 256x144 / 128x72 (`v0.15.3-dev_3`, #86), sized from on-screen length at each LOD's closest draw distance.
+- [x] `SardineInstancedLayer` stopped rebuilding its instance list every frame (`v0.15.3-dev_4`, #88) — ~66k object allocations/second removed. Direct CPU saving was only ~14us of a 16,667us budget; the point was GC pressure.
+- [x] Fish model assets reconciled after #77 (`v0.15.4`, #89): preload list corrected, five superseded GLBs deleted, mahi base `model.path` and its `proceduralAnimation` moved to the static mesh, sardine LOD ladder made monotonic and rig-free. `public/models` 31.96 MB -> 14.99 MB; bytes fetched to render the full scene 25.28 MB -> ~15 MB.
+
+Deferred — real but no measured need (revisit only if the population grows again or a device regresses):
+- [ ] All 275 sardines run the full swim sim every frame regardless of LOD. The LOD system correctly unmounts `FishModel` (`Fish.jsx:3537`) so bone/mixer work stops, but the outer `useFrame` (`Fish.jsx:2469`) still runs sim, projection and registry writes for every fish. Stagger distant/offscreen sardines to every 2nd-4th frame, keyed off a `creature.id` hash. This is the largest remaining frame-rate lever **and** the only item in the audit that can change how the fish visibly move — which is why it was not taken once the numbers above came in. Bad trade against a non-problem.
+- [ ] LOD switching calls `setState` inside `useFrame` (`Fish.jsx:3368`). Each threshold crossing re-renders that `<Fish>` and mounts/unmounts `FishModel`, cloning the GLTF scene and its materials. Prefer toggling `.visible` imperatively.
+- [ ] `computeBoidSteering` (`Fish.jsx:997`) scans the whole registry and pushes a fresh `{ id, other, distanceSq }` object per candidate before sorting. Throttled by `boidDecisionNextAt` so it is amortised, but at 275 fish it is ~75k distance checks per sweep plus GC churn. Reuse pooled entry objects.
+
+Still open, unblocked:
+- [ ] The mahi texture (`baccb3fdc1`, 1920x1080, 3.48 MB) is byte-identical across `mahi-mahi_female_static_parts.glb` and `mahi-mahi_male_static_parts.glb`. `useGLTF` caches per URL, so it is two separate GPU uploads of one image (~10.5 MB of duplicate VRAM). The sardine equivalent is already resolved — one file, one copy.
+- [ ] Self-host the webfont (dupe of the CRT item above): `index.html` render-blocks on a `fonts.googleapis.com` stylesheet for Pixelify Sans + Jersey 15, costing a third-party DNS + TLS + fetch before first paint.
+- [ ] `public/models` ships 14.99 MB with **no** Draco, meshopt or KTX2 compression on any `.glb`.
+- [ ] Single ~1.49 MB JS chunk (438 kB gzip), no code splitting; `EncyclopediaPage` and its own `<Canvas>` are statically imported in `App.jsx:4`. Measure before acting — `three` is shared with the tank, so splitting may move less than it looks.
+- [ ] One-off hitch on first load was reported but not diagnosed. Distinguish before fixing: a hitch at the *same* moment each reload (first mahi entering view) is 1920x1080 PNG decode plus first-render GPU upload; random timing is network.
+
+Explicitly rejected — do not re-propose:
+- Reducing the water surface below 256x256 subdivisions. `WaterSurface.jsx` documents that 256 is what supports the 3.7 WU reflection spectrum across the 320 WU plane; coarser subdivision aliases the waves. Its `DoubleSide` material is also load-bearing — the camera is clamped below the surface (`MAX_FOLLOW_CAMERA_Y`), so it only ever sees the back face.
+- Converting the three remaining tank blend layers to normal blending. Unlike `.crt-screen` these carry real colour, so the swap is visible: `.tank-depth-absorption` shifts 16.2/255, `.tank-top-exposure` 18.4/255, `.screenshot-grain` 17.9/255. Would need an accepted visual change or a move into the WebGL pass.
+- `backdrop-filter` cleanup over the live canvas. `crt-retrofit.css` already zeroes `.tank-switcher`, `.tank-back-button`, `.fish-search-input`, `.screenshot-help-card`, `.debug-panel` and `.focus-hint`; what survives the cascade is small buttons and the encyclopedia panels, which is not worth the churn.
 
 ## Feature backlog
 

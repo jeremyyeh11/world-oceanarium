@@ -150,22 +150,63 @@ function useInstancedSardineAsset(path, source) {
   return useMemo(() => extractInstancedMeshAsset(gltf.scene, source), [gltf.scene, source])
 }
 
-function collectEntries(entriesMap) {
-  return Array.from(entriesMap.entries())
-    .map(([id, entry]) => ({ ...entry, id }))
-    .filter(entry => isFiniteVector3(entry?.position) && Number.isFinite(entry?.scale ?? 1))
-    .slice(0, MAX_INSTANCES_PER_VARIANT)
+// Reused per-frame buffers, one pair per LOD bucket.
+//
+// This used to be a four-stage chain — Array.from, map, filter, slice — that
+// allocated four arrays plus one spread object per instance, for both buckets,
+// on every single frame. The spread existed only to carry the Map key onto the
+// entry. At the live school size (~275 sardines) that is on the order of 16k
+// short-lived objects a second handed straight to the GC, rebuilding data that
+// is already sitting in the registry Map.
+//
+// Now the Map is walked once and the buffers are filled in place. Entries are
+// held by reference and never copied; the id travels in a parallel array.
+const lod1Scratch = { entries: [], ids: [], count: 0 }
+const lod2Scratch = { entries: [], ids: [], count: 0 }
+
+function collectEntries(entriesMap, scratch) {
+  let count = 0
+  for (const [id, entry] of entriesMap) {
+    if (count >= MAX_INSTANCES_PER_VARIANT) break
+    if (!isFiniteVector3(entry?.position)) continue
+    if (!Number.isFinite(entry?.scale ?? 1)) continue
+    scratch.entries[count] = entry
+    scratch.ids[count] = id
+    count += 1
+  }
+  // Release anything past the live count. Without this a school that shrinks
+  // would keep the departed entries (and their Vector3s/Quaternions) reachable
+  // from the scratch arrays for the rest of the session.
+  for (let i = count; i < scratch.count; i += 1) {
+    scratch.entries[i] = null
+    scratch.ids[i] = null
+  }
+  scratch.count = count
+  return scratch
 }
+
+// The wiggle phase is derived from the creature id, so it is fixed for the life
+// of a fish — but it was recomputed for every instance on every frame, running
+// an FNV hash over each character of the id. Cached by id instead. The map is
+// bounded by the creature set (a few hundred) and each value is one number.
+const phaseById = new Map()
 
 function phaseFromId(id) {
-  return (hashString(String(id ?? '')) / 4294967295) * Math.PI * 2
+  const key = typeof id === 'string' ? id : String(id ?? '')
+  let phase = phaseById.get(key)
+  if (phase === undefined) {
+    phase = (hashString(key) / 4294967295) * Math.PI * 2
+    phaseById.set(key, phase)
+  }
+  return phase
 }
 
-function writeInstances(mesh, entries, debugColor = null) {
+function writeInstances(mesh, scratch, debugColor = null) {
   if (!mesh) return
   const phaseAttribute = mesh.geometry.getAttribute('instancePhase')
+  const { entries, ids, count } = scratch
 
-  for (let i = 0; i < entries.length; i += 1) {
+  for (let i = 0; i < count; i += 1) {
     const entry = entries[i]
     instancePosition.copy(entry.position)
     const visualScale = THREE.MathUtils.clamp(entry.scale ?? 1, 0.45, 1.35) * SARDINE_MODEL_SCALE
@@ -181,10 +222,10 @@ function writeInstances(mesh, entries, debugColor = null) {
     if (debugColor) tempColor.copy(debugColor)
     else tempColor.setRGB(1 * tint, 1 * tint, 1 * tint)
     mesh.setColorAt(i, tempColor)
-    if (phaseAttribute) phaseAttribute.array[i * instancePhaseStride] = phaseFromId(entry.id)
+    if (phaseAttribute) phaseAttribute.array[i * instancePhaseStride] = phaseFromId(ids[i])
   }
 
-  mesh.count = entries.length
+  mesh.count = count
   mesh.instanceMatrix.needsUpdate = true
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
   if (phaseAttribute) phaseAttribute.needsUpdate = true
@@ -217,22 +258,23 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
     updateWiggleTime(lod2Asset.material, clock.elapsedTime)
     const rawLod1Entries = getSardineLod1Instances()
     const rawLod2Entries = getSardineInstances()
-    const lod1Entries = collectEntries(rawLod1Entries)
-    const lod2Entries = collectEntries(rawLod2Entries)
+    const lod1Entries = collectEntries(rawLod1Entries, lod1Scratch)
+    const lod2Entries = collectEntries(rawLod2Entries, lod2Scratch)
 
     if (debugStatsEnabled && typeof window !== 'undefined') {
+      const sampleEntry = lod2Entries.entries[0] ?? lod1Entries.entries[0] ?? null
       window[SARDINE_INSTANCE_DEBUG_GLOBAL] = {
-        total: lod2Entries.length,
-        lod1Total: lod1Entries.length,
-        lod2Total: lod2Entries.length,
+        total: lod2Entries.count,
+        lod1Total: lod1Entries.count,
+        lod2Total: lod2Entries.count,
         available: rawLod1Entries.size + rawLod2Entries.size,
-        buckets: [lod1Entries.length, lod2Entries.length],
+        buckets: [lod1Entries.count, lod2Entries.count],
         variants: 2,
         mode: debugLodView ? 'LOD1+LOD2-LOD-COLOR' : 'LOD1+LOD2',
         asset: `${lod1Asset.source}+${lod2Asset.source}`,
-        sample: lod2Entries[0] || lod1Entries[0] ? {
-          position: [Number((lod2Entries[0] ?? lod1Entries[0]).position.x.toFixed(2)), Number((lod2Entries[0] ?? lod1Entries[0]).position.y.toFixed(2)), Number((lod2Entries[0] ?? lod1Entries[0]).position.z.toFixed(2))],
-          scale: Number(((lod2Entries[0] ?? lod1Entries[0]).scale ?? 1).toFixed(2)),
+        sample: sampleEntry ? {
+          position: [Number(sampleEntry.position.x.toFixed(2)), Number(sampleEntry.position.y.toFixed(2)), Number(sampleEntry.position.z.toFixed(2))],
+          scale: Number((sampleEntry.scale ?? 1).toFixed(2)),
         } : null,
       }
     }

@@ -8,6 +8,35 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.4 — Performance pass and fish asset reconciliation
+
+Status: accepted and promoted as clean `v0.15.4` after Jeremy's device review — **desktop 150 fps, mobile 60 fps** (the vsync ceiling), measured 2026-09-02.
+
+### Performance
+
+- Caps the tank canvas at `dpr={[1, 1.5]}` instead of react-three-fiber's `[1, 2]` default. The scene is fragment-bound — the water's `transmission` re-renders the opaque scene into a refraction target, and the surface, god rays and suspended particles all overdraw — so cost tracks pixel count closely. On a DPR-3 phone at the 375x812 review viewport that is 1,218,000 fragments per pass against 684,516, a 44% reduction. Matches the cap the encyclopedia canvas already used.
+- Removes `mix-blend-mode: multiply` from `.crt-screen`. That layer is fixed, full-viewport and above everything, so blending forced the compositor to re-blend the whole screen against a backdrop containing the constantly-repainting tank canvas. Free to drop because the film flattens to `rgb(5.9, 12.1, 18.0)` at alpha 0.150 — for a black source, multiply and normal blending are algebraically identical, so the error scales only with distance from black. Worst case 2.7/255 on one channel in the deepest blacks; 0.00 against white UI text.
+- Stops `SardineInstancedLayer` rebuilding its instance list every frame. The old `Array.from().map(spread).filter().slice()` chain allocated ~1,100 objects per frame across both LOD buckets to reproduce data already in the registry Map, and re-derived each instance's wiggle phase with an FNV hash over a creature id that never changes. Now reusable buffers plus a phase cache: 20.6 -> 6.4 us/frame, and zero steady-state allocations. The CPU saving is ~0.1% of the frame budget; the GC pressure was the point.
+- Root cause of the original report was population growth rather than a code regression. The ocean biome grew 21 -> 88 -> 275 Sardinella between May and July 2026, and every alive creature mounts its own `<Fish>` with a per-frame `useFrame`, so frame cost tracks a Supabase row count that changes with no commit.
+
+### Runtime assets
+
+- Corrects the `useGLTF.preload` list, which was never updated when the static models landed and still named the superseded rigged GLBs. Every load eagerly fetched `sardine.glb` and `mahi-mahi_female.glb` — never drawn — while the `_static_parts` models that are drawn loaded lazily on first sighting. Bytes fetched to render the full scene: 25.28 MB -> ~15 MB.
+- Points the Mahi-mahi base `model.path` at `mahi-mahi_male_static_parts.glb`, moving its `proceduralAnimation` from a bone chain to the male variant's `caudal-vertex` config at the same time. The static meshes carry no bones, so a bone-driven config on the base would have left any creature falling through to it rendering completely still.
+- Deletes five superseded GLBs — `isurus-oxyrinchus.glb`, `mahi-mahi_male_static.glb`, `mahi-mahi_male.glb`, `sardine.glb`, `mahi-mahi_female.glb`. `public/models` drops 31.96 MB across 12 files to 14.99 MB across 7, and every remaining model is rig-free.
+- Rebuilds the Sardinella LOD ladder from Jeremy's rig-free re-exports. It had inverted under `v0.15.3`, with the LOD0 hero mesh at 303 triangles against LOD1's 748 — the mid-distance model carrying 2.5x the geometry of the closest one. Now 2,492 -> 786 -> 145, monotonic and bone-free.
+- Down-res's the Sardinella LOD textures to 256x144 and 128x72, sized from on-screen length at each LOD's closest draw distance (~223 px and ~140 px at the capped viewport) rather than from triangle count. Both LOD files fall under 100 KB, and the Sardinella texture is no longer duplicated across files.
+
+## v0.15.3 — Static procedural fish runtime assets
+
+Status: accepted and promoted as clean `v0.15.3` from `v0.15.3-dev_5` after Jeremy's review.
+
+### Creature motion
+
+- Uses Jeremy's static, rig-free runtime assets for Sardinella, both Mahi-mahi variants, Shortfin Mako, and Giant Sunfish. Caudal species receive GPU body deformation; the Mola keeps a rigid disc body and mask-driven appendage motion.
+- The Giant Sunfish’s dorsal/anal fins rotate from independent painted attachment pivots, use the refined low-value `COLOR_1` root gradients with continuous quintic easing, and row at a deliberately slow cadence. Its passive drift may settle through a tiny roll; its behavior-owned sun bask remains separate.
+- The static-asset contract requires expected mesh topology and `color_1` for Mola, while rejecting clips, bones, and skinning.
+
 ## v0.15.2 — Synthetic bold fix
 
 Status: accepted and promoted as clean `v0.15.2` from `v0.15.2-dev_1` after Jeremy's review.

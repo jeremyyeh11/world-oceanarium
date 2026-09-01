@@ -3707,7 +3707,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   )
 }
 
-useGLTF.preload('/models/fish/sardine/sardine.glb')
+// Preload the assets species.js actually resolves to. This list drifted when the
+// static/procedural models landed: it kept naming the superseded rigged GLBs, so
+// every load eagerly fetched sardine.glb and mahi-mahi_female.glb — 5.79 MB that
+// is never drawn — while the _static_parts models that *are* drawn were left to
+// load lazily on first sighting. Exactly backwards.
+//
+// mahi-mahi_male.glb is deliberately absent. It is still species.js's base
+// model.path, but resolveModel only falls back to it when a creature's sex
+// matches no sexVariant, and both mahi variants now define one. It therefore
+// never loads in practice, so preloading it would cost 4.76 MB for a fallback
+// that does not fire — and if it ever does, a lazy fetch is the right cost.
+useGLTF.preload('/models/fish/sardine/sardine_static.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb')
+useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female_static_parts.glb')

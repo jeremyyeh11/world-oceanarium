@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: clean `v0.14.0` established the procedural caudal runtime; `v0.15.0-dev_1` tests Jeremy's new static runtime GLBs on `feat/static-procedural-fish-models`.
+Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_6` continues review with Jeremy's new static runtime GLBs and stronger movement ranges on `feat/static-procedural-fish-models`.
 
 ## Scope
 
@@ -35,7 +35,7 @@ Each procedural rig integrates its own continuous wave clock. Frequency changes 
 
 ## Current asset bridge
 
-Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.15.0-dev_1` review extends that path to four supplied runtime GLBs: Sardinella, male Mahi, female Mahi, and Shortfin Mako. They contain no bones, skin weights, or animation clips; their body waves come from GPU vertex deformation.
+Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.14.0-dev_6` review extends that path to four supplied runtime GLBs: Sardinella, male Mahi, female Mahi, and Shortfin Mako. They contain no bones, skin weights, or animation clips; their body waves come from GPU vertex deformation. This pass widens caudal displacement, turn and burst response, and independent fin flutter while preserving each species' front-body rigidity; Mahi and Mako normal cruise speed are also raised 25%.
 
 The new Mahi and Mako runtime GLBs preserve separate pectoral/pelvic fin meshes. The body mesh receives the travelling caudal wave; fins are excluded from body bending and receive small procedural flutter from the same live movement clock.
 

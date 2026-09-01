@@ -8,6 +8,28 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.13.0 — Deforming ocean surface
+
+Status: accepted and promoted as clean `v0.13.0` from the historically labeled `v0.14.0-dev_12` review build after Jeremy reju. The clean number was corrected to follow `v0.12.3`; the feature remained isolated from the cinematic-camera branch throughout review.
+
+### Environment / atmosphere
+
+- Replaces the visually animated but physically flat two-triangle ceiling with a 320×320 WU, 256×256-segment water mesh displaced in the vertex shader by six deterministic Gerstner waves arranged as three crossed scales.
+- Derives surface tangents and normals analytically in the same vertex pass and feeds them into a real `MeshPhysicalMaterial` with water IOR, transmission, thickness, absorption, roughness, Fresnel reflection, and clearcoat across the full plane—no front-only fragment alpha strip.
+- Gives the water material its own licensed 1K Qwantani Pure Sky HDR environment for underside reflection/refraction without changing creature lighting or the scene background.
+- Keeps physical transmission mobile-conscious with a half-linear-resolution refraction target, and distance-fades the material before the plane edge can enter upward views.
+- Retunes the physical tint from saturated cyan toward the tanks' muted cobalt/steel-blue palette, then combines camera-distance and grazing-angle alpha fades so the far surface dissolves into water fog before it can form a hard horizon line.
+- Suppresses the surface more decisively at shallow viewing angles, removing the repeated reflected bands seen in portrait and level views without adding a replacement noise texture; steeper upward views retain the physical HDR material and Gerstner deformation.
+- Restores the low-angle HDR reflection with a denser, lower-amplitude `4.2–8.5 WU` Gerstner spectrum, so reflected wave lines are materially smaller than the prior `12–22 WU` ribbons; the closer distance fade hides the smaller plane before its edge.
+- Pairs each coarse, medium, and fine displacement scale with a second incommensurate wave moving in a different direction and at a different speed, then balances their amplitudes so no single sinusoid dominates the reflection.
+- Raises only the water material's Qwantani Pure Sky HDR environment intensity from `0.8` to `1.15`, making the underside reflection brighter without relighting fish, fog, or either tank.
+- Widens the crossed displacement spectrum to `3.1–20 WU` across coarse, medium, and fine pairs, creating a stronger large/medium/small hierarchy instead of six similarly sized tiled ripples.
+- Lowers the default camera target from `lookY=-2.1` to `-2.75` (about `3.4°` upward) so the horizontal ceiling crowns portrait framing rather than occupying nearly half the screen; the plane remains at its physical world height and follow framing is unchanged.
+- Raises the crossed spectrum's lower bound from `3.1` to `4.5 WU` (`4.5–22 WU` overall) and increases only the water-local Qwantani HDR environment intensity from `1.15` to `2.2`.
+- Increases that water-local HDR intensity again from `2.2` to `8.0`, making reflected sky highlights visibly brighter than the water body without changing global tank lighting.
+- Keeps the authored fake god-ray planes exclusive to the settled default camera view; follow/orbit and the transition back to default retain particles and physical water but render no fake shafts.
+- Redistributes the unchanged `0.119 WU` wave budget into descending pair magnitudes—coarse `0.064`, medium `0.036`, fine `0.019 WU`—so the three wavelength bands differ in physical height as well as wavelength, direction, and speed.
+
 ## v0.12.3 — Larger Sardinella schools
 
 Status: accepted and promoted as clean `v0.12.3` from `v0.12.3-dev_1` after Jeremy approval.

@@ -342,9 +342,11 @@ export const SPECIES = [
             tailAtMaxZ: true,
             amplitude: 0.42,
             waveSpeed: 2.6,
-            waveTravel: 4.4,
-            flexStart: 0.16,
-            flexFull: 0.78,
+            // Mahi is a smaller, fast carangiform swimmer: hold the front firm and
+            // confine the stroke to a compact rear-body C/flick instead of a shark S.
+            waveTravel: 3.5,
+            flexStart: 0.24,
+            flexFull: 0.82,
             turnStrength: 0.32,
             burstAmplitude: 0.8,
             response: 7.5,
@@ -364,9 +366,11 @@ export const SPECIES = [
             tailAtMaxZ: true,
             amplitude: 0.4,
             waveSpeed: 2.55,
-            waveTravel: 4.4,
-            flexStart: 0.16,
-            flexFull: 0.78,
+            // Keep the female's compact tail-led stroke matched to the male, without
+            // giving this smaller pelagic fish the mako's long S silhouette.
+            waveTravel: 3.5,
+            flexStart: 0.24,
+            flexFull: 0.82,
             turnStrength: 0.3,
             burstAmplitude: 0.78,
             response: 7.5,
@@ -547,10 +551,13 @@ export const SPECIES = [
         lateralAxis: 'x',
         tailAtMaxZ: true,
         amplitude: 0.58,
-        waveSpeed: 1.85,
-        waveTravel: 3.8,
-        flexStart: 0.42,
-        flexFull: 0.9,
+        // Large lamnid power: a slow travelling phase runs from the mid-body into a
+        // counter-curving tail. This exposes a broad S silhouette while the head stays
+        // on intent, rather than making the entire shark undulate like an eel.
+        waveSpeed: 1.55,
+        waveTravel: 6.6,
+        flexStart: 0.18,
+        flexFull: 0.86,
         turnStrength: 0.58,
         burstAmplitude: 0.66,
         response: 4.8,

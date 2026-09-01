@@ -6,7 +6,7 @@
         "code-review-graph==2.3.7",
         "serve"
       ],
-      "cwd": "D:\\github-repos\\world-oceanarium",
+      "cwd": "D:\\_github-repos\\world-oceanarium",
       "type": "stdio"
     }
   }

@@ -148,6 +148,7 @@ const styles = {
     color: 'var(--crt-lumen)',
     padding: '0.26rem 0.52rem',
     borderRadius: 0,
+    fontFamily: 'var(--crt-font-tiny)',
     fontSize: '0.7rem',
     fontWeight: 500,
     letterSpacing: '0.12em',
@@ -173,6 +174,7 @@ const styles = {
   },
   factLabel: {
     color: 'var(--crt-drift-dim)',
+    fontFamily: 'var(--crt-font-tiny)',
     fontSize: '0.62rem',
     fontWeight: 600,
     letterSpacing: '0.13em',
@@ -208,6 +210,7 @@ const styles = {
   label: {
     margin: 0,
     color: 'var(--crt-drift-dim)',
+    fontFamily: 'var(--crt-font-tiny)',
     fontSize: '0.65rem',
     fontWeight: 600,
     letterSpacing: '0.14em',

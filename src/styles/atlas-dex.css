@@ -89,14 +89,19 @@
   outline-offset: -1px;
 }
 
-/* Bracketed section label: -SOCIAL-, -BIOLOGY-, -AVERAGES-, -LIFECYCLE- */
+/* Bracketed section label: -SOCIAL-, -BIOLOGY-, -AVERAGES-, -LIFECYCLE-
+   Two selectors on purpose: index.css styles `.atlas-table-section h3` (0,1,1)
+   with a ui-monospace `font:` shorthand, which outranks a bare
+   `.atlas-section-tag` (0,1,0). The descendant form here is (0,2,0) and wins;
+   the bare one covers any use outside a table section. */
+.atlas-table-section .atlas-section-tag,
 .atlas-section-tag {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   margin: 0 0 0.5rem;
   color: var(--crt-lumen);
-  font-family: var(--crt-font);
+  font-family: var(--crt-font-tiny);
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.2em;
@@ -122,7 +127,7 @@
 .atlas-dex-no {
   display: block;
   color: var(--crt-lumen);
-  font-family: var(--crt-font);
+  font-family: var(--crt-font-tiny);
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -210,6 +215,7 @@
 .encyclopedia-species-row em {
   color: var(--crt-drift-dim);
   font-size: 0.66rem;
+  font-family: var(--crt-font-tiny);
 }
 
 .encyclopedia-species-thumb {
@@ -258,6 +264,7 @@
   margin-bottom: 0.1rem;
   color: var(--crt-lumen);
   font-size: 0.62rem;
+  font-family: var(--crt-font-tiny);
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -277,6 +284,7 @@
 .atlas-scale-label {
   color: var(--crt-drift-dim);
   font-size: 0.64rem;
+  font-family: var(--crt-font-tiny);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -310,6 +318,7 @@
 .atlas-scale-value {
   color: var(--crt-foam);
   font-size: 0.74rem;
+  font-family: var(--crt-font-tiny);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
@@ -330,11 +339,13 @@
 
   .atlas-scale-label {
     font-size: 0.58rem;
+    font-family: var(--crt-font-tiny);
     letter-spacing: 0.05em;
   }
 
   .atlas-scale-value {
     font-size: 0.66rem;
+    font-family: var(--crt-font-tiny);
   }
 }
 
@@ -422,6 +433,7 @@
 .atlas-stage-chip span {
   color: var(--crt-drift-dim);
   font-size: 0.58rem;
+  font-family: var(--crt-font-tiny);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -429,6 +441,7 @@
 .atlas-stage-chip b {
   color: var(--crt-lumen);
   font-size: 0.66rem;
+  font-family: var(--crt-font-tiny);
   font-weight: 600;
   letter-spacing: 0.1em;
   font-variant-numeric: tabular-nums;
@@ -444,12 +457,14 @@
 
 .encyclopedia-panel-kicker {
   font-size: 0.62rem;
+  font-family: var(--crt-font-tiny);
   letter-spacing: 0.18em;
 }
 
 .encyclopedia-scientific {
   color: var(--crt-drift);
   font-size: 0.74rem;
+  font-family: var(--crt-font-tiny);
   font-style: italic;
 }
 
@@ -477,11 +492,13 @@
 
 .atlas-quick-card-grid span {
   font-size: 0.56rem;
+  font-family: var(--crt-font-tiny);
   letter-spacing: 0.16em;
 }
 
 .atlas-quick-card-grid strong {
   font-size: 0.74rem;
+  font-family: var(--crt-font-tiny);
   font-weight: 600;
 }
 
@@ -516,6 +533,7 @@
 .atlas-info-label {
   color: var(--crt-drift-dim);
   font-size: 0.62rem;
+  font-family: var(--crt-font-tiny);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -564,7 +582,7 @@
 }
 
 .atlas-version-label {
-  font-family: var(--crt-font);
+  font-family: var(--crt-font-tiny);
   font-size: 0.66rem;
   letter-spacing: 0.1em;
 }
@@ -587,4 +605,15 @@
     width: 18px;
     height: 18px;
   }
+}
+
+/* --- conservation status: small type the size audit could not see ---------- */
+
+/* These live in index.css and are never given a font-size here, so they did not
+   show up when sweeping this file for sub-0.75rem rules — but they render at
+   ~9px, the smallest text in the app. Same (0,1,1) specificity as index.css,
+   and this sheet loads later, so it wins on order. */
+.iucn-status-heading span,
+.iucn-status-track span {
+  font-family: var(--crt-font-tiny);
 }

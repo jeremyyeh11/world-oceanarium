@@ -14,6 +14,9 @@ Status: accepted and promoted as clean `v0.15.0` from `v0.15.0-dev_11` after Jer
 
 ### Interface / visual language
 
+- Brings `package.json` to `0.15.0`, matching the visible app version. It had read `0.8.0` since before `v0.13.0`.
+- Adds `--crt-font-tiny` as a KIV escape hatch for small type. Pixelify Sans stops being reliable below ~12px — its "5" reads as an "S", which already forced `HUMAN_SCALE_METERS` from `1.65` back to `1.7`. Every rule setting a font-size under `0.75rem` now points its `font-family` at this token instead of `--crt-font`, so swapping in a second face for small type is a one-line change. Aliased to `--crt-font` for now, so nothing renders differently until a replacement is chosen; `grep --crt-font-tiny` finds all 30 sites.
+- Two of those sites needed specificity work rather than a token swap. `index.css` styles `.atlas-table-section h3` (0,1,1) with a `ui-monospace` `font:` shorthand that outranks a bare `.atlas-section-tag` (0,1,0), so the section headings are now selected as `.atlas-table-section .atlas-section-tag` (0,2,0). The IUCN status spans render at ~9px — the smallest text in the app — but are never given a font-size in these stylesheets, so a font-size sweep could not see them; they are labelled explicitly.
 - Adopts a CRT-terminal visual language for the UI, framing the tank as though watched through a phosphor monitor rather than restyling the scene itself. Three primitives carry it: scanline banding on a non-interactive film, phosphor glow with a chromatic-aberration split, and notched pixel edges via `clip-path` in place of `border-radius`.
 - Adds `src/styles/crt.css` (tokens plus primitives) and `src/styles/crt-retrofit.css` (overrides for the pre-existing chrome). The retrofit is deliberately quarantined in its own file imported last, so the entire look reverts by removing one import.
 - Suppresses the global tube film in screenshot mode, keeping captures of the scene free of interface framing.

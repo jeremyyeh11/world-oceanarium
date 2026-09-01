@@ -51,7 +51,7 @@ Review gates:
 - [x] Screenshot mode still captures the scene free of interface framing (verified: the tube film, tank dock, top controls and version footnote all clear on entry and restore on exit).
 - [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
 - [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
-- [ ] Pixelify Sans digit legibility at small sizes generally — "5" reads as "S" below ~12px, which forced `HUMAN_SCALE_METERS` back to 1.7. Check other small numeric readouts (debug panel, dex numbers) for the same problem.
+- [ ] KIV: pick a replacement face for small type. Pixelify Sans is unreliable below ~12px ("5" reads as "S"), which already forced `HUMAN_SCALE_METERS` back to 1.7. All 30 sub-`0.75rem` sites are labelled with `--crt-font-tiny` (aliased to `--crt-font` today), so the swap is one line in `crt.css`. Candidates: Silkscreen, Departure Mono, or a plain `ui-monospace` fallback.
 
 ### Procedural caudal-fish animation
 

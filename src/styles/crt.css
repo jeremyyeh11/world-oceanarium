@@ -42,6 +42,22 @@
      being faked with glow, which is what let the glow come down everywhere. */
   --crt-font: 'Pixelify Sans', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
+  /* KIV — small-type escape hatch.
+     Pixelify Sans stops being reliable below roughly 12px (0.75rem): its "5"
+     reads as an "S", which already forced HUMAN_SCALE_METERS from 1.65 back to
+     1.7 because "1.65 M" rendered as "1.6S M". Digits suffer worst, but the
+     whole face gets mushy at that size.
+
+     Every rule in this UI that sets a font-size under 0.75rem points its
+     font-family here rather than at --crt-font, so swapping in a second face
+     for small type is a one-line change to this token. Aliased to --crt-font
+     for now: nothing changes until a replacement is chosen. Candidates worth
+     trying are pixel faces designed for small sizes with unambiguous digits —
+     Silkscreen, Departure Mono, or a plain ui-monospace fallback.
+
+     To find the affected rules: grep for --crt-font-tiny. */
+  --crt-font-tiny: var(--crt-font);
+
   /* Reused so the banding pitch stays identical everywhere. 1px on / 2px off at
      a 3px pitch survives a retina downscale without turning into moire; the
      alpha is deliberately low so the lines read as a veil, not as stripes. */

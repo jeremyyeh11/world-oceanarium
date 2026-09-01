@@ -10,6 +10,7 @@ import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import WaterSurface from './WaterSurface'
+import { prepareProceduralVertexMaterials, updateProceduralVertexMaterials } from './Fish'
 
 const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 
@@ -371,6 +372,11 @@ function ModelAsset({ species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const scene = useMemo(() => prepareAtlasModelScene(gltf.scene), [gltf.scene])
+  const proceduralAnimation = species?.model?.proceduralAnimation ?? null
+  const proceduralMaterials = useMemo(
+    () => prepareProceduralVertexMaterials(scene, proceduralAnimation),
+    [scene, proceduralAnimation],
+  )
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
@@ -434,6 +440,16 @@ function ModelAsset({ species, pose, companion = null }) {
   }, [animationOffset, animationSpeed, gltf.animations, openingBurstDelay, scene, species])
 
   useFrame((_, delta) => {
+    if (proceduralAnimation) {
+      // Atlas is an in-place gallery pose, but its static specimens should still
+      // breathe through the same species-shaped procedural material as the tank.
+      const phase = (_.clock.getElapsedTime() * (proceduralAnimation.waveSpeed ?? 1) + animationOffset) * animationSpeed
+      updateProceduralVertexMaterials(proceduralMaterials, {
+        phase,
+        speed01: 0.42,
+      })
+      return
+    }
     const mixer = mixerRef.current
     if (!mixer) return
     mixer.update(delta)
@@ -552,16 +568,23 @@ function ConservationStatusBar({ status }) {
   )
 }
 
-export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
+export default function EncyclopediaPage({ initialSpeciesId, mobileListFirst = false, onClose }) {
   const [selectedId, setSelectedId] = useState(() => {
     if (ATLAS_SPECIES.some(species => species.id === initialSpeciesId)) return initialSpeciesId
     return ATLAS_SPECIES[0]?.id
   })
+  const [mobileView, setMobileView] = useState(() => (mobileListFirst ? 'list' : 'detail'))
   const pageRef = useRef(null)
   const selectedIndex = Math.max(0, ATLAS_SPECIES.findIndex(species => species.id === selectedId))
   const selectedSpecies = ATLAS_SPECIES[selectedIndex]
   const biome = BIOME_BY_ID.get(selectedSpecies?.biome)
   const atlasDetails = selectedSpecies?.atlasDetails ?? {}
+  const showingMobileList = mobileListFirst && mobileView === 'list'
+
+  const selectSpecies = (speciesId) => {
+    setSelectedId(speciesId)
+    if (mobileListFirst) setMobileView('detail')
+  }
 
   useEffect(() => {
     const page = pageRef.current
@@ -600,9 +623,14 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
 
 
   return (
-    <section ref={pageRef} className="encyclopedia-page" aria-label="THE ATLAS">
+    <section ref={pageRef} className={`encyclopedia-page${showingMobileList ? ' is-mobile-list-view' : ''}`} aria-label="THE ATLAS">
       <div className="encyclopedia-topbar">
-        <div>
+        <div className="encyclopedia-topbar-title">
+          {mobileListFirst && !showingMobileList && (
+            <button className="atlas-mobile-back" type="button" onClick={() => setMobileView('list')}>
+              ← Species
+            </button>
+          )}
           <h1>THE ATLAS</h1>
         </div>
         <div className="encyclopedia-topbar-actions">
@@ -621,7 +649,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
             key={species.id}
             type="button"
             className={`encyclopedia-species-row${species.id === selectedSpecies.id ? ' is-selected' : ''}`}
-            onClick={() => setSelectedId(species.id)}
+            onClick={() => selectSpecies(species.id)}
           >
             <SpeciesThumbnail species={species} index={index} />
             <span>

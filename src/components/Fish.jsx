@@ -1500,6 +1500,37 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
   return materials
 }
 
+// The Atlas presents the same static GLBs as the tank. Keep its specimens on the
+// exact vertex-deformation path rather than falling back to removed authored clips.
+// eslint-disable-next-line react-refresh/only-export-components -- shared renderer helper, never a React value
+export function prepareProceduralVertexMaterials(root, proceduralAnimation) {
+  if (!root || !proceduralAnimation) return []
+  const materials = []
+  root.traverse(child => {
+    if (!child.isMesh || !shouldProcedurallyDeformMesh(child, proceduralAnimation)) return
+    child.geometry.computeBoundingBox()
+    const list = Array.isArray(child.material) ? child.material : [child.material]
+    list.forEach(material => {
+      if (!material) return
+      applyFishLightMask(material, null, proceduralAnimation, child.geometry)
+      materials.push(material)
+    })
+  })
+  return materials
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- shared renderer helper, never a React value
+export function updateProceduralVertexMaterials(materials, { phase = 0, speed01 = 0, turn = 0, burst01 = 0 } = {}) {
+  materials.forEach(material => {
+    const uniforms = material?.userData?.proceduralFishUniforms
+    if (!uniforms) return
+    uniforms.phase.value = phase
+    uniforms.speed.value = THREE.MathUtils.clamp(speed01, 0, 1)
+    uniforms.turn.value = THREE.MathUtils.clamp(turn, -1, 1)
+    uniforms.burst.value = THREE.MathUtils.clamp(burst01, 0, 1)
+  })
+}
+
 function animationVariationForCreature(creature) {
   const rand = mulberry32(hashString(`${creature.id ?? creature.species}:animation-variation`))
   const baseSpeed = randomRange(rand, 0.9, 1.1)

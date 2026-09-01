@@ -75,6 +75,7 @@ export default function App() {
   const tankListRef = useRef(null)
   const tankDockRef = useRef(null)
   const compactTankMenu = useMediaQuery(TANK_MENU_QUERY)
+  const mobileAtlasListFirst = useMediaQuery('(max-width: 880px) and (orientation: portrait)')
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
@@ -637,7 +638,11 @@ export default function App() {
         </div>
       )}
       {!screenshotMode && encyclopediaOpen && (
-        <EncyclopediaPage initialSpeciesId={encyclopediaSpeciesId} onClose={() => setEncyclopediaOpen(false)} />
+        <EncyclopediaPage
+          initialSpeciesId={encyclopediaSpeciesId}
+          mobileListFirst={mobileAtlasListFirst}
+          onClose={() => setEncyclopediaOpen(false)}
+        />
       )}
       {!screenshotMode && (
         <button

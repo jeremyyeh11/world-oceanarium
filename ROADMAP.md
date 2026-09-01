@@ -178,6 +178,19 @@ Review gates:
 
 ### Maintenance backlog
 
+#### Static-asset regression follow-up
+
+Status: `Current review` — `v0.15.5-dev_1` on `feat/static-assets-follow-atlas-mobile`; regressions implemented and local browser QA passed.
+
+Subtasks:
+- [x] Follow camera: static procedural models have no bones, so follow the rendered mesh origin instead of attempting a missing follow bone.
+- [x] Atlas specimens: replace removed authored clips with the corresponding procedural animation paths.
+- [x] Mobile Atlas: open the species list first from the top-menu button, then open a selected species; provide a back action to return to the list. Desktop behavior stays unchanged.
+
+Review gates:
+- [x] `npm run verify:procedural-fish-assets`, `npm run lint`, `npm run build`, and `git diff --check` pass locally.
+- [x] Browser QA: static Mahi follow card opens with no missing-bone text/errors; Atlas desktop keeps detail/list grid; portrait mobile opens list first, selection opens detail with `← Species`, and back returns to the list; landscape mobile keeps the desktop-style detail grid.
+
 #### Creature data backup hygiene
 
 Status: `Backlog`

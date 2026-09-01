@@ -68,7 +68,7 @@ function isDescendantOf(node, root) {
   return false
 }
 
-export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
+export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
   const { camera } = useThree()
   const focusBoneRef = useRef(null)
   const focusBoneTargetRef = useRef(null)
@@ -144,10 +144,12 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
       }
 
       // Prefer the species' body-center bone as the aim point (mass center) over the AABB
-      // center, which skews toward tails/fins on elongated creatures. Radius still comes
-      // from the full bounding box so framing/zoom behaviour is unchanged.
+      // center, which skews toward tails/fins on elongated creatures. Static procedural
+      // assets deliberately have no bones, so they use their rendered fish-root/mesh origin
+      // instead. Radius still comes from the full bounding box so framing/zoom is unchanged.
       const focusBone = resolveFocusBone(focusTarget, focusCenterBoneName)
       if (focusBone) focusBone.getWorldPosition(focusPosition)
+      else if (focusMeshOrigin) focusTarget.getWorldPosition(focusPosition)
       reportFocusBoneMissing(focusCenterBoneName && !focusBone ? focusCenterBoneName : null)
 
       focusPosition.y = THREE.MathUtils.clamp(focusPosition.y, limits.min, limits.max)

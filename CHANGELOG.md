@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.1 — Atlas cleanup (in development)
+
+Status: `in development` on `chore/atlas-dead-css-cleanup`, currently at `v0.15.1-dev_1`. Cleanup only; no user-visible change.
+
+### Housekeeping
+
+- Removes the CSS orphaned when `v0.15.0` replaced the in-scene diver sprite with a DOM scale bar: `.atlas-pose-editor` and its heading/control/action rules, `.atlas-human-scale` and its head-comparison and image variants, and `.encyclopedia-stage-label` — the last superseded by `.atlas-stage-chip` / `.atlas-stage-readout`. Each was verified unreferenced by any JSX first; where a dead name appeared inside a grouped selector, only that selector was dropped and the group left otherwise intact. `index.css` goes from 2,130 to 2,005 lines.
+- Deletes `public/atlas/diver.png` and `diver.svg`, the sprite texture and its source, now unreferenced.
+- Fixes an unrelated console error found while verifying: `<feTurbulence stitchTiles="no">` in the screenshot-grain filter is not a valid value (the attribute takes `stitch` or `noStitch`), so it threw on every page load while silently falling back to `noStitch`. Now set explicitly — same rendering, no error.
+- Leaves the `world-oceanarium-atlas-diver-poses` localStorage key alone. Nothing reads or writes it any more, so stored values are inert; adding migration code to clear them would cost more than the bytes it reclaims.
+
 ## v0.15.0 — CRT/pixel interface
 
 Status: accepted and promoted as clean `v0.15.0` from `v0.15.0-dev_11` after Jeremy's review. The 3D scene stays pseudo-realistic throughout — only the interface layer changes.

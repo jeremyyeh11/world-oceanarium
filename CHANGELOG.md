@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.15.0 — CRT/pixel interface (in development)
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_7`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_8`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 
@@ -22,6 +22,9 @@ Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_7`. N
 
 ### The Atlas
 
+- `v0.15.0-dev_8` fixes the `dev_7` measurement grid, which was never visible: it was applied to the stage's CSS background, but `SceneLighting` sets `scene.background` on an opaque WebGL canvas sitting above it, so nothing behind that canvas can ever show. The grid moves onto `.atlas-stage-frame`, which paints above the canvas alongside the corner brackets. That is also the truer idea — the grid is etched on the viewport, not floating in the ocean. The stage's own background and its `is-tank-backdrop::after` layer are left documented as permanently hidden.
+- `v0.15.0-dev_8` replaces the in-scene diver sprite with a proportional scale bar in the stage readout. The sprite shared 3D space with the specimen and so was only legible at some sizes — against a 27cm sardinella a 1.7m diver cropped to a shapeless mass filling the frame. Two bars carry the same comparison and stay readable at every size: the longer subject fills the track and the shorter is measured against it, with a minimum width so a small specimen still shows a visible stub. Verified proportional across the range (sardinella 16%, mahi 94%, mako and sunfish pinning the track).
+- `v0.15.0-dev_8` removes everything that existed only to position that sprite: the pose tables, normalisation and merge helpers, localStorage persistence, the diver pose editor, and the three-tap/Ctrl+Shift+D toggle that opened it. The Atlas version label becomes an inert readout rather than a hidden debug button. Roughly 200 lines net.
 - `v0.15.0-dev_7` reworks the specimen stage to match the rest of the dex. A two-pitch measurement grid (fine at 28px, major every fourth line) replaces the plain gradient backdrop — a specimen floating on a gradient reads as a picture, while the same specimen over ruled paper reads as something being measured, which is what the diver silhouette was always there to do. The `is-tank-backdrop` overlay drops its bright top wash and keeps only the vignette, so it stops competing with the grid.
 - `v0.15.0-dev_7` adds a scale readout to the stage naming both sides of the comparison: the diver reference (from `HUMAN_SCALE_METERS`) and the selected species' max length, with keyed swatches tying each figure to what it measures. The silhouette had always been the scale reference without ever saying so or giving the figure it referenced.
 - `v0.15.0-dev_7` retones the diver sprite from pure black to the dex chassis colour — the one value in the atlas that belonged to no palette. It still reads as a silhouette rather than a hole punched in the stage.

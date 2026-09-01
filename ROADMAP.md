@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
-- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay).
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar).
 - Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
 - Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
 
@@ -40,7 +40,9 @@ Subtasks:
 - [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
 - [x] Rework the specimen stage into a measurement bay: graph grid, scale readout naming diver and specimen, diver silhouette moved onto the palette.
 - [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
-- [ ] Dead CSS in `index.css` for `.encyclopedia-stage-label` and `.atlas-human-scale` (both superseded, nothing renders them) — spun off as a separate cleanup task.
+- [x] Replace the in-scene diver sprite with a proportional scale bar; remove the pose editor and persistence that existed only to position it.
+- [ ] Dead CSS in `index.css` (`.atlas-pose-editor*`, `.encyclopedia-stage-label`, `.atlas-human-scale*`) plus orphaned `public/atlas/diver.png` and `diver.svg` — spun off as a separate cleanup task.
+- [ ] Anything meant to be visible on the specimen stage must live in `.atlas-stage-frame`. The stage's CSS background and its `is-tank-backdrop::after` layer are permanently hidden behind the opaque WebGL canvas.
 
 Review gates:
 - [ ] Reads soft rather than sharp at arm's length on a phone.

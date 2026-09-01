@@ -533,8 +533,7 @@ body {
 .atlas-quick-card-grid div,
 .encyclopedia-note-block,
 .encyclopedia-stat-grid div,
-.iucn-status-card,
-.atlas-pose-editor {
+.iucn-status-card {
   border: 0;
   border-radius: 0;
   box-shadow: 0 0 0 1px var(--crt-rule), 0 10px 30px rgba(2, 6, 13, 0.4);

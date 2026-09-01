@@ -223,34 +223,18 @@
 
 /* --- specimen stage ------------------------------------------------------- */
 
-/* A measurement bay, not a photo backdrop. The graph grid is the single change
-   that reframes it: a specimen floating on a gradient reads as a picture, while
-   the same specimen over ruled paper reads as something being measured — which
-   is exactly what the diver silhouette is there to do.
-
-   Two pitches, fine at 28px and major every fourth line, so the eye gets a
-   countable unit instead of uniform texture. The r3f canvas above is
-   transparent, so this shows through behind the model. */
 .encyclopedia-model-stage {
   margin: 0.7rem 0;
   border: 0;
   border-radius: 0;
   outline: 1px solid var(--dex-line-dim);
   outline-offset: -1px;
-  background:
-    linear-gradient(rgba(127, 220, 242, 0.16) 1px, transparent 1px) 0 0 / 112px 112px,
-    linear-gradient(90deg, rgba(127, 220, 242, 0.16) 1px, transparent 1px) 0 0 / 112px 112px,
-    linear-gradient(rgba(127, 220, 242, 0.06) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(90deg, rgba(127, 220, 242, 0.06) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(180deg, rgba(30, 86, 112, 0.42), rgba(4, 18, 31, 0.94));
 }
 
-/* Vignette only — the original also carried a bright top wash that fought the
-   grid for attention at the top of the stage. */
-.encyclopedia-model-stage.is-tank-backdrop::after {
-  background:
-    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(2, 10, 20, 0.55) 100%);
-}
+/* NOTE: the stage's CSS background and its .is-tank-backdrop::after layer both
+   sit at z-index < 3, and SceneLighting sets scene.background on an opaque
+   WebGL canvas at z-index 3 — so neither is ever visible. Anything meant to be
+   seen has to go in .atlas-stage-frame, which paints above the canvas. */
 
 /* --- scale readout -------------------------------------------------------- */
 
@@ -279,38 +263,53 @@
   text-transform: uppercase;
 }
 
-.atlas-stage-readout-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  color: var(--crt-drift);
-  font-size: 0.64rem;
-  letter-spacing: 0.06em;
+/* Fixed label and value columns with an elastic track between, so both bars
+   share one baseline and the numbers stay in a readable column. */
+.atlas-scale-row {
+  display: grid;
+  grid-template-columns: 3.9rem minmax(3rem, 7rem) auto;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.atlas-scale-label {
+  color: var(--crt-drift-dim);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.atlas-stage-readout-row b {
+.atlas-scale-track {
+  position: relative;
+  height: 7px;
+  background: rgba(127, 220, 242, 0.08);
+  box-shadow: inset 0 0 0 1px var(--dex-line-dim);
+}
+
+.atlas-scale-fill {
+  position: absolute;
+  inset: 1px auto 1px 1px;
+  display: block;
+}
+
+/* The diver is the reference, so it reads quiet; the specimen is the subject
+   and gets the lit phosphor. */
+.atlas-scale-fill.is-diver {
+  background: #2c5f7a;
+}
+
+.atlas-scale-fill.is-specimen {
+  background: var(--crt-lumen);
+  box-shadow: 0 0 8px rgba(127, 220, 242, 0.45);
+}
+
+.atlas-scale-value {
   color: var(--crt-foam);
+  font-size: 0.64rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-}
-
-/* Keyed swatches tie each figure to what it measures: a filled block for the
-   solid diver silhouette, an outlined one for the lit specimen. */
-.atlas-stage-readout-row::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-}
-
-.atlas-stage-readout-row.is-diver::before {
-  background: #16344a;
-  box-shadow: inset 0 0 0 1px rgba(127, 220, 242, 0.45);
-}
-
-.atlas-stage-readout-row.is-specimen::before {
-  box-shadow: inset 0 0 0 1px var(--crt-lumen);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 @media (max-width: 880px) {
@@ -320,19 +319,43 @@
     padding: 0.32rem 0.48rem 0.34rem;
   }
 
-  .atlas-stage-readout-row {
+  .atlas-scale-row {
+    grid-template-columns: 3.4rem minmax(2.5rem, 5rem) auto;
+    gap: 0.35rem;
+  }
+
+  .atlas-scale-value {
     font-size: 0.58rem;
   }
 }
 
-/* L-brackets on the two chamfered corners. Framing the viewport at opposite
-   corners implies the whole rectangle without drawing a second full box. */
+/* The instrument layer: everything that belongs to the dex rather than to the
+   water, painted above the opaque WebGL canvas.
+
+   The graph grid is what reframes the stage — a specimen on plain water reads
+   as a picture, the same specimen behind ruled glass reads as something being
+   measured, which is what the diver silhouette is there to do. Putting it on
+   top rather than behind is also the truer idea: the grid is etched on the
+   viewport, not floating in the ocean.
+
+   Two pitches (fine 28px, major every fourth line) so the eye gets a countable
+   unit rather than uniform texture. Alphas are deliberately low — this sits
+   over a live scene and must not compete with the specimen. */
 .atlas-stage-frame {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
+  background:
+    linear-gradient(rgba(127, 220, 242, 0.09) 1px, transparent 1px) 0 0 / 112px 112px,
+    linear-gradient(90deg, rgba(127, 220, 242, 0.09) 1px, transparent 1px) 0 0 / 112px 112px,
+    linear-gradient(rgba(127, 220, 242, 0.04) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgba(127, 220, 242, 0.04) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(ellipse at 50% 45%, transparent 58%, rgba(2, 10, 20, 0.5) 100%);
 }
+
+/* L-brackets on the two chamfered corners. Framing the viewport at opposite
+   corners implies the whole rectangle without drawing a second full box. */
 
 .atlas-stage-frame::before,
 .atlas-stage-frame::after {

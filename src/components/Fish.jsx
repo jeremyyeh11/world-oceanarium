@@ -1780,6 +1780,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const idleSwayPhase = proceduralWaveClockRef.current + (input.phase ?? 0)
       const phase = idleSwayPhase * 0.62
       const bendAxis = curveDeformAxis(curveConfig)
+      let previousCumulativeAngle = 0
       curveDeformBones.forEach((bone, index) => {
         removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
         const ratio = curveDeformBones.length <= 1 ? 1 : index / (curveDeformBones.length - 1)
@@ -1792,7 +1793,14 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         // idle sway stay additive on top so the tail keeps waving (swimming) through a
         // sustained turn instead of freezing at the clamp.
         const staticBend = THREE.MathUtils.clamp(baseAngle * tailWeight, -maxAngle, maxAngle)
-        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, staticBend + followThrough + idleSway)
+        // Bone rotations accumulate down a hierarchy. Treat each formula result as
+        // desired CUMULATIVE spine curvature, then apply only its delta from the
+        // previous joint. Applying the full angle to every bone folds the tail like
+        // a hinge even when every individual angle looks conservative.
+        const cumulativeAngle = staticBend + followThrough + idleSway
+        const localAngle = cumulativeAngle - previousCumulativeAngle
+        previousCumulativeAngle = cumulativeAngle
+        curveDeformQuatRef.current.setFromAxisAngle(bendAxis, localAngle)
         bone.quaternion.multiply(curveDeformQuatRef.current)
         curveState.previousAdditives[index].copy(curveDeformQuatRef.current)
         curveState.postAdditiveQuaternions[index].copy(bone.quaternion)

@@ -10,10 +10,11 @@ Versioning convention notes:
 
 ## v0.14.0 — Procedural caudal-fish animation
 
-Status: `v0.14.0-dev_1` review build on `feat/procedural-fish-animation`; not promoted or merged.
+Status: `v0.14.0-dev_2` review build on `feat/procedural-fish-animation`; not promoted or merged.
 
 ### Creature motion
 
+- `v0.14.0-dev_2` fixes the severe Mahi tail fold found in review. The first pass computed a conservative desired angle for each spine bone but applied that complete angle at every joint; because those bones are hierarchical, rotations compounded down the chain into the photographed hinge. The pose now treats each computed value as cumulative spine curvature and applies only the difference from the previous joint, keeping the configured tail angle bounded across Sardinella, Mahi, and Mako. This was hierarchical bone accumulation—not an unintended vertex mask.
 - Completely disables authored GLB animation playback for Sardinella, both Mahi-mahi variants, and the Shortfin Mako. Their existing rigs now serve only as neutral deformation lattices driven directly by live movement state.
 - Replaces clip selection with species-shaped procedural cruise, drift, turn, and burst semantics. Actual speed, acceleration, signed turn, burst envelope, and forward-travel easing drive bend strength and stroke cadence every frame.
 - Integrates a deterministic continuous wave clock per rendered fish, preventing speed or burst changes from snapping sine phase. Stable per-creature phase offsets preserve school desynchronization.

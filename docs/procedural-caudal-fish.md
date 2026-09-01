@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_18` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, a pelvic-fin-welded Mako export, and a mask-driven Giant Sunfish with soft-root asymmetric fin arcs on `feat/static-procedural-fish-models`.
+Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_19` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, a pelvic-fin-welded Mako export, and a mask-driven Giant Sunfish with soft-root asymmetric fin arcs on `feat/static-procedural-fish-models`.
 
 ## Scope
 
@@ -43,7 +43,7 @@ Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.14.0
 
 The new Mahi runtime GLBs preserve separate pectoral/pelvic fin meshes. The Mako keeps separate pectorals for subtle procedural flutter, while Jeremy's revised Mako export welds both pelvic fins into `shortfinmako003`; they now travel continuously with the body wave and cannot detach. Independent fin objects remain excluded from body bending.
 
-Jeremy's static Mola uses `COLOR_1` as motion data, exposed by Three as `color_1`: exclusive red/green/blue gradients mean dorsal/anal/clavus, while RGB-grey means pectorals. The Mola shader uses continuous zero-slope quintic easing across the red/green masks into a root-pivoted arc on raw forward `X`; it does not insert a rigid dead zone that would kink at the base. Dorsal and anal use separate phase offset/rate controls rather than permanent opposition, with deliberately slowed cadence. `finRotationRadians` is intentionally restrained at `0.30`. During passive drift only, a tiny slow roll lends the disc settling weight; it does not affect the separately behavior-owned sun-bask roll. Pectorals assist turns and the clavus remains restrained. `COLOR_0` remains white material data and does not tint the animal.
+Jeremy's static Mola uses `COLOR_1` as motion data, exposed by Three as `color_1`: exclusive red/green/blue gradients mean dorsal/anal/clavus, while RGB-grey means pectorals. Jeremy's latest supplied export increases the low-value dorsal/anal samples through the attachment ramp while retaining the same static mesh contract. The Mola shader uses continuous zero-slope quintic easing across those red/green masks into a root-pivoted arc on raw forward `X`; it does not insert a rigid dead zone that would kink at the base. Dorsal and anal use separate phase offset/rate controls rather than permanent opposition, with deliberately slowed cadence. `finRotationRadians` is intentionally restrained at `0.30`. During passive drift only, a tiny slow roll lends the disc settling weight; it does not affect the separately behavior-owned sun-bask roll. Pectorals assist turns and the clavus remains restrained. `COLOR_0` remains white material data and does not tint the animal.
 
 Mola sun-basking is not an authored-clip dependency. The solo-agent behavior chooses the surface target, banks the live fish transform through approach/hold/exit, and applies surface drift; the static procedural asset therefore retains the full bask sequence.
 

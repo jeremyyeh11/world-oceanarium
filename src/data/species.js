@@ -331,7 +331,11 @@ export const SPECIES = [
       exponent: 3,
     },
     model: {
-      path: '/models/fish/mahi-mahi/mahi-mahi_male.glb',
+      // Base/fallback model, used only when a creature's sex matches no sexVariant
+      // below. It points at the male static mesh rather than a rigged one so the
+      // deprecated mahi-mahi_male.glb could be dropped: both variants are static
+      // now, so nothing else referenced it.
+      path: '/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb',
       sexVariants: {
         male: {
           path: '/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb',
@@ -395,30 +399,29 @@ export const SPECIES = [
         turnRight: 'procedural_turn_right',
         burst: 'procedural_burst',
       },
+      // Matches the male variant's config. This has to stay in step with the base
+      // `path` above: it previously drove a bone chain (`spine.003`..`spine.007`),
+      // which only worked because the base pointed at the rigged mahi-mahi_male.glb.
+      // The static meshes carry no bones, so a bone-driven config here would leave
+      // any creature that fell through to the base rendering completely still.
       proceduralAnimation: {
-        bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
-        axis: 'z',
-        strength: 0.45,
-        maxAngleDegrees: 8,
-        response: 8.5,
-        tailBias: 0.85,
-        baseWeight: 0.28,
-        chainMultiplier: 1.05,
-        turnIntentScale: 0,
-        burstBoost: 0.72,
-        speedBoost: 0.28,
-        accelerationBoost: 0.12,
+        type: 'caudal-vertex',
+        bodyMeshNames: ['mahi-combined'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        amplitude: 0.42,
+        waveSpeed: 2.6,
+        waveTravel: 3.5,
+        flexStart: 0.24,
+        flexFull: 0.82,
+        turnStrength: 0.32,
+        burstAmplitude: 0.8,
+        response: 7.5,
         speedFrequencyBoost: 0.32,
         burstFrequencyBoost: 0.24,
-        // Ease the bend back to straight when forward travel slows (e.g. crawling out of
-        // a turn), so the tail straightens before the mahi swims on rather than holding a
-        // full sideways bend while barely moving.
-        easeStraightenBySpeed: true,
-        straightenFloor: 0.1,
-        idleSwayDegrees: 3.2,
-        idleSwaySpeed: 2.35,
-        idleSwayPhaseOffset: 1.2,
-        idleSwaySpeedBoost: 0.42,
+        pectoralFinFlutter: 0.13,
+        pelvicFinFlutter: 0.075,
       },
       debugForwardOrigin: 'head',
       // GLB origin sits near mid-body; nose is at +4.55 / 9.79 of the source length.

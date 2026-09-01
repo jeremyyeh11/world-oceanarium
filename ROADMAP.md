@@ -51,7 +51,9 @@ Review gates:
 - [x] Screenshot mode still captures the scene free of interface framing (verified: the tube film, tank dock, top controls and version footnote all clear on entry and restore on exit).
 - [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
 - [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
-- [ ] KIV: pick a replacement face for small type. Pixelify Sans is unreliable below ~12px ("5" reads as "S"), which already forced `HUMAN_SCALE_METERS` back to 1.7. All 30 sub-`0.75rem` sites are labelled with `--crt-font-tiny` (aliased to `--crt-font` today), so the swap is one line in `crt.css`. Candidates: Silkscreen, Departure Mono, or a plain `ui-monospace` fallback.
+- [x] Small-type face chosen: **Jersey 15**, on `feat/jersey-small-type` (`v0.15.1-dev_2`). Picked by rasterising confusable glyph pairs at 10px and diffing pixels; beat Silkscreen, which was the expected winner. Sizes nudged +10% to compensate for its shorter cap height.
+- [ ] With Jersey 15 in place, re-test whether `HUMAN_SCALE_METERS` can go back to the better-sourced `1.65` — the rounding to 1.7 was purely a Pixelify Sans legibility workaround.
+- [ ] The IUCN status codes render at ~7.4px on mobile (`font-size: 0.46rem` in an `index.css` media query), the smallest text in the app. Letter-only codes so the digit ambiguity does not apply, but worth a look on device.
 
 ### Procedural caudal-fish animation
 

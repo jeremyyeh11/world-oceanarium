@@ -49,14 +49,18 @@
      whole face gets mushy at that size.
 
      Every rule in this UI that sets a font-size under 0.75rem points its
-     font-family here rather than at --crt-font, so swapping in a second face
-     for small type is a one-line change to this token. Aliased to --crt-font
-     for now: nothing changes until a replacement is chosen. Candidates worth
-     trying are pixel faces designed for small sizes with unambiguous digits —
-     Silkscreen, Departure Mono, or a plain ui-monospace fallback.
+     font-family here rather than at --crt-font, so the small face is a
+     one-line change. To find the affected rules: grep for --crt-font-tiny.
 
-     To find the affected rules: grep for --crt-font-tiny. */
-  --crt-font-tiny: var(--crt-font);
+     Jersey 15 was picked on measurement, not reputation. Rasterising confusable
+     glyph pairs at 10px and diffing the pixels put its 5/S collision lowest of
+     every candidate tested — notably below Silkscreen, which is explicitly
+     designed for small sizes and was the expected winner but scored *worse*
+     than Pixelify Sans on that pair. It is also condensed, which matters more
+     than it sounds: the scale readout and tank index are narrow columns that
+     truncate, so width buys more here than character does. Same pixel-grid
+     world as Pixelify Sans, so the pair does not read as an accident. */
+  --crt-font-tiny: 'Jersey 15', var(--crt-font);
 
   /* Reused so the banding pitch stays identical everywhere. 1px on / 2px off at
      a 3px pitch survives a retina downscale without turning into moire; the

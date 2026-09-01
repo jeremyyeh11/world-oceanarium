@@ -10,7 +10,13 @@ Versioning convention notes:
 
 ## v0.15.1 — Atlas cleanup (in development)
 
-Status: `in development` on `chore/atlas-dead-css-cleanup`, currently at `v0.15.1-dev_1`. Cleanup only; no user-visible change.
+Status: `in development` on `chore/atlas-dead-css-cleanup`, currently at `v0.15.1-dev_2`.
+
+### Typography
+
+- `v0.15.1-dev_2` resolves the `--crt-font-tiny` KIV: small type moves to **Jersey 15**, leaving Pixelify Sans on everything above `0.75rem`. Chosen on measurement rather than reputation — rasterising confusable glyph pairs at 10px and diffing the pixels put Jersey's `5`/`S` collision lowest of every candidate tested. Notably it beat Silkscreen, which is explicitly designed for small sizes and was the expected winner but scored *worse* than Pixelify Sans on that pair.
+- Nudges all 30 labelled small-type sites up 10%. Jersey 15 has a shorter cap height than Pixelify Sans, needing ~4% more size just to match apparent size; the remaining 6% is net legibility gain, affordable because Jersey runs 23% narrower — the scale readout ends up 273px wide against 278px before, despite larger text.
+- Verified at desktop and 375px: nothing clipped, no page overflow, the stage readout still fits inside the specimen stage, and the tank index still fits on screen.
 
 ### Housekeeping
 

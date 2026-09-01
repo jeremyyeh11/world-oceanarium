@@ -20,7 +20,7 @@ body {
 .debug-mobile-version {
   color: var(--crt-drift-dim);
   font-family: var(--crt-font-tiny);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -167,7 +167,7 @@ body {
   margin: 0 0 0.4rem;
   color: var(--crt-lumen);
   font-family: var(--crt-font-tiny);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -255,7 +255,7 @@ body {
 
 .tank-switch-index {
   color: var(--crt-drift-dim);
-  font-size: 0.6rem;
+  font-size: 0.66rem;
   font-family: var(--crt-font-tiny);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
@@ -282,7 +282,7 @@ body {
   border-top: 1px solid rgba(23, 70, 107, 0.9);
   color: var(--crt-drift-dim);
   font-family: var(--crt-font-tiny);
-  font-size: 0.66rem;
+  font-size: 0.73rem;
   line-height: 1.45;
   letter-spacing: 0.02em;
   text-align: left;
@@ -451,7 +451,7 @@ body {
 
 .screenshot-help-kicker {
   color: var(--crt-lumen);
-  font: 0.7rem/1 var(--crt-font-tiny);
+  font: 0.77rem/1 var(--crt-font-tiny);
   letter-spacing: 0.2em;
   text-shadow: 0 0 8px rgba(127, 220, 242, 0.32);
 }
@@ -495,14 +495,14 @@ body {
 }
 
 .debug-panel {
-  font-size: 0.7rem;
+  font-size: 0.77rem;
   font-family: var(--crt-font-tiny);
 }
 
 .debug-panel-button,
 .debug-mode-button {
   border-radius: 0;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-family: var(--crt-font-tiny);
 }
 
@@ -602,7 +602,7 @@ body {
 .focus-hint-title {
   position: relative;
   color: var(--crt-lumen);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-family: var(--crt-font-tiny);
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -631,7 +631,7 @@ body {
 
 .focus-hint-controls {
   color: var(--crt-drift-dim);
-  font-size: 0.58rem;
+  font-size: 0.64rem;
   font-family: var(--crt-font-tiny);
   letter-spacing: 0.12em;
 }
@@ -646,13 +646,13 @@ body {
 
   .tank-viewport.is-following-fish .focus-hint-title {
     color: var(--crt-lumen) !important;
-    font-size: 0.62rem !important;
+    font-size: 0.68rem !important;
     font-family: var(--crt-font-tiny);
   }
 
   .tank-viewport.is-following-fish .focus-hint-controls {
     color: var(--crt-drift-dim) !important;
-    font-size: 0.52rem !important;
+    font-size: 0.57rem !important;
     font-family: var(--crt-font-tiny);
   }
 }

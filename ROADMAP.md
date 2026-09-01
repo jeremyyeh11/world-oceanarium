@@ -181,6 +181,34 @@ Subtasks:
 - [ ] When an item is completed and pushed to clean public release, remove it from active sections or archive it under a dated/archive section.
 - [ ] Keep ordering: current work first, then priority, then chronological discovery order unless Jeremy/YK manually asks to reorder.
 
+#### Performance audit follow-ups (`v0.15.3` bucket)
+
+Status: `Backlog`
+
+Reference:
+- Raised when Jeremy reported the app felt laggy. Shipped from the audit so far: `v0.15.3-dev_1` (tank canvas dpr cap, #84), `v0.15.3-dev_2` (dropped the `.crt-screen` blend, #85), `v0.15.3-dev_3` (sardine LOD texture down-res, #86).
+- Root cause of the "now" in "laggy now" is population growth, not a code regression: the ocean biome holds 282 live creatures, 275 of them `amblygaster-sirm`, grown 21 (May 2026) → 88 (June) → 275 (July). Every alive creature mounts its own `<Fish>` with a per-frame `useFrame`, so frame cost tracks a Supabase row count that changes with no commit. Judge any fix against the live count.
+
+Blocked on `feat/static-procedural-fish-models` (#77) — that branch rewrites `Fish.jsx` (+284 lines) and `species.js`, so touching either now guarantees a conflict:
+- [ ] All 275 sardines run the full swim sim every frame regardless of LOD. The LOD system correctly unmounts `FishModel` (`Fish.jsx:3307`) so bone/mixer work does stop, but the outer `useFrame` (`Fish.jsx:2259`) still runs sim, projection and registry writes for every fish. Stagger distant/offscreen sardines to every 2nd–4th frame, keyed off a `creature.id` hash — their motion is already averaged into the instanced layer. Biggest remaining frame-rate lever.
+- [ ] LOD switching calls `setState` inside `useFrame` (`Fish.jsx:3138`). Each threshold crossing re-renders that `<Fish>` and mounts/unmounts `FishModel`, which clones the GLTF scene, re-runs `useAnimations` and clones materials. Prefer toggling `.visible` imperatively.
+- [ ] `computeBoidSteering` (`Fish.jsx:1005`) scans the whole registry and pushes a fresh `{ id, other, distanceSq }` object per candidate before sorting. Throttled by `boidDecisionNextAt` so it is amortised, but at 275 fish it is ~75k distance checks per sweep plus GC churn. Reuse pooled entry objects.
+
+Asset cleanup to apply **when #77 lands** (measured against that branch, not `main`):
+- [ ] `isurus-oxyrinchus.glb` (2.05 MB) and `mahi-mahi_male_static.glb` (4.44 MB) become fully unreferenced on #77 — delete them.
+- [ ] #77's `useGLTF.preload` block in `Fish.jsx` is byte-identical to `main`'s and was never updated. It still eagerly downloads `sardine.glb` (1.03 MB) and `mahi-mahi_female.glb` (4.76 MB), neither of which that branch renders, while the `_static_parts` files it *does* render are not preloaded at all. ~5.79 MB fetched for nothing on every load.
+- [ ] The mahi texture (`baccb3fdc1`, 1920x1080, 3.48 MB) is byte-identical across `mahi-mahi_female.glb`, `mahi-mahi_male.glb` and `mahi-mahi_male_static.glb` on `main`, and across both `_static_parts` files on #77. `useGLTF` caches per URL, so each copy is a separate GPU upload — about 21 MB of duplicate VRAM. Share one texture once the final asset set is settled.
+
+Not blocked — can be picked up any time:
+- [ ] Self-host the webfont (dupe of the CRT item above): `index.html` render-blocks on a `fonts.googleapis.com` stylesheet for Pixelify Sans + Jersey 15, costing a third-party DNS + TLS + fetch on the critical path before first paint.
+- [ ] `public/models` ships 19.83 MB with **no** Draco, meshopt or KTX2 compression on any `.glb`.
+- [ ] Single 1.49 MB JS chunk (438 kB gzip), no code splitting; `EncyclopediaPage` and its own `<Canvas>` are statically imported in `App.jsx:4`. Measure before acting — `three` is shared with the tank, so splitting may move less than it looks.
+- [ ] `backdrop-filter: blur()` still runs over the live canvas in places `crt-retrofit.css` did not zero out (e.g. `.tank-switcher`, `index.css:1970`).
+- [ ] Three blend layers still composite over the tank every frame and are **not** free to convert (unlike `.crt-screen`, which was near-black): `.tank-depth-absorption` would shift 16.2/255, `.tank-top-exposure` 18.4/255, `.screenshot-grain` 17.9/255. Needs either an accepted visual change or a move into the WebGL pass.
+
+Explicitly rejected:
+- Reducing the water surface below 256x256 subdivisions. `WaterSurface.jsx:89` documents that 256 is what supports the 3.7 WU reflection spectrum across the 320 WU plane; coarser subdivision aliases the waves. The `DoubleSide` material is also load-bearing — the camera is clamped below the surface (`MAX_FOLLOW_CAMERA_Y`), so it only ever sees the back face.
+
 ## Feature backlog
 
 Future content ideas and parked experiments. None of these are in flight — promote to `Current work` when picked up.

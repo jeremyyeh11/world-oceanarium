@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
-- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass) and `v0.15.0-dev_2` (softening + font + copy).
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header).
 - Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
 
 Subtasks:
@@ -29,6 +29,7 @@ Subtasks:
 - [x] Add the landing gate with a dive-down dismissal that also unlocks Web Audio.
 - [x] Soften the whole pass after `dev_1` read too sharp; move to Pixelify Sans for real weights.
 - [x] Trim landing copy to title, tagline, species count, follow hint.
+- [x] Remove the top-centre tank title/zone subtitle now that the switcher dock names the tank.
 - [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
 - [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
 - [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.

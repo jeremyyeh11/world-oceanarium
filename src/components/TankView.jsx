@@ -8,7 +8,7 @@ import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
-import { creatureBodyLengthWU, DEPTH_ZONE_BY_ID, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
+import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
@@ -147,7 +147,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const visibleDebugPanel = debugMode && !screenshotMode
   const boneDebugAvailable = debugView !== 'all'
   const activeDebugLayers = boneDebugAvailable ? debugLayers : { ...debugLayers, bones: false }
-  const defaultDepthZone = DEPTH_ZONE_BY_ID.get(biome?.defaultDepthZone)
   const renderLoad = summarizeRenderLoad(creatures, biome?.id)
   const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isMolaCreature(selectedCreature)
 
@@ -719,23 +718,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           pointerEvents: 'none', zIndex: 40, maxWidth: '60%',
         }}>
           {`follow bone ${missingFollowBone} does not exist`}
-        </div>
-      )}
-
-      {!screenshotMode && (
-        <div style={{
-          position: 'absolute', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
-          color: 'rgba(255,255,255,0.7)', fontFamily: 'system-ui, sans-serif', textAlign: 'center',
-          pointerEvents: 'none',
-          // Keep above the screen-space water overlays (.tank-top-exposure / .tank-depth-absorption, z 4).
-          zIndex: 30,
-        }}>
-          <div style={{ fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{tank?.name ?? biome.name}</div>
-          {defaultDepthZone && (
-            <div className="tank-zone-label" style={{ marginTop: '0.34rem', color: 'rgba(185,225,255,0.46)', fontSize: '0.52rem', letterSpacing: '0.13em', textTransform: 'uppercase' }}>
-              {defaultDepthZone.label}
-            </div>
-          )}
         </div>
       )}
 

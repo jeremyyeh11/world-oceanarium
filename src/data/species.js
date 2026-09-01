@@ -708,6 +708,12 @@ export const SPECIES = [
         finRotationRadians: 0.46,
         dorsalRootYZ: [0, -0.08716],
         analRootYZ: [0, 0.14121],
+        // Lock the darkest base loops solidly to the body, then ease into the
+        // painter's soft mask gradient. Dorsal/anal intentionally de-sync.
+        finRootLock: 0.1,
+        dorsalPhaseOffset: 0,
+        analPhaseOffset: 1.08,
+        analPhaseRate: 0.91,
         pectoralAmplitude: 0.014,
         clavusAmplitude: 0.016,
         turnStrength: 0.012,

@@ -1199,6 +1199,10 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     finRotationRadians: { value: proceduralVertex.finRotationRadians ?? 0.46 },
     dorsalRootYZ: { value: new THREE.Vector2(...(proceduralVertex.dorsalRootYZ ?? [0, -0.08716])) },
     analRootYZ: { value: new THREE.Vector2(...(proceduralVertex.analRootYZ ?? [0, 0.14121])) },
+    finRootLock: { value: proceduralVertex.finRootLock ?? 0.1 },
+    dorsalPhaseOffset: { value: proceduralVertex.dorsalPhaseOffset ?? 0 },
+    analPhaseOffset: { value: proceduralVertex.analPhaseOffset ?? 1.08 },
+    analPhaseRate: { value: proceduralVertex.analPhaseRate ?? 0.91 },
     pectoralAmplitude: { value: proceduralVertex.pectoralAmplitude ?? 0.014 },
     clavusAmplitude: { value: proceduralVertex.clavusAmplitude ?? 0.016 },
     turnStrength: { value: proceduralVertex.turnStrength ?? 0.012 },
@@ -1236,6 +1240,10 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaFinRotationRadians = molaMaskUniforms.finRotationRadians
       shader.uniforms.uMolaDorsalRootYZ = molaMaskUniforms.dorsalRootYZ
       shader.uniforms.uMolaAnalRootYZ = molaMaskUniforms.analRootYZ
+      shader.uniforms.uMolaFinRootLock = molaMaskUniforms.finRootLock
+      shader.uniforms.uMolaDorsalPhaseOffset = molaMaskUniforms.dorsalPhaseOffset
+      shader.uniforms.uMolaAnalPhaseOffset = molaMaskUniforms.analPhaseOffset
+      shader.uniforms.uMolaAnalPhaseRate = molaMaskUniforms.analPhaseRate
       shader.uniforms.uMolaPectoralAmplitude = molaMaskUniforms.pectoralAmplitude
       shader.uniforms.uMolaClavusAmplitude = molaMaskUniforms.clavusAmplitude
       shader.uniforms.uMolaTurnStrength = molaMaskUniforms.turnStrength
@@ -1305,6 +1313,10 @@ uniform float uMolaBurst;
 uniform float uMolaFinRotationRadians;
 uniform vec2 uMolaDorsalRootYZ;
 uniform vec2 uMolaAnalRootYZ;
+uniform float uMolaFinRootLock;
+uniform float uMolaDorsalPhaseOffset;
+uniform float uMolaAnalPhaseOffset;
+uniform float uMolaAnalPhaseRate;
 uniform float uMolaPectoralAmplitude;
 uniform float uMolaClavusAmplitude;
 uniform float uMolaTurnStrength;
@@ -1319,18 +1331,21 @@ void proceduralMolaMotion(inout vec3 value) {
   float clavus = max(0.0, mask.b - pectoral);
   float speedStroke = mix(0.42, 1.0, uMolaSpeed);
   float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
-  float finRotation = sin(uMolaPhase) * uMolaFinRotationRadians * speedStroke * burstStroke;
+  float dorsalRotation = sin(uMolaPhase + uMolaDorsalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
+  float analRotation = sin(uMolaPhase * uMolaAnalPhaseRate + uMolaAnalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
   // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about
   // its own painted attachment root, creating a real tip arc instead of a
   // side-to-side translation. The low-value mask ramp keeps the root anchored.
-  float dorsalAngle = dorsal * finRotation;
+  float dorsalInfluence = smoothstep(uMolaFinRootLock, 1.0, dorsal);
+  float dorsalAngle = dorsalInfluence * dorsalRotation;
   float dorsalCos = cos(dorsalAngle);
   float dorsalSin = sin(dorsalAngle);
   float dorsalY = value.y - uMolaDorsalRootYZ.x;
   float dorsalZ = value.z - uMolaDorsalRootYZ.y;
   value.y = uMolaDorsalRootYZ.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
   value.z = uMolaDorsalRootYZ.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
-  float analAngle = anal * finRotation;
+  float analInfluence = smoothstep(uMolaFinRootLock, 1.0, anal);
+  float analAngle = analInfluence * analRotation;
   float analCos = cos(analAngle);
   float analSin = sin(analAngle);
   float analY = value.y - uMolaAnalRootYZ.x;
@@ -2727,7 +2742,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
-        // Authored mola sun-bask hold: the behavior owns position outright (coast to a stop,
+        // Mola sun-bask hold: behavior owns position outright (coast to a stop,
         // surface drift), bypassing the shared integrator entirely.
         desiredDirection.current.copy(tangent)
         agentMoveDirection.copy(tangent)

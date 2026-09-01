@@ -1,6 +1,6 @@
 # Procedural caudal fish review
 
-Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_12` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, a pelvic-fin-welded Mako export, and a mask-driven Giant Sunfish with local-Y fin yaw on `feat/static-procedural-fish-models`.
+Status: clean `v0.14.0` established the procedural caudal runtime; `v0.14.0-dev_13` continues review with Jeremy's new static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, a pelvic-fin-welded Mako export, and a mask-driven Giant Sunfish with paired local-Y fin yaw on `feat/static-procedural-fish-models`.
 
 ## Scope
 
@@ -43,7 +43,7 @@ Jeremy's replacement male Mahi was the first true static-mesh path. The `v0.14.0
 
 The new Mahi runtime GLBs preserve separate pectoral/pelvic fin meshes. The Mako keeps separate pectorals for subtle procedural flutter, while Jeremy's revised Mako export welds both pelvic fins into `shortfinmako003`; they now travel continuously with the body wave and cannot detach. Independent fin objects remain excluded from body bending.
 
-Jeremy's static Mola uses `COLOR_1` as motion data, exposed by Three as `color_1`: exclusive red/green/blue gradients mean dorsal/anal/clavus, while RGB-grey means pectorals. The Mola shader leaves the black body mask almost rigid; red and green counter-yaw around local Y toward opposite `−X/+X` extremes, pectorals assist turns, and the clavus remains restrained. `COLOR_0` remains white material data and does not tint the animal.
+Jeremy's static Mola uses `COLOR_1` as motion data, exposed by Three as `color_1`: exclusive red/green/blue gradients mean dorsal/anal/clavus, while RGB-grey means pectorals. The Mola shader leaves the black body mask almost rigid; red and green yaw together around local Y toward the same `−X/+X` extreme, pectorals assist turns, and the clavus remains restrained. `COLOR_0` remains white material data and does not tint the animal.
 
 Future caudal assets may ship as neutral static meshes. They need consistent `+Z` swim-forward orientation, sufficient longitudinal topology, clean normals, and predictable bounds. A later GPU vertex-deformation path can derive head-to-tail influence from local longitudinal position; painted masks remain optional for fin isolation or anatomy that automatic bounds cannot classify cleanly.
 

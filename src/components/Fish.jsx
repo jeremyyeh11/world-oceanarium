@@ -1314,11 +1314,11 @@ void proceduralMolaMotion(inout vec3 value) {
   float speedStroke = mix(0.42, 1.0, uMolaSpeed);
   float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
   float finYaw = sin(uMolaPhase) * uMolaFinYawRadians * speedStroke * burstStroke;
-  // Dorsal and anal fins scull as opposed local-Y yaw rotations: top leans one
-  // way while bottom leans the other, matching the broad sideways Mola stroke.
+  // Dorsal and anal fins scull as one paired local-Y yaw rotation: both lean
+  // toward the same −X/+X extreme, then sweep together through the other side.
   // Their painted ramps turn the body attachment into a soft hinge rather than
   // compressing the fins up/down along the swim axis.
-  float finAngle = (dorsal - anal) * finYaw;
+  float finAngle = (dorsal + anal) * finYaw;
   float finCos = cos(finAngle);
   float finSin = sin(finAngle);
   float finX = value.x;

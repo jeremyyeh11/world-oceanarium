@@ -703,7 +703,7 @@ export const SPECIES = [
         // COLOR_1, exposed by Three as color_1: R dorsal, G anal, B clavus, RGB-grey pectorals.
         maskAttribute: 'color_1',
         waveSpeed: 0.92,
-        // Dorsal/anal masks counter-yaw about local Y: a broad sideways scull,
+        // Dorsal/anal masks yaw together about local Y: a broad sideways scull,
         // not a tail-fish fore/aft compression stroke.
         finYawRadians: 0.46,
         pectoralAmplitude: 0.014,

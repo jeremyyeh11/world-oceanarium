@@ -701,7 +701,9 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
       {screenshotMode && (
         <svg className="screenshot-grain" aria-hidden="true" focusable="false">
           <filter id="screenshot-film-grain" x="0" y="0" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" seed="17" stitchTiles="no" />
+            {/* stitchTiles takes "stitch" | "noStitch"; the previous "no" was invalid and
+                threw on every load, silently falling back to this same default. */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" seed="17" stitchTiles="noStitch" />
             <feColorMatrix type="saturate" values="0" />
           </filter>
           <rect width="100%" height="100%" filter="url(#screenshot-film-grain)" />

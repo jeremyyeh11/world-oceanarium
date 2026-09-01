@@ -41,7 +41,7 @@ Subtasks:
 - [x] Rework the specimen stage into a measurement bay: graph grid, scale readout naming diver and specimen, diver silhouette moved onto the palette.
 - [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
 - [x] Replace the in-scene diver sprite with a proportional scale bar; remove the pose editor and persistence that existed only to position it.
-- [ ] Dead CSS in `index.css` (`.atlas-pose-editor*`, `.encyclopedia-stage-label`, `.atlas-human-scale*`) plus orphaned `public/atlas/diver.png` and `diver.svg` — spun off as a separate cleanup task.
+- [x] Dead CSS in `index.css` (`.atlas-pose-editor*`, `.encyclopedia-stage-label`, `.atlas-human-scale*`) plus orphaned `public/atlas/diver.png` and `diver.svg` — done on `chore/atlas-dead-css-cleanup` (`v0.15.1-dev_1`).
 - [ ] Anything meant to be visible on the specimen stage must live in `.atlas-stage-frame`. The stage's CSS background and its `is-tank-backdrop::after` layer are permanently hidden behind the opaque WebGL canvas.
 
 Review gates:

@@ -613,7 +613,19 @@
    show up when sweeping this file for sub-0.75rem rules — but they render at
    ~9px, the smallest text in the app. Same (0,1,1) specificity as index.css,
    and this sheet loads later, so it wins on order. */
+/* Sizes are raised here as well as the family. index.css set these at 0.62rem
+   desktop and 0.46rem on mobile — the latter renders at ~7.4px, the smallest
+   text in the app, and Jersey's shorter cap height would have made it smaller
+   still. Raised to roughly match the +10% applied to the other small-type
+   sites, with more on mobile since that was the worst case. */
 .iucn-status-heading span,
 .iucn-status-track span {
   font-family: var(--crt-font-tiny);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 880px) {
+  .iucn-status-track span {
+    font-size: 0.57rem;
+  }
 }

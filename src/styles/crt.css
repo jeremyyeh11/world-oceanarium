@@ -1,0 +1,491 @@
+/* ============================================================================
+   CRT / pixel UI layer.
+
+   The 3D scene stays pseudo-realistic — this only dresses the interface that
+   sits on top of it, as though the oceanarium were being watched through a
+   phosphor monitor in a dive station. Three ingredients do most of the work:
+
+   1. Scanline banding   repeating-linear-gradient on a pointer-events:none layer
+   2. Phosphor bloom     text-shadow glow + an RGB-split (pink left / cyan right)
+   3. Pixel edges        no border-radius; notched corners via clip-path, and
+                         3-band gradients instead of soft shadows for depth
+
+   Tuned soft on purpose. A real tube has bleeding phosphor and imperfect focus,
+   so nothing on it has a hard edge — the first pass read as too sharp precisely
+   because the splits were 3px at zero blur and the panel rings were hard 2px
+   keylines. Everything below is blurred, thinned, or knocked back from that.
+   ========================================================================== */
+
+:root {
+  /* Surfaces — deep-water blues rather than krillion's near-black, so the
+     panels still read as part of an ocean rather than a generic terminal. */
+  --crt-void: #02060d;
+  --crt-hull: #061a2c;
+  --crt-hull-lit: #0d3050;
+  --crt-hull-dim: #04101c;
+  --crt-rule: #17466b;
+
+  /* Ink */
+  --crt-foam: #e6f6ff;
+  --crt-drift: #7fa6c4;
+  --crt-drift-dim: rgba(127, 166, 196, 0.55);
+
+  /* Phosphors. Pulled off full saturation — a phosphor glows, it does not
+     scream, and the hot cyan was a big part of the sharpness. */
+  --crt-lumen: #7fdcf2;
+  --crt-lumen-hot: #a8ecff;
+  --crt-bio: #f07fa4;
+  --crt-amber: #f0cd8c;
+
+  /* Pixelify Sans carries real weights (400-700), unlike the single-weight
+     terminal faces. That matters: emphasis can come from weight now instead of
+     being faked with glow, which is what let the glow come down everywhere. */
+  --crt-font: 'Pixelify Sans', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* KIV — small-type escape hatch.
+     Pixelify Sans stops being reliable below roughly 12px (0.75rem): its "5"
+     reads as an "S", which already forced HUMAN_SCALE_METERS from 1.65 back to
+     1.7 because "1.65 M" rendered as "1.6S M". Digits suffer worst, but the
+     whole face gets mushy at that size.
+
+     Every rule in this UI that sets a font-size under 0.75rem points its
+     font-family here rather than at --crt-font, so swapping in a second face
+     for small type is a one-line change to this token. Aliased to --crt-font
+     for now: nothing changes until a replacement is chosen. Candidates worth
+     trying are pixel faces designed for small sizes with unambiguous digits —
+     Silkscreen, Departure Mono, or a plain ui-monospace fallback.
+
+     To find the affected rules: grep for --crt-font-tiny. */
+  --crt-font-tiny: var(--crt-font);
+
+  /* Reused so the banding pitch stays identical everywhere. 1px on / 2px off at
+     a 3px pitch survives a retina downscale without turning into moire; the
+     alpha is deliberately low so the lines read as a veil, not as stripes. */
+  --crt-scanlines: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12) 0,
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  --crt-scanlines-soft: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.06) 0,
+    rgba(0, 0, 0, 0.06) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+
+  /* Corners cut on one diagonal (top-left / bottom-right) — the angular cut the
+     dex panels use. Shared so the atlas and the tank index agree on the shape. */
+  --crt-chamfer: polygon(
+    12px 0, 100% 0, 100% calc(100% - 12px),
+    calc(100% - 12px) 100%, 0 100%, 0 12px
+  );
+
+  /* Notched 8px corners — the "pixel bevel" that replaces border-radius. */
+  --crt-notch: polygon(
+    0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0,
+    calc(100% - 8px) 0, calc(100% - 8px) 4px, calc(100% - 4px) 4px,
+    calc(100% - 4px) 8px, 100% 8px,
+    100% calc(100% - 8px), calc(100% - 4px) calc(100% - 8px),
+    calc(100% - 4px) calc(100% - 4px), calc(100% - 8px) calc(100% - 4px),
+    calc(100% - 8px) 100%, 8px 100%,
+    8px calc(100% - 4px), 4px calc(100% - 4px), 4px calc(100% - 8px), 0 calc(100% - 8px)
+  );
+}
+
+/* ---------------------------------------------------------------- primitives */
+
+/* Chromatic aberration. Pink lags left-down, cyan leads right-up, then a wide
+   bloom underneath — that third shadow is what sells "glowing phosphor" rather
+   than "text with a drop shadow".
+
+   The offsets carry a 1px blur and sit at ~45% alpha. Misconvergence on a real
+   tube is a soft fringe, not a second copy of the glyph; at 0 blur it reads as
+   a hard 3D-text effect, which is what made the first pass feel sharp. */
+.crt-split {
+  color: var(--crt-foam);
+  text-shadow:
+    -1px 1px 1px rgba(240, 127, 164, 0.45),
+    1px -1px 1px rgba(127, 220, 242, 0.45),
+    0 0 12px rgba(127, 220, 242, 0.22);
+}
+
+.crt-glow {
+  text-shadow: 0 0 8px currentColor;
+}
+
+.crt-label {
+  font-family: var(--crt-font);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Scanline film for any positioned container. */
+.crt-banded {
+  position: relative;
+}
+
+.crt-banded::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--crt-scanlines);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Panel: a single thin rule plus a wide soft bloom, rather than the stacked
+   hard 2px+3px keylines of the first pass — those double rings were the other
+   main source of sharpness. The lit top band is 3px and low-contrast so it
+   suggests a bevel without drawing a line. */
+.crt-panel {
+  background:
+    var(--crt-scanlines-soft),
+    linear-gradient(180deg, var(--crt-hull-lit) 0 3px, var(--crt-hull) 3px);
+  border: 0;
+  border-radius: 0;
+  box-shadow:
+    0 0 0 1px var(--crt-rule),
+    0 0 30px rgba(127, 220, 242, 0.1),
+    0 18px 50px rgba(2, 6, 13, 0.5);
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+}
+
+/* Button: the 3-band gradient (top highlight / body / bottom shade) reads as a
+   beveled pixel key, and pressing shifts it down 2px so the bevel "collapses". */
+.crt-button {
+  appearance: none;
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--crt-notch);
+  background: linear-gradient(
+    180deg,
+    var(--crt-hull-lit) 0 3px,
+    var(--crt-hull) 3px calc(100% - 4px),
+    var(--crt-hull-dim) calc(100% - 4px)
+  );
+  box-shadow: inset 0 0 0 1px rgba(23, 70, 107, 0.9);
+  color: var(--crt-drift);
+  font-family: var(--crt-font);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 160ms ease, filter 160ms ease;
+}
+
+.crt-button:hover,
+.crt-button:focus-visible {
+  color: var(--crt-lumen);
+  filter: drop-shadow(0 0 7px rgba(127, 220, 242, 0.35));
+}
+
+.crt-button:focus-visible {
+  outline: none;
+  filter:
+    drop-shadow(0 0 1px var(--crt-lumen))
+    drop-shadow(0 0 8px rgba(127, 220, 242, 0.5));
+}
+
+.crt-button:active {
+  transform: translateY(2px);
+}
+
+/* Primary action — cyan phosphor key, dark ink. */
+.crt-button--lumen {
+  background: linear-gradient(
+    180deg,
+    var(--crt-lumen-hot) 0 4px,
+    var(--crt-lumen) 4px calc(100% - 5px),
+    #4a9cb3 calc(100% - 5px)
+  );
+  box-shadow: none;
+  color: #04222c;
+  font-weight: 600;
+  filter: drop-shadow(0 0 12px rgba(127, 220, 242, 0.32));
+}
+
+.crt-button--lumen:hover,
+.crt-button--lumen:focus-visible {
+  color: #04222c;
+  filter: drop-shadow(0 0 16px rgba(127, 220, 242, 0.5));
+}
+
+.crt-button--lumen:active {
+  background: linear-gradient(
+    180deg,
+    #4a9cb3 0 4px,
+    #6bc4da 4px calc(100% - 5px),
+    var(--crt-lumen-hot) calc(100% - 5px)
+  );
+}
+
+/* ------------------------------------------------------------ global overlay */
+
+/* One fixed film over the whole app: scanlines plus a vignette that darkens the
+   corners the way a curved tube does.
+
+   Sits above the landing gate (2100) on purpose. Scanlines belong to the glass,
+   not to the content, so the gate sinks *behind* a stationary film — if the card
+   carried its own banding down it would read as a textured card moving, not as
+   the viewer descending past a fixed screen. */
+.crt-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  background:
+    radial-gradient(ellipse at 50% 45%, transparent 62%, rgba(2, 6, 13, 0.42) 100%),
+    var(--crt-scanlines);
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* A slow brightness breathe — a real tube never holds a perfectly steady level.
+   Eased rather than stepped now: the stepped
+   version read as a flicker you could catch, which fought the softer look. */
+.crt-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(127, 220, 242, 0.025);
+  animation: crt-breathe 9s ease-in-out infinite;
+}
+
+@keyframes crt-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+
+/* ------------------------------------------------------------- landing modal */
+
+.landing-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(13, 48, 80, 0.72), rgba(2, 6, 13, 0.94) 70%);
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+/* The dive: the backdrop clears while the card accelerates downward and shrinks,
+   as if it were sinking away beneath the viewer into the tank. */
+.landing-gate.is-diving {
+  animation: landing-gate-clear 1150ms cubic-bezier(0.5, 0, 0.9, 0.35) forwards;
+}
+
+@keyframes landing-gate-clear {
+  0% { opacity: 1; }
+  55% { opacity: 0.85; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.landing-card {
+  position: relative;
+  width: min(30rem, 100%);
+  padding: 2.1rem 1.9rem 1.75rem;
+  text-align: center;
+  animation: landing-card-boot 620ms steps(6, end) both;
+}
+
+.landing-gate.is-diving .landing-card {
+  animation: landing-card-dive 1150ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards;
+}
+
+/* Slight overshoot on the way down, then a hard plunge past the fold. The
+   blur ramps late so it reads as water closing over the card, not a fade. */
+@keyframes landing-card-dive {
+  0% {
+    transform: translateY(0) scale(1);
+    filter: blur(0) brightness(1);
+  }
+  18% {
+    transform: translateY(-14px) scale(1.015);
+    filter: blur(0) brightness(1.5);
+  }
+  100% {
+    transform: translateY(85vh) scale(0.72);
+    filter: blur(7px) brightness(0.35);
+  }
+}
+
+@keyframes landing-card-boot {
+  0% { opacity: 0; transform: translateY(10px) scale(0.985); filter: brightness(2.4); }
+  100% { opacity: 1; transform: none; filter: brightness(1); }
+}
+
+/* Pixelify Sans has a far larger x-height than the terminal face this started
+   on, so every size below comes down roughly 20% from the first pass and the
+   tracking loosens less — the glyphs already carry the width. */
+.landing-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.3);
+  animation: landing-eyebrow-blink 3.2s ease-in-out infinite;
+}
+
+@keyframes landing-eyebrow-blink {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.5; }
+}
+
+.landing-title {
+  margin: 0;
+  font-family: var(--crt-font);
+  font-size: clamp(2.35rem, 9.5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--crt-foam);
+  /* 1px offsets at 1px blur, half-alpha. The 3px zero-blur split this replaces
+     read as hard 3D lettering rather than a tube slightly out of convergence. */
+  text-shadow:
+    -1px 1px 1px rgba(240, 127, 164, 0.5),
+    1px -1px 1px rgba(127, 220, 242, 0.5),
+    0 0 22px rgba(127, 220, 242, 0.25);
+  animation: landing-title-flicker 7s ease-in-out infinite;
+}
+
+/* A slow luminance sag rather than the old one-frame dropouts — same idea of an
+   unsteady tube, but it no longer snaps hard enough to catch the eye. */
+@keyframes landing-title-flicker {
+  0%, 100% { opacity: 1; }
+  47% { opacity: 0.93; }
+  52% { opacity: 0.97; }
+}
+
+.landing-tagline {
+  margin: 0.55rem 0 0;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: clamp(0.9rem, 3.4vw, 1.1rem);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(127, 220, 242, 0.28);
+}
+
+.landing-rule {
+  margin: 1.15rem 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--crt-rule) 20%, var(--crt-rule) 80%, transparent);
+}
+
+.landing-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0 0 1.25rem;
+  color: var(--crt-drift);
+  font-family: var(--crt-font);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.landing-readout span {
+  display: block;
+}
+
+/* Real weight instead of a glow — the whole reason for moving off a
+   single-weight face. */
+.landing-readout b {
+  color: var(--crt-foam);
+  font-weight: 600;
+}
+
+.landing-enter {
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+}
+
+.landing-footnote {
+  margin: 0.85rem 0 0;
+  color: var(--crt-drift-dim);
+  font-family: var(--crt-font);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: crt-charting-pulse 3s ease-in-out infinite;
+}
+
+@keyframes crt-charting-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.42; }
+}
+
+/* Depth ticks drifting up past the card while the dive plays — the only cue
+   that the viewer is the thing moving, not the card. */
+.landing-depth-ticks {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8vh 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.landing-gate.is-diving .landing-depth-ticks {
+  animation: landing-ticks-rise 1150ms linear forwards;
+}
+
+@keyframes landing-ticks-rise {
+  0% { opacity: 0; transform: translateY(30vh); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-55vh); }
+}
+
+.landing-depth-ticks span {
+  display: block;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(127, 220, 242, 0.35);
+}
+
+@media (max-width: 480px) {
+  .landing-card {
+    padding: 1.7rem 1.25rem 1.45rem;
+  }
+}
+
+/* Everything here is decorative; honour the OS switch and cut it to a plain
+   cross-fade rather than leaving a half-animated state. */
+@media (prefers-reduced-motion: reduce) {
+  .crt-screen::after,
+  .landing-eyebrow,
+  .landing-title,
+  .landing-footnote,
+  .landing-card {
+    animation: none;
+  }
+
+  .landing-gate.is-diving,
+  .landing-gate.is-diving .landing-card {
+    animation: landing-gate-clear 260ms linear forwards;
+  }
+
+  .landing-gate.is-diving .landing-depth-ticks {
+    animation: none;
+  }
+}

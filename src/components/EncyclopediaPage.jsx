@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
@@ -32,10 +32,6 @@ const IUCN_STATUS_STEPS = [
 const ATLAS_CAMERA_YAW_DEGREES = 0
 const ATLAS_CAMERA_PITCH_DEGREES = 15
 const ATLAS_CREATURE_DIAGONAL_YAW_RADIANS = Math.PI / 6
-const ATLAS_DEBUG_TOGGLE_EVENT = 'world-oceanarium-toggle-debug'
-const ATLAS_DEBUG_TAP_WINDOW_MS = 1200
-const ATLAS_DEBUG_REQUIRED_TAPS = 3
-const ATLAS_DIVER_POSE_STORAGE_KEY = 'world-oceanarium-atlas-diver-poses'
 const ATLAS_SPECIES = SPECIES.filter(species => !species.hiddenInAtlas)
 
 const DEFAULT_VIEW_POSE = {
@@ -229,10 +225,76 @@ function AtlasQuickCards({ diet, biome, location }) {
   )
 }
 
+// Dex entries are 1-based and zero-padded to three digits — the padding is what
+// makes the number read as a catalogue index rather than a count.
+function dexNumber(index) {
+  return String(index + 1).padStart(3, '0')
+}
+
+// Stage readout only ever shows a single max-length figure, so it wants a
+// terser format than the tables: centimetres below a metre, whole metres above
+// ten, one decimal between.
+function formatStageLength(meters) {
+  if (!Number.isFinite(meters) || meters <= 0) return null
+  if (meters < 1) return `${Math.round(meters * 100)} cm`
+  return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
+}
+
+// The human reference is an exact constant rather than an estimated body
+// length, so it keeps whatever precision it was defined with. It cannot go
+// through formatStageLength: that rounds to one decimal, and (1.65).toFixed(1)
+// is "1.6" — binary64 stores 1.65 as 1.64999…, so a value we state as 165cm
+// would silently render as 1.6m. Number() then drops any trailing zero, so 1.7
+// still shows as "1.7 m" if the constant ever changes back.
+function formatReferenceLength(meters) {
+  return `${Number(meters.toFixed(2))} m`
+}
+
+/**
+ * Scale reference for the specimen stage.
+ *
+ * Replaces the in-scene diver sprite, which had to share the 3D space with the
+ * specimen and so was only legible at some sizes: against a 27cm sardinella a
+ * 1.7m diver cropped to a shapeless mass filling the frame. Two proportional
+ * bars carry the same comparison and stay readable at every size, because the
+ * longer subject always fills the track and the shorter one is measured
+ * against it — a 27cm fish next to a diver reads as a sliver, which is the
+ * honest answer.
+ */
+function AtlasScaleBar({ species }) {
+  const speciesMeters = speciesLengthMeters(species)
+  if (!Number.isFinite(speciesMeters) || speciesMeters <= 0) return null
+
+  const longest = Math.max(HUMAN_SCALE_METERS, speciesMeters)
+  // Floor the rendered width so a very small specimen still shows a visible
+  // stub rather than vanishing into the track.
+  const widthFor = (meters) => `${Math.max(3, (meters / longest) * 100)}%`
+
+  return (
+    <div className="atlas-stage-readout" aria-label="Scale reference">
+      <span className="atlas-stage-readout-tag">Scale</span>
+      <div className="atlas-scale-row">
+        <span className="atlas-scale-label">Typical human</span>
+        <span className="atlas-scale-track">
+          <span className="atlas-scale-fill is-human" style={{ width: widthFor(HUMAN_SCALE_METERS) }} />
+        </span>
+        <b className="atlas-scale-value">{formatReferenceLength(HUMAN_SCALE_METERS)}</b>
+      </div>
+      <div className="atlas-scale-row">
+        <span className="atlas-scale-label">Specimen</span>
+        <span className="atlas-scale-track">
+          <span className="atlas-scale-fill is-specimen" style={{ width: widthFor(speciesMeters) }} />
+        </span>
+        <b className="atlas-scale-value">{formatStageLength(speciesMeters)}</b>
+      </div>
+    </div>
+  )
+}
+
 function AtlasTableSection({ title, rows }) {
   return (
     <section className="atlas-table-section" aria-label={title}>
-      <h3>{title}</h3>
+      <h3 className="atlas-section-tag">{title}</h3>
       <div className="atlas-info-table">
         {rows.map(row => (
           <div className="atlas-info-row" key={row.label}>
@@ -388,76 +450,16 @@ function ModelAsset({ species, pose, companion = null }) {
   return <primitive object={scene} rotation={rotation} scale={viewerScale} position={position} />
 }
 
+// Reference height for the stage scale bar.
+//
+// 1.65 is the better statistic — it sits between the global means for men
+// (~171cm) and women (~160cm) in the NCD Risk Factor Collaboration's pooled
+// analysis (eLife, 2016), where 1.7 is effectively the male mean alone. It was
+// reverted for legibility: Pixelify Sans renders "5" close enough to "S" that
+// "1.65 M" reads as "1.6S M" at this size. A reference figure nobody can read
+// is worth less than a rounder one they can, and 1.7 is still within the
+// spread of national means either way.
 const HUMAN_SCALE_METERS = 1.7
-const DIVER_IMAGE_ASPECT = 479 / 212
-
-const DEFAULT_DIVER_POSE = {
-  position: [1.35, -1.62, -0.85],
-  opacity: 0.42,
-}
-
-const DIVER_POSES_BY_SPECIES = {
-  'amblygaster-sirm': {
-    position: [2.25, -0.55, -0.85],
-    opacity: 0.34,
-  },
-  'coryphaena-hippurus': {
-    position: [0.8, -1.65, -0.85],
-    opacity: 0.38,
-  },
-  'mola-alexandrini': {
-    position: [1.85, -2.25, -0.85],
-    opacity: 0.38,
-  },
-}
-
-function baseDiverPoseForSpecies(species) {
-  return DIVER_POSES_BY_SPECIES[species?.id] ?? DEFAULT_DIVER_POSE
-}
-
-function normalizeDiverPose(candidate, fallback = DEFAULT_DIVER_POSE) {
-  const position = Array.isArray(candidate?.position) ? candidate.position : fallback.position
-  return {
-    position: [0, 1, 2].map(index => (
-      Number.isFinite(Number(position?.[index])) ? Number(position[index]) : fallback.position[index]
-    )),
-    opacity: Number.isFinite(Number(candidate?.opacity)) ? Number(candidate.opacity) : fallback.opacity,
-  }
-}
-
-function mergedDiverPoseForSpecies(species, overridePose = null) {
-  const basePose = baseDiverPoseForSpecies(species)
-  const pose = normalizeDiverPose(overridePose, basePose)
-  pose.position[2] = basePose.position[2]
-  return pose
-}
-
-function AtlasDiverScale({ species, diverPoseOverride = null }) {
-  const texture = useTexture('/atlas/diver.png')
-  const lengthMeters = speciesLengthMeters(species)
-  const pose = viewPoseForSpecies(species)
-  const displayedLength = displayedSpeciesLengthUnits(species, pose)
-  const width = Number.isFinite(displayedLength) && Number.isFinite(lengthMeters)
-    ? displayedLength * (HUMAN_SCALE_METERS / lengthMeters)
-    : 2.8
-  const height = width / DIVER_IMAGE_ASPECT
-  const diverPose = mergedDiverPoseForSpecies(species, diverPoseOverride)
-
-  return (
-    <sprite position={diverPose.position} scale={[width, height, 1]} renderOrder={-5} raycast={() => null}>
-      <spriteMaterial
-        color="#000000"
-        map={texture}
-        transparent
-        opacity={diverPose.opacity}
-        alphaTest={0.01}
-        depthWrite={false}
-        depthTest
-        toneMapped={false}
-      />
-    </sprite>
-  )
-}
 
 function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   const isLarge = species?.swim?.bodyLengthWU > 3
@@ -483,7 +485,7 @@ function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
   )
 }
 
-function SpeciesModel({ species, diverPoseOverride = null }) {
+function SpeciesModel({ species }) {
   const pose = viewPoseForSpecies(species)
   const cameraPosition = atlasCameraPosition(pose)
   const companions = ATLAS_COMPANIONS_BY_SPECIES[species?.id] ?? []
@@ -498,9 +500,6 @@ function SpeciesModel({ species, diverPoseOverride = null }) {
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
       <WaterSurface biome="ocean" />
       <UnderwaterFX biome="ocean" />
-      <Suspense fallback={null}>
-        <AtlasDiverScale species={species} diverPoseOverride={diverPoseOverride} />
-      </Suspense>
       <Suspense fallback={<FallbackFish species={species} pose={pose} />}>
         {species?.model?.path ? (
           <>
@@ -553,148 +552,16 @@ function ConservationStatusBar({ status }) {
   )
 }
 
-function loadStoredDiverPoses() {
-  if (typeof window === 'undefined') return {}
-  try {
-    const stored = window.localStorage.getItem(ATLAS_DIVER_POSE_STORAGE_KEY)
-    if (!stored) return {}
-    const parsed = JSON.parse(stored)
-    if (!parsed || typeof parsed !== 'object') return {}
-    return Object.fromEntries(Object.entries(parsed).map(([speciesId, pose]) => [speciesId, normalizeDiverPose(pose)]))
-  } catch (error) {
-    console.warn('Could not load Atlas diver poses', error)
-    return {}
-  }
-}
-
-function saveStoredDiverPoses(poses) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(ATLAS_DIVER_POSE_STORAGE_KEY, JSON.stringify(poses))
-  } catch (error) {
-    console.warn('Could not save Atlas diver poses', error)
-  }
-}
-
-function roundPoseValue(value) {
-  return Math.round(value * 100) / 100
-}
-
-function roundedDiverPose(pose) {
-  return {
-    position: pose.position.map(roundPoseValue),
-    opacity: roundPoseValue(pose.opacity),
-  }
-}
-
-function AtlasDiverPoseEditor({ species, pose, onPoseChange, onReset }) {
-  const [copyState, setCopyState] = useState('Copy JSON')
-  const controls = [
-    { label: 'X', index: 0, min: -4, max: 4, step: 0.05 },
-    { label: 'Y', index: 1, min: -3, max: 2, step: 0.05 },
-  ]
-
-  const updatePosition = (index, value) => {
-    const next = normalizeDiverPose(pose)
-    next.position[index] = Number(value)
-    onPoseChange(roundedDiverPose(next))
-  }
-
-  const updateOpacity = (value) => {
-    const next = normalizeDiverPose(pose)
-    next.opacity = Number(value)
-    onPoseChange(roundedDiverPose(next))
-  }
-
-  const copyPose = async () => {
-    const text = `'${species.id}': ${JSON.stringify(roundedDiverPose(pose))}`
-    try {
-      await navigator.clipboard?.writeText(text)
-      setCopyState('Copied')
-    } catch {
-      setCopyState(text)
-    }
-    window.setTimeout(() => setCopyState('Copy JSON'), 1400)
-  }
-
-  return (
-    <aside className="atlas-pose-editor" aria-label="Atlas diver pose editor">
-      <div className="atlas-pose-editor-heading">
-        <strong>Diver pose</strong>
-        <span>{species.name}</span>
-      </div>
-      {controls.map(control => (
-        <label key={control.label} className="atlas-pose-control">
-          <span>{control.label}</span>
-          <input
-            type="range"
-            min={control.min}
-            max={control.max}
-            step={control.step}
-            value={pose.position[control.index]}
-            onChange={(event) => updatePosition(control.index, event.target.value)}
-          />
-          <output>{pose.position[control.index].toFixed(2)}</output>
-        </label>
-      ))}
-      <label className="atlas-pose-control">
-        <span>Opacity</span>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={pose.opacity}
-          onChange={(event) => updateOpacity(event.target.value)}
-        />
-        <output>{pose.opacity.toFixed(2)}</output>
-      </label>
-      <div className="atlas-pose-actions">
-        <button type="button" onClick={copyPose}>{copyState}</button>
-        <button type="button" onClick={onReset}>Reset species</button>
-      </div>
-      <p>Ctrl+Shift+D hides/shows this panel. Saves locally in this browser. Z is fixed at -0.85 so scale stays comparable.</p>
-    </aside>
-  )
-}
-
 export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
   const [selectedId, setSelectedId] = useState(() => {
     if (ATLAS_SPECIES.some(species => species.id === initialSpeciesId)) return initialSpeciesId
     return ATLAS_SPECIES[0]?.id
   })
-  const [poseEditorOpen, setPoseEditorOpen] = useState(false)
-  const [storedDiverPoses, setStoredDiverPoses] = useState(() => loadStoredDiverPoses())
   const pageRef = useRef(null)
-  const debugTapCount = useRef(0)
-  const debugTapTimer = useRef(null)
-  const selectedSpecies = ATLAS_SPECIES.find(species => species.id === selectedId) ?? ATLAS_SPECIES[0]
-  const diverPose = mergedDiverPoseForSpecies(selectedSpecies, storedDiverPoses[selectedSpecies?.id])
+  const selectedIndex = Math.max(0, ATLAS_SPECIES.findIndex(species => species.id === selectedId))
+  const selectedSpecies = ATLAS_SPECIES[selectedIndex]
   const biome = BIOME_BY_ID.get(selectedSpecies?.biome)
   const atlasDetails = selectedSpecies?.atlasDetails ?? {}
-  const resetDebugTaps = () => {
-    debugTapCount.current = 0
-    if (!debugTapTimer.current) return
-    window.clearTimeout(debugTapTimer.current)
-    debugTapTimer.current = null
-  }
-
-  useEffect(() => {
-    const togglePoseEditor = () => setPoseEditorOpen(current => !current)
-    const togglePoseEditorFromShortcut = (event) => {
-      if (!event.ctrlKey || !event.shiftKey || event.key.toLowerCase() !== 'd') return
-      event.preventDefault()
-      togglePoseEditor()
-    }
-
-    window.addEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
-    window.addEventListener('keydown', togglePoseEditorFromShortcut)
-    return () => {
-      window.removeEventListener(ATLAS_DEBUG_TOGGLE_EVENT, togglePoseEditor)
-      window.removeEventListener('keydown', togglePoseEditorFromShortcut)
-    }
-  }, [])
-
 
   useEffect(() => {
     const page = pageRef.current
@@ -730,48 +597,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
     }
   }, [])
 
-  const updateDiverPose = (nextPose) => {
-    const speciesId = selectedSpecies?.id
-    if (!speciesId) return
-    setStoredDiverPoses(current => {
-      const basePose = baseDiverPoseForSpecies(selectedSpecies)
-      const normalizedPose = normalizeDiverPose(nextPose, basePose)
-      normalizedPose.position[2] = basePose.position[2]
-      const next = { ...current, [speciesId]: normalizedPose }
-      saveStoredDiverPoses(next)
-      return next
-    })
-  }
 
-  const resetDiverPose = () => {
-    const speciesId = selectedSpecies?.id
-    if (!speciesId) return
-    setStoredDiverPoses(current => {
-      const next = { ...current }
-      delete next[speciesId]
-      saveStoredDiverPoses(next)
-      return next
-    })
-  }
-
-  const handleVersionTap = (event) => {
-    event.preventDefault()
-    event.stopPropagation()
-
-    if (debugTapTimer.current) {
-      window.clearTimeout(debugTapTimer.current)
-    }
-
-    debugTapCount.current += 1
-
-    if (debugTapCount.current >= ATLAS_DEBUG_REQUIRED_TAPS) {
-      resetDebugTaps()
-      setPoseEditorOpen(current => !current)
-      return
-    }
-
-    debugTapTimer.current = window.setTimeout(resetDebugTaps, ATLAS_DEBUG_TAP_WINDOW_MS)
-  }
 
   return (
     <section ref={pageRef} className="encyclopedia-page" aria-label="THE ATLAS">
@@ -780,17 +606,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           <h1>THE ATLAS</h1>
         </div>
         <div className="encyclopedia-topbar-actions">
-          <button
-            className={`atlas-version-label${poseEditorOpen ? ' is-active' : ''}`}
-            type="button"
-            onPointerUp={handleVersionTap}
-            onContextMenu={(event) => event.preventDefault()}
-            aria-label="Tap three times to toggle Atlas diver pose editor"
-            aria-pressed={poseEditorOpen}
-            title="Tap three times or press Ctrl+Shift+D to toggle diver pose editor"
-          >
-            {APP_VERSION_SHORT_LABEL}
-          </button>
+          <span className="atlas-version-label">{APP_VERSION_SHORT_LABEL}</span>
           <button className="encyclopedia-close" type="button" onClick={onClose} aria-label="Close encyclopaedia">
             <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
               <path d="M7 7l10 10M17 7L7 17" />
@@ -809,6 +625,7 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           >
             <SpeciesThumbnail species={species} index={index} />
             <span>
+              <span className="atlas-dex-no">№ {dexNumber(index)}</span>
               <strong>{species.name}</strong>
               {species.scientificName && <em>{species.scientificName}</em>}
             </span>
@@ -820,19 +637,22 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         className="encyclopedia-model-stage is-tank-backdrop"
         aria-label={`${selectedSpecies.name} fixed side view`}
       >
-        <SpeciesModel species={selectedSpecies} diverPoseOverride={diverPose} />
-        {poseEditorOpen && (
-          <AtlasDiverPoseEditor
-            species={selectedSpecies}
-            pose={diverPose}
-            onPoseChange={updateDiverPose}
-            onReset={resetDiverPose}
-          />
-        )}
+        <SpeciesModel species={selectedSpecies} />
+        {/* Purely decorative dex framing: L-brackets on the two chamfered
+            corners, plus the specimen readout chip. */}
+        <div className="atlas-stage-frame" aria-hidden="true" />
+        <div className="atlas-stage-chip" aria-hidden="true">
+          <span>Specimen</span>
+          <b>№ {dexNumber(selectedIndex)}</b>
+        </div>
+        <AtlasScaleBar species={selectedSpecies} />
       </main>
 
       <aside className="encyclopedia-info-panel" aria-label={`${selectedSpecies.name} information`}>
-        <p className="encyclopedia-panel-kicker">{selectedSpecies.family ?? 'Oceanarium species'}</p>
+        <div className="atlas-dex-head">
+          <span className="atlas-dex-no atlas-dex-no--lg">№ {dexNumber(selectedIndex)}</span>
+          <p className="encyclopedia-panel-kicker">{selectedSpecies.family ?? 'Oceanarium species'}</p>
+        </div>
         <h2>{selectedSpecies.name}</h2>
         {selectedSpecies.scientificName && <p className="encyclopedia-scientific">{selectedSpecies.scientificName}</p>}
         <ConservationStatusBar status={selectedSpecies.conservationStatus} />
@@ -841,7 +661,10 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
           biome={biome?.name ?? selectedSpecies.biome}
           location={atlasDetails.foundIn}
         />
-        <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
+        <section className="atlas-table-section" aria-label="Biology">
+          <h3 className="atlas-section-tag">Biology</h3>
+          <p className="encyclopedia-description">{selectedSpecies.description ?? 'Species notes coming soon.'}</p>
+        </section>
         <div className="atlas-table-stack">
           <AtlasTableSection
             title="Social"

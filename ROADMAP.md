@@ -13,6 +13,46 @@ Status labels:
 
 ## Current work
 
+### CRT/pixel interface
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar), `v0.15.0-dev_9` (scale reference relabelled and resourced), `v0.15.0-dev_10` (readout legibility), `v0.15.0-dev_11` (stage banding).
+- Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
+- Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
+
+Subtasks:
+- [x] Extract the CRT recipe from the reference site rather than approximating it.
+- [x] Build tokens plus primitives: scanline banding, phosphor glow/split, notched pixel edges.
+- [x] Retrofit existing chrome (top controls, tank switcher, search, screenshot help, atlas, focus card).
+- [x] Add the landing gate with a dive-down dismissal that also unlocks Web Audio.
+- [x] Soften the whole pass after `dev_1` read too sharp; move to Pixelify Sans for real weights.
+- [x] Trim landing copy to title, tagline, species count, follow hint.
+- [x] Remove the top-centre tank title/zone subtitle now that the switcher dock names the tank.
+- [x] Restyle the follow readout out of its glass pill and into the CRT language.
+- [x] Reimagine the Atlas as a field dex (chamfers, corner brackets, bracket tags, dex numbers) without losing any data.
+- [x] Move the tank switcher bottom-left and rebuild it as a vertical index, fixing the measured clip-at-five-tanks failure on phones.
+- [x] Collapse the tank index behind a hamburger showing the active tank, opening upward; chrome-less on compact viewports; same mode adopted by desktop past `TANK_INLINE_LIMIT` tanks.
+- [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
+- [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
+- [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
+- [x] Rework the specimen stage into a measurement bay: graph grid, scale readout naming diver and specimen, diver silhouette moved onto the palette.
+- [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
+- [x] Replace the in-scene diver sprite with a proportional scale bar; remove the pose editor and persistence that existed only to position it.
+- [ ] Dead CSS in `index.css` (`.atlas-pose-editor*`, `.encyclopedia-stage-label`, `.atlas-human-scale*`) plus orphaned `public/atlas/diver.png` and `diver.svg` — spun off as a separate cleanup task.
+- [ ] Anything meant to be visible on the specimen stage must live in `.atlas-stage-frame`. The stage's CSS background and its `is-tank-backdrop::after` layer are permanently hidden behind the opaque WebGL canvas.
+
+Review gates:
+- [x] Reads soft rather than sharp at arm's length on a phone.
+- [x] Scanlines do not shimmer or moire against the moving scene.
+- [x] Dive timing feels like descending, not like a modal sliding away.
+- [x] Screenshot mode still captures the scene free of interface framing (verified: the tube film, tank dock, top controls and version footnote all clear on entry and restore on exit).
+- [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
+- [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
+- [ ] KIV: pick a replacement face for small type. Pixelify Sans is unreliable below ~12px ("5" reads as "S"), which already forced `HUMAN_SCALE_METERS` back to 1.7. All 30 sub-`0.75rem` sites are labelled with `--crt-font-tiny` (aliased to `--crt-font` today), so the swap is one line in `crt.css`. Candidates: Silkscreen, Departure Mono, or a plain `ui-monospace` fallback.
+
 ### Procedural caudal-fish animation
 
 Status: `Archive candidate`

@@ -189,10 +189,29 @@ export const SPECIES = [
       // Bone used as the follow-cam aim point. Names are the in-scene (dot-stripped)
       // three.js names; falls back to the model bounding-box center if not found.
       followBone: 'Bone',
-      actionAnimationDurations: {
-        burst: 1.39,
-        snap_left: 1.12,
-        snap_right: 1.12,
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        bones: ['Bone', 'Bone.001', 'Bone.002', 'Bone.003'],
+        axis: 'x',
+        strength: 0.82,
+        maxAngleDegrees: 18,
+        response: 11,
+        tailBias: 1.15,
+        baseWeight: 0.08,
+        chainMultiplier: 1.05,
+        turnIntentScale: 0,
+        burstBoost: 0.72,
+        speedBoost: 0.42,
+        idleSwayDegrees: 7.2,
+        idleSwaySpeed: 4.8,
+        idleSwayPhaseOffset: 1.35,
+        idleSwaySpeedBoost: 0.58,
       },
     },
   },
@@ -323,40 +342,16 @@ export const SPECIES = [
       // Head-end spine bone used as the follow-cam aim point (shared by both sex variants).
       followBone: 'spine001',
       moveset: {
-        cruise: 'idle',
-        drift: 'idle',
-        // Turns stay on the looping idle swim clip and bank via curve-deform (same as the
-        // mako). The old snap_left/snap_right were 5.61s non-looping turn-sweep clips that
-        // replayed through a sustained wide-arc turn, sweeping the tail over and over
-        // (reading as the tail spinning in circles).
-        turnLeft: 'idle',
-        turnRight: 'idle',
-        burst: 'burst',
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
       },
-      animationFadeDuration: 0.16,
-      animationTimeScale: 1,
-      lockAnimationPlayback: true,
-      actionAnimationDurations: {
-        burst: 5.61,
-        snap_left: 5.61,
-        snap_right: 5.61,
-      },
-      actionMovementDelayOverrides: {
-        burst: 0.8,
-      },
-      loopAnimations: ['idle'],
-      curveDeform: {
+      proceduralAnimation: {
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006', 'spine.007'],
         axis: 'z',
-        // Lowered from 1.0: the mahi cruises its confined upper-column bounds in continuous
-        // gentle arcs, and the tail-bend `turn * 10.5` amplification turned even a ~2°/frame
-        // cruise-arc into a visible sideways tail. At 0.45 the tail stays near-straight while
-        // gliding and still banks subtly through genuine turns.
         strength: 0.45,
-        // Bend is driven purely by the actual per-frame turn rate now (like the mako), not by
-        // sustained heading misalignment. Under boids the mahi steers continuously toward its
-        // formation slot, so a misalignment-driven bend (turnIntent) baked in a permanent
-        // sideways tail cock; turnIntentScale is 0 so the tail only banks when it truly turns.
         maxAngleDegrees: 8,
         response: 8.5,
         tailBias: 0.85,
@@ -365,11 +360,18 @@ export const SPECIES = [
         turnIntentScale: 0,
         burstBoost: 0.72,
         speedBoost: 0.28,
+        accelerationBoost: 0.12,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
         // Ease the bend back to straight when forward travel slows (e.g. crawling out of
         // a turn), so the tail straightens before the mahi swims on rather than holding a
         // full sideways bend while barely moving.
         easeStraightenBySpeed: true,
         straightenFloor: 0.1,
+        idleSwayDegrees: 3.2,
+        idleSwaySpeed: 2.35,
+        idleSwayPhaseOffset: 1.2,
+        idleSwaySpeedBoost: 0.42,
       },
       debugForwardOrigin: 'head',
       // GLB origin sits near mid-body; nose is at +4.55 / 9.79 of the source length.
@@ -494,28 +496,13 @@ export const SPECIES = [
       // Head-end spine bone used as the follow-cam aim point.
       followBone: 'spine001',
       moveset: {
-        cruise: 'idle',
-        drift: 'idle',
-        turnLeft: 'idle',
-        turnRight: 'idle',
-        // Layer the authored burst clip softly over the continuous swim base so the
-        // body action is visible without the old full-pose snap into the clip.
-        burst: 'burst',
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
       },
-      layeredAnimations: true,
-      layeredBaseAnimation: 'idle',
-      layeredBaseWeight: 1,
-      layeredOverlayWeight: 0.42,
-      animationFadeDuration: 1.25,
-      animationTimeScale: 1.28,
-      actionAnimationDurations: {
-        burst: 6.2,
-      },
-      actionMovementDelayOverrides: {
-        burst: 0.75,
-      },
-      loopAnimations: ['idle'],
-      curveDeform: {
+      proceduralAnimation: {
         bones: ['spine.003', 'spine.004', 'spine.005', 'spine.006'],
         axis: 'z',
         strength: 1.1,
@@ -527,6 +514,9 @@ export const SPECIES = [
         turnIntentScale: 3.6,
         burstBoost: 0.38,
         speedBoost: 0.18,
+        accelerationBoost: 0.14,
+        speedFrequencyBoost: 0.28,
+        burstFrequencyBoost: 0.22,
         idleSwayDegrees: 3.6,
         idleSwaySpeed: 2.1,
         idleSwayPhaseOffset: 1.45,

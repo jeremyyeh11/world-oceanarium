@@ -1508,7 +1508,7 @@ function MolaMolaPlaceholder({ species, swim, rimColor = null, rimIntensity = 0 
 }
 
 function collectCurveDeformBones(object, model) {
-  const names = model?.curveDeform?.bones
+  const names = (model?.proceduralAnimation ?? model?.curveDeform)?.bones
   if (!Array.isArray(names) || names.length === 0) return []
   const objectsByNormalizedName = new Map()
   object.traverse(child => {
@@ -1678,13 +1678,20 @@ function BoneDebugOverlay({ object, bones, modelScale = 1, parentScale = 1 }) {
 function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
-  const animations = useMemo(() => layeredAnimationClips(gltf.animations, model), [gltf.animations, model])
+  // Procedural species intentionally ignore every authored GLB clip. The rig is
+  // only a deformation lattice: live speed/turn/burst signals drive its neutral
+  // bind pose directly, so future assets need no animation timeline.
+  const animations = useMemo(
+    () => (model?.proceduralAnimation ? [] : layeredAnimationClips(gltf.animations, model)),
+    [gltf.animations, model],
+  )
   const curveDeformBones = useMemo(() => collectCurveDeformBones(object, model), [object, model])
   const debugBones = useMemo(() => collectModelBones(object), [object])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
   const curveDeformTurnRef = useRef(0)
+  const proceduralWaveClockRef = useRef(0)
   const curveDeformQuatRef = useRef(new THREE.Quaternion())
   const curveDeformScratchQuatRef = useRef(new THREE.Quaternion())
   const curveDeformStateRef = useRef({
@@ -1711,7 +1718,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const debugAnimationScale = model?.lockAnimationPlayback ? 1 : simulationSpeed
       activeAction.setEffectiveTimeScale(baseTimeScale * runtimeAnimationScale * debugAnimationScale)
     }
-    const curveConfig = model?.curveDeform
+    const curveConfig = model?.proceduralAnimation ?? model?.curveDeform
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current
       ensureCurveDeformState(curveState, curveDeformBones.length)
@@ -1729,6 +1736,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       )
       const burstBoost = 1 + (Number.isFinite(curveConfig.burstBoost) ? curveConfig.burstBoost : 0) * THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1)
       const speedBoost = 1 + (Number.isFinite(curveConfig.speedBoost) ? curveConfig.speedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      const accelerationBoost = 1 + (Number.isFinite(curveConfig.accelerationBoost) ? curveConfig.accelerationBoost : 0) * Math.max(0, input.accel01 ?? 0)
       // Optionally ease the turn bend back toward straight as actual forward speed drops,
       // so a fish crawling out of a turn straightens its tail before swimming on instead
       // of holding a full sideways bend while barely moving.
@@ -1740,7 +1748,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         )
         : 1
       const baseAngle = THREE.MathUtils.clamp(
-        curveDeformTurnRef.current * strength * burstBoost * speedBoost * speedEase * maxAngle,
+        curveDeformTurnRef.current * strength * burstBoost * speedBoost * accelerationBoost * speedEase * maxAngle,
         -maxAngle,
         maxAngle,
       )
@@ -1752,6 +1760,8 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const idleSwaySpeed = Number.isFinite(curveConfig.idleSwaySpeed) ? Math.max(0.01, curveConfig.idleSwaySpeed) : 1.35
       const idleSwayPhaseOffset = Number.isFinite(curveConfig.idleSwayPhaseOffset) ? curveConfig.idleSwayPhaseOffset : 1.15
       const idleSwaySpeedBoost = 1 + (Number.isFinite(curveConfig.idleSwaySpeedBoost) ? curveConfig.idleSwaySpeedBoost : 0) * THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1)
+      const speedFrequencyBoost = Number.isFinite(curveConfig.speedFrequencyBoost) ? curveConfig.speedFrequencyBoost : 0.45
+      const burstFrequencyBoost = Number.isFinite(curveConfig.burstFrequencyBoost) ? curveConfig.burstFrequencyBoost : 0.35
       const tailBias = Number.isFinite(curveConfig.tailBias) ? Math.max(0.1, curveConfig.tailBias) : 1
       const baseWeight = Number.isFinite(curveConfig.baseWeight)
         ? THREE.MathUtils.clamp(curveConfig.baseWeight, 0, 1)
@@ -1759,8 +1769,16 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       const chainMultiplier = Number.isFinite(curveConfig.chainMultiplier)
         ? THREE.MathUtils.clamp(curveConfig.chainMultiplier, 0.5, 1.5)
         : 1
-      const phase = elapsed * 1.35 + (input.phase ?? 0)
-      const idleSwayPhase = elapsed * idleSwaySpeed + (input.phase ?? 0)
+      // Integrate frequency into a continuous per-fish clock. Multiplying global
+      // elapsed time by live speed would jump phase whenever speed/burst changes.
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * idleSwaySpeed * (
+        1
+        + THREE.MathUtils.clamp(input.speed01 ?? 0, 0, 1) * speedFrequencyBoost
+        + THREE.MathUtils.clamp(input.burst01 ?? 0, 0, 1) * burstFrequencyBoost
+        + Math.max(0, input.accel01 ?? 0) * 0.12
+      )
+      const idleSwayPhase = proceduralWaveClockRef.current + (input.phase ?? 0)
+      const phase = idleSwayPhase * 0.62
       const bendAxis = curveDeformAxis(curveConfig)
       curveDeformBones.forEach((bone, index) => {
         removePreviousCurveDeformAdditive(bone, curveState, index, scratchQuat)
@@ -1788,6 +1806,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   })
 
   useEffect(() => {
+    if (model?.proceduralAnimation) return
     if (model?.layeredAnimations) {
       playLayeredModelAction(actions, activeActionRef, model, animation, animationVariation)
       return
@@ -1930,6 +1949,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // fish is throttled (e.g. crawling out of a turn), used to ease the curve-deform
   // bend back toward straight before forward swimming resumes.
   const curveDeformSpeedEase = useRef(1)
+  const curveDeformPreviousSpeed = useRef(runtime.velocity)
   const nextBurstAt = useRef(runtime.nextBurstAt)
   const nextDriftAt = useRef(runtime.nextDriftAt)
   const driftUntil = useRef(runtime.driftUntil)
@@ -1946,7 +1966,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
-  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, speedEase01: 1, burst01: 0, phase: 0 })
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
@@ -3107,6 +3127,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
       curveDeformInputRef.current.turn = THREE.MathUtils.clamp(turn * 10.5 + curveDeformTurnIntent.current, -1, 1)
       curveDeformInputRef.current.speed01 = THREE.MathUtils.clamp(velocity.current / Math.max(0.001, motion.burstSpeed), 0, 1)
+      curveDeformInputRef.current.accel01 = THREE.MathUtils.clamp(
+        (velocity.current - curveDeformPreviousSpeed.current) / Math.max(0.001, motion.burstSpeed * delta),
+        -1,
+        1,
+      )
+      curveDeformPreviousSpeed.current = velocity.current
       // Actual forward travel this frame vs the intended cruise rate. Movement is
       // clamped to the follow-target distance, so a fish crawling out of a turn reads
       // slow here even though velocity.current still says "cruise". Curve-deform uses

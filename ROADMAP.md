@@ -13,6 +13,29 @@ Status labels:
 
 ## Current work
 
+### Procedural caudal-fish animation
+
+Status: `Blocked / waiting review`
+
+Reference:
+- Jeremy requested a clean test that completely deprecates authored animation for Sardinella, Mahi-mahi, and Mako.
+- Branch: `feat/procedural-fish-animation`; review build: `v0.14.0-dev_1`.
+- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
+
+Subtasks:
+- [x] Ignore every authored GLB clip for the three target species.
+- [x] Drive procedural pose from live speed, acceleration, turn, burst, and drift/forward-travel state.
+- [x] Keep a continuous per-fish wave clock and deterministic phase offset.
+- [x] Verify target bone chains for Sardinella, both Mahi variants, and Mako.
+- [ ] Collect Jeremy visual/feel review from deployed preview.
+- [ ] Replace the rig bridge with automatic longitudinal GPU vertex deformation for future truly static meshes after this motion direction passes review.
+
+Review gates:
+- Sardinella reads lively, not twitchy or synchronized.
+- Mahi front body stays stable and rear-body bend follows real steering.
+- Mako reads heavy and caudal-powered, not eel-like.
+- No authored clip influences target-species pose; Mola behavior remains unchanged.
+
 ### Deforming ocean surface
 
 Status: `Archive candidate`

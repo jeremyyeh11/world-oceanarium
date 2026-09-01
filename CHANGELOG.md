@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.14.0 — Procedural caudal-fish animation
+
+Status: `v0.14.0-dev_1` review build on `feat/procedural-fish-animation`; not promoted or merged.
+
+### Creature motion
+
+- Completely disables authored GLB animation playback for Sardinella, both Mahi-mahi variants, and the Shortfin Mako. Their existing rigs now serve only as neutral deformation lattices driven directly by live movement state.
+- Replaces clip selection with species-shaped procedural cruise, drift, turn, and burst semantics. Actual speed, acceleration, signed turn, burst envelope, and forward-travel easing drive bend strength and stroke cadence every frame.
+- Integrates a deterministic continuous wave clock per rendered fish, preventing speed or burst changes from snapping sine phase. Stable per-creature phase offsets preserve school desynchronization.
+- Keeps Sardinella quick and flexible, Mahi front-heavy with rear-body follow-through, and Mako rigid/powerful through distinct parameter blocks. Mola and all other species keep their existing playback path.
+- Adds `npm run verify:procedural-fish-assets` to verify every target GLB exposes the configured procedural bone chain while reporting embedded clips that runtime intentionally ignores.
+
 ## v0.13.0 — Deforming ocean surface
 
 Status: accepted and promoted as clean `v0.13.0` from the historically labeled `v0.14.0-dev_12` review build after Jeremy reju. The clean number was corrected to follow `v0.12.3`; the feature remained isolated from the cinematic-camera branch throughout review.

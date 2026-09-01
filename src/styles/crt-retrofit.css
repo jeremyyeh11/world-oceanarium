@@ -521,8 +521,7 @@ body {
 .encyclopedia-stat-grid span,
 .atlas-quick-card-grid span,
 .atlas-table-section h3,
-.encyclopedia-note-block strong,
-.encyclopedia-stage-label {
+.encyclopedia-note-block strong {
   color: var(--crt-lumen);
   font-family: var(--crt-font);
   letter-spacing: 0.16em;
@@ -559,11 +558,11 @@ body {
   text-shadow: 0 0 12px rgba(127, 220, 242, 0.22);
 }
 
-/* Species thumbs and the human-scale silhouettes are the only raster surfaces
-   in the UI. Pixelating them stops the atlas from splitting into two visual
-   languages now that everything around them is hard-edged. */
-.encyclopedia-species-thumb img,
-.atlas-human-scale img {
+/* Species thumbs are the only raster surface left in the UI. Pixelating them
+   stops the atlas from splitting into two visual languages now that everything
+   around them is hard-edged. (The diver silhouette is a sprite inside the
+   canvas, not a DOM image, so it is out of CSS's reach.) */
+.encyclopedia-species-thumb img {
   image-rendering: pixelated;
 }
 

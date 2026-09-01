@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.15.0 — CRT/pixel interface (in development)
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_6`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_7`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 
@@ -22,6 +22,9 @@ Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_6`. N
 
 ### The Atlas
 
+- `v0.15.0-dev_7` reworks the specimen stage to match the rest of the dex. A two-pitch measurement grid (fine at 28px, major every fourth line) replaces the plain gradient backdrop — a specimen floating on a gradient reads as a picture, while the same specimen over ruled paper reads as something being measured, which is what the diver silhouette was always there to do. The `is-tank-backdrop` overlay drops its bright top wash and keeps only the vignette, so it stops competing with the grid.
+- `v0.15.0-dev_7` adds a scale readout to the stage naming both sides of the comparison: the diver reference (from `HUMAN_SCALE_METERS`) and the selected species' max length, with keyed swatches tying each figure to what it measures. The silhouette had always been the scale reference without ever saying so or giving the figure it referenced.
+- `v0.15.0-dev_7` retones the diver sprite from pure black to the dex chassis colour — the one value in the atlas that belonged to no palette. It still reads as a silhouette rather than a hole punched in the stage.
 - `v0.15.0-dev_4` reimagines the Atlas as a field dex, borrowing the grammar of Pokédex/HUD reference panels rather than their palette — it stays on the CRT tokens so the atlas still belongs to the same app. Four motifs carry it: corners chamfered on a single diagonal, L-brackets framing the specimen stage, section labels drawn as bracket tags (`-BIOLOGY-`, `-SOCIAL-`, `-AVERAGES-`, `-LIFECYCLE-`), and a zero-padded `№` on every specimen in both the index rail and the info panel.
 - Species selection reads as an illuminated left rail rather than a filled row, so a dense list does not turn into a block of colour. Quick facts regroup from three separate cards into one hairline-divided readout strip.
 - No information is dropped in the process: the same status bar, quick facts, description, and all ten data rows across Social/Averages/Lifecycle still render. The description gains a `-BIOLOGY-` heading so it matches the other sections instead of floating unlabelled.

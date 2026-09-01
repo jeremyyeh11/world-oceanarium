@@ -235,6 +235,15 @@ function dexNumber(index) {
   return String(index + 1).padStart(3, '0')
 }
 
+// Stage readout only ever shows a single max-length figure, so it wants a
+// terser format than the tables: centimetres below a metre, whole metres above
+// ten, one decimal between.
+function formatStageLength(meters) {
+  if (!Number.isFinite(meters) || meters <= 0) return null
+  if (meters < 1) return `${Math.round(meters * 100)} cm`
+  return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
+}
+
 function AtlasTableSection({ title, rows }) {
   return (
     <section className="atlas-table-section" aria-label={title}>
@@ -452,7 +461,10 @@ function AtlasDiverScale({ species, diverPoseOverride = null }) {
   return (
     <sprite position={diverPose.position} scale={[width, height, 1]} renderOrder={-5} raycast={() => null}>
       <spriteMaterial
-        color="#000000"
+        // Was pure black, the one value in the atlas belonging to no palette.
+        // Still reads as a silhouette, but as the dex chassis tone rather than
+        // a hole punched in the stage.
+        color="#04121f"
         map={texture}
         transparent
         opacity={diverPose.opacity}
@@ -835,6 +847,20 @@ export default function EncyclopediaPage({ initialSpeciesId, onClose }) {
         <div className="atlas-stage-chip" aria-hidden="true">
           <span>Specimen</span>
           <b>№ {dexNumber(selectedIndex)}</b>
+        </div>
+        {/* The diver silhouette has always been the scale reference, but nothing
+            ever said so or gave the figure it is referencing. Naming both sides
+            of the comparison turns the stage into a measurement readout. */}
+        <div className="atlas-stage-readout" aria-label="Scale reference">
+          <span className="atlas-stage-readout-tag">Scale</span>
+          <span className="atlas-stage-readout-row is-diver">
+            Diver <b>{HUMAN_SCALE_METERS.toFixed(1)} m</b>
+          </span>
+          {formatStageLength(speciesLengthMeters(selectedSpecies)) && (
+            <span className="atlas-stage-readout-row is-specimen">
+              Max length <b>{formatStageLength(speciesLengthMeters(selectedSpecies))}</b>
+            </span>
+          )}
         </div>
         {poseEditorOpen && (
           <AtlasDiverPoseEditor

@@ -5,6 +5,7 @@ import EncyclopediaPage from './components/EncyclopediaPage'
 import LandingGate from './components/LandingGate'
 import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
+import { useMediaQuery } from './hooks/useMediaQuery'
 import { pruneFishRuntime } from './components/fishRuntimeStore'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
 import { DEBUG_TOGGLE_EVENT } from './utils/debugIdentifiers'
@@ -17,6 +18,12 @@ const AUDIO_BOOT_START_DELAYS_MS = [0, 60, 180, 500, 1200, 2500]
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 const AUDIO_SESSION_RECOVERY_MS = 2500
 const SCREENSHOT_EXIT_HOLD_MS = 900
+// Compact viewports always collapse the tank index behind a toggle. Desktop
+// keeps the list inline until there are more tanks than fit comfortably, then
+// adopts the same menu — the collapsed form is the long-term pattern for both,
+// not a phone-only special case.
+const TANK_MENU_QUERY = '(max-width: 768px), (pointer: coarse)'
+const TANK_INLINE_LIMIT = 6
 const SCREENSHOT_EXIT_MOVE_TOLERANCE = 12
 
 function fullscreenElement() {
@@ -56,6 +63,7 @@ export default function App() {
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
   const [landingOpen, setLandingOpen] = useState(true)
+  const [tankMenuOpen, setTankMenuOpen] = useState(false)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
   const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
   const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
@@ -65,6 +73,8 @@ export default function App() {
   const screenshotExitHold = useRef(null)
   const topControlsRef = useRef(null)
   const tankListRef = useRef(null)
+  const tankDockRef = useRef(null)
+  const compactTankMenu = useMediaQuery(TANK_MENU_QUERY)
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
@@ -117,11 +127,40 @@ export default function App() {
   // The tank list scrolls once it outgrows its max height, so the active entry
   // has to be pulled into view — otherwise selecting a tank deep in the list and
   // returning later leaves the selection invisible. 'nearest' keeps it from
-  // yanking the list when the entry is already on screen.
+  // yanking the list when the entry is already on screen. Also runs on open,
+  // since a collapsed list mounts fresh and starts scrolled to the top.
   useEffect(() => {
     const activeRow = tankListRef.current?.querySelector('.tank-switch-button.is-active')
     activeRow?.scrollIntoView({ block: 'nearest' })
-  }, [activeTankId])
+  }, [activeTankId, tankMenuOpen])
+
+  useEffect(() => {
+    if (!tankMenuOpen) return undefined
+
+    const closeOnOutside = (event) => {
+      if (tankDockRef.current?.contains(event.target)) return
+      setTankMenuOpen(false)
+    }
+
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      setTankMenuOpen(false)
+    }
+
+    window.addEventListener('pointerdown', closeOnOutside, { capture: true })
+    window.addEventListener('keydown', closeOnEscape)
+
+    return () => {
+      window.removeEventListener('pointerdown', closeOnOutside, { capture: true })
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [tankMenuOpen])
+
+  // Screenshot mode and the landing gate both hide the dock; leaving the menu
+  // open behind them would spring it back open on return.
+  useEffect(() => {
+    if (screenshotMode || landingOpen) setTankMenuOpen(false)
+  }, [screenshotMode, landingOpen])
 
   useEffect(() => {
     if (screenshotMode) setEncyclopediaOpen(false)
@@ -409,8 +448,11 @@ export default function App() {
   const activeTank = TANKS.find(t => t.id === activeTankId) ?? TANKS[0]
   const activeBiome = BIOME_BY_ID.get(activeTank?.biome)
   const tankSpeciesCount = new Set(creatureData.creatures.map(creature => creature.species)).size
+  const tankMenuCollapsible = compactTankMenu || TANKS.length > TANK_INLINE_LIMIT
+  const tankListVisible = !tankMenuCollapsible || tankMenuOpen
 
   const selectTank = (tankId) => {
+    setTankMenuOpen(false)
     if (tankId === activeTankId) return
     triggerUiClickSound()
     setActiveTankId(tankId)
@@ -432,24 +474,48 @@ export default function App() {
           meant to show the scene, not the interface it is framed by. */}
       {!screenshotMode && <div className="crt-screen" aria-hidden="true" />}
       {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
-        <div className="tank-switcher-dock">
+        <div
+          className={`tank-switcher-dock${tankMenuCollapsible ? ' is-collapsible' : ''}${tankMenuOpen ? ' is-open' : ''}`}
+          ref={tankDockRef}
+        >
           <div className="tank-switcher" role="group" aria-label="Tank selection">
-            <p className="tank-switcher-heading">Tanks</p>
-            <div className="tank-switcher-list" ref={tankListRef}>
-              {TANKS.map((tank, index) => (
-                <button
-                  key={tank.id}
-                  type="button"
-                  className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
-                  aria-pressed={tank.id === activeTankId}
-                  onClick={() => selectTank(tank.id)}
-                >
-                  <span className="tank-switch-index">{String(index + 1).padStart(2, '0')}</span>
-                  <span className="tank-switch-name">{tank.name}</span>
-                </button>
-              ))}
-            </div>
-            {(activeTank?.description || activeTank?.tagline) && (
+            {tankMenuCollapsible ? (
+              <button
+                type="button"
+                className="tank-menu-toggle"
+                aria-expanded={tankMenuOpen}
+                aria-controls="tank-switcher-list"
+                onClick={() => setTankMenuOpen(current => !current)}
+              >
+                <svg className="tank-menu-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 7h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 17h16" />
+                </svg>
+                <span className="tank-menu-current">{activeTank?.name}</span>
+              </button>
+            ) : (
+              <p className="tank-switcher-heading">Tanks</p>
+            )}
+            {/* Unmounted rather than hidden while collapsed, so the rows cannot
+                be tabbed into off-screen and the open animation gets a mount. */}
+            {tankListVisible && (
+              <div className="tank-switcher-list" id="tank-switcher-list" ref={tankListRef}>
+                {TANKS.map((tank, index) => (
+                  <button
+                    key={tank.id}
+                    type="button"
+                    className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
+                    aria-pressed={tank.id === activeTankId}
+                    onClick={() => selectTank(tank.id)}
+                  >
+                    <span className="tank-switch-index">{String(index + 1).padStart(2, '0')}</span>
+                    <span className="tank-switch-name">{tank.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {tankListVisible && (activeTank?.description || activeTank?.tagline) && (
               <p className="tank-switcher-description">{activeTank.description ?? activeTank.tagline}</p>
             )}
           </div>

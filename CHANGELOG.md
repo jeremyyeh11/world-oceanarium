@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.15.0 — CRT/pixel interface (in development)
 
-Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_5`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
+Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_6`. Not yet accepted; the 3D scene stays pseudo-realistic throughout — only the interface layer changes.
 
 ### Interface / visual language
 
@@ -29,6 +29,10 @@ Status: `in development` on `feat/crt-pixel-ui`, currently at `v0.15.0-dev_5`. N
 
 ### Tank switcher
 
+- `v0.15.0-dev_6` collapses the tank index behind a hamburger toggle that shows the active tank name when closed, and opens the list upward from the same bottom-left anchor. This is written as one threshold-driven mode rather than a phone-only branch: compact viewports (`max-width: 768px` or a coarse pointer) always collapse, and desktop adopts the identical menu once tank count passes `TANK_INLINE_LIMIT` (6) — the collapsed form is the long-term pattern for both, which also retires the earlier "revisit past 8 tanks" roadmap item.
+- On compact viewports the container drops entirely — no fill, outline, or chamfer, just type and hairline rules over the scene. Every text layer gains a hard shadow to replace the contrast the panel was providing, since the water behind ranges from near-black to bright surface caustics.
+- The list is unmounted rather than hidden while collapsed, so its rows cannot be tabbed into off-screen. Closing is wired to outside pointerdown, Escape, and selecting a tank; screenshot mode and the landing gate force it shut so it cannot spring back open on return.
+- Adds `src/hooks/useMediaQuery.js`. The breakpoint changes behaviour rather than only appearance, and CSS alone cannot tell React whether a control is collapsible — hiding the toggle in CSS while its collapsed state lives in JS leaves the two disagreeing about what is on screen.
 - `v0.15.0-dev_5` moves the tank switcher from the bottom centre to the bottom left and rebuilds it as a vertical index. It now speaks the same language as the Atlas species list — chamfered panel, `-TANKS-` bracket heading, two-digit row numbers, and an illuminated left rail for the selection instead of a filled pill — and it balances the focus card, which is anchored bottom right.
 - This also fixes a scaling failure measured on the old horizontal row. At 375px it clipped off *both* screen edges from five tanks onward, and because `html`/`body`/`#root` all set `overflow: hidden`, those tanks were unreachable rather than merely off-screen; four tanks already squeezed the labels to min-content. The vertical list stays fully on screen at every count tested from 2 to 12, capping its height at `min(38vh, 16rem)` and scrolling internally past roughly seven entries. The active row is pulled into view on selection so it cannot be left scrolled out of sight.
 - The tank description moves inside the panel beneath a hairline, so the tank and its blurb read as one module rather than a caption floating above a separate control.

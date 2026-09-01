@@ -288,13 +288,149 @@ body {
   text-shadow: none;
 }
 
-@media (max-width: 640px) {
+/* --- collapsed tank menu -------------------------------------------------- */
+
+/* The dock is bottom-anchored, so a collapsed menu has to open upward: the
+   toggle stays put at the bottom edge and the list grows above it. Reversing
+   the column does that without duplicating markup — DOM order stays
+   toggle → list → description, and the reversal paints it description → list →
+   toggle from the top down. */
+.tank-switcher-dock.is-collapsible .tank-switcher {
+  flex-direction: column-reverse;
+}
+
+.tank-menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.3rem 0.1rem;
+  border: 0;
+  background: none;
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.tank-menu-toggle:hover,
+.tank-menu-toggle:focus-visible {
+  color: var(--crt-lumen);
+  outline: none;
+}
+
+.tank-menu-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--crt-lumen);
+  stroke-width: 2;
+  stroke-linecap: square;
+  transition: transform 200ms ease;
+}
+
+.tank-switcher-dock.is-open .tank-menu-icon {
+  transform: rotate(90deg);
+}
+
+.tank-menu-current {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Rises into place, matching the upward open direction. */
+.tank-switcher-dock.is-collapsible.is-open .tank-switcher-list,
+.tank-switcher-dock.is-collapsible.is-open .tank-switcher-description {
+  animation: tank-menu-rise 180ms ease-out both;
+}
+
+@keyframes tank-menu-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.tank-switcher-dock.is-collapsible .tank-switcher-list {
+  margin-bottom: 0.4rem;
+}
+
+/* The description sits above the list once reversed, so its hairline has to
+   move to the bottom edge to keep separating it from the rows. */
+.tank-switcher-dock.is-collapsible .tank-switcher-description {
+  margin: 0 0 0.45rem;
+  padding-top: 0;
+  padding-bottom: 0.42rem;
+  border-top: 0;
+  border-bottom: 1px solid rgba(23, 70, 107, 0.9);
+}
+
+/* --- compact viewports: lines and text only ------------------------------- */
+
+/* No panel, no fill, no chamfer — just type over the scene. Every text layer
+   picks up a hard shadow to replace the contrast the background was providing,
+   since the water behind can be anything from near-black to bright surface
+   caustics. */
+@media (max-width: 768px), (pointer: coarse) {
   .tank-switcher {
-    width: min(13.5rem, 58vw);
+    width: min(13.5rem, 62vw);
+    padding: 0;
+    clip-path: none;
+    background: none;
+    outline: 0;
   }
 
   .tank-switcher-list {
     max-height: min(32vh, 12rem);
+    gap: 0;
+  }
+
+  .tank-menu-toggle,
+  .tank-switch-button,
+  .tank-switcher-description {
+    text-shadow: 0 1px 3px rgba(2, 6, 13, 0.95), 0 0 12px rgba(2, 6, 13, 0.8);
+  }
+
+  .tank-menu-icon {
+    filter: drop-shadow(0 1px 3px rgba(2, 6, 13, 0.95));
+  }
+
+  /* Rows are separated by hairlines instead of by a filled selection block. */
+  .tank-switch-button {
+    padding: 0.42rem 0.2rem 0.38rem 0.6rem;
+    background: none;
+  }
+
+  .tank-switch-button + .tank-switch-button {
+    border-top: 1px solid rgba(127, 220, 242, 0.16);
+  }
+
+  .tank-switch-button:hover,
+  .tank-switch-button.is-active {
+    background: none;
+  }
+
+  .tank-switch-button.is-active .tank-switch-name {
+    color: var(--crt-lumen);
+    text-shadow: 0 1px 3px rgba(2, 6, 13, 0.95), 0 0 10px rgba(127, 220, 242, 0.45);
+  }
+
+  .tank-switcher-description {
+    border-color: rgba(127, 220, 242, 0.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tank-menu-icon,
+  .tank-switcher-dock.is-collapsible.is-open .tank-switcher-list,
+  .tank-switcher-dock.is-collapsible.is-open .tank-switcher-description {
+    animation: none;
+    transition: none;
   }
 }
 

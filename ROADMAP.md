@@ -19,7 +19,7 @@ Status: `Current in development`
 
 Reference:
 - Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
-- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical).
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu).
 - Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
 - Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
 
@@ -34,18 +34,19 @@ Subtasks:
 - [x] Restyle the follow readout out of its glass pill and into the CRT language.
 - [x] Reimagine the Atlas as a field dex (chamfers, corner brackets, bracket tags, dex numbers) without losing any data.
 - [x] Move the tank switcher bottom-left and rebuild it as a vertical index, fixing the measured clip-at-five-tanks failure on phones.
+- [x] Collapse the tank index behind a hamburger showing the active tank, opening upward; chrome-less on compact viewports; same mode adopted by desktop past `TANK_INLINE_LIMIT` tanks.
 - [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
 - [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
 - [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
 - [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
-- [ ] Past roughly 8 tanks, revisit: tank selection stops being a switcher and becomes navigation. The dock would shrink to a current-tank readout plus a browse affordance, with selection moving to a dedicated index or the landing gate.
 
 Review gates:
 - [ ] Reads soft rather than sharp at arm's length on a phone.
 - [ ] Scanlines do not shimmer or moire against the moving scene.
 - [ ] Dive timing feels like descending, not like a modal sliding away.
 - [ ] Screenshot mode still captures the scene free of interface framing.
-- [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature.
+- [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
+- [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
 
 ### Procedural caudal-fish animation
 

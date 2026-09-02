@@ -13,7 +13,10 @@ dist-ssr
 *.local
 .supabase-creature-backups
 
-# Blender backup files
+# Blender sources live in Dropbox, not in this repo — they are large binaries
+# that git cannot diff, and they are never read by the build.
+_blender models/
+*.blend
 *.blend1
 
 # Editor directories and files

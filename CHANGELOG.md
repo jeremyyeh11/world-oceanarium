@@ -18,6 +18,10 @@ Status: accepted and promoted as clean `v0.15.7` from `v0.15.7-dev_1` after Jere
 - Each entry carries the fields that reference decided, so a single row of an Atlas entry can be traced back to the source that filled it rather than to the bibliography as a whole.
 - The list is rendered from `src/data/sources.js` rather than from markup, so adding a reference is a data edit. The menu's open/close stagger moved from naming each key to counting them, which is what let a fourth key join it without touching the animation.
 
+### Repository
+
+- The Blender source files moved out of the repo to Dropbox and were purged from git history. They were never read by the build — only exported GLBs under `public/models/` are — but as undiffable binaries they dominated the repository: the pack shrank from 71 MB to under 20 MB. History was rewritten, so every commit SHA changed; an existing clone should be re-cloned rather than pulled.
+
 ## v0.15.6 — Loading screen
 
 Status: accepted and promoted as clean `v0.15.6` from `v0.15.6-dev_4` after Jeremy's review on both mobile and desktop.

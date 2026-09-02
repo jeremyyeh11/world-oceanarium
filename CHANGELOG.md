@@ -8,6 +8,25 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.6 — Loading screen
+
+Status: accepted and promoted as clean `v0.15.6` from `v0.15.6-dev_4` after Jeremy's review on both mobile and desktop.
+
+### Loading
+
+- The landing gate now reports what it is waiting for. `TankView`'s `<Canvas>` has always mounted behind the gate, so assets were already streaming in while it covered the screen — but nothing said so, and "Dive in" was enabled immediately, so it was possible to enter a half-loaded ocean and watch it fill in. The existing hairline under the tagline doubles as the bar, so nothing is added to the layout and nothing needs dismissing when it finishes: it simply stops being lit.
+- The scene is compiled and its textures uploaded while the gate is up. three.js defers a texture's GPU upload until the frame it is first drawn, so each species used to stutter as it swam into view — and at a different moment each visit, since fish are seeded to new positions. The Shortfin Mako compounded it by not being preloaded at all, fetching on first sighting.
+- Entry waits for the scene rather than for a click. Readiness needs the loader queue quiet for 300 ms rather than merely inactive, since it reports inactive whenever the queue drains between batches, and it also waits on the creature fetch — which required `useCreatures` to gain a real `loading` flag, its `source` being unable to distinguish "not fetched yet" from "returned no rows". Three ways that could have stranded a visitor on a disabled button are handled explicitly: a warm cache where the loader is never observed active, a failed asset, and a dead network.
+- The bar is drawn with `transform` rather than `width`. Animating width is a layout property computed on the main thread, which during a load is the busiest thread in the app; it stuttered measurably on a phone while desktop had the headroom to hide it. transform is composited off the main thread, so the fill keeps moving even while the main thread is blocked.
+
+### Fixes
+
+- Switching tanks left the previous tank's creatures in the scene, and drew some of them twice. `<Biome>` and the scene warm-up are siblings under `<Canvas>` and were given the same React key; React reconciles children through a map keyed by `key`, so two siblings sharing one collide and their children may be duplicated or omitted. Introduced in `v0.15.6-dev_1` and fixed in `dev_4`.
+- Sardines handed themselves to the instanced layer immediately, while the detailed model unmounts through React state a render later — so a transitioning fish could be drawn twice. Registration now waits for the state to catch up, which leaves a fish detailed one frame longer instead.
+- `SardineInstancedLayer` cloned its geometry and material and never disposed either. The clones belong to the component rather than to the GLTF cache, and `<Biome>` is keyed by tank, so every switch orphaned a set on the GPU.
+- Replaced drei's `<Preload all>` with a local warm-up. Both compile the scene, but drei also renders it six times through a `CubeCamera` to warm environment reflections; at ~281 fish that pass dominated the cost, and nothing here consumes it — the environment map is a `CanvasTexture` built in `SceneLighting` and the water's HDR is loaded directly.
+- The LOD debug readout reported the pending detail level rather than the committed one, describing what was about to happen instead of what was on screen.
+
 ## v0.15.5 — Static-asset follow and Atlas regression fixes
 
 Status: accepted and promoted as clean `v0.15.5` from `v0.15.5-dev_1` after Jeremy's review.

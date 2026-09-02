@@ -1,6 +1,5 @@
-import { Canvas } from '@react-three/fiber'
-import { Preload } from '@react-three/drei'
-import { useEffect, useRef, useState } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Camera from './Camera'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
@@ -55,6 +54,38 @@ const DEBUG_LAYER_BUTTONS = [
 ]
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
+
+// Forces shader compilation and texture upload for everything currently in the
+// scene, so the cost lands here rather than on the frame a fish is first drawn.
+//
+// This replaces drei's <Preload all>, which does the same compile but then also
+// renders the scene six times through a CubeCamera to warm environment
+// reflections. With ~281 fish that pass dominated the cost, and this scene does
+// not need it: the environment map is a CanvasTexture built in SceneLighting and
+// the water's HDR is loaded directly, neither of which the cube pass feeds.
+//
+// Temporarily unhiding is kept from drei's approach — gl.compile only walks what
+// is visible, and the sardine LOD system hides culled fish, which are exactly the
+// ones that would otherwise stutter on first appearance.
+function WarmScene() {
+  const gl = useThree(state => state.gl)
+  const scene = useThree(state => state.scene)
+  const camera = useThree(state => state.camera)
+
+  useLayoutEffect(() => {
+    const hidden = []
+    scene.traverse(object => {
+      if (object.visible === false) {
+        hidden.push(object)
+        object.visible = true
+      }
+    })
+    gl.compile(scene, camera)
+    for (const object of hidden) object.visible = false
+  }, [gl, scene, camera])
+
+  return null
+}
 
 function creatureDisplayName(creature) {
   const customName = creature?.customName?.trim()
@@ -709,16 +740,11 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
               is why a species used to stutter the moment it swam into view — and at
               a different moment each visit, since fish are seeded to new positions.
 
-              Mounted last and gated on creatures existing because drei's Preload
-              runs a single layout effect with no deps: it compiles whatever is in
-              the scene at mount and never again. Fish only mount once the Supabase
-              fetch resolves, so an ungated Preload would miss all of them, which is
-              precisely the work worth front-loading. Keyed by tank so a switch pays
-              the cost once more rather than never.
-
-              This is a deliberate one-off hitch, spent while the landing gate covers
-              the screen. */}
-          {creatures.length > 0 && <Preload all key={tank?.id ?? biome.id} />}
+              Mounted last and gated on creatures existing: the warm-up runs once per
+              mount, and fish only mount once the Supabase fetch resolves, so running
+              it any earlier would miss all of them — precisely the work worth doing
+              ahead of time. Keyed by tank because each tank draws different species. */}
+          {creatures.length > 0 && <WarmScene key={tank?.id ?? biome.id} />}
         </Canvas>
       </div>
 

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -147,7 +147,23 @@ function extractInstancedMeshAsset(scene, source) {
 
 function useInstancedSardineAsset(path, source) {
   const gltf = useGLTF(path)
-  return useMemo(() => extractInstancedMeshAsset(gltf.scene, source), [gltf.scene, source])
+  const asset = useMemo(() => extractInstancedMeshAsset(gltf.scene, source), [gltf.scene, source])
+
+  // extractInstancedMeshAsset clones both the geometry and the material, and those
+  // clones belong to this component, not to drei's GLTF cache — nothing else will
+  // ever free them. <Biome> is keyed by tank, so every switch remounts this layer
+  // and mints a fresh pair while the previous pair stays resident on the GPU.
+  // Switching back and forth accumulated a set each time.
+  //
+  // The fallbacks are module-scope singletons shared by every mount, so disposing
+  // those would break the next one.
+  useEffect(() => () => {
+    if (asset.source === 'fallback-box') return
+    asset.geometry?.dispose()
+    asset.material?.dispose()
+  }, [asset])
+
+  return asset
 }
 
 // Reused per-frame buffers, one pair per LOD bucket.

@@ -124,7 +124,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const [debugView, setDebugView] = useState('focused')
   const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false, bones: true })
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
-  const [missingFollowBone, setMissingFollowBone] = useState(null)
+
   const [stagePan, setStagePan] = useState(0)
   const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
@@ -149,6 +149,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const activeDebugLayers = boneDebugAvailable ? debugLayers : { ...debugLayers, bones: false }
   const renderLoad = summarizeRenderLoad(creatures, biome?.id)
   const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isMolaCreature(selectedCreature)
+  const selectedModel = selectedCreature ? resolveSpecies(selectedCreature)?.model ?? null : null
+  // Static assets declare root aim explicitly. `proceduralAnimation` can also describe a
+  // future rigged procedural model, whose valid follow bone must continue to win.
+  const followMeshOrigin = selectedModel?.followAim === 'root'
 
   const queueDebugSunBask = () => {
     if (!canQueueDebugSunBask) return
@@ -668,13 +672,13 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           <Camera
             biome={biome.id}
             focusTarget={focusedFishRef?.current ?? null}
-            focusCenterBoneName={selectedCreature ? resolveSpecies(selectedCreature)?.model?.followBone ?? null : null}
+            focusCenterBoneName={selectedModel?.followBone ?? null}
+            focusMeshOrigin={followMeshOrigin}
             followOrbit={followOrbit}
             followDistance={followDistance}
             followScreenOffset={followScreenOffset}
             onDefaultCameraSettledChange={setDefaultCameraSettled}
             onFollowCameraClip={releaseFollowForCameraClip}
-            onFocusBoneMissingChange={setMissingFollowBone}
           />
           <Biome
             key={tank?.id ?? biome.id}
@@ -719,16 +723,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
       {!screenshotMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
-      {!screenshotMode && debugMode && missingFollowBone && (
-        <div style={{
-          position: 'absolute', top: '1.5rem', left: '1.5rem',
-          color: '#ff6b6b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.78rem',
-          background: 'rgba(0,0,0,0.6)', padding: '0.4rem 0.6rem', borderRadius: '0.4rem',
-          pointerEvents: 'none', zIndex: 40, maxWidth: '60%',
-        }}>
-          {`follow bone ${missingFollowBone} does not exist`}
-        </div>
-      )}
 
       {visibleDebugPanel && (
         <DebugPanel

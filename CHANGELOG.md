@@ -8,6 +8,21 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.5 — Static-asset follow and Atlas regression fixes
+
+Status: accepted and promoted as clean `v0.15.5` from `v0.15.5-dev_1` after Jeremy's review.
+
+### Follow camera
+
+- Follows each rig-free procedural fish at its live mesh origin instead of a removed skeletal target or a trailing smoothed sightline. The camera can still translate smoothly, while the fish remains centered on desktop and mobile.
+- Makes static-root follow an explicit `followAim: 'root'` model contract. A future hybrid/rigged procedural model may still use a valid named bone, and broken rig metadata remains diagnosable.
+
+### Atlas
+
+- Restores motion to rig-free Atlas specimens by reusing the tank's species-specific procedural deformation rather than bringing authored clips back.
+- Portrait mobile Atlas opens on the species list, then moves through explicit list → detail → back navigation. Desktop and landscape retain their existing detail/list presentation.
+- Shifts the Shortfin Mako's Atlas hero left enough for its tail to clear the right specimen-stage edge.
+
 ## v0.15.4 — Performance pass and fish asset reconciliation
 
 Status: accepted and promoted as clean `v0.15.4` after Jeremy's device review — **desktop 150 fps, mobile 60 fps** (the vsync ceiling), measured 2026-09-02.

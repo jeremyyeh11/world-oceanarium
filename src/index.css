@@ -1215,6 +1215,16 @@ body:has(.debug-panel) .app-version-footnote {
   letter-spacing: -0.055em;
 }
 
+.encyclopedia-topbar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.atlas-mobile-back {
+  display: none;
+}
+
 .encyclopedia-close {
   display: inline-grid;
   place-items: center;
@@ -1598,6 +1608,54 @@ body:has(.debug-panel) .app-version-footnote {
 
   .encyclopedia-topbar-actions {
     gap: 0.45rem;
+  }
+
+  .atlas-mobile-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0.32rem 0.46rem;
+    border: 1px solid rgba(139, 207, 235, 0.3);
+    border-radius: 0;
+    background: rgba(5, 27, 42, 0.8);
+    color: rgba(229, 250, 255, 0.92);
+    font: 0.65rem/1 var(--crt-font-tiny);
+    font-synthesis-weight: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .encyclopedia-page.is-mobile-list-view {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .encyclopedia-page.is-mobile-list-view .encyclopedia-model-stage,
+  .encyclopedia-page.is-mobile-list-view .encyclopedia-info-panel {
+    display: none;
+  }
+
+  .encyclopedia-page.is-mobile-list-view .encyclopedia-species-list {
+    grid-row: 2;
+    display: grid;
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: 1fr;
+    align-content: start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 0.7rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .encyclopedia-page.is-mobile-list-view .encyclopedia-species-row {
+    grid-template-columns: 4rem minmax(0, 1fr);
+    grid-template-rows: 1fr;
+    min-height: 4.2rem;
+    text-align: left;
   }
 
   .atlas-version-label {

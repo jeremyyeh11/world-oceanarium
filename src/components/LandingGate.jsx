@@ -80,13 +80,18 @@ export default function LandingGate({ speciesCount, progress = 0, ready = false,
             adds no layout and nothing to dismiss once loading is done.
 
             Loader progress arrives in steps, one jump per asset, so binding the
-            width straight to it would read as a stutter of hard snaps. The easing
-            is a CSS width transition rather than a JS lerp: it needs no animation
+            fill straight to it would read as a stutter of hard snaps. The easing
+            is a CSS transition rather than a JS lerp: it needs no animation
             frames, which matters because requestAnimationFrame is paused in a
             hidden tab — a bar driven by rAF would sit at 0% for anyone who opens
-            the page in the background and comes back to it. */}
+            the page in the background and comes back to it.
+
+            The value is a unitless 0–1 scale rather than a percentage because the
+            fill is drawn with transform: scaleX, which the compositor animates off
+            the main thread. See the .landing-rule::after rule for why that matters
+            during a load. */}
         <div
-          style={{ '--load-progress': `${progress}%` }}
+          style={{ '--load-scale': progress / 100 }}
           className={`landing-rule${ready ? ' is-loaded' : ' is-loading'}`}
           role="progressbar"
           aria-valuemin={0}

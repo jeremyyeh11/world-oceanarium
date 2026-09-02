@@ -19,7 +19,7 @@ function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 }
 
-export default function LandingGate({ speciesCount, onEnter }) {
+export default function LandingGate({ speciesCount, progress = 0, ready = false, onEnter }) {
   const [diving, setDiving] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const diveTimer = useRef(null)
@@ -33,7 +33,7 @@ export default function LandingGate({ speciesCount, onEnter }) {
   }, [])
 
   const startDive = () => {
-    if (diving) return
+    if (diving || !ready) return
     setDiving(true)
     diveTimer.current = window.setTimeout(() => {
       setDismissed(true)
@@ -42,7 +42,8 @@ export default function LandingGate({ speciesCount, onEnter }) {
   }
 
   // Enter/Space already fire the button; this catches the impatient-keypress case
-  // where focus has drifted off it.
+  // where focus has drifted off it. It bypasses the button entirely, so the `ready`
+  // guard has to live inside startDive rather than only on `disabled`.
   useEffect(() => {
     const enterOnKey = (event) => {
       if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Escape') return
@@ -75,10 +76,27 @@ export default function LandingGate({ speciesCount, onEnter }) {
         <h1 id="landing-title" className="landing-title">World<br />Oceanarium</h1>
         <p className="landing-tagline">just keep swimming</p>
 
-        <div className="landing-rule" />
+        {/* Doubles as the load bar: the hairline was already here, so filling it
+            adds no layout and nothing to dismiss once loading is done.
+
+            Loader progress arrives in steps, one jump per asset, so binding the
+            width straight to it would read as a stutter of hard snaps. The easing
+            is a CSS width transition rather than a JS lerp: it needs no animation
+            frames, which matters because requestAnimationFrame is paused in a
+            hidden tab — a bar driven by rAF would sit at 0% for anyone who opens
+            the page in the background and comes back to it. */}
+        <div
+          style={{ '--load-progress': `${progress}%` }}
+          className={`landing-rule${ready ? ' is-loaded' : ' is-loading'}`}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+          aria-label="Loading the tank"
+        />
 
         <div className="landing-readout">
-          <span><b>{speciesCount}</b> species</span>
+          <span>{ready ? <><b>{speciesCount}</b> species</> : 'Filling the tank…'}</span>
           <span>Tap a creature to follow it</span>
         </div>
 
@@ -87,9 +105,9 @@ export default function LandingGate({ speciesCount, onEnter }) {
           type="button"
           className="crt-button crt-button--lumen landing-enter"
           onClick={startDive}
-          disabled={diving}
+          disabled={!ready || diving}
         >
-          ▼ Dive in ▼
+          {ready ? '▼ Dive in ▼' : 'Filling…'}
         </button>
 
         {/* Only occupies space during the dive — there is nothing worth saying

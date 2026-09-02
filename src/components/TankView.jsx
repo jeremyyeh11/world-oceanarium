@@ -1,4 +1,5 @@
 import { Canvas } from '@react-three/fiber'
+import { Preload } from '@react-three/drei'
 import { useEffect, useRef, useState } from 'react'
 import Camera from './Camera'
 import Biome from './Biome'
@@ -703,6 +704,21 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           />
           <WaterSurface biome={biome.id} seed={tank?.seed ?? 0} />
           <UnderwaterFX biome={biome.id} showGodRays={!zoomActive && defaultCameraSettled} />
+          {/* Compiles shaders and uploads every texture up front. three.js otherwise
+              defers a texture's GPU upload until the frame it is first drawn, which
+              is why a species used to stutter the moment it swam into view — and at
+              a different moment each visit, since fish are seeded to new positions.
+
+              Mounted last and gated on creatures existing because drei's Preload
+              runs a single layout effect with no deps: it compiles whatever is in
+              the scene at mount and never again. Fish only mount once the Supabase
+              fetch resolves, so an ungated Preload would miss all of them, which is
+              precisely the work worth front-loading. Keyed by tank so a switch pays
+              the cost once more rather than never.
+
+              This is a deliberate one-off hitch, spent while the landing gate covers
+              the screen. */}
+          {creatures.length > 0 && <Preload all key={tank?.id ?? biome.id} />}
         </Canvas>
       </div>
 

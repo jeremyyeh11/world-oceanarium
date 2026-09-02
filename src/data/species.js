@@ -186,6 +186,8 @@ export const SPECIES = [
     model: {
       path: '/models/fish/sardine/sardine_static.glb',
       scale: 0.42,
+      // Rig-free static mesh: follow the moving Fish root, never an AABB center or bone.
+      followAim: 'root',
       moveset: {
         cruise: 'procedural_cruise',
         drift: 'procedural_drift',
@@ -390,7 +392,9 @@ export const SPECIES = [
       },
       // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 1.8 m / 7.2 WU max.
       scale: 0.735,
-      // Head-end spine bone used as the follow-cam aim point (shared by both sex variants).
+      // Both sex variants are rig-free static meshes; aim follow at the moving Fish root.
+      // Keep the legacy name for compatibility with a future rigged variant, where it wins.
+      followAim: 'root',
       followBone: 'spine001',
       moveset: {
         cruise: 'procedural_cruise',
@@ -547,6 +551,8 @@ export const SPECIES = [
       path: '/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb',
       // Source GLB is ~40.18 units nose-to-tail; scale maps size 1.0 to 4.0 m / 16 WU.
       scale: 0.398,
+      // Rig-free static mesh: follow the moving Fish root, never an AABB center or bone.
+      followAim: 'root',
       moveset: {
         cruise: 'procedural_cruise',
         drift: 'procedural_drift',
@@ -690,6 +696,8 @@ export const SPECIES = [
       // orientation, while color_1 encodes dorsal/anal/clavus/pectoral motion masks.
       rotation: [0, 0, 0],
       scale: 0.638,
+      // Rig-free static mesh: follow the moving Fish root, never an AABB center or bone.
+      followAim: 'root',
       moveset: {
         cruise: 'procedural_cruise',
         drift: 'procedural_drift',

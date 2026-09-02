@@ -233,21 +233,19 @@ function dexNumber(index) {
   return String(index + 1).padStart(3, '0')
 }
 
-// Stage readout only ever shows a single max-length figure, so it wants a
-// terser format than the tables: centimetres below a metre, whole metres above
-// ten, one decimal between.
+// Stage readout keeps centimetres below a metre and up to two decimals for
+// precise sub-10-metre maxima such as the 4.45 m Shortfin Mako figure.
 function formatStageLength(meters) {
   if (!Number.isFinite(meters) || meters <= 0) return null
   if (meters < 1) return `${Math.round(meters * 100)} cm`
-  return `${meters.toFixed(meters < 10 ? 1 : 0)} m`
+  if (meters < 10) return `${Number(meters.toFixed(2))} m`
+  return `${Math.round(meters)} m`
 }
 
 // The human reference is an exact constant rather than an estimated body
-// length, so it keeps whatever precision it was defined with. It cannot go
-// through formatStageLength: that rounds to one decimal, and (1.65).toFixed(1)
-// is "1.6" — binary64 stores 1.65 as 1.64999…, so a value we state as 165cm
-// would silently render as 1.6m. Number() then drops any trailing zero, so 1.7
-// still shows as "1.7 m" if the constant ever changes back.
+// length, so it keeps whatever precision it was defined with. It uses its own
+// formatter so the stated 1.65m reference stays 1.65m even if the specimen
+// formatter's precision rules change.
 function formatReferenceLength(meters) {
   return `${Number(meters.toFixed(2))} m`
 }
@@ -265,6 +263,7 @@ function formatReferenceLength(meters) {
  */
 function AtlasScaleBar({ species }) {
   const speciesMeters = speciesLengthMeters(species)
+  const speciesLabel = species?.atlasDetails?.maxLengthLabel ?? 'Specimen'
   if (!Number.isFinite(speciesMeters) || speciesMeters <= 0) return null
 
   const longest = Math.max(HUMAN_SCALE_METERS, speciesMeters)
@@ -283,7 +282,7 @@ function AtlasScaleBar({ species }) {
         <b className="atlas-scale-value">{formatReferenceLength(HUMAN_SCALE_METERS)}</b>
       </div>
       <div className="atlas-scale-row">
-        <span className="atlas-scale-label">Specimen</span>
+        <span className="atlas-scale-label">{speciesLabel}</span>
         <span className="atlas-scale-track">
           <span className="atlas-scale-fill is-specimen" style={{ width: widthFor(speciesMeters) }} />
         </span>

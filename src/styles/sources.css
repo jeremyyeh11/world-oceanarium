@@ -1,0 +1,328 @@
+/* ============================================================================
+   Sources — the bibliography behind the species data.
+
+   New surface rather than pre-CRT chrome, so it is written in the dex language
+   directly instead of being retrofitted: chamfered chassis, a numbered row per
+   reference, and an illuminated rail on the row under the pointer. The card is
+   a plain scrolling list because that is what the content is — the only
+   interaction on a row is leaving for the reference itself.
+   ========================================================================== */
+
+.sources-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: radial-gradient(ellipse at 50% 40%, rgba(13, 48, 80, 0.5), rgba(2, 6, 13, 0.86) 72%);
+  pointer-events: auto;
+}
+
+.sources-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: min(38rem, calc(100vw - 2rem));
+  max-height: min(38rem, calc(100vh - 3.5rem));
+  padding: 1rem 1.1rem 1.1rem;
+  clip-path: var(--crt-chamfer);
+  background:
+    var(--crt-scanlines-soft),
+    radial-gradient(circle at 42% 10%, rgba(83, 162, 196, 0.14), transparent 45%),
+    linear-gradient(180deg, var(--crt-hull-lit) 0 4px, var(--crt-hull) 4px);
+  /* The chamfer clips a box-shadow ring, so the edge is drawn as an inset
+     outline and the lift as a drop-shadow, which follows the clipped shape. */
+  outline: 1px solid var(--crt-rule);
+  outline-offset: -1px;
+  filter: drop-shadow(0 14px 40px rgba(2, 6, 13, 0.55));
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+  /* The app suppresses selection globally; here the names and URLs are the
+     whole point of the panel, so they stay copyable. */
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.sources-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(127, 220, 242, 0.14);
+}
+
+.sources-kicker {
+  color: var(--crt-lumen);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.28);
+}
+
+.sources-head-title h2 {
+  position: relative;
+  margin-top: 0.1rem;
+  padding-left: 1.05rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Same powered-on LED as the atlas top bar. */
+.sources-head-title h2::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  background: var(--crt-lumen);
+  box-shadow: 0 0 10px var(--crt-lumen);
+}
+
+.sources-close {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 0;
+  background: rgba(2, 10, 20, 0.7);
+  outline: 1px solid rgba(127, 220, 242, 0.14);
+  outline-offset: -1px;
+  color: var(--crt-drift);
+  cursor: pointer;
+  transition: color 160ms ease, outline-color 160ms ease;
+}
+
+.sources-close:hover,
+.sources-close:focus-visible {
+  outline-color: rgba(127, 220, 242, 0.3);
+  color: var(--crt-lumen);
+}
+
+.sources-close svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: square;
+}
+
+.sources-intro {
+  color: var(--crt-drift);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 220, 242, 0.3) transparent;
+  overscroll-behavior: contain;
+}
+
+.sources-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.sources-list::-webkit-scrollbar-thumb {
+  background: rgba(127, 220, 242, 0.3);
+}
+
+.sources-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 0.1rem 0.5rem;
+  padding: 0.6rem 0.65rem 0.65rem 0.75rem;
+  background: rgba(2, 10, 20, 0.55);
+  outline: 1px solid rgba(127, 220, 242, 0.1);
+  outline-offset: -1px;
+  color: var(--crt-drift);
+  text-decoration: none;
+  transition: background 160ms ease, outline-color 160ms ease, color 160ms ease;
+}
+
+/* Hover/focus lights the rail rather than filling the row, the same move as the
+   tank index — a list of these never becomes a block of colour. */
+.sources-entry::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.sources-entry:hover,
+.sources-entry:focus-visible {
+  background: rgba(127, 220, 242, 0.07);
+  outline-color: rgba(127, 220, 242, 0.24);
+  color: var(--crt-foam);
+}
+
+.sources-entry:hover::before,
+.sources-entry:focus-visible::before {
+  background: var(--crt-lumen);
+  box-shadow: 0 0 10px var(--crt-lumen);
+}
+
+.sources-entry:focus-visible {
+  outline-offset: -1px;
+}
+
+.sources-entry-no {
+  padding-top: 0.15rem;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+}
+
+.sources-entry-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.sources-entry-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sources-entry-heading strong {
+  color: var(--crt-foam);
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.sources-entry-kicker {
+  color: var(--crt-lumen);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sources-entry-full-name {
+  margin-top: -0.16rem;
+  color: var(--crt-drift-dim);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.82rem;
+  font-style: normal;
+  letter-spacing: 0.04em;
+}
+
+.sources-entry-summary {
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+/* What this reference decided, so any row of an atlas entry can be traced back
+   to the source that filled it. */
+.sources-entry-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.22rem;
+  margin-top: 0.1rem;
+}
+
+.sources-entry-tags span {
+  padding: 0.1rem 0.34rem;
+  background: rgba(127, 220, 242, 0.08);
+  color: var(--crt-drift);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sources-entry-host {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  margin-top: 0.12rem;
+  color: var(--crt-drift-dim);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.sources-entry:hover .sources-entry-host,
+.sources-entry:focus-visible .sources-entry-host {
+  color: var(--crt-lumen);
+}
+
+.sources-entry-arrow {
+  width: 0.85rem;
+  height: 0.85rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+/* Phones: the chamfer and the number column both cost width the copy needs. */
+@media (max-width: 560px) {
+  .sources-modal {
+    padding: 0.75rem;
+  }
+
+  .sources-card {
+    max-height: calc(100vh - 2rem);
+    padding: 0.85rem 0.9rem 0.95rem;
+    clip-path: none;
+  }
+
+  .sources-entry {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.28rem;
+  }
+
+  .sources-entry-no {
+    padding-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sources-entry,
+  .sources-entry::before,
+  .sources-close {
+    transition: none;
+  }
+}

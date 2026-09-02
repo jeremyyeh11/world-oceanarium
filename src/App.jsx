@@ -3,6 +3,7 @@ import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
 import LandingGate from './components/LandingGate'
+import SourcesModal from './components/SourcesModal'
 import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { useSceneReady } from './hooks/useSceneReady'
@@ -66,6 +67,7 @@ export default function App() {
   const [landingOpen, setLandingOpen] = useState(true)
   const [tankMenuOpen, setTankMenuOpen] = useState(false)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
+  const [sourcesOpen, setSourcesOpen] = useState(false)
   const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
   const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const audioEnabled = audioStarted && !audioMuted
@@ -437,6 +439,11 @@ export default function App() {
     setTopMenuOpen(current => !current)
   }
 
+  const openSources = () => {
+    setTopMenuOpen(false)
+    setSourcesOpen(true)
+  }
+
   const openEncyclopedia = (speciesId = null) => {
     setTopMenuOpen(false)
     setEncyclopediaSpeciesId(speciesId)
@@ -562,6 +569,19 @@ export default function App() {
           {screen === 'tank' && (
             <div className="top-controls-menu" role="menu" aria-label="Tank controls" aria-hidden={!topMenuOpen}>
               <button
+                className={`sources-toggle${sourcesOpen ? ' is-active' : ''}`}
+                type="button"
+                role="menuitem"
+                aria-label="Open sources"
+                aria-pressed={sourcesOpen}
+                onClick={openSources}
+              >
+                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M10.6 13.4a3.7 3.7 0 0 0 5.2 0l2.4-2.4a3.7 3.7 0 0 0-5.2-5.2l-1.3 1.3" />
+                  <path d="M13.4 10.6a3.7 3.7 0 0 0-5.2 0l-2.4 2.4a3.7 3.7 0 0 0 5.2 5.2l1.3-1.3" />
+                </svg>
+              </button>
+              <button
                 className="screenshot-toggle"
                 type="button"
                 role="menuitem"
@@ -641,6 +661,7 @@ export default function App() {
           </div>
         </div>
       )}
+      {!screenshotMode && sourcesOpen && <SourcesModal onClose={() => setSourcesOpen(false)} />}
       {!screenshotMode && encyclopediaOpen && (
         <EncyclopediaPage
           initialSpeciesId={encyclopediaSpeciesId}

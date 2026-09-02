@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.7 — Sources
+
+Status: accepted and promoted as clean `v0.15.7` from `v0.15.7-dev_1` after Jeremy's review.
+
+### Interface
+
+- The top-right menu gained a Sources key, opening a panel that lists the references the species data is read from: FishBase, WoRMS, the IUCN Red List, and this repository. The Atlas states a lot of specific things about each animal — depth bands, brood sizes, life expectancy — and until now the app never said where any of it came from, which is the one thing a claim like that needs.
+- Each entry carries the fields that reference decided, so a single row of an Atlas entry can be traced back to the source that filled it rather than to the bibliography as a whole.
+- The list is rendered from `src/data/sources.js` rather than from markup, so adding a reference is a data edit. The menu's open/close stagger moved from naming each key to counting them, which is what let a fourth key join it without touching the animation.
+
 ## v0.15.6 — Loading screen
 
 Status: accepted and promoted as clean `v0.15.6` from `v0.15.6-dev_4` after Jeremy's review on both mobile and desktop.

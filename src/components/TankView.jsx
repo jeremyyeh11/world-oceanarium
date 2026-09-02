@@ -743,8 +743,15 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
               Mounted last and gated on creatures existing: the warm-up runs once per
               mount, and fish only mount once the Supabase fetch resolves, so running
               it any earlier would miss all of them — precisely the work worth doing
-              ahead of time. Keyed by tank because each tank draws different species. */}
-          {creatures.length > 0 && <WarmScene key={tank?.id ?? biome.id} />}
+              ahead of time. Keyed by tank because each tank draws different species.
+
+              The `warm-` prefix is load-bearing. <Biome> above is a sibling keyed on
+              the same tank id, and React reconciles children through a map keyed by
+              `key`, so two siblings sharing one collide: it "may cause children to be
+              duplicated and/or omitted", which is exactly what happened — switching
+              tanks left the previous tank's fish mounted and drew some of them twice.
+              Any key added here must stay distinct from Biome's. */}
+          {creatures.length > 0 && <WarmScene key={`warm-${tank?.id ?? biome.id}`} />}
         </Canvas>
       </div>
 

@@ -228,6 +228,26 @@
   );
 }
 
+/* Until now buttons were only ever disabled for the 1150ms dive, so an unstyled
+   disabled state never showed. The landing gate now holds its button disabled for
+   as long as the tank takes to load, which needs to read as "not yet" rather than
+   as a dead control — hence the dimmed, unlit treatment with the phosphor bloom
+   removed.
+
+   Placed after the hover/focus/active rules on purpose: those set `filter` and
+   `color` too, and a disabled button can still take :hover in most browsers, so
+   equal-specificity source order is what keeps it looking inert under the cursor. */
+.crt-button:disabled,
+.crt-button--lumen:disabled {
+  background: linear-gradient(180deg, #1b3b48 0 4px, #16303b 4px calc(100% - 5px), #102530 calc(100% - 5px));
+  box-shadow: none;
+  color: var(--crt-drift);
+  cursor: default;
+  filter: none;
+  opacity: 0.75;
+  transform: none;
+}
+
 /* ------------------------------------------------------------ global overlay */
 
 /* One fixed film over the whole app: scanlines plus a vignette that darkens the
@@ -399,10 +419,37 @@
   text-shadow: 0 0 10px rgba(127, 220, 242, 0.28);
 }
 
+/* Also the load bar. It reads as the same hairline at rest, so there is no widget
+   to introduce and none to take away once the tank is full — it simply stops being
+   lit. LandingGate sets --load-progress to the raw loader figure, which arrives in
+   steps; the width transition below is what turns those steps into a fill. */
 .landing-rule {
+  position: relative;
   margin: 1.15rem 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--crt-rule) 20%, var(--crt-rule) 80%, transparent);
+}
+
+.landing-rule::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--load-progress, 0%);
+  background: linear-gradient(90deg, transparent, var(--crt-lumen) 12%, var(--crt-lumen));
+  box-shadow: 0 0 6px rgba(127, 220, 242, 0.55);
+  opacity: 0;
+  transition: width 320ms cubic-bezier(0.32, 0.72, 0.35, 1), opacity 420ms ease;
+}
+
+.landing-rule.is-loading::after {
+  opacity: 0.9;
+}
+
+/* Fade the fill out rather than removing it, so reaching 100% reads as the bar
+   settling back into the rule it always was. */
+.landing-rule.is-loaded::after {
+  width: 100%;
+  opacity: 0;
 }
 
 .landing-readout {
@@ -507,5 +554,11 @@
 
   .landing-gate.is-diving .landing-depth-ticks {
     animation: none;
+  }
+
+  /* LandingGate already skips the rAF easing here and writes the true value
+     straight to the node; drop the fade so the bar steps rather than animates. */
+  .landing-rule::after {
+    transition: none;
   }
 }

@@ -3744,13 +3744,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 // is never drawn — while the _static_parts models that *are* drawn were left to
 // load lazily on first sighting. Exactly backwards.
 //
-// Every model species.js can resolve for the mahi is now covered: its base
+// Every model species.js can resolve for the mahi is covered: its base
 // model.path points at the male static mesh too, so the rigged mahi-mahi_male.glb
 // is gone entirely rather than sitting unreferenced.
 //
-// isurus-oxyrinchus_static_parts.glb is left out on purpose — one mako exists, so
-// a lazy fetch on first sighting is cheaper than 3.10 MB on every load.
+// This list is deliberately exhaustive — every model the tank can draw is here.
+// The mako was previously left out on the reasoning that one creature did not
+// justify 3.10 MB up front, but a lazy fetch on first sighting stalls the frame
+// mid-session, and the landing gate now covers the load anyway. Being exhaustive
+// also keeps the gate's progress bar honest: <FishModel>'s useGLTF then resolves
+// from drei's cache instead of opening a second wave of requests after the
+// Supabase fetch settles, which would send the bar to 100% and restart it.
 useGLTF.preload('/models/fish/sardine/sardine_static.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
 useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb')
 useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female_static_parts.glb')
+useGLTF.preload('/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb')

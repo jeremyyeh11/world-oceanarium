@@ -72,7 +72,8 @@ const VIEW_POSES_BY_SPECIES = {
     cameraDistance: 11.2,
     fov: 34,
     maxLengthDisplayUnits: 4.45,
-    position: [0, -0.12, 0],
+    // Shift hero left in-frame so the tail clears the right stage edge.
+    position: [-0.3, -0.12, 0],
     lookAt: [0, -0.08, 0],
   },
 }

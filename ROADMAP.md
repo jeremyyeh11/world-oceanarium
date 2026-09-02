@@ -184,7 +184,9 @@ Status: `Current review` — `v0.15.5-dev_1` on `feat/static-assets-follow-atlas
 
 Subtasks:
 - [x] Follow camera: static procedural models have no bones, so follow the rendered mesh origin instead of attempting a missing follow bone.
+- [x] Follow framing: keep every selected fish centered on its live mesh origin instead of smoothing the sightline back toward its tail.
 - [x] Atlas specimens: replace removed authored clips with the corresponding procedural animation paths.
+- [x] Atlas Mako framing: shift the hero left enough that its tail clears the stage edge.
 - [x] Mobile Atlas: open the species list first from the top-menu button, then open a selected species; provide a back action to return to the list. Desktop behavior stays unchanged.
 
 Review gates:

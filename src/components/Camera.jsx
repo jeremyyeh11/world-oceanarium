@@ -38,6 +38,7 @@ const DEFAULT_CAMERA_SETTLED_POSITION_EPSILON = 0.06
 const DEFAULT_CAMERA_SETTLED_LOOK_EPSILON = 0.08
 const focusPosition = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
+const directFramedFocus = new THREE.Vector3()
 const defaultLookTarget = new THREE.Vector3()
 const defaultCameraPosition = new THREE.Vector3()
 const framedFocus = new THREE.Vector3()
@@ -75,10 +76,8 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
   const focusBoneNameRef = useRef(null)
   const reportedMissingBoneRef = useRef(null)
   const smoothedFocus = useRef(new THREE.Vector3())
-  const smoothedLookTarget = useRef(new THREE.Vector3())
   const smoothedDefaultLookTarget = useRef(new THREE.Vector3())
   const hasSmoothedFocus = useRef(false)
-  const hasSmoothedLookTarget = useRef(false)
   const hasSmoothedDefaultLookTarget = useRef(false)
   const previousFocusTarget = useRef(null)
   const defaultCameraSettled = useRef(true)
@@ -159,7 +158,6 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
       if (previousFocusTarget.current !== focusTarget) {
         previousFocusTarget.current = focusTarget
         hasSmoothedFocus.current = false
-        hasSmoothedLookTarget.current = false
       }
       hasSmoothedDefaultLookTarget.current = false
 
@@ -221,18 +219,11 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
         camera.updateProjectionMatrix()
       }
 
-      if (!hasSmoothedLookTarget.current) {
-        camera.getWorldDirection(currentCameraForward)
-        const initialLookDistance = Math.max(1, camera.position.distanceTo(framedFocus))
-        smoothedLookTarget.current.copy(camera.position).addScaledVector(currentCameraForward, initialLookDistance)
-        hasSmoothedLookTarget.current = true
-      }
-
-      smoothedLookTarget.current.x = THREE.MathUtils.damp(smoothedLookTarget.current.x, framedFocus.x, FOLLOW_LOOK_DAMPING, delta)
-      smoothedLookTarget.current.y = THREE.MathUtils.damp(smoothedLookTarget.current.y, framedFocus.y, FOLLOW_LOOK_DAMPING, delta)
-      smoothedLookTarget.current.z = THREE.MathUtils.damp(smoothedLookTarget.current.z, framedFocus.z, FOLLOW_LOOK_DAMPING, delta)
-
-      lookTarget.copy(smoothedLookTarget.current)
+      // Aim at the selected fish's current mesh origin every frame. Camera translation may
+      // ease behind the swimmer, but look-target easing made the animal visibly trail toward
+      // its tail instead of remaining centered on desktop and mobile.
+      directFramedFocus.copy(focusPosition).addScaledVector(THREE.Object3D.DEFAULT_UP, -visibleHeightAtFocus * followFramingShift)
+      lookTarget.copy(directFramedFocus)
       camera.lookAt(lookTarget)
 
       const clipPlaneReached = focusRadius > 0
@@ -254,7 +245,6 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
     cameraClipStartedAt.current = null
     previousFocusTarget.current = null
     hasSmoothedFocus.current = false
-    hasSmoothedLookTarget.current = false
     reportFocusBoneMissing(null)
     const targetDefaultFov = Number.isFinite(cameraSettings.fov) ? cameraSettings.fov : DEFAULT_CAMERA_FOV
     const targetDefaultY = Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y

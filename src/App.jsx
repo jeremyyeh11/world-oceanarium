@@ -5,6 +5,7 @@ import EncyclopediaPage from './components/EncyclopediaPage'
 import LandingGate from './components/LandingGate'
 import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
+import { useSceneReady } from './hooks/useSceneReady'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { pruneFishRuntime } from './components/fishRuntimeStore'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
@@ -79,6 +80,9 @@ export default function App() {
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
+  // The tank <Canvas> mounts behind the landing gate on the first render, so the
+  // scene is already streaming in while the gate is up. This just reports on it.
+  const { progress: loadProgress, ready: sceneReady } = useSceneReady(creatureData.loading)
 
   // Persisted swim state (fishRuntimeStore) is keyed by creature id and only ever grows as tanks
   // are visited. When the live data set changes, drop snapshots for creatures that no longer
@@ -469,7 +473,7 @@ export default function App() {
     <>
       {page}
       {landingOpen && !screenshotMode && (
-        <LandingGate speciesCount={tankSpeciesCount} onEnter={leaveLandingGate} />
+        <LandingGate speciesCount={tankSpeciesCount} progress={loadProgress} ready={sceneReady} onEnter={leaveLandingGate} />
       )}
       {/* Screenshot mode is the one place the tube effect has to go: captures are
           meant to show the scene, not the interface it is framed by. */}

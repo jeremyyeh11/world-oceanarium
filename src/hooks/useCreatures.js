@@ -101,10 +101,15 @@ function resolveCreaturesUrl() {
   return `${SUPABASE_URL}/rest/v1/${SUPABASE_CREATURES_TABLE}?select=*&alive=eq.true&order=id.asc`
 }
 
+// `loading` exists because `source` cannot answer "has the fetch finished?".
+// Its initial value is indistinguishable from a fetch that legitimately returned
+// zero rows, so anything gating on creature data (the landing gate's readiness,
+// for one) needs an explicit flag rather than an inference.
 const EMPTY_CREATURE_STATE = {
   creatures: [],
   source: 'supabase-empty',
   error: null,
+  loading: true,
 }
 
 function staticDevCreatures() {
@@ -122,6 +127,7 @@ export function useCreatures() {
         creatures: (ALLOW_STATIC_DEV_CREATURES || ALLOW_STATIC_MISSING_ENV_FALLBACK) ? staticDevCreatures() : [],
         source: ALLOW_STATIC_DEV_CREATURES ? 'static-dev' : 'static-missing-env',
         error: 'Supabase creature env vars are not configured.',
+        loading: false,
       })
       return undefined
     }
@@ -155,6 +161,7 @@ export function useCreatures() {
             creatures: staticDevCreatures(),
             source: 'static-dev-empty-supabase',
             error: null,
+            loading: false,
           })
           return
         }
@@ -163,6 +170,7 @@ export function useCreatures() {
           creatures,
           source: SUPABASE_CREATURES_TABLE === 'creatures_dev' ? 'supabase-dev' : 'supabase',
           error: null,
+          loading: false,
         })
       } catch (error) {
         if (controller.signal.aborted) return
@@ -170,6 +178,7 @@ export function useCreatures() {
           creatures: [],
           source: 'supabase-error',
           error: error instanceof Error ? error.message : 'Supabase creatures fetch failed.',
+          loading: false,
         })
       }
     }

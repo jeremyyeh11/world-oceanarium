@@ -3392,12 +3392,33 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         candidate: true,
         culled: offscreenCulled,
       })
+      // Report what is actually on screen, not what we are about to switch to.
+      // `renderModel` keys off instancedSardineLod (the committed state), so during a
+      // pending transition the detailed model is still the thing being drawn — and
+      // this is the readout used to diagnose exactly that.
       updateSardineLod0Entry(creature.id, {
-        candidate: !nextInstancedLod,
-        drawn: !nextInstancedLod && !offscreenCulled,
+        candidate: !instancedSardineLod,
+        drawn: !instancedSardineLod && !offscreenCulled,
       })
-      if (nextInstancedLod !== instancedSardineLod) setInstancedSardineLod(nextInstancedLod)
-      if (nextInstancedLod && !offscreenCulled) {
+
+      // The detailed model is mounted/unmounted through React state
+      // (renderModel = model && !instancedSardineLod), which commits a render after
+      // this frame. Handing the fish to the instanced layer before that unmount lands
+      // draws it twice — once as an instance, once as the still-mounted model.
+      //
+      // Normally a frame or two and invisible. It stops being invisible when many fish
+      // cross a threshold at once and the main thread is busy enough to delay the
+      // re-render, which is precisely what a tank switch does: the camera resets, the
+      // whole school re-evaluates, and the scene warm-up compiles on the same thread.
+      // Each sardine also owns its own setState, so flushing means ~275 re-renders.
+      //
+      // So registration waits for the state to catch up. The overlap still exists, but
+      // it now fails the harmless way: a transitioning fish stays detailed a frame
+      // longer instead of being drawn twice. Too much detail nobody notices; a doubled
+      // fish they do.
+      const lodTransitionPending = nextInstancedLod !== instancedSardineLod
+      if (lodTransitionPending) setInstancedSardineLod(nextInstancedLod)
+      if (!lodTransitionPending && nextInstancedLod && !offscreenCulled) {
         instancedEntry.position.copy(fish.position)
         instancedEntry.quaternion.copy(fish.quaternion).normalize()
         instancedEntry.scale = size

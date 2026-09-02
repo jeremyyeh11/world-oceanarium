@@ -433,14 +433,14 @@
 
 /* Scaled rather than resized. Animating `width` is a layout property, so every
    frame of the fill would be computed on the main thread — which during a load is
-   the busiest thread in the app: PNG decode, GLB parse, and Preload's shader
-   compile all sit there. The bar measurably stuttered on a phone as a result,
+   the busiest thread in the app: PNG decode, GLB parse, and the scene warm-up's
+   shader compile all sit there. The bar measurably stuttered on a phone as a result,
    while desktop had enough headroom to hide it. transform is composited off the
    main thread, so the fill keeps moving even while the main thread is blocked.
 
    The gradient and glow scale horizontally along with the box. On a 1px-tall bar
    that is not perceptible, and it buys a fill that stays smooth through the
-   Preload compile. */
+   scene warm-up compile. */
 .landing-rule::after {
   content: '';
   position: absolute;

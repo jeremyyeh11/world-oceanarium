@@ -180,7 +180,7 @@ Review gates:
 
 #### Static-asset regression follow-up
 
-Status: `Current review` — `v0.15.5-dev_1` on `feat/static-assets-follow-atlas-mobile`; regressions implemented and local browser QA passed.
+Status: `Released` — clean `v0.15.5` from `feat/static-assets-follow-atlas-mobile`, accepted by Jeremy on 2026-09-02.
 
 Subtasks:
 - [x] Follow camera: static procedural models have no bones, so follow the rendered mesh origin instead of attempting a missing follow bone.
@@ -192,6 +192,7 @@ Subtasks:
 Review gates:
 - [x] `npm run verify:procedural-fish-assets`, `npm run lint`, `npm run build`, and `git diff --check` pass locally.
 - [x] Browser QA: static Mahi follow card opens with no missing-bone text/errors; Atlas desktop keeps detail/list grid; portrait mobile opens list first, selection opens detail with `← Species`, and back returns to the list; landscape mobile keeps the desktop-style detail grid.
+- [x] Release gates: rebased against current `main`; static-asset contract, lint, build, GitHub Build, and Vercel passed for the accepted review candidate before clean promotion.
 
 #### Creature data backup hygiene
 

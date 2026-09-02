@@ -13,6 +13,24 @@ Status labels:
 
 ## Current work
 
+### Sources panel
+
+Status: `Archive candidate` — accepted as clean `v0.15.7` and ready to archive after merge verification.
+
+Reference:
+- Data: [`src/data/sources.js`](src/data/sources.js) — the list the panel renders, in order.
+- UI: [`src/components/SourcesModal.jsx`](src/components/SourcesModal.jsx), styled by [`src/styles/sources.css`](src/styles/sources.css).
+
+Subtasks:
+- [x] Add a Sources key to the top-right menu and a browsable modal behind it.
+- [x] Seed the list with FishBase, WoRMS, the IUCN Red List, and this repository.
+- [x] Move the key above screenshot mode so the bibliography sits at the top of the menu.
+- [ ] Decide whether per-species attribution belongs on an Atlas entry as well, or whether the shared bibliography is enough. `Backlog`
+
+Review gates:
+- [x] Escape, the close key, and a backdrop press all dismiss the panel; the list scrolls once it outgrows the card.
+- [x] Jeremy accepted the panel and the menu order before promotion.
+
 ### Static procedural fish runtime assets
 
 Status: `Archive candidate` — accepted for clean `v0.15.3` and ready to archive after merge verification.

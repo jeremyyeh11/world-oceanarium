@@ -69,6 +69,7 @@ button { font: inherit; }
 .fullscreen-toggle,
 .audio-toggle,
 .screenshot-toggle,
+.sources-toggle,
 .top-menu-toggle,
 .encyclopedia-toggle,
 .fish-search-button {
@@ -112,9 +113,9 @@ button { font: inherit; }
   transform: rotate(90deg);
 }
 
-.top-controls-menu > .screenshot-toggle,
-.top-controls-menu > .audio-toggle,
-.top-controls-menu > .fullscreen-toggle {
+/* Every child of the menu is one of these keys, so the stagger is written by
+   position rather than by name: adding an entry inherits it for free. */
+.top-controls-menu > button {
   opacity: 0;
   transform: translateY(-0.7rem) scale(0.88) rotateX(-18deg);
   transform-origin: top center;
@@ -124,43 +125,50 @@ button { font: inherit; }
     transform 260ms cubic-bezier(0.18, 0.82, 0.24, 1);
 }
 
-.top-controls.is-open .top-controls-menu > .screenshot-toggle,
-.top-controls.is-open .top-controls-menu > .audio-toggle,
-.top-controls.is-open .top-controls-menu > .fullscreen-toggle {
+.top-controls.is-open .top-controls-menu > button {
   opacity: 1;
   transform: translateY(0) scale(1) rotateX(0deg);
   pointer-events: auto;
 }
 
-.top-controls.is-open .top-controls-menu > .screenshot-toggle {
+/* Opening deals the keys downward from the toggle. */
+.top-controls.is-open .top-controls-menu > button:nth-child(1) {
   transition-delay: 0ms;
 }
 
-.top-controls.is-open .top-controls-menu > .audio-toggle {
+.top-controls.is-open .top-controls-menu > button:nth-child(2) {
   transition-delay: 45ms;
 }
 
-.top-controls.is-open .top-controls-menu > .fullscreen-toggle {
+.top-controls.is-open .top-controls-menu > button:nth-child(3) {
   transition-delay: 90ms;
 }
 
-.top-controls:not(.is-open) .top-controls-menu > .screenshot-toggle {
-  transition-delay: 90ms;
+.top-controls.is-open .top-controls-menu > button:nth-child(4) {
+  transition-delay: 135ms;
 }
 
-.top-controls:not(.is-open) .top-controls-menu > .audio-toggle {
-  transition-delay: 45ms;
-}
-
-.top-controls:not(.is-open) .top-controls-menu > .fullscreen-toggle {
+/* Closing folds them back up in reverse. Counted from the end, so the fold
+   still starts at the bottom key when fullscreen is unsupported and absent. */
+.top-controls:not(.is-open) .top-controls-menu > button:nth-last-child(1) {
   transition-delay: 0ms;
+}
+
+.top-controls:not(.is-open) .top-controls-menu > button:nth-last-child(2) {
+  transition-delay: 45ms;
+}
+
+.top-controls:not(.is-open) .top-controls-menu > button:nth-last-child(3) {
+  transition-delay: 90ms;
+}
+
+.top-controls:not(.is-open) .top-controls-menu > button:nth-last-child(4) {
+  transition-delay: 135ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .top-control-icon,
-  .top-controls-menu > .screenshot-toggle,
-  .top-controls-menu > .audio-toggle,
-  .top-controls-menu > .fullscreen-toggle {
+  .top-controls-menu > button {
     animation: none;
     transition: none;
   }
@@ -182,6 +190,9 @@ button { font: inherit; }
 .audio-toggle.is-active,
 .screenshot-toggle:hover,
 .screenshot-toggle:focus-visible,
+.sources-toggle:hover,
+.sources-toggle:focus-visible,
+.sources-toggle.is-active,
 .top-menu-toggle:hover,
 .top-menu-toggle:focus-visible,
 .encyclopedia-toggle:hover,
@@ -210,6 +221,7 @@ button { font: inherit; }
 .fullscreen-toggle:focus-visible,
 .audio-toggle:focus-visible,
 .screenshot-toggle:focus-visible,
+.sources-toggle:focus-visible,
 .top-menu-toggle:focus-visible,
 .encyclopedia-toggle:focus-visible,
 .fish-search-button:focus-visible,

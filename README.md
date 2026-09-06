@@ -61,8 +61,9 @@ Index of the project's Markdown references, for both human and future-agent use.
 | [ROADMAP.md](ROADMAP.md) | Source of truth for active TODOs, release blockers, and review follow-ups, ordered by current work. |
 | [CHANGELOG.md](CHANGELOG.md) | Significant changes grouped by release bucket. |
 | [MEMORY.md](MEMORY.md) | Durable working preferences and conventions captured across sessions (Atlas/copy/debug prefs, release-judgement, workflow). |
-| [docs/tank-design.md](docs/tank-design.md) | The tank/assemblage model — how species map to tanks, the coherence rules, and how to edit tanks by hand. |
+| [docs/tank-design.md](docs/tank-design.md) | The tank/assemblage model — how species map to tanks, the coherence rules, and how to edit by hand. |
 | [docs/procedural-caudal-fish.md](docs/procedural-caudal-fish.md) | Review contract for replacing authored Sardinella, Mahi-mahi, and Mako clips with live movement-driven posing. |
+| [docs/new-species-checklist.md](docs/new-species-checklist.md) | End-to-end feature checklist for research, asset intake, behavior, procedural motion, Atlas presentation, responsive QA, and release evidence. |
 
 ## Development
 

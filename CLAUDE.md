@@ -1,3 +1,15 @@
+# CLAUDE.md
+
+**Read [AGENTS.md](AGENTS.md) first.** It is the shared instruction file for every
+coding agent on this project (Codex and others), and it is authoritative for:
+project identity and design rules, repo/stack and commands, important paths,
+conventions, workflow, and review expectations.
+
+This file adds only the Claude-specific guidance below. Anything not covered here
+lives in AGENTS.md — go read it before touching the codebase.
+
+---
+
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph
 

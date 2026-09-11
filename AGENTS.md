@@ -37,6 +37,7 @@ Important paths:
 - `src/data/species.js` — species templates (incl. `tempo`), `TANKS` curation layer, biological facts
 - `src/utils/speciesLookup.js` — species/tank lookups, `creaturesForTank`, dev coherence guard
 - `docs/tank-design.md` — the tank/assemblage model: how species map to tanks and how to edit by hand
+- `docs/new-species-checklist.md` — required species feature path: biological contract, asset/scale, motion feel, Atlas, responsive QA, and release evidence
 - `src/version.js` — visible bottom-right version label
 - `CHANGELOG.md` — categorized release-bucket notes
 - `ROADMAP.md` — active TODOs, release blockers, and review follow-ups ordered by current work, priority, then chronology

@@ -30,6 +30,7 @@ Subtasks:
 - [x] Record the Mako pelvic-fin weld as a shared rule instead of a per-species outcome.
 - [x] Enforce doc coverage: `scripts/verify-procedural-docs.mjs` fails when a procedural type ships with no contract in `docs/procedural/`, and warns when a shipping type's doc is still marked `Proposed`. Chained ahead of the GLB inspection in `npm run verify:procedural-fish-assets`.
 - [x] Add stop-and-ask instructions for new motion architectures to AGENTS.md and the new-species checklist, so an unwritten type surfaces in conversation rather than only at the gate.
+- [x] Close the gaps a live agent test exposed (comb jelly / ctenophore prompt): require the world-unit size check before motion design, require naming the closest existing type and why it was rejected, require naming which layer produces thrust, and point the type docs back at the checklist's biological prerequisites.
 - [ ] Validate each `Proposed` doc against its first real asset and promote it to `Implemented`. `Backlog`
 - [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. `Backlog`
 - [ ] Prototype the `limb-step` gait before committing to an architecture; foot-planting may not fit the GPU vertex path at all. `Backlog`
@@ -38,6 +39,9 @@ Known runtime work the docs assume but that does not exist yet:
 - [ ] Shared bounds across meshes — uniforms currently derive min/max from each mesh's own `geometry.boundingBox`, so no type can deform continuously across two objects. Blocks `bell-pulse`. `Backlog`
 - [ ] Opt-in material overrides — `applyModelMaterialSettings` hard-forces `transparent = false`, `opacity = 1`, `depthWrite = true`, and the Mola fade-recovery path at `Fish.jsx:3031` resets opacity to `1`. Blocks any translucent species. `Backlog`
 - [ ] Impulse-and-decay locomotion coupling for pulse-propelled animals. Blocks `bell-pulse` and `pleopod-beat`. `Backlog`
+
+Test evidence:
+- Live test, "add a comb jelly, how would you implement the procedural animation?" — the agent correctly refused `bell-pulse` on biological grounds, proposed a new type contract before implementing, found both applicable runtime blockers, and correctly reasoned that impulse-and-decay coupling does not apply to ciliary rowing. It did not compute the animal's world-unit size (a sea gooseberry is ~0.08 WU against a 1.08 WU sardinella, so its whole design premise was sub-pixel), did not pick a species slug, and did not argue against the closest existing type. Fixes above address all three.
 
 Review gates:
 - [x] `AGENTS.md` and the README index point at the hub; the README index also regained the missing `deforming-ocean-surface.md` row.

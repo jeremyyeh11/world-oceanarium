@@ -62,7 +62,10 @@ Index of the project's Markdown references, for both human and future-agent use.
 | [CHANGELOG.md](CHANGELOG.md) | Significant changes grouped by release bucket. |
 | [MEMORY.md](MEMORY.md) | Durable working preferences and conventions captured across sessions (Atlas/copy/debug prefs, release-judgement, workflow). |
 | [docs/tank-design.md](docs/tank-design.md) | The tank/assemblage model — how species map to tanks, the coherence rules, and how to edit tanks by hand. |
-| [docs/procedural-caudal-fish.md](docs/procedural-caudal-fish.md) | Review contract for replacing authored Sardinella, Mahi-mahi, and Mako clips with live movement-driven posing. |
+| [docs/procedural/README.md](docs/procedural/README.md) | Procedural animation hub — shared asset contract, runtime drivers, motion primitives, and which doc covers which creature. Start here for any rig-free animated model. |
+| [docs/procedural/](docs/procedural/) | Per-motion-type contracts: Blender setup, vertex-paint channels, config keys, and review gates for `caudal-wave`, `mask-fin-row`, `bell-pulse`, `foil-flap`, `disc-wave`, `limb-step`, and `pleopod-beat`. |
+| [docs/deforming-ocean-surface.md](docs/deforming-ocean-surface.md) | The displaced-plane water surface — shape, normals, edge treatment, and its performance contract. |
+| [docs/procedural-caudal-fish.md](docs/procedural-caudal-fish.md) | Superseded. Historical review record for the `v0.14.0`–`v0.15.3` procedural work; technical content now lives in `docs/procedural/`. |
 | [docs/new-species-checklist.md](docs/new-species-checklist.md) | End-to-end feature checklist for research, asset intake, behavior, procedural motion, Atlas presentation, responsive QA, and release evidence. |
 
 ## Development

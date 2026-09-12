@@ -13,6 +13,33 @@ Status labels:
 
 ## Current work
 
+### Procedural animation doc set
+
+Status: `Current in development` — hub and the two implemented type contracts are written; five type docs are unvalidated sketches awaiting their first asset.
+
+Reference:
+- Hub: [`docs/procedural/README.md`](docs/procedural/README.md) — shared asset contract, runtime drivers, motion primitives, creature/type index.
+- Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md).
+- Proposed: [`bell-pulse.md`](docs/procedural/bell-pulse.md), [`foil-flap.md`](docs/procedural/foil-flap.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`limb-step.md`](docs/procedural/limb-step.md), [`pleopod-beat.md`](docs/procedural/pleopod-beat.md).
+- Superseded: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md) kept as the `v0.14.0`–`v0.15.3` review record.
+
+Subtasks:
+- [x] Split docs by motion architecture rather than by creature, with a "new doc only when it needs a new shader type" rule.
+- [x] Migrate the caudal and Mola contracts out of the review doc into per-type docs.
+- [x] Record the Mako pelvic-fin weld as a shared rule instead of a per-species outcome.
+- [ ] Validate each `Proposed` doc against its first real asset and promote it to `Implemented`. `Backlog`
+- [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. `Backlog`
+- [ ] Prototype the `limb-step` gait before committing to an architecture; foot-planting may not fit the GPU vertex path at all. `Backlog`
+
+Known runtime work the docs assume but that does not exist yet:
+- [ ] Shared bounds across meshes — uniforms currently derive min/max from each mesh's own `geometry.boundingBox`, so no type can deform continuously across two objects. Blocks `bell-pulse`. `Backlog`
+- [ ] Opt-in material overrides — `applyModelMaterialSettings` hard-forces `transparent = false`, `opacity = 1`, `depthWrite = true`, and the Mola fade-recovery path at `Fish.jsx:3031` resets opacity to `1`. Blocks any translucent species. `Backlog`
+- [ ] Impulse-and-decay locomotion coupling for pulse-propelled animals. Blocks `bell-pulse` and `pleopod-beat`. `Backlog`
+
+Review gates:
+- [x] `AGENTS.md` and the README index point at the hub; the README index also regained the missing `deforming-ocean-surface.md` row.
+- [ ] Jeremy confirms the type split and the per-doc template before the first new-type implementation starts.
+
 ### Sources panel
 
 Status: `Archive candidate` — accepted as clean `v0.15.7` and ready to archive after merge verification.

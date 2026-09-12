@@ -1,5 +1,12 @@
 # Procedural caudal fish review
 
+> **Superseded.** This document is kept as the historical review record for the
+> `v0.14.0`–`v0.15.3` procedural work. The living contracts now live in
+> [`docs/procedural/`](procedural/README.md): its technical content was split into
+> [`caudal-wave.md`](procedural/caudal-wave.md) (Sardinella, Mahi-mahi, Mako) and
+> [`mask-fin-row.md`](procedural/mask-fin-row.md) (Giant Sunfish). Read those when
+> setting up a new asset; read this for what was decided and why during that release.
+
 Status: clean `v0.14.0` established the procedural caudal runtime; clean `v0.15.3` ships Jeremy's static runtime GLBs, stronger movement ranges, species-shaped body-wave silhouettes, a continuous Mako patrol, forward-led large-fish turning, a pelvic-fin-welded Mako export, and a mask-driven Giant Sunfish with soft-root asymmetric fin arcs.
 
 ## Scope

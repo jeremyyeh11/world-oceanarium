@@ -34,6 +34,8 @@ Write this before implementation:
 ## 3. Procedural animation and motion feel
 
 - [ ] Choose animation architecture from the inspected asset: authored clips, procedural bone pose, static GPU deformation, or a deliberate hybrid. Do not infer it from a species template.
+- [ ] For any rig-free/procedural asset, identify its motion type in the index at [`docs/procedural/README.md`](procedural/README.md) and work that type's doc for the Blender contract, vertex-paint channels, config keys, and review gates.
+- [ ] **If no existing type covers the motion, stop.** Write the new type doc and confirm the approach with Jeremy before implementing it. `npm run verify:procedural-fish-assets` fails on a procedural type with no written contract. If the motion is a config of an existing type, use that type rather than adding one.
 - [ ] Define the locomotion driver: caudal/body wave, fin rowing, ray undulation, glide, pulsation, hovering, etc.
 - [ ] Map live movement state into animation: speed, acceleration, turn direction/onset, burst intent, drift/idle state, and stable per-creature phase.
 - [ ] Keep idle/drift visibly different from active forward cruise.
@@ -76,7 +78,7 @@ Write this before implementation:
 
 ## 8. Verification evidence
 
-- [ ] Run `npm run verify:procedural-fish-assets` when the species uses the static/procedural asset path.
+- [ ] Run `npm run verify:procedural-fish-assets` when the species uses the static/procedural asset path. It checks both the GLB contract and that every shipping procedural type has a doc in `docs/procedural/`.
 - [ ] Run `npm run lint`, `npm run build`, and `git diff --check`.
 - [ ] Browser smoke: asset loads, intended creature source is used, species appears in tank and Atlas, follow target is centered, and browser has no new runtime errors.
 - [ ] Capture before/after screenshots or video for movement, follow framing, and Atlas framing across required viewports.

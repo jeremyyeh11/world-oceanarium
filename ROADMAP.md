@@ -18,6 +18,7 @@ Status labels:
 Status: `Current in development` — hub and the two implemented type contracts are written; five type docs are unvalidated sketches awaiting their first asset.
 
 Reference:
+- Gate: [`scripts/verify-procedural-docs.mjs`](scripts/verify-procedural-docs.mjs) — doc coverage for every shipping procedural type.
 - Hub: [`docs/procedural/README.md`](docs/procedural/README.md) — shared asset contract, runtime drivers, motion primitives, creature/type index.
 - Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md).
 - Proposed: [`bell-pulse.md`](docs/procedural/bell-pulse.md), [`foil-flap.md`](docs/procedural/foil-flap.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`limb-step.md`](docs/procedural/limb-step.md), [`pleopod-beat.md`](docs/procedural/pleopod-beat.md).
@@ -27,6 +28,8 @@ Subtasks:
 - [x] Split docs by motion architecture rather than by creature, with a "new doc only when it needs a new shader type" rule.
 - [x] Migrate the caudal and Mola contracts out of the review doc into per-type docs.
 - [x] Record the Mako pelvic-fin weld as a shared rule instead of a per-species outcome.
+- [x] Enforce doc coverage: `scripts/verify-procedural-docs.mjs` fails when a procedural type ships with no contract in `docs/procedural/`, and warns when a shipping type's doc is still marked `Proposed`. Chained ahead of the GLB inspection in `npm run verify:procedural-fish-assets`.
+- [x] Add stop-and-ask instructions for new motion architectures to AGENTS.md and the new-species checklist, so an unwritten type surfaces in conversation rather than only at the gate.
 - [ ] Validate each `Proposed` doc against its first real asset and promote it to `Implemented`. `Backlog`
 - [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. `Backlog`
 - [ ] Prototype the `limb-step` gait before committing to an architecture; foot-planting may not fit the GPU vertex path at all. `Backlog`

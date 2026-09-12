@@ -45,6 +45,14 @@ Important paths:
 - `ROADMAP.md` — active TODOs, release blockers, and review follow-ups ordered by current work, priority, then chronology
 - `public/models/` and `public/audio/` — shipped assets
 
+**Stop and ask before implementing a new motion architecture.** If a supplied asset
+needs motion that no type in `docs/procedural/README.md`'s index covers, do not invent
+a shader `type` string and build it. Write the type doc first, confirm the approach
+with Jeremy, then implement. `npm run verify:procedural-fish-assets` fails on any
+procedural type with no written contract. If the motion is a config of an existing
+type — an eel is `caudal-wave` with a low `flexStart` — use that type instead of
+adding one.
+
 ## Working style
 
 - Inspect existing code before editing. Prefer small, direct patches.

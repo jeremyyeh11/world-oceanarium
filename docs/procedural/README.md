@@ -165,11 +165,21 @@ All in `src/components/Fish.jsx` unless noted:
 
 ## The enforced half of the contract
 
-`scripts/inspect-procedural-targets.mjs`, run by `npm run verify:procedural-fish-assets`.
+`npm run verify:procedural-fish-assets` runs two scripts:
+
+- `scripts/verify-procedural-docs.mjs` — **fails if any procedural type shipping in
+  species data has no doc here.** Dependency-free and runs first, so a missing
+  contract fails before anything loads a GLB. Each type doc declares which shader
+  type it covers on its second line (``Shader type: `caudal-vertex` ``), and the
+  check reads that — adding a doc is enough to satisfy it, there is no mapping table
+  to keep in sync. It also warns when a type ships while its doc is still marked
+  `Proposed`, which means the doc needs validating against the shipped asset and
+  promoting.
+- `scripts/inspect-procedural-targets.mjs` — the GLB contract below.
 
 Prose goes stale silently; the verifier does not. **Every type doc's asset contract
-must have a matching target entry in that script**, and anything machine-checkable
-belongs there rather than only here.
+must have a matching target entry in `inspect-procedural-targets.mjs`**, and anything
+machine-checkable belongs there rather than only here.
 
 A target entry supports:
 
@@ -197,14 +207,18 @@ export mistakes at the cheapest possible moment.
 ## Adding a new type
 
 1. Confirm it is genuinely new (see the criterion above).
-2. Write the type doc first, from the template the existing docs share: which animals
+2. **Confirm the approach with Jeremy before implementing.** A new motion
+   architecture is a design decision, not a mechanical one.
+3. Write the type doc first, from the template the existing docs share: which animals
    / felt intention and what must not happen / Blender contract / vertex-paint
-   channels / material notes / config keys / verifier entry / review gates.
-3. Add the uniform block and GLSL injection in `applyFishLightMask()`, the type
+   channels / material notes / config keys / verifier entry / review gates. Declare
+   the shader type on its second line — ``Shader type: `your-type` · Status: …`` —
+   or `verify-procedural-docs.mjs` will not see it.
+4. Add the uniform block and GLSL injection in `applyFishLightMask()`, the type
    string to `shouldProcedurallyDeformMesh()`, the clock integration in `useFrame`,
    and the cache-key entry.
-4. Confirm the Atlas path renders it — it must use the same deformation as the tank.
-5. Update this hub's type index.
+5. Confirm the Atlas path renders it — it must use the same deformation as the tank.
+6. Update this hub's type index and promote the doc's status to `Implemented`.
 
 ## Known couplings worth knowing about
 

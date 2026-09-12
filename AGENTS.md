@@ -51,7 +51,13 @@ a shader `type` string and build it. Write the type doc first, confirm the appro
 with Jeremy, then implement. `npm run verify:procedural-fish-assets` fails on any
 procedural type with no written contract. If the motion is a config of an existing
 type — an eel is `caudal-wave` with a low `flexStart` — use that type instead of
-adding one.
+adding one. Name the closest existing type and why it does not fit; "it is a
+different animal" is not a reason.
+
+**Check the animal's size in world units before designing its motion.** `1 WU = 25 cm`,
+and the smallest shipping species is the Spotted Sardinella at `1.08` WU / 27 cm. An
+animal far below that floor needs resolving — a larger species, a near-camera-only
+role, or no tank slot — before any motion work, not after.
 
 ## Working style
 

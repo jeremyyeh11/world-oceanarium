@@ -65,6 +65,41 @@ Every procedural GLB, regardless of type:
 - **Clean normals and predictable bounds.** Bounds-derived types read
   `geometry.boundingBox` directly; a stray vertex changes the whole deformation.
 
+### Compute the animal's WU size before designing its motion
+
+**Do this first, before the Blender contract, before the shader, before any felt
+intention.** It is the cheapest kill-check available and the easiest one to skip.
+
+`1 WU = 25 cm`. Currently shipping:
+
+- Spotted Sardinella — `1.08` WU (27 cm), the smallest animal in the tank
+- Mahi-mahi — `7.2` WU (1.8 m)
+- Giant Sunfish — `13.2` WU (3.3 m)
+- Shortfin Mako — `16` WU (4 m)
+
+Take the species' real adult length, convert, and compare against that 1.08 WU
+floor. If the animal lands far below it, say so and resolve it before designing
+anything: pick a larger species in the same group, accept it as a near-camera-only
+detail animal, or conclude it does not earn a tank slot.
+
+The precedent is already in the code. `EncyclopediaPage.jsx:263` explains why the
+in-scene diver was replaced with proportional bars: *"a 27cm fish next to a diver
+reads as a sliver, which is the honest answer."* An animal an order of magnitude
+below the sardinella is a sliver of a sliver, and no amount of shader work fixes it.
+
+A motion design whose whole premise is a detail the viewer can never resolve is
+wasted work, however good the rest of the reasoning is.
+
+### A type doc is not a substitute for the species checklist
+
+The type docs cover motion. They do not cover research, biological facts, tank role,
+Atlas copy, or release evidence — [`../new-species-checklist.md`](../new-species-checklist.md)
+owns all of that, and its §1 and §2 come *before* any motion work.
+
+In particular: settle the canonical scientific-name slug and the real adult length
+first. A plan for "a jellyfish" or "a comb jelly" has skipped the step that would
+have surfaced the scale problem above.
+
 One rule earns its own heading because it has already cost a re-export:
 
 ### Anything whose root must track a deforming surface has to ride the same deformation
@@ -206,7 +241,10 @@ export mistakes at the cheapest possible moment.
 
 ## Adding a new type
 
-1. Confirm it is genuinely new (see the criterion above).
+1. Confirm it is genuinely new (see the criterion above). **Name the closest
+   existing type and say in one line why it does not fit.** "It is a different
+   animal" is not a reason — the split is by motion architecture, and two unrelated
+   animals often share one. If the only difference is constants, it is a config.
 2. **Confirm the approach with Jeremy before implementing.** A new motion
    architecture is a design decision, not a mechanical one.
 3. Write the type doc first, from the template the existing docs share: which animals
@@ -214,11 +252,16 @@ export mistakes at the cheapest possible moment.
    channels / material notes / config keys / verifier entry / review gates. Declare
    the shader type on its second line — ``Shader type: `your-type` · Status: …`` —
    or `verify-procedural-docs.mjs` will not see it.
-4. Add the uniform block and GLSL injection in `applyFishLightMask()`, the type
+4. **State plainly what produces thrust, and what is only decoration.** Somewhere in
+   the doc — its own section or inside felt intention — name the layer that actually
+   pushes the animal through water, and say which layers are silhouette or surface
+   detail riding along. A doc that describes several moving parts without saying
+   which one is the engine produces an animal that moves without swimming.
+5. Add the uniform block and GLSL injection in `applyFishLightMask()`, the type
    string to `shouldProcedurallyDeformMesh()`, the clock integration in `useFrame`,
    and the cache-key entry.
-5. Confirm the Atlas path renders it — it must use the same deformation as the tank.
-6. Update this hub's type index and promote the doc's status to `Implemented`.
+6. Confirm the Atlas path renders it — it must use the same deformation as the tank.
+7. Update this hub's type index and promote the doc's status to `Implemented`.
 
 ## Known couplings worth knowing about
 

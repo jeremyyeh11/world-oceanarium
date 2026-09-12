@@ -22,6 +22,7 @@ Write this before implementation:
 
 ## 2. Asset intake and scale contract
 
+- [ ] **Compute the animal's size in world units before anything else** (`1 WU = 25 cm`) and compare it against the smallest shipping species, Spotted Sardinella at `1.08` WU / 27 cm. If it lands far below that, resolve it now — pick a larger species in the group, accept it as a near-camera-only detail animal, or conclude it does not earn a tank slot. A motion design built around detail the viewer cannot resolve is wasted work.
 - [ ] Inspect the supplied GLB before adding data: mesh names/counts, vertices, materials, bounds, root orientation, bones/skinning, clips, and source length.
 - [ ] Confirm provenance is recorded as supplied/approved; do not invent licensing claims.
 - [ ] Put the runtime asset at `public/models/fish/<scientific-slug>/` and update the relevant preload only when startup cost is justified.
@@ -36,6 +37,8 @@ Write this before implementation:
 - [ ] Choose animation architecture from the inspected asset: authored clips, procedural bone pose, static GPU deformation, or a deliberate hybrid. Do not infer it from a species template.
 - [ ] For any rig-free/procedural asset, identify its motion type in the index at [`docs/procedural/README.md`](procedural/README.md) and work that type's doc for the Blender contract, vertex-paint channels, config keys, and review gates.
 - [ ] **If no existing type covers the motion, stop.** Write the new type doc and confirm the approach with Jeremy before implementing it. `npm run verify:procedural-fish-assets` fails on a procedural type with no written contract. If the motion is a config of an existing type, use that type rather than adding one.
+- [ ] When proposing a new type, name the closest existing type and say why it does not fit. "It is a different animal" is not a reason — the split is by motion architecture, and unrelated animals often share one.
+- [ ] State which layer actually produces thrust and which layers are decoration. Several moving parts with no named engine produces an animal that moves without swimming.
 - [ ] Define the locomotion driver: caudal/body wave, fin rowing, ray undulation, glide, pulsation, hovering, etc.
 - [ ] Map live movement state into animation: speed, acceleration, turn direction/onset, burst intent, drift/idle state, and stable per-creature phase.
 - [ ] Keep idle/drift visibly different from active forward cruise.

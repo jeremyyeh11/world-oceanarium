@@ -1,4 +1,4 @@
-import { DEPTH_ZONES, SPECIES, TANKS, WORLD_UNIT_METERS } from '../data/species'
+import { DEPTH_ZONES, SPECIES, TANKS, WORLD_UNIT_METERS } from '../data/species.js'
 
 export const DEFAULT_BODY_LENGTH_WU = 1
 

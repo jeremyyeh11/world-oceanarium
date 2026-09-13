@@ -94,7 +94,7 @@ export const SPECIES = [
     legacyIds: ['sardine'],
     name: 'Spotted Sardinella',
     scientificName: 'Amblygaster sirm',
-    family: 'Clupeidae',
+    family: 'Dorosomatidae',
     alternateNames: ['Northern pilchard', 'Spotted pilchard', 'Spotted sardine', 'Trenched sardine'],
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -111,6 +111,7 @@ export const SPECIES = [
     atlasDetails: {
       commonDiet: 'Plankton, copepods, larvae.',
       foundIn: 'Indo-West Pacific coastal waters and lagoons.',
+      maxLengthLabel: 'Standard length',
       sexualDimorphism: 'N/A',
       lifeSpan: 'Up to 8 years',
       maturityAge: '1 year (estimated)',
@@ -144,7 +145,7 @@ export const SPECIES = [
     adultLengthRangeMeters: [0.15, 0.27],
     maxBodyLengthMeters: 0.27,
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum total length ≈27 cm = 1.08 WU.
+      // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum standard length ≈27 cm = 1.08 WU.
       bodyLengthWU: 1.08,
       // Keeps biologically grounded BL/s ratios readable in the aquarium camera.
       visualTimeScale: 0.35,
@@ -176,7 +177,7 @@ export const SPECIES = [
         wariness: 0.85,
       },
     },
-    // Normalized individual size maps to roughly 15–27 cm total length for Amblygaster sirm.
+    // Normalized individual size maps to roughly 15–27 cm standard length for Amblygaster sirm.
     sizeRange: [0.55, 1.0],
     mass: {
       // Length-weight estimate: grams = coefficient * bodyLengthCm^exponent.
@@ -236,7 +237,7 @@ export const SPECIES = [
       commonDiet: 'Small fish, squid, crustaceans.',
       foundIn: 'Warm tropical and subtropical open ocean, often near floating cover.',
       sexualDimorphism: 'Males develop the tall blunt forehead/head profile; females keep a lower, more rounded head profile.',
-      lifeSpan: 'Up to 5 years',
+      lifeSpan: 'Up to 4 years',
       maturityAge: '4 to 5 months',
       social: {
         schoolSize: '1 to 2',
@@ -248,8 +249,8 @@ export const SPECIES = [
         femaleSizeMeters: 0.91,
         maleWeightKg: 20,
         femaleWeightKg: 14,
-        maleLifeExpectancyYears: 5,
-        femaleLifeExpectancyYears: 5,
+        maleLifeExpectancyYears: 4,
+        femaleLifeExpectancyYears: 4,
       },
       lifecycle: {
         sexualMaturityYears: '4 to 5 months',
@@ -265,11 +266,11 @@ export const SPECIES = [
     },
     atlasThumbnail: '/atlas/coryphaena-hippurus-thumbnail.png',
     description: 'A fast, flashing open-ocean hunter with a long dorsal fin, forked tail, and electric blue-green body that can flare brighter when excited. Adult Mahi-mahi cruise warm surface waters alone or in pairs, often gathering around floating cover before breaking into quick prey-chasing runs; juveniles may form larger schools.',
-    adultLengthRangeMeters: [0.91, 1.8],
-    maxBodyLengthMeters: 1.8,
+    adultLengthRangeMeters: [0.91, 2.1],
+    maxBodyLengthMeters: 2.1,
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. Size 1.0 now maps to Jeremy's 1.8 m max body length.
-      bodyLengthWU: 7.2,
+      // World Oceanarium scale: 1 WU = 25 cm. Size 1.0 now maps to Jeremy's 2.1 m max body length.
+      bodyLengthWU: 8.4,
       // Adult Mahi-mahi are rendered as loose pairs: sardine-style shared pathing,
       // capped at two fish, not a biological school.
       schoolMaxSize: 2,
@@ -325,7 +326,7 @@ export const SPECIES = [
         wariness: 0.5,
       },
     },
-    // Normalized individual size maps directly to the 0–1 share of the 1.8 m max; DB rows use a truncated normal distribution centered near the 0.91 m average.
+    // Normalized individual size maps directly to the 0–1 share of the 2.1 m max; DB rows use a truncated normal distribution centered near the 0.91 m average.
     sizeRange: [0, 1],
     mass: {
       // Broad length-weight placeholder tuned for readable card weights until curated fishery data lands.
@@ -390,8 +391,8 @@ export const SPECIES = [
           },
         },
       },
-      // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 1.8 m / 7.2 WU max.
-      scale: 0.735,
+      // Source GLB is ~9.79 units nose-to-tail; scale maps size 1.0 to the 2.1 m / 8.4 WU max.
+      scale: 0.858,
       // Both sex variants are rig-free static meshes; aim follow at the moving Fish root.
       // Keep the legacy name for compatibility with a future rigged variant, where it wins.
       followAim: 'root',
@@ -484,11 +485,11 @@ export const SPECIES = [
     },
     description: 'A lean, metallic-blue lamnid built for fast open-water pursuit. The shortfin mako should read as a committed pelagic hunter: long glides, rare sharp acceleration, and broad turns that carry its body through the water rather than twitching like a small schooling fish.',
     atlasThumbnail: '/atlas/isurus-oxyrinchus-thumbnail.png',
-    adultLengthRangeMeters: [2.0, 4.0],
-    maxBodyLengthMeters: 4.0,
+    adultLengthRangeMeters: [2.0, 4.45],
+    maxBodyLengthMeters: 4.45,
     swim: {
-      // World Oceanarium scale: 1 WU = 25 cm. Review max maps 4.0 m to 16 WU.
-      bodyLengthWU: 16,
+      // World Oceanarium scale: 1 WU = 25 cm. Review max maps 4.45 m to 17.8 WU.
+      bodyLengthWU: 17.8,
       // Raised from 0.38 to 0.95 (~2.5×) so the mako clearly leads the tank at roughly the
       // real mako-vs-mahi cruise ratio (~1.5×). This speed used to make it overshoot the
       // solo-agent boundary envelope on U-turns and get snapped back inward (reading as
@@ -540,7 +541,7 @@ export const SPECIES = [
         wariness: 0.08,
       },
     },
-    // Review spread maps individuals to roughly 2.6–4.0 m while the Atlas shows the species maximum.
+    // Review spread maps individuals to roughly 2.9–4.45 m while the Atlas shows the species maximum.
     sizeRange: [0.65, 1.0],
     mass: {
       // Broad length-weight placeholder until curated shark body-condition data lands.
@@ -549,8 +550,8 @@ export const SPECIES = [
     },
     model: {
       path: '/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb',
-      // Source GLB is ~40.18 units nose-to-tail; scale maps size 1.0 to 4.0 m / 16 WU.
-      scale: 0.398,
+      // Source GLB is ~40.18 units nose-to-tail; scale maps size 1.0 to 4.45 m / 17.8 WU.
+      scale: 0.443,
       // Rig-free static mesh: follow the moving Fish root, never an AABB center or bone.
       followAim: 'root',
       moveset: {
@@ -624,13 +625,13 @@ export const SPECIES = [
         femaleSizeMeters: 3.3,
         maleWeightKg: 1000,
         femaleWeightKg: 2300,
-        maleLifeExpectancyYears: 20,
-        femaleLifeExpectancyYears: 20,
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
         sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: 'More than 300,000,000 eggs',
+        offspringPerMatingEvent: 'Unknown',
       },
     },
     atlasSummary: {

@@ -8,6 +8,21 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.15.8 — Atlas data corrections
+
+Status: in review as `v0.15.8-dev_1`.
+
+### Atlas
+
+- Four species carried figures that did not survive a check against the sources the v0.15.7 panel now names. Spotted Sardinella moved from Clupeidae to Dorosomatidae; Mahi-mahi's life span dropped from 5 years to 4; and Giant Sunfish had both a stated 20-year life expectancy and a "more than 300,000,000 eggs" brood figure that no source supports, so both now read Unknown rather than asserting a number the Atlas cannot stand behind.
+- Maximum lengths grew for two species — Mahi-mahi 1.8 m to 2.1 m, Shortfin Mako 4.0 m to 4.45 m. These are not text-only edits: `bodyLengthWU` and the model `scale` are derived from the maximum, so both fish are now rendered at the corrected size rather than only described at it.
+- The specimen scale bar's label is no longer the hardcoded word "Specimen". A species can now declare `atlasDetails.maxLengthLabel`, which Spotted Sardinella uses to say "Standard length" — its 27 cm maximum is a standard length, not a total length, and labelling it as the latter overstated the animal.
+- The stage readout keeps two decimals below 10 m, so the Mako's 4.45 m no longer renders as "4.5 m".
+
+### Repository
+
+- `tests/speciesData.test.mjs` pins every corrected figure, including the derived `bodyLengthWU` and model scales, so a future data edit cannot silently drift the rendered size away from the stated length. `npm test` was already wired to this file on `main` but the file itself had never landed, so the script errored on a missing module; it runs now.
+
 ## v0.15.7 — Sources
 
 Status: accepted and promoted as clean `v0.15.7` from `v0.15.7-dev_1` after Jeremy's review.

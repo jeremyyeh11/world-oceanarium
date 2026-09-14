@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test": "node tests/speciesData.test.mjs && node tests/creatureMoments.test.mjs",
+    "test": "node tests/speciesData.test.mjs && node tests/creatureMoments.test.mjs && node tests/fishSwim.test.mjs",
     "verify:procedural-fish-assets": "node scripts/verify-procedural-docs.mjs && node scripts/inspect-procedural-targets.mjs",
     "backup:creatures": "node scripts/backup-supabase-creatures.mjs"
   },

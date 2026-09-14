@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEnvironment } from '@react-three/drei'
 import * as THREE from 'three'
 import { hashString } from '../utils/hash'
+import { SURFACE_PLANE_Y, SURFACE_PLANE_X, SURFACE_PLANE_Z, SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH } from '../utils/waterSurfaceGeometry'
 
 const SURFACE_WAVE_GLSL = /* glsl */ `
   uniform float uSurfaceTime;
@@ -78,11 +79,10 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
 const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v7'
 
-export const SURFACE_PLANE_Y = 4.6
-export const SURFACE_PLANE_X = 0
-export const SURFACE_PLANE_Z = -4
-export const SURFACE_PLANE_WIDTH = 320
-export const SURFACE_PLANE_DEPTH = 320
+// Defined in `../utils/waterSurfaceGeometry` so `.js` modules and the Node test
+// runner can read them without importing this renderer component. Re-exported
+// here so existing importers keep working.
+export { SURFACE_PLANE_Y, SURFACE_PLANE_X, SURFACE_PLANE_Z, SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH }
 
 const SURFACE_PLANE_POSITION = [SURFACE_PLANE_X, SURFACE_PLANE_Y, SURFACE_PLANE_Z]
 const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]

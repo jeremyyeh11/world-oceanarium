@@ -10,7 +10,13 @@ Versioning convention notes:
 
 ## v0.15.8 — Atlas data corrections
 
-Status: in review as `v0.15.8-dev_1`.
+Status: in review as `v0.15.8-dev_2`.
+
+### Repository
+
+- Movement moved out of `Fish.jsx` into `src/components/fishSwim.js` — swim bounds, boundary avoidance, solo-agent steering, the Mola sun-bask targeting, and the boid/schooling maths. `Fish.jsx` drops from 3,783 lines to 2,861. The moved logic is byte-identical to what it replaced; the only behavioural surface that changed is that `SCHOOL_STATES` and `FISH_REGISTRY` are now private to the new module, reached through four accessors rather than touched directly.
+- The new module is `.js` rather than `.jsx`, which is what makes it testable: Node cannot import `.jsx`, and that is why the largest file in the project has never had a unit test. `tests/fishSwim.test.mjs` is the first coverage movement has ever had — 59 assertions, verified against 12 hand-built mutants rather than a green run, since a test that passes proves nothing about what it would catch.
+- The water-surface plane constants moved to `src/utils/waterSurfaceGeometry.js` so a `.js` module can read them without importing a renderer. `WaterSurface.jsx` re-exports them, so no importer changed.
 
 ### Atlas
 

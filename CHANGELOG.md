@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.16.0 — Predator response
 
-Status: in review as `v0.16.0-dev_3` (dev_2 had steps 1–2 and the school fixes; dev_3 adds the school alarm). The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
+Status: in review as `v0.16.0-dev_5` (dev_2 had steps 1–2 and the school fixes; dev_3 adds the school alarm). The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
 
 ### Behaviour
 
@@ -20,6 +20,10 @@ Status: in review as `v0.16.0-dev_3` (dev_2 had steps 1–2 and the school fixes
 - A school reacts together. One startled sardine used to be one fish reacting; now its alarm spreads through its school as a wave at 15 WU/s, about three times a cruising mako, weakening to nothing 12 WU out and fading about 2 s after it passes. Every member reacts in proportion to how alarmed it is (Nature of Code's state-dependent weights): the formation packs toward 40% of its spacing with the pull to each slot up to 2.5× as strong, the fish cruises at up to 1.8× its idle speed and stops drifting, and it startles at half the usual threat level. As the wave first reaches a fish it flinches with an ordinary burst, and that ripple of bursts is what makes the wave visible. On a staged pass the alarm reached 177 of 180 sardines within ~1.8 s and neighbours closed from ~1.05 to ~0.8 WU apart (20–27%). The school as a whole stays about as wide, because the escapes split it to both sides of the mako first. Each fish reads a handful of wave events rather than its neighbours, so the wave costs almost nothing per frame.
 - The escape uses a new `yawToward` turn at a true angular rate. The ordinary turn lerps, which barely moves toward a target behind the fish and then flips past halfway, so any U-turn built on it would have snapped. Normal swimming still uses the old turn, so its look is unchanged.
 - The tail whip also reaches the instanced sardine layer. Nearly every sardine near a predator is drawn by it rather than the detailed model: all 275 were, while following the mako.
+
+### Interface
+
+- The World Oceanarium mark (the "WO" sunfish) now sits between the live-feed line and the title on the landing card, tinted in the CRT foam colour with the same slight convergence split as the lettering. It is extracted from the favicon art as a transparent mask (`public/logo-mark.png`).
 
 ### Fixes
 

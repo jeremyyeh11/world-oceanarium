@@ -365,6 +365,19 @@
 /* Pixelify Sans has a far larger x-height than the terminal face this started
    on, so every size below comes down roughly 20% from the first pass and the
    tracking loosens less — the glyphs already carry the width. */
+.landing-mark {
+  width: clamp(4.25rem, 18vw, 5.5rem);
+  aspect-ratio: 323 / 326;
+  margin: 0.4rem auto 0.8rem;
+  background: var(--crt-foam);
+  -webkit-mask: url('/logo-mark.png') center / contain no-repeat;
+  mask: url('/logo-mark.png') center / contain no-repeat;
+  filter:
+    drop-shadow(-1px 1px 0.5px rgba(240, 127, 164, 0.45))
+    drop-shadow(1px -1px 0.5px rgba(127, 220, 242, 0.45))
+    drop-shadow(0 0 14px rgba(127, 220, 242, 0.25));
+}
+
 .landing-eyebrow {
   margin: 0 0 0.5rem;
   color: var(--crt-lumen);

@@ -159,10 +159,17 @@ export const SPECIES = [
       turnRadiusBodyLengths: 2.0,
       // Bait balls range through the upper column; deepened for vertical spread.
       boundsYMin: -10,
+      // Up to just under the water surface (SURFACE_PLANE_Y 4.6), where bait balls really do end up.
+      // The epipelagic band stopped them at 2.83, an invisible ceiling 1.8 WU below the surface
+      // that a school driven upward flattened against.
+      boundsYMax: 3.9,
       boundsZMin: -15,
       boundsZMax: 8,
       boids: {
-        neighborCap: 14,
+        // Nearest six, not fourteen: studies of schooling fish find a fish's one or two nearest
+        // neighbours dominate how it moves (Katz et al. 2011), so averaging over fourteen blurred
+        // the local interactions a school is made of.
+        neighborCap: 6,
         perceptionBodyLengths: 3.4,
         // Boids-only model: strong alignment keeps the bait ball heading generally one way,
         // moderate cohesion + lighter separation keep it a tight-but-not-packed cloud (sparser

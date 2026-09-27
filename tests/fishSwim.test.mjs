@@ -315,6 +315,35 @@ withRegistry([[sardine, sardineSwim, { x: 1, y: 2, z: -15 }]], () => {
 })
 assert.equal(getFishEntry(sardine.id), undefined, 'an unregistered fish reads back as undefined')
 
+// --- per-frame allocation caches ------------------------------------------------------
+
+// swimBounds is called several times per fish per frame, so each swim profile keeps the last
+// bounds it produced. Same arguments -> the same shared object; it must be frozen so no caller
+// can corrupt another fish's bounds, and different arguments must not return stale bounds.
+const cachedBounds = swimBounds('epipelagic', sardineSwim, 0.8)
+assert.equal(swimBounds('epipelagic', sardineSwim, 0.8), cachedBounds, 'repeat calls reuse one bounds object')
+assert.ok(Object.isFrozen(cachedBounds), 'shared bounds are frozen')
+const otherZone = swimBounds('mesopelagic', sardineSwim, 0.8)
+assert.notEqual(otherZone, cachedBounds, 'a different depth zone is not served from the cache')
+assert.ok(otherZone.yMax < cachedBounds.yMax, 'and really is the deeper band')
+assert.deepEqual(
+  swimBounds('epipelagic', { ...sardineSwim }, 0.8),
+  swimBounds('epipelagic', sardineSwim, 0.8),
+  'a fresh profile with the same values computes the same bounds',
+)
+
+// Boid params are cached per swim profile too, keyed by species so a profile object shared
+// across species (as tests do) can never hand one species another's menace.
+withRegistry([], () => {
+  const sharedSwim = { bodyLengthWU: 2 }
+  updateFishRegistry({ position: new THREE.Vector3() }, { ...mako, id: 'p1' }, sharedSwim)
+  updateFishRegistry({ position: new THREE.Vector3(5, 0, 0) }, { ...sardine, id: 'p2' }, sharedSwim)
+  assert.equal(getFishEntry('p1').repulser, true, 'the mako is a repulser')
+  assert.equal(getFishEntry('p2').repulser, false, 'the sardine is not, even through the same profile')
+  assert.equal(getFishEntry('p1').repulsionScale, 2.2, 'the mako gets the repulser scale')
+  assert.equal(getFishEntry('p2').repulsionScale, 1, 'the sardine does not inherit it from the cache')
+})
+
 // --- module constants still shared with Fish.jsx -------------------------------------
 
 assert.equal(SWIM_BOX.z, 7.4, 'the swim box depth is unchanged by the extraction')

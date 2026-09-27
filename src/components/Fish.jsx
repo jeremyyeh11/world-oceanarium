@@ -22,6 +22,7 @@ import {
   MOLA_SUN_BASK_APPROACH_Z,
   SNAP_TURN_THRESHOLD,
   SWIM_BOX,
+  advanceSchoolAlarms,
   boundaryAvoidanceTurnStep,
   clampToMolaSurfaceCeiling,
   clampToSurfaceCeiling,
@@ -34,10 +35,12 @@ import {
   forEachFish,
   getFishEntry,
   getSchoolState,
+  glideAlongVerticalBound,
   interactionProxyDimensions,
   isMolaDeepZExit,
   maxTurnRadiansForSpeed,
   maxVisualPitch,
+  pitchToward,
   molaSunBaskSurfaceCenterYMax,
   mulberry32,
   pickMolaSunBaskExitTarget,
@@ -46,27 +49,82 @@ import {
   pickSoloAgentSteeringDestination,
   pickSoloAgentTarget,
   placeholderDimensions,
+  raiseSchoolAlarm,
   randomRange,
   randomRangeFromPair,
   releaseSchoolState,
   resolveModel,
   resolveSwimProfile,
   rotateDirectionToward,
+  schoolAlarmAt,
   schoolFormationOffset,
+  schoolFormationVerticalHalfExtent,
   setForwardWithPitch,
   shapeSoloAgentSteeringDesired,
   soloAgentReachedDistance,
   swimBounds,
   swimXRangeAtZ,
+  threatLevelAt,
   turnRateForCreature,
   unregisterFish,
   updateFishRegistry,
+  yawToward,
 } from './fishSwim'
 
 
 
 const MAX_MODEL_BANK = THREE.MathUtils.degToRad(5)
 const BURST_STRAIGHT_THRESHOLD = 0.004
+// A threat this alarming (threatLevelAt: menace × wariness × proximity²) startles a fish into an
+// escape burst, whatever it was doing, and makes it re-read its neighbours at once so the burst
+// carries it off the threat's path rather than along its old heading. A sardine startles within
+// ~7.4 WU of the mako's path and a mahi within ~4.6 WU (both notice it from ~16.7 WU, one mako
+// length); a sardine has to be within ~1 WU of a mahi; the mola never startles anything. The
+// random idle bursts are unchanged.
+const THREAT_STARTLE_LEVEL = 0.25
+// Seconds before a fish can startle again, spread per fish so a school doesn't pulse in unison.
+const THREAT_STARTLE_COOLDOWN = [1.6, 2.6]
+// The startle escape is an arc, not a snap: the fish accelerates at once and carves toward the
+// escape direction on a turning circle of THREAT_STARTLE_TURN_RADIUS_BODY_LENGTHS, tighter than its
+// cruising circle (sardine 2.0, mahi 1.3), so the turn tightens as it speeds up (ω = v / r). The
+// dash reaches full speed within ~0.1 s, so the radius sets how the turn reads: at 0.45 a mahi
+// spun ~120° in 60 ms, a snap again; 0.8 reads as a sharp but visible sweep, the mahi peaking
+// near 450°/s. The body curls into the arc through the ordinary turn deformation (see
+// CAUDAL_WHIP_BEND_GAIN). An earlier 0.1 s in-place flick read as a twitch on a sardine but as the
+// whole mahi snapping round, since the mahi's heading follows its motion exactly. The heading is
+// held on the escape for the burst instead of being pulled straight back into formation. It must
+// also be fast: visualTimeScale slows the sardine school to 0.35 of life so the tank reads calm,
+// which leaves an ordinary burst (~1.9–3.0 WU/s) slower than a cruising mako (~4.7 WU/s), so an
+// escape runs at 2.5× the burst speed.
+const THREAT_STARTLE_TURN_RADIUS_BODY_LENGTHS = 0.8
+const THREAT_STARTLE_TURN_PROFILE = { turnRadiusBodyLengths: THREAT_STARTLE_TURN_RADIUS_BODY_LENGTHS }
+// A sardine's rendered body normally trails its heading at 220°/s; while escaping it keeps up.
+const THREAT_STARTLE_VISUAL_TURN_RATE = THREE.MathUtils.degToRad(900)
+const THREAT_STARTLE_SPEED_SCALE = 2.5
+const THREAT_STARTLE_ESCAPE_WEIGHT = 1.6
+const THREAT_STARTLE_VELOCITY_RESPONSE = 18
+// School alarm (fishSwim.js raiseSchoolAlarm): a startled member alarms its whole school, and each
+// member reacts in proportion to how alarmed it is — Nature of Code's state-dependent weights
+// (Exercises 5.14 / 5.18). At full alarm the formation packs to 40% of its spacing and the pull
+// toward each fish's slot is 2.5× as strong, the fish cruises at 1.8× its idle speed without
+// drifting, and it startles at half the usual threat level. When the wave first reaches a fish it
+// flinches with an ordinary burst; that ripple of bursts is what makes the wave visible across the
+// school. The stronger pull is what makes the packing show: at 60% spacing with the ordinary pull
+// the 180-sardine school had only tightened ~10% by the time the alarm faded.
+const SCHOOL_ALARM_COMPACTION = 0.6
+const SCHOOL_ALARM_FORMATION_BOOST = 1.5
+const SCHOOL_ALARM_SPEED_BOOST = 0.8
+const SCHOOL_ALARM_PRIMING = 0.5
+const SCHOOL_ALARM_FLINCH_LEVEL = 0.35
+// The startle's tail whip, for caudal-vertex fish. While escaping, the body's ordinary turn bend
+// is amplified up to (1 + CAUDAL_WHIP_BEND_GAIN)× so it curls hard into the escape arc, and the
+// tail beats harder and faster than any idle burst; both fade out with the dash. They scale the
+// existing turn/burst channels rather than adding a pose of their own, so the curl follows the
+// actual turn and idle bursts and turns look exactly as before. For a sardine the dash peaks at
+// ~3.5× its cruise stroke (an idle burst is ~1.9×) at ~2× the beat rate.
+const CAUDAL_WHIP_BEND_GAIN = 1.5
+const CAUDAL_WHIP_EXTRA_BURST = 1.8
+const CAUDAL_WHIP_FREQUENCY_BOOST = 1.0
 const DEFAULT_MOVESET = {
   cruise: 'idle',
   drift: 'idle',
@@ -1152,11 +1210,13 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       )
       const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
       const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
       const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 2.3
       proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * (
         1
         + speed01 * (curveConfig.speedFrequencyBoost ?? 0.32)
         + burst01 * (curveConfig.burstFrequencyBoost ?? 0.24)
+        + whip01 * CAUDAL_WHIP_FREQUENCY_BOOST
         + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
       )
       proceduralFinMeshes.forEach((fin, index) => {
@@ -1290,8 +1350,11 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
       if (proceduralUniforms) {
         proceduralUniforms.phase.value = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
         proceduralUniforms.speed.value = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
-        proceduralUniforms.turn.value = curveDeformTurnRef.current
+        // The startle whip (whip01) is 0 outside a startle, leaving these as they were.
+        const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
+        proceduralUniforms.turn.value = curveDeformTurnRef.current * (1 + whip01 * CAUDAL_WHIP_BEND_GAIN)
         proceduralUniforms.burst.value = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+          + whip01 * CAUDAL_WHIP_EXTRA_BURST
       }
     }
   })
@@ -1442,6 +1505,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const curveDeformSpeedEase = useRef(1)
   const curveDeformPreviousSpeed = useRef(runtime.velocity)
   const nextBurstAt = useRef(runtime.nextBurstAt)
+  const startleReadyAt = useRef(0)
+  const startleTurnSide = useRef(1)
+  const previousSchoolAlarm = useRef(0)
+  const startleUntil = useRef(0)
+  const startleEscape = useRef(new THREE.Vector3())
   const nextDriftAt = useRef(runtime.nextDriftAt)
   const driftUntil = useRef(runtime.driftUntil)
   const lastSwimSfxAt = useRef(0)
@@ -1457,7 +1525,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
-  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, phase: 0 })
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, whip01: 0, phase: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
@@ -1510,6 +1578,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       scale: 1,
       variant: Math.floor(randomRange(rand, 0, 4)),
       tint: randomRange(rand, 0.92, 1.08),
+      whip: 0,
     }
   }, [creature.id])
 
@@ -1665,24 +1734,47 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       noise.longitudinal = THREE.MathUtils.lerp(noise.longitudinal, noise.targetLongitudinal, noiseAlpha)
     }
 
+    // How alarmed this fish's school has made it (0 outside a school or with no wave passing), and
+    // whether the wave has only just reached it this frame — the moment it flinches.
+    const schoolAlarm = isSchooling && hasFollowPosition.current ? schoolAlarmAt(schoolState, fish.position) : 0
+    const alarmFlinch = schoolAlarm >= SCHOOL_ALARM_FLINCH_LEVEL && previousSchoolAlarm.current < SCHOOL_ALARM_FLINCH_LEVEL
+      && now >= startleUntil.current
+    previousSchoolAlarm.current = schoolAlarm
+
     const idleVelocity = Math.max(
       0.08,
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
-    )
+    ) * (1 + SCHOOL_ALARM_SPEED_BOOST * schoolAlarm)
     const driftMove = resolveMoveAnimation(model, 'drift')
     const hasDriftMove = swim.driftEnabled && Boolean(
       model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'),
     )
     const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
-    const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current
+    // An alarmed fish does not settle into a slow glide.
+    const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current && schoolAlarm < SCHOOL_ALARM_FLINCH_LEVEL
     const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
-    const velocityResponse = isActionMoveActive ? 8 : (isDrifting ? 1.2 : 2.4)
+    const escaping = now < startleUntil.current
+    const velocityResponse = isActionMoveActive ? (escaping ? THREAT_STARTLE_VELOCITY_RESPONSE : 8) : (isDrifting ? 1.2 : 2.4)
 
     velocity.current = THREE.MathUtils.lerp(
       velocity.current,
       targetVelocity,
       1 - Math.exp(-delta * velocityResponse),
     )
+
+    // Startle check, every frame (the boid decision below is not). Forcing a decision now lets this
+    // frame's steering see the threat; the burst itself is triggered with the other actions below.
+    let startled = false
+    if (model && hasFollowPosition.current && now >= startleReadyAt.current
+      && threatLevelAt(fish.position, creature, swim, startleEscape.current) >= THREAT_STARTLE_LEVEL * (1 - SCHOOL_ALARM_PRIMING * schoolAlarm)) {
+      startled = true
+      if (isSchooling) raiseSchoolAlarm(schoolState, fish.position)
+      // Which way round to turn if the escape lies dead astern: toward whichever side it leans.
+      const escape = startleEscape.current
+      startleTurnSide.current = Math.sign(desiredDirection.current.z * escape.x - desiredDirection.current.x * escape.z) || 1
+      startleUntil.current = now + motion.burstActionDuration
+      boidDecisionNextAt.current = now
+    }
 
     curveDeformTurnIntent.current = 0
     let position
@@ -1882,6 +1974,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       followTarget.current.copy(fish.position).addScaledVector(tangent, followDistance)
     }
 
+    // Speed along desiredDirection this frame, published so prey can predict where this fish is
+    // going. Stays 0 on paths that do not integrate along the heading (first frame, bask hold).
+    let registrySpeed = 0
     if (!hasFollowPosition.current) {
       fish.position.copy(position)
       previousPosition.current.copy(fish.position)
@@ -1923,6 +2018,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // Leader maintains the shared school centroid + migration direction, and advances the
           // goal once the group's centroid reaches it.
           if (isSchoolLeader) {
+            advanceSchoolAlarms(schoolState, delta)
             let cx = 0, cy = 0, cz = 0, cn = 0
             forEachFish(entry => {
               if (entry.schoolId === school.id) { cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1 }
@@ -1936,7 +2032,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               // banks away early instead of driving into a boundary it can't out-turn and thrashing.
               const gm = Math.min(bodyLength * 2, (bounds.zMax - bounds.zMin) * 0.28)
               schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, bounds.xMin + gm, bounds.xMax - gm)
-              schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, bounds.yMin + gm * 0.5, bounds.yMax - gm * 0.5)
+              // Vertically, the whole formation has to fit above and below the goal, or the clamp
+              // flattens the part that doesn't into a sheet against the bound.
+              const gy = Math.min(
+                Math.max(gm * 0.5, schoolFormationVerticalHalfExtent(school, creature)),
+                (bounds.yMax - bounds.yMin) * 0.5,
+              )
+              schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, bounds.yMin + gy, bounds.yMax - gy)
               schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, bounds.zMin + gm, bounds.zMax - gm)
             }
             // Shared direction (goal - centroid), identical for every member, low-pass filtered so
@@ -1964,16 +2066,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // (right = perpendicular to heading in XZ, up = world Y). Anchoring the shape here means
           // a single-file line is no longer an equilibrium, so the ball keeps its width.
           const hx = schoolFollowDirection.x, hz = schoolFollowDirection.z
+          // An alarmed school packs tighter around its centre.
+          const packing = 1 - SCHOOL_ALARM_COMPACTION * schoolAlarm
           schoolBasePosition.copy(schoolState.centroid)
-          schoolBasePosition.x += hz * schoolOffset.lateral + hx * schoolOffset.longitudinal
-          schoolBasePosition.z += -hx * schoolOffset.lateral + hz * schoolOffset.longitudinal
-          schoolBasePosition.y += schoolOffset.vertical
+          schoolBasePosition.x += (hz * schoolOffset.lateral + hx * schoolOffset.longitudinal) * packing
+          schoolBasePosition.z += (-hx * schoolOffset.lateral + hz * schoolOffset.longitudinal) * packing
+          schoolBasePosition.y += schoolOffset.vertical * packing
+          // A slot past the vertical bounds is unreachable and only pulls its fish into the bound.
+          schoolBasePosition.y = THREE.MathUtils.clamp(schoolBasePosition.y, bounds.yMin, bounds.yMax)
           // Desired heading = migration urge + pull toward the formation slot. The slot pull is
           // scaled down for tiny schools: with only a couple of members the slots sit right beside
           // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
           // cocks the tail). A pair instead just travels parallel on the shared migration + boid
           // separation; big schools get the full formation shaping.
           const formationWeight = SCHOOL_FORMATION_WEIGHT * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
+            * (1 + SCHOOL_ALARM_FORMATION_BOOST * schoolAlarm)
           agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
           targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
           if (targetDesiredDirection.lengthSq() > 1e-6) {
@@ -2012,6 +2119,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // agentMoveDirection is the base heading (unit); add boid forces on top for
         // anti-overlap and predator avoidance.
         targetDesiredDirection.copy(agentMoveDirection).add(smoothedBoidSteering.current)
+        // Startle escape: keep steering along the escape direction until the dash ends.
+        const escapeActive = now < startleUntil.current
+        if (escapeActive) targetDesiredDirection.addScaledVector(startleEscape.current, THREAT_STARTLE_ESCAPE_WEIGHT)
         if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
         else targetDesiredDirection.copy(agentMoveDirection)
 
@@ -2047,9 +2157,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
         // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
         const forwardSpeed = velocity.current * authoredSpeedScale * organicMotion.speedScale
+        registrySpeed = forwardSpeed
         let turnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
         turnStep = boundaryAvoidanceTurnStep(turnStep, fish.position, desiredDirection.current, bounds, swim, bodyLength, forwardSpeed, delta)
-        rotateDirectionToward(desiredDirection.current, targetDesiredDirection, turnStep)
+        if (escapeActive) {
+          // Escape arc: carve round on the startle turning circle at a true angular rate, so even a
+          // U-turn sweeps round instead of stalling and flipping. Heading and pitch are stepped
+          // separately and once each, so the arc is exactly as tight as its radius.
+          const escapeTurnStep = Math.max(turnStep, maxTurnRadiansForSpeed(THREAT_STARTLE_TURN_PROFILE, bodyLength, forwardSpeed, delta))
+          yawToward(desiredDirection.current, targetDesiredDirection, escapeTurnStep, startleTurnSide.current)
+          pitchToward(desiredDirection.current, targetDesiredDirection, turnStep)
+        } else {
+          rotateDirectionToward(desiredDirection.current, targetDesiredDirection, turnStep)
+        }
 
         // Integrate velocity along the heading — no follow-target distance cap.
         const movementScale = forwardSpeed * delta
@@ -2072,6 +2192,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
         } else {
           clampToSwimBounds(fish.position, bounds)
+          glideAlongVerticalBound(desiredDirection.current, fish.position, bounds)
           if (isSoloAgent) {
             // Keep the body below the water plane and flatten any upward heading so it glides
             // along the ceiling instead of nosing through the surface.
@@ -2123,7 +2244,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         : (behavior?.type ?? 'choose-behavior')
     }
 
-    updateFishRegistry(fish, creature, swim, school, desiredDirection.current)
+    updateFishRegistry(fish, creature, swim, school, desiredDirection.current, registrySpeed)
 
     let runtimeRecoveryOpacity = 1
     let recoveryFadeState = runtimeRecoveryFade.current
@@ -2206,11 +2327,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       visualForward.current.copy(rawVisualForward)
     } else {
       const visualAlignment = visualForward.current.dot(rawVisualForward)
-      const visualTurnRate = isSoloAgent
+      const baseVisualTurnRate = isSoloAgent
         ? (visualAlignment < SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT
           ? SOLO_AGENT_TANGENT_CATCHUP_RATE
           : SOLO_AGENT_TANGENT_TURN_RATE)
         : turnRateForCreature(creature, swim)
+      // While escaping, the body keeps pace with the arc instead of trailing it.
+      const visualTurnRate = now < startleUntil.current
+        ? Math.max(baseVisualTurnRate, THREAT_STARTLE_VISUAL_TURN_RATE)
+        : baseVisualTurnRate
       rotateDirectionToward(
         visualForward.current,
         rawVisualForward,
@@ -2522,6 +2647,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         instancedEntry.position.copy(fish.position)
         instancedEntry.quaternion.copy(fish.quaternion).normalize()
         instancedEntry.scale = size
+        // Most sardines near a predator are drawn by the instanced layer, so it needs the startle
+        // tail whip too (last frame's value; the layer applies it).
+        instancedEntry.whip = curveDeformInputRef.current.whip01
         instancedEntry.matrix.compose(
           fish.position,
           instancedEntry.quaternion,
@@ -2553,9 +2681,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (previousTangent.current.lengthSq() > 0) {
         turn = previousTangent.current.z * animationForward.x - previousTangent.current.x * animationForward.z
       }
-      if (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current) {
+      // A startle cuts through any turn animation or cooldown in progress: escaping comes first. So
+      // does the flinch as a school's alarm wave reaches this fish, as an ordinary burst.
+      const reflex = startled || alarmFlinch
+      if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
-        if (turn > motion.turnTriggerThreshold) {
+        if (!reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnLeft')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -2568,7 +2699,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (turn < -motion.turnTriggerThreshold) {
+        } else if (!reflex && turn < -motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnRight')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -2581,7 +2712,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current) {
+        } else if (reflex || (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current)) {
           const burstDuration = motion.burstActionDuration
           const burstAnimation = resolveMoveAnimation(model, 'burst')
           const burstAnimationDuration = modelActionAnimationDuration(model, burstAnimation, burstDuration)
@@ -2590,10 +2721,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           playSwimSfx('burst', THREE.MathUtils.clamp(motion.burstSpeed / Math.max(0.001, motion.idleSpeed) * 0.18, 0.42, 1), now)
           actionSpeedStartAt.current = now + burstMovementDelay
           actionSpeedUntil.current = actionSpeedStartAt.current + burstDuration
-          actionSpeedTarget.current = motion.burstSpeed
+          actionSpeedTarget.current = startled ? motion.burstSpeed * THREAT_STARTLE_SPEED_SCALE : motion.burstSpeed
           animationHoldUntil.current = now + burstAnimationDuration
           animationCooldown.current = now + Math.max(1.0, burstAnimationDuration * 0.65)
           nextBurstAt.current = now + motion.burstInterval
+          // Only a startle holds off the next startle. An idle burst used to as well, and a mahi
+          // mid idle-burst then swam straight past the mako's mouth: an idle burst is not an escape.
+          if (startled) startleReadyAt.current = now + THREE.MathUtils.lerp(THREAT_STARTLE_COOLDOWN[0], THREAT_STARTLE_COOLDOWN[1], boidDecisionJitter.current)
           driftUntil.current = 0
           triggeredAction = true
         }
@@ -2655,6 +2789,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       curveDeformInputRef.current.speedEase01 = curveDeformSpeedEase.current
       curveDeformInputRef.current.burst01 = activeAnimation === resolveMoveAnimation(model, 'burst')
         ? THREE.MathUtils.clamp((animationHoldUntil.current - now) / Math.max(0.001, modelActionAnimationDuration(model, activeAnimation, motion.burstActionDuration)), 0, 1)
+        : 0
+      // Startle whip: full strength as the escape begins, fading to nothing as the dash ends. It
+      // amplifies the turn bend (the curl into the arc) and the tail stroke together.
+      curveDeformInputRef.current.whip01 = now < startleUntil.current
+        ? THREE.MathUtils.clamp((startleUntil.current - now) / Math.max(0.001, motion.burstActionDuration), 0, 1)
         : 0
 
       const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask'

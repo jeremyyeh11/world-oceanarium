@@ -585,8 +585,11 @@ export const SPECIES = [
         pectoralFinFlutter: 0.06,
       },
       debugForwardOrigin: 'head',
-      // Nose is near +28.02 over the ~40.18 source-length span.
-      debugForwardOffsetRatio: 0.697,
+      // The origin sits 28.02 source units from the tail tip over the ~40.18 span, so the nose is
+      // 12.16 ahead of it: 0.303. (This read 0.697, measured from the tail end, which started the
+      // debug vectors ~6.7 WU past the snout.) A live mesh check agrees: at 16.68 WU the snout is
+      // 4.9 WU ahead of the origin and the tail tip 11.6 WU behind.
+      debugForwardOffsetRatio: 0.303,
     },
   },
   {

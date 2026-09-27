@@ -20,6 +20,13 @@ const instanceQuaternion = new THREE.Quaternion()
 const instanceScale = new THREE.Vector3()
 const tempColor = new THREE.Color()
 const instancePhaseStride = 1
+// Startle tail whip, per instance (entry.whip, 0..1, set by Fish.jsx while a sardine escapes).
+// At full whip the wiggle is WHIP_AMPLITUDE_GAIN + 1 times its size — ~3.5×, matching the
+// detailed model's whip — and beats WHIP_FREQUENCY_BOOST + 1 times as fast. The faster beat is
+// accumulated into a per-fish phase offset rather than scaling time in the shader, which would
+// make the phase jump as whip rises and falls.
+const WHIP_AMPLITUDE_GAIN = 2.5
+const WHIP_FREQUENCY_BOOST = 1.0
 const LOD1_DEBUG_COLOR = new THREE.Color('#8f8f00')
 const LOD2_DEBUG_COLOR = new THREE.Color('#ff2b1a')
 const fallbackGeometry = new THREE.BoxGeometry(0.18, 0.08, 0.72)
@@ -66,6 +73,7 @@ function addSardineWiggleMaterial(material, { amplitude = 0.018, frequency = 5.0
         '#include <common>',
         `#include <common>
 attribute float instancePhase;
+attribute float instanceWhip;
 uniform float uSardineWiggleTime;
 uniform float uSardineWiggleAmplitude;
 uniform float uSardineWiggleFrequency;
@@ -77,7 +85,7 @@ varying vec3 vSardineWorldPosition;`,
         `#include <begin_vertex>
 float sardineTailMask = smoothstep(-0.08, 0.82, abs(position.z));
 float sardineWave = sin((position.z * uSardineWiggleFrequency) + (uSardineWiggleTime * uSardineWiggleSpeed) + instancePhase);
-transformed.x += sardineWave * uSardineWiggleAmplitude * sardineTailMask;`,
+transformed.x += sardineWave * uSardineWiggleAmplitude * (1.0 + instanceWhip * ${WHIP_AMPLITUDE_GAIN.toFixed(3)}) * sardineTailMask;`,
       )
       .replace(
         '#include <worldpos_vertex>',
@@ -109,7 +117,8 @@ gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);` : ''}
 #include <dithering_fragment>`,
       )
   }
-  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}-light-mask-${SARDINE_LIGHT_MASK_ENABLED ? 'on' : 'off'}`
+  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}-whip-${WHIP_AMPLITUDE_GAIN}-light-mask-${SARDINE_LIGHT_MASK_ENABLED ? 'on' : 'off'}`
+  nextMaterial.userData.wiggleSpeed = speed
   nextMaterial.needsUpdate = true
   return nextMaterial
 }
@@ -217,9 +226,15 @@ function phaseFromId(id) {
   return phase
 }
 
-function writeInstances(mesh, scratch, debugColor = null) {
+// Extra wiggle phase each fish has built up while whipping, keyed like phaseById.
+const whipPhaseById = new Map()
+const TWO_PI = Math.PI * 2
+
+function writeInstances(mesh, scratch, debugColor = null, delta = 0) {
   if (!mesh) return
   const phaseAttribute = mesh.geometry.getAttribute('instancePhase')
+  const whipAttribute = mesh.geometry.getAttribute('instanceWhip')
+  const whipPhaseRate = (mesh.material?.userData?.wiggleSpeed ?? 0) * WHIP_FREQUENCY_BOOST
   const { entries, ids, count } = scratch
 
   for (let i = 0; i < count; i += 1) {
@@ -238,13 +253,21 @@ function writeInstances(mesh, scratch, debugColor = null) {
     if (debugColor) tempColor.copy(debugColor)
     else tempColor.setRGB(1 * tint, 1 * tint, 1 * tint)
     mesh.setColorAt(i, tempColor)
-    if (phaseAttribute) phaseAttribute.array[i * instancePhaseStride] = phaseFromId(ids[i])
+    const whip = THREE.MathUtils.clamp(entry.whip ?? 0, 0, 1)
+    let whipPhase = whipPhaseById.get(ids[i]) ?? 0
+    if (whip > 0) {
+      whipPhase = (whipPhase + delta * whipPhaseRate * whip) % TWO_PI
+      whipPhaseById.set(ids[i], whipPhase)
+    }
+    if (phaseAttribute) phaseAttribute.array[i * instancePhaseStride] = phaseFromId(ids[i]) + whipPhase
+    if (whipAttribute) whipAttribute.array[i] = whip
   }
 
   mesh.count = count
   mesh.instanceMatrix.needsUpdate = true
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
   if (phaseAttribute) phaseAttribute.needsUpdate = true
+  if (whipAttribute) whipAttribute.needsUpdate = true
   mesh.frustumCulled = false
 }
 
@@ -253,6 +276,9 @@ function prepareMesh(node) {
   node.count = 0
   if (!node.geometry.getAttribute('instancePhase')) {
     node.geometry.setAttribute('instancePhase', new THREE.InstancedBufferAttribute(new Float32Array(MAX_INSTANCES_PER_VARIANT), 1))
+  }
+  if (!node.geometry.getAttribute('instanceWhip')) {
+    node.geometry.setAttribute('instanceWhip', new THREE.InstancedBufferAttribute(new Float32Array(MAX_INSTANCES_PER_VARIANT), 1))
   }
   for (let i = 0; i < MAX_INSTANCES_PER_VARIANT; i += 1) node.setMatrixAt(i, hiddenMatrix)
   node.instanceMatrix.needsUpdate = true
@@ -269,7 +295,7 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
   const lod1MeshRef = useRef(null)
   const lod2MeshRef = useRef(null)
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     updateWiggleTime(lod1Asset.material, clock.elapsedTime)
     updateWiggleTime(lod2Asset.material, clock.elapsedTime)
     const rawLod1Entries = getSardineLod1Instances()
@@ -295,8 +321,8 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
       }
     }
 
-    writeInstances(lod1MeshRef.current, lod1Entries, debugLodView ? LOD1_DEBUG_COLOR : null)
-    writeInstances(lod2MeshRef.current, lod2Entries, debugLodView ? LOD2_DEBUG_COLOR : null)
+    writeInstances(lod1MeshRef.current, lod1Entries, debugLodView ? LOD1_DEBUG_COLOR : null, delta)
+    writeInstances(lod2MeshRef.current, lod2Entries, debugLodView ? LOD2_DEBUG_COLOR : null, delta)
   })
 
   return (

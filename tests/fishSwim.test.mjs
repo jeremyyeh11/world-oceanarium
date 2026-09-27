@@ -2,21 +2,31 @@ import assert from 'node:assert/strict'
 import * as THREE from 'three'
 import {
   SWIM_BOX,
+  advanceSchoolAlarms,
   boundaryAvoidanceTurnStep,
   clampToSwimBounds,
   computeBoidSteering,
   creatureBodyLength,
   forEachFish,
   getFishEntry,
+  glideAlongVerticalBound,
   mulberry32,
+  pitchToward,
+  raiseSchoolAlarm,
   randomRange,
   randomRangeFromPair,
   resolveSwimProfile,
+  rotateDirectionToward,
+  schoolAlarmAt,
+  schoolFormationOffset,
+  schoolFormationVerticalHalfExtent,
   soloAgentReachedDistance,
   swimBounds,
   swimXRangeAtZ,
+  threatLevelAt,
   unregisterFish,
   updateFishRegistry,
+  yawToward,
 } from '../src/components/fishSwim.js'
 
 // Movement had no test coverage while it lived in Fish.jsx, because Node cannot import
@@ -304,6 +314,225 @@ assert.ok(
 )
 assert.ok(withNeighbourHeadingPlusX.x > withNeighbourHeadingMinusX.x, 'alignment steers toward the neighbour\'s heading')
 
+// --- threat evasion -------------------------------------------------------------------
+
+// Prey evade the mako's path over the next second, not just where it is now. Every case sits
+// the mako beyond the sardine's perception radius (~3.7 WU) so collision separation, which is
+// still radial from its centre, stays out of the answer and only the threat push is measured.
+function steeringFromMako([x, y, z], forward, speed) {
+  return withRegistry([], () => {
+    updateFishRegistry({ position: new THREE.Vector3(x, y, z) }, { ...mako, id: 'threat' }, makoSwim, null, new THREE.Vector3(...forward), speed)
+    const out = new THREE.Vector3()
+    computeBoidSteering(out, self, sardine, sardineSwim)
+    return out.clone()
+  })
+}
+
+// Passing 0.8 WU to one side: a stationary mako pushes the sardine ahead along its line; a
+// moving one pushes it straight off its path, and harder, because the path comes that close.
+const passingStill = steeringFromMako([-5, 0, -15.8], [1, 0, 0], 0)
+const passingMoving = steeringFromMako([-5, 0, -15.8], [1, 0, 0], 6)
+assert.ok(passingStill.x > Math.abs(passingStill.z), 'a stationary threat pushes radially, mostly along its line')
+assert.ok(Math.abs(passingMoving.x) < 1e-9 && passingMoving.z > 0, 'a moving threat pushes the sardine sideways off its path')
+assert.ok(passingMoving.length() > passingStill.length() * 1.5, 'a path that will pass close is a stronger threat than where the mako is now')
+
+// Out of range now, but in range within the lookahead: only the moving mako is noticed. The
+// range toward a mako is its own body length (17.8 WU here), not the sardine's ~7 WU.
+assert.equal(steeringFromMako([-21, 0, -15.5], [1, 0, 0], 0).lengthSq(), 0, 'a stationary threat beyond the radius is ignored')
+assert.ok(steeringFromMako([-21, 0, -15.5], [1, 0, 0], 6).x > 0, 'an approaching threat is avoided before it arrives')
+
+// Swimming away, the closest point of the path is where the mako is now: no better, no worse.
+assert.deepEqual(
+  steeringFromMako([-5, 0, -15], [-1, 0, 0], 6).toArray(),
+  steeringFromMako([-5, 0, -15], [-1, 0, 0], 0).toArray(),
+  'a threat swimming away is treated exactly as a stationary one',
+)
+
+// Dead ahead of a charging mako neither side is nearer; the sardine still breaks sideways at
+// full strength instead of freezing on a zero-length push.
+const deadOn = steeringFromMako([-5, 0, -15], [1, 0, 0], 6)
+assert.ok(Math.abs(deadOn.x) < 1e-9 && Math.abs(deadOn.z) > 0.4, 'dead on the path the sardine breaks sideways, hard')
+
+// threatLevelAt is the per-frame startle check. Fish.jsx startles a fish into a burst at 0.25.
+function threatLevelFromMako([x, y, z], forward, speed) {
+  return withRegistry([], () => {
+    updateFishRegistry({ position: new THREE.Vector3(x, y, z) }, { ...mako, id: 'threat' }, makoSwim, null, new THREE.Vector3(...forward), speed)
+    return threatLevelAt(self.position, sardine, sardineSwim)
+  })
+}
+const chargingLevel = threatLevelFromMako([-5, 0, -15], [1, 0, 0], 6)
+const idleLevel = threatLevelFromMako([-12, 0, -15], [1, 0, 0], 0)
+assert.ok(chargingLevel > 0.75, 'a sardine dead ahead of a charging mako is at near-maximum alarm')
+assert.ok(idleLevel > 0 && idleLevel < 0.1, 'a mako idling 12 WU away is noticed but far below a startle')
+assert.equal(threatLevelFromMako([-21, 0, -15.5], [1, 0, 0], 0), 0, 'a stationary mako beyond the threat radius raises no alarm')
+
+// Detection range scales with the predator: the mako idling 12 WU away (above) is noticed, well
+// past the sardine's own ~7 WU threat radius, but a small predator at the same distance is not.
+assert.equal(
+  withRegistry([[{ id: 'far-mahi', species: 'coryphaena-hippurus', biome: 'ocean', size: 0.4 }, resolveSwimProfile({ species: 'coryphaena-hippurus' }), { x: -12, y: 0, z: -15 }]], () =>
+    threatLevelAt(self.position, sardine, sardineSwim)),
+  0,
+  'a mahi 12 WU away goes unnoticed where a mako would not',
+)
+
+// The escape direction a startled fish dashes along points off the threat's path, not ahead of it.
+const escapeFromPassing = withRegistry([], () => {
+  updateFishRegistry({ position: new THREE.Vector3(-5, 0, -15.8) }, { ...mako, id: 'threat' }, makoSwim, null, new THREE.Vector3(1, 0, 0), 6)
+  const escape = new THREE.Vector3()
+  threatLevelAt(self.position, sardine, sardineSwim, escape)
+  return escape
+})
+assert.ok(Math.abs(escapeFromPassing.length() - 1) < 1e-9, 'the escape direction is a unit vector')
+assert.ok(Math.abs(escapeFromPassing.x) < 1e-9 && escapeFromPassing.z > 0.99, 'a sardine beside a passing mako escapes straight off its path')
+
+// Only fish with menace count: a packed school around the sardine is no threat to it.
+assert.equal(
+  withRegistry(
+    Array.from({ length: 30 }, (_, i) => [{ ...sardine, id: `calm-${i}` }, sardineSwim, { x: 0.2 + i * 0.05, y: 0, z: -15 }]),
+    () => threatLevelAt(self.position, sardine, sardineSwim),
+  ),
+  0,
+  'a crowd of sardines is no threat to a sardine',
+)
+
+// The hierarchy holds: nothing in the tank alarms the mako.
+assert.equal(
+  withRegistry([[{ id: 'mahi', species: 'coryphaena-hippurus', biome: 'ocean', size: 1 }, resolveSwimProfile({ species: 'coryphaena-hippurus' }), { x: 1, y: 0, z: -15 }]], () =>
+    threatLevelAt(self.position, mako, makoSwim)),
+  0,
+  'a mahi alongside the mako does not alarm it',
+)
+
+// Unregistering a threat removes it from the per-frame check too, not just from the registry.
+withRegistry([], () => {
+  updateFishRegistry({ position: new THREE.Vector3(-5, 0, -15) }, { ...mako, id: 'leaving' }, makoSwim, null, new THREE.Vector3(1, 0, 0), 6)
+  assert.ok(threatLevelAt(self.position, sardine, sardineSwim) > 0.75, 'the charging mako alarms the sardine')
+  unregisterFish('leaving')
+  assert.equal(threatLevelAt(self.position, sardine, sardineSwim), 0, 'once it unmounts it alarms nobody')
+})
+
+// --- escape arc turning -----------------------------------------------------------------
+
+// A startled fish carves its U-turn with yawToward. The ordinary rotateDirectionToward lerps, so
+// aimed dead astern it does not turn at all on the first step (it only flips past halfway) —
+// which is exactly the snap the escape arc replaces.
+const astern = new THREE.Vector3(0, 0, -1)
+assert.equal(rotateDirectionToward(new THREE.Vector3(0, 0, 1), astern, 0.3).x, 0, 'the lerping turn stalls on a target dead astern')
+
+const uTurn = new THREE.Vector3(0, 0, 1)
+let uTurnSteps = 0
+while (uTurn.angleTo(astern) > 1e-9 && uTurnSteps < 50) {
+  const before = uTurn.clone()
+  yawToward(uTurn, astern, 0.3, 1)
+  uTurnSteps += 1
+  if (uTurn.angleTo(astern) > 1e-9) assert.ok(Math.abs(before.angleTo(uTurn) - 0.3) < 1e-9, 'every step of the U-turn sweeps the full allowed angle')
+}
+assert.equal(uTurnSteps, Math.ceil(Math.PI / 0.3), 'a U-turn takes exactly as many steps as its angle allows, with no stall')
+assert.ok(yawToward(new THREE.Vector3(0, 0, 1), astern, 0.3, 1).x > 0, 'side +1 turns dead astern one way')
+assert.ok(yawToward(new THREE.Vector3(0, 0, 1), astern, 0.3, -1).x < 0, 'side -1 turns it the other')
+assert.ok(yawToward(new THREE.Vector3(0, 0, 1), new THREE.Vector3(-1, 0, -0.2), 0.3, 1).x < 0, 'off dead astern it takes the shorter way whatever the side')
+// Headings either side of the -z axis are 20° apart the short way but 340° the long way. The
+// side hint points the long way here, and must not win over the shorter turn.
+const acrossSeam = new THREE.Vector3(Math.sin(THREE.MathUtils.degToRad(170)), 0, Math.cos(THREE.MathUtils.degToRad(170)))
+const acrossSeamTarget = new THREE.Vector3(-acrossSeam.x, 0, acrossSeam.z)
+const acrossSeamBefore = acrossSeam.angleTo(acrossSeamTarget)
+yawToward(acrossSeam, acrossSeamTarget, 0.1, -1)
+assert.ok(Math.abs(acrossSeamBefore - acrossSeam.angleTo(acrossSeamTarget) - 0.1) < 1e-9, 'a turn across the -z axis goes the short way round')
+
+// pitchToward is the vertical half: heading unchanged, tilt stepped by at most the allowed angle.
+const tilting = pitchToward(new THREE.Vector3(1, 0, 0), new THREE.Vector3(1, 1, 0), 0.2)
+assert.ok(Math.abs(Math.atan2(tilting.y, Math.hypot(tilting.x, tilting.z)) - 0.2) < 1e-12, 'pitch steps by the allowed angle')
+assert.ok(Math.abs(tilting.z) < 1e-12 && tilting.x > 0, 'and the heading stays put')
+assert.ok(Math.abs(tilting.length() - 1) < 1e-12, 'and the direction stays a unit vector')
+assert.ok(Math.abs(pitchToward(new THREE.Vector3(1, 0, 0), new THREE.Vector3(1, 0.05, 0), 0.2).y - Math.sin(Math.atan2(0.05, 1))) < 1e-12, 'a pitch within reach is matched exactly')
+
+// Together they turn an escape at exactly its own rate: one yaw step, no second step on top.
+const arcStep = new THREE.Vector3(0, 0, 1)
+yawToward(arcStep, new THREE.Vector3(1, 0, 0), 0.1, 1)
+pitchToward(arcStep, new THREE.Vector3(1, 0, 0), 0.1)
+assert.ok(Math.abs(arcStep.angleTo(new THREE.Vector3(0, 0, 1)) - 0.1) < 1e-12, 'an escape step turns by exactly its allowed angle')
+
+const pitched = yawToward(new THREE.Vector3(0, 0.3, 1).normalize(), new THREE.Vector3(1, 0, 0), 0.5, 1)
+assert.ok(Math.abs(pitched.y - new THREE.Vector3(0, 0.3, 1).normalize().y) < 1e-12, 'the arc turns heading only, leaving pitch for the ordinary step')
+assert.ok(Math.abs(pitched.length() - 1) < 1e-12, 'and keeps the direction a unit vector')
+
+// --- school formation fits its bounds -------------------------------------------------------
+
+// The leader keeps the school's goal this far from the vertical bounds, so it must reach every
+// member's slot — a slot past it is a fish flattened against yMax. It should also be tight, or
+// the school is kept needlessly out of the top and bottom of its band.
+for (const count of [2, 95, 180, 275]) {
+  const school = { id: `fit-${count}`, count, index: 0 }
+  let highest = 0
+  for (let index = 0; index < count; index += 1) {
+    const slot = schoolFormationOffset({ ...school, index }, { ...sardine, id: `fit-${count}-${index}` })
+    highest = Math.max(highest, Math.abs(slot.vertical))
+  }
+  const extent = schoolFormationVerticalHalfExtent(school, sardine)
+  assert.ok(highest <= extent + 1e-9, `every slot of a ${count}-fish school sits within its vertical half-extent`)
+  // A pair fills two slots and never reaches the formation's full height; a real school does.
+  if (count >= 95) assert.ok(extent - highest < 0.25, `and the half-extent of a ${count}-fish school is not loose`)
+}
+assert.ok(Math.abs(schoolFormationVerticalHalfExtent({ id: 's', count: 180 }, sardine) - 3.98) < 0.01, 'the 180-sardine school reaches ~3.98 WU above and below its centre')
+
+// A fish held on its top bound glides along it instead of pointing into it. Alignment spreads
+// whatever the heading is through the school, so a heading left pitched into the ceiling kept a
+// whole school pinned there.
+const glideBounds = { yMin: -10, yMax: 2.83 }
+const noseUp = new THREE.Vector3(0.3, 0.8, -0.5).normalize()
+assert.equal(glideAlongVerticalBound(noseUp, new THREE.Vector3(0, 2.83, -15), glideBounds), true, 'a fish on its ceiling pointing up is flattened')
+assert.equal(noseUp.y, 0, 'its heading no longer points into the ceiling')
+assert.ok(Math.abs(noseUp.length() - 1) < 1e-12 && noseUp.x > 0 && noseUp.z < 0, 'and it keeps its horizontal direction')
+const noseDownAtTop = new THREE.Vector3(0, -0.4, -1).normalize()
+assert.equal(glideAlongVerticalBound(noseDownAtTop, new THREE.Vector3(0, 2.83, -15), glideBounds), false, 'a fish on its ceiling already heading down is left alone')
+const noseUpBelowTop = new THREE.Vector3(0, 0.4, -1).normalize()
+assert.equal(glideAlongVerticalBound(noseUpBelowTop, new THREE.Vector3(0, 2.5, -15), glideBounds), false, 'a fish below its ceiling may still climb')
+const noseDownAtFloor = new THREE.Vector3(1, -0.5, 0).normalize()
+assert.equal(glideAlongVerticalBound(noseDownAtFloor, new THREE.Vector3(0, -10, -15), glideBounds), true, 'the floor flattens a fish heading down into it')
+assert.ok(noseDownAtFloor.y === 0 && noseDownAtFloor.x > 0.99, 'into a level heading')
+
+// --- school alarm wave -------------------------------------------------------------------
+
+// A startled member's alarm spreads through its school as a wave: it reaches nearer fish first,
+// weakens with distance, outruns the predator, and fades.
+const alarmAt = x => new THREE.Vector3(x, 0, -15)
+const wave = { alarms: [] }
+raiseSchoolAlarm(wave, alarmAt(0))
+assert.equal(schoolAlarmAt(wave, alarmAt(0)), 1, 'the startled fish is fully alarmed at once')
+assert.equal(schoolAlarmAt(wave, alarmAt(6)), 0, 'a fish 6 WU away has not been reached yet')
+advanceSchoolAlarms(wave, 0.5)
+const alarmNear = schoolAlarmAt(wave, alarmAt(3))
+const alarmFar = schoolAlarmAt(wave, alarmAt(6))
+assert.ok(alarmNear > alarmFar && alarmFar > 0, 'once reached, nearer fish are more alarmed')
+assert.equal(schoolAlarmAt(wave, alarmAt(12.5)), 0, 'the alarm does not reach past its range')
+assert.equal(schoolAlarmAt(null, alarmAt(0)), 0, 'a fish with no school has no school alarm')
+
+// The point of a wave: it tells a fish 5 WU away about a mako before the mako could get there.
+const race = { alarms: [] }
+raiseSchoolAlarm(race, alarmAt(0))
+advanceSchoolAlarms(race, (5 / 4.7) * 0.5)
+assert.ok(schoolAlarmAt(race, alarmAt(5)) > 0, 'the alarm crosses 5 WU in half the time a cruising mako takes')
+
+advanceSchoolAlarms(wave, 6)
+assert.ok(schoolAlarmAt(wave, alarmAt(0)) < 0.1, 'the alarm fades once the wave has passed')
+
+// A mako pass startles dozens of neighbours at once; they add one wave, not dozens.
+const merged = { alarms: [] }
+raiseSchoolAlarm(merged, alarmAt(0))
+raiseSchoolAlarm(merged, alarmAt(0.5))
+assert.equal(merged.alarms.length, 1, 'a startle beside a fresh wave joins it')
+raiseSchoolAlarm(merged, alarmAt(6))
+assert.equal(merged.alarms.length, 2, 'a startle elsewhere starts its own wave')
+advanceSchoolAlarms(merged, 0.5)
+raiseSchoolAlarm(merged, alarmAt(0.5))
+assert.equal(merged.alarms.length, 3, 'and so does a later startle in the same place')
+
+const capped = { alarms: [] }
+for (let i = 0; i < 20; i += 1) raiseSchoolAlarm(capped, alarmAt(i * 2))
+assert.equal(capped.alarms.length, 12, 'live waves are capped')
+advanceSchoolAlarms(capped, 60)
+assert.equal(capped.alarms.length, 0, 'spent waves are dropped')
+
 // --- registry accessors -------------------------------------------------------------
 
 withRegistry([[sardine, sardineSwim, { x: 1, y: 2, z: -15 }]], () => {
@@ -312,6 +541,11 @@ withRegistry([[sardine, sardineSwim, { x: 1, y: 2, z: -15 }]], () => {
   assert.equal(entry.species, 'amblygaster-sirm', 'the entry carries its species')
   assert.equal(entry.biome, 'ocean', 'the entry carries its biome')
   assert.equal(entry.schoolId, null, 'an unschooled fish has no school id')
+  assert.equal(entry.speed, 0, 'a fish registered without a speed reads as stationary')
+  // Every frame after the first updates the existing entry, so speed must be refreshed there
+  // too — otherwise it stays at its first-frame 0 and evasion silently never happens.
+  updateFishRegistry({ position: new THREE.Vector3(1, 2, -15) }, sardine, sardineSwim, null, new THREE.Vector3(0, 0, -1), 1.5)
+  assert.equal(getFishEntry(sardine.id).speed, 1.5, 'an existing entry picks up its new speed')
 })
 assert.equal(getFishEntry(sardine.id), undefined, 'an unregistered fish reads back as undefined')
 

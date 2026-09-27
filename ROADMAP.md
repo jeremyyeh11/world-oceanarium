@@ -13,6 +13,16 @@ Status labels:
 
 ## Current work
 
+### Live Sharksucker (`v0.16.0-dev_4`)
+
+Status: `Current in development` — four free-swimming *Echeneis naucrates* are being added to the Open Sea from Jeremy's supplied static GLB.
+
+Subtasks:
+- [x] Keep pectoral and pelvic fins as four separate meshes in the single GLB; body, disc, long dorsal, anal and caudal surfaces remain the deforming body mesh.
+- [x] Add a rig-free caudal-motion pass with small independent fin corrections, physical 66 cm standard-length review scaling, Atlas source-length scaling, and four static-dev review creatures.
+- [ ] Verify tank/Atlas scale, fin pivots, body motion and mobile presentation; then request feel approval. `Blocked / waiting review`
+- [ ] Host adhesion states and geometry-aware anchors. Deliberately deferred: do not fake attachment with root proximity. `Backlog`
+
 ### Nature of Code autonomous-agents review (`v0.15.8` bucket onward)
 
 Status: `Current in development` — the first branch shipped in clean `v0.15.8`; `feat/predator-response` is in review as `v0.16.0-dev_3`.

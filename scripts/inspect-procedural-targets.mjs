@@ -48,6 +48,16 @@ const targets = [
     minBodyLength: 0.5,
     minVertices: 8000,
   },
+  {
+    name: 'Live Sharksucker static parts',
+    path: 'public/models/fish/echeneis-naucrates/echeneis-naucrates.glb',
+    staticMesh: true,
+    bodyMeshNames: ['live_sharksucker_1'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 6,
+    minVertices: 1000,
+  },
 ]
 
 const axisValue = (vector, axis) => axis === 'x' ? vector.x : (axis === 'y' ? vector.y : vector.z)

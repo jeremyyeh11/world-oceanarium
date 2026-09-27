@@ -76,6 +76,14 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.3, -0.12, 0],
     lookAt: [0, -0.08, 0],
   },
+  'echeneis-naucrates': {
+    cameraDistance: 9.4,
+    cameraPitchDegrees: 28,
+    fov: 34,
+    maxLengthDisplayUnits: 4.4,
+    position: [0, -0.08, 0],
+    lookAt: [0, -0.06, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -83,6 +91,7 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'coryphaena-hippurus': 9.788,
   'mola-alexandrini': 20.7909,
   'isurus-oxyrinchus': 40.1835,
+  'echeneis-naucrates': 6.6014,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -111,7 +120,7 @@ function viewPoseForSpecies(species) {
 function atlasCameraPosition(pose) {
   const distance = pose.cameraDistance ?? pose.cameraPosition?.[2] ?? 9.2
   const yaw = THREE.MathUtils.degToRad(ATLAS_CAMERA_YAW_DEGREES)
-  const pitch = THREE.MathUtils.degToRad(ATLAS_CAMERA_PITCH_DEGREES)
+  const pitch = THREE.MathUtils.degToRad(pose.cameraPitchDegrees ?? ATLAS_CAMERA_PITCH_DEGREES)
   const lookAt = pose.lookAt ?? pose.position ?? [0, 0, 0]
   const horizontalDistance = Math.cos(pitch) * distance
 

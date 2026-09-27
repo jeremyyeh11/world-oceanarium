@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.16.0 — Predator response
 
-Status: in review as `v0.16.0-dev_3` (dev_2 had steps 1–2 and the school fixes; dev_3 adds the school alarm). The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
+Status: in review as `v0.16.0-dev_4` (dev_2 had steps 1–2 and the school fixes; dev_3 adds the school alarm). PR #102's host-riding remora experiment remains separately reviewed; this build adds only a free-swimming Live Sharksucker and deliberately excludes attachment mechanics.
 
 ### Behaviour
 
@@ -31,6 +31,11 @@ Status: in review as `v0.16.0-dev_3` (dev_2 had steps 1–2 and the school fixes
 ### Repository
 
 - `tests/fishSwim.test.mjs` covers the new movement: prediction, the size-scaled range, the per-frame threat check, the escape direction, `yawToward` / `pitchToward`, the school alarm wave (arrival order, falloff, fading, merging, the event cap and expiry), the formation's vertical extent, and gliding along a bound. Every group was checked against 28 hand-broken copies of the code; two first slipped through (a registry that never refreshed speed after the first frame, and a turn that could go the long way round), and a test was added for each.
+### Creature
+
+- Adds four free-swimming Live Sharksuckers (*Echeneis naucrates*) to the Open Sea. They are independent loose companions rather than a school: broad spacing, nearly no cohesion, and no host-attachment mechanic yet.
+- Imports Jeremy's supplied rig-free five-mesh GLB. The rigid disc/front body and long trailing body use a compact caudal deformation, while the separately exported pectoral and pelvic fins make restrained stabilising strokes. A 6.6014-unit source length maps to a 66 cm standard-length reference at `model.scale: 0.4`.
+- Adds an Atlas entry with source-length display scaling, factual 110 cm total-length maximum, and explicit “attachment behaviour held for later” copy rather than pretending proximity is adhesion.
 
 ## v0.15.8 — Atlas corrections and frame cost
 

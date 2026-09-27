@@ -138,6 +138,14 @@ counter-curve the tail into a visible S. `amplitude: 0.82`, `waveSpeed: 1.86`,
 `burstAmplitude: 0.82`, `response: 4.8`, boosts `0.28`/`0.22`,
 `pectoralFinFlutter: 0.06`.
 
+**Live Sharksucker** — compact caudal propulsion behind a rigid adhesive-disc front.
+`sourceAxis: 'z'`, `lateralAxis: 'x'`, `tailAtMaxZ: true`, `amplitude: 0.14`,
+`waveSpeed: 3.05`, `waveTravel: 4.1`, `flexStart: 0.28`, `flexFull: 0.88`,
+`turnStrength: 0.16`, `burstAmplitude: 0.5`, `response: 6.2`, boosts
+`0.28`/`0.22`, pectoral flutter `0.075`, pelvic flutter `0.028`. Its separate
+pectoral/pelvic roots lie ahead of the deforming rear body; the long dorsal, anal
+and caudal surfaces stay welded to the body mesh.
+
 Note the pattern: **bigger animal → lower `waveSpeed`, higher `waveTravel` and
 `amplitude`, lower `response`.** Mass reads as slow cadence, long wave, and lazy
 steering.

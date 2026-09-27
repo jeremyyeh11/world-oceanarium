@@ -13,6 +13,29 @@ Status labels:
 
 ## Current work
 
+### Nature of Code autonomous-agents review (`v0.15.8` bucket onward)
+
+Status: `Current in development` — the first branch is in review; the two behaviour branches have not started.
+
+Reference:
+- Source: [Nature of Code ch. 5, Autonomous Agents](https://natureofcode.com/autonomous-agents/), compared against `fishSwim.js` / `Fish.jsx` and measured live in the Open Sea (281 fish, desktop dev build). Before this work: frame 2.8–3.2 ms, of which render ~1.7–2.1 ms and simulation ~1.1 ms; the neighbour search was only ~0.04 ms per frame.
+- Split into one branch per risk level, so a rejected look can be dropped without losing the rest.
+
+Subtasks:
+- [x] `perf/frame-cost` — hide the tap-target proxies and remove per-frame allocations (`v0.15.8-dev_3`). No behaviour change, proven against `main` by an equivalence harness. `Blocked / waiting review`
+- [ ] `feat/predator-response` — prey evade the predator's *predicted* position (the chapter's pursue/evade) instead of its current one (`fishSwim.js` threat code), and a real threat triggers the sardine burst with a cooldown instead of a random timer. Then a fading school-wide alarm that neighbours copy, tightening spacing while it is high (state-dependent weights, Exercises 5.14 / 5.18). Needs a feel review on a phone. `Next`
+- [ ] `feat/school-neighbours` — sardines consider ~6 nearest neighbours instead of 14 (`species.js`) and adjust speed as well as heading to keep station (Katz et al. 2011); check predators directly rather than sorting ~140 school candidates per decision. Changes how the hand-tuned school looks, so it ships alone. `Next`
+- [ ] Mako wander plus occasional long search runs when prey is sparse (Sims 2008, Humphries 2010) instead of random destinations. `Backlog`
+- [ ] A gentle ocean current (flow field) that carries drifters like the Mola and biases schools. `Backlog`
+- [ ] A few informed fish lead the school instead of one shared goal (Couzin 2005). High risk to school cohesion. `Backlog`
+- [ ] One flock loop plus a spatial grid for sardines. Only worth it if sardine numbers approach ~1,000; ~2–3 days. `Backlog`
+
+Explicitly rejected — do not re-propose:
+- Force-based steering: the turn-radius arcs already prevent the sideways strafing it produces.
+- Path following: removed earlier because schools read as conga lines.
+- Sine lookup tables and quadtrees: negligible gains in modern JavaScript, overkill below ~1,000 fish.
+- The chapter's wall behaviour: the predictive boundary avoidance is already better.
+
 ### Procedural animation doc set
 
 Status: `Current in development` — hub and the two implemented type contracts are written; five type docs are unvalidated sketches awaiting their first asset.
@@ -287,7 +310,8 @@ Shipped and accepted:
 Deferred — real but no measured need (revisit only if the population grows again or a device regresses):
 - [ ] All 275 sardines run the full swim sim every frame regardless of LOD. The LOD system correctly unmounts `FishModel` (`Fish.jsx:3537`) so bone/mixer work stops, but the outer `useFrame` (`Fish.jsx:2469`) still runs sim, projection and registry writes for every fish. Stagger distant/offscreen sardines to every 2nd-4th frame, keyed off a `creature.id` hash. This is the largest remaining frame-rate lever **and** the only item in the audit that can change how the fish visibly move — which is why it was not taken once the numbers above came in. Bad trade against a non-problem.
 - [ ] LOD switching calls `setState` inside `useFrame` (`Fish.jsx:3399`). Each threshold crossing re-renders that `<Fish>` and mounts/unmounts `FishModel`, cloning the GLTF scene and its materials. Prefer toggling `.visible` imperatively. **Partly addressed in `v0.15.6`**: the correctness half is fixed — handing a fish to the instanced layer now waits for the state to commit, so it can no longer be drawn as both a model and an instance. The cost half stands: it is still one `setState` per sardine per threshold crossing, so a camera move that makes the school re-evaluate at once still queues ~275 re-renders. Any imperative-visibility rewrite must keep the `FishModel` unmount, which is what stops the bone-deform `useFrame` for instanced fish.
-- [ ] `computeBoidSteering` (`Fish.jsx:997`) scans the whole registry and pushes a fresh `{ id, other, distanceSq }` object per candidate before sorting. Throttled by `boidDecisionNextAt` so it is amortised, but at 275 fish it is ~75k distance checks per sweep plus GC churn. Reuse pooled entry objects.
+- [x] `computeBoidSteering` (now `fishSwim.js`) pushed a fresh `{ id, other, distanceSq }` object per candidate before sorting. Pooled entry records since `v0.15.8-dev_3` (`perf/frame-cost`, in review). The full-registry scan itself stands; see the Nature of Code follow-ups for the fix.
+- [x] Invisible tap-target proxies were drawn and depth-sorted as transparent meshes — one draw call per fish. `visible={false}` since `v0.15.8-dev_3` (`perf/frame-cost`, in review): Open Sea draw calls 328 → ~70, frame 2.78 → ~2.05 ms on desktop dev.
 
 Still open, unblocked:
 - [ ] The mahi texture (`baccb3fdc1`, 1920x1080, 3.48 MB) is byte-identical across `mahi-mahi_female_static_parts.glb` and `mahi-mahi_male_static_parts.glb`. `useGLTF` caches per URL, so it is two separate GPU uploads of one image (~10.5 MB of duplicate VRAM). The sardine equivalent is already resolved — one file, one copy.

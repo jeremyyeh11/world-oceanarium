@@ -149,8 +149,11 @@ const boidCenter = new THREE.Vector3()
 const boidCohesion = new THREE.Vector3()
 const boidThreat = new THREE.Vector3()
 // Reused candidate buffer for nearest-N neighbor selection so a decision tick does
-// not allocate. Entries are { id, other, distanceSq } and are re-sorted each tick.
+// not allocate. Entries are { id, other, distanceSq } records borrowed from
+// boidNeighborPool, refilled and re-sorted each tick.
 const boidNeighborScratch = []
+const boidNeighborPool = []
+const byDistanceSq = (a, b) => a.distanceSq - b.distanceSq
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
 
@@ -371,17 +374,33 @@ function projectedScreenHalfXAtZ(z) {
   return Math.max(1.5, visibleHalfX * SCREEN_X_SAFE_FRACTION * GLOBAL_X_DESTINATION_RANGE_SCALE)
 }
 
+// The x range is symmetric about the centre line, so per-frame callers read the half-width
+// directly (projectedScreenHalfXAtZ) instead of allocating a { xMin, xMax } pair each call.
 export function swimXRangeAtZ(bounds, z) {
   const halfX = projectedScreenHalfXAtZ(z)
   return { xMin: -halfX, xMax: halfX }
 }
 
 function randomXInSwimBoundsAtZ(rand, bounds, z, minT = 0, maxT = 1) {
-  const xRangeAtZ = swimXRangeAtZ(bounds, z)
-  return THREE.MathUtils.lerp(xRangeAtZ.xMin, xRangeAtZ.xMax, randomRange(rand, minT, maxT))
+  const halfX = projectedScreenHalfXAtZ(z)
+  return THREE.MathUtils.lerp(-halfX, halfX, randomRange(rand, minT, maxT))
 }
 
+// Bounds depend only on the depth zone, the swim profile, and the size, all fixed for a given
+// fish, but they were rebuilt as a fresh object several times per fish per frame. Each swim
+// profile remembers the last bounds it produced; a fish always asks with the same arguments,
+// so after its first frame this is a lookup. Frozen, because every caller shares the object.
+const swimBoundsCache = new WeakMap()
+
 export function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
+  const cached = swimBoundsCache.get(swim)
+  if (cached && cached.depthZone === depthZone && cached.size === size) return cached.bounds
+  const bounds = Object.freeze(computeSwimBounds(depthZone, swim, size))
+  swimBoundsCache.set(swim, { depthZone, size, bounds })
+  return bounds
+}
+
+function computeSwimBounds(depthZone, swim, size) {
   const [rawYMin, rawYMax] = DEPTH_Y[depthZone] ?? DEPTH_Y.epipelagic
   const boundsBodyLengthWU = swim.boundsBodyLengthWU ?? swim.bodyLengthWU
   const boundsSize = swim.boundsUseSpeciesSize === false ? 1 : size
@@ -410,9 +429,9 @@ export function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
 }
 
 function pointInsideSwimBounds(point, bounds) {
-  const { xMin, xMax } = swimXRangeAtZ(bounds, point.z)
-  return point.x >= xMin
-    && point.x <= xMax
+  const halfX = projectedScreenHalfXAtZ(point.z)
+  return point.x >= -halfX
+    && point.x <= halfX
     && point.y >= bounds.yMin
     && point.y <= bounds.yMax
     && point.z >= bounds.zMin
@@ -421,8 +440,8 @@ function pointInsideSwimBounds(point, bounds) {
 
 export function clampToSwimBounds(point, bounds) {
   point.z = THREE.MathUtils.clamp(point.z, bounds.zMin, bounds.zMax)
-  const { xMin, xMax } = swimXRangeAtZ(bounds, point.z)
-  point.x = THREE.MathUtils.clamp(point.x, xMin, xMax)
+  const halfX = projectedScreenHalfXAtZ(point.z)
+  point.x = THREE.MathUtils.clamp(point.x, -halfX, halfX)
   point.y = THREE.MathUtils.clamp(point.y, bounds.yMin, bounds.yMax)
   return point
 }
@@ -441,21 +460,21 @@ export function isMolaDeepZExit(point, bounds, bodyLength) {
 // ray-to-box time, a fish skimming parallel to a wall reads as "far" even when hugging it —
 // only a heading actually aimed at a wall returns a short distance.
 function distanceToSwimBoundaryAhead(position, forward, bounds) {
-  let best = Infinity
-  const { xMin, xMax } = swimXRangeAtZ(bounds, position.z)
-  const axes = [
-    [forward.x, position.x, xMin, xMax],
-    [forward.y, position.y, bounds.yMin, bounds.yMax],
-    [forward.z, position.z, bounds.zMin, bounds.zMax],
-  ]
-  for (const [comp, pos, lo, hi] of axes) {
-    if (comp > 1e-4) {
-      const t = (hi - pos) / comp
-      if (t >= 0 && t < best) best = t
-    } else if (comp < -1e-4) {
-      const t = (lo - pos) / comp
-      if (t >= 0 && t < best) best = t
-    }
+  const halfX = projectedScreenHalfXAtZ(position.z)
+  let best = rayToSlab(Infinity, forward.x, position.x, -halfX, halfX)
+  best = rayToSlab(best, forward.y, position.y, bounds.yMin, bounds.yMax)
+  return rayToSlab(best, forward.z, position.z, bounds.zMin, bounds.zMax)
+}
+
+// One axis of the ray-to-box test: the distance along `comp` to the wall it is heading for,
+// kept if it beats `best`. Scalar arguments only, so a per-frame call allocates nothing.
+function rayToSlab(best, comp, pos, lo, hi) {
+  if (comp > 1e-4) {
+    const t = (hi - pos) / comp
+    if (t >= 0 && t < best) return t
+  } else if (comp < -1e-4) {
+    const t = (lo - pos) / comp
+    if (t >= 0 && t < best) return t
   }
   return best
 }
@@ -477,30 +496,31 @@ export function boundaryAvoidanceTurnStep(baseStep, position, forward, bounds, s
   return Math.max(baseStep, tightenedStep)
 }
 
+// Walls in a fixed order (-x, +x, -z, +z, -y, +y); on a tie the earlier wall wins, as it did
+// when this scanned an array of candidates. Unrolled so a per-frame call allocates nothing.
 function nearestSwimBoundaryNormal(out, point, bounds, bodyLength) {
-  const xRangeAtZ = swimXRangeAtZ(bounds, point.z)
+  const halfX = projectedScreenHalfXAtZ(point.z)
   const threshold = Math.max(0.42, bodyLength * AGENT_BOUNDARY_TANGENT_DISTANCE_BODY_LENGTHS)
-  const candidates = [
-    { distance: point.x - xRangeAtZ.xMin, normal: [-1, 0, 0] },
-    { distance: xRangeAtZ.xMax - point.x, normal: [1, 0, 0] },
-    { distance: point.z - bounds.zMin, normal: [0, 0, -1] },
-    { distance: bounds.zMax - point.z, normal: [0, 0, 1] },
-    { distance: point.y - bounds.yMin, normal: [0, -1, 0] },
-    { distance: bounds.yMax - point.y, normal: [0, 1, 0] },
-  ]
+  let distance = point.x + halfX
+  let nx = -1, ny = 0, nz = 0
+  let d = halfX - point.x
+  if (d < distance) { distance = d; nx = 1; ny = 0; nz = 0 }
+  d = point.z - bounds.zMin
+  if (d < distance) { distance = d; nx = 0; ny = 0; nz = -1 }
+  d = bounds.zMax - point.z
+  if (d < distance) { distance = d; nx = 0; ny = 0; nz = 1 }
+  d = point.y - bounds.yMin
+  if (d < distance) { distance = d; nx = 0; ny = -1; nz = 0 }
+  d = bounds.yMax - point.y
+  if (d < distance) { distance = d; nx = 0; ny = 1; nz = 0 }
 
-  let closest = null
-  for (const candidate of candidates) {
-    if (!closest || candidate.distance < closest.distance) closest = candidate
-  }
-
-  if (!closest || closest.distance > threshold) {
+  if (distance > threshold) {
     out.set(0, 0, 0)
     return 0
   }
 
-  out.set(closest.normal[0], closest.normal[1], closest.normal[2])
-  return THREE.MathUtils.clamp(1 - closest.distance / threshold, 0, 1)
+  out.set(nx, ny, nz)
+  return THREE.MathUtils.clamp(1 - distance / threshold, 0, 1)
 }
 
 function projectTangentToBoundaryPlane(out, tangent, normal, fallbackForward) {
@@ -775,7 +795,19 @@ function separationPaddingForPair(school, other) {
   return FISH_SEPARATION_PADDING
 }
 
+// Boid parameters depend only on the swim profile and the species, yet were rebuilt for every
+// fish on every frame by updateFishRegistry. Cached per swim profile like swimBounds.
+const boidParamsCache = new WeakMap()
+
 function boidParamsForCreature(creature, swim) {
+  const cached = boidParamsCache.get(swim)
+  if (cached && cached.species === creature.species) return cached.params
+  const params = Object.freeze(buildBoidParams(creature, swim))
+  boidParamsCache.set(swim, { species: creature.species, params })
+  return params
+}
+
+function buildBoidParams(creature, swim) {
   const config = swim.boids ?? {}
   return {
     neighborCap: Math.max(0, Math.floor(config.neighborCap ?? BOID_NEIGHBOR_CAP)),
@@ -849,16 +881,27 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   if (debugState) debugState.perceptionRadius = perceptionRadius
 
   // Phase 1 — gather candidates within the widest (threat) radius, then sort nearest-first.
+  // Candidate records come from a pool that only grows, so a decision allocates none.
   boidNeighborScratch.length = 0
+  let pooled = 0
   FISH_REGISTRY.forEach((other, id) => {
     if (id === creature.id || other.biome !== creature.biome) return
     boidDelta.subVectors(fish.position, other.position)
     boidDelta.y *= 0.55
     const distanceSq = boidDelta.lengthSq()
     if (distanceSq < 0.000001 || distanceSq > threatRadiusSq) return
-    boidNeighborScratch.push({ id, other, distanceSq })
+    let candidate = boidNeighborPool[pooled]
+    if (!candidate) {
+      candidate = { id: null, other: null, distanceSq: 0 }
+      boidNeighborPool[pooled] = candidate
+    }
+    pooled += 1
+    candidate.id = id
+    candidate.other = other
+    candidate.distanceSq = distanceSq
+    boidNeighborScratch.push(candidate)
   })
-  boidNeighborScratch.sort((a, b) => a.distanceSq - b.distanceSq)
+  boidNeighborScratch.sort(byDistanceSq)
 
   let neighborCount = 0
   let socialWeightTotal = 0

@@ -203,6 +203,7 @@ const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentRuntimeClamp = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
 const targetLookQuaternion = new THREE.Quaternion()
+const finFlutterEuler = new THREE.Euler()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
@@ -242,6 +243,48 @@ function updateDebugVectorLine(lineRef, start, vector, scale = 1) {
 function depthFadeFromScreenZ(z) {
   const normalized = THREE.MathUtils.clamp((z + SWIM_BOX.z) / (SWIM_BOX.z * 2), 0, 1)
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
+}
+
+// Per-frame material pass (recovery fade opacity + depth-graded env light). Its inputs are set
+// just before each fish's traversal and the callback is one module-level function, so the pass
+// allocates nothing — it used to build a closure, a wrapper array, and a filtered array per
+// mesh, for every fish, every frame.
+let materialPassOpacity = 1
+let materialPassEnvMapIntensity = 1
+
+function applyMaterialPass(material) {
+  if (!material) return
+  material.transparent = materialPassOpacity < 0.999
+  material.opacity = materialPassOpacity
+  if ('depthWrite' in material) material.depthWrite = materialPassOpacity >= 0.999
+  if ('envMapIntensity' in material) material.envMapIntensity = materialPassEnvMapIntensity
+}
+
+function applyMaterialPassToChild(child) {
+  if (!child.isMesh || child.userData?.interactionProxy) return
+  if (Array.isArray(child.material)) {
+    for (let i = 0; i < child.material.length; i += 1) applyMaterialPass(child.material[i])
+  } else {
+    applyMaterialPass(child.material)
+  }
+}
+
+// Sardine LOD with hysteresis: which instanced level (or null for the detailed model) a sardine
+// at `distanceToCamera` should use, given the level it is on now.
+function nextSardineLod(current, distanceToCamera, lod2Distance, lod1Distance) {
+  if (current === 'lod2') {
+    if (distanceToCamera > lod2Distance - SARDINE_INSTANCE_HYSTERESIS) return 'lod2'
+  } else if (distanceToCamera > lod2Distance + SARDINE_INSTANCE_HYSTERESIS) {
+    return 'lod2'
+  }
+
+  if (current === 'lod1') {
+    if (distanceToCamera > lod1Distance - SARDINE_INSTANCE_HYSTERESIS) return 'lod1'
+  } else if (distanceToCamera > lod1Distance + SARDINE_INSTANCE_HYSTERESIS) {
+    return 'lod1'
+  }
+
+  return null
 }
 
 function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
@@ -1125,7 +1168,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
           + index * 0.83
           + fin.side * 0.4
         const stroke = flutterScale * (0.35 + speed01 * 0.5 + burst01 * 0.45)
-        curveDeformQuatRef.current.setFromEuler(new THREE.Euler(
+        curveDeformQuatRef.current.setFromEuler(finFlutterEuler.set(
           Math.sin(phase) * stroke * 0.45,
           fin.side * Math.sin(phase * 0.7 + 0.6) * stroke * 0.55,
           fin.side * Math.sin(phase + 1.2) * stroke,
@@ -1238,7 +1281,9 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         curveState.hasPreviousAdditive[index] = true
       })
     }
-    materialsRef.current.forEach(material => {
+    const materials = materialsRef.current
+    for (let i = 0; i < materials.length; i += 1) {
+      const material = materials[i]
       const uniforms = material?.userData?.fishLightMaskUniforms
       if (uniforms) uniforms.uTime.value = elapsed
       const proceduralUniforms = material?.userData?.proceduralFishUniforms
@@ -1248,7 +1293,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         proceduralUniforms.turn.value = curveDeformTurnRef.current
         proceduralUniforms.burst.value = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
       }
-    })
+    }
   })
 
   useEffect(() => {
@@ -1452,6 +1497,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       metersPerWU: WORLD_UNIT_METERS,
     }
   }, [creature, swim, isSchooling, school?.id])
+  const sardineRegistryEntries = useMemo(() => ({
+    frustum: { candidate: false, culled: false },
+    lod0: { candidate: false, drawn: false },
+  }), [])
   const instancedEntry = useMemo(() => {
     const rand = mulberry32(hashString(`${creature.id}:sardine-instance`))
     return {
@@ -2101,24 +2150,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
 
     const fade = depthFadeFromScreenZ(fish.position.z)
-    fish.traverse(child => {
-      if (!child.isMesh || child.userData?.interactionProxy) return
-      const materials = Array.isArray(child.material) ? child.material : [child.material]
-      materials.filter(Boolean).forEach(material => {
-        if (model) {
-          material.transparent = runtimeRecoveryOpacity < 0.999
-          material.opacity = runtimeRecoveryOpacity
-          if ('depthWrite' in material) material.depthWrite = runtimeRecoveryOpacity >= 0.999
-          if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.45, 0.95, fade)
-          return
-        }
-
-        material.transparent = runtimeRecoveryOpacity < 0.999
-        material.opacity = runtimeRecoveryOpacity
-        if ('depthWrite' in material) material.depthWrite = runtimeRecoveryOpacity >= 0.999
-        if ('envMapIntensity' in material) material.envMapIntensity = THREE.MathUtils.lerp(0.25, 0.95, fade)
-      })
-    })
+    materialPassOpacity = runtimeRecoveryOpacity
+    materialPassEnvMapIntensity = THREE.MathUtils.lerp(model ? 0.45 : 0.25, 0.95, fade)
+    fish.traverse(applyMaterialPassToChild)
 
     const pitchLimit = maxVisualPitch(creature, swim)
     if (isSoloAgent && desiredDirection.current.lengthSq() > 0.0001) {
@@ -2443,21 +2477,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const distanceToCamera = camera.position.distanceTo(fish.position)
       const lod2Distance = zoomActive ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE
       const lod1Distance = zoomActive ? SARDINE_LOD1_DISTANCE : SARDINE_TANK_LOD1_DISTANCE
-      const nextInstancedLod = (() => {
-        if (instancedSardineLod === 'lod2') {
-          if (distanceToCamera > lod2Distance - SARDINE_INSTANCE_HYSTERESIS) return 'lod2'
-        } else if (distanceToCamera > lod2Distance + SARDINE_INSTANCE_HYSTERESIS) {
-          return 'lod2'
-        }
-
-        if (instancedSardineLod === 'lod1') {
-          if (distanceToCamera > lod1Distance - SARDINE_INSTANCE_HYSTERESIS) return 'lod1'
-        } else if (distanceToCamera > lod1Distance + SARDINE_INSTANCE_HYSTERESIS) {
-          return 'lod1'
-        }
-
-        return null
-      })()
+      const nextInstancedLod = nextSardineLod(instancedSardineLod, distanceToCamera, lod2Distance, lod1Distance)
       cullProjection.copy(fish.position).project(camera)
       const offscreenCulled = (
         cullProjection.z < -1 ||
@@ -2466,18 +2486,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         Math.abs(cullProjection.y) > SARDINE_VIEW_CULL_MARGIN_NDC
       )
       if (modelRootRef.current) modelRootRef.current.visible = !offscreenCulled
-      updateSardineFrustumEntry(creature.id, {
-        candidate: true,
-        culled: offscreenCulled,
-      })
+      // The registry keeps these entries by reference, so each fish reuses its own pair
+      // instead of handing over two fresh objects every frame.
+      const frustumEntry = sardineRegistryEntries.frustum
+      frustumEntry.candidate = true
+      frustumEntry.culled = offscreenCulled
+      updateSardineFrustumEntry(creature.id, frustumEntry)
       // Report what is actually on screen, not what we are about to switch to.
       // `renderModel` keys off instancedSardineLod (the committed state), so during a
       // pending transition the detailed model is still the thing being drawn — and
       // this is the readout used to diagnose exactly that.
-      updateSardineLod0Entry(creature.id, {
-        candidate: !instancedSardineLod,
-        drawn: !instancedSardineLod && !offscreenCulled,
-      })
+      const lod0Entry = sardineRegistryEntries.lod0
+      lod0Entry.candidate = !instancedSardineLod
+      lod0Entry.drawn = !instancedSardineLod && !offscreenCulled
+      updateSardineLod0Entry(creature.id, lod0Entry)
 
       // The detailed model is mounted/unmounted through React state
       // (renderModel = model && !instancedSardineLod), which commits a render after
@@ -2786,7 +2808,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         onPointerUp={handleSelect}
         onClick={handleSelect}
       >
-        <mesh userData={{ interactionProxy: true }}>
+        {/* Tap target only. Hidden, not zero-opacity: three.js still draws and depth-sorts a
+            transparent opacity-0 mesh, which was one draw call per fish (281 of ~360 in the
+            Open Sea). Raycasting ignores `visible`, so taps still land on it. */}
+        <mesh visible={false} userData={{ interactionProxy: true }}>
           <boxGeometry args={proxyDimensions} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} color="#000000" />
         </mesh>

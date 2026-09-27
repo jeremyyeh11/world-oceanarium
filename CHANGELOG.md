@@ -10,9 +10,17 @@ Versioning convention notes:
 
 ## v0.15.8 — Atlas data corrections
 
-Status: in review as `v0.15.8-dev_2`.
+Status: in review as `v0.15.8-dev_3`.
+
+### Performance
+
+- The invisible tap-target box every fish carries is no longer drawn. It was a zero-opacity mesh, and three.js still draws and depth-sorts a transparent mesh whatever its opacity, so it cost one draw call per fish: 281 in the Open Sea, about four in five of the frame's draw calls. It is now `visible={false}`. Neither three's raycaster nor r3f's event layer checks `visible`, so a tap still lands on it. Desktop dev build, Open Sea, 600-frame averages: draw calls 328 → ~70, render 1.69 → ~1.05 ms, whole frame 2.78 → ~2.05 ms.
+- The fish update stopped creating throwaway objects every frame, following the Nature of Code autonomous-agents chapter's advice on temporary vectors. Swim bounds and boid settings are cached per swim profile, and frozen so one fish can never edit an object another fish is reading. Boundary checks no longer build candidate arrays. The neighbour search reuses pooled records instead of one new object per candidate. The material pass no longer allocates a closure per fish. Sardine LOD registry entries are reused, and fin flutter reuses one `Euler`. JS heap growth dropped from 46 to 30 MB/s. The CPU saving is small; the point is fewer garbage-collection pauses on phones.
+- Behaviour is unchanged, and that was checked rather than assumed. A throwaway harness ran `main`'s `fishSwim.js` and this one side by side on 200,000 random inputs: 3.4 million comparisons, all bit-identical. A deliberately broken copy produced 130,305 mismatches, so the harness would have caught a real difference.
 
 ### Repository
+
+- `tests/fishSwim.test.mjs` pins the new caches: repeat calls share one frozen bounds object, a different depth zone is never served stale bounds, and two species sharing one swim profile never inherit each other's boid settings.
 
 - Movement moved out of `Fish.jsx` into `src/components/fishSwim.js` — swim bounds, boundary avoidance, solo-agent steering, the Mola sun-bask targeting, and the boid/schooling maths. `Fish.jsx` drops from 3,783 lines to 2,861. The moved logic is byte-identical to what it replaced; the only behavioural surface that changed is that `SCHOOL_STATES` and `FISH_REGISTRY` are now private to the new module, reached through four accessors rather than touched directly.
 - The new module is `.js` rather than `.jsx`, which is what makes it testable: Node cannot import `.jsx`, and that is why the largest file in the project has never had a unit test. `tests/fishSwim.test.mjs` is the first coverage movement has ever had — 59 assertions, verified against 12 hand-built mutants rather than a green run, since a test that passes proves nothing about what it would catch.

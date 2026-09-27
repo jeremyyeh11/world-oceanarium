@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.16.0 — Predator response
+## v0.16.0 — Predator response and schooling
 
-Status: in review as `v0.16.0-dev_5` (dev_2 had steps 1–2 and the school fixes; dev_3 adds the school alarm). The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
+Status: in review as `v0.16.0-dev_6`. `dev_2` had the evade and escape work and the first school fixes, `dev_3` added the school alarm (#105), `dev_5` the landing-card mark (#107), and `dev_6` the school-neighbours work and soft vertical walls. The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
 
 ### Behaviour
 
@@ -20,6 +20,9 @@ Status: in review as `v0.16.0-dev_5` (dev_2 had steps 1–2 and the school fixes
 - A school reacts together. One startled sardine used to be one fish reacting; now its alarm spreads through its school as a wave at 15 WU/s, about three times a cruising mako, weakening to nothing 12 WU out and fading about 2 s after it passes. Every member reacts in proportion to how alarmed it is (Nature of Code's state-dependent weights): the formation packs toward 40% of its spacing with the pull to each slot up to 2.5× as strong, the fish cruises at up to 1.8× its idle speed and stops drifting, and it startles at half the usual threat level. As the wave first reaches a fish it flinches with an ordinary burst, and that ripple of bursts is what makes the wave visible. On a staged pass the alarm reached 177 of 180 sardines within ~1.8 s and neighbours closed from ~1.05 to ~0.8 WU apart (20–27%). The school as a whole stays about as wide, because the escapes split it to both sides of the mako first. Each fish reads a handful of wave events rather than its neighbours, so the wave costs almost nothing per frame.
 - The escape uses a new `yawToward` turn at a true angular rate. The ordinary turn lerps, which barely moves toward a target behind the fish and then flips past halfway, so any U-turn built on it would have snapped. Normal swimming still uses the old turn, so its look is unchanged.
 - The tail whip also reaches the instanced sardine layer. Nearly every sardine near a predator is drawn by it rather than the detailed model: all 275 were, while following the mako.
+- Sardines watch their nearest 6 neighbours instead of 14. Studies of schooling fish find the nearest one or two dominate how a fish moves (Katz et al. 2011); averaging over fourteen blurred the local interactions a school is made of.
+- School members keep their place by speed as well as by turning. Real schooling fish hold their front-back position by speeding up and slowing down and turn mostly to correct left-right (Katz et al. 2011); ours only turned toward their slot. A member now cruises 25% faster per body length its slot lies ahead of it, and slower when behind, within 0.7–1.5× its idle speed.
+- On one ~85 s run each against `v0.16.0-dev_3`, both schools had fewer stragglers (5.2 → 3.0 and 3.8 → 2.1 fish more than twice the school's radius out) and the small school was tighter and better aligned. The big school came out a little looser. A single run each; the stragglers are the one result that moved the same way in both schools.
 
 ### Interface
 
@@ -29,12 +32,17 @@ Status: in review as `v0.16.0-dev_5` (dev_2 had steps 1–2 and the school fixes
 
 - A sardine school could flatten into a sheet against the top of its swim band, and left running long enough it got stuck there: all 180 sardines at `yMax`, every one pointing ~30° up, the school a single flat layer. Two causes, both older than this release:
   - The leader kept the school's goal only ~0.6–0.9 WU inside the vertical bounds while the formation reaches ~4 WU above and below its centre, so a goal near the top put the upper half past the bound. The goal now stays at least the formation's vertical half-extent inside (3.98 WU for 180 sardines); at the highest goal that allows, at most 5 of 180 touched the bound.
-  - The trap: `clampToSwimBounds` held a fish's position on the bound but left its heading pitched into it, and boid alignment spread that pitch through the school, while slots measured from a centroid on the bound kept pulling half the fish past it. A fish on its top or bottom bound now glides along it (`glideAlongVerticalBound`), and formation slots are clamped inside the bounds. The pinned school let go as soon as this loaded; over the next two minutes neither school got flatter than 2.08 / 1.33 WU of vertical spread (the pinned one had 0), with 0–9 sardines touching a bound in steady state.
+  - The trap: `clampToSwimBounds` held a fish's position on the bound but left its heading pitched into it, and boid alignment spread that pitch through the school, while slots measured from a centroid on the bound kept pulling half the fish past it. `dev_2` made fish glide along a bound; the pinned school let go as soon as that loaded.
+- The sardines' ceiling was an invisible wall 1.8 WU under the water surface, and a school driven upward (a mahi below it was enough) still spread along it. It now sits just under the surface itself (`boundsYMax` 3.9 against the surface's 4.6), and both vertical bounds became soft walls for schools (Nature of Code's walls): within ~2 body lengths of the top or bottom a member is steered away, harder the closer it gets, and near a bound the formation compresses in proportion instead of its slots being clamped into one layer. The surface stays a hard limit, since past it is air, so the glide rule now applies there only. Over a two-minute run at most 4 sardines touched the surface and 3 the floor at once, and no school ever had more than 17% of its fish within one 0.15 WU layer.
 - The mako's debug vectors started ~6.7 WU past its snout. Its `debugForwardOffsetRatio` had been measured from the tail end of the model (0.697) and is now 0.303, confirmed against the live mesh.
+
+### Performance
+
+- The boid decision reads threats straight from the handful of fish with menace and gathers social neighbours only within the perception radius. It used to gather everyone out to the (much wider) threat radius, so a sardine in the school sorted ~140 neighbours per decision to find one shark. A decision now costs 4.4 µs instead of 9.5 µs, with behaviour unchanged: 40 random scenes, 125,120 per-component checks against the previous version, largest difference 1.7×10⁻¹⁶ (float summation order), and two deliberately broken copies caught with 17,160 and 25,454 mismatches.
 
 ### Repository
 
-- `tests/fishSwim.test.mjs` covers the new movement: prediction, the size-scaled range, the per-frame threat check, the escape direction, `yawToward` / `pitchToward`, the school alarm wave (arrival order, falloff, fading, merging, the event cap and expiry), the formation's vertical extent, and gliding along a bound. Every group was checked against 28 hand-broken copies of the code; two first slipped through (a registry that never refreshed speed after the first frame, and a turn that could go the long way round), and a test was added for each.
+- `tests/fishSwim.test.mjs` covers the new movement: prediction, the size-scaled range, the per-frame threat check, the escape direction, `yawToward` / `pitchToward`, the school alarm wave (arrival order, falloff, fading, merging, the event cap and expiry), the formation's vertical extent, the soft walls, and gliding along the ceiling. Every group was checked against 32 hand-broken copies of the code; two first slipped through (a registry that never refreshed speed after the first frame, and a turn that could go the long way round), and a test was added for each.
 
 ## v0.15.8 — Atlas corrections and frame cost
 

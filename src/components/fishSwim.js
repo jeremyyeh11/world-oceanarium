@@ -162,6 +162,8 @@ const boidCenter = new THREE.Vector3()
 const boidCohesion = new THREE.Vector3()
 const boidThreat = new THREE.Vector3()
 const boidThreatPath = new THREE.Vector3()
+// Ids of the threats pushing the fish being decided, for the debug overlay's 'avoid' relation.
+const boidAvoidIds = new Set()
 // Reused candidate buffer for nearest-N neighbor selection so a decision tick does
 // not allocate. Entries are { id, other, distanceSq } records borrowed from
 // boidNeighborPool, refilled and re-sorted each tick.
@@ -408,15 +410,28 @@ export function yawToward(current, target, maxAngle, side = 1) {
   return current
 }
 
-// A fish held on its top or bottom bound glides along it: the part of its heading that points out
-// of the bound is removed. clampToSwimBounds holds the position but left the heading pitched into
-// the bound, and boid alignment then spread that pitch through the school. A school that touched
-// its ceiling stayed pinned there, every fish pointing ~30° up, until it had squashed into a
-// single flat layer (all 180 sardines at yMax, seen in review). Returns whether it flattened.
-export function glideAlongVerticalBound(direction, position, bounds) {
-  const intoTop = position.y >= bounds.yMax - 0.0001 && direction.y > 0
-  const intoBottom = position.y <= bounds.yMin + 0.0001 && direction.y < 0
-  if (!intoTop && !intoBottom) return false
+// Soft vertical walls (Nature of Code ch. 5, walls): within `margin` of the top or bottom bound a
+// fish is steered away, quadratically harder toward the bound, up to SOFT_WALL_STRENGTH at it. The
+// result is added to the vertical part of a desired heading (roughly unit length), so at the bound
+// it outweighs anything pulling the fish on into it. Meeting a bound only as a clamp stopped fish
+// dead in a flat layer against it; a push turns them away before they get there.
+const SOFT_WALL_STRENGTH = 1.2
+
+export function verticalBoundRepulsion(y, bounds, margin) {
+  if (!(margin > 0)) return 0
+  const intoTop = THREE.MathUtils.clamp((y - (bounds.yMax - margin)) / margin, 0, 1)
+  const intoBottom = THREE.MathUtils.clamp((bounds.yMin + margin - y) / margin, 0, 1)
+  return (intoBottom * intoBottom - intoTop * intoTop) * SOFT_WALL_STRENGTH
+}
+
+// The top bound stays hard — past it is the water surface — so a fish pressed against it levels
+// off and glides along it: the part of its heading pointing up is removed. clampToSwimBounds holds
+// the position but left the heading pitched into the bound, and boid alignment then spread that
+// pitch through the school, which once pinned all 180 sardines flat against the ceiling pointing
+// ~30° up. The bottom bound needs no such rule: the soft wall turns fish away well before it.
+// Returns whether it flattened.
+export function glideAlongCeiling(direction, position, bounds) {
+  if (position.y < bounds.yMax - 0.0001 || direction.y <= 0) return false
   direction.y = 0
   if (direction.lengthSq() < 0.000001) direction.set(0, 0, -1)
   else direction.normalize()
@@ -1027,11 +1042,13 @@ function closestThreatApproach(out, position, other) {
   return out.lengthSq() > 0.000001
 }
 
-// Nearest-N neighbor selection: gather everything inside the (wider) threat radius,
-// sort by distance, and only treat the nearest N as school/collision neighbors. This
-// stabilizes who a fish reacts to from tick to tick, which is what kills the jitter —
-// alignment/cohesion targets stop flickering frame to frame. Threat avoidance is
-// applied to any menacing neighbor in range, capped or not, so a shark is never missed.
+// Nearest-N neighbor selection: gather everything inside the perception radius, sort by
+// distance, and only treat the nearest N as school/collision neighbors. This stabilizes who a
+// fish reacts to from tick to tick, which is what kills the jitter — alignment/cohesion targets
+// stop flickering frame to frame. Threats are read separately, straight from THREAT_ENTRIES, and
+// applied however many neighbors there are, so a shark is never missed. They reach far past the
+// perception radius (toward a mako, its own length), and gathering the whole school out to that
+// radius had a sardine sorting ~140 neighbors per decision to find the one shark.
 export function computeBoidSteering(out, fish, creature, swim, school = null, followDirection = null, debugState = null) {
   out.set(0, 0, 0)
   if (debugState) {
@@ -1053,12 +1070,31 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   const perceptionRadius = boidPerceptionRadius(creature, swim, params)
   const perceptionRadiusSq = perceptionRadius * perceptionRadius
   const threatRadius = perceptionRadius * BOID_THREAT_PERCEPTION_SCALE
-  const threatRadiusSq = threatRadius * threatRadius
   const forward = followDirection?.lengthSq?.() > 0.0001 ? followDirection : null
   if (debugState) debugState.perceptionRadius = perceptionRadius
 
-  // Phase 1 — gather candidates within the widest (threat) radius, then sort nearest-first.
-  // Candidate records come from a pool that only grows, so a decision allocates none.
+  // Phase 1 — threat avoidance: a push away from the closest point of each menacing fish's path
+  // over the lookahead (its current position when it is not moving).
+  boidThreat.set(0, 0, 0)
+  boidAvoidIds.clear()
+  THREAT_ENTRIES.forEach((other, id) => {
+    if (id === creature.id || other.biome !== creature.biome) return
+    const threatPair = other.menace * params.wariness
+    if (threatPair <= BOID_THREAT_MIN_PAIR) return
+    boidDelta.subVectors(fish.position, other.position)
+    boidDelta.y *= 0.55
+    if (boidDelta.lengthSq() < 0.000001 || !closestThreatApproach(boidDelta, fish.position, other)) return
+    const proximity = THREE.MathUtils.clamp(1 - boidDelta.length() / threatRadiusToward(other, threatRadius), 0, 1)
+    if (proximity <= 0) return
+    boidDelta.normalize()
+    boidThreat.addScaledVector(boidDelta, threatPair * proximity * proximity * BOID_THREAT_WEIGHT)
+    boidAvoidIds.add(id)
+  })
+
+  // Phase 2 — gather social candidates within the perception radius, then sort nearest-first.
+  // Threats inside it are gathered too: a nearby mahi still takes a neighbor slot and is still
+  // separated from. Candidate records come from a pool that only grows, so a decision allocates
+  // none.
   boidNeighborScratch.length = 0
   let pooled = 0
   FISH_REGISTRY.forEach((other, id) => {
@@ -1066,14 +1102,7 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
     boidDelta.subVectors(fish.position, other.position)
     boidDelta.y *= 0.55
     const distanceSq = boidDelta.lengthSq()
-    if (distanceSq < 0.000001) return
-    if (distanceSq > threatRadiusSq) {
-      // A threat outside the radius now can be inside it within the lookahead, so its
-      // gather radius grows by how far it will travel.
-      if ((other.menace ?? BOID_DEFAULT_MENACE) * params.wariness <= BOID_THREAT_MIN_PAIR) return
-      const reach = threatRadiusToward(other, threatRadius) + (other.speed ?? 0) * BOID_THREAT_LOOKAHEAD_SECONDS
-      if (distanceSq > reach * reach) return
-    }
+    if (distanceSq < 0.000001 || distanceSq > perceptionRadiusSq) return
     let candidate = boidNeighborPool[pooled]
     if (!candidate) {
       candidate = { id: null, other: null, distanceSq: 0 }
@@ -1092,29 +1121,16 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   boidAlignment.set(0, 0, 0)
   boidCenter.set(0, 0, 0)
   separationDelta.set(0, 0, 0)
-  boidThreat.set(0, 0, 0)
 
-  for (let i = 0; i < boidNeighborScratch.length; i += 1) {
+  for (let i = 0; i < boidNeighborScratch.length && neighborCount < params.neighborCap; i += 1) {
     const { id: otherId, other, distanceSq } = boidNeighborScratch[i]
     const distance = Math.sqrt(Math.max(distanceSq, 0.000001))
-    const withinPerception = distanceSq <= perceptionRadiusSq
-    const canUseSocial = withinPerception && neighborCount < params.neighborCap
     let relation = 'neutral'
     let socialWeight = 0
+    // A threat that also took a neighbor slot is drawn once, as a neighbor to avoid.
+    if (boidAvoidIds.delete(otherId)) relation = 'avoid'
 
-    // Threat avoidance — a wide-radius push away from the closest point of a menacing
-    // neighbor's path over the lookahead (its current position when it is not moving).
-    const threatPair = (other.menace ?? BOID_DEFAULT_MENACE) * params.wariness
-    if (threatPair > BOID_THREAT_MIN_PAIR && closestThreatApproach(boidDelta, fish.position, other)) {
-      const proximity = THREE.MathUtils.clamp(1 - boidDelta.length() / threatRadiusToward(other, threatRadius), 0, 1)
-      if (proximity > 0) {
-        boidDelta.normalize()
-        boidThreat.addScaledVector(boidDelta, threatPair * proximity * proximity * BOID_THREAT_WEIGHT)
-        relation = 'avoid'
-      }
-    }
-
-    if (canUseSocial) {
+    {
       const sameSchool = school?.id && other.schoolId === school.id
       const pairPadding = separationPaddingForPair(school, other)
       const minDistance = radius + other.radius + pairPadding
@@ -1146,10 +1162,10 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
       }
       neighborCount += 1
       recordDebugNeighbor(debugState, otherId, other, relation, socialWeight)
-    } else if (relation === 'avoid') {
-      recordDebugNeighbor(debugState, otherId, other, relation, socialWeight)
     }
   }
+  // Threats pushing this fish that were not among its neighbors still show in the debug overlay.
+  if (debugState) boidAvoidIds.forEach(id => recordDebugNeighbor(debugState, id, FISH_REGISTRY.get(id), 'avoid', 0))
 
   out.add(separationDelta)
   out.add(boidThreat)

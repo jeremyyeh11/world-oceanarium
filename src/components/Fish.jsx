@@ -35,7 +35,7 @@ import {
   forEachFish,
   getFishEntry,
   getSchoolState,
-  glideAlongVerticalBound,
+  glideAlongCeiling,
   interactionProxyDimensions,
   isMolaDeepZExit,
   maxTurnRadiansForSpeed,
@@ -68,6 +68,7 @@ import {
   turnRateForCreature,
   unregisterFish,
   updateFishRegistry,
+  verticalBoundRepulsion,
   yawToward,
 } from './fishSwim'
 
@@ -194,6 +195,19 @@ const SCHOOL_MIGRATION_SMOOTH = 1.6
 // then ride on top for anti-overlap and predator avoidance.
 const SCHOOL_MIGRATION_WEIGHT = 0.6
 const SCHOOL_FORMATION_WEIGHT = 0.65
+// Station keeping by speed. Schooling fish hold their front-back place by speeding up and
+// slowing down, and turn mostly to correct left-right (Katz et al. 2011); ours only turned
+// toward their slot. A member now cruises SCHOOL_STATION_GAIN faster per body length its slot
+// lies ahead along the travel direction (slower when behind it), within SCHOOL_STATION_RANGE.
+const SCHOOL_STATION_GAIN = 0.25
+const SCHOOL_STATION_RANGE = [0.7, 1.5]
+// Soft vertical walls for schools. Within this band of the top or bottom bound a member is
+// steered away (verticalBoundRepulsion), and the formation compresses vertically to keep out of
+// the band instead of its slots being clamped into a flat layer against the bound. The band is
+// SCHOOL_SOFT_WALL_BODY_LENGTHS body lengths deep, at least SCHOOL_SOFT_WALL_MIN WU (~1.8 WU for
+// a sardine).
+const SCHOOL_SOFT_WALL_BODY_LENGTHS = 2
+const SCHOOL_SOFT_WALL_MIN = 1.2
 const BOID_STEERING_SMOOTHING = 3.4
 // A fish commits to a boid steering decision and holds it for roughly one
 // animation cycle, then re-decides. This stops the per-frame re-evaluation that
@@ -1508,6 +1522,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const startleReadyAt = useRef(0)
   const startleTurnSide = useRef(1)
   const previousSchoolAlarm = useRef(0)
+  // How far this member's slot lies ahead of it along the school's travel, from the last frame.
+  const stationError = useRef(0)
   const startleUntil = useRef(0)
   const startleEscape = useRef(new THREE.Vector3())
   const nextDriftAt = useRef(runtime.nextDriftAt)
@@ -1741,10 +1757,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       && now >= startleUntil.current
     previousSchoolAlarm.current = schoolAlarm
 
+    const stationSpeedScale = isSchooling
+      ? THREE.MathUtils.clamp(
+        1 + SCHOOL_STATION_GAIN * stationError.current / Math.max(0.001, creatureBodyLength(creature, swim)),
+        SCHOOL_STATION_RANGE[0],
+        SCHOOL_STATION_RANGE[1],
+      )
+      : 1
     const idleVelocity = Math.max(
       0.08,
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
-    ) * (1 + SCHOOL_ALARM_SPEED_BOOST * schoolAlarm)
+    ) * (1 + SCHOOL_ALARM_SPEED_BOOST * schoolAlarm) * stationSpeedScale
     const driftMove = resolveMoveAnimation(model, 'drift')
     const hasDriftMove = swim.driftEnabled && Boolean(
       model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'),
@@ -1992,6 +2015,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       tangent.normalize()
 
       const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+      const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * SCHOOL_SOFT_WALL_BODY_LENGTHS)
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
         // Mola sun-bask hold: behavior owns position outright (coast to a stop,
@@ -2034,8 +2058,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, bounds.xMin + gm, bounds.xMax - gm)
               // Vertically, the whole formation has to fit above and below the goal, or the clamp
               // flattens the part that doesn't into a sheet against the bound.
+              // It also stays clear of the soft-wall band, so a calm school never touches it.
               const gy = Math.min(
-                Math.max(gm * 0.5, schoolFormationVerticalHalfExtent(school, creature)),
+                Math.max(gm * 0.5, schoolFormationVerticalHalfExtent(school, creature) + schoolSoftWall),
                 (bounds.yMax - bounds.yMin) * 0.5,
               )
               schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, bounds.yMin + gy, bounds.yMax - gy)
@@ -2071,9 +2096,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           schoolBasePosition.copy(schoolState.centroid)
           schoolBasePosition.x += (hz * schoolOffset.lateral + hx * schoolOffset.longitudinal) * packing
           schoolBasePosition.z += (-hx * schoolOffset.lateral + hz * schoolOffset.longitudinal) * packing
-          schoolBasePosition.y += schoolOffset.vertical * packing
-          // A slot past the vertical bounds is unreachable and only pulls its fish into the bound.
-          schoolBasePosition.y = THREE.MathUtils.clamp(schoolBasePosition.y, bounds.yMin, bounds.yMax)
+          // Vertically the formation compresses to keep out of the soft-wall band, in proportion to
+          // the room left, rather than clamping slots against the bound: the school squashes toward
+          // a bound but its layers never collapse into one.
+          const verticalOffset = schoolOffset.vertical * packing
+          const verticalRoom = verticalOffset > 0
+            ? bounds.yMax - schoolSoftWall - schoolState.centroid.y
+            : schoolState.centroid.y - (bounds.yMin + schoolSoftWall)
+          const verticalReach = Math.max(0.001, schoolFormationVerticalHalfExtent(school, creature) * packing)
+          schoolBasePosition.y += verticalOffset * THREE.MathUtils.clamp(verticalRoom / verticalReach, 0, 1)
+          // Front-back error to the slot along the travel direction; next frame's cruise speed
+          // closes it (see SCHOOL_STATION_GAIN).
+          stationError.current = (schoolBasePosition.x - fish.position.x) * hx + (schoolBasePosition.z - fish.position.z) * hz
           // Desired heading = migration urge + pull toward the formation slot. The slot pull is
           // scaled down for tiny schools: with only a couple of members the slots sit right beside
           // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
@@ -2122,6 +2156,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // Startle escape: keep steering along the escape direction until the dash ends.
         const escapeActive = now < startleUntil.current
         if (escapeActive) targetDesiredDirection.addScaledVector(startleEscape.current, THREAT_STARTLE_ESCAPE_WEIGHT)
+        // Soft vertical walls: a school member nearing its top or bottom bound is turned away
+        // before it reaches it (see SCHOOL_SOFT_WALL_BODY_LENGTHS).
+        if (isSchooling) targetDesiredDirection.y += verticalBoundRepulsion(fish.position.y, bounds, schoolSoftWall)
         if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
         else targetDesiredDirection.copy(agentMoveDirection)
 
@@ -2192,7 +2229,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
         } else {
           clampToSwimBounds(fish.position, bounds)
-          glideAlongVerticalBound(desiredDirection.current, fish.position, bounds)
+          glideAlongCeiling(desiredDirection.current, fish.position, bounds)
           if (isSoloAgent) {
             // Keep the body below the water plane and flatten any upward heading so it glides
             // along the ceiling instead of nosing through the surface.

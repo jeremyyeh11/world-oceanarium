@@ -9,7 +9,7 @@ import {
   creatureBodyLength,
   forEachFish,
   getFishEntry,
-  glideAlongVerticalBound,
+  glideAlongCeiling,
   mulberry32,
   pitchToward,
   raiseSchoolAlarm,
@@ -26,6 +26,7 @@ import {
   threatLevelAt,
   unregisterFish,
   updateFishRegistry,
+  verticalBoundRepulsion,
   yawToward,
 } from '../src/components/fishSwim.js'
 
@@ -475,21 +476,31 @@ for (const count of [2, 95, 180, 275]) {
 }
 assert.ok(Math.abs(schoolFormationVerticalHalfExtent({ id: 's', count: 180 }, sardine) - 3.98) < 0.01, 'the 180-sardine school reaches ~3.98 WU above and below its centre')
 
-// A fish held on its top bound glides along it instead of pointing into it. Alignment spreads
-// whatever the heading is through the school, so a heading left pitched into the ceiling kept a
-// whole school pinned there.
-const glideBounds = { yMin: -10, yMax: 2.83 }
+// The top bound is the water surface and stays hard: a fish held against it glides along it
+// instead of pointing into it. Alignment spreads whatever the heading is through the school, so a
+// heading left pitched into the ceiling kept a whole school pinned there.
+const glideBounds = { yMin: -10, yMax: 3.9 }
 const noseUp = new THREE.Vector3(0.3, 0.8, -0.5).normalize()
-assert.equal(glideAlongVerticalBound(noseUp, new THREE.Vector3(0, 2.83, -15), glideBounds), true, 'a fish on its ceiling pointing up is flattened')
+assert.equal(glideAlongCeiling(noseUp, new THREE.Vector3(0, 3.9, -15), glideBounds), true, 'a fish on its ceiling pointing up is flattened')
 assert.equal(noseUp.y, 0, 'its heading no longer points into the ceiling')
 assert.ok(Math.abs(noseUp.length() - 1) < 1e-12 && noseUp.x > 0 && noseUp.z < 0, 'and it keeps its horizontal direction')
 const noseDownAtTop = new THREE.Vector3(0, -0.4, -1).normalize()
-assert.equal(glideAlongVerticalBound(noseDownAtTop, new THREE.Vector3(0, 2.83, -15), glideBounds), false, 'a fish on its ceiling already heading down is left alone')
+assert.equal(glideAlongCeiling(noseDownAtTop, new THREE.Vector3(0, 3.9, -15), glideBounds), false, 'a fish on its ceiling already heading down is left alone')
 const noseUpBelowTop = new THREE.Vector3(0, 0.4, -1).normalize()
-assert.equal(glideAlongVerticalBound(noseUpBelowTop, new THREE.Vector3(0, 2.5, -15), glideBounds), false, 'a fish below its ceiling may still climb')
+assert.equal(glideAlongCeiling(noseUpBelowTop, new THREE.Vector3(0, 3.5, -15), glideBounds), false, 'a fish below its ceiling may still climb')
 const noseDownAtFloor = new THREE.Vector3(1, -0.5, 0).normalize()
-assert.equal(glideAlongVerticalBound(noseDownAtFloor, new THREE.Vector3(0, -10, -15), glideBounds), true, 'the floor flattens a fish heading down into it')
-assert.ok(noseDownAtFloor.y === 0 && noseDownAtFloor.x > 0.99, 'into a level heading')
+assert.equal(glideAlongCeiling(noseDownAtFloor, new THREE.Vector3(0, -10, -15), glideBounds), false, 'the floor has no glide rule; the soft wall turns fish away first')
+
+// The soft walls: nothing in open water, a push away from a bound that grows as it nears, and
+// strong enough at the bound to outweigh a heading pointed straight into it.
+assert.equal(verticalBoundRepulsion(-3, glideBounds, 1.8), 0, 'open water has no wall push')
+assert.equal(verticalBoundRepulsion(3.9 - 1.8, glideBounds, 1.8), 0, 'the push starts at the edge of the band')
+assert.ok(verticalBoundRepulsion(3.5, glideBounds, 1.8) < verticalBoundRepulsion(3.0, glideBounds, 1.8), 'nearer the ceiling pushes down harder')
+assert.ok(verticalBoundRepulsion(3.0, glideBounds, 1.8) < 0, 'the ceiling pushes down')
+assert.ok(verticalBoundRepulsion(-9.5, glideBounds, 1.8) > 0, 'the floor pushes up')
+assert.ok(verticalBoundRepulsion(3.9, glideBounds, 1.8) < -1, 'at the ceiling the push outweighs a heading straight up')
+assert.ok(verticalBoundRepulsion(-10, glideBounds, 1.8) > 1, 'and at the floor one straight down')
+assert.equal(verticalBoundRepulsion(3.9, glideBounds, 0), 0, 'no band, no push')
 
 // --- school alarm wave -------------------------------------------------------------------
 
@@ -559,7 +570,12 @@ assert.equal(swimBounds('epipelagic', sardineSwim, 0.8), cachedBounds, 'repeat c
 assert.ok(Object.isFrozen(cachedBounds), 'shared bounds are frozen')
 const otherZone = swimBounds('mesopelagic', sardineSwim, 0.8)
 assert.notEqual(otherZone, cachedBounds, 'a different depth zone is not served from the cache')
-assert.ok(otherZone.yMax < cachedBounds.yMax, 'and really is the deeper band')
+// The sardine sets its own vertical bounds, so check the zone reaches the numbers with the mako,
+// whose top still comes from its depth band.
+const makoEpipelagic = swimBounds('epipelagic', makoSwim, 1)
+assert.ok(swimBounds('mesopelagic', makoSwim, 1).yMax < makoEpipelagic.yMax, 'and really is the deeper band')
+assert.deepEqual(swimBounds('epipelagic', makoSwim, 1), makoEpipelagic, 'switching back recomputes the same bounds (the cache holds only the last)')
+assert.equal(cachedBounds.yMax, 3.9, 'the sardine\'s top bound sits just under the water surface')
 assert.deepEqual(
   swimBounds('epipelagic', { ...sardineSwim }, 0.8),
   swimBounds('epipelagic', sardineSwim, 0.8),

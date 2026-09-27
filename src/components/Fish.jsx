@@ -22,6 +22,7 @@ import {
   MOLA_SUN_BASK_APPROACH_Z,
   SNAP_TURN_THRESHOLD,
   SWIM_BOX,
+  advanceSchoolAlarms,
   boundaryAvoidanceTurnStep,
   clampToMolaSurfaceCeiling,
   clampToSurfaceCeiling,
@@ -48,12 +49,14 @@ import {
   pickSoloAgentSteeringDestination,
   pickSoloAgentTarget,
   placeholderDimensions,
+  raiseSchoolAlarm,
   randomRange,
   randomRangeFromPair,
   releaseSchoolState,
   resolveModel,
   resolveSwimProfile,
   rotateDirectionToward,
+  schoolAlarmAt,
   schoolFormationOffset,
   schoolFormationVerticalHalfExtent,
   setForwardWithPitch,
@@ -100,6 +103,19 @@ const THREAT_STARTLE_VISUAL_TURN_RATE = THREE.MathUtils.degToRad(900)
 const THREAT_STARTLE_SPEED_SCALE = 2.5
 const THREAT_STARTLE_ESCAPE_WEIGHT = 1.6
 const THREAT_STARTLE_VELOCITY_RESPONSE = 18
+// School alarm (fishSwim.js raiseSchoolAlarm): a startled member alarms its whole school, and each
+// member reacts in proportion to how alarmed it is — Nature of Code's state-dependent weights
+// (Exercises 5.14 / 5.18). At full alarm the formation packs to 40% of its spacing and the pull
+// toward each fish's slot is 2.5× as strong, the fish cruises at 1.8× its idle speed without
+// drifting, and it startles at half the usual threat level. When the wave first reaches a fish it
+// flinches with an ordinary burst; that ripple of bursts is what makes the wave visible across the
+// school. The stronger pull is what makes the packing show: at 60% spacing with the ordinary pull
+// the 180-sardine school had only tightened ~10% by the time the alarm faded.
+const SCHOOL_ALARM_COMPACTION = 0.6
+const SCHOOL_ALARM_FORMATION_BOOST = 1.5
+const SCHOOL_ALARM_SPEED_BOOST = 0.8
+const SCHOOL_ALARM_PRIMING = 0.5
+const SCHOOL_ALARM_FLINCH_LEVEL = 0.35
 // The startle's tail whip, for caudal-vertex fish. While escaping, the body's ordinary turn bend
 // is amplified up to (1 + CAUDAL_WHIP_BEND_GAIN)× so it curls hard into the escape arc, and the
 // tail beats harder and faster than any idle burst; both fade out with the dash. They scale the
@@ -1491,6 +1507,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const nextBurstAt = useRef(runtime.nextBurstAt)
   const startleReadyAt = useRef(0)
   const startleTurnSide = useRef(1)
+  const previousSchoolAlarm = useRef(0)
   const startleUntil = useRef(0)
   const startleEscape = useRef(new THREE.Vector3())
   const nextDriftAt = useRef(runtime.nextDriftAt)
@@ -1717,16 +1734,24 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       noise.longitudinal = THREE.MathUtils.lerp(noise.longitudinal, noise.targetLongitudinal, noiseAlpha)
     }
 
+    // How alarmed this fish's school has made it (0 outside a school or with no wave passing), and
+    // whether the wave has only just reached it this frame — the moment it flinches.
+    const schoolAlarm = isSchooling && hasFollowPosition.current ? schoolAlarmAt(schoolState, fish.position) : 0
+    const alarmFlinch = schoolAlarm >= SCHOOL_ALARM_FLINCH_LEVEL && previousSchoolAlarm.current < SCHOOL_ALARM_FLINCH_LEVEL
+      && now >= startleUntil.current
+    previousSchoolAlarm.current = schoolAlarm
+
     const idleVelocity = Math.max(
       0.08,
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
-    )
+    ) * (1 + SCHOOL_ALARM_SPEED_BOOST * schoolAlarm)
     const driftMove = resolveMoveAnimation(model, 'drift')
     const hasDriftMove = swim.driftEnabled && Boolean(
       model?.moveset?.drift && driftMove !== resolveMoveAnimation(model, 'cruise'),
     )
     const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
-    const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current
+    // An alarmed fish does not settle into a slow glide.
+    const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current && schoolAlarm < SCHOOL_ALARM_FLINCH_LEVEL
     const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
     const escaping = now < startleUntil.current
     const velocityResponse = isActionMoveActive ? (escaping ? THREAT_STARTLE_VELOCITY_RESPONSE : 8) : (isDrifting ? 1.2 : 2.4)
@@ -1741,8 +1766,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     // frame's steering see the threat; the burst itself is triggered with the other actions below.
     let startled = false
     if (model && hasFollowPosition.current && now >= startleReadyAt.current
-      && threatLevelAt(fish.position, creature, swim, startleEscape.current) >= THREAT_STARTLE_LEVEL) {
+      && threatLevelAt(fish.position, creature, swim, startleEscape.current) >= THREAT_STARTLE_LEVEL * (1 - SCHOOL_ALARM_PRIMING * schoolAlarm)) {
       startled = true
+      if (isSchooling) raiseSchoolAlarm(schoolState, fish.position)
       // Which way round to turn if the escape lies dead astern: toward whichever side it leans.
       const escape = startleEscape.current
       startleTurnSide.current = Math.sign(desiredDirection.current.z * escape.x - desiredDirection.current.x * escape.z) || 1
@@ -1992,6 +2018,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // Leader maintains the shared school centroid + migration direction, and advances the
           // goal once the group's centroid reaches it.
           if (isSchoolLeader) {
+            advanceSchoolAlarms(schoolState, delta)
             let cx = 0, cy = 0, cz = 0, cn = 0
             forEachFish(entry => {
               if (entry.schoolId === school.id) { cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1 }
@@ -2039,10 +2066,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // (right = perpendicular to heading in XZ, up = world Y). Anchoring the shape here means
           // a single-file line is no longer an equilibrium, so the ball keeps its width.
           const hx = schoolFollowDirection.x, hz = schoolFollowDirection.z
+          // An alarmed school packs tighter around its centre.
+          const packing = 1 - SCHOOL_ALARM_COMPACTION * schoolAlarm
           schoolBasePosition.copy(schoolState.centroid)
-          schoolBasePosition.x += hz * schoolOffset.lateral + hx * schoolOffset.longitudinal
-          schoolBasePosition.z += -hx * schoolOffset.lateral + hz * schoolOffset.longitudinal
-          schoolBasePosition.y += schoolOffset.vertical
+          schoolBasePosition.x += (hz * schoolOffset.lateral + hx * schoolOffset.longitudinal) * packing
+          schoolBasePosition.z += (-hx * schoolOffset.lateral + hz * schoolOffset.longitudinal) * packing
+          schoolBasePosition.y += schoolOffset.vertical * packing
           // A slot past the vertical bounds is unreachable and only pulls its fish into the bound.
           schoolBasePosition.y = THREE.MathUtils.clamp(schoolBasePosition.y, bounds.yMin, bounds.yMax)
           // Desired heading = migration urge + pull toward the formation slot. The slot pull is
@@ -2051,6 +2080,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // cocks the tail). A pair instead just travels parallel on the shared migration + boid
           // separation; big schools get the full formation shaping.
           const formationWeight = SCHOOL_FORMATION_WEIGHT * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
+            * (1 + SCHOOL_ALARM_FORMATION_BOOST * schoolAlarm)
           agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
           targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
           if (targetDesiredDirection.lengthSq() > 1e-6) {
@@ -2651,10 +2681,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (previousTangent.current.lengthSq() > 0) {
         turn = previousTangent.current.z * animationForward.x - previousTangent.current.x * animationForward.z
       }
-      // A startle cuts through any turn animation or cooldown in progress: escaping comes first.
-      if (startled || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
+      // A startle cuts through any turn animation or cooldown in progress: escaping comes first. So
+      // does the flinch as a school's alarm wave reaches this fish, as an ordinary burst.
+      const reflex = startled || alarmFlinch
+      if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
-        if (!startled && turn > motion.turnTriggerThreshold) {
+        if (!reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnLeft')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -2667,7 +2699,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (!startled && turn < -motion.turnTriggerThreshold) {
+        } else if (!reflex && turn < -motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnRight')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -2680,7 +2712,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (startled || (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current)) {
+        } else if (reflex || (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current)) {
           const burstDuration = motion.burstActionDuration
           const burstAnimation = resolveMoveAnimation(model, 'burst')
           const burstAnimationDuration = modelActionAnimationDuration(model, burstAnimation, burstDuration)

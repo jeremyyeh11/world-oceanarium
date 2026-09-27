@@ -179,6 +179,65 @@ const threatLevelOffset = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
 const horizontalForward = new THREE.Vector3()
 
+// --- school alarm ------------------------------------------------------------------------
+// When one fish startles, alarm spreads through its school as a wave that outruns the predator —
+// the wave of agitation real schools show — instead of every fish reacting only to what it can
+// see. A startle drops an alarm event where the fish is; each member's alarm is then the strongest
+// event that has reached it: the front travels at SCHOOL_ALARM_WAVE_SPEED, weakens linearly to
+// nothing at SCHOOL_ALARM_REACH, and fades with SCHOOL_ALARM_FADE_SECONDS once it arrives. Events
+// carry their own age, advanced once a frame by the school leader, because each fish's clock
+// starts when it mounts and two members' `now` can disagree by seconds.
+const SCHOOL_ALARM_WAVE_SPEED = 15 // WU/s, ~3× a cruising mako (~4.7 WU/s)
+const SCHOOL_ALARM_REACH = 12 // WU; wider than the 180-sardine school
+const SCHOOL_ALARM_FADE_SECONDS = 2.2
+const SCHOOL_ALARM_MAX_EVENTS = 12
+// A startle this close to a live event that is this young adds nothing new: a mako pass startles
+// dozens of neighbours within a fraction of a second.
+const SCHOOL_ALARM_MERGE_DISTANCE = 1.5
+const SCHOOL_ALARM_MERGE_SECONDS = 0.3
+// Past this age an event has reached its full reach and faded to under 5%.
+const SCHOOL_ALARM_LIFETIME = SCHOOL_ALARM_REACH / SCHOOL_ALARM_WAVE_SPEED + SCHOOL_ALARM_FADE_SECONDS * 3
+
+/** A member startled at `position`: start an alarm wave through its school. */
+export function raiseSchoolAlarm(schoolState, position) {
+  const events = schoolState.alarms ??= []
+  for (let i = 0; i < events.length; i += 1) {
+    const event = events[i]
+    if (event.age < SCHOOL_ALARM_MERGE_SECONDS && event.position.distanceTo(position) < SCHOOL_ALARM_MERGE_DISTANCE) return
+  }
+  if (events.length >= SCHOOL_ALARM_MAX_EVENTS) events.shift()
+  events.push({ position: position.clone(), age: 0 })
+}
+
+/** Age the school's alarm events by `delta` and drop the spent ones. Called once a frame by the leader. */
+export function advanceSchoolAlarms(schoolState, delta) {
+  const events = schoolState.alarms
+  if (!events?.length) return
+  let kept = 0
+  for (let i = 0; i < events.length; i += 1) {
+    const event = events[i]
+    event.age += delta
+    if (event.age < SCHOOL_ALARM_LIFETIME) events[kept++] = event
+  }
+  events.length = kept
+}
+
+/** How alarmed a member at `position` is, 0..1: the strongest alarm wave that has reached it. */
+export function schoolAlarmAt(schoolState, position) {
+  const events = schoolState?.alarms
+  if (!events?.length) return 0
+  let alarm = 0
+  for (let i = 0; i < events.length; i += 1) {
+    const event = events[i]
+    const distance = event.position.distanceTo(position)
+    if (distance >= SCHOOL_ALARM_REACH) continue
+    const sinceArrival = event.age - distance / SCHOOL_ALARM_WAVE_SPEED
+    if (sinceArrival < 0) continue
+    alarm = Math.max(alarm, (1 - distance / SCHOOL_ALARM_REACH) * Math.exp(-sinceArrival / SCHOOL_ALARM_FADE_SECONDS))
+  }
+  return alarm
+}
+
 export function getSchoolState(school, creature, swim) {
   const key = school.id
   let state = SCHOOL_STATES.get(key)
@@ -205,6 +264,8 @@ export function getSchoolState(school, creature, swim) {
       // they travel parallel and fan into a cloud instead of funnelling toward one point.
       centroid: center.clone(),
       migrationDir: new THREE.Vector3(),
+      // Live alarm waves (see raiseSchoolAlarm), each { position, age }.
+      alarms: [],
     }
     SCHOOL_STATES.set(key, state)
   }

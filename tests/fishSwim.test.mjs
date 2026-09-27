@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import * as THREE from 'three'
 import {
   SWIM_BOX,
+  advanceSchoolAlarms,
   boundaryAvoidanceTurnStep,
   clampToSwimBounds,
   computeBoidSteering,
@@ -11,10 +12,12 @@ import {
   glideAlongVerticalBound,
   mulberry32,
   pitchToward,
+  raiseSchoolAlarm,
   randomRange,
   randomRangeFromPair,
   resolveSwimProfile,
   rotateDirectionToward,
+  schoolAlarmAt,
   schoolFormationOffset,
   schoolFormationVerticalHalfExtent,
   soloAgentReachedDistance,
@@ -487,6 +490,48 @@ assert.equal(glideAlongVerticalBound(noseUpBelowTop, new THREE.Vector3(0, 2.5, -
 const noseDownAtFloor = new THREE.Vector3(1, -0.5, 0).normalize()
 assert.equal(glideAlongVerticalBound(noseDownAtFloor, new THREE.Vector3(0, -10, -15), glideBounds), true, 'the floor flattens a fish heading down into it')
 assert.ok(noseDownAtFloor.y === 0 && noseDownAtFloor.x > 0.99, 'into a level heading')
+
+// --- school alarm wave -------------------------------------------------------------------
+
+// A startled member's alarm spreads through its school as a wave: it reaches nearer fish first,
+// weakens with distance, outruns the predator, and fades.
+const alarmAt = x => new THREE.Vector3(x, 0, -15)
+const wave = { alarms: [] }
+raiseSchoolAlarm(wave, alarmAt(0))
+assert.equal(schoolAlarmAt(wave, alarmAt(0)), 1, 'the startled fish is fully alarmed at once')
+assert.equal(schoolAlarmAt(wave, alarmAt(6)), 0, 'a fish 6 WU away has not been reached yet')
+advanceSchoolAlarms(wave, 0.5)
+const alarmNear = schoolAlarmAt(wave, alarmAt(3))
+const alarmFar = schoolAlarmAt(wave, alarmAt(6))
+assert.ok(alarmNear > alarmFar && alarmFar > 0, 'once reached, nearer fish are more alarmed')
+assert.equal(schoolAlarmAt(wave, alarmAt(12.5)), 0, 'the alarm does not reach past its range')
+assert.equal(schoolAlarmAt(null, alarmAt(0)), 0, 'a fish with no school has no school alarm')
+
+// The point of a wave: it tells a fish 5 WU away about a mako before the mako could get there.
+const race = { alarms: [] }
+raiseSchoolAlarm(race, alarmAt(0))
+advanceSchoolAlarms(race, (5 / 4.7) * 0.5)
+assert.ok(schoolAlarmAt(race, alarmAt(5)) > 0, 'the alarm crosses 5 WU in half the time a cruising mako takes')
+
+advanceSchoolAlarms(wave, 6)
+assert.ok(schoolAlarmAt(wave, alarmAt(0)) < 0.1, 'the alarm fades once the wave has passed')
+
+// A mako pass startles dozens of neighbours at once; they add one wave, not dozens.
+const merged = { alarms: [] }
+raiseSchoolAlarm(merged, alarmAt(0))
+raiseSchoolAlarm(merged, alarmAt(0.5))
+assert.equal(merged.alarms.length, 1, 'a startle beside a fresh wave joins it')
+raiseSchoolAlarm(merged, alarmAt(6))
+assert.equal(merged.alarms.length, 2, 'a startle elsewhere starts its own wave')
+advanceSchoolAlarms(merged, 0.5)
+raiseSchoolAlarm(merged, alarmAt(0.5))
+assert.equal(merged.alarms.length, 3, 'and so does a later startle in the same place')
+
+const capped = { alarms: [] }
+for (let i = 0; i < 20; i += 1) raiseSchoolAlarm(capped, alarmAt(i * 2))
+assert.equal(capped.alarms.length, 12, 'live waves are capped')
+advanceSchoolAlarms(capped, 60)
+assert.equal(capped.alarms.length, 0, 'spent waves are dropped')
 
 // --- registry accessors -------------------------------------------------------------
 

@@ -72,6 +72,9 @@ export default function LandingGate({ speciesCount, progress = 0, ready = false,
       {/* No crt-banded here — the fixed .crt-screen film already bands this, and
           doubling it would both muddy the panel and drag the lines down mid-dive. */}
       <div className="landing-card crt-panel">
+        {/* The mark is a mask, not an <img>, so it takes the CRT foam tint and the
+            same convergence split as the title instead of shipping its own white. */}
+        <div className="landing-mark" aria-hidden="true" />
         <p className="landing-eyebrow">Live feed · {APP_VERSION}</p>
         <h1 id="landing-title" className="landing-title">World<br />Oceanarium</h1>
         <p className="landing-tagline">just keep swimming</p>

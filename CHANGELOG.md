@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.16.0 — Predator response
 
-Status: in review as `v0.16.0-dev_4` (dev_2 had steps 1–2 and the school fixes; dev_3 adds the school alarm). The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
+Status: in review as `v0.16.0-dev_5` (dev_2 had steps 1–2 and the school fixes; dev_3 adds the school alarm). The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
 
 ### Behaviour
 
@@ -23,7 +23,7 @@ Status: in review as `v0.16.0-dev_4` (dev_2 had steps 1–2 and the school fixes
 
 ### Interface
 
-- The World Oceanarium mark (the "WO" sunfish) now sits above the title on the landing card, tinted in the CRT foam colour with the same slight convergence split as the lettering. It is extracted from the favicon art as a transparent mask (`public/logo-mark.png`).
+- The World Oceanarium mark (the "WO" sunfish) now sits between the live-feed line and the title on the landing card, tinted in the CRT foam colour with the same slight convergence split as the lettering. It is extracted from the favicon art as a transparent mask (`public/logo-mark.png`).
 
 ### Fixes
 

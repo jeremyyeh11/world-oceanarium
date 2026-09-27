@@ -368,7 +368,7 @@
 .landing-mark {
   width: clamp(4.25rem, 18vw, 5.5rem);
   aspect-ratio: 323 / 326;
-  margin: 0 auto 0.9rem;
+  margin: 0.4rem auto 0.8rem;
   background: var(--crt-foam);
   -webkit-mask: url('/logo-mark.png') center / contain no-repeat;
   mask: url('/logo-mark.png') center / contain no-repeat;

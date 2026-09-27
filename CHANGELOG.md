@@ -26,7 +26,7 @@ Status: in review as `v0.16.0-dev_2`. The remoras (#102, `v0.16.0-dev_1`) share 
 
 ### Repository
 
-- `tests/fishSwim.test.mjs` covers the new movement: prediction, the size-scaled range, the per-frame threat check, the escape direction, and `yawToward` / `pitchToward`. Every group was checked against hand-broken copies of the code; three copies first slipped through, and a test was added for each.
+- `tests/fishSwim.test.mjs` covers the new movement: prediction, the size-scaled range, the per-frame threat check, the escape direction, and `yawToward` / `pitchToward`. Every group was checked against 17 hand-broken copies of the code; two first slipped through (a registry that never refreshed speed after the first frame, and a turn that could go the long way round), and a test was added for each.
 
 ## v0.15.8 — Atlas corrections and frame cost
 

@@ -14,6 +14,8 @@ import {
   randomRangeFromPair,
   resolveSwimProfile,
   rotateDirectionToward,
+  schoolFormationOffset,
+  schoolFormationVerticalHalfExtent,
   soloAgentReachedDistance,
   swimBounds,
   swimXRangeAtZ,
@@ -449,6 +451,25 @@ assert.ok(Math.abs(arcStep.angleTo(new THREE.Vector3(0, 0, 1)) - 0.1) < 1e-12, '
 const pitched = yawToward(new THREE.Vector3(0, 0.3, 1).normalize(), new THREE.Vector3(1, 0, 0), 0.5, 1)
 assert.ok(Math.abs(pitched.y - new THREE.Vector3(0, 0.3, 1).normalize().y) < 1e-12, 'the arc turns heading only, leaving pitch for the ordinary step')
 assert.ok(Math.abs(pitched.length() - 1) < 1e-12, 'and keeps the direction a unit vector')
+
+// --- school formation fits its bounds -------------------------------------------------------
+
+// The leader keeps the school's goal this far from the vertical bounds, so it must reach every
+// member's slot — a slot past it is a fish flattened against yMax. It should also be tight, or
+// the school is kept needlessly out of the top and bottom of its band.
+for (const count of [2, 95, 180, 275]) {
+  const school = { id: `fit-${count}`, count, index: 0 }
+  let highest = 0
+  for (let index = 0; index < count; index += 1) {
+    const slot = schoolFormationOffset({ ...school, index }, { ...sardine, id: `fit-${count}-${index}` })
+    highest = Math.max(highest, Math.abs(slot.vertical))
+  }
+  const extent = schoolFormationVerticalHalfExtent(school, sardine)
+  assert.ok(highest <= extent + 1e-9, `every slot of a ${count}-fish school sits within its vertical half-extent`)
+  // A pair fills two slots and never reaches the formation's full height; a real school does.
+  if (count >= 95) assert.ok(extent - highest < 0.25, `and the half-extent of a ${count}-fish school is not loose`)
+}
+assert.ok(Math.abs(schoolFormationVerticalHalfExtent({ id: 's', count: 180 }, sardine) - 3.98) < 0.01, 'the 180-sardine school reaches ~3.98 WU above and below its centre')
 
 // --- registry accessors -------------------------------------------------------------
 

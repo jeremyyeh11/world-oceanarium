@@ -54,6 +54,7 @@ import {
   resolveSwimProfile,
   rotateDirectionToward,
   schoolFormationOffset,
+  schoolFormationVerticalHalfExtent,
   setForwardWithPitch,
   shapeSoloAgentSteeringDesired,
   soloAgentReachedDistance,
@@ -2003,7 +2004,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               // banks away early instead of driving into a boundary it can't out-turn and thrashing.
               const gm = Math.min(bodyLength * 2, (bounds.zMax - bounds.zMin) * 0.28)
               schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, bounds.xMin + gm, bounds.xMax - gm)
-              schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, bounds.yMin + gm * 0.5, bounds.yMax - gm * 0.5)
+              // Vertically, the whole formation has to fit above and below the goal, or the clamp
+              // flattens the part that doesn't into a sheet against the bound.
+              const gy = Math.min(
+                Math.max(gm * 0.5, schoolFormationVerticalHalfExtent(school, creature)),
+                (bounds.yMax - bounds.yMin) * 0.5,
+              )
+              schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, bounds.yMin + gy, bounds.yMax - gy)
               schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, bounds.zMin + gm, bounds.zMax - gm)
             }
             // Shared direction (goal - centroid), identical for every member, low-pass filtered so

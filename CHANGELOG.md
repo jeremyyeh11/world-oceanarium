@@ -22,6 +22,7 @@ Status: in review as `v0.16.0-dev_2`. The remoras (#102, `v0.16.0-dev_1`) share 
 
 ### Fixes
 
+- A sardine school could flatten into a sheet against the top of its swim band: 112 of 180 at `yMax`, seen in review. The leader kept the school's goal only ~0.6–0.9 WU inside the vertical bounds while the formation reaches ~4 WU above and below its centre, so a goal near the top put the upper half past the bound, where the clamp laid it flat. The goal now stays at least the formation's vertical half-extent inside the bounds (3.98 WU for the 180-sardine school). With the goal forced to the highest point that allows, at most 5 of the 180 touched the bound, falling to none as the school settled. The formation's shape and the bounds are unchanged; the school's centre simply stays out of the top and bottom ~4 WU while its edges still reach them.
 - The mako's debug vectors started ~6.7 WU past its snout. Its `debugForwardOffsetRatio` had been measured from the tail end of the model (0.697) and is now 0.303, confirmed against the live mesh.
 
 ### Repository

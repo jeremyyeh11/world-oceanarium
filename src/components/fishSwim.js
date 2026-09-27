@@ -805,13 +805,26 @@ export function pickSoloAgentContinuationTarget(out, creature, swim, rand, from,
 }
 
 
+function schoolFormationRadius(school, creature) {
+  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
+  return SCHOOL_SPACING * spacingScale * Math.sqrt(Math.max(1, school.count)) * SCHOOL_FORMATION_RADIUS_SCALE
+}
+
+// The furthest any slot from schoolFormationOffset sits above or below the school's centre. The
+// leader keeps the school's goal at least this far inside the vertical bounds: a goal near the top
+// otherwise put the upper half of the formation past yMax, where the clamp flattened it into a sheet
+// (112 of 180 sardines, seen in review).
+export function schoolFormationVerticalHalfExtent(school, creature) {
+  if (!school) return 0
+  return schoolFormationRadius(school, creature) * SCHOOL_VERTICAL_SPREAD + 0.045
+}
+
 export function schoolFormationOffset(school, creature) {
   if (!school) return null
   const rand = mulberry32(hashString(`${school.id}:${creature.id}:formation`))
   const count = Math.max(1, school.count)
   const indexRadius = Math.sqrt((school.index + 0.5) / count)
-  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
-  const schoolRadius = SCHOOL_SPACING * spacingScale * Math.sqrt(count) * SCHOOL_FORMATION_RADIUS_SCALE
+  const schoolRadius = schoolFormationRadius(school, creature)
   const angle = school.index * GOLDEN_ANGLE + randomRange(rand, -0.14, 0.14)
   const isLeader = school.index === 0
   const longitudinal = isLeader

@@ -34,6 +34,7 @@ import {
   forEachFish,
   getFishEntry,
   getSchoolState,
+  glideAlongVerticalBound,
   interactionProxyDimensions,
   isMolaDeepZExit,
   maxTurnRadiansForSpeed,
@@ -2042,6 +2043,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           schoolBasePosition.x += hz * schoolOffset.lateral + hx * schoolOffset.longitudinal
           schoolBasePosition.z += -hx * schoolOffset.lateral + hz * schoolOffset.longitudinal
           schoolBasePosition.y += schoolOffset.vertical
+          // A slot past the vertical bounds is unreachable and only pulls its fish into the bound.
+          schoolBasePosition.y = THREE.MathUtils.clamp(schoolBasePosition.y, bounds.yMin, bounds.yMax)
           // Desired heading = migration urge + pull toward the formation slot. The slot pull is
           // scaled down for tiny schools: with only a couple of members the slots sit right beside
           // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
@@ -2159,6 +2162,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
         } else {
           clampToSwimBounds(fish.position, bounds)
+          glideAlongVerticalBound(desiredDirection.current, fish.position, bounds)
           if (isSoloAgent) {
             // Keep the body below the water plane and flatten any upward heading so it glides
             // along the ceiling instead of nosing through the surface.

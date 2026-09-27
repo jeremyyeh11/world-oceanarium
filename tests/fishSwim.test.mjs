@@ -8,6 +8,7 @@ import {
   creatureBodyLength,
   forEachFish,
   getFishEntry,
+  glideAlongVerticalBound,
   mulberry32,
   pitchToward,
   randomRange,
@@ -470,6 +471,22 @@ for (const count of [2, 95, 180, 275]) {
   if (count >= 95) assert.ok(extent - highest < 0.25, `and the half-extent of a ${count}-fish school is not loose`)
 }
 assert.ok(Math.abs(schoolFormationVerticalHalfExtent({ id: 's', count: 180 }, sardine) - 3.98) < 0.01, 'the 180-sardine school reaches ~3.98 WU above and below its centre')
+
+// A fish held on its top bound glides along it instead of pointing into it. Alignment spreads
+// whatever the heading is through the school, so a heading left pitched into the ceiling kept a
+// whole school pinned there.
+const glideBounds = { yMin: -10, yMax: 2.83 }
+const noseUp = new THREE.Vector3(0.3, 0.8, -0.5).normalize()
+assert.equal(glideAlongVerticalBound(noseUp, new THREE.Vector3(0, 2.83, -15), glideBounds), true, 'a fish on its ceiling pointing up is flattened')
+assert.equal(noseUp.y, 0, 'its heading no longer points into the ceiling')
+assert.ok(Math.abs(noseUp.length() - 1) < 1e-12 && noseUp.x > 0 && noseUp.z < 0, 'and it keeps its horizontal direction')
+const noseDownAtTop = new THREE.Vector3(0, -0.4, -1).normalize()
+assert.equal(glideAlongVerticalBound(noseDownAtTop, new THREE.Vector3(0, 2.83, -15), glideBounds), false, 'a fish on its ceiling already heading down is left alone')
+const noseUpBelowTop = new THREE.Vector3(0, 0.4, -1).normalize()
+assert.equal(glideAlongVerticalBound(noseUpBelowTop, new THREE.Vector3(0, 2.5, -15), glideBounds), false, 'a fish below its ceiling may still climb')
+const noseDownAtFloor = new THREE.Vector3(1, -0.5, 0).normalize()
+assert.equal(glideAlongVerticalBound(noseDownAtFloor, new THREE.Vector3(0, -10, -15), glideBounds), true, 'the floor flattens a fish heading down into it')
+assert.ok(noseDownAtFloor.y === 0 && noseDownAtFloor.x > 0.99, 'into a level heading')
 
 // --- registry accessors -------------------------------------------------------------
 

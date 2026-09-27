@@ -347,6 +347,21 @@ export function yawToward(current, target, maxAngle, side = 1) {
   return current
 }
 
+// A fish held on its top or bottom bound glides along it: the part of its heading that points out
+// of the bound is removed. clampToSwimBounds holds the position but left the heading pitched into
+// the bound, and boid alignment then spread that pitch through the school. A school that touched
+// its ceiling stayed pinned there, every fish pointing ~30° up, until it had squashed into a
+// single flat layer (all 180 sardines at yMax, seen in review). Returns whether it flattened.
+export function glideAlongVerticalBound(direction, position, bounds) {
+  const intoTop = position.y >= bounds.yMax - 0.0001 && direction.y > 0
+  const intoBottom = position.y <= bounds.yMin + 0.0001 && direction.y < 0
+  if (!intoTop && !intoBottom) return false
+  direction.y = 0
+  if (direction.lengthSq() < 0.000001) direction.set(0, 0, -1)
+  else direction.normalize()
+  return true
+}
+
 // The vertical half of the escape turn: tilts unit `current` toward `target`'s pitch by at most
 // `maxAngle`, keeping its heading. Paired with yawToward so an escape turns at exactly its own
 // rate; running the ordinary rotateDirectionToward after yawToward added a second turn step on

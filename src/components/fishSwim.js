@@ -98,6 +98,19 @@ const BOID_THREAT_PERCEPTION_SCALE = 1.9
 const BOID_THREAT_WEIGHT = 0.62
 const BOID_DEFAULT_MENACE = 0.25
 const BOID_DEFAULT_WARINESS = 0.35
+// menace × wariness below this is ignored: the mako shrugs off a mahi, nobody minds the mola.
+const BOID_THREAT_MIN_PAIR = 0.06
+// Evade, not flee (Nature of Code ch. 5, pursue/evade): prey steer away from the closest the
+// threat will come over this horizon, not from where it is now. A fish beside a passing shark
+// then escapes sideways off its path instead of fleeing ahead of it down the same line, and a
+// shark bearing down is avoided before it arrives. A shark swimming away is no less of a threat
+// than a stationary one: the closest point of its path is where it is now.
+const BOID_THREAT_LOOKAHEAD_SECONDS = 1.0
+// A big predator is seen from farther away. Each fish's own threat radius scales with its own
+// size and is capped (~6–8 WU), which let a sardine or a mahi sit untroubled less than half a
+// mako's 16.7 WU length from it. So the radius toward a threat is at least this many of the
+// threat's own body lengths. Only the mako is long enough for this to change anything today.
+const BOID_THREAT_BODY_LENGTH_REACH = 1.0
 export const BOID_MAX_DEBUG_NEIGHBORS = 12
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
 const SOLO_AGENT_TARGET_ATTEMPTS = 16
@@ -148,6 +161,7 @@ const boidAlignment = new THREE.Vector3()
 const boidCenter = new THREE.Vector3()
 const boidCohesion = new THREE.Vector3()
 const boidThreat = new THREE.Vector3()
+const boidThreatPath = new THREE.Vector3()
 // Reused candidate buffer for nearest-N neighbor selection so a decision tick does
 // not allocate. Entries are { id, other, distanceSq } records borrowed from
 // boidNeighborPool, refilled and re-sorted each tick.
@@ -156,6 +170,10 @@ const boidNeighborPool = []
 const byDistanceSq = (a, b) => a.distanceSq - b.distanceSq
 const SCHOOL_STATES = new Map()
 const FISH_REGISTRY = new Map()
+// The registry entries with any menace at all — a handful (the mako and the mahi) against ~275
+// sardines — so the per-frame threat check reads these instead of scanning every fish.
+const THREAT_ENTRIES = new Map()
+const threatLevelOffset = new THREE.Vector3()
 
 // Module-private scratch. `Fish.jsx` keeps its own vectors of the same names.
 const up = new THREE.Vector3(0, 1, 0)
@@ -309,6 +327,41 @@ export function rotateDirectionToward(current, target, maxAngle) {
   if (angle <= maxAngle) return current.copy(target)
   const alpha = maxAngle / Math.max(0.000001, angle)
   return current.lerp(target, alpha).normalize()
+}
+
+// Turns `current` about the world vertical toward `target`'s heading by at most `maxAngle`, at a
+// true angular rate, keeping `current`'s pitch. rotateDirectionToward lerps, which is fine for
+// the small corrections of normal swimming but barely moves toward a target behind the fish and
+// then flips past the halfway point; an escape U-turn has to carve round instead. A target dead
+// astern has no shorter way round, so `side` (+1 or -1, the sign of the yaw) picks one.
+export function yawToward(current, target, maxAngle, side = 1) {
+  const horizontal = Math.hypot(current.x, current.z)
+  if (horizontal < 0.000001 || Math.hypot(target.x, target.z) < 0.000001) return current
+  let turn = Math.atan2(target.x, target.z) - Math.atan2(current.x, current.z)
+  if (turn > Math.PI) turn -= Math.PI * 2
+  else if (turn < -Math.PI) turn += Math.PI * 2
+  if (Math.PI - Math.abs(turn) < 0.001) turn = Math.PI * (side < 0 ? -1 : 1)
+  const yaw = Math.atan2(current.x, current.z) + THREE.MathUtils.clamp(turn, -maxAngle, maxAngle)
+  current.x = Math.sin(yaw) * horizontal
+  current.z = Math.cos(yaw) * horizontal
+  return current
+}
+
+// The vertical half of the escape turn: tilts unit `current` toward `target`'s pitch by at most
+// `maxAngle`, keeping its heading. Paired with yawToward so an escape turns at exactly its own
+// rate; running the ordinary rotateDirectionToward after yawToward added a second turn step on
+// top and made the arc far tighter than its radius.
+export function pitchToward(current, target, maxAngle) {
+  const horizontal = Math.hypot(current.x, current.z)
+  if (horizontal < 0.000001) return current
+  const pitch = Math.atan2(current.y, horizontal)
+  const targetPitch = Math.atan2(target.y, Math.hypot(target.x, target.z))
+  const next = pitch + THREE.MathUtils.clamp(targetPitch - pitch, -maxAngle, maxAngle)
+  const scale = Math.cos(next) / horizontal
+  current.x *= scale
+  current.z *= scale
+  current.y = Math.sin(next)
+  return current
 }
 
 function clampedVisualPitch(direction, pitchLimit) {
@@ -845,6 +898,46 @@ function recordDebugNeighbor(debugState, id, other, relation, socialWeight) {
   debugState.neighborActive += 1
 }
 
+// The radius within which `other` alarms a fish whose own threat radius is `ownThreatRadius`.
+function threatRadiusToward(other, ownThreatRadius) {
+  return Math.max(ownThreatRadius, (other.bodyLength ?? 0) * BOID_THREAT_BODY_LENGTH_REACH)
+}
+
+function boidPerceptionRadius(creature, swim, params) {
+  const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
+  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
+  return THREE.MathUtils.clamp(
+    bodyLength * params.perceptionBodyLengths * Math.sqrt(Math.max(0.45, spacingScale)),
+    params.perceptionMin,
+    params.perceptionMax,
+  )
+}
+
+// Fills `out` with the offset to `position` from the closest point of `other`'s path over the
+// threat lookahead, in the same vertically-squashed metric as neighbor distances. The path runs
+// from where `other` is along its heading at its registered speed, so a threat with no speed is
+// just its position. Returns false when there is no direction to push along.
+function closestThreatApproach(out, position, other) {
+  out.subVectors(position, other.position)
+  out.y *= 0.55
+  const travel = (other.speed ?? 0) * BOID_THREAT_LOOKAHEAD_SECONDS
+  if (travel > 0 && other.forward?.lengthSq?.() > 0.000001) {
+    boidThreatPath.copy(other.forward).normalize().multiplyScalar(travel)
+    boidThreatPath.y *= 0.55
+    const pathLengthSq = boidThreatPath.lengthSq()
+    const t = pathLengthSq > 0.000001
+      ? THREE.MathUtils.clamp(out.dot(boidThreatPath) / pathLengthSq, 0, 1)
+      : 0
+    if (t > 0) {
+      out.addScaledVector(boidThreatPath, -t)
+      // Dead on the path, neither side is nearer; break the tie to one fixed side. Kept
+      // near-zero length so proximity still reads as "on the path".
+      if (out.lengthSq() <= 0.000001) out.set(-boidThreatPath.z, 0, boidThreatPath.x).setLength(0.01)
+    }
+  }
+  return out.lengthSq() > 0.000001
+}
+
 // Nearest-N neighbor selection: gather everything inside the (wider) threat radius,
 // sort by distance, and only treat the nearest N as school/collision neighbors. This
 // stabilizes who a fish reacts to from tick to tick, which is what kills the jitter —
@@ -868,12 +961,7 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
 
   const radius = fishCollisionRadius(creature, swim, school)
   const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
-  const spacingScale = resolveSpecies(creature)?.swim?.schoolSpacingScale ?? 1
-  const perceptionRadius = THREE.MathUtils.clamp(
-    bodyLength * params.perceptionBodyLengths * Math.sqrt(Math.max(0.45, spacingScale)),
-    params.perceptionMin,
-    params.perceptionMax,
-  )
+  const perceptionRadius = boidPerceptionRadius(creature, swim, params)
   const perceptionRadiusSq = perceptionRadius * perceptionRadius
   const threatRadius = perceptionRadius * BOID_THREAT_PERCEPTION_SCALE
   const threatRadiusSq = threatRadius * threatRadius
@@ -889,7 +977,14 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
     boidDelta.subVectors(fish.position, other.position)
     boidDelta.y *= 0.55
     const distanceSq = boidDelta.lengthSq()
-    if (distanceSq < 0.000001 || distanceSq > threatRadiusSq) return
+    if (distanceSq < 0.000001) return
+    if (distanceSq > threatRadiusSq) {
+      // A threat outside the radius now can be inside it within the lookahead, so its
+      // gather radius grows by how far it will travel.
+      if ((other.menace ?? BOID_DEFAULT_MENACE) * params.wariness <= BOID_THREAT_MIN_PAIR) return
+      const reach = threatRadiusToward(other, threatRadius) + (other.speed ?? 0) * BOID_THREAT_LOOKAHEAD_SECONDS
+      if (distanceSq > reach * reach) return
+    }
     let candidate = boidNeighborPool[pooled]
     if (!candidate) {
       candidate = { id: null, other: null, distanceSq: 0 }
@@ -918,13 +1013,12 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
     let relation = 'neutral'
     let socialWeight = 0
 
-    // Threat avoidance — a wide-radius push away from menacing neighbors.
+    // Threat avoidance — a wide-radius push away from the closest point of a menacing
+    // neighbor's path over the lookahead (its current position when it is not moving).
     const threatPair = (other.menace ?? BOID_DEFAULT_MENACE) * params.wariness
-    if (threatPair > 0.06) {
-      const proximity = THREE.MathUtils.clamp(1 - distance / threatRadius, 0, 1)
-      boidDelta.subVectors(fish.position, other.position)
-      boidDelta.y *= 0.55
-      if (boidDelta.lengthSq() > 0.000001) {
+    if (threatPair > BOID_THREAT_MIN_PAIR && closestThreatApproach(boidDelta, fish.position, other)) {
+      const proximity = THREE.MathUtils.clamp(1 - boidDelta.length() / threatRadiusToward(other, threatRadius), 0, 1)
+      if (proximity > 0) {
         boidDelta.normalize()
         boidThreat.addScaledVector(boidDelta, threatPair * proximity * proximity * BOID_THREAT_WEIGHT)
         relation = 'avoid'
@@ -1001,7 +1095,36 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   return out
 }
 
-export function updateFishRegistry(fish, creature, swim, school = null, forward = null) {
+// How alarming the worst threat near `position` is right now: the same menace × wariness ×
+// proximity² that scales the threat push, taken as a max rather than a sum, so a sardine beside
+// a charging mako reads ~0.8 and one near a mahi at most ~0.34. The boid steering that reacts to
+// threats is only re-decided every 1–2.6 s; this reads just THREAT_ENTRIES, so it is cheap
+// enough to run every frame and catch a threat between decisions. `escapeOut`, when given, gets
+// the unit direction away from the worst threat's path — the way a startled fish should flee.
+export function threatLevelAt(position, creature, swim, escapeOut = null) {
+  if (THREAT_ENTRIES.size === 0) return 0
+  const params = boidParamsForCreature(creature, swim)
+  if (params.wariness <= 0) return 0
+  const threatRadius = boidPerceptionRadius(creature, swim, params) * BOID_THREAT_PERCEPTION_SCALE
+  let level = 0
+  THREAT_ENTRIES.forEach((other, id) => {
+    if (id === creature.id || other.biome !== creature.biome) return
+    const threatPair = other.menace * params.wariness
+    if (threatPair <= BOID_THREAT_MIN_PAIR || threatPair <= level) return
+    if (!closestThreatApproach(threatLevelOffset, position, other)) return
+    const proximity = THREE.MathUtils.clamp(1 - threatLevelOffset.length() / threatRadiusToward(other, threatRadius), 0, 1)
+    const candidate = threatPair * proximity * proximity
+    if (candidate > level) {
+      level = candidate
+      if (escapeOut) escapeOut.copy(threatLevelOffset).normalize()
+    }
+  })
+  return level
+}
+
+// `speed` is world units per second along `forward`, so other fish can predict where this one
+// is heading. 0 (the default) means "treat it as stationary".
+export function updateFishRegistry(fish, creature, swim, school = null, forward = null, speed = 0) {
   const radius = fishCollisionRadius(creature, swim, school)
   const species = resolveSpecies(creature)
   const repulser = creatureRepulsesOthers(species)
@@ -1020,6 +1143,7 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
     entry.repulsionScale = boidParams.repulsionScale
     entry.repulser = repulser
     entry.menace = boidParams.menace
+    entry.speed = speed
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
@@ -1032,12 +1156,15 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
       repulsionScale: boidParams.repulsionScale,
       repulser,
       menace: boidParams.menace,
+      speed,
     })
   }
+  if (boidParams.menace > 0) THREAT_ENTRIES.set(creature.id, FISH_REGISTRY.get(creature.id))
+  else THREAT_ENTRIES.delete(creature.id)
 }
 
-// `SCHOOL_STATES` and `FISH_REGISTRY` stay private to this module. `Fish.jsx` only
-// ever cleans up or reads, so it gets these four accessors instead of the Maps.
+// `SCHOOL_STATES`, `FISH_REGISTRY` and `THREAT_ENTRIES` stay private to this module. `Fish.jsx`
+// only ever cleans up or reads, so it gets these four accessors instead of the Maps.
 
 /** Drop a school's shared state on unmount, but only if it is still the live one. */
 export function releaseSchoolState(schoolId, schoolState) {
@@ -1047,6 +1174,7 @@ export function releaseSchoolState(schoolId, schoolState) {
 /** Drop a fish from the neighbour registry on unmount. */
 export function unregisterFish(creatureId) {
   FISH_REGISTRY.delete(creatureId)
+  THREAT_ENTRIES.delete(creatureId)
 }
 
 /** Walk every registered fish. Used by the debug overlay. */

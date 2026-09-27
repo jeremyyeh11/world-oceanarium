@@ -8,6 +8,26 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.16.0 — Predator response
+
+Status: in review as `v0.16.0-dev_2`. The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
+
+### Behaviour
+
+- Prey flee where a predator is going, not where it is. Each fish steers away from the closest point of the threat's path over the next second (Nature of Code's evade), so a sardine beside a passing mako breaks sideways off its line instead of fleeing ahead down it, and a charging mako is noticed before it arrives. The neighbour registry gained each fish's speed to make that prediction; a fish with no speed is treated exactly as before.
+- A big predator is seen from farther away. Every fish's threat range used to scale with its own size and cap at ~6–8 WU, less than half a 16.7 WU mako. The range toward a threat is now at least that threat's own body length. Only the mako is long enough for this to change anything: sardines and mahi notice it from ~16.7 WU, sardines bolt within ~7.4 WU of its path (was ~3), and mahi within ~4.6 WU, where before they never visibly escaped at all.
+- A real threat startles a fish into an escape. The boid steering is only re-decided every 1–2.6 s, too late for an escape, so a cheap check runs every frame against the handful of fish with any menace (the mako and the mahi, not the ~275 sardines). A startled fish carves an arc toward safety on a turning circle 0.8 of its body length across while it accelerates to 2.5× its burst speed. Its body curls into the turn through the ordinary turn deformation, amplified, and its tail whips at up to ~3.5× its cruise stroke and ~2× the beat. An earlier in-place flick read as a twitch on a sardine but as the whole mahi snapping round, which is why the escape is an arc. A per-fish cooldown of 1.6–2.6 s follows each startle so a school doesn't pulse in unison. The random idle bursts are kept, and no longer block a startle: a mahi mid idle-burst once swam straight past the mako's mouth.
+- The escape uses a new `yawToward` turn at a true angular rate. The ordinary turn lerps, which barely moves toward a target behind the fish and then flips past halfway, so any U-turn built on it would have snapped. Normal swimming still uses the old turn, so its look is unchanged.
+- The tail whip also reaches the instanced sardine layer. Nearly every sardine near a predator is drawn by it rather than the detailed model: all 275 were, while following the mako.
+
+### Fixes
+
+- The mako's debug vectors started ~6.7 WU past its snout. Its `debugForwardOffsetRatio` had been measured from the tail end of the model (0.697) and is now 0.303, confirmed against the live mesh.
+
+### Repository
+
+- `tests/fishSwim.test.mjs` covers the new movement: prediction, the size-scaled range, the per-frame threat check, the escape direction, and `yawToward` / `pitchToward`. Every group was checked against hand-broken copies of the code; three copies first slipped through, and a test was added for each.
+
 ## v0.15.8 — Atlas corrections and frame cost
 
 Status: accepted and promoted as clean `v0.15.8` from `v0.15.8-dev_3` after Jeremy's review.

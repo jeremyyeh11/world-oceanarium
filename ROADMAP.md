@@ -15,7 +15,7 @@ Status labels:
 
 ### Remoras (week 1 of the species series)
 
-Status: `Current in development` — `v0.16.0-dev_14` (#102, opened as `dev_1`, rebased onto `dev_6` and then onto `dev_13`, the school-walls fix; `dev_8` retunes the body wave, `dev_9` samples ride spots from the host mesh, `dev_10` adds escorting, `dev_11` bends clamped riders and slows the remora wave, `dev_12` fixes the latch snapping). Ride system and species data done; the Live Sharksucker model is in, the other seven wait on their models and their review rows.
+Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The seven stand-ins stay `hiddenInAtlas` until their models land; the open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
 
 Reference:
 - System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).
@@ -27,6 +27,8 @@ Subtasks:
 - [x] Mako and Mola anchors measured off their meshes.
 - [x] Jeremy review (2026-09-26, local preview): remoras clipped through the host while finding a spot, and the rigid stand-ins had no tail beat. Fixed with host clearance ellipsoids, staging points, swing-round waypoints, a push-out clamp, and a docking stage, plus generated stand-in GLBs on the real `caudal-vertex` wave.
 - [x] Live Sharksucker GLB (2026-09-27, from the `feat/echeneis-naucrates` branch, model only). Recentred with `model.position`, disc moving with the head through the new `followBodyMeshNames`, and the ride fit now uses the model's measured top line (`backProfile`, from the new `scripts/fit-rider-model.mjs`).
+- [x] Revised Live Sharksucker model (2026-09-28, `dev_17`): narrower head, single-surface disc. Same fit numbers; body depth, disc, pectoral and pelvic lengths measured inside published ranges.
+- [ ] Production `creatures` has no remora rows, so the clean `v0.16.0` tank shows none (the Atlas lists the Live Sharksucker). `Blocked / waiting review`: needs Jeremy's go-ahead for a production write (backup before/after); the tables intentionally diverge.
 - [ ] Supply the other seven remora GLBs (Jeremy). Intake per species is the five steps under "Remora models" in `docs/ride-hosts.md`, starting with `node scripts/fit-rider-model.mjs <id>`.
 - [x] Clamped remoras bend their rear body onto the host's skin (2026-09-28, `dev_11`, Jeremy: "bend it"). The fit picks the bend with the tilt; the `caudal-vertex` shader draws it (`uProceduralHug`). A full-size sharksucker's tail reaches the mako's skin on 14 of 18 spots.
 - [x] Remora swim wave slowed after review ("they look like snakes", 2026-09-28): `waveSpeed 4.4 → 3.0`, `waveTravel 4.6 → 3.2`.
@@ -44,7 +46,7 @@ Follow-ups (`Backlog`):
 
 ### Nature of Code autonomous-agents review (`v0.15.8` bucket onward)
 
-Status: `Current in development` — all three planned branches are in: `perf/frame-cost` shipped in clean `v0.15.8`, `feat/predator-response` merged as `v0.16.0-dev_3` (#105) and `feat/school-neighbours` as `v0.16.0-dev_6`. What remains is the backlog below and promoting `v0.16.0` once the remoras land.
+Status: `Current in development` — all three planned branches are in: `perf/frame-cost` shipped in clean `v0.15.8`, `feat/predator-response` merged as `v0.16.0-dev_3` (#105) and `feat/school-neighbours` as `v0.16.0-dev_6`. `v0.16.0` was promoted clean on 2026-09-28 with the remoras. What remains is the backlog below.
 
 Reference:
 - Source: [Nature of Code ch. 5, Autonomous Agents](https://natureofcode.com/autonomous-agents/), compared against `fishSwim.js` / `Fish.jsx` and measured live in the Open Sea (281 fish, desktop dev build). Before this work: frame 2.8–3.2 ms, of which render ~1.7–2.1 ms and simulation ~1.1 ms; the neighbour search was only ~0.04 ms per frame.

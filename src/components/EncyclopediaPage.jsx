@@ -52,35 +52,47 @@ const DEFAULT_VIEW_POSE = {
 // Per-species fixed gallery poses. Most fish should read in side profile,
 // but future species can override yaw, camera, or scale when a different
 // anatomical angle is more legible.
+//
+// Framing (Jeremy's review, 2026-09-28: "make the fish bigger"): each hero fills roughly 55-67% of
+// a desktop stage's width (the Mola, being tall, 74% of its height). The camera moved in rather
+// than the model growing, so the sardinella's and mahi's companions keep their places around it.
+// A portrait phone's stage is ~360 px wide, so each species sets its own phone zoom
+// (portraitPhoneDistanceScale, a multiple of cameraDistance) to fill about 85% of it.
 const VIEW_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     maxLengthDisplayUnits: 1.35,
-    // The small sardinella moves the camera in further on a portrait phone.
-    portraitPhoneDistanceScale: 0.46,
-    cameraDistance: 9.2,
+    portraitPhoneDistanceScale: 0.68,
+    cameraDistance: 4.85,
     position: [0, -0.02, 0],
     lookAt: [0, -0.02, 0],
   },
   'coryphaena-hippurus': {
     maxLengthDisplayUnits: 2.8,
-    cameraDistance: 9.8,
+    cameraDistance: 6.85,
+    portraitPhoneDistanceScale: 0.95,
     position: [0, -0.02, 0],
     lookAt: [0, -0.02, 0],
   },
   'mola-alexandrini': {
     yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,
-    cameraDistance: 10.8,
+    cameraDistance: 8.5,
+    portraitPhoneDistanceScale: 0.87,
+    // Tall: on a tablet's wide, short stage its fins would run off the top and bottom.
+    mobileDistanceScale: 0.82,
     fov: 34,
     maxLengthDisplayUnits: 4.1,
     position: [0, -0.55, 0],
     lookAt: [0, -0.3, 0],
   },
   'isurus-oxyrinchus': {
-    cameraDistance: 11.2,
+    cameraDistance: 8.9,
+    portraitPhoneDistanceScale: 1.0,
     fov: 34,
     maxLengthDisplayUnits: 4.45,
-    // Shift hero left in-frame so the tail clears the right stage edge.
-    position: [-0.3, -0.12, 0],
+    // Shift hero left in-frame so the tail clears the right stage edge: the model's origin sits
+    // near its gills, with the tail trailing far behind, so centring the origin puts the shark
+    // right of centre.
+    position: [-0.63, -0.12, 0],
     lookAt: [0, -0.08, 0],
   },
   // Remoras: slender bodies, framed between the sardinella (0.27 m) and the mahi (2.1 m).
@@ -582,7 +594,9 @@ function SpeciesThumbnail({ species, index }) {
   return (
     <div className="encyclopedia-species-thumb" style={{ background: THUMBNAIL_GRADIENTS[index % THUMBNAIL_GRADIENTS.length] }}>
       {species.atlasThumbnail
-        ? <img src={species.atlasThumbnail} alt="" loading="lazy" />
+        // The tiles are wider than tall (64 x 46 on a phone), so they show a band of the image;
+        // `atlasThumbnailPosition` picks which band, to frame the fish.
+        ? <img src={species.atlasThumbnail} alt="" loading="lazy" style={species.atlasThumbnailPosition ? { objectPosition: species.atlasThumbnailPosition } : undefined} />
         : <span>{initials}</span>}
     </div>
   )

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.16.0 — Predator response and schooling
 
-Status: in review as `v0.16.0-dev_6`. `dev_2` had the evade and escape work and the first school fixes, `dev_3` added the school alarm (#105), `dev_5` the landing-card mark (#107), and `dev_6` the school-neighbours work and soft vertical walls. The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
+Status: in review as `v0.16.0-dev_13`. `dev_2` had the evade and escape work and the first school fixes, `dev_3` added the school alarm (#105), `dev_5` the landing-card mark (#107), `dev_6` the school-neighbours work and soft vertical walls, and `dev_13` the same walls for the front, back and sides (`dev_7`–`dev_12` are the remora branch's builds). The remoras (#102, `v0.16.0-dev_1`) share this bucket and are reviewed separately.
 
 ### Behaviour
 
@@ -34,6 +34,13 @@ Status: in review as `v0.16.0-dev_6`. `dev_2` had the evade and escape work and 
   - The leader kept the school's goal only ~0.6–0.9 WU inside the vertical bounds while the formation reaches ~4 WU above and below its centre, so a goal near the top put the upper half past the bound. The goal now stays at least the formation's vertical half-extent inside (3.98 WU for 180 sardines); at the highest goal that allows, at most 5 of 180 touched the bound.
   - The trap: `clampToSwimBounds` held a fish's position on the bound but left its heading pitched into it, and boid alignment spread that pitch through the school, while slots measured from a centroid on the bound kept pulling half the fish past it. `dev_2` made fish glide along a bound; the pinned school let go as soon as that loaded.
 - The sardines' ceiling was an invisible wall 1.8 WU under the water surface, and a school driven upward (a mahi below it was enough) still spread along it. It now sits just under the surface itself (`boundsYMax` 3.9 against the surface's 4.6), and both vertical bounds became soft walls for schools (Nature of Code's walls): within ~2 body lengths of the top or bottom a member is steered away, harder the closer it gets, and near a bound the formation compresses in proportion instead of its slots being clamped into one layer. The surface stays a hard limit, since past it is air, so the glide rule now applies there only. Over a two-minute run at most 4 sardines touched the surface and 3 the floor at once, and no school ever had more than 17% of its fish within one 0.15 WU layer.
+- Sardine schools got pinned flat against the front, back and side walls of their swim volume, the same trap the top had before `dev_6`. Seen from the camera, a school pinned against a side wall and the front wall at once collapses into a vertical line of fish. Those four walls were only a hard clamp: it held a fish on the wall still heading into it, boid alignment spread that heading through the school, and the goal sat only ~2 WU inside the walls while a 180-sardine school is ~5 WU across. They now get what the top and bottom got:
+  - a soft push away within ~2 body lengths of the wall (`horizontalBoundRepulsion`), following the side walls' taper with depth;
+  - a slide along the wall instead of into it (`glideAlongWalls`), turning toward the middle of the tank when heading straight in;
+  - a formation that draws in toward its centre near a wall instead of reaching past it;
+  - a goal kept the formation's own half-extent inside the walls (`schoolFormationHorizontalHalfExtent`, ~5 WU for 180 sardines). An inset of the half-extent plus the soft-wall band kept the schools out of the front of the tank (8.7 of 23 WU of depth to roam), so the band was left out.
+
+  Measured live, sampling every 2 s in the foreground on the same data, "pinned" meaning at least 40% of a school within 0.05 WU of a wall: `dev_6` was pinned in 46 of 104 samples, at worst 98% of a school; with the fix, 0 of 107, at worst 24% brushing a wall as it swam along it. The schools still roamed the whole tank: centres from x −26.5 to 27.9 and z −27.7 to −9.7, with front fish reaching the front wall.
 - The mako's debug vectors started ~6.7 WU past its snout. Its `debugForwardOffsetRatio` had been measured from the tail end of the model (0.697) and is now 0.303, confirmed against the live mesh.
 
 ### Performance

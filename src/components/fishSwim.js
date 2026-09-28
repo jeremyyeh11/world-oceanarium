@@ -438,6 +438,51 @@ export function glideAlongCeiling(direction, position, bounds) {
   return true
 }
 
+// Soft side, front and back walls for schools, as verticalBoundRepulsion is for the top and
+// bottom: within `margin` of a wall a fish is steered away, quadratically harder toward it, up to
+// SOFT_WALL_STRENGTH at it. The side walls follow the camera's view, so their half-width is read
+// at the fish's own depth. Writes the push (x and z; y is 0) into `out`.
+export function horizontalBoundRepulsion(out, position, bounds, margin) {
+  out.set(0, 0, 0)
+  if (!(margin > 0)) return out
+  const halfX = projectedScreenHalfXAtZ(position.z)
+  const intoRight = THREE.MathUtils.clamp((position.x - (halfX - margin)) / margin, 0, 1)
+  const intoLeft = THREE.MathUtils.clamp((-halfX + margin - position.x) / margin, 0, 1)
+  const intoFront = THREE.MathUtils.clamp((position.z - (bounds.zMax - margin)) / margin, 0, 1)
+  const intoBack = THREE.MathUtils.clamp((bounds.zMin + margin - position.z) / margin, 0, 1)
+  out.x = (intoLeft * intoLeft - intoRight * intoRight) * SOFT_WALL_STRENGTH
+  out.z = (intoBack * intoBack - intoFront * intoFront) * SOFT_WALL_STRENGTH
+  return out
+}
+
+// A school member pressed against a side, front or back wall slides along it: the part of its
+// heading pointing into the wall is removed, as glideAlongCeiling does at the top. clampToSwimBounds
+// holds the position on the wall but left the heading aimed into it, and boid alignment spread
+// that heading through the school: in review, all 95 sardines of a school sat on the front wall
+// for 12 s and then folded into its corner with a side wall, a vertical line seen from the camera.
+// Heading straight into a wall (nothing left along it), the fish turns along the wall toward the
+// middle of the tank. Returns whether it changed the heading.
+export function glideAlongWalls(direction, position, bounds) {
+  const halfX = projectedScreenHalfXAtZ(position.z)
+  let changed = false
+  if ((position.x >= halfX - 0.0001 && direction.x > 0) || (position.x <= -halfX + 0.0001 && direction.x < 0)) {
+    direction.x = 0
+    changed = true
+  }
+  if ((position.z >= bounds.zMax - 0.0001 && direction.z > 0) || (position.z <= bounds.zMin + 0.0001 && direction.z < 0)) {
+    direction.z = 0
+    changed = true
+  }
+  if (!changed) return false
+  if (direction.x * direction.x + direction.z * direction.z < 0.0001) {
+    // Nothing left along the wall: turn along it toward the middle.
+    if (Math.abs(position.x) >= halfX - 0.0001) direction.z = (bounds.zMin + bounds.zMax) / 2 > position.z ? 1 : -1
+    else direction.x = position.x > 0 ? -1 : 1
+  }
+  direction.normalize()
+  return true
+}
+
 // The vertical half of the escape turn: tilts unit `current` toward `target`'s pitch by at most
 // `maxAngle`, keeping its heading. Paired with yawToward so an escape turns at exactly its own
 // rate; running the ordinary rotateDirectionToward after yawToward added a second turn step on
@@ -908,6 +953,14 @@ function schoolFormationRadius(school, creature) {
 export function schoolFormationVerticalHalfExtent(school, creature) {
   if (!school) return 0
   return schoolFormationRadius(school, creature) * SCHOOL_VERTICAL_SPREAD + 0.045
+}
+
+// The furthest any slot sits from the school's centre across the ground plane, whichever way the
+// school heads: its lateral and longitudinal spreads combined. Used like the vertical extent, to
+// keep the goal and the formation off the side, front and back walls.
+export function schoolFormationHorizontalHalfExtent(school, creature) {
+  if (!school) return 0
+  return schoolFormationRadius(school, creature) * Math.hypot(1, SCHOOL_LONGITUDINAL_SPREAD) + 0.045
 }
 
 export function schoolFormationOffset(school, creature) {

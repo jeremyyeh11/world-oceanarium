@@ -36,6 +36,7 @@ Subtasks:
   - [x] Sardines watch 6 nearest neighbours, not 14 (Katz et al. 2011).
   - [x] Station keeping by speed: 25% faster per body length the slot lies ahead, within 0.7–1.5× idle (`SCHOOL_STATION_GAIN`). One ~85 s run each: fewer stragglers in both schools (5.2 → 3.0, 3.8 → 2.1); other metrics mixed.
   - [x] Soft vertical walls: sardine ceiling raised to just under the surface (`boundsYMax` 3.9), schools steered away within ~2 body lengths of a vertical bound (`verticalBoundRepulsion`), the formation compresses near a bound instead of clamping, and the glide rule applies at the surface only. Two-minute run: at most 4 sardines on the surface and 3 on the floor at once; never more than 17% of a school in one 0.15 WU layer.
+- [x] Soft front, back and side walls for schools (`fix/school-walls`, `v0.16.0-dev_13`): the same push, glide, formation squeeze and goal inset the top and bottom got in `dev_6`. Jeremy's review found a school pinned into a front-side corner (a vertical line of sardines). Live, pinned samples went from 46 of 104 to 0 of 107.
 - [ ] Mako wander plus occasional long search runs when prey is sparse (Sims 2008, Humphries 2010) instead of random destinations. `Backlog`
 - [ ] A gentle ocean current (flow field) that carries drifters like the Mola and biases schools. `Backlog`
 - [ ] A few informed fish lead the school instead of one shared goal (Couzin 2005). High risk to school cohesion. `Backlog`

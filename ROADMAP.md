@@ -13,6 +13,17 @@ Status labels:
 
 ## Current work
 
+### Whitefin Sharksucker supplied model (`v0.16.0-dev_18`)
+
+Status: `Current in development` — replace the generated *Echeneis neucratoides* stand-in with Jeremy's supplied GLB while reusing the merged ride-host system.
+
+Subtasks:
+- [x] Copy and inspect the supplied static GLB: body, suction-disc split, and four independent fin meshes; no bones or authored clips.
+- [x] Fit source length, model root, disc offset, dorsal clearance, and back profile with `scripts/fit-rider-model.mjs`.
+- [x] Wire the real model into the existing `hitchhiker` contract and remove the placeholder asset.
+- [x] Add procedural asset verification and source-length/data tests.
+- [ ] Browser and physical-device feel review of free swimming, escort, latch, attached ride, and release. `Blocked / waiting review`
+
 ### Remoras (week 1 of the species series)
 
 Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The seven stand-ins stay `hiddenInAtlas` until their models land; the open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.

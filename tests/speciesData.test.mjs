@@ -46,7 +46,10 @@ const REMORAS = [
   ['phtheirichthys-lineatus', 0.76, 'LC'],
 ]
 // Supplied remora GLBs and their source lengths (scripts/fit-rider-model.mjs prints them).
-const SUPPLIED_REMORA_SOURCE_LENGTHS = { 'echeneis-naucrates': 6.6014 }
+const SUPPLIED_REMORA_SOURCE_LENGTHS = {
+  'echeneis-naucrates': 6.6014,
+  'echeneis-neucratoides': 5.4912,
+}
 for (const [id, maxMeters, iucn] of REMORAS) {
   const remora = speciesById.get(id)
   assert.ok(remora, `${id} exists`)

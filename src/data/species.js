@@ -898,6 +898,9 @@ export const SPECIES = [
     alternateNames: ['Sharksucker', 'Suckerfish'],
     // Jeremy's close-up capture from the tank (2026-09-28): the head reads at tile size.
     atlasThumbnail: '/atlas/echeneis-naucrates-thumbnail.png',
+    // With its fins hanging down, the fish's centre sits ~56% of the way down the photo; showing
+    // a band from lower in it centres the fish in the wide tile (Jeremy's review, mobile).
+    atlasThumbnailPosition: '50% 72%',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,

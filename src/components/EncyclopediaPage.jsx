@@ -594,7 +594,9 @@ function SpeciesThumbnail({ species, index }) {
   return (
     <div className="encyclopedia-species-thumb" style={{ background: THUMBNAIL_GRADIENTS[index % THUMBNAIL_GRADIENTS.length] }}>
       {species.atlasThumbnail
-        ? <img src={species.atlasThumbnail} alt="" loading="lazy" />
+        // The tiles are wider than tall (64 x 46 on a phone), so they show a band of the image;
+        // `atlasThumbnailPosition` picks which band, to frame the fish.
+        ? <img src={species.atlasThumbnail} alt="" loading="lazy" style={species.atlasThumbnailPosition ? { objectPosition: species.atlasThumbnailPosition } : undefined} />
         : <span>{initials}</span>}
     </div>
   )

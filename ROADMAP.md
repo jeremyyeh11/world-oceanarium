@@ -13,7 +13,7 @@ Status labels:
 
 ## Current work
 
-### Whitefin Sharksucker supplied model (`v0.16.0-dev_18`)
+### Whitefin Sharksucker supplied model (`v0.16.1-dev_1`)
 
 Status: `Current in development` — replace the generated *Echeneis neucratoides* stand-in with Jeremy's supplied GLB while reusing the merged ride-host system.
 

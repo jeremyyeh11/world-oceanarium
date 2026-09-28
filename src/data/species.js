@@ -896,8 +896,8 @@ export const SPECIES = [
     scientificName: 'Echeneis naucrates',
     family: 'Echeneidae',
     alternateNames: ['Sharksucker', 'Suckerfish'],
-    // Captured in the tank, looking down onto the suction disc.
-    atlasThumbnail: '/atlas/echeneis-naucrates-thumbnail.jpg',
+    // Jeremy's capture from the tank (2026-09-28).
+    atlasThumbnail: '/atlas/echeneis-naucrates-thumbnail.webp',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,

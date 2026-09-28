@@ -36,6 +36,8 @@ import {
   getFishEntry,
   getSchoolState,
   glideAlongCeiling,
+  glideAlongWalls,
+  horizontalBoundRepulsion,
   interactionProxyDimensions,
   isMolaDeepZExit,
   maxTurnRadiansForSpeed,
@@ -58,6 +60,7 @@ import {
   rotateDirectionToward,
   schoolAlarmAt,
   schoolFormationOffset,
+  schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   setForwardWithPitch,
   shapeSoloAgentSteeringDesired,
@@ -201,8 +204,8 @@ const SCHOOL_FORMATION_WEIGHT = 0.65
 // lies ahead along the travel direction (slower when behind it), within SCHOOL_STATION_RANGE.
 const SCHOOL_STATION_GAIN = 0.25
 const SCHOOL_STATION_RANGE = [0.7, 1.5]
-// Soft vertical walls for schools. Within this band of the top or bottom bound a member is
-// steered away (verticalBoundRepulsion), and the formation compresses vertically to keep out of
+// Soft walls for schools, on all six sides. Within this band of a bound a member is steered away
+// (verticalBoundRepulsion, horizontalBoundRepulsion), and the formation compresses to keep out of
 // the band instead of its slots being clamped into a flat layer against the bound. The band is
 // SCHOOL_SOFT_WALL_BODY_LENGTHS body lengths deep, at least SCHOOL_SOFT_WALL_MIN WU (~1.8 WU for
 // a sardine).
@@ -259,6 +262,7 @@ const up = new THREE.Vector3(0, 1, 0)
 const nextPoint = new THREE.Vector3()
 const schoolBasePosition = new THREE.Vector3()
 const schoolFollowDirection = new THREE.Vector3()
+const schoolWallPush = new THREE.Vector3()
 const debugForwardStart = new THREE.Vector3()
 const debugForwardEnd = new THREE.Vector3()
 const horizontalForward = new THREE.Vector3()
@@ -2064,7 +2068,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
                 (bounds.yMax - bounds.yMin) * 0.5,
               )
               schoolState.goal.y = THREE.MathUtils.clamp(schoolState.goal.y, bounds.yMin + gy, bounds.yMax - gy)
-              schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, bounds.zMin + gm, bounds.zMax - gm)
+              // The same across the ground plane: front, back and sides. A goal ~2 WU inside a wall
+              // put half of a ~5 WU-wide sardine school past it, where the clamp pinned it flat.
+              // Only the formation's own half-extent this time, not the soft-wall band as well:
+              // near a wall the formation compresses and the soft wall turns the edge fish, and the
+              // extra band kept the school out of the front of the tank (8.7 WU of its 23 WU depth
+              // to roam, against 14.4 before).
+              const horizontalFit = schoolFormationHorizontalHalfExtent(school, creature)
+              const gz = Math.min(Math.max(gm, horizontalFit), (bounds.zMax - bounds.zMin) * 0.5)
+              schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, bounds.zMin + gz, bounds.zMax - gz)
+              const goalHalfX = swimXRangeAtZ(bounds, schoolState.goal.z).xMax
+              const gx = Math.min(Math.max(gm, horizontalFit), goalHalfX)
+              schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, -goalHalfX + gx, goalHalfX - gx)
             }
             // Shared direction (goal - centroid), identical for every member, low-pass filtered so
             // frame-to-frame goal jitter doesn't accumulate into a constant turn.
@@ -2094,8 +2109,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // An alarmed school packs tighter around its centre.
           const packing = 1 - SCHOOL_ALARM_COMPACTION * schoolAlarm
           schoolBasePosition.copy(schoolState.centroid)
-          schoolBasePosition.x += (hz * schoolOffset.lateral + hx * schoolOffset.longitudinal) * packing
-          schoolBasePosition.z += (-hx * schoolOffset.lateral + hz * schoolOffset.longitudinal) * packing
+          // Across the ground plane the formation compresses the same way as vertically below: near
+          // a side, front or back wall its slots draw in toward the centre, in proportion to the
+          // room left before the soft-wall band, instead of lying past the wall.
+          const horizontalReach = Math.max(0.001, schoolFormationHorizontalHalfExtent(school, creature) * packing)
+          const slotX = (hz * schoolOffset.lateral + hx * schoolOffset.longitudinal) * packing
+          const slotZ = (-hx * schoolOffset.lateral + hz * schoolOffset.longitudinal) * packing
+          const centroidHalfX = swimXRangeAtZ(bounds, schoolState.centroid.z).xMax
+          const roomX = slotX > 0
+            ? centroidHalfX - schoolSoftWall - schoolState.centroid.x
+            : schoolState.centroid.x + centroidHalfX - schoolSoftWall
+          const roomZ = slotZ > 0
+            ? bounds.zMax - schoolSoftWall - schoolState.centroid.z
+            : schoolState.centroid.z - (bounds.zMin + schoolSoftWall)
+          schoolBasePosition.x += slotX * THREE.MathUtils.clamp(roomX / horizontalReach, 0, 1)
+          schoolBasePosition.z += slotZ * THREE.MathUtils.clamp(roomZ / horizontalReach, 0, 1)
           // Vertically the formation compresses to keep out of the soft-wall band, in proportion to
           // the room left, rather than clamping slots against the bound: the school squashes toward
           // a bound but its layers never collapse into one.
@@ -2156,9 +2184,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // Startle escape: keep steering along the escape direction until the dash ends.
         const escapeActive = now < startleUntil.current
         if (escapeActive) targetDesiredDirection.addScaledVector(startleEscape.current, THREAT_STARTLE_ESCAPE_WEIGHT)
-        // Soft vertical walls: a school member nearing its top or bottom bound is turned away
-        // before it reaches it (see SCHOOL_SOFT_WALL_BODY_LENGTHS).
-        if (isSchooling) targetDesiredDirection.y += verticalBoundRepulsion(fish.position.y, bounds, schoolSoftWall)
+        // Soft walls: a school member nearing any bound is turned away before it reaches it (see
+        // SCHOOL_SOFT_WALL_BODY_LENGTHS).
+        if (isSchooling) {
+          targetDesiredDirection.y += verticalBoundRepulsion(fish.position.y, bounds, schoolSoftWall)
+          targetDesiredDirection.add(horizontalBoundRepulsion(schoolWallPush, fish.position, bounds, schoolSoftWall))
+        }
         if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
         else targetDesiredDirection.copy(agentMoveDirection)
 
@@ -2230,6 +2261,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         } else {
           clampToSwimBounds(fish.position, bounds)
           glideAlongCeiling(desiredDirection.current, fish.position, bounds)
+          // A school member held on a side, front or back wall slides along it rather than keep
+          // pointing into it (see glideAlongWalls).
+          if (isSchooling) glideAlongWalls(desiredDirection.current, fish.position, bounds)
           if (isSoloAgent) {
             // Keep the body below the water plane and flatten any upward heading so it glides
             // along the ceiling instead of nosing through the surface.

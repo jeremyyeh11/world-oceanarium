@@ -10,6 +10,8 @@ import {
   forEachFish,
   getFishEntry,
   glideAlongCeiling,
+  glideAlongWalls,
+  horizontalBoundRepulsion,
   mulberry32,
   pitchToward,
   raiseSchoolAlarm,
@@ -19,6 +21,7 @@ import {
   rotateDirectionToward,
   schoolAlarmAt,
   schoolFormationOffset,
+  schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   soloAgentReachedDistance,
   swimBounds,
@@ -476,6 +479,21 @@ for (const count of [2, 95, 180, 275]) {
 }
 assert.ok(Math.abs(schoolFormationVerticalHalfExtent({ id: 's', count: 180 }, sardine) - 3.98) < 0.01, 'the 180-sardine school reaches ~3.98 WU above and below its centre')
 
+// The same across the ground plane: every slot, whichever way the school heads, sits within its
+// horizontal half-extent, so a goal kept that far (plus the soft wall) inside the side, front and
+// back walls keeps the whole formation off them.
+for (const count of [2, 95, 180, 275]) {
+  const school = { id: `fit-${count}`, count, index: 0 }
+  let widest = 0
+  for (let index = 0; index < count; index += 1) {
+    const slot = schoolFormationOffset({ ...school, index }, { ...sardine, id: `fit-${count}-${index}` })
+    widest = Math.max(widest, Math.hypot(slot.lateral, slot.longitudinal))
+  }
+  const extent = schoolFormationHorizontalHalfExtent(school, sardine)
+  assert.ok(widest <= extent + 1e-9, `every slot of a ${count}-fish school sits within its horizontal half-extent`)
+  if (count >= 95) assert.ok(extent - widest < 0.6, `and the horizontal half-extent of a ${count}-fish school is not loose (${(extent - widest).toFixed(2)} spare)`)
+}
+
 // The top bound is the water surface and stays hard: a fish held against it glides along it
 // instead of pointing into it. Alignment spreads whatever the heading is through the school, so a
 // heading left pitched into the ceiling kept a whole school pinned there.
@@ -501,6 +519,51 @@ assert.ok(verticalBoundRepulsion(-9.5, glideBounds, 1.8) > 0, 'the floor pushes 
 assert.ok(verticalBoundRepulsion(3.9, glideBounds, 1.8) < -1, 'at the ceiling the push outweighs a heading straight up')
 assert.ok(verticalBoundRepulsion(-10, glideBounds, 1.8) > 1, 'and at the floor one straight down')
 assert.equal(verticalBoundRepulsion(3.9, glideBounds, 0), 0, 'no band, no push')
+
+// The side, front and back walls get the same two rules. They were only a clamp, which held a fish
+// on the wall still pointing into it; alignment spread that heading, and in review a whole school
+// of 95 sardines sat on the front wall for 12 s, then folded into its corner with a side wall.
+{
+  const wallBounds = { yMin: -10, yMax: 3.9, zMin: -30, zMax: -7 }
+  const push = new THREE.Vector3()
+  const middleZ = -18
+  const halfX = swimXRangeAtZ(wallBounds, middleZ).xMax
+  assert.deepEqual(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, middleZ), wallBounds, 1.8).toArray(), [0, 0, 0], 'open water has no wall push')
+  assert.equal(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -7 - 1.8), wallBounds, 1.8).z, 0, 'the push starts at the edge of the band')
+  const nearFront = horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -7.5), wallBounds, 1.8).z
+  const lessNearFront = horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -8.2), wallBounds, 1.8).z
+  assert.ok(nearFront < lessNearFront && lessNearFront < 0, 'the front wall pushes back, harder nearer it')
+  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -7), wallBounds, 1.8).z < -1, 'at the front wall the push outweighs a heading straight into it')
+  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -30), wallBounds, 1.8).z > 1, 'and at the back wall')
+  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(halfX, 0, middleZ), wallBounds, 1.8).x < -1, 'the right wall pushes left')
+  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(-halfX, 0, middleZ), wallBounds, 1.8).x > 1, 'the left wall pushes right')
+  // The side walls follow the camera's view: narrower near the front. A fish 1 WU inside the
+  // back of the tank's side wall is well outside the front's, so it is pushed there only.
+  const frontHalfX = swimXRangeAtZ(wallBounds, -7.5).xMax
+  assert.ok(frontHalfX < halfX, 'the side walls are closer together near the front')
+  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(frontHalfX - 0.2, 0, -7.5), wallBounds, 1.8).x < 0, 'the side push is read at the fish\'s own depth')
+  assert.equal(horizontalBoundRepulsion(push, new THREE.Vector3(halfX, 0, middleZ), wallBounds, 0).lengthSq(), 0, 'no band, no push')
+  assert.equal(horizontalBoundRepulsion(push, new THREE.Vector3(halfX, 0, middleZ), wallBounds, 1.8).y, 0, 'and never a vertical one')
+
+  const intoFront = new THREE.Vector3(0.3, 0.2, 0.9).normalize()
+  assert.equal(glideAlongWalls(intoFront, new THREE.Vector3(0, 0, -7), wallBounds), true, 'a fish on the front wall heading into it is turned')
+  assert.equal(intoFront.z, 0, 'its heading no longer points into the wall')
+  assert.ok(Math.abs(intoFront.length() - 1) < 1e-12 && intoFront.x > 0 && intoFront.y > 0, 'and it keeps the rest of its direction')
+  const awayFromFront = new THREE.Vector3(0.3, 0, -0.9).normalize()
+  assert.equal(glideAlongWalls(awayFromFront, new THREE.Vector3(0, 0, -7), wallBounds), false, 'one already heading away is left alone')
+  const intoFrontInside = new THREE.Vector3(0, 0, 1)
+  assert.equal(glideAlongWalls(intoFrontInside, new THREE.Vector3(0, 0, -8), wallBounds), false, 'one short of the wall may still swim toward it')
+  const intoRight = new THREE.Vector3(0.9, 0, -0.4).normalize()
+  assert.equal(glideAlongWalls(intoRight, new THREE.Vector3(halfX, 0, middleZ), wallBounds), true, 'on the right wall heading into it, it is turned')
+  assert.ok(intoRight.x === 0 && intoRight.z < 0, 'along the wall')
+  const straightIntoBack = new THREE.Vector3(0, 0, -1)
+  glideAlongWalls(straightIntoBack, new THREE.Vector3(4, 0, -30), wallBounds)
+  assert.ok(Math.abs(straightIntoBack.length() - 1) < 1e-12 && straightIntoBack.x < 0 && straightIntoBack.z === 0, 'heading straight into a wall, it turns along it toward the middle')
+  const intoCorner = new THREE.Vector3(0.7, 0, 0.7).normalize()
+  const cornerHalfX = swimXRangeAtZ(wallBounds, -7).xMax
+  glideAlongWalls(intoCorner, new THREE.Vector3(cornerHalfX, 0, -7), wallBounds)
+  assert.ok(Math.abs(intoCorner.length() - 1) < 1e-12 && intoCorner.z < 0, 'wedged in a corner, it turns out of it along the side wall, back into the tank')
+}
 
 // --- school alarm wave -------------------------------------------------------------------
 

@@ -55,6 +55,8 @@ const DEFAULT_VIEW_POSE = {
 const VIEW_POSES_BY_SPECIES = {
   'amblygaster-sirm': {
     maxLengthDisplayUnits: 1.35,
+    // The small sardinella moves the camera in further on a portrait phone.
+    portraitPhoneDistanceScale: 0.46,
     cameraDistance: 9.2,
     position: [0, -0.02, 0],
     lookAt: [0, -0.02, 0],
@@ -82,7 +84,10 @@ const VIEW_POSES_BY_SPECIES = {
     lookAt: [0, -0.08, 0],
   },
   // Remoras: slender bodies, framed between the sardinella (0.27 m) and the mahi (2.1 m).
-  'echeneis-naucrates': { maxLengthDisplayUnits: 2.1 },
+  // Framed about six grid squares long on a desktop stage (Jeremy's review, 2026-09-28). A phone
+  // cannot fit six 112 px squares, so there the camera stays further back than the usual 0.6 and
+  // the fish fills about 85% of the stage's width.
+  'echeneis-naucrates': { maxLengthDisplayUnits: 3.7, portraitPhoneDistanceScale: 0.9 },
   'echeneis-neucratoides': { maxLengthDisplayUnits: 1.85 },
   'remora-remora': { maxLengthDisplayUnits: 1.95 },
   'remora-albescens': { maxLengthDisplayUnits: 1.4 },
@@ -153,10 +158,10 @@ function atlasViewportCameraDistance(species, pose, size) {
 
   const isPortraitPhone = size.width <= 480 && size.height > size.width
   if (isPortraitPhone) {
-    return baseDistance * (species?.id === 'amblygaster-sirm' ? 0.46 : 0.6)
+    return baseDistance * (pose.portraitPhoneDistanceScale ?? 0.6)
   }
 
-  return baseDistance * 0.68
+  return baseDistance * (pose.mobileDistanceScale ?? 0.68)
 }
 
 function AtlasCamera({ species, pose }) {

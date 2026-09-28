@@ -59,6 +59,22 @@ Per species:
 - **Fins rooted in a flexing region must be joined into the body instead.** The Mako
   ships with both pelvic fins welded into `shortfinmako003` for exactly this reason;
   the verifier asserts they are absent as separate objects.
+- An independent fin turns about its root, wherever its origin is. The renderer finds
+  each fin's root (the tenth of its vertices nearest the body's long axis) and keeps it
+  in place while the flutter turns the fin. A mirrored copy that kept its twin's origin
+  (the Live Sharksucker's right fins did) therefore turns at the body, not about a point
+  on the far side of it.
+- Where the wave reaches a fin's root, the fin is carried sideways with the body under
+  it, on the CPU, with the shader's own formula (`caudalLateralCurve` in
+  `fishSwim.js`). It moves the fin but does not bend it, so keep fin roots near
+  `flexStart`.
+- **A body with two materials becomes several meshes.** GLTFLoader splits it by
+  material into `<name>_1`, `<name>_2`, …, and each split deforms over its *own*
+  bounds. A split that is not in `bodyMeshNames` still deforms over those bounds, waving
+  as if it were a whole fish. List it in `followBodyMeshNames` and it deforms over the
+  body's bounds instead, moving exactly with the body under it. The mako's teeth
+  (`shortfinmako003_1`) and the Live Sharksucker's suction disc (`live_sharksucker_2`)
+  are both material splits like this.
 
 **Orientation.** `+Z` swim-forward, `+Y` up, transforms applied, origin at world `0`.
 The `sourceAxis` config key can point the deformation along `x` or `z` — Sardinella
@@ -92,6 +108,12 @@ Normals are corrected analytically from the curve's slope, so shading follows th
 bend rather than lagging it. The `flex²` on the turn term keeps steering bias in the
 tail where it belongs.
 
+A remora clamped to a host adds a second bend, up and down this time: its rear body
+curves toward its own up (the disc side, facing the host) by `uProceduralHug` at the
+tail, easing in from `RIDE_BEND_START` (30% back) as a square. The ride system sets it
+per rider from the skin fit (`rideAnchorFit` in `fishSwim.js`); every other fish leaves
+it at 0. Normals are corrected for it the same way.
+
 ## Config keys
 
 In `model.proceduralAnimation`, `src/data/species.js`.
@@ -101,6 +123,7 @@ In `model.proceduralAnimation`, `src/data/species.js`.
 | `type` | — | `'caudal-vertex'` |
 | `bodyMeshNames` | — | Meshes taking the GPU path |
 | `bodyMeshPatterns` | — | Substring fallback for mesh selection |
+| `followBodyMeshNames` | — | Material splits that deform over the body's bounds, not their own |
 | `sourceAxis` | `'z'` | Body long axis |
 | `lateralAxis` | `'x'` (or `'z'` if source is `x`) | Axis the stroke displaces along |
 | `tailAtMaxZ` | `false` | `true` when the tail sits at the axis maximum |
@@ -133,10 +156,22 @@ boosts `0.32`/`0.24`, flutter `0.13`/`0.075`. Female is the same shape at
 `amplitude: 0.4`, `waveSpeed: 2.55`, `turnStrength: 0.3`, `burstAmplitude: 0.78`.
 
 **Mako** — lamnid power: wave starts far forward and travels far enough to
-counter-curve the tail into a visible S. `amplitude: 0.82`, `waveSpeed: 1.86`,
-`waveTravel: 7.4`, `flexStart: 0.18`, `flexFull: 0.86`, `turnStrength: 0.58`,
+counter-curve the tail into a visible S. `amplitude: 1.2`, `waveSpeed: 2.4`,
+`waveTravel: 7.4`, `flexStart: 0.1` (ahead of the pectoral roots at 0.25, so the body
+bends from just behind the head), `flexFull: 0.86`, `turnStrength: 0.58`,
 `burstAmplitude: 0.82`, `response: 4.8`, boosts `0.28`/`0.22`,
-`pectoralFinFlutter: 0.06`.
+`pectoralFinFlutter: 0.06`, `followBodyMeshNames: ['shortfinmako003_1']` (teeth).
+Before 2026-09-28 it was `amplitude: 0.82`, `waveSpeed: 1.86`, `flexStart: 0.18`,
+which read as a stiff front with a waving tail.
+
+**Live Sharksucker** — a remora: rigid head and disc, a steady subcarangiform rear
+body. Source length 6.6014, so the remora stroke of 0.07 and 0.03 body lengths is
+`amplitude: 0.462`, `turnStrength: 0.198`. `waveSpeed: 3.0`, `waveTravel: 3.2` (one
+gentle bend down the body; 4.4 and 4.6 read as a snake),
+`flexStart: 0.14` (just ahead of the pectoral roots at 0.18), `flexFull: 0.86`,
+`burstAmplitude: 0.8`, `response: 8`, boosts `0.4`/`0.3`, flutter `0.09`/`0.05`,
+`followBodyMeshNames: ['live_sharksucker_2']` (disc). The stand-in remoras share the
+same stroke, beat, and start (`REMORA_CAUDAL`).
 
 Note the pattern: **bigger animal → lower `waveSpeed`, higher `waveTravel` and
 `amplitude`, lower `response`.** Mass reads as slow cadence, long wave, and lazy
@@ -169,7 +204,8 @@ In `scripts/inspect-procedural-targets.mjs`:
 ```
 
 `forbiddenMeshNames` is how a required weld is proven. Use it whenever a fin has been
-merged into the body deliberately.
+merged into the body deliberately. `requiredFollowMeshes` proves a
+`followBodyMeshNames` part is still there under the name the config expects.
 
 ## Review gates
 

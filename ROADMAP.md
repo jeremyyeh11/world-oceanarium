@@ -13,6 +13,35 @@ Status labels:
 
 ## Current work
 
+### Remoras (week 1 of the species series)
+
+Status: `Current in development` — `v0.16.0-dev_14` (#102, opened as `dev_1`, rebased onto `dev_6` and then onto `dev_13`, the school-walls fix; `dev_8` retunes the body wave, `dev_9` samples ride spots from the host mesh, `dev_10` adds escorting, `dev_11` bends clamped riders and slows the remora wave, `dev_12` fixes the latch snapping). Ride system and species data done; the Live Sharksucker model is in, the other seven wait on their models and their review rows.
+
+Reference:
+- System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).
+- Species: the eight `Echeneidae` entries in [`src/data/species.js`](src/data/species.js).
+
+Subtasks:
+- [x] Ride system: host groups and anchors, weighted host choice, approach → latch → attached → release, fade and surface rules, tank-switch persistence.
+- [x] Species data and Atlas copy for all eight, from FishBase; true-length placeholders until models land.
+- [x] Mako and Mola anchors measured off their meshes.
+- [x] Jeremy review (2026-09-26, local preview): remoras clipped through the host while finding a spot, and the rigid stand-ins had no tail beat. Fixed with host clearance ellipsoids, staging points, swing-round waypoints, a push-out clamp, and a docking stage, plus generated stand-in GLBs on the real `caudal-vertex` wave.
+- [x] Live Sharksucker GLB (2026-09-27, from the `feat/echeneis-naucrates` branch, model only). Recentred with `model.position`, disc moving with the head through the new `followBodyMeshNames`, and the ride fit now uses the model's measured top line (`backProfile`, from the new `scripts/fit-rider-model.mjs`).
+- [ ] Supply the other seven remora GLBs (Jeremy). Intake per species is the five steps under "Remora models" in `docs/ride-hosts.md`, starting with `node scripts/fit-rider-model.mjs <id>`.
+- [x] Clamped remoras bend their rear body onto the host's skin (2026-09-28, `dev_11`, Jeremy: "bend it"). The fit picks the bend with the tilt; the `caudal-vertex` shader draws it (`uProceduralHug`). A full-size sharksucker's tail reaches the mako's skin on 14 of 18 spots.
+- [x] Remora swim wave slowed after review ("they look like snakes", 2026-09-28): `waveSpeed 4.4 → 3.0`, `waveTravel 4.6 → 3.2`.
+- [x] Fins pivot at their roots (2026-09-28, `dev_9`). The sharksucker GLB's `pectoral.r` and `pelvic.r` share their left twin's origin; the renderer now finds each fin's root and turns it there, so no asset change is needed.
+- [x] Ride spots sampled from each host's mesh by face normal, host capacity by length, rider spacing, and riders following the host's caudal wave (2026-09-28, `dev_9`, Jeremy's review: "limit suckers by host size", "more asymmetrical", "use the mesh's face normals").
+- [ ] Decide `creatures_dev` review population for the other seven remoras and write the rows (backup before/after). `creatures_dev` already has four Live Sharksuckers (ids 283–286, sizes 0.76–1.0), enough to fill the mako's four anchors; the Vercel review build shows only those until the rest are added.
+- [ ] Jeremy feel review on device: latch, ride, and release on the mako and the Mola.
+
+Follow-ups (`Backlog`):
+- [ ] Riders moving between anchors on the same host (real remoras relocate when disturbed).
+- [ ] Mouth and gill-chamber riding (white suckerfish in mantas, juvenile spearfish remoras) — needs hosts with open mouths first.
+- [ ] Whalesucker, white suckerfish, marlinsucker get their real hosts in week 3 (spinner dolphin, manta, billfish): each needs only a `rideHost` block.
+- [x] Remoras escort a host loosely when they have no spot or have just let go (2026-09-28, `dev_10`, Jeremy's review).
+- [ ] Week 2's non-attaching followers (pilot fish, golden trevally, rainbow runner) can reuse the remoras' `escort` stage: a `hitchhiker` block that never attaches, only escorts. Pilot fish hold ahead of the snout and golden trevally off the pectorals, so they need their own station ranges.
+
 ### Nature of Code autonomous-agents review (`v0.15.8` bucket onward)
 
 Status: `Current in development` — all three planned branches are in: `perf/frame-cost` shipped in clean `v0.15.8`, `feat/predator-response` merged as `v0.16.0-dev_3` (#105) and `feat/school-neighbours` as `v0.16.0-dev_6`. What remains is the backlog below and promoting `v0.16.0` once the remoras land.

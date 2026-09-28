@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { createRideState } from './fishSwim.js'
 
 // Persistent per-creature swim state that survives a <Fish> unmount/remount.
 //
@@ -47,6 +48,9 @@ function createRuntimeEntry() {
     nextBurstAt: 0,
     nextDriftAt: 0,
     driftUntil: 0,
+    // Hitchhiker (remora) ride state, mutated in place by advanceRide. Persisting it means a
+    // remora clamped to the mako is still on the mako when you come back to the tank.
+    ride: createRideState(),
   }
 }
 

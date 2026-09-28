@@ -10,7 +10,12 @@ import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import WaterSurface from './WaterSurface'
-import { prepareProceduralVertexMaterials, updateProceduralVertexMaterials } from './Fish'
+import {
+  prepareProceduralFinFollow,
+  prepareProceduralVertexMaterials,
+  updateProceduralFinFollow,
+  updateProceduralVertexMaterials,
+} from './Fish'
 
 const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 
@@ -76,6 +81,15 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.3, -0.12, 0],
     lookAt: [0, -0.08, 0],
   },
+  // Remoras: slender bodies, framed between the sardinella (0.27 m) and the mahi (2.1 m).
+  'echeneis-naucrates': { maxLengthDisplayUnits: 2.1 },
+  'echeneis-neucratoides': { maxLengthDisplayUnits: 1.85 },
+  'remora-remora': { maxLengthDisplayUnits: 1.95 },
+  'remora-albescens': { maxLengthDisplayUnits: 1.4 },
+  'remora-australis': { maxLengthDisplayUnits: 1.85 },
+  'remora-brachyptera': { maxLengthDisplayUnits: 1.6 },
+  'remora-osteochir': { maxLengthDisplayUnits: 1.5 },
+  'phtheirichthys-lineatus': { maxLengthDisplayUnits: 1.85 },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -83,6 +97,16 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'coryphaena-hippurus': 9.788,
   'mola-alexandrini': 20.7909,
   'isurus-oxyrinchus': 40.1835,
+  // Supplied model (scripts/fit-rider-model.mjs prints this).
+  'echeneis-naucrates': 6.6014,
+  // Generated remora stand-ins are unit length (scripts/build-remora-placeholders.mjs).
+  'echeneis-neucratoides': 1,
+  'remora-remora': 1,
+  'remora-albescens': 1,
+  'remora-australis': 1,
+  'remora-brachyptera': 1,
+  'remora-osteochir': 1,
+  'phtheirichthys-lineatus': 1,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -377,6 +401,10 @@ function ModelAsset({ species, pose, companion = null }) {
     () => prepareProceduralVertexMaterials(scene, proceduralAnimation),
     [scene, proceduralAnimation],
   )
+  const proceduralFinFollow = useMemo(
+    () => prepareProceduralFinFollow(scene, proceduralAnimation),
+    [scene, proceduralAnimation],
+  )
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
@@ -386,8 +414,15 @@ function ModelAsset({ species, pose, companion = null }) {
   const openingBurstDelay = animationProfile?.burstDelay ?? 3.8
   const viewerScale = atlasModelScaleForSpecies(species, pose) * (companion?.scale ?? 1)
   const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
-  const rotation = [sourceRotation[0], sourceRotation[1] + pose.yawOffset + (companion?.yaw ?? 0), sourceRotation[2]]
+  const yaw = pose.yawOffset + (companion?.yaw ?? 0)
   const position = companion?.position ?? pose.position
+  // `model.position` recentres a model whose origin is off its body (in tank WU, so divide by
+  // the tank scale to get source units); the tank applies it outside the model's rotation.
+  const sourceOffset = useMemo(() => {
+    const offset = species?.model?.position
+    const tankScale = species?.model?.scale ?? 1
+    return offset ? offset.map(value => value / tankScale) : [0, 0, 0]
+  }, [species])
 
   useEffect(() => {
     const clips = gltf.animations ?? []
@@ -448,6 +483,7 @@ function ModelAsset({ species, pose, companion = null }) {
         phase,
         speed01: 0.42,
       })
+      updateProceduralFinFollow(proceduralFinFollow, proceduralAnimation, { phase, speed01: 0.42 })
       return
     }
     const mixer = mixerRef.current
@@ -463,7 +499,13 @@ function ModelAsset({ species, pose, companion = null }) {
     burstDueAtRef.current = mixer.time + 999
   })
 
-  return <primitive object={scene} rotation={rotation} scale={viewerScale} position={position} />
+  return (
+    <group rotation={[0, yaw, 0]} scale={viewerScale} position={position}>
+      <group position={sourceOffset}>
+        <primitive object={scene} rotation={sourceRotation} />
+      </group>
+    </group>
+  )
 }
 
 // Reference height for the stage scale bar: the global sex-averaged mean adult

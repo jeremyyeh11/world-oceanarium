@@ -148,6 +148,11 @@ So "rojak" becomes a console warning during `npm run dev`, not a vibe you notice
 later. If you see that warning, either move the offending species to its own tank or
 reconsider its `tempo`.
 
+Hitchhikers (species with a `hitchhiker` block — the remoras) are left out of the
+check. They spend most of their time clamped to a host and move at its pace, so the
+spearfish remora can share The Drift with the Mola it rides. See
+[`ride-hosts.md`](ride-hosts.md).
+
 ## How rendering flows
 
 ```
@@ -279,9 +284,14 @@ grouping keys the later phases need. Only the navigation UI changes.
 |---------------------|----------|-------------|--------------------------|
 | Spotted Sardinella  | `sprint` | `open-sea`  | bait / schooling texture |
 | Mahi-mahi           | `cruise` | `open-sea`  | mid predator             |
-| Shortfin Mako Shark | `cruise` | `open-sea`  | apex predator            |
-| Giant Sunfish       | `drift`  | `the-drift` | slow gelatinous grazer   |
+| Shortfin Mako Shark | `cruise` | `open-sea`  | apex predator, ride host |
+| Giant Sunfish       | `drift`  | `the-drift` | slow gelatinous grazer, ride host |
+| Live Sharksucker, Whitefin Sharksucker, Common Remora | `cruise` | `open-sea` | ride the mako |
+| White Suckerfish, Marlinsucker, Slender Suckerfish | `cruise` | `open-sea` | ride the mako only occasionally |
+| Whalesucker         | `cruise` | `open-sea`  | swims free until a whale or dolphin arrives |
+| Spearfish Remora    | `cruise` | `the-drift` | rides the Mola           |
 
 The Open Sea is a self-contained food chain (bait → mid → apex) at one tempo band.
 The sunfish was pulled out into The Drift because its `drift` tempo clashes with the
-pursuit hunters — the exact case the coherence guard protects against.
+pursuit hunters — the exact case the coherence guard protects against. The remoras are
+the exception the guard allows: riders take their host's pace.

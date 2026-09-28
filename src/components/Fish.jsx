@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Billboard, Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { WORLD_UNIT_METERS } from '../data/species'
+import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
@@ -20,10 +20,14 @@ import {
   DEFAULT_SWIM,
   DEFAULT_TURN_ACTION_DURATION,
   MOLA_SUN_BASK_APPROACH_Z,
+  RIDE_BEND_START,
   SNAP_TURN_THRESHOLD,
   SWIM_BOX,
   advanceSchoolAlarms,
+  advanceRide,
   boundaryAvoidanceTurnStep,
+  caudalLateralCurve,
+  claimRideSlot,
   clampToMolaSurfaceCeiling,
   clampToSurfaceCeiling,
   clampToSwimBounds,
@@ -37,9 +41,11 @@ import {
   getSchoolState,
   glideAlongCeiling,
   glideAlongWalls,
+  hitchhikerProfile,
   horizontalBoundRepulsion,
   interactionProxyDimensions,
   isMolaDeepZExit,
+  keepRiderClearOfHost,
   maxTurnRadiansForSpeed,
   maxVisualPitch,
   pitchToward,
@@ -54,9 +60,12 @@ import {
   raiseSchoolAlarm,
   randomRange,
   randomRangeFromPair,
+  releaseRideSlots,
   releaseSchoolState,
+  resetRideState,
   resolveModel,
   resolveSwimProfile,
+  rideHostProfile,
   rotateDirectionToward,
   schoolAlarmAt,
   schoolFormationOffset,
@@ -73,6 +82,7 @@ import {
   updateFishRegistry,
   verticalBoundRepulsion,
   yawToward,
+  updateFishRegistryPose,
 } from './fishSwim'
 
 
@@ -254,6 +264,21 @@ const MOLA_BEHAVIOR_LOOK_AT_TRANSITION_DURATION = 1.5
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const AGENT_BEHAVIOR_RETRY_COOLDOWN = 1.2
+// Ride hosts (the mako, the Mola) run their frame ahead of everyone else so the remoras
+// clamped to them read this frame's pose. Negative, because r3f hands rendering over to any
+// positive-priority subscriber.
+const RIDE_HOST_FRAME_PRIORITY = -1
+// After letting go, a remora swims straight on for this long before it picks a new target.
+const RIDE_RELEASE_COAST_SECONDS = 1.8
+const RIDE_APPROACH_VELOCITY_RESPONSE = 3.2
+// How fast a just-released remora eases back inside its swim volume (per second): ~98% of the
+// way within the 1.4 s release window, so the hard clamp that follows moves it imperceptibly.
+const RIDE_RELEASE_BOUNDS_RESPONSE = 3
+const RIDE_APPROACH_BEHAVIOR = Object.freeze({ type: 'ride' })
+// Model-less creatures are posed by lookAt(+forward) then a quarter turn, which puts their
+// head at local -X; models face local -Z. Converts a model-frame pose to the placeholder frame.
+const PLACEHOLDER_FROM_MODEL_FRAME = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5)
+const MODEL_FROM_PLACEHOLDER_FRAME = PLACEHOLDER_FROM_MODEL_FRAME.clone().invert()
 
 
 const tangent = new THREE.Vector3()
@@ -278,6 +303,8 @@ const curveDeformAxisY = new THREE.Vector3(0, 1, 0)
 const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentRuntimeClamp = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
+const ridePoseQuaternion = new THREE.Quaternion()
+const rideBlendQuaternion = new THREE.Quaternion()
 const targetLookQuaternion = new THREE.Quaternion()
 const finFlutterEuler = new THREE.Euler()
 const bankQuaternion = new THREE.Quaternion()
@@ -389,6 +416,9 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     flexFull: { value: proceduralVertex.flexFull ?? 0.82 },
     turnStrength: { value: proceduralVertex.turnStrength ?? 0.22 },
     burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.55 },
+    // A clamped remora's bend onto its host (source units at the tail; 0 otherwise).
+    hug: { value: 0 },
+    hugStart: { value: RIDE_BEND_START },
   } : null
   const molaMaskUniforms = proceduralVertex?.type === 'mola-mask-vertex' && proceduralBounds ? {
     phase: { value: 0 },
@@ -429,6 +459,8 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uProceduralFlexFull = caudalUniforms.flexFull
       shader.uniforms.uProceduralTurnStrength = caudalUniforms.turnStrength
       shader.uniforms.uProceduralBurstAmplitude = caudalUniforms.burstAmplitude
+      shader.uniforms.uProceduralHug = caudalUniforms.hug
+      shader.uniforms.uProceduralHugStart = caudalUniforms.hugStart
     }
     if (molaMaskUniforms) {
       shader.uniforms.uMolaPhase = molaMaskUniforms.phase
@@ -466,6 +498,8 @@ uniform float uProceduralFlexStart;
 uniform float uProceduralFlexFull;
 uniform float uProceduralTurnStrength;
 uniform float uProceduralBurstAmplitude;
+uniform float uProceduralHug;
+uniform float uProceduralHugStart;
 float proceduralAxisValue(vec3 value, float axis) {
   return axis < 0.5 ? value.x : (axis < 1.5 ? value.y : value.z);
 }
@@ -502,6 +536,23 @@ void proceduralFishCurve(float sourceCoord, out float lateralOffset, out float l
   lateralOffset = wave * stroke * flex + uProceduralTurn * uProceduralTurnStrength * flex * flex;
   lateralSlope = stroke * (dWaveDz * flex + wave * dFlexDz)
     + uProceduralTurn * uProceduralTurnStrength * 2.0 * flex * dFlexDz;
+}
+// A clamped remora's rear body bent onto its host: toward its own up (the disc side) by
+// uProceduralHug at the tail, easing in from uProceduralHugStart as (t - start)^2 so the head
+// and disc stay put. Mirrors rideBendProfile in fishSwim.js.
+float proceduralVerticalAxis() {
+  return 3.0 - uProceduralSourceAxis - uProceduralLateralAxis;
+}
+void proceduralHugCurve(float sourceCoord, out float hugOffset, out float hugSlope) {
+  float bodyLength = max(0.0001, uProceduralMaxSource - uProceduralMinSource);
+  float tail01FromMin = (sourceCoord - uProceduralMinSource) / bodyLength;
+  float tail01FromMax = (uProceduralMaxSource - sourceCoord) / bodyLength;
+  float tail01 = clamp(mix(tail01FromMax, tail01FromMin, uProceduralTailAtMaxZ), 0.0, 1.0);
+  float hugRange = max(0.0001, 1.0 - uProceduralHugStart);
+  float hugT = clamp((tail01 - uProceduralHugStart) / hugRange, 0.0, 1.0);
+  float dTailDz = mix(-1.0, 1.0, uProceduralTailAtMaxZ) / bodyLength;
+  hugOffset = uProceduralHug * hugT * hugT;
+  hugSlope = uProceduralHug * 2.0 * hugT / hugRange * dTailDz;
 }` : ''}${molaMaskUniforms ? `attribute vec4 color_1;
 uniform float uMolaPhase;
 uniform float uMolaSpeed;
@@ -566,7 +617,11 @@ void proceduralMolaMotion(inout vec3 value) {
 float proceduralNormalOffset;
 float proceduralNormalSlope;
 proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralNormalOffset, proceduralNormalSlope);
-proceduralAdjustNormal(objectNormal, uProceduralSourceAxis, uProceduralLateralAxis, proceduralNormalSlope);`
+proceduralAdjustNormal(objectNormal, uProceduralSourceAxis, uProceduralLateralAxis, proceduralNormalSlope);
+float proceduralHugNormalOffset;
+float proceduralHugNormalSlope;
+proceduralHugCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralHugNormalOffset, proceduralHugNormalSlope);
+proceduralAdjustNormal(objectNormal, uProceduralSourceAxis, proceduralVerticalAxis(), proceduralHugNormalSlope);`
       )
       .replace(
         '#include <begin_vertex>',
@@ -574,7 +629,11 @@ proceduralAdjustNormal(objectNormal, uProceduralSourceAxis, uProceduralLateralAx
 float proceduralLateralOffset;
 float proceduralLateralSlope;
 proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralLateralOffset, proceduralLateralSlope);
-proceduralAddAxis(transformed, uProceduralLateralAxis, proceduralLateralOffset);`
+proceduralAddAxis(transformed, uProceduralLateralAxis, proceduralLateralOffset);
+float proceduralHugOffset;
+float proceduralHugSlope;
+proceduralHugCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralHugOffset, proceduralHugSlope);
+proceduralAddAxis(transformed, proceduralVerticalAxis(), proceduralHugOffset);`
       )
     }
     if (molaMaskUniforms) {
@@ -684,12 +743,11 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
         nextMaterial.emissiveIntensity = 0.32
       }
       const proceduralMeshConfig = shouldProcedurallyDeformMesh(child, proceduralAnimation) ? proceduralAnimation : null
-      if (proceduralMeshConfig) child.geometry.computeBoundingBox()
       applyFishLightMask(
         nextMaterial,
         rim,
         proceduralMeshConfig,
-        child.geometry,
+        proceduralMeshConfig ? proceduralBoundsGeometry(root, child, proceduralAnimation) : child.geometry,
       )
       materials.push(nextMaterial)
       return nextMaterial
@@ -707,11 +765,11 @@ export function prepareProceduralVertexMaterials(root, proceduralAnimation) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh || !shouldProcedurallyDeformMesh(child, proceduralAnimation)) return
-    child.geometry.computeBoundingBox()
+    const boundsGeometry = proceduralBoundsGeometry(root, child, proceduralAnimation)
     const list = Array.isArray(child.material) ? child.material : [child.material]
     list.forEach(material => {
       if (!material) return
-      applyFishLightMask(material, null, proceduralAnimation, child.geometry)
+      applyFishLightMask(material, null, proceduralAnimation, boundsGeometry)
       materials.push(material)
     })
   })
@@ -728,6 +786,18 @@ export function updateProceduralVertexMaterials(materials, { phase = 0, speed01 
     uniforms.turn.value = THREE.MathUtils.clamp(turn, -1, 1)
     uniforms.burst.value = THREE.MathUtils.clamp(burst01, 0, 1)
   })
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- shared renderer helper, never a React value
+export function prepareProceduralFinFollow(root, proceduralAnimation) {
+  if (!root || !proceduralAnimation) return []
+  return collectProceduralFinFollow(root, collectProceduralFinMeshes(root), proceduralAnimation)
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- shared renderer helper, never a React value
+export function updateProceduralFinFollow(finFollow, proceduralAnimation, { phase = 0, speed01 = 0, turn = 0, burst01 = 0 } = {}) {
+  if (finFollow.length === 0) return
+  applyProceduralFinFollow(finFollow, proceduralAnimation, phase, THREE.MathUtils.clamp(speed01, 0, 1), turn, burst01)
 }
 
 function animationVariationForCreature(creature) {
@@ -1006,10 +1076,115 @@ function proceduralAxisMax(bounds, axisIndex) {
 function shouldProcedurallyDeformMesh(mesh, proceduralAnimation) {
   if (!['caudal-vertex', 'mola-mask-vertex'].includes(proceduralAnimation?.type)) return false
   const name = mesh.name?.toLowerCase() ?? ''
+  if (isProceduralBodyFollower(mesh, proceduralAnimation)) return true
   if (proceduralAnimation.bodyMeshNames?.some(bodyName => name === bodyName.toLowerCase())) return true
   if (proceduralAnimation.bodyMeshPatterns?.some(pattern => name.includes(pattern.toLowerCase()))) return true
   if (/pectoral|pelvic|fin|flipper|eye|jaw|mouth/.test(name)) return false
   return true
+}
+
+// A part listed in `followBodyMeshNames` shares the body's frame (a material split such as the
+// mako's teeth or a remora's suction disc) and deforms over the body's bounds, so it moves
+// exactly with the body under it. Over its own bounds it would wave as if it were a whole fish.
+function isProceduralBodyFollower(mesh, proceduralAnimation) {
+  const name = mesh.name?.toLowerCase() ?? ''
+  return Boolean(proceduralAnimation?.followBodyMeshNames?.some(followName => name === followName.toLowerCase()))
+}
+
+function findProceduralBodyMesh(root, proceduralAnimation) {
+  const bodyNames = (proceduralAnimation?.bodyMeshNames ?? []).map(name => name.toLowerCase())
+  if (bodyNames.length === 0) return null
+  let body = null
+  root.traverse(child => {
+    if (!body && child.isMesh && bodyNames.includes(child.name?.toLowerCase() ?? '')) body = child
+  })
+  return body
+}
+
+// The geometry whose bounds parameterise a mesh's wave: its own, or the body's for a follower.
+function proceduralBoundsGeometry(root, mesh, proceduralAnimation) {
+  const source = isProceduralBodyFollower(mesh, proceduralAnimation)
+    ? (findProceduralBodyMesh(root, proceduralAnimation) ?? mesh)
+    : mesh
+  source.geometry.computeBoundingBox()
+  return source.geometry
+}
+
+// Where each independent fin meets the body: its root (the fin's vertices nearest the body's
+// long axis), how far along the body's wave that is, and which way the body's lateral axis
+// points in the fin's parent frame. The root is also the fin's pivot: a supplied fin's origin
+// is not always at its root (a mirrored copy keeps its twin's), and a flutter about a far-off
+// origin swings the fin through an arc instead of turning it at the body.
+function collectProceduralFinFollow(object, fins, proceduralAnimation) {
+  if (proceduralAnimation?.type !== 'caudal-vertex' || fins.length === 0) return []
+  const body = findProceduralBodyMesh(object, proceduralAnimation)
+  if (!body) return []
+  object.updateMatrixWorld(true)
+  body.geometry.computeBoundingBox()
+  const sourceAxis = proceduralAxisIndex(proceduralAnimation.sourceAxis, 2)
+  const lateralAxis = proceduralAxisIndex(proceduralAnimation.lateralAxis, sourceAxis === 0 ? 2 : 0)
+  const verticalAxis = 3 - sourceAxis - lateralAxis
+  const bodyMin = proceduralAxisMin(body.geometry.boundingBox, sourceAxis)
+  const bodyLength = Math.max(0.0001, proceduralAxisMax(body.geometry.boundingBox, sourceAxis) - bodyMin)
+  const bodyCenter = body.geometry.boundingBox.getCenter(new THREE.Vector3())
+  const bodyInverse = body.matrixWorld.clone().invert()
+  const lateralUnit = new THREE.Vector3().setComponent(lateralAxis, 1)
+  const point = new THREE.Vector3()
+  return fins.map(fin => {
+    const position = fin.mesh.geometry.getAttribute('position')
+    const toBody = bodyInverse.clone().multiply(fin.mesh.matrixWorld)
+    const byAxisDistance = []
+    for (let i = 0; i < position.count; i += 1) {
+      point.fromBufferAttribute(position, i).applyMatrix4(toBody)
+      const lateral = point.getComponent(lateralAxis) - bodyCenter.getComponent(lateralAxis)
+      const vertical = point.getComponent(verticalAxis) - bodyCenter.getComponent(verticalAxis)
+      byAxisDistance.push([lateral * lateral + vertical * vertical, i, point.getComponent(sourceAxis)])
+    }
+    byAxisDistance.sort((a, b) => a[0] - b[0])
+    const rootCount = Math.max(1, Math.ceil(byAxisDistance.length * 0.1))
+    const pivot = new THREE.Vector3()
+    let rootSource = 0
+    for (let i = 0; i < rootCount; i += 1) {
+      pivot.add(point.fromBufferAttribute(position, byAxisDistance[i][1]))
+      rootSource += byAxisDistance[i][2]
+    }
+    pivot.divideScalar(rootCount).multiply(fin.mesh.scale)
+    rootSource /= rootCount
+    const fromMin = (rootSource - bodyMin) / bodyLength
+    const tail01 = THREE.MathUtils.clamp(proceduralAnimation.tailAtMaxZ ? fromMin : 1 - fromMin, 0, 1)
+    // The body's lateral axis, carried into the fin's parent frame (scale included).
+    const parentInverse = fin.mesh.parent ? fin.mesh.parent.matrixWorld.clone().invert() : new THREE.Matrix4()
+    const bodyToParent = parentInverse.multiply(body.matrixWorld)
+    const origin = new THREE.Vector3().applyMatrix4(bodyToParent)
+    const lateral = lateralUnit.clone().applyMatrix4(bodyToParent).sub(origin)
+    return {
+      mesh: fin.mesh,
+      basePosition: fin.mesh.position.clone(),
+      // Where the rest pose puts the root, in the parent frame, relative to the origin.
+      baseRoot: pivot.clone().applyQuaternion(fin.mesh.quaternion),
+      pivot,
+      tail01,
+      lateral,
+    }
+  })
+}
+
+const finFollowCurve = { offset: 0, slope: 0 }
+const finFollowRoot = new THREE.Vector3()
+
+// Keep each fin's root where the body carries it: turn it about its root rather than its
+// origin, and move it sideways with the body's wave there. Runs after the flutter has set the
+// fin's rotation for this frame.
+function applyProceduralFinFollow(finFollow, config, phase, speed01, turn, burst) {
+  for (let i = 0; i < finFollow.length; i += 1) {
+    const fin = finFollow[i]
+    caudalLateralCurve(finFollowCurve, fin.tail01, config, phase, speed01, turn, burst)
+    finFollowRoot.copy(fin.pivot).applyQuaternion(fin.mesh.quaternion)
+    fin.mesh.position.copy(fin.basePosition)
+      .add(fin.baseRoot)
+      .sub(finFollowRoot)
+      .addScaledVector(fin.lateral, finFollowCurve.offset)
+  }
 }
 
 function collectProceduralFinMeshes(object) {
@@ -1172,7 +1347,7 @@ function BoneDebugOverlay({ object, bones, modelScale = 1, parentScale = 1 }) {
   )
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
+function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const object = useMemo(() => clone(gltf.scene), [gltf.scene])
   // Procedural species intentionally ignore every authored GLB clip. The rig is
@@ -1184,6 +1359,10 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
   const curveDeformBones = useMemo(() => collectCurveDeformBones(object, model), [object, model])
   const proceduralFinMeshes = useMemo(() => collectProceduralFinMeshes(object), [object])
+  const proceduralFinFollow = useMemo(
+    () => collectProceduralFinFollow(object, proceduralFinMeshes, model?.proceduralAnimation),
+    [object, proceduralFinMeshes, model],
+  )
   const debugBones = useMemo(() => collectModelBones(object), [object])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
@@ -1373,6 +1552,24 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         proceduralUniforms.turn.value = curveDeformTurnRef.current * (1 + whip01 * CAUDAL_WHIP_BEND_GAIN)
         proceduralUniforms.burst.value = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
           + whip01 * CAUDAL_WHIP_EXTRA_BURST
+        if (proceduralUniforms.hug) proceduralUniforms.hug.value = proceduralInput.hug ?? 0
+      }
+    }
+    if (curveConfig?.type === 'caudal-vertex') {
+      // The values the shader just received: independent fins follow the body under their
+      // roots with them, and a ride host's riders read them through waveOutRef.
+      const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
+      const wavePhase = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
+      const waveSpeed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      const waveTurn = curveDeformTurnRef.current * (1 + whip01 * CAUDAL_WHIP_BEND_GAIN)
+      const waveBurst = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1) + whip01 * CAUDAL_WHIP_EXTRA_BURST
+      if (proceduralFinFollow.length > 0) applyProceduralFinFollow(proceduralFinFollow, curveConfig, wavePhase, waveSpeed01, waveTurn, waveBurst)
+      if (waveOutRef?.current) {
+        const out = waveOutRef.current
+        out.phase = wavePhase
+        out.speed01 = waveSpeed01
+        out.turn = waveTurn
+        out.burst = waveBurst
       }
     }
   })
@@ -1450,6 +1647,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // Only the designed solitary hunters surface the agent debug readout; an orphaned schooling
   // fish roams on the same path but shouldn't spawn debug labels/vectors in the tank.
   const showAgentDebug = isSoloAgent && species.schooling === false
+  // Remoras ride hosts (see the ride section of fishSwim.js). Only a solo agent rides; hosts
+  // publish their rendered pose each frame for the riders to read.
+  const hitchhiker = useMemo(() => (isSoloAgent ? hitchhikerProfile(species) : null), [isSoloAgent, species])
+  const isRideHost = useMemo(() => Boolean(rideHostProfile(species)), [species])
+  const ride = runtime.ride
+  const rideRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:ride`)))
   const schoolState = useMemo(() => (isSchooling ? getSchoolState(school, creature, swim) : null), [isSchooling, school, creature, swim])
   const followTarget = useRef(new THREE.Vector3())
   const agentTarget = useRef(new THREE.Vector3())
@@ -1546,6 +1749,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
   const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, whip01: 0, phase: 0 })
+  // The caudal wave as rendered this frame (FishModel writes it); a ride host publishes it so its
+  // clamped riders move with the body under them.
+  const waveOutRef = useRef({ phase: 0, speed01: 0, turn: 0, burst: 0 })
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
@@ -1616,6 +1822,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   useEffect(() => {
     return () => unregisterFish(creature.id)
   }, [creature.id])
+
+  useEffect(() => {
+    if (!hitchhiker) return undefined
+    // A remora that was riding when its tank unmounted resumes on the same anchor, unless
+    // another rider took it meanwhile.
+    // An escort holds no spot (anchorIndex -1), so there is nothing to re-claim for it.
+    if (ride.hostId != null && ride.anchorIndex >= 0 && !claimRideSlot(ride.hostId, ride.anchorIndex, creature.id, creatureBodyLength(creature, swim), hitchhiker)) resetRideState(ride)
+    return () => releaseRideSlots(creature.id)
+  }, [creature.id, creature, swim, hitchhiker, ride])
 
   useEffect(() => {
     return () => {
@@ -1768,6 +1983,39 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         SCHOOL_STATION_RANGE[1],
       )
       : 1
+
+    // Hitchhiker step: decide on / close on / clamp to / let go of a host. Runs on last frame's
+    // pose; hosts have already published this frame's (RIDE_HOST_FRAME_PRIORITY).
+    if (hitchhiker && hasFollowPosition.current) {
+      ridePoseQuaternion.copy(fish.quaternion)
+      if (!model) ridePoseQuaternion.multiply(MODEL_FROM_PLACEHOLDER_FRAME)
+      advanceRide(
+        ride,
+        creature,
+        hitchhiker,
+        creatureBodyLength(creature, swim),
+        now,
+        fish.position,
+        ridePoseQuaternion,
+        { idle: motion.idleSpeed * organicMotion.speedScale, burst: motion.burstSpeed * organicMotion.speedScale },
+        rideRand.current,
+      )
+      if (ride.justReleased) {
+        // Swim forward off the disc at the host's pace, then fall away behind it.
+        ride.justReleased = false
+        desiredDirection.current.copy(ride.releaseDirection)
+        velocity.current = Math.max(velocity.current, Math.min(ride.releaseSpeed, motion.burstSpeed))
+      }
+      if (ride.ownsPose || (!ride.approaching && agentBehavior.current?.type === 'ride')) {
+        // No roaming targets while clamped or just after a failed approach: when it lets go,
+        // it coasts straight off the host before choosing where to go next.
+        agentBehavior.current = null
+        agentHasTarget.current = false
+        nextAgentRetargetAt.current = now + RIDE_RELEASE_COAST_SECONDS
+      }
+    }
+    const riding = Boolean(hitchhiker) && ride.ownsPose
+
     const idleVelocity = Math.max(
       0.08,
       motion.idleSpeed + Math.sin(now / motion.idlePeriod + motion.bobPhase) * motion.idleDrift,
@@ -1779,9 +2027,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
     // An alarmed fish does not settle into a slow glide.
     const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current && schoolAlarm < SCHOOL_ALARM_FLINCH_LEVEL
-    const targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
+    let targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
     const escaping = now < startleUntil.current
-    const velocityResponse = isActionMoveActive ? (escaping ? THREAT_STARTLE_VELOCITY_RESPONSE : 8) : (isDrifting ? 1.2 : 2.4)
+    let velocityResponse = isActionMoveActive ? (escaping ? THREAT_STARTLE_VELOCITY_RESPONSE : 8) : (isDrifting ? 1.2 : 2.4)
+    if (riding) {
+      // Docking, it swims at the host's pace; clamped, it is carried and the tail settles to a
+      // slow idle beat. Either way the ride owns the position; this only drives the tail.
+      const docking = ride.stage === 'dock'
+      targetVelocity = docking ? ride.swimSpeed : motion.driftSpeed
+      velocityResponse = docking ? RIDE_APPROACH_VELOCITY_RESPONSE : 1.6
+    } else if (hitchhiker && ride.approaching) {
+      targetVelocity = ride.targetSpeed / Math.max(0.001, organicMotion.speedScale)
+      velocityResponse = RIDE_APPROACH_VELOCITY_RESPONSE
+    }
 
     velocity.current = THREE.MathUtils.lerp(
       velocity.current,
@@ -1792,7 +2050,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     // Startle check, every frame (the boid decision below is not). Forcing a decision now lets this
     // frame's steering see the threat; the burst itself is triggered with the other actions below.
     let startled = false
-    if (model && hasFollowPosition.current && now >= startleReadyAt.current
+    // A clamped or docking remora is carried by its host; it does not bolt off it.
+    if (model && !riding && hasFollowPosition.current && now >= startleReadyAt.current
       && threatLevelAt(fish.position, creature, swim, startleEscape.current) >= THREAT_STARTLE_LEVEL * (1 - SCHOOL_ALARM_PRIMING * schoolAlarm)) {
       startled = true
       if (isSchooling) raiseSchoolAlarm(schoolState, fish.position)
@@ -1852,11 +2111,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       currentForward.normalize()
 
       const bodyLength = creatureBodyLength(creature, swim)
+      if (hitchhiker && ride.approaching) {
+        // Closing on a host: the moving intercept point replaces the roaming target, and the
+        // behavior slot stays occupied so no roaming target is picked meanwhile.
+        agentBehavior.current = RIDE_APPROACH_BEHAVIOR
+        agentTarget.current.copy(ride.target)
+        agentHasTarget.current = true
+      }
       const reachedDistance = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'approach'
         ? Math.min(bodyLength * MOLA_SUN_BASK_REACHED_BODY_LENGTHS, MOLA_SUN_BASK_REACHED_MAX)
         : soloAgentReachedDistance(creature, bodyLength)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
-      if (agentBehavior.current && targetDistance <= reachedDistance) {
+      if (agentBehavior.current && agentBehavior.current.type !== 'ride' && targetDistance <= reachedDistance) {
         if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
           const plannedDistance = Math.max(0.001, agentBehavior.current.approachDistance ?? 0)
           const distanceProgress = plannedDistance > 0.001
@@ -2039,6 +2305,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const driftY = Math.sin(driftPhase * 0.57 + 1.7) * MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE * driftIntroAlpha
         fish.position.y = THREE.MathUtils.damp(fish.position.y, molaSunBaskSurfaceCenterYMax(creature, swim, bounds) + driftY, 1.2, delta)
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
+        agentBehaviorDistance.current = 0
+      } else if (riding) {
+        // Clamped to a host (or settling onto it): the host's pose composed with the anchor owns
+        // the position outright, bypassing the shared integrator and its clamps.
+        fish.position.copy(ride.position)
+        desiredDirection.current.copy(ride.forward)
+        agentMoveDirection.copy(ride.forward)
         agentBehaviorDistance.current = 0
       } else {
         // Base desired heading — the only mode-specific step.
@@ -2258,6 +2531,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             ? molaSunBaskSurfaceCenterYMax(creature, swim, bounds)
             : null
           clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
+        } else if (hitchhiker && ride.stage === 'release') {
+          // Just let go, possibly outside its own volume (under a mako cruising the floor, or
+          // off a basking Mola's flank): ease back inside instead of popping there in a frame.
+          agentRuntimeClamp.copy(fish.position)
+          clampToSwimBounds(agentRuntimeClamp, bounds)
+          agentRuntimeClamp.y = Math.min(agentRuntimeClamp.y, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
+          fish.position.lerp(agentRuntimeClamp, 1 - Math.exp(-delta * RIDE_RELEASE_BOUNDS_RESPONSE))
         } else {
           clampToSwimBounds(fish.position, bounds)
           glideAlongCeiling(desiredDirection.current, fish.position, bounds)
@@ -2270,6 +2550,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             clampToSurfaceCeiling(fish.position, agentMoveDirection, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
           }
         }
+        // A remora closing on its host never passes through it (see keepRiderClearOfHost).
+        if (hitchhiker) keepRiderClearOfHost(fish.position, ride, bodyLength)
 
         // Mola deep-exit recovery: past the soft rear wall it fades out, snaps back inside the
         // shared bounds, retargets, and fades back in. While the follow cam is on it, recovery
@@ -2310,12 +2592,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     if (showAgentDebug) {
       const behavior = agentBehavior.current
-      agentStatus.current = behavior?.type === 'sun-bask'
-        ? `sun-bask ${behavior.stage}`
-        : (behavior?.type ?? 'choose-behavior')
+      agentStatus.current = hitchhiker && ride.stage !== 'free'
+        ? `ride ${ride.stage}${ride.hostId != null ? ` → ${ride.hostId}${ride.anchorIndex >= 0 ? ` #${ride.anchorIndex}` : ''}` : ''}`
+        : (behavior?.type === 'sun-bask'
+          ? `sun-bask ${behavior.stage}`
+          : (behavior?.type ?? 'choose-behavior'))
     }
 
-    updateFishRegistry(fish, creature, swim, school, desiredDirection.current, registrySpeed)
+    updateFishRegistry(fish, creature, swim, school, desiredDirection.current, registrySpeed, hitchhiker ? ride.hostId : null)
 
     let runtimeRecoveryOpacity = 1
     let recoveryFadeState = runtimeRecoveryFade.current
@@ -2340,6 +2624,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         runtimeRecoveryOpacity = 1
       }
     }
+    // A clamped remora fades with its host (the Mola's deep-exit recovery fade and snap).
+    if (riding) runtimeRecoveryOpacity = Math.min(runtimeRecoveryOpacity, ride.opacity)
 
     const fade = depthFadeFromScreenZ(fish.position.z)
     materialPassOpacity = runtimeRecoveryOpacity
@@ -2425,6 +2711,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         : 1 - THREE.MathUtils.smoothstep(stageElapsed, 0, MOLA_SUN_BASK_LOOK_AT_EXIT_BLEND_DURATION)
       pitchedForward.lerpVectors(visualForward.current, behavior.holdForward, freezeAlpha).normalize()
       visualForward.current.copy(pitchedForward)
+    }
+    if (riding) {
+      // Heading continuity for the moment the remora lets go.
+      visualForward.current.copy(ride.forward)
+      pitchedForward.copy(ride.forward)
+      visualPitch.current = THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(ride.forward.y, -1, 1)), -pitchLimit, pitchLimit)
     }
 
     if (debug) {
@@ -2627,6 +2919,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (!model) fish.rotateZ(pitch)
     fish.up.lerp(up, 0.18)
 
+    if (riding) {
+      // Back to the host: the anchor pose already carries the host's pitch, bank, and roll.
+      fish.quaternion.copy(ride.quaternion)
+      if (!model) fish.quaternion.multiply(PLACEHOLDER_FROM_MODEL_FRAME)
+    } else if (hitchhiker && ride.releaseBlend < 1) {
+      // Just let go: unroll from the clamped pose (a flank rider starts on its side) into the
+      // upright swimming pose over RIDE_RELEASE_SECONDS instead of snapping level.
+      rideBlendQuaternion.copy(ride.releaseQuaternion)
+      if (!model) rideBlendQuaternion.multiply(PLACEHOLDER_FROM_MODEL_FRAME)
+      ridePoseQuaternion.copy(fish.quaternion)
+      fish.quaternion.copy(rideBlendQuaternion).slerp(ridePoseQuaternion, ride.releaseBlend)
+    }
+
     if (debug && canInstanceSardine && typeof window !== 'undefined') {
       const stats = window[SARDINE_DEBUG_GLOBAL] ?? { frames: 0, samples: [] }
       stats.frames += 1
@@ -2749,13 +3054,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (model) {
       const animationForward = pitchedForward
       let turn = 0
-      if (previousTangent.current.lengthSq() > 0) {
+      // A clamped remora is carried through the host's turns; it does not steer or bank itself.
+      if (previousTangent.current.lengthSq() > 0 && !riding) {
         turn = previousTangent.current.z * animationForward.x - previousTangent.current.x * animationForward.z
       }
       // A startle cuts through any turn animation or cooldown in progress: escaping comes first. So
       // does the flinch as a school's alarm wave reaches this fish, as an ordinary burst.
       const reflex = startled || alarmFlinch
-      if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
+      if (riding) {
+        playAnimation(resolveMoveAnimation(model, ride.stage === 'dock' ? 'cruise' : 'drift'))
+      } else if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
         if (!reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
@@ -2866,6 +3174,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       curveDeformInputRef.current.whip01 = now < startleUntil.current
         ? THREE.MathUtils.clamp((startleUntil.current - now) / Math.max(0.001, motion.burstActionDuration), 0, 1)
         : 0
+      // A clamped remora bends its rear body onto the host's skin (the fit's bend, WU), in the
+      // model's source units: WU over the model scale and the creature's size.
+      curveDeformInputRef.current.hug = hitchhiker ? ride.hug / Math.max(1e-6, (model.scale ?? 1) * size) : 0
 
       const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask'
       const bank = suppressProceduralBank ? 0 : THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
@@ -2873,6 +3184,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       fish.quaternion.premultiply(bankQuaternion)
 
       previousTangent.current.copy(animationForward)
+    }
+
+    if (isRideHost) {
+      // Final pose, bank and roll included, in the model frame riders' anchors are defined in.
+      ridePoseQuaternion.copy(fish.quaternion)
+      if (!model) ridePoseQuaternion.multiply(MODEL_FROM_PLACEHOLDER_FRAME)
+      updateFishRegistryPose(creature.id, ridePoseQuaternion, frameMove.length() / Math.max(delta, 1e-4), runtimeRecoveryOpacity, waveOutRef.current)
     }
 
     // Snapshot this frame's kinematic state so a later remount (tank switch) resumes from here.
@@ -2890,7 +3208,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     runtime.nextBurstAt = nextBurstAt.current
     runtime.nextDriftAt = nextDriftAt.current
     runtime.driftUntil = driftUntil.current
-  })
+  }, isRideHost ? RIDE_HOST_FRAME_PRIORITY : 0)
 
   const focusScale = 1
   const bodyLength = creatureBodyLength(creature, swim)
@@ -2898,7 +3216,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const showSelectedOutline = selected && debug && !hideSelectionSilhouette
   const renderModel = model && !instancedSardineLod
   const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
-  const proxyDimensions = interactionProxyDimensions(species, swim)
+  const placeholderProxy = interactionProxyDimensions(species, swim)
+  // The remora proxy is sized along the placeholder's length axis (local X). A model (stand-in
+  // or supplied) faces local -Z instead, so the same box turns to lie along Z.
+  const proxyDimensions = model && species?.family === 'Echeneidae'
+    ? [placeholderProxy[2], placeholderProxy[1], placeholderProxy[0]]
+    : placeholderProxy
   const lodDebugColor = debugLodView && renderModel && canInstanceSardine ? LOD0_DEBUG_COLOR : null
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
@@ -3034,6 +3357,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               animationVariation={animationVariation}
               animationSpeedScaleRef={animationSpeedScaleRef}
               curveDeformInputRef={curveDeformInputRef}
+              waveOutRef={waveOutRef}
               debugSimulationSpeed={debugSimulationSpeed}
               debugCurveBones={debug && selected && Boolean(debugLayers?.bones)}
               debugParentScale={size * focusScale}
@@ -3093,4 +3417,7 @@ useGLTF.preload('/models/fish/sardine/sardine_static.glb')
 useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
 useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb')
 useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female_static_parts.glb')
+// Remoras, read from species data so the list follows the placeholder -> real model swap.
+SPECIES.filter(species => species.family === 'Echeneidae' && species.model?.path)
+  .forEach(species => useGLTF.preload(species.model.path))
 useGLTF.preload('/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb')

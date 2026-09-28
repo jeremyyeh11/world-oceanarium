@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { SPECIES } from '../src/data/species.js'
 
 globalThis.self = globalThis
 globalThis.createImageBitmap = async () => ({ close() {} })
@@ -36,6 +37,8 @@ const targets = [
     // The replacement Mako welds pelvic fins into shortfinmako003 so they deform
     // continuously with the body. Only pectorals remain independent flutter meshes.
     requiredFinMeshes: ['shortfinmakopectoral-finsl', 'shortfinmakopectoral-finsr'],
+    // The teeth are a second material split that moves with the body (followBodyMeshNames).
+    requiredFollowMeshes: ['shortfinmako003_1'],
     forbiddenMeshNames: ['shortfinmakopelvic-finsl', 'shortfinmakopelvic-finsr'],
     minBodyLength: 20,
   },
@@ -48,6 +51,28 @@ const targets = [
     minBodyLength: 0.5,
     minVertices: 8000,
   },
+  {
+    name: 'Live Sharksucker static parts',
+    path: 'public/models/fish/echeneis-naucrates/echeneis-naucrates.glb',
+    staticMesh: true,
+    bodyMeshNames: ['live_sharksucker_1'],
+    // The suction disc is its own material split and moves with the body (followBodyMeshNames).
+    requiredFollowMeshes: ['live_sharksucker_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    minBodyLength: 6,
+  },
+  // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
+  // the real models replace them: unit length, single body mesh, same contract.
+  ...SPECIES
+    .filter(species => species.placeholder?.type === 'remora' && species.model?.path?.endsWith('_placeholder.glb'))
+    .map(species => ({
+      name: `${species.name} placeholder`,
+      path: `public${species.model.path}`,
+      staticMesh: true,
+      bodyMeshNames: ['remora-placeholder'],
+      minBodyLength: 0.99,
+      minVertices: 1000,
+    })),
 ]
 
 const axisValue = (vector, axis) => axis === 'x' ? vector.x : (axis === 'y' ? vector.y : vector.z)
@@ -78,6 +103,7 @@ for (const target of targets) {
   const bodyMeshes = meshes.filter(mesh => target.bodyMeshNames?.includes(mesh.name))
   const missingBodyMeshes = (target.bodyMeshNames ?? []).filter(name => !meshNames.includes(name))
   const missingFinMeshes = (target.requiredFinMeshes ?? []).filter(name => !meshNames.includes(name))
+  const missingFollowMeshes = (target.requiredFollowMeshes ?? []).filter(name => !meshNames.includes(name))
   const unexpectedMeshes = (target.forbiddenMeshNames ?? []).filter(name => meshNames.includes(name))
   const missingBodyAttributes = (target.requiredBodyAttributes ?? []).filter(attribute => (
     bodyMeshes.some(mesh => !mesh.attributes.includes(attribute))
@@ -92,6 +118,7 @@ for (const target of targets) {
     || bones.length > 0
     || missingBodyMeshes.length > 0
     || missingFinMeshes.length > 0
+    || missingFollowMeshes.length > 0
     || unexpectedMeshes.length > 0
     || missingBodyAttributes.length > 0
     || bodyContractFailed
@@ -105,6 +132,7 @@ for (const target of targets) {
     bodyMeshes: target.bodyMeshNames ?? [],
     missingBodyMeshes,
     missingFinMeshes,
+    missingFollowMeshes,
     unexpectedMeshes,
     missingBodyAttributes,
     proceduralBones: [],

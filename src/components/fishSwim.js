@@ -541,6 +541,15 @@ export function placeholderDimensions(species, swim) {
     }
   }
 
+  if (species?.family === 'Echeneidae') {
+    // Long, low, slightly flattened; sizes a remora's tap target, stand-in or supplied model.
+    return {
+      length: swim.bodyLengthWU,
+      height: swim.bodyLengthWU * 0.13,
+      thickness: swim.bodyLengthWU * 0.15,
+    }
+  }
+
   return {
     length: 0.7,
     height: 0.28,
@@ -552,6 +561,12 @@ export function interactionProxyDimensions(species, swim) {
   if (species?.placeholder?.type === 'mola-mola') {
     const dims = placeholderDimensions(species, swim)
     return [dims.length * 1.04, dims.height * 1.02, Math.max(0.32, dims.thickness * 1.25)]
+  }
+
+  if (species?.family === 'Echeneidae') {
+    // Generous tap target: the body is a thin sliver at tank distance.
+    const dims = placeholderDimensions(species, swim)
+    return [dims.length * 1.05, Math.max(0.3, dims.height * 2), Math.max(0.3, dims.thickness * 2)]
   }
 
   return [0.72, 0.28, 0.22]
@@ -1125,6 +1140,7 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   const threatRadius = perceptionRadius * BOID_THREAT_PERCEPTION_SCALE
   const forward = followDirection?.lengthSq?.() > 0.0001 ? followDirection : null
   if (debugState) debugState.perceptionRadius = perceptionRadius
+  const rideHostId = FISH_REGISTRY.get(creature.id)?.rideHostId ?? null
 
   // Phase 1 — threat avoidance: a push away from the closest point of each menacing fish's path
   // over the lookahead (its current position when it is not moving).
@@ -1152,6 +1168,9 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   let pooled = 0
   FISH_REGISTRY.forEach((other, id) => {
     if (id === creature.id || other.biome !== creature.biome) return
+    // A remora and the host it is riding (or closing on) ignore each other: the rider has to
+    // reach contact, and the host must not shoulder aside the fish clamped to its belly.
+    if (id === rideHostId || other.rideHostId === creature.id) return
     boidDelta.subVectors(fish.position, other.position)
     boidDelta.y *= 0.55
     const distanceSq = boidDelta.lengthSq()
@@ -1282,7 +1301,7 @@ export function threatLevelAt(position, creature, swim, escapeOut = null) {
 
 // `speed` is world units per second along `forward`, so other fish can predict where this one
 // is heading. 0 (the default) means "treat it as stationary".
-export function updateFishRegistry(fish, creature, swim, school = null, forward = null, speed = 0) {
+export function updateFishRegistry(fish, creature, swim, school = null, forward = null, speed = 0, rideHostId = null) {
   const radius = fishCollisionRadius(creature, swim, school)
   const species = resolveSpecies(creature)
   const repulser = creatureRepulsesOthers(species)
@@ -1302,6 +1321,7 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
     entry.repulser = repulser
     entry.menace = boidParams.menace
     entry.speed = speed
+    entry.rideHostId = rideHostId
   } else {
     FISH_REGISTRY.set(creature.id, {
       position: fish.position.clone(),
@@ -1315,10 +1335,1122 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
       repulser,
       menace: boidParams.menace,
       speed,
+      rideHostId,
+      // Rendered pose, published only by ride hosts, which also overwrite `speed` with their actual travel speed (see updateFishRegistryPose).
+      hasPose: false,
+      quaternion: new THREE.Quaternion(),
+      opacity: 1,
+      // Live caudal-wave state, published only by ride hosts (see updateFishRegistryPose).
+      wave: null,
     })
   }
   if (boidParams.menace > 0) THREAT_ENTRIES.set(creature.id, FISH_REGISTRY.get(creature.id))
   else THREAT_ENTRIES.delete(creature.id)
+}
+
+/**
+ * Publish a ride host's final rendered pose for this frame: model-frame orientation (forward
+ * -Z, up +Y, right +X, bank and roll included), actual travel speed, and fade opacity. Hosts
+ * run their frame before everyone else, so riders read this frame's pose, not the last one.
+ * `wave` is the host's live caudal-wave state ({ phase, speed01, turn, burst }), held by
+ * reference: its renderer updates it every frame and clamped riders follow it.
+ */
+export function updateFishRegistryPose(creatureId, quaternion, speed = 0, opacity = 1, wave = null) {
+  const entry = FISH_REGISTRY.get(creatureId)
+  if (!entry) return
+  entry.quaternion.copy(quaternion)
+  entry.speed = Number.isFinite(speed) ? speed : 0
+  entry.opacity = opacity
+  entry.wave = wave
+  entry.hasPose = true
+}
+
+/**
+ * The caudal-vertex wave's sideways offset at `tail01` (0 at the nose, 1 at the tail) and its
+ * rate of change along the body per unit of `tail01`, both in the model's source units, for
+ * parts moved on the CPU (independent fins, clamped riders). Mirrors proceduralFishCurve in the
+ * Fish.jsx shader; keep the two in step.
+ */
+export function caudalLateralCurve(out, tail01, config, phase, speed01, turn, burst) {
+  const flexStart = config.flexStart ?? 0.18
+  const flexRange = Math.max(0.0001, (config.flexFull ?? 0.82) - flexStart)
+  const flexT = THREE.MathUtils.clamp((tail01 - flexStart) / flexRange, 0, 1)
+  const flex = flexT * flexT * (3 - 2 * flexT)
+  const dFlex = flexT > 0 && flexT < 1 ? (6 * flexT * (1 - flexT)) / flexRange : 0
+  const waveTravel = config.waveTravel ?? 5.2
+  const wavePhase = phase - tail01 * waveTravel
+  const wave = Math.sin(wavePhase)
+  const dWave = -Math.cos(wavePhase) * waveTravel
+  const stroke = (config.amplitude ?? 0.16) * THREE.MathUtils.lerp(0.42, 1, speed01) * (1 + burst * (config.burstAmplitude ?? 0.55))
+  const turnStrength = config.turnStrength ?? 0.22
+  out.offset = wave * stroke * flex + turn * turnStrength * flex * flex
+  out.slope = stroke * (dWave * flex + wave * dFlex) + turn * turnStrength * 2 * flex * dFlex
+  return out
+}
+
+// --- Ride hosts and hitchhikers (remoras) --------------------------------------------------
+//
+// A hitchhiker clamps its dorsal suction disc to one of a host's anchor points and is carried.
+// Host species declare where riders may sit (`rideHost.anchors`) and which kinds of host they
+// are (`rideHost.groups`, e.g. 'shark'); rider species declare which kinds they ride and how
+// readily (`hitchhiker.hosts`, group -> 0..1). Matching is by group, so a new host species is
+// ridden by every remora that rides its kind without any rider-side edit.
+//
+// Anchors are in host body lengths, measured from the host's model root in the model frame
+// (+X right, +Y up, +Z toward the tail). `normal` is the outward surface normal there; the
+// rider's back (its disc) faces the host along it.
+//
+// While clamped, a rider does not run the steer -> boids -> integrate pipeline at all: its
+// pose is the host's pose composed with the anchor, the same way the Mola sun-bask hold owns
+// its position outright. Approaching a host is ordinary steering toward a moving target — but
+// never through the host: `rideHost.body` is a clearance ellipsoid around the host's body, the
+// rider swings around it to a staging point just outside its anchor, and only then slides in
+// along the surface normal.
+
+const RIDE_SLOTS = new Map()
+const rideHostProfiles = new WeakMap()
+const hitchhikerProfiles = new WeakMap()
+// Root-to-disc-top height: matches DISC_TOP in scripts/build-remora-placeholders.mjs, so the
+// stand-in's disc sits exactly on the host's skin. Set per species from a supplied model.
+const RIDE_DEFAULT_DORSAL_CLEARANCE_BODY_LENGTHS = 0.058
+// How far below the disc top the rider's back sits at its rear contact point (0.2 body
+// lengths behind its root): the stand-in's back there is at 0.037 against a 0.058 disc top.
+const RIDE_DEFAULT_CONTACT_DROP_BODY_LENGTHS = 0.021
+// Laying a rider along the skin (rideAnchorFit): the rear contact point sits this far behind
+// its root, and the tilt never exceeds this, whatever an odd rail sample says.
+const RIDE_FIT_CONTACT_BEHIND_ROOT = 0.2
+const RIDE_FIT_MAX_TILT = THREE.MathUtils.degToRad(25)
+// Fitting a rider to the skin: a gap under the disc costs this much more than the same gap
+// along the rest of the body, and the tilt is found to within (0.618^steps) of the range.
+const RIDE_FIT_DISC_WEIGHT = 2
+const RIDE_FIT_GOLDEN = (Math.sqrt(5) - 1) / 2
+const RIDE_FIT_SEARCH_STEPS = 40
+const RIDE_FIT_MEAN_SAMPLES = 40
+// A clamped rider bends its rear body onto the skin: from this far along it (0 nose .. 1 tail,
+// behind the disc and pectoral fins) toward its own up, as (t - start)^2, at most this much at
+// the tail (rider body lengths). The fit picks how much, with the tilt.
+export const RIDE_BEND_START = 0.3
+const RIDE_BEND_MAX_BODY_LENGTHS = 0.15
+const RIDE_FIT_BEND_STEPS = 30
+
+/** How much of the tail bend a point `tail01` along a rider takes (0 ahead of the bend). */
+export function rideBendProfile(tail01) {
+  const t = THREE.MathUtils.clamp((tail01 - RIDE_BEND_START) / (1 - RIDE_BEND_START), 0, 1)
+  return t * t
+}
+// Rail samples at or below this (host body lengths) mean "no skin here" (past the snout,
+// off a thin fin) and do not constrain the rider.
+const RIDE_RAIL_NO_SKIN = -0.2
+const RIDE_DEFAULT_DISC_AHEAD_BODY_LENGTHS = 0.26
+const RIDE_DEFAULT_SECONDS = [45, 110]
+const RIDE_DEFAULT_FREE_SECONDS = [15, 35]
+const RIDE_FIRST_DECISION_SECONDS = [3, 10]
+const RIDE_RETRY_SECONDS = [6, 14]
+const RIDE_LATCH_SECONDS = 1.1
+export const RIDE_RELEASE_SECONDS = 1.4
+// Latching starts once the rider reaches its staging point, which sits outside the host's
+// clearance ellipsoid on the anchor's normal; the latch then slides it in along that normal.
+const RIDE_LATCH_DISTANCE_BODY_LENGTHS = 0.35
+const RIDE_LATCH_DISTANCE_MIN = 0.5
+// Clearance around the host body, as a fraction of the rider's length (its half-depth plus
+// a little), and how far past the clearance surface the staging point sits.
+const RIDE_CLEARANCE_MARGIN_BODY_LENGTHS = 0.2
+const RIDE_STAGING_EXTRA_BODY_LENGTHS = 0.15
+// Swinging around the body: waypoints sit this far out on the normalized clearance ellipsoid
+// and at most this far around it from the rider, so the path orbits instead of cutting across.
+const RIDE_AVOID_RADIUS = 1.25
+const RIDE_AVOID_STEP = THREE.MathUtils.degToRad(45)
+const RIDE_DEFAULT_BODY = { center: [0, 0, 0], radii: [0.1, 0.1, 0.5] }
+// Give up on a host the rider cannot catch: time allowed scales with the distance it had to
+// cover at burst speed, so a remora does not chase a cruising mako around the tank forever.
+const RIDE_APPROACH_TIMEOUT_SCALE = 3
+// Escorting: a remora with no room on a host, or one that has just let go of it, may swim
+// with the host instead of roaming off: shadowing it below and beside its belly the way
+// remoras follow a shark, until a spot opens or it loses interest. It holds a loose station
+// in the clearance ellipsoid's normalized space: `ALONG` along the body (-1 nose .. 1 tail),
+// `ANGLE` round it (0 = the host's right, -90 degrees = straight below), `RADIUS` out from
+// the body (1 = the clearance surface), each drifting slowly by its `DRIFT` so it never
+// settles into a formation.
+const RIDE_ESCORT_CHANCE = 0.7
+const RIDE_ESCORT_AFTER_RELEASE_CHANCE = 0.5
+const RIDE_ESCORT_SECONDS = [25, 60]
+const RIDE_ESCORT_RECHECK_SECONDS = [4, 8]
+const RIDE_ESCORT_RANGE_BODY_LENGTHS = 3
+const RIDE_ESCORT_ALONG = [-0.45, 0.4]
+const RIDE_ESCORT_ALONG_DRIFT = 0.12
+const RIDE_ESCORT_ANGLE = [THREE.MathUtils.degToRad(-165), THREE.MathUtils.degToRad(-15)]
+const RIDE_ESCORT_ANGLE_DRIFT = THREE.MathUtils.degToRad(18)
+const RIDE_ESCORT_RADIUS = [1.25, 1.9]
+const RIDE_ESCORT_RADIUS_DRIFT = 0.15
+const RIDE_ESCORT_DRIFT_RATE = [0.12, 0.3]
+// Loose following: the host's velocity plus a closing velocity toward the station that grows
+// with the distance, so an escort lags on a turn and drifts back rather than snapping in.
+const RIDE_ESCORT_CLOSING_GAIN = 0.45
+const RIDE_ESCORT_BURST_SCALE = 1.1
+const rideEscortLocal = new THREE.Vector3()
+const RIDE_APPROACH_TIMEOUT_RANGE = [12, 30]
+// Docking: once within this normalized radius of the host's clearance ellipsoid (or this
+// close to its staging point) a remora moves in the host's frame at a relative speed that
+// closes the remaining distance (per second, from a slow creep), turning to face the host's
+// way, and gives up if it has not reached its spot in RIDE_DOCK_SECONDS.
+const RIDE_DOCK_RADIUS = 1.6
+const RIDE_DOCK_DISTANCE_MIN = 3
+const RIDE_DOCK_DISTANCE_BODY_LENGTHS = 1.2
+const RIDE_DOCK_SECONDS = 12
+const RIDE_DOCK_GAIN = 1
+const RIDE_DOCK_MIN_SPEED = 0.8
+const RIDE_DOCK_TURN_RESPONSE = 2.5
+const RIDE_IDENTITY = new THREE.Quaternion()
+// Closing speed relative to the host: proportional to the remaining distance (per second),
+// never below a slow creep, never above 1.2x burst.
+const RIDE_APPROACH_CLOSING_GAIN = 0.8
+const RIDE_APPROACH_CLOSING_MIN = 0.6
+const RIDE_APPROACH_BURST_SCALE = 1.2
+// Releasing, a remora swims forward off the disc and peels away from the host's surface.
+const RIDE_RELEASE_PEEL = 0.35
+// A rider never sits above the water: it lets go before a host (a basking Mola rolled onto
+// its side) would lift it out, and never picks an anchor that is already up there.
+const RIDE_SURFACE_CLEARANCE_MIN = 0.35
+const RIDE_SURFACE_CLEARANCE_BODY_LENGTHS = 0.12
+const rideLocalOffset = new THREE.Vector3()
+const rideSearchPosition = new THREE.Vector3()
+const rideSearchQuaternion = new THREE.Quaternion()
+const rideInverseQuaternion = new THREE.Quaternion()
+const rideHostForward = new THREE.Vector3()
+const rideLocalRider = new THREE.Vector3()
+const rideLocalStaging = new THREE.Vector3()
+const rideLocalWaypoint = new THREE.Vector3()
+const rideNormalizedA = new THREE.Vector3()
+const rideNormalizedB = new THREE.Vector3()
+const rideNormalizedC = new THREE.Vector3()
+const rideAxis = new THREE.Vector3()
+const rideDesiredVelocity = new THREE.Vector3()
+// A host carries riders up to this much of its own length laid end to end: a 4.2 m mako takes
+// three 1.1 m sharksuckers, or about ten white suckerfish. `rideHost.loadRatio` overrides it.
+const RIDE_LOAD_RATIO = 0.8
+// Riders on one host keep clear of each other: each is a capsule along its body this wide
+// (rider body lengths, pectoral fins included).
+const RIDE_RIDER_RADIUS_BODY_LENGTHS = 0.06
+// The nearest spot wins, give or take this much, so riders spread over a host instead of all
+// queuing for the same few spots.
+const RIDE_CHOICE_JITTER = 0.35
+const rideSegmentA0 = new THREE.Vector3()
+const rideSegmentA1 = new THREE.Vector3()
+const rideSegmentB0 = new THREE.Vector3()
+const rideSegmentB1 = new THREE.Vector3()
+const rideSegmentD1 = new THREE.Vector3()
+const rideSegmentD2 = new THREE.Vector3()
+const rideSegmentR = new THREE.Vector3()
+const rideSegmentQ = new THREE.Vector3()
+const rideWaveCurve = { offset: 0, slope: 0 }
+const rideWaveYaw = new THREE.Quaternion()
+const rideWaveDisc = new THREE.Vector3()
+const rideLatchTarget = new THREE.Quaternion()
+const RIDE_MODEL_FORWARD = new THREE.Vector3(0, 0, -1)
+const RIDE_LOCAL_UP = new THREE.Vector3(0, 1, 0)
+
+export function rideHostProfile(species) {
+  const config = species?.rideHost
+  if (!config?.anchors?.length || !config.groups?.length) return null
+  let profile = rideHostProfiles.get(species)
+  if (profile) return profile
+  // A host with a caudal wave carries its riders with it (rideFollowHostWave). `waveSpan` is the
+  // body's nose and tail along Z (host body lengths); the wave is in the model's source units,
+  // so `perBodyLength` converts it. Only the plain frame is supported: source Z to the tail,
+  // lateral X, no model rotation.
+  const procedural = species.model?.proceduralAnimation
+  const waveSpan = Array.isArray(config.waveSpan) ? config.waveSpan : null
+  const wave = waveSpan && procedural?.type === 'caudal-vertex' && procedural.tailAtMaxZ
+    && (procedural.sourceAxis ?? 'z') === 'z' && (procedural.lateralAxis ?? 'x') === 'x'
+    && !(species.model.rotation ?? []).some(Boolean)
+    ? {
+      config: procedural,
+      perBodyLength: (species.model.scale ?? 1) / species.swim.bodyLengthWU,
+      span: waveSpan[1] - waveSpan[0],
+    }
+    : null
+  const anchors = config.anchors.map((anchor, index) => {
+    const at = new THREE.Vector3().fromArray(anchor.at)
+    const normal = new THREE.Vector3().fromArray(anchor.normal).normalize()
+    // Rider frame on this anchor: its up (dorsal disc) faces into the host, its tail points
+    // along the host's tail as far as the surface allows.
+    const riderUp = normal.clone().negate()
+    const riderBack = new THREE.Vector3(0, 0, 1).addScaledVector(riderUp, -riderUp.z)
+    if (riderBack.lengthSq() < 1e-6) riderBack.set(0, 1, 0)
+    riderBack.normalize()
+    const riderRight = new THREE.Vector3().crossVectors(riderUp, riderBack)
+    const quaternion = new THREE.Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().makeBasis(riderRight, riderUp, riderBack),
+    )
+    // Skin height along the normal at steps along riderBack (scripts/fit-ride-anchors.mjs).
+    const rail = Array.isArray(anchor.rail) && anchor.rail.length > 1
+      ? [...anchor.rail].sort((a, b) => a[0] - b[0])
+      : null
+    // Where along the host's wave the disc sits (0 nose .. 1 tail).
+    const tail01 = waveSpan ? THREE.MathUtils.clamp((at.z - waveSpan[0]) / (waveSpan[1] - waveSpan[0]), 0, 1) : 0
+    return { index, name: anchor.name ?? `anchor-${index}`, at, normal, riderBack, quaternion, rail, fits: new Map(), tail01, wave }
+  })
+  const body = config.body ?? RIDE_DEFAULT_BODY
+  profile = {
+    groups: [...config.groups],
+    anchors,
+    loadRatio: config.loadRatio ?? RIDE_LOAD_RATIO,
+    wave,
+    // Clearance ellipsoid in host body lengths, model frame, like the anchors.
+    body: {
+      center: new THREE.Vector3().fromArray(body.center),
+      radii: new THREE.Vector3().fromArray(body.radii),
+    },
+  }
+  rideHostProfiles.set(species, profile)
+  return profile
+}
+
+// Host-local point (WU) -> the clearance ellipsoid's normalized space, where the inflated
+// body surface is the unit sphere. `margin` inflates every radius by the rider's clearance.
+function rideBodyNormalized(out, localPoint, hostProfile, hostBodyLength, margin) {
+  const { center, radii } = hostProfile.body
+  return out.set(
+    (localPoint.x - center.x * hostBodyLength) / (radii.x * hostBodyLength + margin),
+    (localPoint.y - center.y * hostBodyLength) / (radii.y * hostBodyLength + margin),
+    (localPoint.z - center.z * hostBodyLength) / (radii.z * hostBodyLength + margin),
+  )
+}
+
+function rideBodyDenormalized(out, normalized, hostProfile, hostBodyLength, margin) {
+  const { center, radii } = hostProfile.body
+  return out.set(
+    normalized.x * (radii.x * hostBodyLength + margin) + center.x * hostBodyLength,
+    normalized.y * (radii.y * hostBodyLength + margin) + center.y * hostBodyLength,
+    normalized.z * (radii.z * hostBodyLength + margin) + center.z * hostBodyLength,
+  )
+}
+
+function rideClearanceMargin(riderBodyLength) {
+  return riderBodyLength * RIDE_CLEARANCE_MARGIN_BODY_LENGTHS
+}
+
+/**
+ * Host-local staging point for `anchor`: out along the anchor's normal from where the rider
+ * will sit, just past the host's clearance ellipsoid. Arriving here, the rider is beside its
+ * spot and outside the body, so the final slide in cannot cross the host.
+ */
+export function rideStagingLocal(out, hostProfile, anchor, hostBodyLength, riderBodyLength, hitch) {
+  rideAnchorLocalOffset(out, anchor, hostBodyLength, riderBodyLength, hitch)
+  const margin = rideClearanceMargin(riderBodyLength)
+  // Solve |b + s·a| = 1 in normalized space for the exit distance s along the normal.
+  const b = rideBodyNormalized(rideNormalizedA, out, hostProfile, hostBodyLength, margin)
+  const { radii } = hostProfile.body
+  const a = rideNormalizedB.set(
+    anchor.normal.x / (radii.x * hostBodyLength + margin),
+    anchor.normal.y / (radii.y * hostBodyLength + margin),
+    anchor.normal.z / (radii.z * hostBodyLength + margin),
+  )
+  const aa = a.dot(a)
+  const ab = a.dot(b)
+  const bb = b.dot(b)
+  const discriminant = ab * ab - aa * (bb - 1)
+  const exit = bb < 1 && discriminant > 0 ? (-ab + Math.sqrt(discriminant)) / aa : 0
+  return out.addScaledVector(anchor.normal, Math.max(0, exit) + riderBodyLength * RIDE_STAGING_EXTRA_BODY_LENGTHS)
+}
+
+// Does the segment p -> t (normalized space) pass through the unit sphere?
+function rideSegmentHitsBody(p, t) {
+  const d = rideNormalizedC.subVectors(t, p)
+  const dd = d.dot(d)
+  const along = dd > 1e-9 ? THREE.MathUtils.clamp(-p.dot(d) / dd, 0, 1) : 0
+  return rideAxis.copy(p).addScaledVector(d, along).lengthSq() < 1
+}
+
+/**
+ * Where a rider at `riderLocal` should head next to reach `stagingLocal` without passing
+ * through the host (all host-local WU). Inside the clearance it backs straight out; with the
+ * host in the way it swings around the body — sideways, over the tail or nose, never across
+ * the dorsal or anal fins' plane when it can help it — in steps of RIDE_AVOID_STEP.
+ */
+export function rideApproachWaypoint(out, hostProfile, hostBodyLength, riderBodyLength, riderLocal, stagingLocal) {
+  const margin = rideClearanceMargin(riderBodyLength)
+  const p = rideBodyNormalized(rideNormalizedA, riderLocal, hostProfile, hostBodyLength, margin)
+  const t = rideBodyNormalized(rideNormalizedB, stagingLocal, hostProfile, hostBodyLength, margin)
+  const pLength = p.length()
+  if (pLength < 1) {
+    // Too close: leave the clearance the shortest way before going anywhere else.
+    if (pLength < 1e-4) p.copy(t)
+    p.normalize().multiplyScalar(RIDE_AVOID_RADIUS)
+    return rideBodyDenormalized(out, p, hostProfile, hostBodyLength, margin)
+  }
+  if (!rideSegmentHitsBody(p, t)) return out.copy(stagingLocal)
+
+  const from = p.divideScalar(pLength)
+  const to = t.normalize()
+  const angle = from.angleTo(to)
+  rideAxis.crossVectors(from, to)
+  if (angle > THREE.MathUtils.degToRad(170) || rideAxis.lengthSq() < 1e-8) {
+    // Straight across the body: go round horizontally (about the host's up axis) and behind
+    // it, over the tail — where a remora catches up with a host — rather than over the top.
+    rideAxis.copy(RIDE_LOCAL_UP)
+    if (Math.abs(from.dot(RIDE_LOCAL_UP)) > 0.95) rideAxis.set(1, 0, 0)
+    const tailwardZ = rideNormalizedC.copy(from).applyAxisAngle(rideAxis, RIDE_AVOID_STEP).z
+    if (tailwardZ < from.z) rideAxis.negate()
+  }
+  rideAxis.normalize()
+  from.applyAxisAngle(rideAxis, Math.min(angle, RIDE_AVOID_STEP)).multiplyScalar(RIDE_AVOID_RADIUS)
+  return rideBodyDenormalized(out, from, hostProfile, hostBodyLength, margin)
+}
+
+export function hitchhikerProfile(species) {
+  const config = species?.hitchhiker
+  if (!config?.hosts) return null
+  let profile = hitchhikerProfiles.get(species)
+  if (profile) return profile
+  profile = {
+    hosts: { ...config.hosts },
+    rideSeconds: config.rideSeconds ?? RIDE_DEFAULT_SECONDS,
+    freeSeconds: config.freeSeconds ?? RIDE_DEFAULT_FREE_SECONDS,
+    dorsalClearanceBodyLengths: config.dorsalClearanceBodyLengths ?? RIDE_DEFAULT_DORSAL_CLEARANCE_BODY_LENGTHS,
+    discAheadBodyLengths: config.discAheadBodyLengths ?? RIDE_DEFAULT_DISC_AHEAD_BODY_LENGTHS,
+    contactDropBodyLengths: config.contactDropBodyLengths ?? RIDE_DEFAULT_CONTACT_DROP_BODY_LENGTHS,
+    // Measured top line of a supplied model (scripts/fit-rider-model.mjs): `[behind, drop]`
+    // pairs in rider body lengths, `behind` measured back from the disc, `drop` below the
+    // disc-top line (negative where a fin lobe stands proud of it). Replaces the straight
+    // back the stand-ins are fitted with.
+    backProfile: Array.isArray(config.backProfile) && config.backProfile.length > 1
+      ? [...config.backProfile].sort((a, b) => a[0] - b[0])
+      : null,
+  }
+  profile.backProfileKey = profile.backProfile ? profile.backProfile.flat().join(',') : 'straight'
+  hitchhikerProfiles.set(species, profile)
+  return profile
+}
+
+/** How readily `hitch` takes a host of `hostProfile`'s kind: the best matching group, 0..1. */
+export function rideHostWeight(hitch, hostProfile) {
+  let weight = 0
+  for (const group of hostProfile.groups) weight = Math.max(weight, hitch.hosts[group] ?? 0)
+  return weight
+}
+
+/**
+ * Hold `anchorIndex` on `hostId` for `riderId`. The rider's length and profile are kept with
+ * the slot, so later riders can check the host's load and keep clear of it.
+ */
+export function claimRideSlot(hostId, anchorIndex, riderId, riderLength = 0, hitch = null) {
+  let slots = RIDE_SLOTS.get(hostId)
+  if (!slots) {
+    slots = new Map()
+    RIDE_SLOTS.set(hostId, slots)
+  }
+  const occupant = slots.get(anchorIndex)
+  if (occupant && occupant.riderId !== riderId) return false
+  slots.set(anchorIndex, { riderId, riderLength, hitch })
+  return true
+}
+
+export function rideSlotOccupant(hostId, anchorIndex) {
+  return RIDE_SLOTS.get(hostId)?.get(anchorIndex)?.riderId ?? null
+}
+
+/** Total length of the riders holding spots on `hostId`, leaving out `exceptRiderId`. */
+export function rideHostLoad(hostId, exceptRiderId = null) {
+  let load = 0
+  RIDE_SLOTS.get(hostId)?.forEach(occupant => {
+    if (occupant.riderId !== exceptRiderId) load += occupant.riderLength
+  })
+  return load
+}
+
+// Host-local line a rider clamped to `anchor` lies along, head to tail (WU).
+function rideRiderSegment(outHead, outTail, anchor, hostBodyLength, riderBodyLength, hitch) {
+  const fit = rideAnchorFit(anchor, riderBodyLength / hostBodyLength, hitch)
+  rideAnchorLocalOffset(outHead, anchor, hostBodyLength, riderBodyLength, hitch)
+  outTail.copy(outHead).addScaledVector(fit.back, 0.5 * riderBodyLength)
+  outHead.addScaledVector(fit.back, -0.5 * riderBodyLength)
+}
+
+// Closest distance between segments p1-q1 and p2-q2.
+function segmentDistance(p1, q1, p2, q2) {
+  const d1 = rideSegmentD1.subVectors(q1, p1)
+  const d2 = rideSegmentD2.subVectors(q2, p2)
+  const r = rideSegmentR.subVectors(p1, p2)
+  const a = d1.dot(d1)
+  const e = d2.dot(d2)
+  const f = d2.dot(r)
+  let s = 0
+  let t = 0
+  if (a <= 1e-9 && e <= 1e-9) return r.length()
+  if (a <= 1e-9) {
+    t = THREE.MathUtils.clamp(f / e, 0, 1)
+  } else {
+    const c = d1.dot(r)
+    if (e <= 1e-9) {
+      s = THREE.MathUtils.clamp(-c / a, 0, 1)
+    } else {
+      const b = d1.dot(d2)
+      const denom = a * e - b * b
+      s = denom > 1e-9 ? THREE.MathUtils.clamp((b * f - c * e) / denom, 0, 1) : 0
+      t = (b * s + f) / e
+      if (t < 0) {
+        t = 0
+        s = THREE.MathUtils.clamp(-c / a, 0, 1)
+      } else if (t > 1) {
+        t = 1
+        s = THREE.MathUtils.clamp((b - c) / a, 0, 1)
+      }
+    }
+  }
+  return rideSegmentQ.copy(p1).addScaledVector(d1, s).sub(r.copy(p2).addScaledVector(d2, t)).length()
+}
+
+/**
+ * Can a rider of this length clamp to `anchor` without touching the riders already on the
+ * host? Each rider is a capsule along its body, RIDE_RIDER_RADIUS_BODY_LENGTHS wide.
+ */
+export function rideSpotClear(hostId, hostProfile, anchor, hostBodyLength, riderId, riderBodyLength, hitch) {
+  const slots = RIDE_SLOTS.get(hostId)
+  if (!slots) return true
+  rideRiderSegment(rideSegmentA0, rideSegmentA1, anchor, hostBodyLength, riderBodyLength, hitch)
+  for (const [anchorIndex, occupant] of slots) {
+    if (occupant.riderId === riderId || !occupant.hitch || !hostProfile.anchors[anchorIndex]) continue
+    rideRiderSegment(rideSegmentB0, rideSegmentB1, hostProfile.anchors[anchorIndex], hostBodyLength, occupant.riderLength, occupant.hitch)
+    const clearance = RIDE_RIDER_RADIUS_BODY_LENGTHS * (riderBodyLength + occupant.riderLength)
+    if (segmentDistance(rideSegmentA0, rideSegmentA1, rideSegmentB0, rideSegmentB1) < clearance) return false
+  }
+  return true
+}
+
+/** Free every slot `riderId` holds. Runs on release and when the rider unmounts. */
+export function releaseRideSlots(riderId) {
+  RIDE_SLOTS.forEach((slots, hostId) => {
+    slots.forEach((occupant, anchorIndex) => {
+      if (occupant.riderId === riderId) slots.delete(anchorIndex)
+    })
+    if (slots.size === 0) RIDE_SLOTS.delete(hostId)
+  })
+}
+
+function rideSurfaceLimitY(riderBodyLength) {
+  return SURFACE_PLANE_Y - Math.max(RIDE_SURFACE_CLEARANCE_MIN, riderBodyLength * RIDE_SURFACE_CLEARANCE_BODY_LENGTHS)
+}
+
+/**
+ * World pose of a rider clamped to `anchor` on `host` (a registry entry with a published
+ * pose). The disc sits on the host surface, so the rider's root stands off along the surface
+ * normal by its dorsal clearance and trails back from the disc toward its own tail. `blend`
+ * below 1 eases from a host-relative start pose captured at latch, so the rider settles onto
+ * the host while being carried by it rather than snapping into place.
+ */
+export function rideAnchorPose(outPosition, outQuaternion, host, anchor, riderBodyLength, hitch, blend = 1, fromLocalPosition = null, fromLocalQuaternion = null) {
+  const fit = rideAnchorFit(anchor, riderBodyLength / host.bodyLength, hitch)
+  rideAnchorLocalOffset(rideLocalOffset, anchor, host.bodyLength, riderBodyLength, hitch)
+  outQuaternion.copy(fit.quaternion)
+  if (anchor.wave && host.wave) rideFollowHostWave(rideLocalOffset, outQuaternion, anchor, host)
+  if (blend < 1 && fromLocalPosition && fromLocalQuaternion) {
+    rideLocalOffset.lerpVectors(fromLocalPosition, rideLocalOffset, blend)
+    // Blend toward a copy: slerpQuaternions copies its first argument into `this` before it
+    // reads the second, so passing outQuaternion as both target and output held the rider at
+    // its docking rotation for the whole latch and snapped it round at the end.
+    rideLatchTarget.copy(outQuaternion)
+    outQuaternion.slerpQuaternions(fromLocalQuaternion, rideLatchTarget, blend)
+  }
+  outPosition.copy(rideLocalOffset).applyQuaternion(host.quaternion).add(host.position)
+  outQuaternion.premultiply(host.quaternion)
+  return outPosition
+}
+
+/**
+ * Carry a clamped rider with the host's body wave at its spot: sideways by the wave's offset
+ * where its disc sits, and turned about the disc with the body's local slope, so the rider moves
+ * with the skin instead of the skin sliding under it. Host-local, in place.
+ */
+export function rideFollowHostWave(localPosition, localQuaternion, anchor, host) {
+  const { config, perBodyLength, span } = anchor.wave
+  const wave = host.wave
+  caudalLateralCurve(rideWaveCurve, anchor.tail01, config, wave.phase, wave.speed01, wave.turn, wave.burst)
+  // Source units -> WU along the body, and per tail01 -> per WU along it.
+  const slope = (rideWaveCurve.slope * perBodyLength) / span
+  rideWaveYaw.setFromAxisAngle(RIDE_LOCAL_UP, Math.atan(slope))
+  rideWaveDisc.copy(anchor.at).multiplyScalar(host.bodyLength)
+  localPosition.sub(rideWaveDisc).applyQuaternion(rideWaveYaw).add(rideWaveDisc)
+  localPosition.x += rideWaveCurve.offset * perBodyLength * host.bodyLength
+  localQuaternion.premultiply(rideWaveYaw)
+}
+
+/** Host-local position (WU) of a rider's root clamped to `anchor`. */
+export function rideAnchorLocalOffset(out, anchor, hostBodyLength, riderBodyLength, hitch) {
+  const fit = rideAnchorFit(anchor, riderBodyLength / hostBodyLength, hitch)
+  // Disc on the skin (lifted only as far as the fit needs), root below it along the rider's
+  // own (tilted) up axis and back from it along its tilted back.
+  return out.copy(anchor.at).multiplyScalar(hostBodyLength)
+    .addScaledVector(anchor.normal, fit.lift * hostBodyLength)
+    .addScaledVector(fit.up, -hitch.dorsalClearanceBodyLengths * riderBodyLength)
+    .addScaledVector(fit.back, hitch.discAheadBodyLengths * riderBodyLength)
+}
+
+function rideRailAt(rail, s) {
+  if (s <= rail[0][0]) return rail[0][1]
+  for (let i = 1; i < rail.length; i += 1) {
+    if (s <= rail[i][0]) {
+      const [s0, h0] = rail[i - 1]
+      const [s1, h1] = rail[i]
+      return h0 + ((h1 - h0) * (s - s0)) / (s1 - s0)
+    }
+  }
+  return rail.at(-1)[1]
+}
+
+/**
+ * Lay a rider along the host's skin instead of along the host's axis. A rigid rider touching
+ * at its disc drifts off a surface that curves away behind it (a mako's belly and flanks do),
+ * and a spot sampled anywhere on a mesh can bulge or dip under it too. So of every tilt along
+ * the anchor's rail, the fit takes the one whose pose lies closest to the skin on average,
+ * each tilt lifted just enough that no part of the rider cuts in. Lifting the disc off the
+ * skin counts extra (RIDE_FIT_DISC_WEIGHT), so a rider stays on its disc when it can.
+ * `riderRatio` is rider length over host length. Cached per anchor and rider shape.
+ *
+ * The rider's top line is its measured `backProfile` (a supplied model, whose fin lobes can
+ * stand proud of the line from disc to tail), or for a stand-in a straight back that tapers
+ * to `contactDropBodyLengths` below the disc top 0.2 body lengths behind the root.
+ *
+ * Returns the tilted rider axes in the host frame (`up`, `back`), its host-local rotation
+ * (`quaternion`), the lift off the skin at the disc (host body lengths), and the tilt slope.
+ */
+export function rideAnchorFit(anchor, riderRatio, hitch) {
+  const key = `${riderRatio.toFixed(4)}:${hitch.discAheadBodyLengths}:${hitch.contactDropBodyLengths}:${hitch.backProfileKey}`
+  let fit = anchor.fits.get(key)
+  if (fit) return fit
+  let slope = 0
+  let lift = 0
+  let bend = 0
+  if (anchor.rail) {
+    const root = hitch.discAheadBodyLengths * riderRatio
+    const contact = root + RIDE_FIT_CONTACT_BEHIND_ROOT * riderRatio
+    const head = root - 0.5 * riderRatio
+    const tail = root + 0.5 * riderRatio
+    const profile = hitch.backProfile ?? null
+    const contactDrop = hitch.contactDropBodyLengths * riderRatio
+    const dropAt = profile
+      ? s => rideRailAt(profile, s / riderRatio) * riderRatio
+      : s => (s <= 0 ? 0 : contactDrop * Math.min(1, s / contact))
+    // How much of the tail bend reaches `s` (host body lengths back from the disc).
+    const bendAt = s => rideBendProfile((s - head) / riderRatio)
+    // Skin and back are both piecewise linear, and the bend only curves the back toward the
+    // skin (the gap is concave between breakpoints), so the rider cuts in first at a rail
+    // sample, a kink in the back (disc, contact, a profile sample), or an end of the rider.
+    // Checking exactly those is exact, where even sampling can miss. Each is kept as (s,
+    // skin - drop, bend share): the height the rider's line must reach there, and how much a
+    // bend lowers it.
+    const stations = []
+    const addStation = s => {
+      if (s < head || s > tail) return
+      const height = rideRailAt(anchor.rail, s)
+      if (height > RIDE_RAIL_NO_SKIN) stations.push(s, height - dropAt(s), bendAt(s))
+    }
+    for (const s of [head, tail, 0, contact]) addStation(s)
+    for (const [s] of anchor.rail) addStation(s)
+    if (profile) for (const [behind] of profile) addStation(behind * riderRatio)
+    const liftFor = (tilt, tailBend) => {
+      let needed = 0
+      for (let i = 0; i < stations.length; i += 3) {
+        needed = Math.max(needed, stations[i + 1] - tilt * stations[i] + tailBend * stations[i + 2])
+      }
+      return needed
+    }
+    // The mean gap along the rider, where there is skin under it, is lift + tilt * (the mean
+    // position of that skin) - bend * (the mean bend share there) plus a constant, so this is
+    // its cost. It is convex in tilt and bend together (a max of planes plus a plane), so a
+    // golden-section search over the bend, each with one over the tilt, finds the best pose.
+    let skinSum = 0
+    let bendSum = 0
+    let skinCount = 0
+    for (let i = 0; i <= RIDE_FIT_MEAN_SAMPLES; i += 1) {
+      const s = head + ((tail - head) * i) / RIDE_FIT_MEAN_SAMPLES
+      if (rideRailAt(anchor.rail, s) > RIDE_RAIL_NO_SKIN) {
+        skinSum += s
+        bendSum += bendAt(s)
+        skinCount += 1
+      }
+    }
+    const skinMean = skinCount > 0 ? skinSum / skinCount : root
+    const bendMean = skinCount > 0 ? bendSum / skinCount : 0
+    const maxTilt = Math.tan(RIDE_FIT_MAX_TILT)
+    const bestTilt = tailBend => {
+      const cost = tilt => (1 + RIDE_FIT_DISC_WEIGHT) * liftFor(tilt, tailBend) + tilt * skinMean
+      let low = -maxTilt
+      let high = maxTilt
+      for (let i = 0; i < RIDE_FIT_SEARCH_STEPS; i += 1) {
+        const a = high - (high - low) * RIDE_FIT_GOLDEN
+        const b = low + (high - low) * RIDE_FIT_GOLDEN
+        if (cost(a) <= cost(b)) high = b
+        else low = a
+      }
+      const tilt = (low + high) / 2
+      return { tilt, cost: cost(tilt) - tailBend * bendMean }
+    }
+    let low = 0
+    let high = RIDE_BEND_MAX_BODY_LENGTHS * riderRatio
+    for (let i = 0; i < RIDE_FIT_BEND_STEPS; i += 1) {
+      const a = high - (high - low) * RIDE_FIT_GOLDEN
+      const b = low + (high - low) * RIDE_FIT_GOLDEN
+      if (bestTilt(a).cost <= bestTilt(b).cost) high = b
+      else low = a
+    }
+    bend = (low + high) / 2
+    slope = bestTilt(bend).tilt
+    lift = liftFor(slope, bend)
+  }
+  const angle = Math.atan(slope)
+  const axis = new THREE.Vector3().crossVectors(anchor.riderBack, anchor.normal).normalize()
+  const tilt = new THREE.Quaternion().setFromAxisAngle(axis, angle)
+  fit = {
+    slope,
+    lift,
+    // How far the rider's tail bends onto the skin (host body lengths), along rideBendProfile.
+    bend,
+    back: anchor.riderBack.clone().applyQuaternion(tilt),
+    up: anchor.normal.clone().negate().applyQuaternion(tilt),
+    quaternion: tilt.clone().multiply(anchor.quaternion),
+  }
+  anchor.fits.set(key, fit)
+  return fit
+}
+
+/** Express a world pose in `host`'s frame (the inverse of the composition above). */
+export function rideHostLocalPose(outPosition, outQuaternion, host, worldPosition, worldQuaternion) {
+  rideInverseQuaternion.copy(host.quaternion).invert()
+  outPosition.subVectors(worldPosition, host.position).applyQuaternion(rideInverseQuaternion)
+  outQuaternion.copy(rideInverseQuaternion).multiply(worldQuaternion)
+  return outPosition
+}
+
+/**
+ * Pick the host and free anchor this rider should head for, or null. A host is full once its
+ * riders, laid end to end, would pass `loadRatio` of its length; a spot is free only if this
+ * rider would clear the riders already there. Candidates are scored by distance over
+ * preference, give or take RIDE_CHOICE_JITTER, then the winner is accepted with probability
+ * equal to its preference, so an occasional host (a white remora on a shark) is taken only
+ * occasionally.
+ */
+export function findRideHost(rider, riderPosition, riderBodyLength, hitch, rand) {
+  const surfaceLimitY = rideSurfaceLimitY(riderBodyLength)
+  let best = null
+  FISH_REGISTRY.forEach((entry, hostId) => {
+    if (hostId === rider.id || entry.biome !== rider.biome || !entry.hasPose || entry.opacity < 0.99) return
+    const hostProfile = rideHostProfile(resolveSpecies(entry))
+    if (!hostProfile) return
+    const weight = rideHostWeight(hitch, hostProfile)
+    if (weight <= 0) return
+    if (rideHostLoad(hostId, rider.id) + riderBodyLength > entry.bodyLength * hostProfile.loadRatio) return
+    for (const anchor of hostProfile.anchors) {
+      const occupant = rideSlotOccupant(hostId, anchor.index)
+      if (occupant != null && occupant !== rider.id) continue
+      rideAnchorPose(rideSearchPosition, rideSearchQuaternion, entry, anchor, riderBodyLength, hitch)
+      if (rideSearchPosition.y > surfaceLimitY) continue
+      if (!rideSpotClear(hostId, hostProfile, anchor, entry.bodyLength, rider.id, riderBodyLength, hitch)) continue
+      const distance = rideSearchPosition.distanceTo(riderPosition)
+      const score = (distance / weight) * (1 + RIDE_CHOICE_JITTER * rand())
+      if (!best || score < best.score) best = { hostId, anchorIndex: anchor.index, weight, distance, score }
+    }
+  })
+  if (!best || rand() >= best.weight) return null
+  return best
+}
+
+/**
+ * Hard stop: push a rider that is closing on or escorting its host back out to the host's clearance
+ * surface. Steering alone cannot promise this — a fast remora's turn radius is wider than
+ * the orbit round a shark, and the host turns into it — so, like the swim-bounds clamp, the
+ * position is corrected after integration. The push is radial in the clearance ellipsoid's
+ * normalized space, so a remora under the belly is moved down, one beside it outward.
+ * Returns whether it moved the rider.
+ */
+export function keepRiderClearOfHost(position, ride, riderBodyLength) {
+  if ((ride.stage !== 'approach' && ride.stage !== 'escort') || ride.hostId == null) return false
+  const host = FISH_REGISTRY.get(ride.hostId)
+  const hostProfile = host?.hasPose ? rideHostProfile(resolveSpecies(host)) : null
+  if (!hostProfile) return false
+  rideInverseQuaternion.copy(host.quaternion).invert()
+  rideLocalRider.subVectors(position, host.position).applyQuaternion(rideInverseQuaternion)
+  if (!rideProjectOutOfBody(rideLocalRider, hostProfile, host.bodyLength, riderBodyLength)) return false
+  position.copy(rideLocalRider).applyQuaternion(host.quaternion).add(host.position)
+  return true
+}
+
+// Host-local version: move `localPoint` (WU) out to the clearance surface if it is inside.
+function rideProjectOutOfBody(localPoint, hostProfile, hostBodyLength, riderBodyLength) {
+  const margin = rideClearanceMargin(riderBodyLength)
+  const normalized = rideBodyNormalized(rideNormalizedA, localPoint, hostProfile, hostBodyLength, margin)
+  const radius = normalized.length()
+  if (radius >= 1) return false
+  if (radius < 1e-4) normalized.set(0, -1, 0)
+  else normalized.divideScalar(radius)
+  rideBodyDenormalized(localPoint, normalized, hostProfile, hostBodyLength, margin)
+  return true
+}
+
+export function createRideState() {
+  return {
+    // 'free' | 'escort' | 'approach' | 'dock' | 'latch' | 'attached' | 'release'
+    stage: 'free',
+    hostId: null,
+    anchorIndex: -1,
+    stageStartedAt: 0,
+    stageUntil: 0,
+    nextDecisionAt: null,
+    fromLocalPosition: new THREE.Vector3(),
+    fromLocalQuaternion: new THREE.Quaternion(),
+    releaseQuaternion: new THREE.Quaternion(),
+    // Per-step outputs.
+    ownsPose: false,
+    approaching: false,
+    position: new THREE.Vector3(),
+    quaternion: new THREE.Quaternion(),
+    forward: new THREE.Vector3(0, 0, -1),
+    target: new THREE.Vector3(),
+    targetSpeed: 0,
+    // Speed the tail should read as while the ride owns the pose: the host's pace plus the
+    // docking swim while docking, a slow idle while clamped.
+    swimSpeed: 0,
+    opacity: 1,
+    releaseBlend: 1,
+    justReleased: false,
+    releaseDirection: new THREE.Vector3(0, 0, -1),
+    releaseSpeed: 0,
+    // How far the rider's tail bends onto its host this frame (WU; 0 unless clamped, easing in
+    // over the latch and out over the release), and where it was when it let go.
+    hug: 0,
+    releaseHug: 0,
+    // Docking pose in the host's frame, and the clock of the last step.
+    dockLocalPosition: new THREE.Vector3(),
+    dockLocalQuaternion: new THREE.Quaternion(),
+    lastStepAt: null,
+    // The host last ridden, and an escort's loose station round its host (see escortStation).
+    lastHostId: null,
+    escort: { along: 0, angle: 0, radius: 1.5, rates: [0.2, 0.2, 0.2], phases: [0, 0, 0] },
+  }
+}
+
+/** Forget any host (a slot that could not be re-claimed on remount, or a host that is gone). */
+export function resetRideState(ride) {
+  ride.stage = 'free'
+  ride.hostId = null
+  ride.anchorIndex = -1
+  ride.ownsPose = false
+  ride.approaching = false
+  ride.releaseBlend = 1
+  ride.justReleased = false
+  ride.opacity = 1
+  ride.hug = 0
+  ride.releaseHug = 0
+}
+
+function freeRide(ride, riderId, now, rand, pause) {
+  releaseRideSlots(riderId)
+  ride.stage = 'free'
+  ride.hostId = null
+  ride.anchorIndex = -1
+  ride.nextDecisionAt = now + randomRangeFromPair(rand, pause, RIDE_RETRY_SECONDS)
+}
+
+function beginRideRelease(ride, riderId, host, anchor, now, rand, hitch) {
+  ride.lastHostId = ride.hostId
+  ride.releaseHug = ride.hug
+  ride.releaseQuaternion.copy(ride.quaternion)
+  ride.releaseDirection.copy(ride.forward)
+  if (host && anchor) {
+    // Swim forward off the disc, peeling away from the host's surface.
+    rideSearchPosition.copy(anchor.normal).applyQuaternion(host.quaternion)
+    ride.releaseDirection.addScaledVector(rideSearchPosition, RIDE_RELEASE_PEEL).normalize()
+  }
+  ride.releaseSpeed = host?.speed ?? 0
+  ride.justReleased = true
+  ride.releaseBlend = 0
+  freeRide(ride, riderId, now, rand, hitch.freeSeconds)
+  ride.stage = 'release'
+  ride.stageStartedAt = now
+}
+
+/**
+ * The nearest host this rider would ride, visible and within RIDE_ESCORT_RANGE_BODY_LENGTHS
+ * of its own length, regardless of room on it: the host to escort when it cannot ride.
+ */
+export function findEscortHost(rider, riderPosition, hitch, preferHostId = null) {
+  let best = null
+  FISH_REGISTRY.forEach((entry, hostId) => {
+    if (hostId === rider.id || entry.biome !== rider.biome || !entry.hasPose || entry.opacity < 0.99) return
+    const hostProfile = rideHostProfile(resolveSpecies(entry))
+    if (!hostProfile) return
+    const weight = rideHostWeight(hitch, hostProfile)
+    if (weight <= 0) return
+    const distance = entry.position.distanceTo(riderPosition)
+    if (distance > entry.bodyLength * RIDE_ESCORT_RANGE_BODY_LENGTHS) return
+    const score = hostId === preferHostId ? -1 : distance / weight
+    if (!best || score < best.score) best = { hostId, weight, score }
+  })
+  return best
+}
+
+// A free rider holds no slot, so there is nothing to release here.
+function beginEscort(ride, hostId, now, rand) {
+  ride.stage = 'escort'
+  ride.hostId = hostId
+  ride.anchorIndex = -1
+  ride.stageStartedAt = now
+  ride.stageUntil = now + randomRangeFromPair(rand, RIDE_ESCORT_SECONDS)
+  ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_ESCORT_RECHECK_SECONDS)
+  const station = ride.escort
+  station.along = randomRangeFromPair(rand, RIDE_ESCORT_ALONG)
+  station.angle = randomRangeFromPair(rand, RIDE_ESCORT_ANGLE)
+  station.radius = randomRangeFromPair(rand, RIDE_ESCORT_RADIUS)
+  for (let i = 0; i < 3; i += 1) {
+    station.rates[i] = randomRangeFromPair(rand, RIDE_ESCORT_DRIFT_RATE)
+    station.phases[i] = rand() * Math.PI * 2
+  }
+}
+
+/**
+ * Host-local position (WU) of an escort's station at time `now`: its along / angle / radius,
+ * each drifting slowly, placed in the host's clearance ellipsoid so it is always outside the
+ * body. Pure, so the same station can be checked from tests.
+ */
+export function escortStation(out, station, hostProfile, hostBodyLength, riderBodyLength, now) {
+  const along = THREE.MathUtils.clamp(station.along + RIDE_ESCORT_ALONG_DRIFT * Math.sin(now * station.rates[0] + station.phases[0]), -0.9, 0.9)
+  const angle = station.angle + RIDE_ESCORT_ANGLE_DRIFT * Math.sin(now * station.rates[1] + station.phases[1])
+  const radius = Math.max(1.1, station.radius + RIDE_ESCORT_RADIUS_DRIFT * Math.sin(now * station.rates[2] + station.phases[2]))
+  const around = Math.sqrt(1 - along * along)
+  rideNormalizedA.set(Math.cos(angle) * around, Math.sin(angle) * around, along).multiplyScalar(radius)
+  return rideBodyDenormalized(out, rideNormalizedA, hostProfile, hostBodyLength, rideClearanceMargin(riderBodyLength))
+}
+
+function smootherstep01(t) {
+  const x = THREE.MathUtils.clamp(t, 0, 1)
+  return x * x * x * (x * (x * 6 - 15) + 10)
+}
+
+/**
+ * Advance one rider by one frame. `position`/`worldQuaternion` are the rider's current pose
+ * (model frame); `speeds` its idle and burst speeds in WU/s. Afterwards `ride.ownsPose` says
+ * whether this frame's pose is `ride.position`/`ride.quaternion` outright (latching or
+ * clamped), and `ride.approaching` says to steer at `ride.target` at `ride.targetSpeed`.
+ */
+export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, worldQuaternion, speeds, rand) {
+  ride.ownsPose = false
+  ride.approaching = false
+  ride.opacity = 1
+  ride.hug = 0
+  if (ride.nextDecisionAt === null) ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_FIRST_DECISION_SECONDS)
+  const dt = ride.lastStepAt === null ? 0 : THREE.MathUtils.clamp(now - ride.lastStepAt, 0, 0.1)
+  ride.lastStepAt = now
+
+  const host = ride.hostId != null ? FISH_REGISTRY.get(ride.hostId) : null
+  const hostProfile = host?.hasPose ? rideHostProfile(resolveSpecies(host)) : null
+  const anchor = hostProfile?.anchors[ride.anchorIndex] ?? null
+  const riding = ride.stage === 'approach' || ride.stage === 'dock' || ride.stage === 'latch' || ride.stage === 'attached'
+
+  if (riding && !anchor) {
+    // The host left the tank (or died). A rider on or beside it unrolls from where it was;
+    // one still swimming in just carries on.
+    if (ride.stage === 'approach') freeRide(ride, rider.id, now, rand, RIDE_RETRY_SECONDS)
+    else beginRideRelease(ride, rider.id, null, null, now, rand, hitch)
+    return ride
+  }
+
+  if (ride.stage === 'release') {
+    ride.releaseBlend = smootherstep01((now - ride.stageStartedAt) / RIDE_RELEASE_SECONDS)
+    // The body straightens as the remora swims off its disc.
+    ride.hug = ride.releaseHug * (1 - ride.releaseBlend)
+    if (ride.releaseBlend >= 1) {
+      ride.stage = 'free'
+      // Often it stays with the host it just left, for its spell off the disc.
+      const stay = ride.lastHostId != null ? findEscortHost(rider, position, hitch, ride.lastHostId) : null
+      if (stay?.hostId === ride.lastHostId && rand() < RIDE_ESCORT_AFTER_RELEASE_CHANCE) {
+        beginEscort(ride, stay.hostId, now, rand)
+        ride.stageUntil = now + randomRangeFromPair(rand, hitch.freeSeconds, RIDE_DEFAULT_FREE_SECONDS)
+        ride.nextDecisionAt = ride.stageUntil
+        // Newly chosen: step the escort from next frame, once the host lookup is fresh.
+        return ride
+      }
+    }
+  }
+
+  if (ride.stage === 'escort') {
+    const escortHost = host?.hasPose && host.opacity >= 0.99 ? host : null
+    const escortProfile = escortHost ? hostProfile : null
+    if (!escortProfile || now >= ride.stageUntil) {
+      // Lost interest, or the host is gone or fading: swim off on its own for a while.
+      ride.stage = 'free'
+      ride.hostId = null
+      ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_RETRY_SECONDS)
+      return ride
+    }
+    if (now >= ride.nextDecisionAt) {
+      // A spot may have opened: go for it (on this host or a nearer one).
+      const choice = findRideHost(rider, position, riderBodyLength, hitch, rand)
+      if (choice && claimRideSlot(choice.hostId, choice.anchorIndex, rider.id, riderBodyLength, hitch)) {
+        ride.stage = 'approach'
+        ride.hostId = choice.hostId
+        ride.anchorIndex = choice.anchorIndex
+        ride.stageStartedAt = now
+        ride.stageUntil = now + THREE.MathUtils.clamp(
+          (choice.distance / Math.max(0.1, speeds.burst)) * RIDE_APPROACH_TIMEOUT_SCALE,
+          RIDE_APPROACH_TIMEOUT_RANGE[0],
+          RIDE_APPROACH_TIMEOUT_RANGE[1],
+        )
+        return ride
+      }
+      ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_ESCORT_RECHECK_SECONDS)
+    }
+    // Follow loosely: match the host's velocity plus a closing velocity toward the station.
+    escortStation(rideEscortLocal, ride.escort, escortProfile, escortHost.bodyLength, riderBodyLength, now)
+    ride.target.copy(rideEscortLocal).applyQuaternion(escortHost.quaternion).add(escortHost.position)
+    ride.target.y = Math.min(ride.target.y, rideSurfaceLimitY(riderBodyLength))
+    rideHostForward.subVectors(ride.target, position)
+    const stationDistance = rideHostForward.length()
+    if (stationDistance > 1e-4) rideHostForward.divideScalar(stationDistance)
+    const maxSpeed = speeds.burst * RIDE_ESCORT_BURST_SCALE
+    const closing = Math.min(stationDistance * RIDE_ESCORT_CLOSING_GAIN, maxSpeed)
+    rideDesiredVelocity.copy(escortHost.forward).multiplyScalar(escortHost.speed ?? 0).addScaledVector(rideHostForward, closing)
+    const desiredSpeed = rideDesiredVelocity.length()
+    ride.targetSpeed = THREE.MathUtils.clamp(desiredSpeed, speeds.idle * 0.5, maxSpeed)
+    if (desiredSpeed > 1e-4) rideDesiredVelocity.divideScalar(desiredSpeed)
+    else rideDesiredVelocity.copy(escortHost.forward)
+    ride.target.copy(position).addScaledVector(rideDesiredVelocity, Math.max(1, riderBodyLength))
+    ride.approaching = true
+    return ride
+  }
+
+  if (ride.stage === 'free' && now >= ride.nextDecisionAt) {
+    const choice = findRideHost(rider, position, riderBodyLength, hitch, rand)
+    if (choice && claimRideSlot(choice.hostId, choice.anchorIndex, rider.id, riderBodyLength, hitch)) {
+      ride.stage = 'approach'
+      ride.hostId = choice.hostId
+      ride.anchorIndex = choice.anchorIndex
+      ride.stageStartedAt = now
+      ride.stageUntil = now + THREE.MathUtils.clamp(
+        (choice.distance / Math.max(0.1, speeds.burst)) * RIDE_APPROACH_TIMEOUT_SCALE,
+        RIDE_APPROACH_TIMEOUT_RANGE[0],
+        RIDE_APPROACH_TIMEOUT_RANGE[1],
+      )
+      // Newly chosen: step the approach from next frame, once the host lookup is fresh.
+      return ride
+    }
+    // No room (or no luck): often it shadows the host anyway, waiting for a spot.
+    const escort = findEscortHost(rider, position, hitch)
+    if (escort && rand() < RIDE_ESCORT_CHANCE * escort.weight) {
+      beginEscort(ride, escort.hostId, now, rand)
+      return ride
+    }
+    ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_RETRY_SECONDS)
+    return ride
+  }
+
+  if (ride.stage === 'approach') {
+    rideAnchorPose(ride.position, ride.quaternion, host, anchor, riderBodyLength, hitch)
+    if (ride.position.y > rideSurfaceLimitY(riderBodyLength) || now > ride.stageUntil) {
+      freeRide(ride, rider.id, now, rand, RIDE_RETRY_SECONDS)
+      return ride
+    }
+    // Head for the staging point beside the anchor, swinging round the host's body on the way.
+    rideStagingLocal(rideLocalStaging, hostProfile, anchor, host.bodyLength, riderBodyLength, hitch)
+    rideInverseQuaternion.copy(host.quaternion).invert()
+    rideLocalRider.subVectors(position, host.position).applyQuaternion(rideInverseQuaternion)
+    const distance = rideLocalRider.distanceTo(rideLocalStaging)
+    const margin = rideClearanceMargin(riderBodyLength)
+    const bodyRadius = rideBodyNormalized(rideNormalizedA, rideLocalRider, hostProfile, host.bodyLength, margin).length()
+    if (bodyRadius <= RIDE_DOCK_RADIUS || distance <= Math.max(RIDE_DOCK_DISTANCE_MIN, riderBodyLength * RIDE_DOCK_DISTANCE_BODY_LENGTHS)) {
+      // Close in: from here on the remora moves in the host's frame (see 'dock').
+      rideHostLocalPose(ride.dockLocalPosition, ride.dockLocalQuaternion, host, position, worldQuaternion)
+      ride.stage = 'dock'
+      ride.stageStartedAt = now
+      ride.stageUntil = now + RIDE_DOCK_SECONDS
+    } else {
+      rideApproachWaypoint(rideLocalWaypoint, hostProfile, host.bodyLength, riderBodyLength, rideLocalRider, rideLocalStaging)
+      // Match the host's velocity plus a closing velocity toward the waypoint, so relative to
+      // the host the remora closes in a straight line — and one that has got ahead of its spot
+      // eases off and lets the host catch up instead of racing on.
+      const maxSpeed = speeds.burst * RIDE_APPROACH_BURST_SCALE
+      ride.target.copy(rideLocalWaypoint).applyQuaternion(host.quaternion).add(host.position)
+      rideHostForward.subVectors(ride.target, position)
+      const waypointDistance = rideHostForward.length()
+      if (waypointDistance > 1e-4) rideHostForward.divideScalar(waypointDistance)
+      const closing = Math.min(waypointDistance * RIDE_APPROACH_CLOSING_GAIN + RIDE_APPROACH_CLOSING_MIN, maxSpeed)
+      rideDesiredVelocity.copy(host.forward).multiplyScalar(host.speed ?? 0).addScaledVector(rideHostForward, closing)
+      const desiredSpeed = rideDesiredVelocity.length()
+      ride.targetSpeed = THREE.MathUtils.clamp(desiredSpeed, speeds.idle * 0.5, maxSpeed)
+      // Steer at a point a body length out along that velocity.
+      if (desiredSpeed > 1e-4) rideDesiredVelocity.divideScalar(desiredSpeed)
+      else rideDesiredVelocity.copy(rideHostForward)
+      ride.target.copy(position).addScaledVector(rideDesiredVelocity, Math.max(1, riderBodyLength))
+      ride.approaching = true
+      return ride
+    }
+  }
+
+  if (ride.stage === 'dock') {
+    // Beside the host, the remora swims in the host's own frame: along the swing-round path
+    // to its staging point, turning to face the host's way, carried with it. Steering through
+    // the free-swimming integrator cannot hold a path this tight round a turning shark; this
+    // can, and it can never cross the body.
+    const local = ride.dockLocalPosition
+    rideStagingLocal(rideLocalStaging, hostProfile, anchor, host.bodyLength, riderBodyLength, hitch)
+    const toStaging = local.distanceTo(rideLocalStaging)
+    if (now > ride.stageUntil || ride.position.y > rideSurfaceLimitY(riderBodyLength)) {
+      beginRideRelease(ride, rider.id, host, null, now, rand, hitch)
+      return ride
+    }
+    if (toStaging <= Math.max(RIDE_LATCH_DISTANCE_MIN, riderBodyLength * RIDE_LATCH_DISTANCE_BODY_LENGTHS)) {
+      ride.fromLocalPosition.copy(local)
+      ride.fromLocalQuaternion.copy(ride.dockLocalQuaternion)
+      ride.stage = 'latch'
+      ride.stageStartedAt = now
+    } else {
+      rideApproachWaypoint(rideLocalWaypoint, hostProfile, host.bodyLength, riderBodyLength, local, rideLocalStaging)
+      const toWaypoint = rideLocalWaypoint.sub(local)
+      const waypointDistance = toWaypoint.length()
+      const relativeSpeed = THREE.MathUtils.clamp(
+        toStaging * RIDE_DOCK_GAIN + RIDE_DOCK_MIN_SPEED,
+        RIDE_DOCK_MIN_SPEED,
+        Math.max(RIDE_DOCK_MIN_SPEED, speeds.burst),
+      )
+      if (waypointDistance > 1e-6) local.addScaledVector(toWaypoint, Math.min(1, (relativeSpeed * dt) / waypointDistance))
+      rideProjectOutOfBody(local, hostProfile, host.bodyLength, riderBodyLength)
+      ride.dockLocalQuaternion.slerp(RIDE_IDENTITY, 1 - Math.exp(-dt * RIDE_DOCK_TURN_RESPONSE))
+      ride.position.copy(local).applyQuaternion(host.quaternion).add(host.position)
+      ride.quaternion.copy(host.quaternion).multiply(ride.dockLocalQuaternion)
+      ride.forward.copy(RIDE_MODEL_FORWARD).applyQuaternion(ride.quaternion)
+      ride.swimSpeed = (host.speed ?? 0) + relativeSpeed
+      ride.ownsPose = true
+      ride.opacity = host.opacity ?? 1
+      return ride
+    }
+  }
+
+  if (ride.stage === 'latch') {
+    const blend = smootherstep01((now - ride.stageStartedAt) / RIDE_LATCH_SECONDS)
+    rideAnchorPose(ride.position, ride.quaternion, host, anchor, riderBodyLength, hitch, blend, ride.fromLocalPosition, ride.fromLocalQuaternion)
+    ride.hug = rideAnchorFit(anchor, riderBodyLength / host.bodyLength, hitch).bend * host.bodyLength * blend
+    if (blend >= 1) {
+      ride.stage = 'attached'
+      ride.stageStartedAt = now
+      ride.stageUntil = now + randomRangeFromPair(rand, hitch.rideSeconds, RIDE_DEFAULT_SECONDS)
+    }
+  } else if (ride.stage === 'attached') {
+    rideAnchorPose(ride.position, ride.quaternion, host, anchor, riderBodyLength, hitch)
+    ride.hug = rideAnchorFit(anchor, riderBodyLength / host.bodyLength, hitch).bend * host.bodyLength
+  }
+
+  if (ride.stage === 'latch' || ride.stage === 'attached') {
+    ride.forward.copy(RIDE_MODEL_FORWARD).applyQuaternion(ride.quaternion)
+    // Hold on through a host's fade-out and snap back (the Mola's deep-exit recovery) rather
+    // than letting go out in the dark beyond the tank's rear wall.
+    const rideOver = now >= ride.stageUntil && (host.opacity ?? 1) >= 0.99
+    if (ride.stage === 'attached' && (rideOver || ride.position.y > rideSurfaceLimitY(riderBodyLength))) {
+      beginRideRelease(ride, rider.id, host, anchor, now, rand, hitch)
+      return ride
+    }
+    ride.ownsPose = true
+    ride.opacity = host.opacity ?? 1
+  }
+  return ride
 }
 
 // `SCHOOL_STATES`, `FISH_REGISTRY` and `THREAT_ENTRIES` stay private to this module. `Fish.jsx`

@@ -52,6 +52,7 @@ Write this before implementation:
 - [ ] Turn the research into a small behavioral contract: social mode, cruising layer, preferred depth, speed/turn character, feeding/predator avoidance, and any signature behavior.
 - [ ] Set `swim` and boid values deliberately: body length, cruise/burst speed, turn radius, erraticness, neighbor cap, spacing, and interspecies response.
 - [ ] Confirm the species has the right solo fallback as well as its school/pair behavior.
+- [ ] If it rides other animals (remoras) or is ridden (sharks, rays, turtles, whales, billfish), declare `hitchhiker` or `rideHost` and follow [`ride-hosts.md`](ride-hosts.md). A new host needs anchors measured off its GLB.
 - [ ] Check that behavior reads from a normal viewing distance without debug labels.
 - [ ] Validate interactions with the existing tank: it must neither ignore every other animal nor create constant collisions/avoidance jitter.
 - [ ] Compare implementation against the species facts and felt intention. If they disagree, change behavior—not the copy—to make the mismatch disappear.

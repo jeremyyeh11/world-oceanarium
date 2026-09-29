@@ -61,6 +61,17 @@ const targets = [
     requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
     minBodyLength: 6,
   },
+  {
+    name: 'Whitefin Sharksucker static parts',
+    path: 'public/models/fish/echeneis-neucratoides/echeneis-neucratoides.glb',
+    staticMesh: true,
+    bodyMeshNames: ['e_neucratoides_(2)'],
+    requiredFollowMeshes: ['e_neucratoides_(2)_1'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 5,
+    minVertices: 1000,
+  },
   // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
   // the real models replace them: unit length, single body mesh, same contract.
   ...SPECIES

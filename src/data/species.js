@@ -1065,12 +1065,43 @@ export const SPECIES = [
       hosts: { shark: 1, ray: 0.8, turtle: 0.8, cetacean: 0.5, 'large-fish': 0.5 },
       rideSeconds: [40, 100],
       freeSeconds: [20, 45],
-      discAheadBodyLengths: 0.33,
+      // Measured from the supplied GLB by scripts/fit-rider-model.mjs. The disc is 35% of
+      // the body length ahead of the recentered root; the profile keeps the whitefin's raised
+      // dorsal/caudal lobes clear while the disc remains seated on the host skin.
+      discAheadBodyLengths: 0.3504,
+      dorsalClearanceBodyLengths: 0.0497,
+      backProfile: [[-0.1471, 0.0241], [-0.1371, 0.0224], [-0.1271, 0.0228], [-0.1171, 0.0196], [-0.0971, 0.0152], [-0.0871, 0.0117], [-0.0371, 0.0051], [-0.0071, 0.0033], [0.0729, 0.0002], [0.0829, 0.0001], [0.0929, 0.0012], [0.1829, 0.0001], [0.2829, 0.0032], [0.3829, 0.008], [0.5029, -0.0067], [0.5129, -0.0039], [0.5529, 0.0109], [0.6029, 0.0231], [0.6429, 0.0313], [0.7129, 0.041], [0.7229, 0.0436], [0.7329, 0.0442], [0.7429, 0.0408], [0.7529, 0.0346], [0.7929, -0.0024], [0.8029, -0.01], [0.8129, -0.0162], [0.8229, -0.0217], [0.8329, -0.0255], [0.8429, -0.0233]],
     },
-    model: remoraPlaceholderModel('echeneis-neucratoides', 3.0),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
-    hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#6d737a', discLength: 0.24 },
+    model: {
+      path: '/models/fish/echeneis-neucratoides/echeneis-neucratoides.glb',
+      // Supplied source body length is fitted by scripts/fit-rider-model.mjs.
+      // The root is recentred on the body axis so host skin fitting uses the same frame
+      // as the generated remora stand-ins.
+      scale: 0.5463,
+      position: [0, -0.008, -0.734],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        // The supplied GLB is rig-free. Its main body carries the long dorsal, anal,
+        // and caudal surfaces; the second material split is the rigid suction disc.
+        bodyMeshNames: ['e_neucratoides_(2)'],
+        followBodyMeshNames: ['e_neucratoides_(2)_1'],
+        // Keep the front rigid and give the smaller whitefin a compact rear stroke.
+        amplitude: 0.385,
+        turnStrength: 0.165,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
   {
     id: 'remora-remora',

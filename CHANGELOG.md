@@ -8,6 +8,22 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.17.1 — Whitefin Sharksucker model
+
+Status: accepted and promoted as clean `v0.17.1` from `v0.16.1-dev_1` after Jeremy's merge approval (2026-09-29), rebased onto clean `v0.17.0`.
+
+### Species
+
+- Replaces the generated Whitefin Sharksucker (*Echeneis neucratoides*) stand-in with Jeremy's supplied static GLB.
+- Fits the model to its measured `5.4912`-unit source length, rendering the `75 cm` maximum at `3.0 WU`; recentres the model root and records the measured disc offset, dorsal clearance, and back profile for host skin fitting.
+- Keeps the existing host-riding contract: free swimming, escort, approach, dock, latch, attached, and eased release across sharks, rays, turtles, cetaceans, and large fish.
+- Uses the existing `caudal-vertex` path: the main body deforms, the suction-disc material split follows the body under it, and the four independent fins remain available for root-pivoted flutter.
+- Production intentionally has no Whitefin rows yet; two review animals remain in `creatures_dev` for a later population release.
+
+### Verification
+
+- `npm test`, `npm run verify:procedural-fish-assets`, `npm run lint`, `npm run build`, and `git diff --check` pass after rebasing onto `v0.17.0`.
+
 ## v0.17.0 — Boundary-aware swimming
 
 Status: accepted and promoted as clean `v0.17.0` from `v0.17.0-dev_01` after Jeremy's review (2026-09-29).

@@ -116,8 +116,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'isurus-oxyrinchus': 40.1835,
   // Supplied model (scripts/fit-rider-model.mjs prints this).
   'echeneis-naucrates': 6.6014,
-  // Generated remora stand-ins are unit length (scripts/build-remora-placeholders.mjs).
-  'echeneis-neucratoides': 1,
+  // Supplied Whitefin Sharksucker model (scripts/fit-rider-model.mjs).
+  'echeneis-neucratoides': 5.4912,
   'remora-remora': 1,
   'remora-albescens': 1,
   'remora-australis': 1,

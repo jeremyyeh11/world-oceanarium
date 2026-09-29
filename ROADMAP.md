@@ -15,7 +15,7 @@ Status labels:
 
 ### Remoras (week 1 of the species series)
 
-Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The seven stand-ins stay `hiddenInAtlas` until their models land; the open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
+Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1`; the six remaining stand-ins stay `hiddenInAtlas` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
 
 Reference:
 - System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).
@@ -28,13 +28,13 @@ Subtasks:
 - [x] Jeremy review (2026-09-26, local preview): remoras clipped through the host while finding a spot, and the rigid stand-ins had no tail beat. Fixed with host clearance ellipsoids, staging points, swing-round waypoints, a push-out clamp, and a docking stage, plus generated stand-in GLBs on the real `caudal-vertex` wave.
 - [x] Live Sharksucker GLB (2026-09-27, from the `feat/echeneis-naucrates` branch, model only). Recentred with `model.position`, disc moving with the head through the new `followBodyMeshNames`, and the ride fit now uses the model's measured top line (`backProfile`, from the new `scripts/fit-rider-model.mjs`).
 - [x] Revised Live Sharksucker model (2026-09-28, `dev_17`): narrower head, single-surface disc. Same fit numbers; body depth, disc, pectoral and pelvic lengths measured inside published ranges.
-- [ ] Production `creatures` has no remora rows, so the clean `v0.16.0` tank shows none (the Atlas lists the Live Sharksucker). `Blocked / waiting review`: needs Jeremy's go-ahead for a production write (backup before/after); the tables intentionally diverge.
-- [ ] Supply the other seven remora GLBs (Jeremy). Intake per species is the five steps under "Remora models" in `docs/ride-hosts.md`, starting with `node scripts/fit-rider-model.mjs <id>`.
+- [x] Production `creatures` now has four Live Sharksuckers. Whitefins intentionally remain dev-only for a later population release; the tables continue to diverge by design.
+- [ ] Supply the other six remora GLBs (Jeremy). Intake per species is the five steps under "Remora models" in `docs/ride-hosts.md`, starting with `node scripts/fit-rider-model.mjs <id>`.
 - [x] Clamped remoras bend their rear body onto the host's skin (2026-09-28, `dev_11`, Jeremy: "bend it"). The fit picks the bend with the tilt; the `caudal-vertex` shader draws it (`uProceduralHug`). A full-size sharksucker's tail reaches the mako's skin on 14 of 18 spots.
 - [x] Remora swim wave slowed after review ("they look like snakes", 2026-09-28): `waveSpeed 4.4 → 3.0`, `waveTravel 4.6 → 3.2`.
 - [x] Fins pivot at their roots (2026-09-28, `dev_9`). The sharksucker GLB's `pectoral.r` and `pelvic.r` share their left twin's origin; the renderer now finds each fin's root and turns it there, so no asset change is needed.
 - [x] Ride spots sampled from each host's mesh by face normal, host capacity by length, rider spacing, and riders following the host's caudal wave (2026-09-28, `dev_9`, Jeremy's review: "limit suckers by host size", "more asymmetrical", "use the mesh's face normals").
-- [ ] Decide `creatures_dev` review population for the other seven remoras and write the rows (backup before/after). `creatures_dev` already has four Live Sharksuckers (ids 283–286, sizes 0.76–1.0), enough to fill the mako's four anchors; the Vercel review build shows only those until the rest are added.
+- [ ] Decide `creatures_dev` review population for the other six remoras and write the rows (backup before/after). `creatures_dev` has four Live Sharksuckers (ids 283–286, sizes 0.76–1.0) and two Whitefin Sharksuckers (ids 287–288), while production intentionally has no Whitefins yet.
 - [ ] Jeremy feel review on device: latch, ride, and release on the mako and the Mola.
 
 Follow-ups (`Backlog`):

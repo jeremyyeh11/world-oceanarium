@@ -2,9 +2,13 @@ import assert from 'node:assert/strict'
 import * as THREE from 'three'
 import {
   SWIM_BOX,
+  SWIM_BOUNDARY_CONTACT_FRONT,
+  SWIM_BOUNDARY_CONTACT_LEFT,
+  SWIM_BOUNDARY_CONTACT_RIGHT,
   advanceSchoolAlarms,
   boundaryAvoidanceTurnStep,
   clampToSwimBounds,
+  clampToSwimBoundsWithContacts,
   computeBoidSteering,
   creatureBodyLength,
   forEachFish,
@@ -12,6 +16,7 @@ import {
   glideAlongCeiling,
   glideAlongWalls,
   horizontalBoundRepulsion,
+  maxTurnRadiansForSpeed,
   mulberry32,
   pitchToward,
   raiseSchoolAlarm,
@@ -24,9 +29,12 @@ import {
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   soloAgentReachedDistance,
+  shapeDirectionForBoundaryContacts,
+  shapeSoloAgentSteeringDesired,
   swimBounds,
   swimXRangeAtZ,
   threatLevelAt,
+  turnDirectionTowardWithBoundaryRecovery,
   unregisterFish,
   updateFishRegistry,
   verticalBoundRepulsion,
@@ -124,6 +132,16 @@ const nearPlane = new THREE.Vector3(bounds.x, 0, bounds.zMax + 5000)
 clampToSwimBounds(nearPlane, bounds)
 assert.ok(nearPlane.x <= swimXRangeAtZ(bounds, nearPlane.z).xMax + 1e-9, 'x is clamped against the width at its final depth')
 
+const contactPoint = new THREE.Vector3(bounds.x, (bounds.yMin + bounds.yMax) / 2, bounds.zMax + 1)
+const contactMask = clampToSwimBoundsWithContacts(contactPoint, bounds)
+assert.ok(contactMask & SWIM_BOUNDARY_CONTACT_RIGHT, 'the clamp reports its right-side contact')
+assert.ok(contactMask & SWIM_BOUNDARY_CONTACT_FRONT, 'the clamp reports its simultaneous front contact')
+assert.equal(
+  clampToSwimBoundsWithContacts(alreadyInside, bounds),
+  0,
+  'an interior clamp reports no boundary contact',
+)
+
 // --- boundary avoidance ------------------------------------------------------------
 
 const bodyLength = creatureBodyLength(sardine, sardineSwim)
@@ -155,6 +173,30 @@ assert.equal(
   boundaryAvoidanceTurnStep(baseStep, atCeiling, new THREE.Vector3(0, 1, 0), bounds, sardineSwim, bodyLength, 0, 1 / 60),
   baseStep,
   'a stationary fish keeps the base turn cap',
+)
+
+// The projected side is sloped: travelling toward the camera can hit it even with no X motion.
+// The former fixed-X ray missed this entirely, leaving the mako's wide turn cap unchanged.
+const edgeMako = { ...mako, depthZone: 'epipelagic', size: 0.82 }
+const edgeMakoBounds = swimBounds(edgeMako.depthZone, makoSwim, edgeMako.size)
+const edgeMakoBodyLength = creatureBodyLength(edgeMako, makoSwim)
+const edgeMakoY = (edgeMakoBounds.yMin + edgeMakoBounds.yMax) / 2
+const edgeMakoSideZ = edgeMakoBounds.zMin + 2
+const edgeMakoSideX = swimXRangeAtZ(edgeMakoBounds, edgeMakoSideZ).xMax
+const sideLookahead = new THREE.Vector3(edgeMakoSideX - 0.5, edgeMakoY, edgeMakoSideZ)
+assert.ok(
+  boundaryAvoidanceTurnStep(baseStep, sideLookahead, new THREE.Vector3(0, 0, 1), edgeMakoBounds, makoSwim, edgeMakoBodyLength, 5.073, 1 / 60) > baseStep,
+  'toward-camera travel near a sloped side tightens the turn before contact',
+)
+const makoOpenWater = new THREE.Vector3(
+  0,
+  edgeMakoY,
+  (edgeMakoBounds.zMin + edgeMakoBounds.zMax) / 2,
+)
+assert.equal(
+  boundaryAvoidanceTurnStep(baseStep, makoOpenWater, new THREE.Vector3(1, 0, 0), edgeMakoBounds, makoSwim, edgeMakoBodyLength, 5.073, 1 / 60),
+  baseStep,
+  'the corrected side ray leaves a mako in open water unchanged',
 )
 
 // --- reached-distance thresholds ---------------------------------------------------
@@ -422,6 +464,13 @@ withRegistry([], () => {
 // which is exactly the snap the escape arc replaces.
 const astern = new THREE.Vector3(0, 0, -1)
 assert.equal(rotateDirectionToward(new THREE.Vector3(0, 0, 1), astern, 0.3).x, 0, 'the lerping turn stalls on a target dead astern')
+const openWaterAstern = new THREE.Vector3(0, 0, 1)
+turnDirectionTowardWithBoundaryRecovery(openWaterAstern, astern, 0.3, false, 1)
+assert.deepEqual(openWaterAstern.toArray(), [0, 0, 1], 'open-water turning retains the established lerp behavior')
+const boundaryAstern = new THREE.Vector3(0, 0, 1)
+turnDirectionTowardWithBoundaryRecovery(boundaryAstern, astern, 0.3, true, 1)
+assert.ok(boundaryAstern.x > 0, 'active boundary recovery breaks the dead-astern tie on its stable side')
+assert.ok(Math.abs(new THREE.Vector3(0, 0, 1).angleTo(boundaryAstern) - 0.3) < 1e-9, 'boundary recovery advances at the true angular cap')
 
 const uTurn = new THREE.Vector3(0, 0, 1)
 let uTurnSteps = 0
@@ -459,6 +508,62 @@ assert.ok(Math.abs(arcStep.angleTo(new THREE.Vector3(0, 0, 1)) - 0.1) < 1e-12, '
 const pitched = yawToward(new THREE.Vector3(0, 0.3, 1).normalize(), new THREE.Vector3(1, 0, 0), 0.5, 1)
 assert.ok(Math.abs(pitched.y - new THREE.Vector3(0, 0.3, 1).normalize().y) < 1e-12, 'the arc turns heading only, leaving pitch for the ordinary step')
 assert.ok(Math.abs(pitched.length() - 1) < 1e-12, 'and keeps the direction a unit vector')
+
+// Ten deterministic mako edge approaches exercise the same steer -> turn-cap -> integrate ->
+// clamp feedback used at runtime. Each starts exactly on a sloped side, aimed through it, with an
+// inward target dead astern — the old normalized lerp could hold that pose indefinitely.
+for (let run = 0; run < 10; run += 1) {
+  const side = run % 2 === 0 ? 1 : -1
+  const zT = 0.38 + run * 0.022
+  const z = THREE.MathUtils.lerp(edgeMakoBounds.zMin, edgeMakoBounds.zMax, zT)
+  const x = side * swimXRangeAtZ(edgeMakoBounds, z).xMax
+  const position = new THREE.Vector3(x, edgeMakoY, z)
+  const k = swimXRangeAtZ(edgeMakoBounds, z).xMax - swimXRangeAtZ(edgeMakoBounds, z + 1).xMax
+  const heading = new THREE.Vector3(side, 0, k).normalize()
+  const initialHeading = heading.clone()
+  const target = position.clone().addScaledVector(heading, -edgeMakoBodyLength * 0.8)
+  clampToSwimBounds(target, edgeMakoBounds)
+  const targetDirection = new THREE.Vector3()
+  let contacts = clampToSwimBoundsWithContacts(position, edgeMakoBounds)
+  let escapedAt = null
+
+  for (let frame = 0; frame < 360; frame += 1) {
+    shapeSoloAgentSteeringDesired(targetDirection, position, target, heading, edgeMako, makoSwim)
+    if (contacts) shapeDirectionForBoundaryContacts(targetDirection, position, edgeMakoBounds, contacts)
+    const openStep = maxTurnRadiansForSpeed(makoSwim, edgeMakoBodyLength, 5.073, 1 / 60)
+    const turnStep = boundaryAvoidanceTurnStep(
+      openStep,
+      position,
+      heading,
+      edgeMakoBounds,
+      makoSwim,
+      edgeMakoBodyLength,
+      5.073,
+      1 / 60,
+    )
+    turnDirectionTowardWithBoundaryRecovery(
+      heading,
+      targetDirection,
+      turnStep,
+      contacts !== 0 || turnStep > openStep + 1e-9,
+      run % 4 < 2 ? 1 : -1,
+    )
+    position.addScaledVector(heading, 5.073 / 60)
+    contacts = clampToSwimBoundsWithContacts(position, edgeMakoBounds)
+
+    const legalHalfX = swimXRangeAtZ(edgeMakoBounds, position.z).xMax
+    assert.ok(Math.abs(position.x) <= legalHalfX + 1e-9, `mako soak ${run} remains inside the sloped side bounds`)
+    assert.ok(position.z >= edgeMakoBounds.zMin - 1e-9 && position.z <= edgeMakoBounds.zMax + 1e-9, `mako soak ${run} remains inside the depth bounds`)
+    if (!(contacts & (SWIM_BOUNDARY_CONTACT_LEFT | SWIM_BOUNDARY_CONTACT_RIGHT))
+      && legalHalfX - Math.abs(position.x) > 0.05) {
+      escapedAt = frame + 1
+      break
+    }
+  }
+
+  assert.ok(escapedAt != null && escapedAt < 360, `mako soak ${run} leaves the contacted side instead of dwelling there`)
+  assert.ok(initialHeading.angleTo(heading) > 0.5, `mako soak ${run} visibly banks during recovery`)
+}
 
 // --- school formation fits its bounds -------------------------------------------------------
 
@@ -528,6 +633,9 @@ assert.equal(verticalBoundRepulsion(3.9, glideBounds, 0), 0, 'no band, no push')
   const push = new THREE.Vector3()
   const middleZ = -18
   const halfX = swimXRangeAtZ(wallBounds, middleZ).xMax
+  const sideK = halfX - swimXRangeAtZ(wallBounds, middleZ + 1).xMax
+  const rightWallNormal = new THREE.Vector3(1, 0, sideK).normalize()
+  const leftWallNormal = new THREE.Vector3(-1, 0, sideK).normalize()
   assert.deepEqual(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, middleZ), wallBounds, 1.8).toArray(), [0, 0, 0], 'open water has no wall push')
   assert.equal(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -7 - 1.8), wallBounds, 1.8).z, 0, 'the push starts at the edge of the band')
   const nearFront = horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -7.5), wallBounds, 1.8).z
@@ -535,8 +643,8 @@ assert.equal(verticalBoundRepulsion(3.9, glideBounds, 0), 0, 'no band, no push')
   assert.ok(nearFront < lessNearFront && lessNearFront < 0, 'the front wall pushes back, harder nearer it')
   assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -7), wallBounds, 1.8).z < -1, 'at the front wall the push outweighs a heading straight into it')
   assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(0, 0, -30), wallBounds, 1.8).z > 1, 'and at the back wall')
-  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(halfX, 0, middleZ), wallBounds, 1.8).x < -1, 'the right wall pushes left')
-  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(-halfX, 0, middleZ), wallBounds, 1.8).x > 1, 'the left wall pushes right')
+  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(halfX, 0, middleZ), wallBounds, 1.8).dot(rightWallNormal) < -1, 'the right wall pushes inward harder than an outward heading')
+  assert.ok(horizontalBoundRepulsion(push, new THREE.Vector3(-halfX, 0, middleZ), wallBounds, 1.8).dot(leftWallNormal) < -1, 'the left wall pushes inward harder than an outward heading')
   // The side walls follow the camera's view: narrower near the front. A fish 1 WU inside the
   // back of the tank's side wall is well outside the front's, so it is pushed there only.
   const frontHalfX = swimXRangeAtZ(wallBounds, -7.5).xMax
@@ -555,7 +663,7 @@ assert.equal(verticalBoundRepulsion(3.9, glideBounds, 0), 0, 'no band, no push')
   assert.equal(glideAlongWalls(intoFrontInside, new THREE.Vector3(0, 0, -8), wallBounds), false, 'one short of the wall may still swim toward it')
   const intoRight = new THREE.Vector3(0.9, 0, -0.4).normalize()
   assert.equal(glideAlongWalls(intoRight, new THREE.Vector3(halfX, 0, middleZ), wallBounds), true, 'on the right wall heading into it, it is turned')
-  assert.ok(intoRight.x === 0 && intoRight.z < 0, 'along the wall')
+  assert.ok(Math.abs(intoRight.dot(rightWallNormal)) < 1e-9 && intoRight.z < 0, 'it follows the real sloped side plane')
   const straightIntoBack = new THREE.Vector3(0, 0, -1)
   glideAlongWalls(straightIntoBack, new THREE.Vector3(4, 0, -30), wallBounds)
   assert.ok(Math.abs(straightIntoBack.length() - 1) < 1e-12 && straightIntoBack.x < 0 && straightIntoBack.z === 0, 'heading straight into a wall, it turns along it toward the middle')
@@ -563,6 +671,88 @@ assert.equal(verticalBoundRepulsion(3.9, glideBounds, 0), 0, 'no band, no push')
   const cornerHalfX = swimXRangeAtZ(wallBounds, -7).xMax
   glideAlongWalls(intoCorner, new THREE.Vector3(cornerHalfX, 0, -7), wallBounds)
   assert.ok(Math.abs(intoCorner.length() - 1) < 1e-12 && intoCorner.z < 0, 'wedged in a corner, it turns out of it along the side wall, back into the tank')
+}
+
+// A mako exposes the side-plane mismatch most clearly: pure +Z narrows the legal X range, so a
+// heading with x=0 is still outward at the right edge. It must acquire the coupled -X tangent.
+{
+  const sidePosition = new THREE.Vector3(edgeMakoSideX, edgeMakoY, edgeMakoSideZ)
+  const sideK = edgeMakoSideX - swimXRangeAtZ(edgeMakoBounds, edgeMakoSideZ + 1).xMax
+  const rightNormal = new THREE.Vector3(1, 0, sideK).normalize()
+  const towardCamera = new THREE.Vector3(0, 0, 1)
+  assert.equal(glideAlongWalls(towardCamera, sidePosition, edgeMakoBounds), true, 'toward-camera travel on the right side is outward')
+  assert.ok(towardCamera.x < 0 && towardCamera.z > 0, 'side glide couples -X with +Z along the frustum plane')
+  assert.ok(Math.abs(towardCamera.dot(rightNormal)) < 1e-9, 'the corrected glide has no outward side component')
+  const tangentAdvance = sidePosition.clone().addScaledVector(towardCamera, 0.25)
+  assert.ok(tangentAdvance.x <= swimXRangeAtZ(edgeMakoBounds, tangentAdvance.z).xMax + 1e-9, 'the corrected glide advances without needing a clamp')
+
+  const exactTangent = new THREE.Vector3(
+    swimXRangeAtZ(edgeMakoBounds, edgeMakoSideZ + 1).xMax - edgeMakoSideX,
+    0,
+    1,
+  ).normalize()
+  const exactTangentBefore = exactTangent.clone()
+  assert.equal(glideAlongWalls(exactTangent, sidePosition, edgeMakoBounds), false, 'a true side-plane tangent is already valid')
+  assert.ok(exactTangent.angleTo(exactTangentBefore) < 1e-12, 'a valid side tangent is unchanged')
+
+  const inwardDespitePositiveX = new THREE.Vector3(0.25, 0, -1).normalize()
+  const inwardBefore = inwardDespitePositiveX.clone()
+  assert.equal(glideAlongWalls(inwardDespitePositiveX, sidePosition, edgeMakoBounds), false, 'rearward widening makes a positive-X heading inward')
+  assert.ok(inwardDespitePositiveX.angleTo(inwardBefore) < 1e-12, 'an already-inward side route is preserved')
+
+  const corner = new THREE.Vector3(
+    swimXRangeAtZ(edgeMakoBounds, edgeMakoBounds.zMax).xMax,
+    edgeMakoY,
+    edgeMakoBounds.zMax,
+  )
+  const cornerTarget = corner.clone().add(new THREE.Vector3(10, 0, 10))
+  const cornerDesired = new THREE.Vector3()
+  shapeSoloAgentSteeringDesired(
+    cornerDesired,
+    corner,
+    cornerTarget,
+    new THREE.Vector3(1, 0, 1).normalize(),
+    edgeMako,
+    makoSwim,
+  )
+  const cornerSideK = swimXRangeAtZ(edgeMakoBounds, edgeMakoBounds.zMax).xMax
+    - swimXRangeAtZ(edgeMakoBounds, edgeMakoBounds.zMax + 1).xMax
+  const cornerRightNormal = new THREE.Vector3(1, 0, cornerSideK).normalize()
+  assert.ok(Number.isFinite(cornerDesired.x + cornerDesired.y + cornerDesired.z), 'corner recovery remains finite')
+  assert.ok(Math.abs(cornerDesired.length() - 1) < 1e-12, 'corner recovery remains normalized')
+  assert.ok(cornerDesired.dot(cornerRightNormal) <= 1e-9, 'corner recovery satisfies the sloped side plane')
+  assert.ok(cornerDesired.z <= 1e-9, 'corner recovery also satisfies the front plane')
+  const cornerAdvance = corner.clone().addScaledVector(cornerDesired, 0.25)
+  assert.ok(cornerAdvance.z <= edgeMakoBounds.zMax + 1e-9, 'corner recovery does not cross the front plane')
+  assert.ok(cornerAdvance.x <= swimXRangeAtZ(edgeMakoBounds, cornerAdvance.z).xMax + 1e-9, 'corner recovery does not cross the side plane')
+
+  const postBoidOutward = new THREE.Vector3(1, 0, 1).normalize()
+  assert.equal(
+    shapeDirectionForBoundaryContacts(
+      postBoidOutward,
+      corner,
+      edgeMakoBounds,
+      SWIM_BOUNDARY_CONTACT_RIGHT | SWIM_BOUNDARY_CONTACT_FRONT,
+    ),
+    true,
+    'runtime contact feedback corrects an outward direction added after base steering',
+  )
+  assert.ok(postBoidOutward.dot(cornerRightNormal) < 0 && postBoidOutward.z < 0, 'contact feedback leaves both corner planes strictly inward')
+
+  // The rear-side normals are obtuse, so a naive sequence of projections can make the first
+  // plane outward again. The combined active-set correction must satisfy both at once.
+  const rearCorner = new THREE.Vector3(
+    swimXRangeAtZ(edgeMakoBounds, edgeMakoBounds.zMin).xMax,
+    edgeMakoY,
+    edgeMakoBounds.zMin,
+  )
+  const rearSideK = swimXRangeAtZ(edgeMakoBounds, edgeMakoBounds.zMin).xMax
+    - swimXRangeAtZ(edgeMakoBounds, edgeMakoBounds.zMin + 1).xMax
+  const rearRightNormal = new THREE.Vector3(1, 0, rearSideK).normalize()
+  const rearCornerOutward = new THREE.Vector3(1, 0, -0.2).normalize()
+  shapeDirectionForBoundaryContacts(rearCornerOutward, rearCorner, edgeMakoBounds)
+  assert.ok(rearCornerOutward.dot(rearRightNormal) <= 1e-9, 'rear-corner recovery satisfies the sloped side plane')
+  assert.ok(rearCornerOutward.z >= -1e-9, 'rear-corner recovery also satisfies the back plane')
 }
 
 // --- school alarm wave -------------------------------------------------------------------

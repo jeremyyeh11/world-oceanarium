@@ -13,6 +13,26 @@ Status labels:
 
 ## Current work
 
+### Boundary-clamp recovery for solo swimmers
+
+Status: `Current in development` — implemented as `v0.17.0-dev_01` on `fix/boundary-clamping`; automated regression/build review passes, with in-browser visual review still open.
+
+Reference:
+- Report: the Shortfin Mako can remain at a screen edge with almost no visible turn, reading as if it is swimming against invisible glass.
+- Deterministic mako case (size `0.82`, body length `14.596 WU`, cruise `5.073 WU/s`): a valid route down the sloped right-side swim bound was clamped on every frame for `3.48 s`; screen X stayed exactly on the edge, heading changed only `3.45°`, and actual travel differed from that heading by `43.91°`.
+- Related school fixes: `v0.16.0-dev_2` stopped vertical-bound pinning and `dev_13` added soft front/back/side walls plus `glideAlongWalls`. The failure family is the same — a hard position clamp preserves an incompatible heading — but the solo case also exposes frustum-side geometry and near-180° turn handling that the school-only glide does not solve.
+
+Implementation:
+- [x] Model each projected side bound as its real sloped X/Z plane in boundary look-ahead, tangent projection, wall glide and soft-wall math; the old helpers treated it as an axis-aligned X plane even though `projectedScreenHalfXAtZ` narrows toward the camera.
+- [x] In solo boundary shaping, remove only heading components that point outward. Preserve an already-inward target, and combine simultaneously active planes at corners instead of allowing the single nearest side plane to mask the front/back plane.
+- [x] Feed an allocation-free contact mask from the runtime clamp back into solo steering. Post-boid outward input is corrected to a tangent-plus-inward recovery direction instead of repeating integrate → clamp indefinitely; authored targets are not overwritten.
+- [x] Use the existing true-angle yaw/pitch arc only for opposing boundary recovery, with a stable per-fish turn side. Keep ordinary open-water `rotateDirectionToward` behavior unchanged.
+- [x] Add pure regressions for side look-ahead/tangency, inward-route preservation, front-side and rear-side corners, contact feedback, and ten deterministic full-pipeline mako edge recoveries.
+- [ ] Run the live Open Sea soak and visual review for banking continuity, school wall feel, and remora/Mola exceptions.
+
+Review gate:
+- [ ] No solo fish remains position-clamped while its rendered heading continues into a wall; the mako banks continuously away without a snap, teleport, sideways slide, or change to its open-water turn feel.
+
 ### Remoras (week 1 of the species series)
 
 Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The seven stand-ins stay `hiddenInAtlas` until their models land; the open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.

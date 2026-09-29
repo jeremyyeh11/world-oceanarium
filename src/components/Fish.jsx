@@ -31,6 +31,7 @@ import {
   clampToMolaSurfaceCeiling,
   clampToSurfaceCeiling,
   clampToSwimBounds,
+  clampToSwimBoundsWithContacts,
   computeBoidSteering,
   creatureBodyLength,
   debugForwardOffset,
@@ -72,12 +73,14 @@ import {
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   setForwardWithPitch,
+  shapeDirectionForBoundaryContacts,
   shapeSoloAgentSteeringDesired,
   soloAgentReachedDistance,
   swimBounds,
   swimXRangeAtZ,
   threatLevelAt,
   turnRateForCreature,
+  turnDirectionTowardWithBoundaryRecovery,
   unregisterFish,
   updateFishRegistry,
   verticalBoundRepulsion,
@@ -1658,6 +1661,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const agentTarget = useRef(new THREE.Vector3())
   const agentRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`)))
   const agentHasTarget = useRef(false)
+  const boundaryContacts = useRef(0)
+  const boundaryTurnSide = useRef((hashString(`${creature.id ?? creature.species}:boundary-turn`) & 1) === 0 ? -1 : 1)
   const nextAgentRetargetAt = useRef(0)
   const agentStatus = useRef('cruise')
   const agentBehavior = useRef(null)
@@ -1857,6 +1862,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   useEffect(() => {
     agentRand.current = mulberry32(hashString(`${creature.id ?? creature.species}:solo-agent`))
     agentHasTarget.current = false
+    boundaryContacts.current = 0
+    boundaryTurnSide.current = (hashString(`${creature.id ?? creature.species}:boundary-turn`) & 1) === 0 ? -1 : 1
     nextAgentRetargetAt.current = 0
     agentStatus.current = 'cruise'
     agentBehavior.current = null
@@ -2288,6 +2295,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * SCHOOL_SOFT_WALL_BODY_LENGTHS)
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
+        boundaryContacts.current = 0
         // Mola sun-bask hold: behavior owns position outright (coast to a stop,
         // surface drift), bypassing the shared integrator entirely.
         desiredDirection.current.copy(tangent)
@@ -2307,6 +2315,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, molaSunBaskSurfaceCenterYMax(creature, swim, bounds))
         agentBehaviorDistance.current = 0
       } else if (riding) {
+        boundaryContacts.current = 0
         // Clamped to a host (or settling onto it): the host's pose composed with the anchor owns
         // the position outright, bypassing the shared integrator and its clamps.
         fish.position.copy(ride.position)
@@ -2465,6 +2474,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
         if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
         else targetDesiredDirection.copy(agentMoveDirection)
+        if (isSoloAgent && boundaryContacts.current) {
+          // The prior clamp feeds its exact active planes back into steering. Boids and authored
+          // targets may still point through a wall after the base solo shaping; clip only those
+          // outward components and leave an already-inward route untouched.
+          shapeDirectionForBoundaryContacts(
+            targetDesiredDirection,
+            fish.position,
+            bounds,
+            boundaryContacts.current,
+          )
+        }
 
         if (desiredDirection.current.lengthSq() < 0.0001) desiredDirection.current.copy(targetDesiredDirection)
 
@@ -2499,8 +2519,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
         const forwardSpeed = velocity.current * authoredSpeedScale * organicMotion.speedScale
         registrySpeed = forwardSpeed
-        let turnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
+        const openWaterTurnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
+        let turnStep = openWaterTurnStep
         turnStep = boundaryAvoidanceTurnStep(turnStep, fish.position, desiredDirection.current, bounds, swim, bodyLength, forwardSpeed, delta)
+        const boundaryRecoveryActive = isSoloAgent
+          && (boundaryContacts.current !== 0 || turnStep > openWaterTurnStep + 1e-9)
         if (escapeActive) {
           // Escape arc: carve round on the startle turning circle at a true angular rate, so even a
           // U-turn sweeps round instead of stalling and flipping. Heading and pitch are stepped
@@ -2509,7 +2532,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           yawToward(desiredDirection.current, targetDesiredDirection, escapeTurnStep, startleTurnSide.current)
           pitchToward(desiredDirection.current, targetDesiredDirection, turnStep)
         } else {
-          rotateDirectionToward(desiredDirection.current, targetDesiredDirection, turnStep)
+          turnDirectionTowardWithBoundaryRecovery(
+            desiredDirection.current,
+            targetDesiredDirection,
+            turnStep,
+            boundaryRecoveryActive,
+            boundaryTurnSide.current,
+          )
         }
 
         // Integrate velocity along the heading — no follow-target distance cap.
@@ -2519,6 +2548,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
         // Species-shaped clamps on the shared swim bounds.
         if (isMolaCreature(creature)) {
+          boundaryContacts.current = 0
           // The mola's authored targets (front excursions, sun-bask approach) extend past the
           // shared zMax, so its forward wall sits where those targets end. The rear stays soft:
           // a blown deep U-turn exits into the dark and the fade-out recovery below brings it
@@ -2532,6 +2562,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             : null
           clampToMolaSurfaceCeiling(fish.position, creature, swim, bounds, agentMoveDirection, surfaceYMax)
         } else if (hitchhiker && ride.stage === 'release') {
+          boundaryContacts.current = 0
           // Just let go, possibly outside its own volume (under a mako cruising the floor, or
           // off a basking Mola's flank): ease back inside instead of popping there in a frame.
           agentRuntimeClamp.copy(fish.position)
@@ -2539,7 +2570,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           agentRuntimeClamp.y = Math.min(agentRuntimeClamp.y, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
           fish.position.lerp(agentRuntimeClamp, 1 - Math.exp(-delta * RIDE_RELEASE_BOUNDS_RESPONSE))
         } else {
-          clampToSwimBounds(fish.position, bounds)
+          if (isSoloAgent) {
+            boundaryContacts.current = clampToSwimBoundsWithContacts(fish.position, bounds)
+          } else {
+            clampToSwimBounds(fish.position, bounds)
+          }
           glideAlongCeiling(desiredDirection.current, fish.position, bounds)
           // A school member held on a side, front or back wall slides along it rather than keep
           // pointing into it (see glideAlongWalls).

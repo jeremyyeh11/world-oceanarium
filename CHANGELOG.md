@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.17.0 — Boundary-aware swimming
+
+Status: in development. `v0.17.0-dev_01` opens the bucket with boundary-clamp recovery for solo swimmers.
+
+### Swimming
+
+- Projected side bounds now use their real sloped X/Z frustum planes for look-ahead, soft-wall steering, wall glide, and hard-contact recovery. A fish moving toward the camera can therefore anticipate the narrowing side even with no X component.
+- Solo steering preserves targets that already point inward, combines simultaneous wall contacts at corners, and receives an allocation-free contact mask from the runtime clamp. An outward heading is redirected tangent-plus-inward instead of repeating integrate → clamp while appearing to swim against invisible glass.
+- Opposing boundary recovery uses the existing true-angle yaw/pitch arc with a deterministic per-fish turn side, avoiding the normal lerped turn's dead-astern stall without changing open-water turning. Mola authored movement and remora ride/release pose ownership remain exempt.
+
 ## v0.16.0 — Predator response, schooling and remoras
 
 Status: accepted and promoted as clean `v0.16.0` from `v0.16.0-dev_17` after Jeremy's review (2026-09-28). `dev_2` had the evade and escape work and the first school fixes, `dev_3` added the school alarm (#105), `dev_5` the landing-card mark (#107), and `dev_6` the school-neighbours work and soft vertical walls. `dev_7`–`dev_12` were the remoras' review builds (#102, opened as `dev_1`), with the first supplied remora model, the Live Sharksucker; the other seven still render generated stand-ins that already swim with the real caudal wave. `dev_8` retuned the mako's and the remoras' body wave after Jeremy's review, `dev_9` sampled ride spots from the host's mesh, limited riders by host size, and pivoted fins at their roots, `dev_10` let remoras follow a host loosely, `dev_11` bent clamped remoras onto the host's skin and slowed their swimming wave, and `dev_12` fixed remoras snapping round at the end of the latch. `dev_13` gave schools soft front, back and side walls (#109), `dev_14` is the remoras rebased onto it, `dev_15` is an Atlas hot patch for the Live Sharksucker, `dev_16` frames every Atlas fish larger, and `dev_17` brings Jeremy's revised Live Sharksucker model.

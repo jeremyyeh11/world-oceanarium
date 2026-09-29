@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.17.0 — Boundary-aware swimming
 
-Status: in development. `v0.17.0-dev_01` opens the bucket with boundary-clamp recovery for solo swimmers.
+Status: accepted and promoted as clean `v0.17.0` from `v0.17.0-dev_01` after Jeremy's review (2026-09-29).
 
 ### Swimming
 

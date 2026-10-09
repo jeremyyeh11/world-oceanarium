@@ -62,13 +62,20 @@
      world as Pixelify Sans, so the pair does not read as an accident. */
   --crt-font-tiny: 'Jersey 15', var(--crt-font);
 
-  /* Reading face for the Atlas. Pixel faces stay on everything that is a label
-     or a number to glance at (headings, section tags, dex numbers, chips); the
-     text you actually read (descriptions, data values, their row labels, the
-     scientific name) is set in IBM Plex Mono instead. Jeremy could barely read
-     the Atlas on a phone with Jersey 15 at 9-12px, and a pixel face at that size
-     stays mushy however it is tuned. A monospace keeps the terminal register, so
-     it reads as the dive-station readout rather than a web page pasted in. */
+  /* Reading face. One rule for the whole UI (v0.17.2):
+
+       Pixel faces   titles, buttons, tags/chips, kickers, dex and index numbers,
+                     the version label. Never below 0.8rem (12.8px).
+       This face     anything read rather than glanced at: sentences, data
+                     values and the labels beside them, scientific names, the
+                     search field, debug readouts, URLs. Labels >= 0.72rem,
+                     values and sentences >= 0.8rem.
+
+     Jeremy could barely read the UI on a phone with Jersey 15 at 9-12px, and a
+     pixel face at that size stays mushy however it is tuned. A monospace keeps
+     the terminal register, so it reads as the dive-station readout rather than
+     a web page pasted in. The one exception to the floors is the seven-cell IUCN
+     track in the Atlas (0.66rem on phones), which has no more room. */
   --crt-font-read: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Reused so the banding pitch stays identical everywhere. 1px on / 2px off at
@@ -521,7 +528,7 @@
   margin: 0.85rem 0 0;
   color: var(--crt-drift-dim);
   font-family: var(--crt-font);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   animation: crt-charting-pulse 3s ease-in-out infinite;
@@ -560,7 +567,7 @@
   display: block;
   color: var(--crt-lumen);
   font-family: var(--crt-font);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   text-shadow: 0 0 10px rgba(127, 220, 242, 0.35);

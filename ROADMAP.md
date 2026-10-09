@@ -13,15 +13,16 @@ Status labels:
 
 ## Current work
 
-### Readable Atlas type
+### Readable type
 
-Status: `Blocked / waiting review` — `v0.17.2-dev_1` on `fix/atlas-readable-type`. Jeremy could barely read the Atlas on a phone; picked option 2 from a font mockup (2026-10-09).
+Status: `Blocked / waiting review` — `v0.17.2-dev_2` on `fix/atlas-readable-type` (#114). Jeremy could barely read the Atlas on a phone; picked option 2 from a font mockup (2026-10-09), then asked for the whole UI to match (`dev_2`). The rule lives in the `--crt-font-read` comment in `src/styles/crt.css`.
 
 Subtasks:
 - [x] Reading text (descriptions, data values and their row labels, quick facts, scale readout, scientific names, IUCN labels) moves to IBM Plex Mono via `--crt-font-read`; headings, section tags, dex numbers and chips stay on the pixel faces.
 - [x] Atlas small type raised to a 0.8rem floor on the pixel faces; Plex labels sit at 0.72rem. Only the seven-cell IUCN track on phones goes lower (0.66rem / 10.6px). Smallest Atlas text was 9.1px.
+- [x] Same rule applied to the rest of the UI (`dev_2`): tank HUD, follow readout, info card, search, Sources, debug panel, landing card, screenshot help, runtime notice. A runtime sweep at 375px and 1280px found no text below the floors outside the IUCN track.
 - [ ] Jeremy reviews the Vercel preview on a phone.
-- [ ] Decide whether the tank HUD, debug panel and Sources card follow (they still use Jersey 15 at small sizes).
+- [ ] Out of scope: in-canvas 3D labels (fish name/debug labels in `Fish.jsx`) render from a font file inside the WebGL scene, not CSS.
 
 ### Remoras (week 1 of the species series)
 

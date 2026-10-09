@@ -8,9 +8,19 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.17.2 — Readable Atlas type
+## v0.17.2 — Readable type
 
-Status: in review as `v0.17.2-dev_1`.
+Status: in review as `v0.17.2-dev_2`. `dev_1` covered the Atlas; `dev_2` applies the same rule to the rest of the UI.
+
+### Type system
+
+- One rule across the whole UI. Pixel faces (Pixelify Sans, Jersey 15) set titles, buttons, tags, kickers, index numbers, and the version label, never below 0.8rem (12.8px). IBM Plex Mono (`--crt-font-read`) sets anything read rather than glanced at: sentences, data values and their labels, scientific names, the search field, debug readouts, and URLs, with labels at 0.72rem or more and values at 0.8rem or more.
+- Tank HUD: the tank menu's index numbers, heading, and names move to 0.8rem; the tank description moves to Plex Mono.
+- Follow mode: on phones, the info card's text was forced to 0.72rem and its chips to 0.58rem (9.3px); both are now 0.8rem. The scientific name, notes, fact labels, and values move to Plex Mono. The "pinch to zoom" hint goes from 9.1px Jersey 15 to 11.5px Plex Mono.
+- Search: the field and its placeholder move to Plex Mono. The placeholder goes from 8.3px uppercase to 12.8px sentence case, which still fits the 266px field.
+- Sources: the intro, summaries, full names, and hosts move to Plex Mono; tags, kickers, and entry numbers go to 0.8rem.
+- Debug panel: readouts move to Plex Mono (phone panel 9.3px → 11.5px); buttons stay pixel at 0.8rem. The panel version label and the runtime recovery notice no longer fall back to the system monospace.
+- Landing card and screenshot help: small labels go to 0.8rem; the screenshot help sentence moves to Plex Mono.
 
 ### Atlas
 

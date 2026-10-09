@@ -35,13 +35,13 @@ const styles = {
     flex: '1 1 auto',
     minWidth: 0,
   },
-  // Pixelify Sans sits close to a normal UI x-height and ships 400-700, so
-  // sizes stay near their originals and emphasis is carried by weight rather
-  // than by the glow the single-weight first pass had to fake it with.
+  // Pixel faces carry the ID, name, tag and chips; everything read rather than
+  // glanced at (scientific name, notes, fact labels and values) takes the
+  // reading face. Same rule and floors as the rest of the UI (see crt.css).
   eyebrow: {
     margin: 0,
     color: 'var(--crt-lumen)',
-    fontSize: '0.78rem',
+    fontSize: '0.8rem',
     fontWeight: 500,
     letterSpacing: '0.16em',
     textTransform: 'uppercase',
@@ -93,9 +93,9 @@ const styles = {
   scientificName: {
     margin: '0.38rem 0 0',
     color: 'var(--crt-drift)',
-    fontSize: '0.8rem',
+    fontFamily: 'var(--crt-font-read)',
+    fontSize: '0.84rem',
     fontStyle: 'italic',
-    letterSpacing: '0.02em',
   },
   nameTag: {
     display: 'inline-flex',
@@ -108,7 +108,7 @@ const styles = {
     boxShadow: '0 0 14px rgba(240,205,140,0.25)',
     padding: '0.3rem 0.62rem 0.18rem',
     borderRadius: 0,
-    fontSize: '0.78rem',
+    fontSize: '0.8rem',
     fontWeight: 600,
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
@@ -150,7 +150,7 @@ const styles = {
     borderRadius: 0,
     fontFamily: 'var(--crt-font-tiny)',
     fontSynthesisWeight: 'none',
-    fontSize: '0.77rem',
+    fontSize: '0.8rem',
     fontWeight: 400,
     letterSpacing: '0.12em',
     textTransform: 'uppercase',
@@ -175,16 +175,16 @@ const styles = {
   },
   factLabel: {
     color: 'var(--crt-drift-dim)',
-    fontFamily: 'var(--crt-font-tiny)',
-    fontSynthesisWeight: 'none',
-    fontSize: '0.68rem',
+    fontFamily: 'var(--crt-font-read)',
+    fontSize: '0.72rem',
     fontWeight: 400,
-    letterSpacing: '0.13em',
+    letterSpacing: '0.08em',
     textTransform: 'uppercase',
   },
   factValue: {
     color: 'var(--crt-foam)',
-    fontSize: '0.8rem',
+    fontFamily: 'var(--crt-font-read)',
+    fontSize: '0.84rem',
     fontWeight: 400,
     letterSpacing: '0.01em',
     overflowWrap: 'anywhere',
@@ -198,9 +198,10 @@ const styles = {
   individualDescription: {
     margin: '0.72rem 0 0',
     color: 'var(--crt-drift)',
-    fontSize: '0.8rem',
+    fontFamily: 'var(--crt-font-read)',
+    fontSize: '0.86rem',
     fontStyle: 'italic',
-    lineHeight: 1.4,
+    lineHeight: 1.45,
   },
   stat: {
     borderRadius: 0,
@@ -212,16 +213,16 @@ const styles = {
   label: {
     margin: 0,
     color: 'var(--crt-drift-dim)',
-    fontFamily: 'var(--crt-font-tiny)',
-    fontSynthesisWeight: 'none',
+    fontFamily: 'var(--crt-font-read)',
     fontSize: '0.72rem',
     fontWeight: 400,
-    letterSpacing: '0.14em',
+    letterSpacing: '0.08em',
     textTransform: 'uppercase',
   },
   value: {
     margin: '0.18rem 0 0',
     color: 'var(--crt-foam)',
+    fontFamily: 'var(--crt-font-read)',
     fontSize: '0.88rem',
     fontWeight: 400,
     letterSpacing: '0.01em',

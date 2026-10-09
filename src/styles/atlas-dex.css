@@ -103,7 +103,7 @@
   color: var(--crt-lumen);
   font-family: var(--crt-font-tiny);
   font-synthesis-weight: none;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -130,14 +130,14 @@
   color: var(--crt-lumen);
   font-family: var(--crt-font-tiny);
   font-synthesis-weight: none;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-weight: 400;
   letter-spacing: 0.16em;
   font-variant-numeric: tabular-nums;
 }
 
 .atlas-dex-no--lg {
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   text-shadow: 0 0 10px rgba(127, 220, 242, 0.3);
 }
 
@@ -209,16 +209,15 @@
 }
 
 .encyclopedia-species-row strong {
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: 0.06em;
 }
 
 .encyclopedia-species-row em {
   color: var(--crt-drift-dim);
-  font-size: 0.73rem;
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
+  font-size: calc(var(--crt-read-scale) * 0.76rem);
+  font-family: var(--crt-font-read);
 }
 
 .encyclopedia-species-thumb {
@@ -266,7 +265,7 @@
 .atlas-stage-readout-tag {
   margin-bottom: 0.1rem;
   color: var(--crt-lumen);
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-family: var(--crt-font-tiny);
   font-synthesis-weight: none;
   font-weight: 400;
@@ -278,20 +277,21 @@
    share one baseline and the numbers stay in a readable column. */
 .atlas-scale-row {
   display: grid;
-  /* Label column fits "Typical human" on one line; tracking is tighter than the
-     other dex labels for the same reason. */
-  grid-template-columns: 6.1rem minmax(3rem, 7rem) auto;
+  /* Label column sizes to "Typical human" so it stays on one line; Plex Mono is
+     wider than the condensed pixel face it replaced, so a fixed rem width would
+     have to be retuned with every size change. */
+  grid-template-columns: max-content minmax(3rem, 7rem) auto;
   align-items: center;
   gap: 0.45rem;
 }
 
 .atlas-scale-label {
   color: var(--crt-drift-dim);
-  font-size: 0.7rem;
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
-  letter-spacing: 0.08em;
+  font-size: calc(var(--crt-read-scale) * 0.75rem);
+  font-family: var(--crt-font-read);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .atlas-scale-track {
@@ -322,9 +322,8 @@
 
 .atlas-scale-value {
   color: var(--crt-foam);
-  font-size: 0.81rem;
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
+  font-size: calc(var(--crt-read-scale) * 0.85rem);
+  font-family: var(--crt-font-read);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
@@ -339,21 +338,17 @@
   }
 
   .atlas-scale-row {
-    grid-template-columns: 5.3rem minmax(2.2rem, 4.5rem) auto;
+    grid-template-columns: max-content minmax(2.2rem, 4.5rem) auto;
     gap: 0.32rem;
   }
 
   .atlas-scale-label {
-    font-size: 0.64rem;
-    font-family: var(--crt-font-tiny);
-    font-synthesis-weight: none;
-    letter-spacing: 0.05em;
+    font-size: calc(var(--crt-read-scale) * 0.72rem);
+    letter-spacing: 0.04em;
   }
 
   .atlas-scale-value {
-    font-size: 0.73rem;
-    font-family: var(--crt-font-tiny);
-    font-synthesis-weight: none;
+    font-size: calc(var(--crt-read-scale) * 0.8rem);
   }
 }
 
@@ -440,7 +435,7 @@
 
 .atlas-stage-chip span {
   color: var(--crt-drift-dim);
-  font-size: 0.64rem;
+  font-size: 0.8rem;
   font-family: var(--crt-font-tiny);
   font-synthesis-weight: none;
   letter-spacing: 0.18em;
@@ -449,7 +444,7 @@
 
 .atlas-stage-chip b {
   color: var(--crt-lumen);
-  font-size: 0.73rem;
+  font-size: 0.88rem;
   font-family: var(--crt-font-tiny);
   font-synthesis-weight: none;
   font-weight: 400;
@@ -466,7 +461,7 @@
 }
 
 .encyclopedia-panel-kicker {
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-family: var(--crt-font-tiny);
   font-synthesis-weight: none;
   letter-spacing: 0.18em;
@@ -474,9 +469,8 @@
 
 .encyclopedia-scientific {
   color: var(--crt-drift);
-  font-size: 0.81rem;
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
+  font-size: calc(var(--crt-read-scale) * 0.84rem);
+  font-family: var(--crt-font-read);
   font-style: italic;
 }
 
@@ -503,16 +497,14 @@
 }
 
 .atlas-quick-card-grid span {
-  font-size: 0.62rem;
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
-  letter-spacing: 0.16em;
+  font-size: calc(var(--crt-read-scale) * 0.72rem);
+  font-family: var(--crt-font-read);
+  letter-spacing: 0.12em;
 }
 
 .atlas-quick-card-grid strong {
-  font-size: 0.81rem;
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
+  font-size: calc(var(--crt-read-scale) * 0.86rem);
+  font-family: var(--crt-font-read);
   font-weight: 400;
 }
 
@@ -528,8 +520,9 @@
 .encyclopedia-description {
   margin: 0;
   color: var(--crt-drift);
-  font-size: 0.78rem;
-  line-height: 1.5;
+  font-family: var(--crt-font-read);
+  font-size: calc(var(--crt-read-scale) * 0.86rem);
+  line-height: 1.55;
 }
 
 /* Data rows: label left, value right, hairline between. Dense and scannable,
@@ -546,16 +539,16 @@
 
 .atlas-info-label {
   color: var(--crt-drift-dim);
-  font-size: 0.68rem;
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
-  letter-spacing: 0.1em;
+  font-size: calc(var(--crt-read-scale) * 0.72rem);
+  font-family: var(--crt-font-read);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .atlas-info-value {
   color: var(--crt-foam);
-  font-size: 0.76rem;
+  font-family: var(--crt-font-read);
+  font-size: calc(var(--crt-read-scale) * 0.84rem);
   font-weight: 500;
 }
 
@@ -599,7 +592,7 @@
 .atlas-version-label {
   font-family: var(--crt-font-tiny);
   font-synthesis-weight: none;
-  font-size: 0.73rem;
+  font-size: 0.8rem;
   letter-spacing: 0.1em;
 }
 
@@ -634,15 +627,17 @@
    text in the app, and Jersey's shorter cap height would have made it smaller
    still. Raised to roughly match the +10% applied to the other small-type
    sites, with more on mobile since that was the worst case. */
+/* Moved to the reading face with the rest of the Atlas data (dev_1 of v0.17.2).
+   The phone track stays below the 0.8rem floor used elsewhere: seven cells share
+   one row, and 0.66rem (10.6px) is the most two-letter codes fit at 375px. */
 .iucn-status-heading span,
 .iucn-status-track span {
-  font-family: var(--crt-font-tiny);
-  font-synthesis-weight: none;
-  font-size: 0.7rem;
+  font-family: var(--crt-font-read);
+  font-size: calc(var(--crt-read-scale) * 0.72rem);
 }
 
 @media (max-width: 880px) {
   .iucn-status-track span {
-    font-size: 0.57rem;
+    font-size: 0.66rem;
   }
 }

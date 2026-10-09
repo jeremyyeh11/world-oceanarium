@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.18.0 — Situational fish lighting (in progress)
+
+Status: in development as `v0.18.0-dev_1`, waiting on Jeremy's review. Prompted by an aquarium reference photo: fish were lit the same way wherever they swam.
+
+### Fish lighting
+
+- New shared shader term (`src/utils/fishSituationalLight.js`) on every GLB fish material and the instanced sardine LODs, applied before tone mapping and fog:
+  - Top light: backs brighten and bellies shade, strongest high in the column and inside slowly drifting light pools.
+  - Back light: a fish seen from below goes toward silhouette on its camera-facing side, with a cyan edge glow.
+  - Front light: fish in the front of the swim volume pick up light from the viewing side. It is tied to the tank, not the camera, so follow-cam close-ups keep their shading.
+- The scene lights, background, and fog are unchanged.
+
 ## v0.17.2 — Readable type
 
 Status: accepted and promoted as clean `v0.17.2` from `v0.17.2-dev_3` after Jeremy's phone review (2026-10-09). `dev_1` covered the Atlas, `dev_2` applied the same rule to the rest of the UI, and `dev_3` set all reading-face text 10% smaller after review (#114).

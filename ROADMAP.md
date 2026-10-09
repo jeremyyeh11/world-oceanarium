@@ -13,6 +13,15 @@ Status labels:
 
 ## Current work
 
+### Situational fish lighting
+
+Status: `Current in development` — `v0.18.0-dev_1`. Jeremy (2026-10-09): fish lighting "too flat and similar everywhere"; wants a mix of top-lit, front-lit and back-lit fish.
+
+- [x] Shared top/back/front light term on GLB fish and sardine LODs (`src/utils/fishSituationalLight.js`).
+- [ ] Jeremy review on desktop and phone: strength of the silhouette and edge glow, and whether species still read in the default view.
+- [ ] Check mobile frame rate with a full tank (an extra noise lookup and a few ALU ops per fish fragment).
+- [ ] Optional follow-up: line the light pools up with the god-ray shafts.
+
 ### Remoras (week 1 of the species series)
 
 Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1`; the six remaining stand-ins stay `hiddenInAtlas` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.

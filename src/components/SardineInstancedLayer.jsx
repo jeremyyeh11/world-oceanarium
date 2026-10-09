@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
+import { FISH_SITUATIONAL_LIGHT_PARS, fishSituationalLightCall, supportsFishSituationalLight } from '../utils/fishSituationalLight'
 import { SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
 const SARDINE_LOD1_MODEL_PATH = '/models/fish/sardine/sardine_LOD1.glb'
@@ -62,6 +63,7 @@ function cloneMainSardineMaterialSettings(material) {
 function addSardineWiggleMaterial(material, { amplitude = 0.018, frequency = 5.0, speed = 3.2 } = {}) {
   const nextMaterial = cloneMainSardineMaterialSettings(material)
   nextMaterial.userData.wiggleUniforms = null
+  const situationalLight = supportsFishSituationalLight(nextMaterial)
   nextMaterial.onBeforeCompile = shader => {
     shader.uniforms.uSardineWiggleTime = { value: 0 }
     shader.uniforms.uSardineWiggleAmplitude = { value: amplitude }
@@ -102,7 +104,12 @@ vSardineWorldPosition = sardineWorldPosition.xyz;`,
         '#include <common>',
         `#include <common>
 uniform float uSardineWiggleTime;
-varying vec3 vSardineWorldPosition;`,
+varying vec3 vSardineWorldPosition;
+${situationalLight ? FISH_SITUATIONAL_LIGHT_PARS : ''}`,
+      )
+      .replace(
+        '#include <opaque_fragment>',
+        situationalLight ? fishSituationalLightCall('vSardineWorldPosition', 'uSardineWiggleTime') : '#include <opaque_fragment>',
       )
       .replace(
         '#include <dithering_fragment>',
@@ -117,7 +124,7 @@ gl_FragColor.rgb *= mix(1.0, lightFactor, 0.80 * topWeight);` : ''}
 #include <dithering_fragment>`,
       )
   }
-  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}-whip-${WHIP_AMPLITUDE_GAIN}-light-mask-${SARDINE_LIGHT_MASK_ENABLED ? 'on' : 'off'}`
+  nextMaterial.customProgramCacheKey = () => `sardine-instanced-wiggle-${amplitude}-${frequency}-${speed}-whip-${WHIP_AMPLITUDE_GAIN}-light-mask-${SARDINE_LIGHT_MASK_ENABLED ? 'on' : 'off'}-${situationalLight ? 'situational' : 'flat'}`
   nextMaterial.userData.wiggleSpeed = speed
   nextMaterial.needsUpdate = true
   return nextMaterial

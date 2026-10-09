@@ -10,6 +10,7 @@ import { SURFACE_PLANE_Y } from './WaterSurface'
 import { isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
+import { FISH_SITUATIONAL_LIGHT_PARS, fishSituationalLightCall, supportsFishSituationalLight } from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
 import {
@@ -394,7 +395,8 @@ function nextSardineLod(current, distanceToCamera, lod2Distance, lod1Distance) {
 }
 
 function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
-  if (!FISH_LIGHT_MASK_ENABLED && !rim && !proceduralVertex) return
+  const situationalLight = supportsFishSituationalLight(material)
+  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
@@ -691,7 +693,12 @@ float fishMaskFbm(vec3 p) {
     amplitude *= 0.5;
   }
   return value;
-}`
+}
+${situationalLight ? FISH_SITUATIONAL_LIGHT_PARS : ''}`
+      )
+      .replace(
+        '#include <opaque_fragment>',
+        situationalLight ? fishSituationalLightCall('vFishWorldPosition', 'uFishLightMaskTime') : '#include <opaque_fragment>'
       )
       .replace(
         '#include <dithering_fragment>',
@@ -719,7 +726,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
     : proceduralVertex.type === 'caudal-vertex'
       ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
       : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralKey}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true

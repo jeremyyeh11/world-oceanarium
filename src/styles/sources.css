@@ -120,7 +120,7 @@
 .sources-intro {
   color: var(--crt-drift);
   font-family: var(--crt-font-read);
-  font-size: 0.86rem;
+  font-size: calc(var(--crt-read-scale) * 0.86rem);
   line-height: 1.55;
 }
 
@@ -234,13 +234,13 @@
   margin-top: -0.16rem;
   color: var(--crt-drift-dim);
   font-family: var(--crt-font-read);
-  font-size: 0.8rem;
+  font-size: calc(var(--crt-read-scale) * 0.8rem);
   font-style: normal;
 }
 
 .sources-entry-summary {
   font-family: var(--crt-font-read);
-  font-size: 0.86rem;
+  font-size: calc(var(--crt-read-scale) * 0.86rem);
   line-height: 1.55;
 }
 
@@ -271,7 +271,7 @@
   margin-top: 0.12rem;
   color: var(--crt-drift-dim);
   font-family: var(--crt-font-read);
-  font-size: 0.8rem;
+  font-size: calc(var(--crt-read-scale) * 0.8rem);
 }
 
 .sources-entry:hover .sources-entry-host,

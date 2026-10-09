@@ -15,7 +15,7 @@ Status labels:
 
 ### Readable type
 
-Status: `Blocked / waiting review` — `v0.17.2-dev_2` on `fix/atlas-readable-type` (#114). Jeremy could barely read the Atlas on a phone; picked option 2 from a font mockup (2026-10-09), then asked for the whole UI to match (`dev_2`). The rule lives in the `--crt-font-read` comment in `src/styles/crt.css`.
+Status: `Blocked / waiting review` — `v0.17.2-dev_3` on `fix/atlas-readable-type` (#114). Jeremy could barely read the Atlas on a phone; picked option 2 from a font mockup (2026-10-09), then asked for the whole UI to match (`dev_2`). The rule lives in the `--crt-font-read` comment in `src/styles/crt.css`.
 
 Subtasks:
 - [x] Reading text (descriptions, data values and their row labels, quick facts, scale readout, scientific names, IUCN labels) moves to IBM Plex Mono via `--crt-font-read`; headings, section tags, dex numbers and chips stay on the pixel faces.

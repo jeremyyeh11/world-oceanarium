@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.17.2 — Readable type
 
-Status: in review as `v0.17.2-dev_2`. `dev_1` covered the Atlas; `dev_2` applies the same rule to the rest of the UI.
+Status: in review as `v0.17.2-dev_3`. `dev_1` covered the Atlas; `dev_2` applies the same rule to the rest of the UI; `dev_3` sets all reading-face text 10% smaller after Jeremy's review.
 
 ### Type system
 
@@ -21,6 +21,8 @@ Status: in review as `v0.17.2-dev_2`. `dev_1` covered the Atlas; `dev_2` applies
 - Sources: the intro, summaries, full names, and hosts move to Plex Mono; tags, kickers, and entry numbers go to 0.8rem.
 - Debug panel: readouts move to Plex Mono (phone panel 9.3px → 11.5px); buttons stay pixel at 0.8rem. The panel version label and the runtime recovery notice no longer fall back to the system monospace.
 - Landing card and screenshot help: small labels go to 0.8rem; the screenshot help sentence moves to Plex Mono.
+- Plex Mono's tall x-height made it read a size larger than the pixel faces, so every reading-face size is now `calc(var(--crt-read-scale) * <base>)` with `--crt-read-scale: 0.9`. Smallest Plex text on a phone is 10.4px (labels); body text sits at 11.5–12.4px. The 16px phone search field and the IUCN track are exempt.
+- The phone info card no longer forces one size on every paragraph, so its pixel ID and its reading text keep their own sizes.
 
 ### Atlas
 

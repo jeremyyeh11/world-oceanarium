@@ -216,7 +216,7 @@
 
 .encyclopedia-species-row em {
   color: var(--crt-drift-dim);
-  font-size: 0.76rem;
+  font-size: calc(var(--crt-read-scale) * 0.76rem);
   font-family: var(--crt-font-read);
 }
 
@@ -287,7 +287,7 @@
 
 .atlas-scale-label {
   color: var(--crt-drift-dim);
-  font-size: 0.75rem;
+  font-size: calc(var(--crt-read-scale) * 0.75rem);
   font-family: var(--crt-font-read);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -322,7 +322,7 @@
 
 .atlas-scale-value {
   color: var(--crt-foam);
-  font-size: 0.85rem;
+  font-size: calc(var(--crt-read-scale) * 0.85rem);
   font-family: var(--crt-font-read);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -343,12 +343,12 @@
   }
 
   .atlas-scale-label {
-    font-size: 0.72rem;
+    font-size: calc(var(--crt-read-scale) * 0.72rem);
     letter-spacing: 0.04em;
   }
 
   .atlas-scale-value {
-    font-size: 0.8rem;
+    font-size: calc(var(--crt-read-scale) * 0.8rem);
   }
 }
 
@@ -469,7 +469,7 @@
 
 .encyclopedia-scientific {
   color: var(--crt-drift);
-  font-size: 0.84rem;
+  font-size: calc(var(--crt-read-scale) * 0.84rem);
   font-family: var(--crt-font-read);
   font-style: italic;
 }
@@ -497,13 +497,13 @@
 }
 
 .atlas-quick-card-grid span {
-  font-size: 0.72rem;
+  font-size: calc(var(--crt-read-scale) * 0.72rem);
   font-family: var(--crt-font-read);
   letter-spacing: 0.12em;
 }
 
 .atlas-quick-card-grid strong {
-  font-size: 0.86rem;
+  font-size: calc(var(--crt-read-scale) * 0.86rem);
   font-family: var(--crt-font-read);
   font-weight: 400;
 }
@@ -521,7 +521,7 @@
   margin: 0;
   color: var(--crt-drift);
   font-family: var(--crt-font-read);
-  font-size: 0.86rem;
+  font-size: calc(var(--crt-read-scale) * 0.86rem);
   line-height: 1.55;
 }
 
@@ -539,7 +539,7 @@
 
 .atlas-info-label {
   color: var(--crt-drift-dim);
-  font-size: 0.72rem;
+  font-size: calc(var(--crt-read-scale) * 0.72rem);
   font-family: var(--crt-font-read);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -548,7 +548,7 @@
 .atlas-info-value {
   color: var(--crt-foam);
   font-family: var(--crt-font-read);
-  font-size: 0.84rem;
+  font-size: calc(var(--crt-read-scale) * 0.84rem);
   font-weight: 500;
 }
 
@@ -633,7 +633,7 @@
 .iucn-status-heading span,
 .iucn-status-track span {
   font-family: var(--crt-font-read);
-  font-size: 0.72rem;
+  font-size: calc(var(--crt-read-scale) * 0.72rem);
 }
 
 @media (max-width: 880px) {

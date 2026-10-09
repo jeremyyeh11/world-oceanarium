@@ -78,6 +78,15 @@
      track in the Atlas (0.66rem on phones), which has no more room. */
   --crt-font-read: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
+  /* Plex Mono's x-height is much taller than the pixel faces', so at the same
+     rem it reads a size larger. Every reading-face size is written as
+     calc(var(--crt-read-scale) * <base>), so this one number tunes all of them
+     together. 0.9 after Jeremy's review of dev_2 ("a bit smaller"); the floors
+     above are the bases, so the rendered minimum is 0.9 x 0.72rem = 10.4px.
+     Not applied to the phone search field (16px stops iOS zooming on focus)
+     or the IUCN track (already as small as its cells allow). */
+  --crt-read-scale: 0.9;
+
   /* Reused so the banding pitch stays identical everywhere. 1px on / 2px off at
      a 3px pitch survives a retina downscale without turning into moire; the
      alpha is deliberately low so the lines read as a veil, not as stripes. */

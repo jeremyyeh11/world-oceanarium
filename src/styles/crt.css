@@ -62,6 +62,15 @@
      world as Pixelify Sans, so the pair does not read as an accident. */
   --crt-font-tiny: 'Jersey 15', var(--crt-font);
 
+  /* Reading face for the Atlas. Pixel faces stay on everything that is a label
+     or a number to glance at (headings, section tags, dex numbers, chips); the
+     text you actually read (descriptions, data values, their row labels, the
+     scientific name) is set in IBM Plex Mono instead. Jeremy could barely read
+     the Atlas on a phone with Jersey 15 at 9-12px, and a pixel face at that size
+     stays mushy however it is tuned. A monospace keeps the terminal register, so
+     it reads as the dive-station readout rather than a web page pasted in. */
+  --crt-font-read: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
   /* Reused so the banding pitch stays identical everywhere. 1px on / 2px off at
      a 3px pitch survives a retina downscale without turning into moire; the
      alpha is deliberately low so the lines read as a veil, not as stripes. */

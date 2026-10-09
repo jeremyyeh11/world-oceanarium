@@ -1631,7 +1631,7 @@ body:has(.debug-panel) .app-version-footnote {
     border-radius: 0;
     background: rgba(5, 27, 42, 0.8);
     color: rgba(229, 250, 255, 0.92);
-    font: 0.65rem/1 var(--crt-font-tiny);
+    font: 0.8rem/1 var(--crt-font-tiny);
     font-synthesis-weight: none;
     letter-spacing: 0.06em;
     text-transform: uppercase;

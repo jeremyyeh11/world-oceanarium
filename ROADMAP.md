@@ -13,6 +13,16 @@ Status labels:
 
 ## Current work
 
+### Readable Atlas type
+
+Status: `Blocked / waiting review` — `v0.17.2-dev_1` on `fix/atlas-readable-type`. Jeremy could barely read the Atlas on a phone; picked option 2 from a font mockup (2026-10-09).
+
+Subtasks:
+- [x] Reading text (descriptions, data values and their row labels, quick facts, scale readout, scientific names, IUCN labels) moves to IBM Plex Mono via `--crt-font-read`; headings, section tags, dex numbers and chips stay on the pixel faces.
+- [x] Atlas small type raised to a 0.8rem floor on the pixel faces; Plex labels sit at 0.72rem. Only the seven-cell IUCN track on phones goes lower (0.66rem / 10.6px). Smallest Atlas text was 9.1px.
+- [ ] Jeremy reviews the Vercel preview on a phone.
+- [ ] Decide whether the tank HUD, debug panel and Sources card follow (they still use Jersey 15 at small sizes).
+
 ### Remoras (week 1 of the species series)
 
 Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1`; the six remaining stand-ins stay `hiddenInAtlas` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
@@ -358,7 +368,7 @@ Deferred — real but no measured need (revisit only if the population grows aga
 
 Still open, unblocked:
 - [ ] The mahi texture (`baccb3fdc1`, 1920x1080, 3.48 MB) is byte-identical across `mahi-mahi_female_static_parts.glb` and `mahi-mahi_male_static_parts.glb`. `useGLTF` caches per URL, so it is two separate GPU uploads of one image (~10.5 MB of duplicate VRAM). The sardine equivalent is already resolved — one file, one copy.
-- [ ] Self-host the webfont (dupe of the CRT item above): `index.html` render-blocks on a `fonts.googleapis.com` stylesheet for Pixelify Sans + Jersey 15, costing a third-party DNS + TLS + fetch before first paint.
+- [ ] Self-host the webfont (dupe of the CRT item above): `index.html` render-blocks on a `fonts.googleapis.com` stylesheet for Pixelify Sans + Jersey 15 + IBM Plex Mono (added `v0.17.2-dev_1`), costing a third-party DNS + TLS + fetch before first paint.
 - [ ] `public/models` ships 14.99 MB with **no** Draco, meshopt or KTX2 compression on any `.glb`.
 - [ ] Single ~1.49 MB JS chunk (438 kB gzip), no code splitting; `EncyclopediaPage` and its own `<Canvas>` are statically imported in `App.jsx:4`. Measure before acting — `three` is shared with the tank, so splitting may move less than it looks.
 - [ ] One-off hitch on first load was reported but not diagnosed. Distinguish before fixing: a hitch at the *same* moment each reload (first mahi entering view) is 1920x1080 PNG decode plus first-render GPU upload; random timing is network.

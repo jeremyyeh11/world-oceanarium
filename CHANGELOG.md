@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.17.2 — Readable Atlas type
+
+Status: in review as `v0.17.2-dev_1`.
+
+### Atlas
+
+- Reading text in the Atlas moves to IBM Plex Mono: descriptions, data values and their row labels, quick facts, the scale readout, scientific names, and the conservation labels. Headings, section tags, dex numbers, and chips keep Pixelify Sans and Jersey 15.
+- Atlas small type is raised to a 0.8rem floor on the pixel faces and 0.72rem for Plex labels. The smallest text on a phone goes from 9.1px to 10.6px, which is the seven-cell conservation track.
+- The scale readout's label column sizes to its content, so "Typical human" stays on one line in the wider face.
+
 ## v0.17.1 — Whitefin Sharksucker model
 
 Status: accepted and promoted as clean `v0.17.1` from `v0.16.1-dev_1` after Jeremy's merge approval (2026-09-29), rebased onto clean `v0.17.0`.

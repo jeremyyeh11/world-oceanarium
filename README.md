@@ -21,7 +21,7 @@ The project values:
 
 ## Current Focus
 
-The current clean release is `v0.14.0`, promoting the accepted procedural caudal-fish build. The ocean sunlight zone contains two deliberately curated tanks:
+The current clean release is `v0.14.0`, promoting the accepted procedural caudal-fish build; `v0.18.0-dev_1` is the in-review cinematic-camera build. The ocean sunlight zone contains two deliberately curated tanks:
 
 - **The Open Sea** — spotted sardinella, Mahi-mahi, and a Shortfin Mako Shark form a bait → mid-predator → apex-predator assemblage.
 - **The Drift** — a Giant Sunfish occupies a calmer, dimmer tank built around its slower rhythm and authored sun-bask behavior.
@@ -33,6 +33,7 @@ Current foundations:
 - one unified boids movement pipeline for schools, pairs, and solitary creatures
 - movement-driven procedural animation for Sardinella, Mahi-mahi, and Mako; authored GLB playback remains only for unaffected species
 - bone-aware follow camera for close observation
+- species-locked documentary shot direction entered from a followed fish, built from that species' live individuals/pairs/schools with validity-gated jump cuts, one deliberate movement per shot, and no hardcoded cast
 - Supabase-backed individual creature records, with browser-safe production credentials
 - session continuity across tank switches: hidden tanks freeze and resume without respawning their inhabitants
 
@@ -62,6 +63,7 @@ Index of the project's Markdown references, for both human and future-agent use.
 | [CHANGELOG.md](CHANGELOG.md) | Significant changes grouped by release bucket. |
 | [MEMORY.md](MEMORY.md) | Durable working preferences and conventions captured across sessions (Atlas/copy/debug prefs, release-judgement, workflow). |
 | [docs/tank-design.md](docs/tank-design.md) | The tank/assemblage model — how species map to tanks, the coherence rules, and how to edit tanks by hand. |
+| [docs/cinematic-camera.md](docs/cinematic-camera.md) | Cinematic Camera's felt intention, live hero queue, generic shot grammar, controls, performance shape, and review contract. |
 | [docs/procedural/README.md](docs/procedural/README.md) | Procedural animation hub — shared asset contract, runtime drivers, motion primitives, and which doc covers which creature. Start here for any rig-free animated model. |
 | [docs/procedural/](docs/procedural/) | Per-motion-type contracts: Blender setup, vertex-paint channels, config keys, and review gates for `caudal-wave`, `mask-fin-row`, `bell-pulse`, `foil-flap`, `disc-wave`, `limb-step`, and `pleopod-beat`. |
 | [docs/deforming-ocean-surface.md](docs/deforming-ocean-surface.md) | The displaced-plane water surface — shape, normals, edge treatment, and its performance contract. |

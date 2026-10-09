@@ -46,7 +46,7 @@ function creatureSexModelVariantKey(creature, species, fallbackKey) {
   return fallbackKey
 }
 
-export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
+export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, cinematicPoseRef = null, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   const visibleCreatures = useMemo(
     () => (tank ? creaturesForTank(creatures, tank) : creatures.filter(c => c.biome === name && c.alive)),
     [creatures, name, tank],
@@ -105,6 +105,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
             zoomActive={zoomActive}
             debugSunBaskRequestId={selected ? debugSunBaskRequestId : 0}
             soloRuntimeRecoveryEnabled={soloRuntimeRecoveryEnabled}
+            cinematicPoseRef={cinematicPoseRef}
             hideSelectionSilhouette={hideSelectionSilhouette}
             debug={showDebug}
             debugLayers={debugLayers}

@@ -17,6 +17,7 @@ import { SURFACE_PLANE_Y } from '../utils/waterSurfaceGeometry.js'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup.js'
 import { creatureRepulsesOthers } from '../utils/creatureMoments.js'
 import { hashString } from '../utils/hash.js'
+import { FISH_REGISTRY } from './fishRegistry.js'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -175,7 +176,6 @@ const boidNeighborScratch = []
 const boidNeighborPool = []
 const byDistanceSq = (a, b) => a.distanceSq - b.distanceSq
 const SCHOOL_STATES = new Map()
-const FISH_REGISTRY = new Map()
 // The registry entries with any menace at all — a handful (the mako and the mahi) against ~275
 // sardines — so the per-frame threat check reads these instead of scanning every fish.
 const THREAT_ENTRIES = new Map()
@@ -1501,12 +1501,14 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
   const entry = FISH_REGISTRY.get(creature.id)
   const registryForward = forward?.lengthSq?.() > 0.0001 ? forward : null
   if (entry) {
+    entry.object = fish
     entry.position.copy(fish.position)
     if (registryForward) entry.forward.copy(registryForward)
     else entry.forward.set(0, 0, -1)
     entry.radius = radius
     entry.bodyLength = swim.bodyLengthWU * (creature.size ?? 1)
     entry.species = creature.species
+    entry.creatureId = creature.id
     entry.biome = creature.biome
     entry.schoolId = school?.id ?? null
     entry.repulsionScale = boidParams.repulsionScale
@@ -1516,11 +1518,13 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
     entry.rideHostId = rideHostId
   } else {
     FISH_REGISTRY.set(creature.id, {
+      object: fish,
       position: fish.position.clone(),
       forward: registryForward ? registryForward.clone() : new THREE.Vector3(0, 0, -1),
       radius,
       bodyLength: swim.bodyLengthWU * (creature.size ?? 1),
       species: creature.species,
+      creatureId: creature.id,
       biome: creature.biome,
       schoolId: school?.id ?? null,
       repulsionScale: boidParams.repulsionScale,

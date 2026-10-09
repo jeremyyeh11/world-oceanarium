@@ -10,25 +10,32 @@ Versioning convention notes:
 
 ## v0.17.2 — Readable type
 
-Status: in review as `v0.17.2-dev_3`. `dev_1` covered the Atlas; `dev_2` applies the same rule to the rest of the UI; `dev_3` sets all reading-face text 10% smaller after Jeremy's review.
+Status: accepted and promoted as clean `v0.17.2` from `v0.17.2-dev_3` after Jeremy's phone review (2026-10-09). `dev_1` covered the Atlas, `dev_2` applied the same rule to the rest of the UI, and `dev_3` set all reading-face text 10% smaller after review (#114).
 
 ### Type system
 
-- One rule across the whole UI. Pixel faces (Pixelify Sans, Jersey 15) set titles, buttons, tags, kickers, index numbers, and the version label, never below 0.8rem (12.8px). IBM Plex Mono (`--crt-font-read`) sets anything read rather than glanced at: sentences, data values and their labels, scientific names, the search field, debug readouts, and URLs, with labels at 0.72rem or more and values at 0.8rem or more.
-- Tank HUD: the tank menu's index numbers, heading, and names move to 0.8rem; the tank description moves to Plex Mono.
-- Follow mode: on phones, the info card's text was forced to 0.72rem and its chips to 0.58rem (9.3px); both are now 0.8rem. The scientific name, notes, fact labels, and values move to Plex Mono. The "pinch to zoom" hint goes from 9.1px Jersey 15 to 11.5px Plex Mono.
-- Search: the field and its placeholder move to Plex Mono. The placeholder goes from 8.3px uppercase to 12.8px sentence case, which still fits the 266px field.
-- Sources: the intro, summaries, full names, and hosts move to Plex Mono; tags, kickers, and entry numbers go to 0.8rem.
-- Debug panel: readouts move to Plex Mono (phone panel 9.3px → 11.5px); buttons stay pixel at 0.8rem. The panel version label and the runtime recovery notice no longer fall back to the system monospace.
-- Landing card and screenshot help: small labels go to 0.8rem; the screenshot help sentence moves to Plex Mono.
-- Plex Mono's tall x-height made it read a size larger than the pixel faces, so every reading-face size is now `calc(var(--crt-read-scale) * <base>)` with `--crt-read-scale: 0.9`. Smallest Plex text on a phone is 10.4px (labels); body text sits at 11.5–12.4px. The 16px phone search field and the IUCN track are exempt.
-- The phone info card no longer forces one size on every paragraph, so its pixel ID and its reading text keep their own sizes.
+- One rule across the whole UI, documented on `--crt-font-read` in `src/styles/crt.css`. Pixel faces (Pixelify Sans, Jersey 15) set titles, buttons, tags, kickers, index numbers, and the version label, never below 0.8rem (12.8px). IBM Plex Mono sets anything read rather than glanced at: sentences, data values and their labels, scientific names, the search field, debug readouts, and URLs.
+- Plex Mono's tall x-height reads a size larger than the pixel faces, so every reading-face size is `calc(var(--crt-read-scale) * <base>)` with `--crt-read-scale: 0.9`. Bases are 0.72rem for labels and 0.8rem or more for values and sentences, so the smallest Plex text renders at 10.4px and body text at 11.5–12.4px. The 16px phone search field (stops iOS zooming on focus) and the Atlas IUCN track are exempt.
+- Fonts load from the existing Google Fonts request, which now includes IBM Plex Mono (400, 500, italic 400).
 
 ### Atlas
 
-- Reading text in the Atlas moves to IBM Plex Mono: descriptions, data values and their row labels, quick facts, the scale readout, scientific names, and the conservation labels. Headings, section tags, dex numbers, and chips keep Pixelify Sans and Jersey 15.
-- Atlas small type is raised to a 0.8rem floor on the pixel faces and 0.72rem for Plex labels. The smallest text on a phone goes from 9.1px to 10.6px, which is the seven-cell conservation track.
+- Descriptions, data values and their row labels, quick facts, the scale readout, scientific names, and the conservation labels move to Plex Mono. Headings, section tags, dex numbers, and chips keep the pixel faces at 0.8rem or more.
+- The smallest Atlas text on a phone goes from 9.1px to 10.4px. The seven-cell conservation track sits at 10.6px, the most its cells allow at 375px.
 - The scale readout's label column sizes to its content, so "Typical human" stays on one line in the wider face.
+
+### Tank UI
+
+- Tank menu: index numbers, heading, and names move to 0.8rem; the tank description moves to Plex Mono (11.5px).
+- Follow mode: the info card's chips go from 9.3px to 12.8px, and its scientific name, notes, fact labels, and values move to Plex Mono. The phone card no longer forces one size on every paragraph. The "pinch to zoom" hint goes from 9.1px Jersey 15 to 10.4px Plex Mono.
+- Search: the field and placeholder move to Plex Mono; the placeholder goes from 8.3px uppercase to 11.5px sentence case.
+- Sources: the intro, summaries, full names, and hosts move to Plex Mono; tags, kickers, and entry numbers go to 0.8rem.
+- Debug panel: readouts move to Plex Mono (phone panel 9.3px → 10.4px); buttons stay pixel at 0.8rem. The panel version label and the runtime recovery notice no longer fall back to the system monospace.
+- Landing card and screenshot help: small labels go to 0.8rem; the screenshot help sentence moves to Plex Mono.
+
+### Verification
+
+- `npm run lint` (0 errors), `npm run build`, and `git diff --check` pass. A runtime sweep of every visible text node at 375px and 1280px across the landing card, tank HUD, follow mode, search, Sources, debug panel, screenshot help, and Atlas found nothing below the floors apart from the IUCN track, and no horizontal page scroll.
 
 ## v0.17.1 — Whitefin Sharksucker model
 

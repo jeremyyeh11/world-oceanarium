@@ -13,17 +13,6 @@ Status labels:
 
 ## Current work
 
-### Readable type
-
-Status: `Blocked / waiting review` — `v0.17.2-dev_3` on `fix/atlas-readable-type` (#114). Jeremy could barely read the Atlas on a phone; picked option 2 from a font mockup (2026-10-09), then asked for the whole UI to match (`dev_2`). The rule lives in the `--crt-font-read` comment in `src/styles/crt.css`.
-
-Subtasks:
-- [x] Reading text (descriptions, data values and their row labels, quick facts, scale readout, scientific names, IUCN labels) moves to IBM Plex Mono via `--crt-font-read`; headings, section tags, dex numbers and chips stay on the pixel faces.
-- [x] Atlas small type raised to a 0.8rem floor on the pixel faces; Plex labels sit at 0.72rem. Only the seven-cell IUCN track on phones goes lower (0.66rem / 10.6px). Smallest Atlas text was 9.1px.
-- [x] Same rule applied to the rest of the UI (`dev_2`): tank HUD, follow readout, info card, search, Sources, debug panel, landing card, screenshot help, runtime notice. A runtime sweep at 375px and 1280px found no text below the floors outside the IUCN track.
-- [ ] Jeremy reviews the Vercel preview on a phone.
-- [ ] Out of scope: in-canvas 3D labels (fish name/debug labels in `Fish.jsx`) render from a font file inside the WebGL scene, not CSS.
-
 ### Remoras (week 1 of the species series)
 
 Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1`; the six remaining stand-ins stay `hiddenInAtlas` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
@@ -187,6 +176,7 @@ Subtasks:
 - [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
 - [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
 - [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
+- [ ] In-canvas 3D labels (fish name and debug labels in `Fish.jsx`) render from a font file inside the WebGL scene, so the clean `v0.17.2` type rule (pixel faces for labels, IBM Plex Mono for reading text) does not reach them. Bring them in line if they read as out of place.
 - [x] Rework the specimen stage into a measurement bay: graph grid, scale readout naming diver and specimen, diver silhouette moved onto the palette.
 - [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
 - [x] Replace the in-scene diver sprite with a proportional scale bar; remove the pose editor and persistence that existed only to position it.

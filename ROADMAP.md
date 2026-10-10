@@ -15,7 +15,7 @@ Status labels:
 
 ### Pilot Fish
 
-Status: `Current in development` — `v0.18.0-dev_2`: Jeremy's model, follows the Mola in The Drift without attaching (`hitchhiker.attaches: false`, see `docs/ride-hosts.md`), breaking off now and then to roam at a quicker cruise (`dev_2`).
+Status: shipped in clean `v0.18.0` (2026-10-10, from `v0.18.0-dev_2`): Jeremy's model, follows the Mola in The Drift without attaching (`hitchhiker.attaches: false`, see `docs/ride-hosts.md`), breaking off now and then to roam at a quicker cruise (`dev_2`). The open items below carry over.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase; model intake, `caudal-vertex` motion, Atlas framing.

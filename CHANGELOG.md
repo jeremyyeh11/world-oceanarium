@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.18.0 — Pilot Fish (in development)
+## v0.18.0 — Pilot Fish
 
-Status: `v0.18.0-dev_2` review build.
+Status: accepted and promoted as clean `v0.18.0` from `v0.18.0-dev_2` after Jeremy's review (2026-10-10). Production `creatures` has no pilot fish rows yet, so clean builds show none until they are written.
 
 ### Species
 

@@ -1006,6 +1006,8 @@ export const SPECIES = [
     scientificName: 'Echeneis neucratoides',
     family: 'Echeneidae',
     alternateNames: [],
+    // Jeremy's tank capture (2026-10-09): a full side-on body under the host's fins.
+    atlasThumbnail: '/atlas/echeneis-neucratoides-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,

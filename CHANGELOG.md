@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.17.3 — Whitefin Sharksucker tile
+
+Status: `v0.17.3-dev_1` is awaiting Jeremy's phone review.
+
+### Atlas
+
+- The Whitefin Sharksucker's Atlas tile is Jeremy's tank capture: a full side-on body swimming under the host's fins. Downscaled to 600 px wide (197 KB), in line with the other tiles. The photo's aspect nearly matches the tile on phones and desktop, so it needs no `atlasThumbnailPosition`.
+
 ## v0.17.2 — Readable type
 
 Status: accepted and promoted as clean `v0.17.2` from `v0.17.2-dev_3` after Jeremy's phone review (2026-10-09). `dev_1` covered the Atlas, `dev_2` applied the same rule to the rest of the UI, and `dev_3` set all reading-face text 10% smaller after review (#114).

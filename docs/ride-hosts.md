@@ -131,6 +131,37 @@ Current groups: `shark`, `ray`, `turtle`, `cetacean`, `billfish`, `sunfish`,
 `barracuda`, `large-fish`. The mako is `shark` + `large-fish`; the Mola is `sunfish` +
 `large-fish`.
 
+## Followers (pilot fish)
+
+A follower is a `hitchhiker` with `attaches: false`. It runs the escort stage only: it
+never looks for a spot, claims no slot, adds no load, and is never carried. It needs no
+disc or back profile. The Pilot Fish (`naucrates-ductor`) is the first, following the Mola
+in The Drift.
+
+```js
+hitchhiker: {
+  attaches: false,
+  hosts: { sunfish: 1, shark: 1, ray: 0.8, turtle: 0.8, 'large-fish': 0.6 },
+  escort: {                     // all optional; defaults are the remoras' escort values
+    along: [-0.9, 0.05],        // nose -1 .. tail 1
+    angleDegrees: [-215, 35],   // 0 = host's right, -90 below, -180 left
+    radius: [1.2, 1.6],         // times the clearance
+    seconds: [40, 90],          // how long it holds one station
+    rangeBodyLengths: 10,       // how far (host lengths) it will go to find its host
+  },
+},
+```
+
+- Free, it picks the nearest host it follows (chance = its weight) every 6–14 s.
+- Escorting, when a spell ends it draws a new station on the same host instead of leaving,
+  so it drifts round the host but never stops following.
+- It lets go only when the host fades (the Mola's deep-exit recovery) or leaves, and
+  rejoins once the host is back.
+- Steering, the push-out clamp, and boid exemption with its host are the escort's own.
+- The pilot fish's stations sit round the host's front half, ahead of the snout and along
+  the head and flanks, never over the top: clear of the Mola's rear dorsal and anal fins,
+  which stand outside the clearance ellipsoid.
+
 ## Runtime
 
 Stages: `free` → `approach` → `dock` → `latch` → `attached` → `release` → `free`, with

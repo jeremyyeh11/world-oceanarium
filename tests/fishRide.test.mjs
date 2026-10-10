@@ -216,7 +216,7 @@ const rearGaps = new Map()
 for (const [hostName, hostSpecies] of [['mako', makoSpecies], ['mola', molaSpecies]]) {
   const hostProfile = rideHostProfile(hostSpecies)
   const hostLength = hostSpecies.swim.bodyLengthWU
-  for (const riderSpecies of SPECIES.filter(s => hitchhikerProfile(s) && rideHostWeight(hitchhikerProfile(s), hostProfile) > 0)) {
+  for (const riderSpecies of SPECIES.filter(s => hitchhikerProfile(s)?.attaches && rideHostWeight(hitchhikerProfile(s), hostProfile) > 0)) {
     const rider = hitchhikerProfile(riderSpecies)
     const ratio = riderSpecies.swim.bodyLengthWU / hostLength
     for (const anchor of hostProfile.anchors) {
@@ -889,6 +889,93 @@ try {
   clearRegistry()
   releaseRideSlots('sucker-1')
   for (const index of [0, 1, 2]) releaseRideSlots(`big-${index}`)
+}
+
+// --- followers: escort for good, never attach ----------------------------------------------
+
+// The pilot fish runs the escort path only (`attaches: false`): it finds its host anywhere in
+// the tank, holds stations round its front half, drifts to a new one when a spell ends instead
+// of leaving, and never claims a spot.
+{
+  const pilotSpecies = speciesById.get('naucrates-ductor')
+  const pilotHitch = hitchhikerProfile(pilotSpecies)
+  const pilotLength = pilotSpecies.swim.bodyLengthWU
+  const pilotMargin = pilotLength * 0.2
+  const pilot = { id: 'pilot-1', species: 'naucrates-ductor', biome: 'ocean', size: 1 }
+  const mola = { id: 'mola-1', species: 'mola-alexandrini', biome: 'ocean', size: 1 }
+  const pilotSpeeds = { idle: 0.65 * pilotLength, burst: 2.2 * pilotLength }
+  assert.ok(pilotHitch, 'the pilot fish follows hosts')
+  assert.equal(pilotHitch.attaches, false, 'but never attaches to one')
+  assert.equal(pilotSpecies.schooling, false, 'it runs the solo-agent path the escort steering lives on')
+  assert.equal(rideHostWeight(pilotHitch, molaHost), 1, 'it takes the Mola readily')
+  try {
+    const hostPosition = new THREE.Vector3(0, -4, -12)
+    registerHost(mola, hostPosition)
+    let molaLength = 0
+    forEachFish((entry, id) => { if (id === 'mola-1') molaLength = entry.bodyLength })
+    assert.ok(molaLength > 10, 'the Mola is registered at its size')
+    const far = new THREE.Vector3(0, -4, -12 - molaLength * 6)
+    assert.equal(findRideHost(pilot, far, pilotLength, pilotHitch, always), null, 'it never looks for a spot')
+    assert.equal(findEscortHost(pilot, far, pilotHitch)?.hostId, 'mola-1', 'it finds its host from across the tank')
+
+    // Its stations sit round the front half of the host and never over the top.
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const picked = freeRider()
+      advanceRide(picked, pilot, pilotHitch, pilotLength, 0, far, new THREE.Quaternion(), pilotSpeeds, mulberry32(seed))
+      assert.equal(picked.stage, 'escort', `seed ${seed}: it starts following`)
+      assert.equal(picked.anchorIndex, -1, `seed ${seed}: holding no spot`)
+      for (const now of [0, 9, 23, 51]) {
+        const local = escortStation(new THREE.Vector3(), picked.escort, molaHost, molaLength, pilotLength, now)
+        assert.ok(bodyRadius(local, molaHost, molaLength, pilotMargin) >= 1.05, `seed ${seed}: its station is outside the host and its clearance`)
+        assert.ok(local.z < molaHost.body.center.z * molaLength + 0.2 * molaHost.body.radii.z * molaLength, `seed ${seed}: its station is round the front half`)
+        // In the clearance ellipsoid's normalized space: at most 35 + 18 degrees (drift) above the side.
+        const up = (local.y - molaHost.body.center.y * molaLength) / (molaHost.body.radii.y * molaLength + pilotMargin)
+        const side = Math.abs(local.x - molaHost.body.center.x * molaLength) / (molaHost.body.radii.x * molaLength + pilotMargin)
+        assert.ok(Math.atan2(up, side) <= THREE.MathUtils.degToRad(53.5), `seed ${seed}: its station is not over the top`)
+      }
+    }
+
+    // Following a cruising Mola for 60 s from across the tank: it catches up, keeps near its
+    // station, never enters the body, and never stops following.
+    const ride = freeRider()
+    const position = far.clone()
+    const dt = 1 / 60
+    let closest = Infinity
+    let farthest = 0
+    let restations = 0
+    let lastUntil = null
+    for (let now = 0; now < 120; now += dt) {
+      hostPosition.z -= 0.9 * dt
+      registerHost(mola, hostPosition, new THREE.Quaternion(), 0.9)
+      advanceRide(ride, pilot, pilotHitch, pilotLength, now, position, new THREE.Quaternion(), pilotSpeeds, mulberry32(Math.floor(now * 60)))
+      assert.notEqual(ride.stage, 'approach', 'it never goes for a spot')
+      assert.equal(ride.ownsPose, false, 'it is never carried')
+      if (ride.stage !== 'escort') continue
+      if (lastUntil !== null && ride.stageUntil !== lastUntil) restations += 1
+      lastUntil = ride.stageUntil
+      const toTarget = ride.target.clone().sub(position)
+      if (toTarget.lengthSq() > 0) position.addScaledVector(toTarget.normalize(), Math.min(toTarget.length(), ride.targetSpeed * dt))
+      keepRiderClearOfHost(position, ride, pilotLength)
+      const local = position.clone().sub(hostPosition)
+      closest = Math.min(closest, bodyRadius(local, molaHost, molaLength))
+      if (now > 60) farthest = Math.max(farthest, local.length())
+    }
+    assert.equal(ride.stage, 'escort', 'still following after two minutes')
+    assert.equal(ride.hostId, 'mola-1', 'the same host')
+    assert.ok(restations >= 1, `it drifts to a new station when a spell ends (${restations})`)
+    assert.ok(closest >= 1, `it never enters the body (closest ${closest.toFixed(3)})`)
+    assert.ok(farthest < molaLength, `after catching up it stays within a body length of the host (farthest ${farthest.toFixed(1)} WU)`)
+
+    // A fading host is let go, and picked up again once it is back.
+    updateFishRegistryPose('mola-1', new THREE.Quaternion(), 0, 0.5)
+    advanceRide(ride, pilot, pilotHitch, pilotLength, 200, position, new THREE.Quaternion(), pilotSpeeds, always)
+    assert.equal(ride.stage, 'free', 'a fading host is not followed')
+    updateFishRegistryPose('mola-1', new THREE.Quaternion(), 0, 1)
+    advanceRide(ride, pilot, pilotHitch, pilotLength, ride.nextDecisionAt, position, new THREE.Quaternion(), pilotSpeeds, always)
+    assert.equal(ride.stage, 'escort', 'and rejoined when it is back')
+  } finally {
+    clearRegistry()
+  }
 }
 
 // --- tanks -------------------------------------------------------------------------------

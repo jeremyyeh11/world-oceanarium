@@ -72,6 +72,16 @@ const targets = [
     minBodyLength: 5,
     minVertices: 1000,
   },
+  {
+    name: 'Pilot Fish static parts',
+    path: 'public/models/fish/naucrates-ductor/naucrates-ductor.glb',
+    staticMesh: true,
+    bodyMeshNames: ['naucrates_ductor'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 5,
+    minVertices: 1000,
+  },
   // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
   // the real models replace them: unit length, single body mesh, same contract.
   ...SPECIES

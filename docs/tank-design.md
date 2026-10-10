@@ -148,9 +148,10 @@ So "rojak" becomes a console warning during `npm run dev`, not a vibe you notice
 later. If you see that warning, either move the offending species to its own tank or
 reconsider its `tempo`.
 
-Hitchhikers (species with a `hitchhiker` block — the remoras) are left out of the
-check. They spend most of their time clamped to a host and move at its pace, so the
-spearfish remora can share The Drift with the Mola it rides. See
+Hitchhikers (species with a `hitchhiker` block — the remoras and the pilot fish) are
+left out of the check. They spend most of their time clamped to or following a host and
+move at its pace, so the spearfish remora and the pilot fish can share The Drift with the
+Mola. See
 [`ride-hosts.md`](ride-hosts.md).
 
 ## How rendering flows

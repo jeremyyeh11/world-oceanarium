@@ -13,6 +13,17 @@ Status labels:
 
 ## Current work
 
+### Pilot Fish
+
+Status: `Current in development` — `v0.18.0-dev_1`: Jeremy's model, follows the Mola in The Drift without attaching (`hitchhiker.attaches: false`, see `docs/ride-hosts.md`).
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase; model intake, `caudal-vertex` motion, Atlas framing.
+- [x] Follower mode: escort-only, never attaches, re-stations instead of leaving.
+- [ ] Decide the `creatures_dev` review population and write the rows (backup before/after). Only local fixtures (ids 105–107) exist.
+- [ ] Atlas photo tile.
+- [ ] Jeremy feel review on device: station spread round the Mola, speed matching, sun-bask and deep-exit behavior.
+
 ### Remoras (week 1 of the species series)
 
 Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins stay `hiddenInAtlas` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.

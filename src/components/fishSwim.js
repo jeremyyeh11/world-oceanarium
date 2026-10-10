@@ -1911,6 +1911,19 @@ export function hitchhikerProfile(species) {
       : null,
   }
   profile.backProfileKey = profile.backProfile ? profile.backProfile.flat().join(',') : 'straight'
+  // A follower (`attaches: false`, the pilot fish) never clamps on: it only ever escorts, so
+  // it needs no disc or back profile. `escort` overrides where its stations sit and how long
+  // it holds one; angles are given in degrees.
+  profile.attaches = config.attaches !== false
+  const escort = config.escort ?? {}
+  const degrees = pair => pair.map(value => THREE.MathUtils.degToRad(value))
+  profile.escort = {
+    along: escort.along ?? RIDE_ESCORT_ALONG,
+    angle: escort.angleDegrees ? degrees(escort.angleDegrees) : RIDE_ESCORT_ANGLE,
+    radius: escort.radius ?? RIDE_ESCORT_RADIUS,
+    seconds: escort.seconds ?? RIDE_ESCORT_SECONDS,
+    rangeBodyLengths: escort.rangeBodyLengths ?? RIDE_ESCORT_RANGE_BODY_LENGTHS,
+  }
   hitchhikerProfiles.set(species, profile)
   return profile
 }
@@ -2223,6 +2236,7 @@ export function rideHostLocalPose(outPosition, outQuaternion, host, worldPositio
  * occasionally.
  */
 export function findRideHost(rider, riderPosition, riderBodyLength, hitch, rand) {
+  if (!hitch.attaches) return null
   const surfaceLimitY = rideSurfaceLimitY(riderBodyLength)
   let best = null
   FISH_REGISTRY.forEach((entry, hostId) => {
@@ -2374,7 +2388,7 @@ export function findEscortHost(rider, riderPosition, hitch, preferHostId = null)
     const weight = rideHostWeight(hitch, hostProfile)
     if (weight <= 0) return
     const distance = entry.position.distanceTo(riderPosition)
-    if (distance > entry.bodyLength * RIDE_ESCORT_RANGE_BODY_LENGTHS) return
+    if (distance > entry.bodyLength * hitch.escort.rangeBodyLengths) return
     const score = hostId === preferHostId ? -1 : distance / weight
     if (!best || score < best.score) best = { hostId, weight, score }
   })
@@ -2382,17 +2396,17 @@ export function findEscortHost(rider, riderPosition, hitch, preferHostId = null)
 }
 
 // A free rider holds no slot, so there is nothing to release here.
-function beginEscort(ride, hostId, now, rand) {
+function beginEscort(ride, hostId, now, rand, hitch) {
   ride.stage = 'escort'
   ride.hostId = hostId
   ride.anchorIndex = -1
   ride.stageStartedAt = now
-  ride.stageUntil = now + randomRangeFromPair(rand, RIDE_ESCORT_SECONDS)
+  ride.stageUntil = now + randomRangeFromPair(rand, hitch.escort.seconds)
   ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_ESCORT_RECHECK_SECONDS)
   const station = ride.escort
-  station.along = randomRangeFromPair(rand, RIDE_ESCORT_ALONG)
-  station.angle = randomRangeFromPair(rand, RIDE_ESCORT_ANGLE)
-  station.radius = randomRangeFromPair(rand, RIDE_ESCORT_RADIUS)
+  station.along = randomRangeFromPair(rand, hitch.escort.along)
+  station.angle = randomRangeFromPair(rand, hitch.escort.angle)
+  station.radius = randomRangeFromPair(rand, hitch.escort.radius)
   for (let i = 0; i < 3; i += 1) {
     station.rates[i] = randomRangeFromPair(rand, RIDE_ESCORT_DRIFT_RATE)
     station.phases[i] = rand() * Math.PI * 2
@@ -2455,7 +2469,7 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
       // Often it stays with the host it just left, for its spell off the disc.
       const stay = ride.lastHostId != null ? findEscortHost(rider, position, hitch, ride.lastHostId) : null
       if (stay?.hostId === ride.lastHostId && rand() < RIDE_ESCORT_AFTER_RELEASE_CHANCE) {
-        beginEscort(ride, stay.hostId, now, rand)
+        beginEscort(ride, stay.hostId, now, rand, hitch)
         ride.stageUntil = now + randomRangeFromPair(rand, hitch.freeSeconds, RIDE_DEFAULT_FREE_SECONDS)
         ride.nextDecisionAt = ride.stageUntil
         // Newly chosen: step the escort from next frame, once the host lookup is fresh.
@@ -2467,14 +2481,17 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
   if (ride.stage === 'escort') {
     const escortHost = host?.hasPose && host.opacity >= 0.99 ? host : null
     const escortProfile = escortHost ? hostProfile : null
-    if (!escortProfile || now >= ride.stageUntil) {
+    if (escortProfile && now >= ride.stageUntil && !hitch.attaches) {
+      // A follower never loses interest: it just drifts round to a new station.
+      beginEscort(ride, ride.hostId, now, rand, hitch)
+    } else if (!escortProfile || now >= ride.stageUntil) {
       // Lost interest, or the host is gone or fading: swim off on its own for a while.
       ride.stage = 'free'
       ride.hostId = null
       ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_RETRY_SECONDS)
       return ride
     }
-    if (now >= ride.nextDecisionAt) {
+    if (now >= ride.nextDecisionAt && hitch.attaches) {
       // A spot may have opened: go for it (on this host or a nearer one).
       const choice = findRideHost(rider, position, riderBodyLength, hitch, rand)
       if (choice && claimRideSlot(choice.hostId, choice.anchorIndex, rider.id, riderBodyLength, hitch)) {
@@ -2510,6 +2527,17 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
     return ride
   }
 
+  if (ride.stage === 'free' && now >= ride.nextDecisionAt && !hitch.attaches) {
+    // A follower only ever escorts: it rejoins the nearest host it follows.
+    const escort = findEscortHost(rider, position, hitch)
+    if (escort && rand() < escort.weight) {
+      beginEscort(ride, escort.hostId, now, rand, hitch)
+      return ride
+    }
+    ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_RETRY_SECONDS)
+    return ride
+  }
+
   if (ride.stage === 'free' && now >= ride.nextDecisionAt) {
     const choice = findRideHost(rider, position, riderBodyLength, hitch, rand)
     if (choice && claimRideSlot(choice.hostId, choice.anchorIndex, rider.id, riderBodyLength, hitch)) {
@@ -2528,7 +2556,7 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
     // No room (or no luck): often it shadows the host anyway, waiting for a spot.
     const escort = findEscortHost(rider, position, hitch)
     if (escort && rand() < RIDE_ESCORT_CHANCE * escort.weight) {
-      beginEscort(ride, escort.hostId, now, rand)
+      beginEscort(ride, escort.hostId, now, rand, hitch)
       return ride
     }
     ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_RETRY_SECONDS)

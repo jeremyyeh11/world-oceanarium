@@ -99,7 +99,8 @@ export const TANKS = [
     // way to art-direct a tank's mood beyond the procedural seed variation.
     lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
-    species: ['mola-alexandrini', 'remora-brachyptera'],
+    // Pilot fish follow the Mola without attaching.
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor'],
   },
 ]
 
@@ -1544,6 +1545,155 @@ export const SPECIES = [
     hiddenInAtlas: true,
     placeholder: { type: 'remora', bodyColor: '#5d646b', discLength: 0.2 },
   },
+  // --- Pilot fish (Carangidae) ---------------------------------------------------------------
+  // Facts from FishBase. It runs the remoras' escort path but never clamps on
+  // (`hitchhiker.attaches: false`): see docs/ride-hosts.md.
+  {
+    id: 'naucrates-ductor',
+    name: 'Pilot Fish',
+    scientificName: 'Naucrates ductor',
+    family: 'Carangidae',
+    alternateNames: ['Pilotfish'],
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Small groups in the wild, but each one holds its own station round the host, so it runs
+    // the solo-agent path the escort steering lives on.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      commonDiet: 'Host scraps, small fishes, invertebrates, host parasites.',
+      foundIn: 'Warm open ocean worldwide, 0 to 300 m.',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Small groups',
+        groupingBehaviour: 'Adults swim in small groups around sharks, rays, sea turtles, large fishes, and ships, often just ahead of the snout. Juveniles shelter under jellyfish and drifting seaweed.',
+        reproduction: 'Unknown',
+      },
+      averages: {
+        // FishBase common length (total length); no sex-specific data.
+        maleSizeMeters: 0.35,
+        femaleSizeMeters: 0.35,
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Scraps + small prey',
+      social: 'Follower',
+    },
+    description: 'A small jack, up to 70 cm, banded with five to seven dark bars on a blue-silver body. It never attaches to anything: it keeps pace beside a large animal, riding the water it pushes aside and picking up scraps and parasites, so in the tank it holds loose stations round the giant sunfish\'s head and flanks and goes wherever the sunfish goes.',
+    adultLengthRangeMeters: [0.35, 0.7],
+    maxBodyLengthMeters: 0.7,
+    swim: {
+      // A steady carangid cruiser that never hovers. While following, the escort steering sets
+      // its speed from the host's; these only bound it and drive the free swim.
+      visualTimeScale: 0.7,
+      driftEnabled: false,
+      idleBLPerSec: [0.5, 0.8],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [0.9, 1.3],
+      burstBLPerSec: [1.8, 2.6],
+      burstInterval: [10.0, 18.0],
+      burstActionDuration: 0.8,
+      turnActionDuration: 0.6,
+      erraticness: 0.1,
+      turnRadiusBodyLengths: 1.2,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      ...DRIFT_RIDER_BOUNDS,
+      // 1 WU = 25 cm: 70 cm maximum total length = 2.8 WU.
+      bodyLengthWU: 2.8,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.0,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        menace: 0.05,
+        // Lives beside sharks: nothing big alarms it.
+        wariness: 0.05,
+      },
+    },
+    // Individuals span the 35 cm common length to the 70 cm maximum.
+    sizeRange: [0.5, 1.0],
+    // Rough length–weight for a deep-bodied jack; no published weight for this species.
+    mass: { coefficient: 0.012, exponent: 3 },
+    hitchhiker: {
+      // Follows rather than rides: it escorts its host for good and never latches.
+      attaches: false,
+      // The sunfish is this tank's host (Jeremy's call); sharks are its classic one.
+      hosts: { sunfish: 1, shark: 1, ray: 0.8, turtle: 0.8, 'large-fish': 0.6 },
+      escort: {
+        // Round the front half: ahead of the snout and along the head and flanks, not trailing
+        // under the belly like a remora, and clear of the sunfish's rear dorsal and anal fins.
+        along: [-0.9, 0.05],
+        // Both flanks and underneath, up to 35 degrees above the side; never over the top.
+        angleDegrees: [-215, 35],
+        radius: [1.2, 1.6],
+        // Then it drifts round to a new station.
+        seconds: [40, 90],
+        // It goes looking for its host anywhere in the tank.
+        rangeBodyLengths: 10,
+      },
+    },
+    model: {
+      path: '/models/fish/naucrates-ductor/naucrates-ductor.glb',
+      // Source length 7.3672 -> 2.8 WU; the root is recentred mid-length on the body axis.
+      scale: 0.3801,
+      position: [0, -0.0567, -0.192],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['naucrates_ductor'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Carangiform like the mahi (its close relative): a firm front and a compact rear-body
+        // stroke. The mahi's 0.043 and 0.033 body lengths, in this model's source units.
+        amplitude: 0.32,
+        waveSpeed: 2.8,
+        waveTravel: 3.5,
+        flexStart: 0.26,
+        flexFull: 0.84,
+        turnStrength: 0.24,
+        burstAmplitude: 0.8,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        pectoralFinFlutter: 0.12,
+        pelvicFinFlutter: 0.06,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
 ]
 
 export const CREATURES = [
@@ -1604,6 +1754,17 @@ export const CREATURES = [
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-09-25T00:00:00Z',
+    alive: true,
+    sex: index % 2 === 0 ? 'male' : 'female',
+    size,
+  })),
+  // Pilot fish review fixtures: a small group round the Mola.
+  ...[0.9, 0.7, 0.55].map((size, index) => ({
+    id: 105 + index,
+    species: 'naucrates-ductor',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    bornAt: '2026-10-10T00:00:00Z',
     alive: true,
     sex: index % 2 === 0 ? 'male' : 'female',
     size,

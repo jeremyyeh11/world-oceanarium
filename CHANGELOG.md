@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.17.3 — Whitefin Sharksucker tile
 
-Status: `v0.17.3-dev_1` is awaiting Jeremy's phone review.
+Status: accepted and promoted as clean `v0.17.3` from `v0.17.3-dev_1` after Jeremy's review (2026-10-10, #116).
 
 ### Atlas
 

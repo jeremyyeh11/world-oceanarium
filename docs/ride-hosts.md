@@ -148,15 +148,21 @@ hitchhiker: {
     radius: [1.2, 1.6],         // times the clearance
     seconds: [40, 90],          // how long it holds one station
     rangeBodyLengths: 10,       // how far (host lengths) it will go to find its host
+    leaveChance: 0.6,           // chance, when a spell ends, to roam off for `freeSeconds`
+    minSpeedBLPerSec: 0.3,      // slowest escort pace; unset, half its idle speed
   },
+  freeSeconds: [25, 55],        // how long a roam lasts before it rejoins
 },
 ```
 
 - Free, it picks the nearest host it follows (chance = its weight) every 6–14 s.
-- Escorting, when a spell ends it draws a new station on the same host instead of leaving,
-  so it drifts round the host but never stops following.
-- It lets go only when the host fades (the Mola's deep-exit recovery) or leaves, and
+- Escorting, when a spell ends it either draws a new station on the same host or, with
+  `leaveChance`, swims off free for `freeSeconds` at its own cruise and then rejoins. With
+  `leaveChance: 0` it never stops following.
+- It also lets go when the host fades (the Mola's deep-exit recovery) or leaves, and
   rejoins once the host is back.
+- Its free-swim speeds (`idleBLPerSec` and up) can sit well above the host's pace: while
+  escorting, the steering matches the host and `minSpeedBLPerSec` is the floor.
 - Steering, the push-out clamp, and boid exemption with its host are the escort's own.
 - The pilot fish's stations sit round the host's front half, ahead of the snout and along
   the head and flanks, never over the top: clear of the Mola's rear dorsal and anal fins,

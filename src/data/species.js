@@ -1600,18 +1600,19 @@ export const SPECIES = [
       diet: 'Scraps + small prey',
       social: 'Follower',
     },
-    description: 'A small jack, up to 70 cm, banded with five to seven dark bars on a blue-silver body. It never attaches to anything: it keeps pace beside a large animal, riding the water it pushes aside and picking up scraps and parasites, so in the tank it holds loose stations round the giant sunfish\'s head and flanks and goes wherever the sunfish goes.',
+    description: 'A small jack, up to 70 cm, banded with five to seven dark bars on a blue-silver body. It never attaches to anything: it keeps pace beside a large animal, riding the water it pushes aside and picking up scraps and parasites, so in the tank it holds loose stations round the giant sunfish\'s head and flanks, now and then darting off on its own before slowing back to the sunfish\'s pace.',
     adultLengthRangeMeters: [0.35, 0.7],
     maxBodyLengthMeters: 0.7,
     swim: {
-      // A steady carangid cruiser that never hovers. While following, the escort steering sets
-      // its speed from the host's; these only bound it and drive the free swim.
+      // A quick carangid cruiser that never hovers. Roaming on its own it swims well ahead of the
+      // sunfish's pace; while following, the escort steering slows it to the host's and these
+      // only bound it.
       visualTimeScale: 0.7,
       driftEnabled: false,
-      idleBLPerSec: [0.5, 0.8],
+      idleBLPerSec: [0.9, 1.3],
       idleDriftBLPerSec: [0.08, 0.16],
-      snapBLPerSec: [0.9, 1.3],
-      burstBLPerSec: [1.8, 2.6],
+      snapBLPerSec: [1.4, 1.9],
+      burstBLPerSec: [2.2, 3.0],
       burstInterval: [10.0, 18.0],
       burstActionDuration: 0.8,
       turnActionDuration: 0.6,
@@ -1639,8 +1640,10 @@ export const SPECIES = [
     // Rough length–weight for a deep-bodied jack; no published weight for this species.
     mass: { coefficient: 0.012, exponent: 3 },
     hitchhiker: {
-      // Follows rather than rides: it escorts its host for good and never latches.
+      // Follows rather than rides: it escorts its host and never latches, breaking off now and
+      // then to roam the tank at its own pace before coming back.
       attaches: false,
+      freeSeconds: [25, 55],
       // The sunfish is this tank's host (Jeremy's call); sharks are its classic one.
       hosts: { sunfish: 1, shark: 1, ray: 0.8, turtle: 0.8, 'large-fish': 0.6 },
       escort: {
@@ -1650,8 +1653,12 @@ export const SPECIES = [
         // Both flanks and underneath, up to 35 degrees above the side; never over the top.
         angleDegrees: [-215, 35],
         radius: [1.2, 1.6],
-        // Then it drifts round to a new station.
-        seconds: [40, 90],
+        // Then it drifts round to a new station, or (`leaveChance`) swims off for `freeSeconds`,
+        // so at any moment a share of the group is roaming while the rest pace the host.
+        seconds: [25, 60],
+        leaveChance: 0.6,
+        // Pacing the slow sunfish it eases right down, well under its free cruise.
+        minSpeedBLPerSec: 0.3,
         // It goes looking for its host anywhere in the tank.
         rangeBodyLengths: 10,
       },

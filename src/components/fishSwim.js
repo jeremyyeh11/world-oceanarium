@@ -1923,6 +1923,11 @@ export function hitchhikerProfile(species) {
     radius: escort.radius ?? RIDE_ESCORT_RADIUS,
     seconds: escort.seconds ?? RIDE_ESCORT_SECONDS,
     rangeBodyLengths: escort.rangeBodyLengths ?? RIDE_ESCORT_RANGE_BODY_LENGTHS,
+    // A follower's chance, when a spell ends, to break off and roam for `freeSeconds`
+    // instead of drifting to a new station.
+    leaveChance: escort.leaveChance ?? 0,
+    // Slowest it swims while escorting (body lengths/s); unset, half its idle speed.
+    minSpeedBLPerSec: escort.minSpeedBLPerSec ?? null,
   }
   hitchhikerProfiles.set(species, profile)
   return profile
@@ -2482,7 +2487,14 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
     const escortHost = host?.hasPose && host.opacity >= 0.99 ? host : null
     const escortProfile = escortHost ? hostProfile : null
     if (escortProfile && now >= ride.stageUntil && !hitch.attaches) {
-      // A follower never loses interest: it just drifts round to a new station.
+      if (rand() < hitch.escort.leaveChance) {
+        // Some spells it breaks off to roam the tank at its own pace, then comes back.
+        ride.stage = 'free'
+        ride.hostId = null
+        ride.nextDecisionAt = now + randomRangeFromPair(rand, hitch.freeSeconds, RIDE_DEFAULT_FREE_SECONDS)
+        return ride
+      }
+      // Otherwise it just drifts round to a new station.
       beginEscort(ride, ride.hostId, now, rand, hitch)
     } else if (!escortProfile || now >= ride.stageUntil) {
       // Lost interest, or the host is gone or fading: swim off on its own for a while.
@@ -2519,7 +2531,8 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
     const closing = Math.min(stationDistance * RIDE_ESCORT_CLOSING_GAIN, maxSpeed)
     rideDesiredVelocity.copy(escortHost.forward).multiplyScalar(escortHost.speed ?? 0).addScaledVector(rideHostForward, closing)
     const desiredSpeed = rideDesiredVelocity.length()
-    ride.targetSpeed = THREE.MathUtils.clamp(desiredSpeed, speeds.idle * 0.5, maxSpeed)
+    const minSpeed = hitch.escort.minSpeedBLPerSec != null ? hitch.escort.minSpeedBLPerSec * riderBodyLength : speeds.idle * 0.5
+    ride.targetSpeed = THREE.MathUtils.clamp(desiredSpeed, Math.min(minSpeed, maxSpeed), maxSpeed)
     if (desiredSpeed > 1e-4) rideDesiredVelocity.divideScalar(desiredSpeed)
     else rideDesiredVelocity.copy(escortHost.forward)
     ride.target.copy(position).addScaledVector(rideDesiredVelocity, Math.max(1, riderBodyLength))

@@ -10,19 +10,19 @@ Versioning convention notes:
 
 ## v0.18.0 — Pilot Fish (in development)
 
-Status: `v0.18.0-dev_1` review build.
+Status: `v0.18.0-dev_2` review build.
 
 ### Species
 
 - Pilot Fish (`Naucrates ductor`, Carangidae) on Jeremy's supplied model, in The Drift. FishBase facts: up to 70 cm (35 cm common), 0–300 m in warm open ocean, IUCN Least Concern. Rendered at 1.4–2.8 WU (`sizeRange [0.5, 1.0]` of 2.8 WU).
 - Rig-free `caudal-vertex` body with the mahi's carangiform stroke scaled to this model (amplitude 0.32 and turn 0.24 source units, `flexStart 0.26`), plus pectoral and pelvic flutter. Source length 7.3672, root recentred mid-length on the body axis (`scale 0.3801`, `position [0, -0.0567, -0.192]`).
 - Atlas entry with framing (`maxLengthDisplayUnits 1.75`); no photo tile yet.
-- Three local fixture fish (ids 105–107). No Supabase rows written.
+- Three local fixture fish (ids 105–107), and 18 rows in `creatures_dev` (ids 290–307, sizes 0.45–1.0). Production `creatures` untouched.
 
 ### Behavior
 
-- Followers: a `hitchhiker` with `attaches: false` runs the escort stage only. It never claims a spot or latches, finds its host from anywhere in the tank (`rangeBodyLengths 10`), and when a spell ends it moves to a new station on the same host instead of leaving. It lets go only while the host fades, and rejoins after.
-- The pilot fish holds loose stations round the Mola's front half: ahead of the snout and beside the head and flanks (`along [-0.9, 0.05]`, `angleDegrees [-215, 35]`, `radius [1.2, 1.6]`, 40–90 s each). See `docs/ride-hosts.md`.
+- Followers: a `hitchhiker` with `attaches: false` runs the escort stage only. It never claims a spot or latches, finds its host from anywhere in the tank (`rangeBodyLengths 10`), and when a spell ends it either moves to a new station on the same host or (`escort.leaveChance`) swims off on its own for `freeSeconds`, then rejoins. It also lets go while the host fades, and rejoins after. `escort.minSpeedBLPerSec` sets its slowest escort pace apart from its free cruise.
+- The pilot fish holds loose stations round the Mola's front half: ahead of the snout and beside the head and flanks (`along [-0.9, 0.05]`, `angleDegrees [-215, 35]`, `radius [1.2, 1.6]`, 25–60 s each). After each one it breaks off 60% of the time to roam for 25–55 s at a quicker cruise (`idleBLPerSec [0.9, 1.3]`, burst 2.2–3.0), then slows back to the Mola's pace (escort floor 0.3 BL/s). With 18 in the tank, about a fifth to a third roam at once. See `docs/ride-hosts.md`.
 
 ## v0.17.3 — Whitefin Sharksucker tile
 

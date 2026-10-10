@@ -936,7 +936,8 @@ try {
     }
 
     // Following a cruising Mola for 60 s from across the tank: it catches up, keeps near its
-    // station, never enters the body, and never stops following.
+    // station, never enters the body, and (with no chance to break off) never stops following.
+    const loyalHitch = { ...pilotHitch, escort: { ...pilotHitch.escort, leaveChance: 0 } }
     const ride = freeRider()
     const position = far.clone()
     const dt = 1 / 60
@@ -947,7 +948,7 @@ try {
     for (let now = 0; now < 120; now += dt) {
       hostPosition.z -= 0.9 * dt
       registerHost(mola, hostPosition, new THREE.Quaternion(), 0.9)
-      advanceRide(ride, pilot, pilotHitch, pilotLength, now, position, new THREE.Quaternion(), pilotSpeeds, mulberry32(Math.floor(now * 60)))
+      advanceRide(ride, pilot, loyalHitch, pilotLength, now, position, new THREE.Quaternion(), pilotSpeeds, mulberry32(Math.floor(now * 60)))
       assert.notEqual(ride.stage, 'approach', 'it never goes for a spot')
       assert.equal(ride.ownsPose, false, 'it is never carried')
       if (ride.stage !== 'escort') continue
@@ -965,6 +966,29 @@ try {
     assert.ok(restations >= 1, `it drifts to a new station when a spell ends (${restations})`)
     assert.ok(closest >= 1, `it never enters the body (closest ${closest.toFixed(3)})`)
     assert.ok(farthest < molaLength, `after catching up it stays within a body length of the host (farthest ${farthest.toFixed(1)} WU)`)
+
+    // Escorting, it eases down to its own floor rather than half its quicker free cruise.
+    assert.ok(pilotHitch.escort.minSpeedBLPerSec < pilotSpecies.swim.idleBLPerSec[0], 'pacing the host is slower than roaming')
+
+    // When a spell ends it sometimes breaks off to roam for `freeSeconds`, then comes back.
+    assert.ok(pilotHitch.escort.leaveChance > 0 && pilotHitch.escort.leaveChance < 1, 'it sometimes roams, sometimes stays')
+    const roamer = freeRider()
+    advanceRide(roamer, pilot, pilotHitch, pilotLength, 0, position, new THREE.Quaternion(), pilotSpeeds, always)
+    assert.equal(roamer.stage, 'escort', 'a roamer starts out following')
+    const spellEnd = roamer.stageUntil
+    advanceRide(roamer, pilot, pilotHitch, pilotLength, spellEnd, position, new THREE.Quaternion(), pilotSpeeds, () => 0)
+    assert.equal(roamer.stage, 'free', 'at the end of a spell it can break off')
+    assert.equal(roamer.hostId, null, 'following nothing')
+    const away = roamer.nextDecisionAt - spellEnd
+    assert.ok(away >= pilotHitch.freeSeconds[0] && away <= pilotHitch.freeSeconds[1], `it roams for its free spell (${away.toFixed(1)} s)`)
+    advanceRide(roamer, pilot, pilotHitch, pilotLength, spellEnd + away / 2, position, new THREE.Quaternion(), pilotSpeeds, () => 0)
+    assert.equal(roamer.stage, 'free', 'it does not rejoin mid-roam')
+    advanceRide(roamer, pilot, pilotHitch, pilotLength, roamer.nextDecisionAt, position, new THREE.Quaternion(), pilotSpeeds, () => 0)
+    assert.equal(roamer.stage, 'escort', 'then rejoins its host')
+    const stayer = freeRider()
+    advanceRide(stayer, pilot, pilotHitch, pilotLength, 0, position, new THREE.Quaternion(), pilotSpeeds, always)
+    advanceRide(stayer, pilot, pilotHitch, pilotLength, stayer.stageUntil, position, new THREE.Quaternion(), pilotSpeeds, () => 0.99)
+    assert.equal(stayer.stage, 'escort', 'or it stays and drifts to a new station')
 
     // A fading host is let go, and picked up again once it is back.
     updateFishRegistryPose('mola-1', new THREE.Quaternion(), 0, 0.5)

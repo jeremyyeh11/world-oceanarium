@@ -15,14 +15,15 @@ Status labels:
 
 ### Pilot Fish
 
-Status: `Current in development` — `v0.18.0-dev_1`: Jeremy's model, follows the Mola in The Drift without attaching (`hitchhiker.attaches: false`, see `docs/ride-hosts.md`).
+Status: `Current in development` — `v0.18.0-dev_2`: Jeremy's model, follows the Mola in The Drift without attaching (`hitchhiker.attaches: false`, see `docs/ride-hosts.md`), breaking off now and then to roam at a quicker cruise (`dev_2`).
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase; model intake, `caudal-vertex` motion, Atlas framing.
-- [x] Follower mode: escort-only, never attaches, re-stations instead of leaving.
-- [ ] Decide the `creatures_dev` review population and write the rows (backup before/after). Only local fixtures (ids 105–107) exist.
+- [x] Follower mode: escort-only, never attaches, re-stations or roams off when a spell ends.
+- [x] `creatures_dev` review population: 18 pilot fish (ids 290–307), written 2026-10-10. The backup script only covers `creatures`, so `creatures_dev` had no snapshot.
+- [ ] Production `creatures` rows: none yet, so clean builds show no pilot fish. Needs Jeremy's go-ahead on the count.
 - [ ] Atlas photo tile.
-- [ ] Jeremy feel review on device: station spread round the Mola, speed matching, sun-bask and deep-exit behavior.
+- [x] Jeremy feel review on device: roaming share and speed contrast accepted (2026-10-10).
 
 ### Remoras (week 1 of the species series)
 

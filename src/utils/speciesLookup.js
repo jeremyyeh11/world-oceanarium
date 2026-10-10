@@ -42,8 +42,9 @@ export function creaturesForTank(creatures, tank) {
 
 // Coherence guard: drifters and fast swimmers read as two different worlds, so a
 // tank must not mix them. Runs once at load in dev; silent in production builds.
-// Hitchhikers (remoras) are exempt: they spend most of their time clamped to a host and
-// move at its pace, so they do not set a tank's tempo.
+// Hitchhikers (remoras, and followers like the pilot fish) are exempt: they spend most of
+// their time clamped to or following a host and move at its pace, so they do not set a
+// tank's tempo.
 if (import.meta.env?.DEV) {
   for (const tank of TANKS) {
     const tempos = new Set(

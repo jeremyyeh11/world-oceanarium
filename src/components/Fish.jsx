@@ -2628,7 +2628,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (showAgentDebug) {
       const behavior = agentBehavior.current
       agentStatus.current = hitchhiker && ride.stage !== 'free'
-        ? `ride ${ride.stage}${ride.hostId != null ? ` → ${ride.hostId}${ride.anchorIndex >= 0 ? ` #${ride.anchorIndex}` : ''}` : ''}`
+        ? `${hitchhiker.attaches ? `ride ${ride.stage}` : 'follow'}${ride.hostId != null ? ` → ${ride.hostId}${ride.anchorIndex >= 0 ? ` #${ride.anchorIndex}` : ''}` : ''}`
         : (behavior?.type === 'sun-bask'
           ? `sun-bask ${behavior.stage}`
           : (behavior?.type ?? 'choose-behavior'))

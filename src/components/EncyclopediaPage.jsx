@@ -107,6 +107,8 @@ const VIEW_POSES_BY_SPECIES = {
   'remora-brachyptera': { maxLengthDisplayUnits: 1.6 },
   'remora-osteochir': { maxLengthDisplayUnits: 1.5 },
   'phtheirichthys-lineatus': { maxLengthDisplayUnits: 1.85 },
+  // Pilot fish: 0.7 m, framed a touch shorter than the 0.75 m whitefin sharksucker.
+  'naucrates-ductor': { maxLengthDisplayUnits: 1.75 },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -124,6 +126,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'remora-brachyptera': 1,
   'remora-osteochir': 1,
   'phtheirichthys-lineatus': 1,
+  // Supplied pilot fish model, nose to tail tip along Z.
+  'naucrates-ductor': 7.3672,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

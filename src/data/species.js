@@ -1554,6 +1554,8 @@ export const SPECIES = [
     scientificName: 'Naucrates ductor',
     family: 'Carangidae',
     alternateNames: ['Pilotfish'],
+    // Tank capture (2026-10-11): a full side-on body of fish 306.
+    atlasThumbnail: '/atlas/naucrates-ductor-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Small groups in the wild, but each one holds its own station round the host, so it runs

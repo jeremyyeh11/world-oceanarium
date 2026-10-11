@@ -35,7 +35,7 @@ Subtasks:
 - [x] Follower mode: escort-only, never attaches, re-stations or roams off when a spell ends.
 - [x] `creatures_dev` review population: 18 pilot fish (ids 290–307), written 2026-10-10. The backup script only covers `creatures`, so `creatures_dev` had no snapshot.
 - [ ] Production `creatures` rows: none yet, so clean builds show no pilot fish. Needs Jeremy's go-ahead on the count.
-- [ ] Atlas photo tile.
+- [x] Atlas photo tile: tank capture of fish 306, in the bannerfish PR (`v0.19.0-dev_3`).
 - [x] Jeremy feel review on device: roaming share and speed contrast accepted (2026-10-10).
 
 ### Remoras (week 1 of the species series)

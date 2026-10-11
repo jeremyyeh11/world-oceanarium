@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.19.0 — Longfin Bannerfish
 
-Status: in review as `v0.19.0-dev_2` (2026-10-11; `dev_2` fixed the pectoral pivot). Production `creatures` has no bannerfish rows.
+Status: in review as `v0.19.0-dev_3` (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). Production `creatures` has no bannerfish rows.
 
 ### Species
 
@@ -24,6 +24,10 @@ Status: in review as `v0.19.0-dev_2` (2026-10-11; `dev_2` fixed the pectoral piv
 ### Behavior
 
 - A follower like the pilot fish, but less keen: sunfish only (`hosts { sunfish: 0.4 }`), close stations along the flanks and belly as a cleaner would (`along [-0.5, 0.1]`, `radius [1.05, 1.3]`, 15–35 s), then usually (`leaveChance 0.85`) off for 60–120 s. About a fifth of its time following, against the pilot fish's three fifths; measured 2–5 of 12 escorting at once while 11–15 of 18 pilot fish were. Its relative the schooling bannerfish cleans bump-head sunfish at Bali's cleaning stations.
+
+### Atlas
+
+- Pilot Fish tile (`dev_3`): a tank capture of fish 306, full side-on body, 600 × 485.
 
 ### Tooling
 

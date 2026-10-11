@@ -8,6 +8,27 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.19.0 — Longfin Bannerfish
+
+Status: in review as `v0.19.0-dev_1` (2026-10-11). Production `creatures` has no bannerfish rows.
+
+### Species
+
+- Longfin Bannerfish (`Heniochus acuminatus`, Chaetodontidae) on Jeremy's supplied model, in The Drift. FishBase facts: up to 25 cm (15 cm common), 2–178 m on Indo-Pacific reefs, adults in pairs, planktivorous, IUCN Least Concern. Rendered at 0.6–1.0 WU (`sizeRange [0.6, 1.0]` of 1.0 WU), just under the sardinella. The Atlas names its home as Coral Reef (`atlasDetails.biome`), not the tank's Pelagic Ocean.
+- Rig-free `caudal-vertex` body tuned for a labriform swimmer: stiff front (`flexStart 0.5`), one short flick (`waveTravel 2.5`), a small cruise stroke (0.03 body lengths) that grows under burst (`burstAmplitude 1.2`), and pectorals rowing at `0.45`, nearly four times a caudal swimmer's. Source length 0.3199 (banner excluded): `scale 3.1262`, `position [0, -0.0216, -0.044]`.
+- The banner (the drawn-out 4th dorsal spine) is a separate object deforming over the body's bounds (`followBodyMeshNames`), so behind the tail tip it moves with the tail. Each fish's banner is its own length: `meshLengthVariation` stretches a per-fish copy of the geometry back from its root by 0.8–1.2, once at mount.
+- Atlas entry and framing (`maxLengthDisplayUnits 1.1`, phone `0.8`), and a tank-capture tile.
+- Two local fixture fish (ids 108–109), and 12 rows in `creatures_dev` (ids 326–337, sizes 0.60–1.00).
+
+### Behavior
+
+- A follower like the pilot fish, but less keen: sunfish only (`hosts { sunfish: 0.4 }`), close stations along the flanks and belly as a cleaner would (`along [-0.5, 0.1]`, `radius [1.05, 1.3]`, 15–35 s), then usually (`leaveChance 0.85`) off for 60–120 s. About a fifth of its time following, against the pilot fish's three fifths; measured 2–5 of 12 escorting at once while 11–15 of 18 pilot fish were. Its relative the schooling bannerfish cleans bump-head sunfish at Bali's cleaning stations.
+
+### Tooling
+
+- `inspect-procedural-targets.mjs` fails a follow mesh whose frame differs from the body's (`followFrameMismatches`); a follow part with its own origin would wave as if shifted along the body.
+- Docs: the caudal-wave and procedural README orientation notes now say what the renderer does (caudal fish face `-Z`), not `+Z` forward.
+
 ## v0.18.0 — Pilot Fish
 
 Status: accepted and promoted as clean `v0.18.0` from `v0.18.0-dev_2` after Jeremy's review (2026-10-10). Production `creatures` has no pilot fish rows yet, so clean builds show none until they are written.

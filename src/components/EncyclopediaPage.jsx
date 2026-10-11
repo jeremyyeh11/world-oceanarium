@@ -109,6 +109,15 @@ const VIEW_POSES_BY_SPECIES = {
   'phtheirichthys-lineatus': { maxLengthDisplayUnits: 1.85 },
   // Pilot fish: 0.7 m, framed a touch shorter than the 0.75 m whitefin sharksucker.
   'naucrates-ductor': { maxLengthDisplayUnits: 1.75 },
+  // Longfin bannerfish: 0.25 m, the sardinella's size and camera. Its banner trails another 0.6
+  // body lengths behind the tail, so the fish sits left of centre to keep the banner on stage.
+  'heniochus-acuminatus': {
+    maxLengthDisplayUnits: 1.1,
+    portraitPhoneDistanceScale: 0.8,
+    cameraDistance: 4.85,
+    position: [-0.2, -0.02, 0],
+    lookAt: [0, -0.02, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -128,6 +137,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'phtheirichthys-lineatus': 1,
   // Supplied pilot fish model, nose to tail tip along Z.
   'naucrates-ductor': 7.3672,
+  // Supplied bannerfish model, nose to tail tip along Z (banner excluded).
+  'heniochus-acuminatus': 0.3199,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -751,7 +762,9 @@ export default function EncyclopediaPage({ initialSpeciesId, mobileListFirst = f
         <ConservationStatusBar status={selectedSpecies.conservationStatus} />
         <AtlasQuickCards
           diet={atlasDetails.commonDiet}
-          biome={biome?.name ?? selectedSpecies.biome}
+          // A species whose home is not its tank's biome (the reef bannerfish, kept in the open
+          // ocean) names its real one in `atlasDetails.biome`.
+          biome={atlasDetails.biome ?? biome?.name ?? selectedSpecies.biome}
           location={atlasDetails.foundIn}
         />
         <section className="atlas-table-section" aria-label="Biology">

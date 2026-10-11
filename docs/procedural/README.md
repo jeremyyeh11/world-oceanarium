@@ -51,10 +51,12 @@ Every procedural GLB, regardless of type:
 
 - **Scale.** `1 WU = 25 cm`. Supply the real-world body dimension so `model.scale`
   can be derived rather than eyeballed.
-- **Orientation.** `+Z` is swim-forward, `+Y` is up. For animals whose "forward" is a
-  body axis rather than a head (a jellyfish bell, a drifting ray), the locomotor axis
-  still points `+Z` — the renderer aims model-forward at the heading, so an asset
-  built apex-up will swim sideways.
+- **Orientation.** `+Y` is up and the locomotor axis is `Z`. Every caudal fish faces
+  `-Z` (nose at `-Z`, `tailAtMaxZ: true`): the renderer turns a model's local `-Z` to its
+  heading. The Mola's asset is noted in `species.js` as `+Z` forward; check which way the
+  renderer aims a new type before exporting. For animals whose "forward" is a body axis
+  rather than a head (a jellyfish bell, a drifting ray), the locomotor axis must still lie
+  along `Z`, so an asset built apex-up will swim sideways.
 - **Transforms applied.** Scale `1`, rotation `0`, origin at world `0`. Multi-object
   assets must share one local frame or their deformations will shear apart.
 - **Origin is the follow point.** It is what the camera frames and what the animal

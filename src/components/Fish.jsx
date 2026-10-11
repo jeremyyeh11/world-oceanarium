@@ -809,6 +809,9 @@ function animationVariationForCreature(creature) {
 
   return {
     startOffset: randomRange(rand, 0, 1),
+    // Where this fish falls in its species' `meshLengthVariation` range (the bannerfish's
+    // banner). Its own stream, so adding it left the draws above unchanged.
+    meshLength01: mulberry32(hashString(`${creature.id ?? creature.species}:mesh-length`))(),
     speeds: {
       idle: baseSpeed,
       slow_cruise: baseSpeed,
@@ -1350,9 +1353,46 @@ function BoneDebugOverlay({ object, bones, modelScale = 1, parentScale = 1 }) {
   )
 }
 
+// A part whose length differs per fish (`proceduralAnimation.meshLengthVariation`: the
+// bannerfish's banner). This fish gets its own copy of the part's geometry, stretched once along
+// the body axis from the part's front end, so the root stays put on the body and only the far
+// end moves. The part must deform over the body's bounds (`followBodyMeshNames`), or the
+// stretch would rescale its own wave.
+function applyMeshLengthVariation(root, proceduralAnimation, amount01) {
+  const variation = proceduralAnimation?.meshLengthVariation
+  if (!variation?.meshName || !Array.isArray(variation.range) || !Number.isFinite(amount01)) return []
+  const factor = THREE.MathUtils.lerp(variation.range[0], variation.range[1], amount01)
+  const axis = { x: 0, y: 1, z: 2 }[proceduralAnimation.sourceAxis ?? 'z'] ?? 2
+  const meshName = variation.meshName.toLowerCase()
+  const owned = []
+  root.traverse(child => {
+    if (!child.isMesh || child.name?.toLowerCase() !== meshName) return
+    const geometry = child.geometry.clone()
+    geometry.computeBoundingBox()
+    const box = geometry.boundingBox
+    // The front end is the one toward the head.
+    const front = proceduralAnimation.tailAtMaxZ ? box.min.getComponent(axis) : box.max.getComponent(axis)
+    const position = geometry.attributes.position
+    for (let i = 0; i < position.count; i += 1) {
+      position.setComponent(i, axis, front + (position.getComponent(i, axis) - front) * factor)
+    }
+    position.needsUpdate = true
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
+    child.geometry = geometry
+    owned.push(geometry)
+  })
+  return owned
+}
+
 function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
-  const object = useMemo(() => clone(gltf.scene), [gltf.scene])
+  const meshLength01 = animationVariation?.meshLength01
+  const { object, ownedGeometries } = useMemo(() => {
+    const copy = clone(gltf.scene)
+    return { object: copy, ownedGeometries: applyMeshLengthVariation(copy, model?.proceduralAnimation, meshLength01) }
+  }, [gltf.scene, model, meshLength01])
+  useEffect(() => () => ownedGeometries.forEach(geometry => geometry.dispose()), [ownedGeometries])
   // Procedural species intentionally ignore every authored GLB clip. The rig is
   // only a deformation lattice: live speed/turn/burst signals drive its neutral
   // bind pose directly, so future assets need no animation timeline.

@@ -131,7 +131,7 @@ Current groups: `shark`, `ray`, `turtle`, `cetacean`, `billfish`, `sunfish`,
 `barracuda`, `large-fish`. The mako is `shark` + `large-fish`; the Mola is `sunfish` +
 `large-fish`.
 
-## Followers (pilot fish)
+## Followers (pilot fish, bannerfish)
 
 A follower is a `hitchhiker` with `attaches: false`. It runs the escort stage only: it
 never looks for a spot, claims no slot, adds no load, and is never carried. It needs no
@@ -167,6 +167,12 @@ hitchhiker: {
 - The pilot fish's stations sit round the host's front half, ahead of the snout and along
   the head and flanks, never over the top: clear of the Mola's rear dorsal and anal fins,
   which stand outside the clearance ellipsoid.
+- The Longfin Bannerfish (`heniochus-acuminatus`) follows the Mola less often: `hosts:
+  { sunfish: 0.4 }`, stations close along the flanks and belly as a cleaner would
+  (`along [-0.5, 0.1]`, `radius [1.05, 1.3]`), 15–35 s each, then `leaveChance 0.85` to
+  roam for 60–120 s. That works out to about a fifth of its time following, against the
+  pilot fish's three fifths. Measured in the dev tank (2026-10-11): 2–5 of 12 bannerfish
+  escorting at once while 11–15 of 18 pilot fish were.
 
 ## Runtime
 

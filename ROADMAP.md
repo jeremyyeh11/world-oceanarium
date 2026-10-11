@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Longfin Bannerfish
+
+Status: `Current in development` — `v0.19.0-dev_1` (2026-10-11, branch `feat/heniochus-acuminatus`): Jeremy's model in The Drift, a stiff labriform `caudal-vertex` swimmer whose banner is a same-origin follow part with a per-fish length, following the Mola less often than the pilot fish (see `docs/ride-hosts.md`).
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase; model intake, motion, Atlas framing (desktop, 375 px portrait at 82% fill, landscape phone).
+- [x] Banner: separate object in `followBodyMeshNames`, per-fish length (`meshLengthVariation`, 0.8–1.2). Verifier now fails a follow part whose origin is not the body's.
+- [x] Follower block: sunfish only (weight 0.4), about a fifth of its time following.
+- [x] `creatures_dev` review population: 12 bannerfish (ids 326–337, sizes 0.60–1.00), written 2026-10-11. No prior snapshot (insert only; undo is a delete of those ids).
+- [x] Atlas tile: tank capture of fish 336.
+- [ ] Jeremy feel review on device: stiff-body cruise vs pectoral rowing, banner read at 1 WU, follow share.
+- [ ] Production `creatures` rows: none yet. Needs Jeremy's go-ahead on the count.
+
 ### Pilot Fish
 
 Status: shipped in clean `v0.18.0` (2026-10-10, from `v0.18.0-dev_2`): Jeremy's model, follows the Mola in The Drift without attaching (`hitchhiker.attaches: false`, see `docs/ride-hosts.md`), breaking off now and then to roam at a quicker cruise (`dev_2`). The open items below carry over.

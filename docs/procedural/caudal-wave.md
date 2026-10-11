@@ -63,7 +63,10 @@ Per species:
   the verifier asserts they are absent as separate objects.
 - An independent fin turns about its root, wherever its origin is. The renderer finds
   each fin's root (the tenth of its vertices nearest the body's long axis) and keeps it
-  in place while the flutter turns the fin. A mirrored copy that kept its twin's origin
+  in place while the flutter turns the fin. A fin lying close along a deep body can have
+  its tip nearer the axis than its base: the bannerfish's pectorals turned about their
+  tips until it set `finRootFrom: 'body-surface'`, which takes the vertices nearest the
+  body's surface instead. A mirrored copy that kept its twin's origin
   (the Live Sharksucker's right fins did) therefore turns at the body, not about a point
   on the far side of it.
 - Where the wave reaches a fin's root, the fin is carried sideways with the body under
@@ -149,6 +152,7 @@ In `model.proceduralAnimation`, `src/data/species.js`.
 | `burstFrequencyBoost` | `0.24` | Cadence gain from burst |
 | `pectoralFinFlutter` | `0.12` | CPU flutter for independent pectorals |
 | `pelvicFinFlutter` | `0.07` | CPU flutter for independent pelvics |
+| `finRootFrom` | `'axis'` | How each independent fin's root (its pivot) is found: the tenth of its vertices nearest the body's long axis, or `'body-surface'`, nearest the body's surface |
 
 ## Shipped tuning
 

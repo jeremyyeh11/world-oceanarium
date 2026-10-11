@@ -1116,11 +1116,19 @@ function proceduralBoundsGeometry(root, mesh, proceduralAnimation) {
   return source.geometry
 }
 
+// The surface-root search is a full scan of the body per fin vertex, so it runs once per model:
+// every clone of a GLB shares its fin geometries.
+const finSurfaceRootCache = new WeakMap()
+
 // Where each independent fin meets the body: its root (the fin's vertices nearest the body's
 // long axis), how far along the body's wave that is, and which way the body's lateral axis
 // points in the fin's parent frame. The root is also the fin's pivot: a supplied fin's origin
 // is not always at its root (a mirrored copy keeps its twin's), and a flutter about a far-off
 // origin swings the fin through an arc instead of turning it at the body.
+// `finRootFrom: 'body-surface'` takes the vertices nearest the body's surface instead. Nearest
+// the axis suits fins that stand out from the flank; a fin lying close along a deep body (the
+// bannerfish's pectorals, which run up and back from a low base) has its tip nearer the axis
+// than its base, so it would turn about its tip.
 function collectProceduralFinFollow(object, fins, proceduralAnimation) {
   if (proceduralAnimation?.type !== 'caudal-vertex' || fins.length === 0) return []
   const body = findProceduralBodyMesh(object, proceduralAnimation)
@@ -1136,17 +1144,33 @@ function collectProceduralFinFollow(object, fins, proceduralAnimation) {
   const bodyInverse = body.matrixWorld.clone().invert()
   const lateralUnit = new THREE.Vector3().setComponent(lateralAxis, 1)
   const point = new THREE.Vector3()
+  const fromSurface = proceduralAnimation.finRootFrom === 'body-surface'
+  const bodyPosition = body.geometry.getAttribute('position')
+  const bodyPoint = new THREE.Vector3()
   return fins.map(fin => {
     const position = fin.mesh.geometry.getAttribute('position')
     const toBody = bodyInverse.clone().multiply(fin.mesh.matrixWorld)
-    const byAxisDistance = []
-    for (let i = 0; i < position.count; i += 1) {
-      point.fromBufferAttribute(position, i).applyMatrix4(toBody)
-      const lateral = point.getComponent(lateralAxis) - bodyCenter.getComponent(lateralAxis)
-      const vertical = point.getComponent(verticalAxis) - bodyCenter.getComponent(verticalAxis)
-      byAxisDistance.push([lateral * lateral + vertical * vertical, i, point.getComponent(sourceAxis)])
+    let byAxisDistance = fromSurface ? finSurfaceRootCache.get(fin.mesh.geometry) : null
+    if (!byAxisDistance) {
+      byAxisDistance = []
+      for (let i = 0; i < position.count; i += 1) {
+        point.fromBufferAttribute(position, i).applyMatrix4(toBody)
+        let distance
+        if (fromSurface) {
+          distance = Infinity
+          for (let j = 0; j < bodyPosition.count; j += 1) {
+            distance = Math.min(distance, bodyPoint.fromBufferAttribute(bodyPosition, j).distanceToSquared(point))
+          }
+        } else {
+          const lateral = point.getComponent(lateralAxis) - bodyCenter.getComponent(lateralAxis)
+          const vertical = point.getComponent(verticalAxis) - bodyCenter.getComponent(verticalAxis)
+          distance = lateral * lateral + vertical * vertical
+        }
+        byAxisDistance.push([distance, i, point.getComponent(sourceAxis)])
+      }
+      byAxisDistance.sort((a, b) => a[0] - b[0])
+      if (fromSurface) finSurfaceRootCache.set(fin.mesh.geometry, byAxisDistance)
     }
-    byAxisDistance.sort((a, b) => a[0] - b[0])
     const rootCount = Math.max(1, Math.ceil(byAxisDistance.length * 0.1))
     const pivot = new THREE.Vector3()
     let rootSource = 0

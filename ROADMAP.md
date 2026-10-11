@@ -15,7 +15,7 @@ Status labels:
 
 ### Longfin Bannerfish
 
-Status: `Current in development` — `v0.19.0-dev_1` (2026-10-11, branch `feat/heniochus-acuminatus`): Jeremy's model in The Drift, a stiff labriform `caudal-vertex` swimmer whose banner is a same-origin follow part with a per-fish length, following the Mola less often than the pilot fish (see `docs/ride-hosts.md`).
+Status: `Current in development` — `v0.19.0-dev_2` (2026-10-11, branch `feat/heniochus-acuminatus`; `dev_2` fixed the pectoral pivot): Jeremy's model in The Drift, a stiff labriform `caudal-vertex` swimmer whose banner is a same-origin follow part with a per-fish length, following the Mola less often than the pilot fish (see `docs/ride-hosts.md`).
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase; model intake, motion, Atlas framing (desktop, 375 px portrait at 82% fill, landscape phone).

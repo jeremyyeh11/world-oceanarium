@@ -1862,6 +1862,9 @@ export const SPECIES = [
         burstFrequencyBoost: 0.35,
         // The pectorals are the cruising engine, so they row well past a caudal swimmer's.
         pectoralFinFlutter: 0.45,
+        // They lie close along the deep flank, running up and back from a low base, so their
+        // tips sit nearer the body's axis than their roots: find each root by the body's surface.
+        finRootFrom: 'body-surface',
         pelvicFinFlutter: 0.1,
       },
       debugForwardOrigin: 'head',

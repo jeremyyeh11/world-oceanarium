@@ -15,7 +15,7 @@ Status labels:
 
 ### Longfin Bannerfish
 
-Status: `Current in development` — `v0.19.0-dev_2` (2026-10-11, branch `feat/heniochus-acuminatus`; `dev_2` fixed the pectoral pivot): Jeremy's model in The Drift, a stiff labriform `caudal-vertex` swimmer whose banner is a same-origin follow part with a per-fish length, following the Mola less often than the pilot fish (see `docs/ride-hosts.md`).
+Status: shipped in clean `v0.19.0` (2026-10-11, from `v0.19.0-dev_3`, branch `feat/heniochus-acuminatus`): Jeremy's model in The Drift, a stiff labriform `caudal-vertex` swimmer whose banner is a same-origin follow part with a per-fish length, following the Mola less often than the pilot fish (see `docs/ride-hosts.md`). `dev_2` fixed the pectoral pivot; `dev_3` added the pilot fish tile. The open items below carry over.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase; model intake, motion, Atlas framing (desktop, 375 px portrait at 82% fill, landscape phone).
@@ -23,7 +23,7 @@ Subtasks:
 - [x] Follower block: sunfish only (weight 0.4), about a fifth of its time following.
 - [x] `creatures_dev` review population: 12 bannerfish (ids 326–337, sizes 0.60–1.00), written 2026-10-11. No prior snapshot (insert only; undo is a delete of those ids).
 - [x] Atlas tile: tank capture of fish 336.
-- [ ] Jeremy feel review on device: stiff-body cruise vs pectoral rowing, banner read at 1 WU, follow share.
+- [x] Jeremy review: pectoral pivot fixed in `dev_2`; shipped on his go-ahead (2026-10-11).
 - [ ] Production `creatures` rows: none yet. Needs Jeremy's go-ahead on the count.
 
 ### Pilot Fish

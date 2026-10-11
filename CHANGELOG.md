@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.19.0 — Longfin Bannerfish
 
-Status: in review as `v0.19.0-dev_3` (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). Production `creatures` has no bannerfish rows.
+Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy's go-ahead (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). `package.json` moves to `0.19.0` with it (it had stayed at `0.15.3`). Production `creatures` has no bannerfish rows, so clean builds show none until they are written.
 
 ### Species
 

@@ -2275,7 +2275,7 @@ export function findRideHost(rider, riderPosition, riderBodyLength, hitch, rand)
  * Returns whether it moved the rider.
  */
 export function keepRiderClearOfHost(position, ride, riderBodyLength) {
-  if ((ride.stage !== 'approach' && ride.stage !== 'escort') || ride.hostId == null) return false
+  if ((ride.stage !== 'approach' && ride.stage !== 'escort' && ride.stage !== 'pair') || ride.hostId == null) return false
   const host = FISH_REGISTRY.get(ride.hostId)
   const hostProfile = host?.hasPose ? rideHostProfile(resolveSpecies(host)) : null
   if (!hostProfile) return false
@@ -2451,6 +2451,8 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
   if (ride.nextDecisionAt === null) ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_FIRST_DECISION_SECONDS)
   const dt = ride.lastStepAt === null ? 0 : THREE.MathUtils.clamp(now - ride.lastStepAt, 0, 0.1)
   ride.lastStepAt = now
+  // A pair follower whose pair was broken up (see advancePairFollow) is just free again.
+  if (ride.stage === 'pair') resetRideState(ride)
 
   const host = ride.hostId != null ? FISH_REGISTRY.get(ride.hostId) : null
   const hostProfile = host?.hasPose ? rideHostProfile(resolveSpecies(host)) : null
@@ -2683,6 +2685,67 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
     ride.ownsPose = true
     ride.opacity = host.opacity ?? 1
   }
+  return ride
+}
+
+// Pair-bonded species (`pairBonded`, the bannerfish): Biome matches each female with a male,
+// and the male holds a loose station at her side instead of roaming or picking hosts of his
+// own. She leads, sunfish visits included; while she escorts a host he takes the side away
+// from it and inherits the host's clearance (see keepRiderClearOfHost).
+const PAIR_SIDE_BODY_LENGTHS = 0.75
+const PAIR_BEHIND_BODY_LENGTHS = 0.35
+const PAIR_DRIFT_BODY_LENGTHS = 0.15
+const PAIR_DRIFT_RATE = 0.35
+const PAIR_CLOSING_GAIN = 0.8
+const pairSide = new THREE.Vector3()
+
+/**
+ * Step a pair follower toward its station beside `leaderId`. Sets `ride.approaching`,
+ * `ride.target` and `ride.targetSpeed` like an escort; frees the ride (so the fish roams on its
+ * own) when the leader is gone. `side` is +1 or -1, which flank it keeps in open water.
+ */
+export function advancePairFollow(ride, rider, leaderId, side, riderBodyLength, now, position, speeds) {
+  ride.ownsPose = false
+  ride.approaching = false
+  ride.opacity = 1
+  ride.hug = 0
+  const leader = FISH_REGISTRY.get(leaderId)
+  if (!leader || leader.biome !== rider.biome) {
+    if (ride.stage === 'pair') resetRideState(ride)
+    return ride
+  }
+  ride.stage = 'pair'
+  ride.anchorIndex = -1
+  ride.hostId = leader.rideHostId ?? null
+  const host = ride.hostId != null ? FISH_REGISTRY.get(ride.hostId) : null
+  const forward = leader.forward
+  if (host) {
+    // Beside a host, keep to her outer flank so he never ends up wedged against its body.
+    pairSide.subVectors(leader.position, host.position)
+    pairSide.addScaledVector(forward, -pairSide.dot(forward))
+  } else {
+    pairSide.set(-forward.z, 0, forward.x).multiplyScalar(side)
+  }
+  if (pairSide.lengthSq() < 1e-6) pairSide.set(-forward.z, 0, forward.x)
+  pairSide.normalize()
+  const drift = PAIR_DRIFT_BODY_LENGTHS * Math.sin(now * PAIR_DRIFT_RATE + (Number(rider.id) || 0))
+  ride.target.copy(leader.position)
+    .addScaledVector(pairSide, (PAIR_SIDE_BODY_LENGTHS + drift) * riderBodyLength)
+    .addScaledVector(forward, -PAIR_BEHIND_BODY_LENGTHS * riderBodyLength)
+  ride.target.y = Math.min(ride.target.y, rideSurfaceLimitY(riderBodyLength))
+  // Her velocity plus a closing velocity toward the station, as an escort follows its host.
+  rideHostForward.subVectors(ride.target, position)
+  const stationDistance = rideHostForward.length()
+  if (stationDistance > 1e-4) rideHostForward.divideScalar(stationDistance)
+  const maxSpeed = speeds.burst * RIDE_ESCORT_BURST_SCALE
+  const closing = Math.min(stationDistance * PAIR_CLOSING_GAIN, maxSpeed)
+  rideDesiredVelocity.copy(forward).multiplyScalar(leader.speed ?? 0).addScaledVector(rideHostForward, closing)
+  const desiredSpeed = rideDesiredVelocity.length()
+  ride.targetSpeed = THREE.MathUtils.clamp(desiredSpeed, Math.min(speeds.idle * 0.5, maxSpeed), maxSpeed)
+  if (desiredSpeed > 1e-4) rideDesiredVelocity.divideScalar(desiredSpeed)
+  else rideDesiredVelocity.copy(forward)
+  ride.target.copy(position).addScaledVector(rideDesiredVelocity, Math.max(1, riderBodyLength))
+  ride.approaching = true
   return ride
 }
 

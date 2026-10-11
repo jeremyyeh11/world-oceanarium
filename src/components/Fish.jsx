@@ -24,6 +24,7 @@ import {
   SNAP_TURN_THRESHOLD,
   SWIM_BOX,
   advanceSchoolAlarms,
+  advancePairFollow,
   advanceRide,
   boundaryAvoidanceTurnStep,
   caudalLateralCurve,
@@ -1664,7 +1665,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   // Persistent kinematic snapshot for this creature. Survives unmount/remount so switching tanks
   // resumes movement instead of re-seeding. Object-valued fields below are shared by reference
@@ -1717,6 +1718,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // Remoras ride hosts (see the ride section of fishSwim.js). Only a solo agent rides; hosts
   // publish their rendered pose each frame for the riders to read.
   const hitchhiker = useMemo(() => (isSoloAgent ? hitchhikerProfile(species) : null), [isSoloAgent, species])
+  // A pair-bonded follower (see Biome) steers by its partner the way an escort steers by a host.
+  const pairFollow = isSoloAgent && pair?.leaderId != null ? pair : null
+  const steersByRide = Boolean(hitchhiker || pairFollow)
   const isRideHost = useMemo(() => Boolean(rideHostProfile(species)), [species])
   const ride = runtime.ride
   const rideRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:ride`)))
@@ -2057,20 +2061,26 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     // Hitchhiker step: decide on / close on / clamp to / let go of a host. Runs on last frame's
     // pose; hosts have already published this frame's (RIDE_HOST_FRAME_PRIORITY).
-    if (hitchhiker && hasFollowPosition.current) {
-      ridePoseQuaternion.copy(fish.quaternion)
-      if (!model) ridePoseQuaternion.multiply(MODEL_FROM_PLACEHOLDER_FRAME)
-      advanceRide(
-        ride,
-        creature,
-        hitchhiker,
-        creatureBodyLength(creature, swim),
-        now,
-        fish.position,
-        ridePoseQuaternion,
-        { idle: motion.idleSpeed * organicMotion.speedScale, burst: motion.burstSpeed * organicMotion.speedScale },
-        rideRand.current,
-      )
+    if (steersByRide && hasFollowPosition.current) {
+      const rideSpeeds = { idle: motion.idleSpeed * organicMotion.speedScale, burst: motion.burstSpeed * organicMotion.speedScale }
+      if (pairFollow) {
+        advancePairFollow(ride, creature, pairFollow.leaderId, pairFollow.side, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds)
+      }
+      if (hitchhiker && ride.stage !== 'pair') {
+        ridePoseQuaternion.copy(fish.quaternion)
+        if (!model) ridePoseQuaternion.multiply(MODEL_FROM_PLACEHOLDER_FRAME)
+        advanceRide(
+          ride,
+          creature,
+          hitchhiker,
+          creatureBodyLength(creature, swim),
+          now,
+          fish.position,
+          ridePoseQuaternion,
+          rideSpeeds,
+          rideRand.current,
+        )
+      }
       if (ride.justReleased) {
         // Swim forward off the disc at the host's pace, then fall away behind it.
         ride.justReleased = false
@@ -2107,7 +2117,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const docking = ride.stage === 'dock'
       targetVelocity = docking ? ride.swimSpeed : motion.driftSpeed
       velocityResponse = docking ? RIDE_APPROACH_VELOCITY_RESPONSE : 1.6
-    } else if (hitchhiker && ride.approaching) {
+    } else if (steersByRide && ride.approaching) {
       targetVelocity = ride.targetSpeed / Math.max(0.001, organicMotion.speedScale)
       velocityResponse = RIDE_APPROACH_VELOCITY_RESPONSE
     }
@@ -2182,8 +2192,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       currentForward.normalize()
 
       const bodyLength = creatureBodyLength(creature, swim)
-      if (hitchhiker && ride.approaching) {
-        // Closing on a host: the moving intercept point replaces the roaming target, and the
+      if (steersByRide && ride.approaching) {
+        // Closing on a host (or keeping station by a mate): the moving intercept point replaces the roaming target, and the
         // behavior slot stays occupied so no roaming target is picked meanwhile.
         agentBehavior.current = RIDE_APPROACH_BEHAVIOR
         agentTarget.current.copy(ride.target)
@@ -2650,7 +2660,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           }
         }
         // A remora closing on its host never passes through it (see keepRiderClearOfHost).
-        if (hitchhiker) keepRiderClearOfHost(fish.position, ride, bodyLength)
+        if (steersByRide) keepRiderClearOfHost(fish.position, ride, bodyLength)
 
         // Mola deep-exit recovery: past the soft rear wall it fades out, snaps back inside the
         // shared bounds, retargets, and fades back in. While the follow cam is on it, recovery
@@ -2691,14 +2701,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     if (showAgentDebug) {
       const behavior = agentBehavior.current
-      agentStatus.current = hitchhiker && ride.stage !== 'free'
+      agentStatus.current = ride.stage === 'pair'
+        ? `pair → ${pairFollow?.leaderId}${ride.hostId != null ? ` (follow → ${ride.hostId})` : ''}`
+        : hitchhiker && ride.stage !== 'free'
         ? `${hitchhiker.attaches ? `ride ${ride.stage}` : 'follow'}${ride.hostId != null ? ` → ${ride.hostId}${ride.anchorIndex >= 0 ? ` #${ride.anchorIndex}` : ''}` : ''}`
         : (behavior?.type === 'sun-bask'
           ? `sun-bask ${behavior.stage}`
           : (behavior?.type ?? 'choose-behavior'))
     }
 
-    updateFishRegistry(fish, creature, swim, school, desiredDirection.current, registrySpeed, hitchhiker ? ride.hostId : null)
+    updateFishRegistry(fish, creature, swim, school, desiredDirection.current, registrySpeed, steersByRide ? ride.hostId : null)
 
     let runtimeRecoveryOpacity = 1
     let recoveryFadeState = runtimeRecoveryFade.current

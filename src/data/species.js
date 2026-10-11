@@ -1718,8 +1718,10 @@ export const SPECIES = [
     atlasThumbnail: '/atlas/heniochus-acuminatus-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
-    // Adults go in pairs, not schools, so it runs the solo-agent path (followers must).
+    // Adults go in pairs, not schools, so it runs the solo-agent path (followers must). Biome
+    // pairs each female with a male, who keeps station at her side (advancePairFollow).
     schooling: false,
+    pairBonded: true,
     repulser: false,
     aggressive: false,
     predator: false,

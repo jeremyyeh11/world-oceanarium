@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.19.1 — Bannerfish pairs
+
+Status: in development (`v0.19.1-dev_1`).
+
+### Behavior
+
+- Longfin bannerfish now swim as male–female pairs (`pairBonded: true`), as adults do on the reef. Biome matches each female with a male of the same tank (fish with no sex recorded fill in for the short side; a fish left over roams alone). She leads, sunfish visits included; he holds a loose station at her side, 0.75 body lengths out and 0.35 back, matching her velocity plus a closing velocity (`advancePairFollow`, ride stage `pair`). While she escorts the sunfish he takes her outer flank and inherits the sunfish's clearance, so he never wedges against its body. If she leaves the tank he is free again and follows hosts on his own.
+
 ## v0.19.0 — Longfin Bannerfish
 
 Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy's go-ahead (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). `package.json` moves to `0.19.0` with it (it had stayed at `0.15.3`). Production `creatures` has no bannerfish rows, so clean builds show none until they are written.

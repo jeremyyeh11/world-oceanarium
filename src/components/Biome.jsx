@@ -41,9 +41,40 @@ function schoolModelVariantKey(species, schoolId, index, count) {
 }
 
 function creatureSexModelVariantKey(creature, species, fallbackKey) {
-  const normalizedSex = typeof creature.sex === 'string' ? creature.sex.trim().toLowerCase() : ''
-  if (normalizedSex && species?.model?.sexVariants?.[normalizedSex]?.path) return normalizedSex
+  const sex = normalizedSex(creature)
+  if (sex && species?.model?.sexVariants?.[sex]?.path) return sex
   return fallbackKey
+}
+
+function normalizedSex(creature) {
+  return typeof creature.sex === 'string' ? creature.sex.trim().toLowerCase() : ''
+}
+
+// Pair-bonded species (`pairBonded`, the bannerfish) swim as male–female pairs: each female
+// leads and her male keeps station at her side (advancePairFollow). Fish with no sex recorded
+// fill in for whichever sex is short; a fish left without a partner roams alone.
+function pairFollowersForCreatures(creatures) {
+  const groups = new Map()
+  creatures.forEach(creature => {
+    if (!SPECIES_BY_KEY.get(creature.species)?.pairBonded) return
+    const key = schoolKeyForCreature(creature)
+    const group = groups.get(key) ?? { female: [], male: [], unknown: [] }
+    const sex = normalizedSex(creature)
+    group[sex === 'female' || sex === 'male' ? sex : 'unknown'].push(creature)
+    groups.set(key, group)
+  })
+  const followers = new Map()
+  groups.forEach(group => {
+    const byOrder = (a, b) => deterministicSchoolOrder(a) - deterministicSchoolOrder(b)
+    const females = group.female.sort(byOrder)
+    const males = group.male.sort(byOrder)
+    group.unknown.sort(byOrder).forEach(creature => (females.length <= males.length ? females : males).push(creature))
+    const count = Math.min(females.length, males.length)
+    for (let i = 0; i < count; i += 1) {
+      followers.set(males[i].id, { leaderId: females[i].id, side: (deterministicSchoolOrder(males[i]) & 1) === 0 ? 1 : -1 })
+    }
+  })
+  return followers
 }
 
 export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
@@ -85,6 +116,8 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
     return nextSchoolByCreatureId
   }, [visibleCreatures, tankVisitSeed])
 
+  const pairByCreatureId = useMemo(() => pairFollowersForCreatures(visibleCreatures), [visibleCreatures])
+
   return (
     <group>
       <Environment biome={name} />
@@ -111,6 +144,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
             debugLodView={debugLodView}
             debugSimulationSpeed={debugSimulationSpeed}
             school={school}
+            pair={pairByCreatureId.get(creature.id) ?? null}
             modelVariantKey={creatureSexModelVariantKey(creature, SPECIES_BY_KEY.get(creature.species), school?.modelVariantKey ?? null)}
             onClick={onCreatureClick}
             onReady={onCreatureReady}

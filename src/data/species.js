@@ -99,8 +99,8 @@ export const TANKS = [
     // way to art-direct a tank's mood beyond the procedural seed variation.
     lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
-    // Pilot fish follow the Mola without attaching.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor'],
+    // Pilot fish follow the Mola without attaching; bannerfish do now and then.
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus'],
   },
 ]
 
@@ -1554,6 +1554,8 @@ export const SPECIES = [
     scientificName: 'Naucrates ductor',
     family: 'Carangidae',
     alternateNames: ['Pilotfish'],
+    // Tank capture (2026-10-11): a full side-on body of fish 306.
+    atlasThumbnail: '/atlas/naucrates-ductor-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Small groups in the wild, but each one holds its own station round the host, so it runs
@@ -1701,6 +1703,176 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
+  // --- Longfin bannerfish (Chaetodontidae) ---------------------------------------------------
+  // Facts from FishBase. A reef butterflyfish that follows the Mola now and then, the way its
+  // close relative the schooling bannerfish (Heniochus diphreutes) cleans bump-head sunfish at
+  // Bali's reef cleaning stations (Fishes of Australia). A follower like the pilot fish, joining
+  // less often and leaving sooner: see docs/ride-hosts.md.
+  {
+    id: 'heniochus-acuminatus',
+    name: 'Longfin Bannerfish',
+    scientificName: 'Heniochus acuminatus',
+    family: 'Chaetodontidae',
+    alternateNames: ['Pennant Coralfish', 'Bannerfish'],
+    // Tank capture (2026-10-11): a three-quarter view of fish 336, banner up over the back.
+    atlasThumbnail: '/atlas/heniochus-acuminatus-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Adults go in pairs, not schools, so it runs the solo-agent path (followers must).
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      // Its real home; the tank's ocean biome would read "Pelagic Ocean".
+      biome: 'Coral Reef',
+      commonDiet: 'Plankton; juveniles pick parasites off other fishes.',
+      foundIn: 'Indo-Pacific reefs, Persian Gulf and East Africa to Japan, Australia, and French Polynesia, 2 to 178 m (usually 15 to 75 m).',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Pairs',
+        groupingBehaviour: 'Adults swim in pairs in deep, sheltered lagoons and channels and on outer reef slopes, rarely more than a few metres off the reef. Juveniles are usually solitary and may act as cleaners.',
+        reproduction: 'Spawns in pairs; eggs drift in open water.',
+      },
+      averages: {
+        // FishBase common length (total length); no sex-specific data.
+        maleSizeMeters: 0.15,
+        femaleSizeMeters: 0.15,
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Zooplankton',
+      social: 'Pairs',
+    },
+    description: 'A deep-bodied butterflyfish, up to 25 cm, banded black and white with a yellow tail, and named for the white pennant that streams back from its dorsal fin, longer than the fish itself. It cruises on its pectoral fins with its body held stiff, saving its tail for a quick dart. Its relative the schooling bannerfish cleans parasites off ocean sunfish, so in the tank it now and then joins the giant sunfish to hover close along its flanks before drifting off again.',
+    adultLengthRangeMeters: [0.15, 0.25],
+    maxBodyLengthMeters: 0.25,
+    swim: {
+      // An unhurried, manoeuvrable reef fish. Roaming it keeps well under the pilot fish's
+      // cruise; following, the escort steering matches the sunfish's pace and these only
+      // bound it (its burst still reaches the sunfish's cruise).
+      visualTimeScale: 0.8,
+      driftEnabled: false,
+      idleBLPerSec: [0.6, 1.0],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [1.2, 1.6],
+      burstBLPerSec: [2.6, 3.4],
+      burstInterval: [12.0, 22.0],
+      burstActionDuration: 0.6,
+      turnActionDuration: 0.5,
+      erraticness: 0.18,
+      turnRadiusBodyLengths: 0.8,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      ...DRIFT_RIDER_BOUNDS,
+      // 1 WU = 25 cm: 25 cm maximum total length = 1.0 WU, just under the sardinella.
+      bodyLengthWU: 1.0,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.5,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        menace: 0.02,
+        wariness: 0.3,
+      },
+    },
+    // Individuals span the 15 cm common length to the 25 cm maximum.
+    sizeRange: [0.6, 1.0],
+    // Rough length–weight for a deep, compressed body; no published weight for this species.
+    mass: { coefficient: 0.02, exponent: 3 },
+    hitchhiker: {
+      // Follows rather than rides, and less often than the pilot fish: it takes the sunfish
+      // on 40% of its checks, holds a station for a shorter spell, and usually roams off after
+      // it for longer, so it spends about a fifth of its time following (the pilot fish about
+      // three fifths).
+      attaches: false,
+      freeSeconds: [60, 120],
+      hosts: { sunfish: 0.4 },
+      escort: {
+        // Close along the sunfish's flanks and under its belly, as a cleaner would, and clear
+        // of its rear dorsal and anal fins.
+        along: [-0.5, 0.1],
+        angleDegrees: [-215, 35],
+        radius: [1.05, 1.3],
+        seconds: [15, 35],
+        leaveChance: 0.85,
+        minSpeedBLPerSec: 0.3,
+        rangeBodyLengths: 10,
+      },
+    },
+    model: {
+      path: '/models/fish/heniochus-acuminatus/heniochus-acuminatus.glb',
+      // Source length 0.3199 (nose to tail tip, banner excluded) -> 1.0 WU; the root is
+      // recentred mid-length on the body axis.
+      scale: 3.1262,
+      position: [0, -0.0216, -0.044],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['longfin_bannerfish'],
+        // The banner is its own object (the 4th dorsal spine, drawn out past the tail). It
+        // waves over the body's bounds, so it stays on the back and, behind the tail tip,
+        // moves with it; over its own bounds it would stretch the wave past the tail.
+        followBodyMeshNames: ['banner'],
+        // Each fish's banner is a different length: stretched back from its root by a factor
+        // drawn per fish from `range`. Even the shortest reaches well past the tail.
+        meshLengthVariation: { meshName: 'banner', range: [0.8, 1.2] },
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Labriform: it cruises on its pectorals with a stiff, deep body, so the wave starts
+        // halfway back (behind the sparse mid-body faces at 0.4) and is one short flick, and
+        // the stroke is small until a burst. Amplitude and turn 0.03 body lengths, in source
+        // units.
+        amplitude: 0.0096,
+        waveSpeed: 3.6,
+        waveTravel: 2.5,
+        flexStart: 0.5,
+        flexFull: 0.9,
+        turnStrength: 0.0096,
+        burstAmplitude: 1.2,
+        response: 9,
+        speedFrequencyBoost: 0.4,
+        burstFrequencyBoost: 0.35,
+        // The pectorals are the cruising engine, so they row well past a caudal swimmer's.
+        pectoralFinFlutter: 0.45,
+        // They lie close along the deep flank, running up and back from a low base, so their
+        // tips sit nearer the body's axis than their roots: find each root by the body's surface.
+        finRootFrom: 'body-surface',
+        pelvicFinFlutter: 0.1,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
 ]
 
 export const CREATURES = [
@@ -1772,6 +1944,17 @@ export const CREATURES = [
     biome: 'ocean',
     depthZone: 'epipelagic',
     bornAt: '2026-10-10T00:00:00Z',
+    alive: true,
+    sex: index % 2 === 0 ? 'male' : 'female',
+    size,
+  })),
+  // Longfin bannerfish review fixtures: a pair round the Mola.
+  ...[0.95, 0.75].map((size, index) => ({
+    id: 108 + index,
+    species: 'heniochus-acuminatus',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    bornAt: '2026-10-11T00:00:00Z',
     alive: true,
     sex: index % 2 === 0 ? 'male' : 'female',
     size,

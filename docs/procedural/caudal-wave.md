@@ -10,7 +10,9 @@ Read [README.md](README.md) first for the rules shared by every type.
 ## Animals
 
 Shipping: Spotted Sardinella (`amblygaster-sirm`), Mahi-mahi (`coryphaena-hippurus`,
-both sex variants), Shortfin Mako (`isurus-oxyrinchus`).
+both sex variants), Shortfin Mako (`isurus-oxyrinchus`), the remoras, Pilot Fish
+(`naucrates-ductor`), Longfin Bannerfish (`heniochus-acuminatus`, a labriform swimmer
+tuned stiff: see its tuning row).
 
 Also this type: anguilliform swimmers (eels, sea snakes) as a config variant —
 `flexStart` near `0` and a high `waveTravel` puts the wave through the whole body
@@ -61,7 +63,10 @@ Per species:
   the verifier asserts they are absent as separate objects.
 - An independent fin turns about its root, wherever its origin is. The renderer finds
   each fin's root (the tenth of its vertices nearest the body's long axis) and keeps it
-  in place while the flutter turns the fin. A mirrored copy that kept its twin's origin
+  in place while the flutter turns the fin. A fin lying close along a deep body can have
+  its tip nearer the axis than its base: the bannerfish's pectorals turned about their
+  tips until it set `finRootFrom: 'body-surface'`, which takes the vertices nearest the
+  body's surface instead. A mirrored copy that kept its twin's origin
   (the Live Sharksucker's right fins did) therefore turns at the body, not about a point
   on the far side of it.
 - Where the wave reaches a fin's root, the fin is carried sideways with the body under
@@ -75,10 +80,17 @@ Per species:
   body's bounds instead, moving exactly with the body under it. The mako's teeth
   (`shortfinmako003_1`) and the Live Sharksucker's suction disc (`live_sharksucker_2`)
   are both material splits like this.
+- A follow part can also be a **separate object**, as long as its origin is exactly the
+  body's: it deforms in its own local frame against the body's bounds, so an offset origin
+  shifts it along the wave. The bannerfish's banner is one (set its origin with the body
+  selected, Shift+S → Cursor to Selected, then Set Origin → Origin to 3D Cursor). The
+  verifier's `followFrameMismatches` fails any follow mesh whose frame differs from the
+  body's.
 
-**Orientation.** `+Z` swim-forward, `+Y` up, transforms applied, origin at world `0`.
-The `sourceAxis` config key can point the deformation along `x` or `z` — Sardinella
-uses `x` — but new assets should use `z` and match the project convention.
+**Orientation.** Nose at `-Z`, tail at `+Z` (`tailAtMaxZ: true`), `+Y` up: the renderer
+turns a model's local `-Z` to its heading (`Fish.jsx`, "models face local -Z"). Every
+shipped caudal fish is built this way. The `sourceAxis` config key can point the
+deformation along `x` or `z` — Sardinella uses `x` — but new assets should use `z`.
 
 **Topology.** Sufficient *longitudinal* loops to carry the wave smoothly. The wave is
 a sine along one axis; too few rings and it facets visibly at the tail. Denser rings
@@ -123,7 +135,8 @@ In `model.proceduralAnimation`, `src/data/species.js`.
 | `type` | — | `'caudal-vertex'` |
 | `bodyMeshNames` | — | Meshes taking the GPU path |
 | `bodyMeshPatterns` | — | Substring fallback for mesh selection |
-| `followBodyMeshNames` | — | Material splits that deform over the body's bounds, not their own |
+| `followBodyMeshNames` | — | Material splits (or same-origin objects) that deform over the body's bounds, not their own |
+| `meshLengthVariation` | — | `{ meshName, range }`: a follow part stretched back from its front end by a per-fish factor in `range` |
 | `sourceAxis` | `'z'` | Body long axis |
 | `lateralAxis` | `'x'` (or `'z'` if source is `x`) | Axis the stroke displaces along |
 | `tailAtMaxZ` | `false` | `true` when the tail sits at the axis maximum |
@@ -139,6 +152,7 @@ In `model.proceduralAnimation`, `src/data/species.js`.
 | `burstFrequencyBoost` | `0.24` | Cadence gain from burst |
 | `pectoralFinFlutter` | `0.12` | CPU flutter for independent pectorals |
 | `pelvicFinFlutter` | `0.07` | CPU flutter for independent pelvics |
+| `finRootFrom` | `'axis'` | How each independent fin's root (its pivot) is found: the tenth of its vertices nearest the body's long axis, or `'body-surface'`, nearest the body's surface |
 
 ## Shipped tuning
 
@@ -172,6 +186,18 @@ gentle bend down the body; 4.4 and 4.6 read as a snake),
 `burstAmplitude: 0.8`, `response: 8`, boosts `0.4`/`0.3`, flutter `0.09`/`0.05`,
 `followBodyMeshNames: ['live_sharksucker_2']` (disc). The stand-in remoras share the
 same stroke, beat, and start (`REMORA_CAUDAL`).
+
+**Longfin Bannerfish** — labriform: it cruises on its pectorals with a stiff, deep body
+and uses its tail for darts. Source length 0.3199 (banner excluded), so 0.03 body lengths
+is `amplitude: 0.0096`, `turnStrength: 0.0096`. `flexStart: 0.5` (the mid-body faces from
+0.4 forward are long and sparse, and must stay rigid), `flexFull: 0.9`, `waveTravel: 2.5`
+(one short flick), `waveSpeed: 3.6`, `burstAmplitude: 1.2`, `response: 9`, boosts
+`0.4`/`0.35`. `pectoralFinFlutter: 0.45`, nearly four times a caudal swimmer's, because the
+pectorals are its cruising engine; `pelvicFinFlutter: 0.1`. The banner (the drawn-out 4th
+dorsal spine) is a separate same-origin object in `followBodyMeshNames`: its root sits 61%
+back, in the flexing region, and behind the tail tip it moves with the tail tip.
+`meshLengthVariation: { meshName: 'banner', range: [0.8, 1.2] }` gives each fish its own
+banner length; even the shortest ends 0.4 body lengths past the tail.
 
 Note the pattern: **bigger animal → lower `waveSpeed`, higher `waveTravel` and
 `amplitude`, lower `response`.** Mass reads as slow cadence, long wave, and lazy

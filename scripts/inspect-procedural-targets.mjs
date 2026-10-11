@@ -82,6 +82,18 @@ const targets = [
     minBodyLength: 5,
     minVertices: 1000,
   },
+  {
+    name: 'Longfin Bannerfish static parts',
+    path: 'public/models/fish/heniochus-acuminatus/heniochus-acuminatus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['longfin_bannerfish'],
+    // The banner is a separate object, not a material split, so it has its own origin.
+    requiredFollowMeshes: ['banner'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.3,
+    minVertices: 1000,
+  },
   // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
   // the real models replace them: unit length, single body mesh, same contract.
   ...SPECIES
@@ -101,6 +113,7 @@ const loader = new GLTFLoader()
 for (const target of targets) {
   const data = fs.readFileSync(new URL(`../${target.path}`, import.meta.url))
   const gltf = await loader.parseAsync(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength), '')
+  gltf.scene.updateMatrixWorld(true)
   const bones = []
   const meshes = []
   gltf.scene.traverse(node => {
@@ -117,6 +130,7 @@ for (const target of targets) {
         minSource: axisValue(bbox.min, sourceAxis),
         maxSource: axisValue(bbox.max, sourceAxis),
         sourceSpan: axisValue(bbox.max, sourceAxis) - axisValue(bbox.min, sourceAxis),
+        matrixWorld: node.matrixWorld,
       })
     }
   })
@@ -125,6 +139,14 @@ for (const target of targets) {
   const missingBodyMeshes = (target.bodyMeshNames ?? []).filter(name => !meshNames.includes(name))
   const missingFinMeshes = (target.requiredFinMeshes ?? []).filter(name => !meshNames.includes(name))
   const missingFollowMeshes = (target.requiredFollowMeshes ?? []).filter(name => !meshNames.includes(name))
+  // A follow mesh deforms in its own local frame against the body's bounds, so the two frames must
+  // match: a follow part exported as a separate object with its own origin (the bannerfish's
+  // banner, before its origin was moved to the body's) would wave as if shifted along the body.
+  const followFrameMismatches = (target.requiredFollowMeshes ?? []).filter(name => {
+    const follow = meshes.find(mesh => mesh.name === name)
+    return follow && bodyMeshes[0] && !follow.matrixWorld.equals(bodyMeshes[0].matrixWorld)
+      && follow.matrixWorld.elements.some((value, index) => Math.abs(value - bodyMeshes[0].matrixWorld.elements[index]) > 1e-5)
+  })
   const unexpectedMeshes = (target.forbiddenMeshNames ?? []).filter(name => meshNames.includes(name))
   const missingBodyAttributes = (target.requiredBodyAttributes ?? []).filter(attribute => (
     bodyMeshes.some(mesh => !mesh.attributes.includes(attribute))
@@ -140,6 +162,7 @@ for (const target of targets) {
     || missingBodyMeshes.length > 0
     || missingFinMeshes.length > 0
     || missingFollowMeshes.length > 0
+    || followFrameMismatches.length > 0
     || unexpectedMeshes.length > 0
     || missingBodyAttributes.length > 0
     || bodyContractFailed
@@ -149,11 +172,12 @@ for (const target of targets) {
     path: target.path,
     authoredClipsIgnoredAtRuntime: gltf.animations.map(clip => clip.name),
     proceduralMode: 'longitudinal-vertex',
-    meshes,
+    meshes: meshes.map(({ matrixWorld, ...mesh }) => mesh),
     bodyMeshes: target.bodyMeshNames ?? [],
     missingBodyMeshes,
     missingFinMeshes,
     missingFollowMeshes,
+    followFrameMismatches,
     unexpectedMeshes,
     missingBodyAttributes,
     proceduralBones: [],

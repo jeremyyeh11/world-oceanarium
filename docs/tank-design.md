@@ -148,10 +148,11 @@ So "rojak" becomes a console warning during `npm run dev`, not a vibe you notice
 later. If you see that warning, either move the offending species to its own tank or
 reconsider its `tempo`.
 
-Hitchhikers (species with a `hitchhiker` block — the remoras and the pilot fish) are
+Hitchhikers (species with a `hitchhiker` block — the remoras, the pilot fish, and the bannerfish) are
 left out of the check. They spend most of their time clamped to or following a host and
 move at its pace, so the spearfish remora and the pilot fish can share The Drift with the
-Mola. See
+Mola. The bannerfish follows only about a fifth of the time, but its own cruise (about
+0.5–0.8 WU/s) is slower than the Mola's, so it does not break the tank's calm either. See
 [`ride-hosts.md`](ride-hosts.md).
 
 ## How rendering flows

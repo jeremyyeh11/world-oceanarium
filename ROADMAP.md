@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Longfin Bannerfish
+
+Status: shipped in clean `v0.19.0` (2026-10-11, from `v0.19.0-dev_3`, branch `feat/heniochus-acuminatus`): Jeremy's model in The Drift, a stiff labriform `caudal-vertex` swimmer whose banner is a same-origin follow part with a per-fish length, following the Mola less often than the pilot fish (see `docs/ride-hosts.md`). `dev_2` fixed the pectoral pivot; `dev_3` added the pilot fish tile. The open items below carry over.
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase; model intake, motion, Atlas framing (desktop, 375 px portrait at 82% fill, landscape phone).
+- [x] Banner: separate object in `followBodyMeshNames`, per-fish length (`meshLengthVariation`, 0.8–1.2). Verifier now fails a follow part whose origin is not the body's.
+- [x] Follower block: sunfish only (weight 0.4), about a fifth of its time following.
+- [x] `creatures_dev` review population: 12 bannerfish (ids 326–337, sizes 0.60–1.00), written 2026-10-11. No prior snapshot (insert only; undo is a delete of those ids).
+- [x] Atlas tile: tank capture of fish 336.
+- [x] Jeremy review: pectoral pivot fixed in `dev_2`; shipped on his go-ahead (2026-10-11).
+- [ ] Production `creatures` rows: none yet. Needs Jeremy's go-ahead on the count.
+
 ### Pilot Fish
 
 Status: shipped in clean `v0.18.0` (2026-10-10, from `v0.18.0-dev_2`): Jeremy's model, follows the Mola in The Drift without attaching (`hitchhiker.attaches: false`, see `docs/ride-hosts.md`), breaking off now and then to roam at a quicker cruise (`dev_2`). The open items below carry over.
@@ -22,7 +35,7 @@ Subtasks:
 - [x] Follower mode: escort-only, never attaches, re-stations or roams off when a spell ends.
 - [x] `creatures_dev` review population: 18 pilot fish (ids 290–307), written 2026-10-10. The backup script only covers `creatures`, so `creatures_dev` had no snapshot.
 - [ ] Production `creatures` rows: none yet, so clean builds show no pilot fish. Needs Jeremy's go-ahead on the count.
-- [ ] Atlas photo tile.
+- [x] Atlas photo tile: tank capture of fish 306, in the bannerfish PR (`v0.19.0-dev_3`).
 - [x] Jeremy feel review on device: roaming share and speed contrast accepted (2026-10-10).
 
 ### Remoras (week 1 of the species series)

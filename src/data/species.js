@@ -329,7 +329,11 @@ export const SPECIES = [
     alternateNames: ['Common dolphinfish', 'Dorado'],
     biome: 'ocean',
     depthZone: 'epipelagic',
-    schooling: true,
+    // Adults travel alone or in loose male–female pairs, so they roam as solo agents and Biome
+    // pairs them (advancePairFollow), rather than schooling. A long body (up to 8.4 WU) in a
+    // narrow upper-column box: his station stays nearer her than the default.
+    schooling: false,
+    pairBonded: { stationBodyLengths: [0.5, 1.2] },
     repulser: false,
     aggressive: false,
     predator: true,
@@ -377,8 +381,9 @@ export const SPECIES = [
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. Size 1.0 now maps to Jeremy's 2.1 m max body length.
       bodyLengthWU: 8.4,
-      // Adult Mahi-mahi are rendered as loose pairs: sardine-style shared pathing,
-      // capped at two fish, not a biological school.
+      // Adult Mahi-mahi roam as loose pairs (`pairBonded`), not a school. The school keys
+      // below only apply if it is ever made to school again; `schoolSpacingScale` also widens
+      // its boid perception.
       schoolMaxSize: 2,
       schoolSpacingScale: 5.2,
       schoolMaxAvoidanceAngleDegrees: 18,
@@ -1719,7 +1724,7 @@ export const SPECIES = [
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Adults go in pairs, not schools, so it runs the solo-agent path (followers must). Biome
-    // pairs each female with a male, who keeps station at her side (advancePairFollow).
+    // pairs each female with a male, who keeps loose company with her (advancePairFollow).
     schooling: false,
     pairBonded: true,
     repulser: false,

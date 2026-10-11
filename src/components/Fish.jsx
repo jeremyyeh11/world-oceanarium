@@ -53,6 +53,7 @@ import {
   pitchToward,
   molaSunBaskSurfaceCenterYMax,
   mulberry32,
+  pairBondProfile,
   pickMolaSunBaskExitTarget,
   pickMolaSunBaskTarget,
   pickSoloAgentContinuationTarget,
@@ -1720,6 +1721,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const hitchhiker = useMemo(() => (isSoloAgent ? hitchhikerProfile(species) : null), [isSoloAgent, species])
   // A pair-bonded follower (see Biome) steers by its partner the way an escort steers by a host.
   const pairFollow = isSoloAgent && pair?.leaderId != null ? pair : null
+  const pairBond = useMemo(() => (pairFollow ? pairBondProfile(species) : null), [pairFollow, species])
   const steersByRide = Boolean(hitchhiker || pairFollow)
   const isRideHost = useMemo(() => Boolean(rideHostProfile(species)), [species])
   const ride = runtime.ride
@@ -2063,8 +2065,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     // pose; hosts have already published this frame's (RIDE_HOST_FRAME_PRIORITY).
     if (steersByRide && hasFollowPosition.current) {
       const rideSpeeds = { idle: motion.idleSpeed * organicMotion.speedScale, burst: motion.burstSpeed * organicMotion.speedScale }
-      if (pairFollow) {
-        advancePairFollow(ride, creature, pairFollow.leaderId, pairFollow.side, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds)
+      if (pairFollow && pairBond) {
+        advancePairFollow(ride, creature, pairFollow.leaderId, pairFollow.side, pairBond, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds, rideRand.current)
       }
       if (hitchhiker && ride.stage !== 'pair') {
         ridePoseQuaternion.copy(fish.quaternion)

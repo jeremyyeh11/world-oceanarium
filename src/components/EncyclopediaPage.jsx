@@ -118,6 +118,9 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.2, -0.02, 0],
     lookAt: [0, -0.02, 0],
   },
+  // Emperor angelfish: 0.4 m, between the bannerfish and the pilot fish, and deep-bodied.
+  // On a 375 px phone 0.43 fills about 82% of the stage's width (0.85 filled 41%).
+  'pomacanthus-imperator': { maxLengthDisplayUnits: 1.7, portraitPhoneDistanceScale: 0.43 },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -139,6 +142,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).
   'heniochus-acuminatus': 0.3199,
+  // Supplied emperor angelfish model, nose to tail tip along Z.
+  'pomacanthus-imperator': 0.4002,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -402,13 +407,16 @@ function nextBurstDelay() {
   return THREE.MathUtils.randFloat(6.5, 10.5)
 }
 
-function prepareAtlasModelScene(sourceScene) {
+function prepareAtlasModelScene(sourceScene, alphaTest = null) {
   const scene = clone(sourceScene)
   scene.traverse(object => {
     if (!object.isMesh) return
     const sanitizeMaterial = material => {
       if (!material) return material
       const nextMaterial = material.clone()
+      // Opaque, but a model can opt into cutting its alpha-blended materials (fin rays) at
+      // `model.alphaTest`, the same as in the tank.
+      if (alphaTest != null && material.transparent) nextMaterial.alphaTest = alphaTest
       nextMaterial.transparent = false
       nextMaterial.opacity = 1
       nextMaterial.depthWrite = true
@@ -427,7 +435,8 @@ function prepareAtlasModelScene(sourceScene) {
 function ModelAsset({ species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
-  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene), [gltf.scene])
+  const alphaTest = species?.model?.alphaTest ?? null
+  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene, alphaTest), [gltf.scene, alphaTest])
   const proceduralAnimation = species?.model?.proceduralAnimation ?? null
   const proceduralMaterials = useMemo(
     () => prepareProceduralVertexMaterials(scene, proceduralAnimation),

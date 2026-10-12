@@ -43,6 +43,17 @@ export const SOURCES = [
     provides: ['Status framework', 'Species assessments'],
   },
   {
+    // CC BY 2.0 asks for credit, a link to the licence, and a note of changes.
+    id: 'zerpe-emperor-angelfish',
+    name: 'Rickard Zerpe',
+    fullName: 'Emperor angelfish (Pomacanthus imperator), via Wikimedia Commons',
+    kicker: 'Texture photo · CC BY 2.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Emperor_angelfish_(Pomacanthus_imperator)_(32827796637).jpg',
+    summary:
+      'The photograph the Emperor Angelfish model is textured from, licensed CC BY 2.0 (creativecommons.org/licenses/by/2.0). Modified: mapped onto the 3D model, the fins cut out, and resized.',
+    provides: ['Emperor Angelfish texture'],
+  },
+  {
     id: 'world-oceanarium',
     name: 'world-oceanarium',
     fullName: 'GitHub repository',

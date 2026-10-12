@@ -99,8 +99,9 @@ export const TANKS = [
     // way to art-direct a tank's mood beyond the procedural seed variation.
     lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
-    // Pilot fish follow the Mola without attaching; bannerfish do now and then.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus'],
+    // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
+    // then, as cleaners.
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator'],
   },
 ]
 
@@ -1883,16 +1884,13 @@ export const SPECIES = [
   // --- Emperor angelfish (Pomacanthidae) -----------------------------------------------------
   // Facts from FishBase. A reef angelfish that forms pairs, and whose young and adults "may
   // clean much larger fishes, such as sunfish", so it pairs like the bannerfish and follows the
-  // Mola now and then as a cleaner. Data only until Jeremy's model lands: hidden from the
-  // Atlas, in no tank's roster, and with no creature rows. The model block then follows the
-  // bannerfish's (both cruise on their pectorals with a stiff, deep body).
+  // Mola now and then as a cleaner. On Jeremy's model, adult only.
   {
     id: 'pomacanthus-imperator',
     name: 'Emperor Angelfish',
     scientificName: 'Pomacanthus imperator',
     family: 'Pomacanthidae',
     alternateNames: ['Imperator Angelfish'],
-    hiddenInAtlas: true,
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Adults keep to pairs, so like the bannerfish it roams as a solo agent and Biome pairs it.
@@ -1992,6 +1990,50 @@ export const SPECIES = [
         minSpeedBLPerSec: 0.3,
         rangeBodyLengths: 10,
       },
+    },
+    model: {
+      path: '/models/fish/pomacanthus-imperator/pomacanthus-imperator.glb',
+      // Source length 0.4002 (nose to tail tip, modelled at true size) -> 1.6 WU; the root is
+      // recentred mid-length on the body axis (snout and tail tip both sit ~0.01 up).
+      scale: 3.998,
+      position: [0, -0.04, 0.0126],
+      followAim: 'root',
+      // The fins' texture is a photo cut out by its alpha (rays and soft edges); cut it rather
+      // than render the whole fin card opaque.
+      alphaTest: 0.5,
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['pomacanthus_imperator'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Labriform like the bannerfish: a stiff, deep body that saves its tail for darts, so
+        // the wave starts past mid-body (its rings sit every 5–10% back) and is one short
+        // flick. Amplitude and turn 0.03 body lengths, in source units. A touch slower and
+        // lazier than the bannerfish, being larger.
+        amplitude: 0.012,
+        waveSpeed: 3.3,
+        waveTravel: 2.5,
+        flexStart: 0.55,
+        flexFull: 0.9,
+        turnStrength: 0.012,
+        burstAmplitude: 1.2,
+        response: 8.5,
+        speedFrequencyBoost: 0.4,
+        burstFrequencyBoost: 0.35,
+        // The model's only separate fins are the pelvics (no pectoral objects), splayed out
+        // below the flank a quarter of the way back.
+        pelvicFinFlutter: 0.12,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
     },
   },
 ]

@@ -15,12 +15,15 @@ Status labels:
 
 ### Emperor Angelfish
 
-Status: `Current in development` — `v0.20.0-dev_1` on `feat/emperor-angelfish`: species data and Atlas copy from FishBase, pairing and sunfish cleaning set up, hidden until the model lands. First species picked for converting The Drift to a reef tank.
+Status: `Current in development` — `v0.20.0-dev_2` on `feat/emperor-angelfish`: Jeremy's adult model in The Drift, pairing and cleaning the sunfish. First species picked for converting The Drift to a reef tank.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Pomacanthus imperator`).
-- [ ] Supply the GLB (Jeremy). Then: model block following the bannerfish's labriform `caudal-vertex` config, Atlas framing and tile, unhide.
-- [ ] Add to The Drift's roster, and `creatures_dev` rows (count and sex split to confirm with Jeremy; prod rows need his go-ahead).
+- [x] Model intake: textures resized (29.5 → 1.96 MB), labriform `caudal-vertex`, fin cut-out (`model.alphaTest`), Atlas framing on desktop and a 375 px phone, texture credit (CC BY 2.0).
+- [x] In The Drift's roster; 8 `creatures_dev` rows (ids 350–357).
+- [ ] Pectoral fins: the model has none as separate objects, so the fins that drive its cruise do not row. Add `pectoral.l` / `pectoral.r` in Blender if they should (Jeremy).
+- [ ] Atlas tile (a tank capture, like the bannerfish's).
+- [ ] Production rows: count and sex split, on Jeremy's go-ahead.
 - [ ] Decide the reef conversion: tank name, lighting, and which current residents stay (the bannerfish's home is already Coral Reef).
 - [ ] Reef tank scale (Jeremy, 2026-10-12): reconsider the scale for a reef tank, where most classic reef fish fall under the 27 cm floor. `Backlog`
 - [ ] Fish migrating between tanks (Jeremy, 2026-10-12): let creatures move across tanks, so The Drift could survive alongside a reef tank with the sunfish and its followers passing between them. Needs a design: today only the active tank simulates and `creaturesForTank` filters each tank's roster. `Backlog`

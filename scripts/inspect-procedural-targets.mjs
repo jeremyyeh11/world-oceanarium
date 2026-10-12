@@ -94,6 +94,17 @@ const targets = [
     minBodyLength: 0.3,
     minVertices: 1000,
   },
+  {
+    name: 'Emperor Angelfish static parts',
+    path: 'public/models/fish/pomacanthus-imperator/pomacanthus-imperator.glb',
+    staticMesh: true,
+    bodyMeshNames: ['pomacanthus_imperator'],
+    // Pelvics only: the model has no separate pectoral objects.
+    requiredFinMeshes: ['pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.39,
+    minVertices: 1000,
+  },
   // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
   // the real models replace them: unit length, single body mesh, same contract.
   ...SPECIES

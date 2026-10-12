@@ -10,13 +10,18 @@ Versioning convention notes:
 
 ## v0.20.0 — Emperor Angelfish
 
-Status: in development (`v0.20.0-dev_1`, branch `feat/emperor-angelfish`). Data only until Jeremy's model lands.
+Status: in development (`v0.20.0-dev_2`, branch `feat/emperor-angelfish`; `dev_1` was the species data alone, `dev_2` added Jeremy's model).
 
 ### Species
 
-- Emperor Angelfish (`Pomacanthus imperator`, Pomacanthidae), the first fish chosen for a future reef conversion of The Drift. FishBase facts: up to 40 cm (maturing at 25 cm), 1–100 m on Indo-Pacific reefs, sponges and tunicates, pairs, up to 14 years, IUCN Least Concern. FishBase also records that young and adults clean much larger fishes such as sunfish.
-- Behaviour set up ahead of the model: loose male–female pairs (`pairBonded`) and an occasional cleaner visit to the sunfish (`hosts { sunfish: 0.3 }`, the bannerfish's escort stations). 1.6 WU at full size, `sizeRange [0.62, 1.0]`.
-- Hidden from the Atlas, in no tank's roster, and with no creature rows until the GLB is in.
+- Emperor Angelfish (`Pomacanthus imperator`, Pomacanthidae) on Jeremy's adult model, in The Drift: the first fish chosen for a future reef conversion. FishBase facts: up to 40 cm (maturing at 25 cm), 1–100 m on Indo-Pacific reefs, sponges and tunicates, pairs, up to 14 years, IUCN Least Concern. FishBase also records that young and adults clean much larger fishes such as sunfish.
+- Behaviour: loose male–female pairs (`pairBonded`) and an occasional cleaner visit to the sunfish (`hosts { sunfish: 0.3 }`, the bannerfish's escort stations). 1.6 WU at full size, `sizeRange [0.62, 1.0]`.
+- Model intake: supplied at true size (0.4002 nose to tail tip), so `scale 3.998` and `position [0, -0.04, 0.0126]` recentre it on the body axis. The supplied file was 29.5 MB, almost all two 4227 × 3170 photo textures; they ship resized (body 2048-wide JPEG, fins 1024-wide PNG), 1.96 MB in all, about the bannerfish's size.
+- Motion: the bannerfish's labriform `caudal-vertex` stroke at its own length (0.03 body lengths, `flexStart 0.55`, `waveSpeed 3.3`). The model's only separate fins are the pelvics (`pelvicFinFlutter 0.12`); it has no pectoral objects.
+- New opt-in `model.alphaTest`: every fish renders opaque, which drew the fins' alpha-cut photo as solid cards. A model with `alphaTest` cuts its alpha-blended materials at that value instead, in the tank and the Atlas. Only the angelfish sets it (`0.5`).
+- Atlas framing: `maxLengthDisplayUnits 1.7` (about 28% of a desktop stage's width, beside the bannerfish's ~30%) and `portraitPhoneDistanceScale 0.43` (about 80% of a 375 px phone's stage). No tile yet.
+- The texture is Rickard Zerpe's photograph on Wikimedia Commons (CC BY 2.0); it is credited in the Sources list with the licence and the changes made.
+- 8 rows in `creatures_dev` (ids 350–357, 4 female and 4 male, sizes 0.62–1.00). None in production yet.
 
 ## v0.19.1 — Loose pairs
 

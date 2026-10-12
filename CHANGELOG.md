@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.20.0 — Emperor Angelfish
+
+Status: in development (`v0.20.0-dev_1`, branch `feat/emperor-angelfish`). Data only until Jeremy's model lands.
+
+### Species
+
+- Emperor Angelfish (`Pomacanthus imperator`, Pomacanthidae), the first fish chosen for a future reef conversion of The Drift. FishBase facts: up to 40 cm (maturing at 25 cm), 1–100 m on Indo-Pacific reefs, sponges and tunicates, pairs, up to 14 years, IUCN Least Concern. FishBase also records that young and adults clean much larger fishes such as sunfish.
+- Behaviour set up ahead of the model: loose male–female pairs (`pairBonded`) and an occasional cleaner visit to the sunfish (`hosts { sunfish: 0.3 }`, the bannerfish's escort stations). 1.6 WU at full size, `sizeRange [0.62, 1.0]`.
+- Hidden from the Atlas, in no tank's roster, and with no creature rows until the GLB is in.
+
 ## v0.19.1 — Loose pairs
 
 Status: accepted and promoted as clean `v0.19.1` from `v0.19.1-dev_2` on Jeremy's go-ahead (2026-10-12; `dev_1` paired the bannerfish tightly, `dev_2` loosened the pairs and moved the mahi-mahi onto them). `package.json` moves to `0.19.1`.
@@ -22,7 +32,7 @@ Status: accepted and promoted as clean `v0.19.1` from `v0.19.1-dev_2` on Jeremy'
 
 ## v0.19.0 — Longfin Bannerfish
 
-Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy's go-ahead (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). `package.json` moves to `0.19.0` with it (it had stayed at `0.15.3`). Production `creatures` has no bannerfish rows, so clean builds show none until they are written.
+Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy's go-ahead (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). `package.json` moves to `0.19.0` with it (it had stayed at `0.15.3`). Twelve bannerfish were then written to production `creatures` (ids 338–349) on Jeremy's go-ahead.
 
 ### Species
 
@@ -48,7 +58,7 @@ Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy'
 
 ## v0.18.0 — Pilot Fish
 
-Status: accepted and promoted as clean `v0.18.0` from `v0.18.0-dev_2` after Jeremy's review (2026-10-10). Production `creatures` has no pilot fish rows yet, so clean builds show none until they are written.
+Status: accepted and promoted as clean `v0.18.0` from `v0.18.0-dev_2` after Jeremy's review (2026-10-10). Eighteen pilot fish were written to production `creatures` (ids 308–325) on Jeremy's go-ahead; on 2026-10-12 he had five retired (`alive = false`), leaving 13.
 
 ### Species
 

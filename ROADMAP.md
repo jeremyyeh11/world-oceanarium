@@ -13,6 +13,16 @@ Status labels:
 
 ## Current work
 
+### Emperor Angelfish
+
+Status: `Current in development` — `v0.20.0-dev_1` on `feat/emperor-angelfish`: species data and Atlas copy from FishBase, pairing and sunfish cleaning set up, hidden until the model lands. First species picked for converting The Drift to a reef tank.
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase (`Pomacanthus imperator`).
+- [ ] Supply the GLB (Jeremy). Then: model block following the bannerfish's labriform `caudal-vertex` config, Atlas framing and tile, unhide.
+- [ ] Add to The Drift's roster, and `creatures_dev` rows (count and sex split to confirm with Jeremy; prod rows need his go-ahead).
+- [ ] Decide the reef conversion: tank name, lighting, and which current residents stay (the bannerfish's home is already Coral Reef).
+
 ### Longfin Bannerfish
 
 Status: shipped in clean `v0.19.0` (2026-10-11, from `v0.19.0-dev_3`, branch `feat/heniochus-acuminatus`): Jeremy's model in The Drift, a stiff labriform `caudal-vertex` swimmer whose banner is a same-origin follow part with a per-fish length, following the Mola less often than the pilot fish (see `docs/ride-hosts.md`). `dev_2` fixed the pectoral pivot; `dev_3` added the pilot fish tile. The open items below carry over.

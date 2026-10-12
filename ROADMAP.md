@@ -15,7 +15,7 @@ Status labels:
 
 ### Emperor Angelfish
 
-Status: `Current in development` — `v0.20.0-dev_2` on `feat/emperor-angelfish`: Jeremy's adult model in The Drift, pairing and cleaning the sunfish. First species picked for converting The Drift to a reef tank.
+Status: shipped in clean `v0.20.0` (2026-10-13, from `v0.20.0-dev_4`, branch `feat/emperor-angelfish`): Jeremy's adult model in The Drift, pairing and cleaning the sunfish, shown as a pair in the Atlas. 8 in production (ids 358–365). The open items below carry over. First species picked for converting The Drift to a reef tank.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Pomacanthus imperator`).
@@ -23,7 +23,7 @@ Subtasks:
 - [x] In The Drift's roster; 8 `creatures_dev` rows (ids 350–357).
 - [ ] Pectoral fins: the model has none as separate objects, so the fins that drive its cruise do not row. Add `pectoral.l` / `pectoral.r` in Blender if they should (Jeremy).
 - [x] Atlas tile (`dev_3`): tank capture of fish 353, 420 × 420.
-- [ ] Production rows: count and sex split, on Jeremy's go-ahead.
+- [x] Production rows: 8 (4 female, 4 male, ids 358–365), on Jeremy's go-ahead.
 - [ ] Decide the reef conversion: tank name, lighting, and which current residents stay (the bannerfish's home is already Coral Reef).
 - [ ] Reef tank scale (Jeremy, 2026-10-12): reconsider the scale for a reef tank, where most classic reef fish fall under the 27 cm floor. `Backlog`
 - [ ] Fish migrating between tanks (Jeremy, 2026-10-12): let creatures move across tanks, so The Drift could survive alongside a reef tank with the sunfish and its followers passing between them. Needs a design: today only the active tank simulates and `creaturesForTank` filters each tank's roster. `Backlog`

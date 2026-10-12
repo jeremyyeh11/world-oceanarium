@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.20.0 — Emperor Angelfish
 
-Status: in development (`v0.20.0-dev_3`, branch `feat/emperor-angelfish`; `dev_1` was the species data alone, `dev_2` added Jeremy's model, `dev_3` the Atlas tile, `dev_4` the Atlas pairs).
+Status: accepted and promoted as clean `v0.20.0` from `v0.20.0-dev_4` on Jeremy's go-ahead (2026-10-13; `dev_1` was the species data alone, `dev_2` added Jeremy's model, `dev_3` the Atlas tile, `dev_4` the Atlas pairs). `package.json` moves to `0.20.0`. Eight emperor angelfish were written to production `creatures` (ids 358–365, 4 female and 4 male) on the same go-ahead.
 
 ### Species
 
@@ -22,7 +22,7 @@ Status: in development (`v0.20.0-dev_3`, branch `feat/emperor-angelfish`; `dev_1
 - Atlas framing: `maxLengthDisplayUnits 1.7` (about 28% of a desktop stage's width, beside the bannerfish's ~30%) and `portraitPhoneDistanceScale 0.43` (about 80% of a 375 px phone's stage). Tile (`dev_3`): a tank capture of fish 353 side-on, mask and yellow tail in frame, 420 × 420.
 - The Atlas shows both pair-bonded species as pairs (`dev_4`): the main fish with its mate a little behind, beside, and above it, 0.9× its size and out of step, as they swim in the tank. The angelfish and the bannerfish each sit left of centre with the camera between the two, and stand further back on a phone so both fit (angelfish `portraitPhoneDistanceScale 0.43 → 0.66`; bannerfish camera `4.85 → 5.6`, phone `0.8 → 0.98`).
 - The texture is Rickard Zerpe's photograph on Wikimedia Commons (CC BY 2.0); it is credited in the Sources list with the licence and the changes made.
-- 8 rows in `creatures_dev` (ids 350–357, 4 female and 4 male, sizes 0.62–1.00). None in production yet.
+- 8 rows in `creatures_dev` (ids 350–357, 4 female and 4 male, sizes 0.62–1.00), and the same 8 in production `creatures` (ids 358–365).
 
 ## v0.19.1 — Loose pairs
 

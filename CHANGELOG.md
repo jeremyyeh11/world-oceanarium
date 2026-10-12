@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.20.1 — See-through angelfish fins
 
-Status: in development (`v0.20.1-dev_1`, branch `feat/angelfish-fin-alpha`).
+Status: accepted and promoted as clean `v0.20.1` from `v0.20.1-dev_1` on Jeremy's go-ahead (2026-10-13). `package.json` moves to `0.20.1`.
 
 ### Rendering
 

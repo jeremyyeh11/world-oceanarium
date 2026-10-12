@@ -2000,9 +2000,11 @@ export const SPECIES = [
       scale: 3.998,
       position: [0, -0.04, 0.0126],
       followAim: 'root',
-      // The fins' texture is a photo cut out by its alpha (rays and soft edges); cut it rather
-      // than render the whole fin card opaque.
-      alphaTest: 0.5,
+      // The fins' texture is a photo with an alpha channel (rays and soft, see-through webbing):
+      // blend it rather than render the whole fin card opaque, dropping only the fully clear
+      // texels so they cannot hide what is behind them.
+      alphaBlend: true,
+      alphaTest: 0.02,
       moveset: {
         cruise: 'procedural_cruise',
         drift: 'procedural_drift',

@@ -423,19 +423,20 @@ function nextBurstDelay() {
   return THREE.MathUtils.randFloat(6.5, 10.5)
 }
 
-function prepareAtlasModelScene(sourceScene, alphaTest = null) {
+function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = false) {
   const scene = clone(sourceScene)
   scene.traverse(object => {
     if (!object.isMesh) return
     const sanitizeMaterial = material => {
       if (!material) return material
       const nextMaterial = material.clone()
-      // Opaque, but a model can opt into cutting its alpha-blended materials (fin rays) at
-      // `model.alphaTest`, the same as in the tank.
+      // Opaque, but a model can opt into keeping its alpha-blended materials (fins) see-through
+      // with `model.alphaBlend` and cutting them at `model.alphaTest`, the same as in the tank.
+      const blendsAlpha = alphaBlend && material.transparent
       if (alphaTest != null && material.transparent) nextMaterial.alphaTest = alphaTest
-      nextMaterial.transparent = false
+      nextMaterial.transparent = blendsAlpha
       nextMaterial.opacity = 1
-      nextMaterial.depthWrite = true
+      nextMaterial.depthWrite = !blendsAlpha
       nextMaterial.depthTest = true
       nextMaterial.side = THREE.FrontSide
       nextMaterial.needsUpdate = true
@@ -452,7 +453,8 @@ function ModelAsset({ species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const alphaTest = species?.model?.alphaTest ?? null
-  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene, alphaTest), [gltf.scene, alphaTest])
+  const alphaBlend = species?.model?.alphaBlend === true
+  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene, alphaTest, alphaBlend), [gltf.scene, alphaTest, alphaBlend])
   const proceduralAnimation = species?.model?.proceduralAnimation ?? null
   const proceduralMaterials = useMemo(
     () => prepareProceduralVertexMaterials(scene, proceduralAnimation),

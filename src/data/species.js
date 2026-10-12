@@ -1891,6 +1891,8 @@ export const SPECIES = [
     scientificName: 'Pomacanthus imperator',
     family: 'Pomacanthidae',
     alternateNames: ['Imperator Angelfish'],
+    // Tank capture (2026-10-13): fish 353 side-on, mask and yellow tail in frame.
+    atlasThumbnail: '/atlas/pomacanthus-imperator-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Adults keep to pairs, so like the bannerfish it roams as a solo agent and Biome pairs it.

@@ -22,7 +22,7 @@ Subtasks:
 - [x] Model intake: textures resized (29.5 → 1.96 MB), labriform `caudal-vertex`, fin cut-out (`model.alphaTest`), Atlas framing on desktop and a 375 px phone, texture credit (CC BY 2.0).
 - [x] In The Drift's roster; 8 `creatures_dev` rows (ids 350–357).
 - [ ] Pectoral fins: the model has none as separate objects, so the fins that drive its cruise do not row. Add `pectoral.l` / `pectoral.r` in Blender if they should (Jeremy).
-- [ ] Atlas tile (a tank capture, like the bannerfish's).
+- [x] Atlas tile (`dev_3`): tank capture of fish 353, 420 × 420.
 - [ ] Production rows: count and sex split, on Jeremy's go-ahead.
 - [ ] Decide the reef conversion: tank name, lighting, and which current residents stay (the bannerfish's home is already Coral Reef).
 - [ ] Reef tank scale (Jeremy, 2026-10-12): reconsider the scale for a reef tank, where most classic reef fish fall under the 27 cm floor. `Backlog`

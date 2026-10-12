@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.20.0 — Emperor Angelfish
 
-Status: in development (`v0.20.0-dev_2`, branch `feat/emperor-angelfish`; `dev_1` was the species data alone, `dev_2` added Jeremy's model).
+Status: in development (`v0.20.0-dev_3`, branch `feat/emperor-angelfish`; `dev_1` was the species data alone, `dev_2` added Jeremy's model, `dev_3` the Atlas tile).
 
 ### Species
 
@@ -19,7 +19,7 @@ Status: in development (`v0.20.0-dev_2`, branch `feat/emperor-angelfish`; `dev_1
 - Model intake: supplied at true size (0.4002 nose to tail tip), so `scale 3.998` and `position [0, -0.04, 0.0126]` recentre it on the body axis. The supplied file was 29.5 MB, almost all two 4227 × 3170 photo textures; they ship resized (body 2048-wide JPEG, fins 1024-wide PNG), 1.96 MB in all, about the bannerfish's size.
 - Motion: the bannerfish's labriform `caudal-vertex` stroke at its own length (0.03 body lengths, `flexStart 0.55`, `waveSpeed 3.3`). The model's only separate fins are the pelvics (`pelvicFinFlutter 0.12`); it has no pectoral objects.
 - New opt-in `model.alphaTest`: every fish renders opaque, which drew the fins' alpha-cut photo as solid cards. A model with `alphaTest` cuts its alpha-blended materials at that value instead, in the tank and the Atlas. Only the angelfish sets it (`0.5`).
-- Atlas framing: `maxLengthDisplayUnits 1.7` (about 28% of a desktop stage's width, beside the bannerfish's ~30%) and `portraitPhoneDistanceScale 0.43` (about 80% of a 375 px phone's stage). No tile yet.
+- Atlas framing: `maxLengthDisplayUnits 1.7` (about 28% of a desktop stage's width, beside the bannerfish's ~30%) and `portraitPhoneDistanceScale 0.43` (about 80% of a 375 px phone's stage). Tile (`dev_3`): a tank capture of fish 353 side-on, mask and yellow tail in frame, 420 × 420.
 - The texture is Rickard Zerpe's photograph on Wikimedia Commons (CC BY 2.0); it is credited in the Sources list with the licence and the changes made.
 - 8 rows in `creatures_dev` (ids 350–357, 4 female and 4 male, sizes 0.62–1.00). None in production yet.
 

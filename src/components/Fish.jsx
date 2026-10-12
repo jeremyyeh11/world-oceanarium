@@ -362,9 +362,11 @@ let materialPassEnvMapIntensity = 1
 
 function applyMaterialPass(material) {
   if (!material) return
-  material.transparent = materialPassOpacity < 0.999
+  // A `model.alphaBlend` material (see applyModelMaterialSettings) always blends.
+  const alphaBlend = material.userData.alphaBlend === true
+  material.transparent = alphaBlend || materialPassOpacity < 0.999
   material.opacity = materialPassOpacity
-  if ('depthWrite' in material) material.depthWrite = materialPassOpacity >= 0.999
+  if ('depthWrite' in material) material.depthWrite = !alphaBlend && materialPassOpacity >= 0.999
   if ('envMapIntensity' in material) material.envMapIntensity = materialPassEnvMapIntensity
 }
 
@@ -727,7 +729,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null, alphaBlend = false) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -737,12 +739,15 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
     const clonedMaterials = list.map(material => {
       if (!material) return material
       const nextMaterial = material.clone()
-      // Every fish renders opaque. A model can opt into cutting its alpha-blended materials
-      // (the emperor angelfish's fin rays) at `model.alphaTest` instead of losing their alpha.
+      // Every fish renders opaque. A model can opt into keeping its alpha-blended materials
+      // (the emperor angelfish's fins) see-through with `model.alphaBlend`, and into cutting
+      // them at `model.alphaTest` (with blending, that only drops the fully clear texels).
+      const blendsAlpha = alphaBlend && material.transparent
       if (alphaTest != null && material.transparent) nextMaterial.alphaTest = alphaTest
-      nextMaterial.transparent = false
+      nextMaterial.userData.alphaBlend = blendsAlpha
+      nextMaterial.transparent = blendsAlpha
       nextMaterial.opacity = 1
-      nextMaterial.depthWrite = true
+      nextMaterial.depthWrite = !blendsAlpha
       nextMaterial.roughness = nextMaterial.roughness ?? 0.5
       if (nextMaterial.name?.toLowerCase() === 'sardine') nextMaterial.roughness = SARDINE_MATERIAL_ROUGHNESS
       if (lodDebugColor && nextMaterial.color) nextMaterial.color.set(lodDebugColor)
@@ -1450,7 +1455,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   })
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null)
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null, model?.alphaBlend === true)
   }, [object, rim, lodDebugColor, model])
 
   useFrame(({ clock }, rawDelta) => {

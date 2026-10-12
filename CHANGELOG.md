@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.20.1 — See-through angelfish fins
+
+Status: accepted and promoted as clean `v0.20.1` from `v0.20.1-dev_1` on Jeremy's go-ahead (2026-10-13). `package.json` moves to `0.20.1`.
+
+### Rendering
+
+- The emperor angelfish's fins now blend their texture's alpha (Jeremy's `-alpha` PNG), so the webbing is see-through instead of cut hard at 50%. New opt-in `model.alphaBlend`: a model's alpha-blended materials stay transparent with depth writes off, and the per-frame material pass (which made every material opaque unless the fish was fading) leaves them blending. `alphaTest` drops to `0.02`, cutting only the fully clear texels. Measured live: the angelfish's `fin` material reads `transparent: true`, `depthWrite: false`, `alphaTest: 0.02` in both the tank and the Atlas; the pilot fish, bannerfish, sharksuckers, and mahi fins are unchanged and opaque.
+
 ## v0.20.0 — Emperor Angelfish
 
 Status: accepted and promoted as clean `v0.20.0` from `v0.20.0-dev_4` on Jeremy's go-ahead (2026-10-13; `dev_1` was the species data alone, `dev_2` added Jeremy's model, `dev_3` the Atlas tile, `dev_4` the Atlas pairs). `package.json` moves to `0.20.0`. Eight emperor angelfish were written to production `creatures` (ids 358–365, 4 female and 4 male) on the same go-ahead.

@@ -22,6 +22,8 @@ Subtasks:
 - [ ] Supply the GLB (Jeremy). Then: model block following the bannerfish's labriform `caudal-vertex` config, Atlas framing and tile, unhide.
 - [ ] Add to The Drift's roster, and `creatures_dev` rows (count and sex split to confirm with Jeremy; prod rows need his go-ahead).
 - [ ] Decide the reef conversion: tank name, lighting, and which current residents stay (the bannerfish's home is already Coral Reef).
+- [ ] Reef tank scale (Jeremy, 2026-10-12): reconsider the scale for a reef tank, where most classic reef fish fall under the 27 cm floor. `Backlog`
+- [ ] Fish migrating between tanks (Jeremy, 2026-10-12): let creatures move across tanks, so The Drift could survive alongside a reef tank with the sunfish and its followers passing between them. Needs a design: today only the active tank simulates and `creaturesForTank` filters each tank's roster. `Backlog`
 
 ### Longfin Bannerfish
 

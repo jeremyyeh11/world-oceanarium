@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.19.1 — Loose pairs
+
+Status: in development (`v0.19.1-dev_2`; `dev_1` paired the bannerfish tightly, `dev_2` loosened the pairs and moved the mahi-mahi onto them).
+
+### Behavior
+
+- Longfin bannerfish and adult mahi-mahi now swim as loose male–female pairs (`pairBonded`), as adults of both do. Biome matches each female with a male of the same tank (fish with no sex recorded fill in for the short side; a fish left over roams alone). She leads, sunfish visits included; he keeps company (`advancePairFollow`, ride stage `pair`).
+- Loose, not lockstep: his station wanders round her on slow out-of-step cycles, 0.7–1.8 of his body lengths away (mahi `0.5–1.2`), from 30° ahead of level to 65° behind, and up to 0.35 body lengths above or below. He matches her velocity plus a gentle closing velocity (gain `0.35`, capped at 0.8× his burst), so he lags her turns. Measured on mahi: 1–5 WU apart, headings mostly 3–25° apart.
+- Spells together last 40–90 s; at the end of each, 40% of the time he breaks off for 15–35 s and roams on his own (a bannerfish may visit the sunfish alone), then swims back. Measured: a split mahi reached 33 WU away and closed back to 3 WU about 10 s after the spell ended.
+- While she escorts the sunfish he takes her outer flank and inherits the sunfish's clearance, so he never wedges against its body. If she leaves the tank he is free again.
+- Mahi-mahi no longer school (`schooling: false`): their capped two-fish school is replaced by the pair. The live 2 F + 3 M make two pairs and one lone male.
+
 ## v0.19.0 — Longfin Bannerfish
 
 Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy's go-ahead (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). `package.json` moves to `0.19.0` with it (it had stayed at `0.15.3`). Production `creatures` has no bannerfish rows, so clean builds show none until they are written.

@@ -2275,7 +2275,7 @@ export function findRideHost(rider, riderPosition, riderBodyLength, hitch, rand)
  * Returns whether it moved the rider.
  */
 export function keepRiderClearOfHost(position, ride, riderBodyLength) {
-  if ((ride.stage !== 'approach' && ride.stage !== 'escort') || ride.hostId == null) return false
+  if ((ride.stage !== 'approach' && ride.stage !== 'escort' && ride.stage !== 'pair') || ride.hostId == null) return false
   const host = FISH_REGISTRY.get(ride.hostId)
   const hostProfile = host?.hasPose ? rideHostProfile(resolveSpecies(host)) : null
   if (!hostProfile) return false
@@ -2337,6 +2337,9 @@ export function createRideState() {
     // The host last ridden, and an escort's loose station round its host (see escortStation).
     lastHostId: null,
     escort: { along: 0, angle: 0, radius: 1.5, rates: [0.2, 0.2, 0.2], phases: [0, 0, 0] },
+    // A pair follower's spell (see advancePairFollow): apart from its mate or not, and until when.
+    pairApart: false,
+    pairUntil: 0,
   }
 }
 
@@ -2451,6 +2454,8 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
   if (ride.nextDecisionAt === null) ride.nextDecisionAt = now + randomRangeFromPair(rand, RIDE_FIRST_DECISION_SECONDS)
   const dt = ride.lastStepAt === null ? 0 : THREE.MathUtils.clamp(now - ride.lastStepAt, 0, 0.1)
   ride.lastStepAt = now
+  // A pair follower whose pair was broken up (see advancePairFollow) is just free again.
+  if (ride.stage === 'pair') resetRideState(ride)
 
   const host = ride.hostId != null ? FISH_REGISTRY.get(ride.hostId) : null
   const hostProfile = host?.hasPose ? rideHostProfile(resolveSpecies(host)) : null
@@ -2683,6 +2688,110 @@ export function advanceRide(ride, rider, hitch, riderBodyLength, now, position, 
     ride.ownsPose = true
     ride.opacity = host.opacity ?? 1
   }
+  return ride
+}
+
+// Pair-bonded species (`pairBonded`: the bannerfish, adult mahi-mahi): Biome matches each
+// female with a male. She leads, host visits included. He keeps company loosely: his station
+// wanders slowly round her (from a little ahead to well behind, near and far, above and below)
+// and he answers her turns late, so the two are rarely exactly parallel. Spells together end
+// now and then in a spell apart, when he roams (or visits hosts) on his own, then swims back
+// to her. While she escorts a host he takes the side away from it and inherits the host's
+// clearance (see keepRiderClearOfHost).
+const PAIR_STATION_DISTANCE = [0.7, 1.8]
+// Where round her he sits: 0 is level with her, + ahead, - behind (radians).
+const PAIR_STATION_ANGLE = [THREE.MathUtils.degToRad(-65), THREE.MathUtils.degToRad(30)]
+const PAIR_STATION_RISE = 0.35
+// Fast enough that his drift round her shows as heading of its own (up to ~20° off hers), not
+// just a gap that slowly opens and closes.
+const PAIR_STATION_RATES = [0.15, 0.23, 0.11]
+const PAIR_CLOSING_GAIN = 0.35
+const PAIR_CATCHUP_BURST_SCALE = 0.8
+const PAIR_DEFAULT_TOGETHER_SECONDS = [40, 90]
+const PAIR_DEFAULT_APART_SECONDS = [15, 35]
+const PAIR_DEFAULT_APART_CHANCE = 0.4
+const pairSide = new THREE.Vector3()
+
+/** A pair-bonded species' together/apart rhythm, defaults filled in. */
+export function pairBondProfile(species) {
+  const config = species?.pairBonded
+  if (!config) return null
+  const settings = typeof config === 'object' ? config : {}
+  return {
+    togetherSeconds: settings.togetherSeconds ?? PAIR_DEFAULT_TOGETHER_SECONDS,
+    apartSeconds: settings.apartSeconds ?? PAIR_DEFAULT_APART_SECONDS,
+    apartChance: settings.apartChance ?? PAIR_DEFAULT_APART_CHANCE,
+    stationBodyLengths: settings.stationBodyLengths ?? PAIR_STATION_DISTANCE,
+  }
+}
+
+/**
+ * Step a pair follower. Together, it steers toward its wandering station by `leaderId`: sets
+ * `ride.approaching`, `ride.target` and `ride.targetSpeed` like an escort. Apart (or with the
+ * leader gone) it leaves the ride free, so the fish roams on its own. `side` is +1 or -1, the
+ * flank it favours in open water; `bond` comes from pairBondProfile.
+ */
+export function advancePairFollow(ride, rider, leaderId, side, bond, riderBodyLength, now, position, speeds, rand) {
+  const leader = FISH_REGISTRY.get(leaderId)
+  if (!leader || leader.biome !== rider.biome) {
+    if (ride.stage === 'pair') resetRideState(ride)
+    return ride
+  }
+  if (!(ride.pairUntil > 0)) {
+    ride.pairApart = false
+    ride.pairUntil = now + randomRangeFromPair(rand, bond.togetherSeconds)
+  } else if (now >= ride.pairUntil) {
+    ride.pairApart = !ride.pairApart && rand() < bond.apartChance
+    ride.pairUntil = now + randomRangeFromPair(rand, ride.pairApart ? bond.apartSeconds : bond.togetherSeconds)
+  }
+  if (ride.pairApart) {
+    if (ride.stage === 'pair') resetRideState(ride)
+    return ride
+  }
+  // Rejoining mid-ride: finish the ride first (a follower is at most escorting, never clamped).
+  if (ride.stage !== 'pair' && ride.stage !== 'free' && ride.stage !== 'escort') return ride
+  ride.ownsPose = false
+  ride.approaching = false
+  ride.opacity = 1
+  ride.hug = 0
+  ride.stage = 'pair'
+  ride.anchorIndex = -1
+  ride.hostId = leader.rideHostId ?? null
+  const host = ride.hostId != null ? FISH_REGISTRY.get(ride.hostId) : null
+  const forward = leader.forward
+  if (host) {
+    // Beside a host, keep to her outer flank so he never ends up wedged against its body.
+    pairSide.subVectors(leader.position, host.position)
+    pairSide.addScaledVector(forward, -pairSide.dot(forward))
+  } else {
+    pairSide.set(-forward.z, 0, forward.x).multiplyScalar(side)
+  }
+  if (pairSide.lengthSq() < 1e-6) pairSide.set(-forward.z, 0, forward.x)
+  pairSide.normalize()
+  // Each pair's station wanders on its own slow, out-of-step cycles.
+  const phase = (Number(rider.id) || 0) * 1.618
+  const wave = (rate, offset) => 0.5 + 0.5 * Math.sin(now * rate + phase * offset)
+  const distance = THREE.MathUtils.lerp(bond.stationBodyLengths[0], bond.stationBodyLengths[1], wave(PAIR_STATION_RATES[0], 1)) * riderBodyLength
+  const angle = THREE.MathUtils.lerp(PAIR_STATION_ANGLE[0], PAIR_STATION_ANGLE[1], wave(PAIR_STATION_RATES[1], 2.3))
+  const rise = PAIR_STATION_RISE * (2 * wave(PAIR_STATION_RATES[2], 3.7) - 1) * riderBodyLength
+  ride.target.copy(leader.position)
+    .addScaledVector(pairSide, Math.cos(angle) * distance)
+    .addScaledVector(forward, Math.sin(angle) * distance)
+  ride.target.y = Math.min(ride.target.y + rise, rideSurfaceLimitY(riderBodyLength))
+  // Her velocity plus a gentle closing velocity toward the station, so he lags her turns and
+  // swims back at a steady pace rather than a sprint.
+  rideHostForward.subVectors(ride.target, position)
+  const stationDistance = rideHostForward.length()
+  if (stationDistance > 1e-4) rideHostForward.divideScalar(stationDistance)
+  const maxSpeed = speeds.burst * PAIR_CATCHUP_BURST_SCALE
+  const closing = Math.min(stationDistance * PAIR_CLOSING_GAIN, maxSpeed)
+  rideDesiredVelocity.copy(forward).multiplyScalar(leader.speed ?? 0).addScaledVector(rideHostForward, closing)
+  const desiredSpeed = rideDesiredVelocity.length()
+  ride.targetSpeed = THREE.MathUtils.clamp(desiredSpeed, Math.min(speeds.idle * 0.5, maxSpeed), maxSpeed)
+  if (desiredSpeed > 1e-4) rideDesiredVelocity.divideScalar(desiredSpeed)
+  else rideDesiredVelocity.copy(forward)
+  ride.target.copy(position).addScaledVector(rideDesiredVelocity, Math.max(1, riderBodyLength))
+  ride.approaching = true
   return ride
 }
 

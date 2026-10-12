@@ -111,12 +111,22 @@ const VIEW_POSES_BY_SPECIES = {
   'naucrates-ductor': { maxLengthDisplayUnits: 1.75 },
   // Longfin bannerfish: 0.25 m, the sardinella's size and camera. Its banner trails another 0.6
   // body lengths behind the tail, so the fish sits left of centre to keep the banner on stage.
+  // Shown as a pair: the camera stands back a little and looks between the two.
   'heniochus-acuminatus': {
     maxLengthDisplayUnits: 1.1,
-    portraitPhoneDistanceScale: 0.8,
-    cameraDistance: 4.85,
-    position: [-0.2, -0.02, 0],
-    lookAt: [0, -0.02, 0],
+    portraitPhoneDistanceScale: 0.98,
+    cameraDistance: 5.6,
+    position: [-0.45, -0.12, 0],
+    lookAt: [0.15, 0.22, 0],
+  },
+  // Emperor angelfish: 0.4 m, between the bannerfish and the pilot fish, and deep-bodied.
+  // Shown as a pair (see ATLAS_COMPANIONS_BY_SPECIES): the main fish sits left of centre and the
+  // camera looks between the two. On a phone the camera stays back far enough for both.
+  'pomacanthus-imperator': {
+    maxLengthDisplayUnits: 1.7,
+    portraitPhoneDistanceScale: 0.66,
+    position: [-0.45, -0.1, 0],
+    lookAt: [0, 0.2, 0],
   },
 }
 
@@ -139,6 +149,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).
   'heniochus-acuminatus': 0.3199,
+  // Supplied emperor angelfish model, nose to tail tip along Z.
+  'pomacanthus-imperator': 0.4002,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -157,6 +169,15 @@ const ATLAS_COMPANIONS_BY_SPECIES = {
     { position: [-1.55, 0.42, -1.65], scale: 0.54, yaw: -0.1, animationOffset: 1.6, animationSpeed: 0.92, burstDelay: 7.6 },
     { position: [1.42, -0.5, -2.05], scale: 0.48, yaw: 0.12, animationOffset: 3.35, animationSpeed: 1.11, burstDelay: 6.5 },
     { position: [0.28, 0.86, -2.4], scale: 0.42, yaw: 0.05, animationOffset: 4.9, animationSpeed: 0.86, burstDelay: 8.9 },
+  ],
+  // Pair-bonded species show their mate, as in the tank: a little behind, beside, and above
+  // the main fish (which faces left, so behind is to the right), slightly smaller and out of
+  // step with it.
+  'heniochus-acuminatus': [
+    { position: [0.5, 0.62, -0.9], scale: 0.9, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
+  ],
+  'pomacanthus-imperator': [
+    { position: [0.5, 0.55, -1.0], scale: 0.9, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
   ],
 }
 
@@ -402,13 +423,16 @@ function nextBurstDelay() {
   return THREE.MathUtils.randFloat(6.5, 10.5)
 }
 
-function prepareAtlasModelScene(sourceScene) {
+function prepareAtlasModelScene(sourceScene, alphaTest = null) {
   const scene = clone(sourceScene)
   scene.traverse(object => {
     if (!object.isMesh) return
     const sanitizeMaterial = material => {
       if (!material) return material
       const nextMaterial = material.clone()
+      // Opaque, but a model can opt into cutting its alpha-blended materials (fin rays) at
+      // `model.alphaTest`, the same as in the tank.
+      if (alphaTest != null && material.transparent) nextMaterial.alphaTest = alphaTest
       nextMaterial.transparent = false
       nextMaterial.opacity = 1
       nextMaterial.depthWrite = true
@@ -427,7 +451,8 @@ function prepareAtlasModelScene(sourceScene) {
 function ModelAsset({ species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
-  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene), [gltf.scene])
+  const alphaTest = species?.model?.alphaTest ?? null
+  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene, alphaTest), [gltf.scene, alphaTest])
   const proceduralAnimation = species?.model?.proceduralAnimation ?? null
   const proceduralMaterials = useMemo(
     () => prepareProceduralVertexMaterials(scene, proceduralAnimation),

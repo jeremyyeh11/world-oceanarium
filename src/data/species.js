@@ -99,8 +99,9 @@ export const TANKS = [
     // way to art-direct a tank's mood beyond the procedural seed variation.
     lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
-    // Pilot fish follow the Mola without attaching; bannerfish do now and then.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus'],
+    // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
+    // then, as cleaners.
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator'],
   },
 ]
 
@@ -1875,6 +1876,163 @@ export const SPECIES = [
         // tips sit nearer the body's axis than their roots: find each root by the body's surface.
         finRootFrom: 'body-surface',
         pelvicFinFlutter: 0.1,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // --- Emperor angelfish (Pomacanthidae) -----------------------------------------------------
+  // Facts from FishBase. A reef angelfish that forms pairs, and whose young and adults "may
+  // clean much larger fishes, such as sunfish", so it pairs like the bannerfish and follows the
+  // Mola now and then as a cleaner. On Jeremy's model, adult only.
+  {
+    id: 'pomacanthus-imperator',
+    name: 'Emperor Angelfish',
+    scientificName: 'Pomacanthus imperator',
+    family: 'Pomacanthidae',
+    alternateNames: ['Imperator Angelfish'],
+    // Tank capture (2026-10-13): fish 353 side-on, mask and yellow tail in frame.
+    atlasThumbnail: '/atlas/pomacanthus-imperator-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Adults keep to pairs, so like the bannerfish it roams as a solo agent and Biome pairs it.
+    schooling: false,
+    pairBonded: true,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      commonDiet: 'Sponges, tunicates, and other encrusting animals; also picks parasites off larger fishes.',
+      foundIn: 'Indo-Pacific reefs, Red Sea and East Africa to the Line and Tuamotu islands, north to southern Japan and south to the Great Barrier Reef, New Caledonia, and the Austral Islands, 1 to 100 m.',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Up to 14 years',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Pairs',
+        groupingBehaviour: 'Adults form pairs and keep to ledges and caves in rich coral on lagoon, channel, and seaward reefs. Juveniles hide under ledges and in holes on sheltered reefs. Young and adults may clean much larger fishes, such as sunfish.',
+        reproduction: 'Forms pairs. Spawning is poorly documented.',
+      },
+      averages: {
+        // FishBase gives no common length, weight, or sex-specific sizes; 14 years is its
+        // maximum reported age, used as life expectancy the way the other species do.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 14,
+        femaleLifeExpectancyYears: 14,
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sponges',
+      social: 'Pairs',
+    },
+    description: 'A reef angelfish up to 40 cm, striped electric blue and yellow, with a dark mask across its eyes and a yellow tail. Pairs keep to ledges and caves in rich coral, grazing sponges and other encrusting animals. Young and adults will also clean much larger fishes, sunfish among them, so in the tank it now and then joins the giant sunfish before drifting off again.',
+    // FishBase: 40 cm maximum (standard length), maturing at 25 cm.
+    adultLengthRangeMeters: [0.25, 0.4],
+    maxBodyLengthMeters: 0.4,
+    swim: {
+      // Same unhurried, manoeuvrable pectoral cruiser as the bannerfish, at its own length.
+      visualTimeScale: 0.8,
+      driftEnabled: false,
+      idleBLPerSec: [0.5, 0.85],
+      idleDriftBLPerSec: [0.06, 0.14],
+      snapBLPerSec: [1.0, 1.4],
+      burstBLPerSec: [2.2, 3.0],
+      burstInterval: [12.0, 22.0],
+      burstActionDuration: 0.6,
+      turnActionDuration: 0.5,
+      erraticness: 0.16,
+      turnRadiusBodyLengths: 0.8,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      ...DRIFT_RIDER_BOUNDS,
+      // 1 WU = 25 cm: 40 cm maximum = 1.6 WU, half again the sardinella.
+      bodyLengthWU: 1.6,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.5,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        menace: 0.02,
+        wariness: 0.3,
+      },
+    },
+    // Individuals span the 25 cm maturity length to the 40 cm maximum.
+    sizeRange: [0.62, 1.0],
+    // Rough length–weight for a deep, compressed body; no published weight for this species.
+    mass: { coefficient: 0.02, exponent: 3 },
+    hitchhiker: {
+      // A cleaner like the bannerfish, joining the sunfish a little less readily.
+      attaches: false,
+      freeSeconds: [70, 140],
+      hosts: { sunfish: 0.3 },
+      escort: {
+        along: [-0.5, 0.1],
+        angleDegrees: [-215, 35],
+        radius: [1.05, 1.3],
+        seconds: [15, 35],
+        leaveChance: 0.85,
+        minSpeedBLPerSec: 0.3,
+        rangeBodyLengths: 10,
+      },
+    },
+    model: {
+      path: '/models/fish/pomacanthus-imperator/pomacanthus-imperator.glb',
+      // Source length 0.4002 (nose to tail tip, modelled at true size) -> 1.6 WU; the root is
+      // recentred mid-length on the body axis (snout and tail tip both sit ~0.01 up).
+      scale: 3.998,
+      position: [0, -0.04, 0.0126],
+      followAim: 'root',
+      // The fins' texture is a photo cut out by its alpha (rays and soft edges); cut it rather
+      // than render the whole fin card opaque.
+      alphaTest: 0.5,
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['pomacanthus_imperator'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Labriform like the bannerfish: a stiff, deep body that saves its tail for darts, so
+        // the wave starts past mid-body (its rings sit every 5–10% back) and is one short
+        // flick. Amplitude and turn 0.03 body lengths, in source units. A touch slower and
+        // lazier than the bannerfish, being larger.
+        amplitude: 0.012,
+        waveSpeed: 3.3,
+        waveTravel: 2.5,
+        flexStart: 0.55,
+        flexFull: 0.9,
+        turnStrength: 0.012,
+        burstAmplitude: 1.2,
+        response: 8.5,
+        speedFrequencyBoost: 0.4,
+        burstFrequencyBoost: 0.35,
+        // The model's only separate fins are the pelvics (no pectoral objects), splayed out
+        // below the flank a quarter of the way back.
+        pelvicFinFlutter: 0.12,
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,

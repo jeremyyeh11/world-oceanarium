@@ -8,6 +8,22 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.20.0 — Emperor Angelfish
+
+Status: accepted and promoted as clean `v0.20.0` from `v0.20.0-dev_4` on Jeremy's go-ahead (2026-10-13; `dev_1` was the species data alone, `dev_2` added Jeremy's model, `dev_3` the Atlas tile, `dev_4` the Atlas pairs). `package.json` moves to `0.20.0`. Eight emperor angelfish were written to production `creatures` (ids 358–365, 4 female and 4 male) on the same go-ahead.
+
+### Species
+
+- Emperor Angelfish (`Pomacanthus imperator`, Pomacanthidae) on Jeremy's adult model, in The Drift: the first fish chosen for a future reef conversion. FishBase facts: up to 40 cm (maturing at 25 cm), 1–100 m on Indo-Pacific reefs, sponges and tunicates, pairs, up to 14 years, IUCN Least Concern. FishBase also records that young and adults clean much larger fishes such as sunfish.
+- Behaviour: loose male–female pairs (`pairBonded`) and an occasional cleaner visit to the sunfish (`hosts { sunfish: 0.3 }`, the bannerfish's escort stations). 1.6 WU at full size, `sizeRange [0.62, 1.0]`.
+- Model intake: supplied at true size (0.4002 nose to tail tip), so `scale 3.998` and `position [0, -0.04, 0.0126]` recentre it on the body axis. The supplied file was 29.5 MB, almost all two 4227 × 3170 photo textures; they ship resized (body 2048-wide JPEG, fins 1024-wide PNG), 1.96 MB in all, about the bannerfish's size.
+- Motion: the bannerfish's labriform `caudal-vertex` stroke at its own length (0.03 body lengths, `flexStart 0.55`, `waveSpeed 3.3`). The model's only separate fins are the pelvics (`pelvicFinFlutter 0.12`); it has no pectoral objects.
+- New opt-in `model.alphaTest`: every fish renders opaque, which drew the fins' alpha-cut photo as solid cards. A model with `alphaTest` cuts its alpha-blended materials at that value instead, in the tank and the Atlas. Only the angelfish sets it (`0.5`).
+- Atlas framing: `maxLengthDisplayUnits 1.7` (about 28% of a desktop stage's width, beside the bannerfish's ~30%) and `portraitPhoneDistanceScale 0.43` (about 80% of a 375 px phone's stage). Tile (`dev_3`): a tank capture of fish 353 side-on, mask and yellow tail in frame, 420 × 420.
+- The Atlas shows both pair-bonded species as pairs (`dev_4`): the main fish with its mate a little behind, beside, and above it, 0.9× its size and out of step, as they swim in the tank. The angelfish and the bannerfish each sit left of centre with the camera between the two, and stand further back on a phone so both fit (angelfish `portraitPhoneDistanceScale 0.43 → 0.66`; bannerfish camera `4.85 → 5.6`, phone `0.8 → 0.98`).
+- The texture is Rickard Zerpe's photograph on Wikimedia Commons (CC BY 2.0); it is credited in the Sources list with the licence and the changes made.
+- 8 rows in `creatures_dev` (ids 350–357, 4 female and 4 male, sizes 0.62–1.00), and the same 8 in production `creatures` (ids 358–365).
+
 ## v0.19.1 — Loose pairs
 
 Status: accepted and promoted as clean `v0.19.1` from `v0.19.1-dev_2` on Jeremy's go-ahead (2026-10-12; `dev_1` paired the bannerfish tightly, `dev_2` loosened the pairs and moved the mahi-mahi onto them). `package.json` moves to `0.19.1`.
@@ -22,7 +38,7 @@ Status: accepted and promoted as clean `v0.19.1` from `v0.19.1-dev_2` on Jeremy'
 
 ## v0.19.0 — Longfin Bannerfish
 
-Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy's go-ahead (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). `package.json` moves to `0.19.0` with it (it had stayed at `0.15.3`). Production `creatures` has no bannerfish rows, so clean builds show none until they are written.
+Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy's go-ahead (2026-10-11; `dev_2` fixed the pectoral pivot, `dev_3` added the pilot fish tile). `package.json` moves to `0.19.0` with it (it had stayed at `0.15.3`). Twelve bannerfish were then written to production `creatures` (ids 338–349) on Jeremy's go-ahead.
 
 ### Species
 
@@ -48,7 +64,7 @@ Status: accepted and promoted as clean `v0.19.0` from `v0.19.0-dev_3` on Jeremy'
 
 ## v0.18.0 — Pilot Fish
 
-Status: accepted and promoted as clean `v0.18.0` from `v0.18.0-dev_2` after Jeremy's review (2026-10-10). Production `creatures` has no pilot fish rows yet, so clean builds show none until they are written.
+Status: accepted and promoted as clean `v0.18.0` from `v0.18.0-dev_2` after Jeremy's review (2026-10-10). Eighteen pilot fish were written to production `creatures` (ids 308–325) on Jeremy's go-ahead; on 2026-10-12 he had five retired (`alive = false`), leaving 13.
 
 ### Species
 

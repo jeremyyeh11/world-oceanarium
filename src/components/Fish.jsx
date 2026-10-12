@@ -727,7 +727,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -737,6 +737,9 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
     const clonedMaterials = list.map(material => {
       if (!material) return material
       const nextMaterial = material.clone()
+      // Every fish renders opaque. A model can opt into cutting its alpha-blended materials
+      // (the emperor angelfish's fin rays) at `model.alphaTest` instead of losing their alpha.
+      if (alphaTest != null && material.transparent) nextMaterial.alphaTest = alphaTest
       nextMaterial.transparent = false
       nextMaterial.opacity = 1
       nextMaterial.depthWrite = true
@@ -1447,7 +1450,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
   })
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation)
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null)
   }, [object, rim, lodDebugColor, model])
 
   useFrame(({ clock }, rawDelta) => {

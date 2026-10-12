@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.19.1 — Loose pairs
 
-Status: in development (`v0.19.1-dev_2`; `dev_1` paired the bannerfish tightly, `dev_2` loosened the pairs and moved the mahi-mahi onto them).
+Status: accepted and promoted as clean `v0.19.1` from `v0.19.1-dev_2` on Jeremy's go-ahead (2026-10-12; `dev_1` paired the bannerfish tightly, `dev_2` loosened the pairs and moved the mahi-mahi onto them). `package.json` moves to `0.19.1`.
 
 ### Behavior
 

@@ -15,7 +15,7 @@ Status labels:
 
 ### Juvenile Emperor Angelfish
 
-Status: `Current in development` — `v0.21.0-dev_1` (branch `feat/juvenile-angelfish`): the `life_stage` column, stage-aware species (`lifeStages`), Jeremy's juvenile model in The Drift and the Atlas.
+Status: `Current in development` — `v0.21.0-dev_2` (branch `feat/juvenile-angelfish`; `dev_2` is the adult model's revised shading): the `life_stage` column, stage-aware species (`lifeStages`), Jeremy's juvenile model in The Drift and the Atlas.
 
 Subtasks:
 - [x] `life_stage` column (juvenile / adult, default adult) on both tables; all existing rows adult.

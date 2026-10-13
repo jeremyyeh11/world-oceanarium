@@ -355,6 +355,7 @@ export default function InfoCard({ creature, onClose, onOpenEncyclopedia, childr
 
       <div style={styles.chips}>
         <span style={styles.chip}>{depthLabel}</span>
+        {creature.lifeStage === 'juvenile' && <span style={styles.chip}>Juvenile</span>}
         {species?.family && <span style={styles.chip}>{species.family}</span>}
         {species?.predator && <span style={styles.chip}>Predator</span>}
         {species?.aggressive && <span style={styles.chip}>Aggressive</span>}

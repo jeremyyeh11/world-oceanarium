@@ -54,6 +54,18 @@ export const SOURCES = [
     provides: ['Emperor Angelfish texture'],
   },
   {
+    // CC BY-SA 4.0 asks for credit, a link to the licence, a note of changes, and that the
+    // adapted texture is shared under the same licence.
+    id: 'delso-emperor-angelfish-juvenile',
+    name: 'Diego Delso',
+    fullName: 'Juvenile emperor angelfish (Pomacanthus imperator), Ad Dimaniyat Islands, Oman, via Wikimedia Commons',
+    kicker: 'Texture photo · CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Pez_%C3%A1ngel_emperador_(Pomacanthus_imperator),_islas_Ad_Dimaniyat,_Om%C3%A1n,_2024-08-14,_DD_47.jpg',
+    summary:
+      'The photograph the juvenile Emperor Angelfish model is textured from, licensed CC BY-SA 4.0 (creativecommons.org/licenses/by-sa/4.0). Modified: mapped onto the 3D model and resized; the adapted texture is shared under the same licence.',
+    provides: ['Juvenile Emperor Angelfish texture'],
+  },
+  {
     id: 'world-oceanarium',
     name: 'world-oceanarium',
     fullName: 'GitHub repository',

@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
+import { speciesForLifeStage } from '../utils/speciesLookup'
 import Environment from './Environment'
 import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
@@ -176,8 +177,12 @@ const ATLAS_COMPANIONS_BY_SPECIES = {
   'heniochus-acuminatus': [
     { position: [0.5, 0.62, -0.9], scale: 0.9, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
   ],
+  // The angelfish pair, plus two juveniles (`lifeStage`, their own model) at true size against
+  // a 40 cm adult: `scale` is the juvenile's length as a share of the species' 40 cm.
   'pomacanthus-imperator': [
     { position: [0.5, 0.55, -1.0], scale: 0.9, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
+    { lifeStage: 'juvenile', position: [0.35, -0.55, 0.45], scale: 0.32, yaw: -0.12, animationOffset: 0.7, animationSpeed: 1.12 },
+    { lifeStage: 'juvenile', position: [1.05, -0.2, -0.35], scale: 0.27, yaw: 0.18, animationOffset: 2.6, animationSpeed: 1.06 },
   ],
 }
 
@@ -449,7 +454,7 @@ function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = fals
   return scene
 }
 
-function ModelAsset({ species, pose, companion = null }) {
+function ModelAsset({ species, adultSpecies = species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const alphaTest = species?.model?.alphaTest ?? null
@@ -471,7 +476,10 @@ function ModelAsset({ species, pose, companion = null }) {
   const animationOffset = animationProfile?.animationOffset ?? 0
   const animationSpeed = animationProfile?.animationSpeed ?? 1
   const openingBurstDelay = animationProfile?.burstDelay ?? 3.8
-  const viewerScale = atlasModelScaleForSpecies(species, pose) * (companion?.scale ?? 1)
+  // The pose frames the adult model. A life stage's model maps its own source length to the same
+  // tank length (its `model.scale`), so it takes the adult's framing times the ratio of scales.
+  const stageScale = (species?.model?.scale ?? 1) / (adultSpecies?.model?.scale ?? 1)
+  const viewerScale = atlasModelScaleForSpecies(adultSpecies, pose) * stageScale * (companion?.scale ?? 1)
   const sourceRotation = species?.model?.rotation ?? [0, 0, 0]
   const yaw = pose.yawOffset + (companion?.yaw ?? 0)
   const position = companion?.position ?? pose.position
@@ -621,7 +629,13 @@ function SpeciesModel({ species }) {
         {species?.model?.path ? (
           <>
             {companions.map((companion, index) => (
-              <ModelAsset key={`${species.id}-atlas-companion-${index}`} species={species} pose={pose} companion={companion} />
+              <ModelAsset
+                key={`${species.id}-atlas-companion-${index}`}
+                species={speciesForLifeStage(species, companion.lifeStage)}
+                adultSpecies={species}
+                pose={pose}
+                companion={companion}
+              />
             ))}
             <ModelAsset species={species} pose={pose} />
           </>

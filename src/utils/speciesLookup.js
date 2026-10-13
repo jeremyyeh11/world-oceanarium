@@ -69,8 +69,26 @@ export const SPECIES_NAME_BY_ALIAS = new Map(
   SPECIES.flatMap(species => speciesAliasKeys(species).map(key => [key, species.name])),
 )
 
+// A species can describe its young in `lifeStages.<stage>` (the emperor angelfish's juvenile:
+// its own model, size range, and manner). A creature's `lifeStage` picks one; the stage's fields
+// replace the species' own, except `swim`, which merges. Cached so every fish of a stage shares
+// one object, as fish of a species do.
+const SPECIES_BY_LIFE_STAGE = new Map()
+
+export function speciesForLifeStage(species, lifeStage) {
+  const stage = lifeStage ? species?.lifeStages?.[lifeStage] : null
+  if (!stage) return species
+  const key = `${species.id}:${lifeStage}`
+  let staged = SPECIES_BY_LIFE_STAGE.get(key)
+  if (!staged) {
+    staged = { ...species, ...stage, swim: { ...species.swim, ...stage.swim }, lifeStage }
+    SPECIES_BY_LIFE_STAGE.set(key, staged)
+  }
+  return staged
+}
+
 export function resolveSpecies(creature) {
-  return SPECIES_BY_KEY.get(creature?.species)
+  return speciesForLifeStage(SPECIES_BY_KEY.get(creature?.species), creature?.lifeStage)
 }
 
 export function isMolaCreature(creature) {

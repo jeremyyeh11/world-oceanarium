@@ -1884,7 +1884,7 @@ export const SPECIES = [
   // --- Emperor angelfish (Pomacanthidae) -----------------------------------------------------
   // Facts from FishBase. A reef angelfish that forms pairs, and whose young and adults "may
   // clean much larger fishes, such as sunfish", so it pairs like the bannerfish and follows the
-  // Mola now and then as a cleaner. On Jeremy's model, adult only.
+  // Mola now and then as a cleaner. Jeremy's adult and juvenile models (see lifeStages).
   {
     id: 'pomacanthus-imperator',
     name: 'Emperor Angelfish',
@@ -1916,7 +1916,7 @@ export const SPECIES = [
       maturityAge: 'Unknown',
       social: {
         schoolSize: 'Pairs',
-        groupingBehaviour: 'Adults form pairs and keep to ledges and caves in rich coral on lagoon, channel, and seaward reefs. Juveniles hide under ledges and in holes on sheltered reefs. Young and adults may clean much larger fishes, such as sunfish.',
+        groupingBehaviour: 'Adults form pairs and keep to ledges and caves in rich coral on lagoon, channel, and seaward reefs. Juveniles hide under ledges and in holes on sheltered reefs, dark blue ringed in white until the adult stripes come in at about 12 to 14 cm. Young and adults may clean much larger fishes, such as sunfish.',
         reproduction: 'Forms pairs. Spawning is poorly documented.',
       },
       averages: {
@@ -2038,6 +2038,63 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,
+    },
+    // Juveniles (a creature's `lifeStage: 'juvenile'`; see speciesForLifeStage): dark blue with
+    // white rings, until the adult colours come in at about 12–14 cm (Seatizens: under ~14 cm).
+    // They keep to themselves under ledges, so they do not pair, but young fish clean too.
+    lifeStages: {
+      juvenile: {
+        pairBonded: false,
+        // 8–14 cm against the species' 40 cm (bodyLengthWU 1.6): 0.32–0.56 WU, under the 1.08 WU
+        // sardinella floor, as a real juvenile is.
+        sizeRange: [0.2, 0.35],
+        swim: {
+          // Speeds are in species body lengths (40 cm), so a 12 cm juvenile at the adult's
+          // multiplier would cover 2–3 of its own lengths a second; this keeps it near 1–1.7.
+          speedMultiplier: 0.6,
+        },
+        model: {
+          path: '/models/fish/pomacanthus-imperator/pomacanthus-imperator-juvenile.glb',
+          // Source length 0.1995 (nose to tail tip, Z) -> 1.6 WU at size 1, so the size range
+          // above gives true length. The root is recentred mid-length, and up 0.012 onto the
+          // body axis (snout at -0.011, caudal fin centre at -0.013).
+          scale: 8.02,
+          position: [0, 0.096, -0.1396],
+          followAim: 'root',
+          // Its photo texture is fully opaque (fins are cut in the mesh), so no alpha settings.
+          moveset: {
+            cruise: 'procedural_cruise',
+            drift: 'procedural_drift',
+            turnLeft: 'procedural_turn_left',
+            turnRight: 'procedural_turn_right',
+            burst: 'procedural_burst',
+          },
+          proceduralAnimation: {
+            type: 'caudal-vertex',
+            bodyMeshNames: ['pomacanthus_imperator_juvenile'],
+            sourceAxis: 'z',
+            lateralAxis: 'x',
+            tailAtMaxZ: true,
+            // The adult's labriform stroke at this model's length (0.03 body lengths = 0.006
+            // source units), beating a little quicker for a smaller fish.
+            amplitude: 0.006,
+            waveSpeed: 4.0,
+            waveTravel: 2.5,
+            flexStart: 0.55,
+            flexFull: 0.9,
+            turnStrength: 0.006,
+            burstAmplitude: 1.2,
+            response: 8.5,
+            speedFrequencyBoost: 0.4,
+            burstFrequencyBoost: 0.35,
+            // Unlike the adult model, this one has separate pectorals (and no pelvics), low on
+            // the flank a quarter of the way back.
+            pectoralFinFlutter: 0.12,
+          },
+          debugForwardOrigin: 'head',
+          debugForwardOffsetRatio: 0.5,
+        },
+      },
     },
   },
 ]

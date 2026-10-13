@@ -8,6 +8,25 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.21.0 — Juvenile emperor angelfish
+
+Status: in development as `v0.21.0-dev_1` (branch `feat/juvenile-angelfish`).
+
+### Data
+
+- New `life_stage` column on `creatures` and `creatures_dev` (`supabase/migrations/202610131545_add_creature_life_stage.sql`): text, required, defaults to `adult`, checked to `juvenile` or `adult`. Every existing row is `adult`. Entered by hand for now; deriving it from `born_at` is planned.
+- `useCreatures` reads it as `creature.lifeStage` (`adult` when absent, as in the bundled fixtures).
+
+### Species
+
+- A species can describe a life stage in `lifeStages.<stage>`: its own model, size range, and manner. `speciesForLifeStage` merges the stage over the species (`swim` merges, everything else replaces) and `resolveSpecies` applies it, so a juvenile's model, motion, size and pairing all follow from its row. Cached per stage.
+- Juvenile Emperor Angelfish on Jeremy's model: dark blue ringed in white, the pattern young fish wear until about 12–14 cm (Seatizens puts it under ~14 cm). `sizeRange [0.2, 0.35]` of the species' 40 cm, so 8–14 cm (0.32–0.56 WU), below the 27 cm sardinella floor as a real juvenile is. Juveniles do not pair (they keep to themselves under ledges) but still clean the sunfish, as FishBase records for young and adults. `speedMultiplier 0.6`, since speeds are in species (40 cm) body lengths.
+- Model intake: supplied at 0.1995 nose to tail tip, so `scale 8.02` maps it to the species' 1.6 WU at size 1. The file was 15.4 MB, almost all one 3834 × 2556 PNG whose alpha is fully opaque; it ships as a 2048-wide JPEG with the material set opaque, 0.41 MB. Motion is the adult's labriform `caudal-vertex` stroke at its length (`amplitude 0.006`, `waveSpeed 4.0`), and unlike the adult model it has separate pectorals (`pectoralFinFlutter 0.12`).
+- The texture is Diego Delso's photograph on Wikimedia Commons (CC BY-SA 4.0); credited in the Sources list with the licence, the changes, and the share-alike terms.
+- No separate Atlas entry: the angelfish's Atlas stage adds two juveniles at true size beside the pair (Atlas companions take an optional `lifeStage`).
+- The info card shows a Juvenile chip.
+- 16 juveniles in `creatures_dev` (ids 366–381, 8 female and 8 male, size parameters 0–1), twice the 8 adults. None in production.
+
 ## v0.20.1 — See-through angelfish fins
 
 Status: accepted and promoted as clean `v0.20.1` from `v0.20.1-dev_1` on Jeremy's go-ahead (2026-10-13). `package.json` moves to `0.20.1`.

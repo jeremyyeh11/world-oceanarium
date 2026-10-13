@@ -13,6 +13,18 @@ Status labels:
 
 ## Current work
 
+### Juvenile Emperor Angelfish
+
+Status: `Current in development` — `v0.21.0-dev_1` (branch `feat/juvenile-angelfish`): the `life_stage` column, stage-aware species (`lifeStages`), Jeremy's juvenile model in The Drift and the Atlas.
+
+Subtasks:
+- [x] `life_stage` column (juvenile / adult, default adult) on both tables; all existing rows adult.
+- [x] Juvenile model intake (15.4 → 0.41 MB), `caudal-vertex` with pectorals, texture credit (CC BY-SA 4.0).
+- [x] 16 `creatures_dev` juveniles (ids 366–381), twice the adults.
+- [ ] Jeremy review on device: true-scale juveniles are 8–14 cm (0.32–0.56 WU), under the 27 cm floor. Confirm they read in the tank, or pick a different size.
+- [ ] Production rows: none yet. Needs Jeremy's go-ahead on the count.
+- [ ] Life stage from age (`born_at`): planned, not started. `Backlog`
+
 ### Emperor Angelfish
 
 Status: shipped in clean `v0.20.0` (2026-10-13, from `v0.20.0-dev_4`, branch `feat/emperor-angelfish`): Jeremy's adult model in The Drift, pairing and cleaning the sunfish, shown as a pair in the Atlas. 8 in production (ids 358–365). The open items below carry over. First species picked for converting The Drift to a reef tank.

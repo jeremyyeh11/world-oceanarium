@@ -3,7 +3,7 @@ import Environment from './Environment'
 import Fish from './Fish'
 import OceanBubbles from './OceanBubbles'
 import SardineInstancedLayer from './SardineInstancedLayer'
-import { SPECIES_BY_KEY, creaturesForTank } from '../utils/speciesLookup'
+import { SPECIES_BY_KEY, creaturesForTank, resolveSpecies } from '../utils/speciesLookup'
 import { hashString } from '../utils/hash'
 
 const SCHOOL_MAX_SIZE = 180
@@ -56,7 +56,8 @@ function normalizedSex(creature) {
 function pairFollowersForCreatures(creatures) {
   const groups = new Map()
   creatures.forEach(creature => {
-    if (!SPECIES_BY_KEY.get(creature.species)?.pairBonded) return
+    // By life stage: juvenile emperor angelfish live alone, so only adults pair.
+    if (!resolveSpecies(creature)?.pairBonded) return
     const key = schoolKeyForCreature(creature)
     const group = groups.get(key) ?? { female: [], male: [], unknown: [] }
     const sex = normalizedSex(creature)

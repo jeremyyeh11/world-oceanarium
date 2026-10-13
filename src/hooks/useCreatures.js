@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { CREATURES } from '../data/species'
 import { APP_VERSION } from '../version'
 import { hashString } from '../utils/hash'
-import { ACTIVE_SPECIES_NAMES, SPECIES_BY_NAME, SPECIES_NAME_BY_ALIAS } from '../utils/speciesLookup'
+import { ACTIVE_SPECIES_NAMES, SPECIES_BY_NAME, SPECIES_NAME_BY_ALIAS, speciesForLifeStage } from '../utils/speciesLookup'
 const DEFAULT_SIZE_RANGE = [0.9, 1.1]
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -19,7 +19,7 @@ function persistentUnitRandom(seed) {
 }
 
 function speciesSizeRange(creature) {
-  const species = SPECIES_BY_NAME.get(creature.species)
+  const species = speciesForLifeStage(SPECIES_BY_NAME.get(creature.species), creature.lifeStage)
   return species?.sizeRange ?? DEFAULT_SIZE_RANGE
 }
 
@@ -74,6 +74,8 @@ function normalizeCreature(row) {
     description: row.description ?? row.individual_description,
     customName: row.customName ?? row.custom_name,
     sex: row.sex ?? fallbackSexForCreature(row),
+    // Entered by hand for now (`life_stage`, juvenile or adult); not yet derived from age.
+    lifeStage: row.lifeStage ?? row.life_stage ?? 'adult',
     size: row.size,
   })
 }

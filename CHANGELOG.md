@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.21.0 — Juvenile emperor angelfish
 
-Status: in development as `v0.21.0-dev_2` (branch `feat/juvenile-angelfish`; `dev_2` updates the adult model's shading).
+Status: accepted and promoted as clean `v0.21.0` from `v0.21.0-dev_2` on Jeremy's go-ahead (2026-10-13; `dev_1` was the life stages and the juvenile, `dev_2` the adult model's shading). `package.json` moves to `0.21.0`. Sixteen juvenile emperor angelfish were written to production `creatures` (ids 382–397, 8 female and 8 male) on the same go-ahead.
 
 ### Data
 
@@ -26,7 +26,7 @@ Status: in development as `v0.21.0-dev_2` (branch `feat/juvenile-angelfish`; `de
 - No separate Atlas entry: the angelfish's Atlas stage adds two juveniles at true size beside the pair (Atlas companions take an optional `lifeStage`).
 - The info card shows a Juvenile chip.
 - Adult model updated (`dev_2`): Jeremy's revised shading, metalness `0` → `0.04` and roughness `0.5` → `1.0` (the glTF default, now unset), geometry and textures unchanged. Shipped through the same resize (29.5 → 2.02 MB: fins 1024-wide PNG, body 2048-wide JPEG).
-- 16 juveniles in `creatures_dev` (ids 366–381, 8 female and 8 male, size parameters 0–1), twice the 8 adults. None in production.
+- 16 juveniles in `creatures_dev` (ids 366–381, 8 female and 8 male, size parameters 0–1), twice the 8 adults, and 16 in production `creatures` (ids 382–397).
 
 ## v0.20.1 — See-through angelfish fins
 

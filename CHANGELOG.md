@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.22.0 — Clown Triggerfish
 
-Status: in development (`v0.22.0-dev_3`, branch `feat/balistoides-conspicillum`; `dev_2` lights turned fins as turned, `dev_3` stops the soft dorsal folding over, `dev_4` draws it opaque).
+Status: accepted and promoted as clean `v0.22.0` from `v0.22.0-dev_4` on Jeremy's go-ahead (2026-10-15; `dev_1` the species, model, and balistiform shader, `dev_2` lights turned fins as turned, `dev_3` stops the soft dorsal folding over, `dev_4` draws it opaque). `package.json` moves to `0.22.0`. 3 triggerfish in `creatures_dev` (ids 404–406); none in production `creatures` yet.
 
 ### Species
 

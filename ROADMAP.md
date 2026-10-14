@@ -15,7 +15,7 @@ Status labels:
 
 ### Clown Triggerfish
 
-Status: `Current in development` (`v0.22.0-dev_1`, branch `feat/balistoides-conspicillum`, started 2026-10-14). Second pick for the reef conversion of The Drift. Jeremy's model, in The Drift and the Atlas, swimming on rippling fins (balistiform `mask-fin-row`). 3 in `creatures_dev`.
+Status: shipped in clean `v0.22.0` (2026-10-15, from `v0.22.0-dev_4`, branch `feat/balistoides-conspicillum`). The open items below carry over. Second pick for the reef conversion of The Drift. Jeremy's model, in The Drift and the Atlas, swimming on rippling fins (balistiform `mask-fin-row`). 3 in `creatures_dev`.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Balistoides conspicillum`): 50 cm TL = 2.0 WU, solitary, LC, length–weight a 0.02692 / b 2.91.

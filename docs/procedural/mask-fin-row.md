@@ -145,11 +145,14 @@ config key rather than a new architecture:
    from the front of the fin to the back, all rays at the same frequency (George &
    Westneat, gilded triggerfish). Key `finWaveTravel`: radians of phase lag from the
    fin's leading edge to its trailing edge. `0` is the Mola, and switches the rest of this
-   off. Started at one wavelength (`6`); tune by eye. With it on, each fin's span and base
-   line are read from its paint once per model (`molaFinBases()`): the front and back of
-   the painted fin, and the height of its lowest-weight band (weight ≤ 0.25) near each
-   end. A vertex's lag is its position across that span, and it turns about the base under
-   it rather than one fixed root, so a sloping fin base stays attached. `dorsalRootYZ` /
+   off. Started at one wavelength (`6`); tune by eye. With it on, `molaFinBases()` reads each fin once per model:
+   its span (front and back of the painted fin along the forward axis) and, per vertex, a
+   `molaFinRoot` attribute: the height of the body surface directly under it (the top of the
+   unpainted body for the dorsal, the bottom for the anal, in 40 bins along the length). A
+   vertex's lag is its position across the span, and it turns about its own root, so a
+   sloping or curving fin base stays attached. A straight base line per fin was tried first
+   and folded the triggerfish's soft dorsal over: its base curves, the line sat above the
+   lower rows, and they swung the wrong way. `dorsalRootYZ` /
    `analRootYZ` are ignored.
 2. **The tail is an engine in bursts, not a rudder.** The Mola's blue channel (clavus) is
    a restrained trim. On a triggerfish the blue channel is the caudal fin: still near
@@ -221,8 +224,7 @@ Atlas's cruise speed this turns the soft dorsal's edge ~23°, about 2 cm on a 5 
 measured 13° and read as stiff. `analAmplitudeScale 0.8`, `analPhaseOffset 0.6`.
 `caudalBurstAmplitude 0.12` raw units (1 raw = 1.355 WU), about 4 cm of tail travel at a
 full burst, `caudalBeatRate 2.5`. Jeremy's paint ramps are coarse (body 0 → ~0.4 → ~0.9
-across 2–3 rows), which is why the base finder takes each end's lowest-weight band rather
-than a fixed threshold.
+across 2–3 rows), which is why roots come from the body surface rather than from the paint.
 
 ## Material notes
 

@@ -419,52 +419,83 @@ function molaMaskFrame(config) {
 }
 
 const molaFinBaseCache = new WeakMap()
+// Body-height bins along the forward axis for finding where a fin meets the body.
+const MOLA_FIN_ROOT_BINS = 40
 
-// The base line of each rippling fin, read from its paint: the fin's front and back along the
-// forward axis, and the height of its lowest-weight band near each end. The ripple's phase lag
-// runs front to back across that span, and each slice turns about the base under it, so a
-// sloping fin base stays attached.
+// Where each rippling fin is and where it meets the body, read once per model from its paint.
+// - Span: the fin's front and back along the forward axis; the ripple's phase lag runs across it.
+// - Root: a `molaFinRoot` attribute giving every fin vertex the height (in the Mola frame) of
+//   the body surface under it, the top of the body for the dorsal and the bottom for the anal.
+//   Each vertex turns about its own root, so a fin base that slopes or curves stays attached.
+//   A single root line per fin sat above the lower rows where the base curved, and those rows
+//   swung the wrong way, folding the fin over (triggerfish, 2026-10-14).
 function molaFinBases(geometry, frame) {
   const cached = molaFinBaseCache.get(geometry)
   if (cached) return cached
   const color = geometry.getAttribute('color_1')
   const position = geometry.getAttribute('position')
-  const result = { dorsal: new THREE.Vector4(), anal: new THREE.Vector4() }
+  const result = { dorsal: new THREE.Vector2(), anal: new THREE.Vector2() }
   if (color && position) {
+    const count = position.count
+    const points = new Float32Array(count * 3)
+    const kind = new Int8Array(count)
     const point = new THREE.Vector3()
-    const fins = { dorsal: [], anal: [] }
-    for (let index = 0; index < color.count; index += 1) {
+    let minX = Infinity
+    let maxX = -Infinity
+    for (let index = 0; index < count; index += 1) {
+      point.fromBufferAttribute(position, index).applyMatrix3(frame)
+      points.set([point.x, point.y, point.z], index * 3)
+      minX = Math.min(minX, point.x)
+      maxX = Math.max(maxX, point.x)
       const r = color.getX(index)
       const g = color.getY(index)
       const grey = Math.min(r, g, color.getZ(index))
-      const dorsal = r - grey
-      const anal = g - grey
-      if (dorsal <= 0.02 && anal <= 0.02) continue
-      point.fromBufferAttribute(position, index).applyMatrix3(frame)
-      const fin = dorsal > anal ? fins.dorsal : fins.anal
-      fin.push([point.x, point.z, Math.max(dorsal, anal)])
+      if (r - grey > 0.02 || g - grey > 0.02) kind[index] = r - grey > g - grey ? 1 : 2
     }
-    for (const [name, points] of Object.entries(fins)) {
-      if (points.length === 0) continue
-      const front = Math.max(...points.map(([x]) => x))
-      const back = Math.min(...points.map(([x]) => x))
-      const span = Math.max(0.00001, front - back)
-      // The base band is each end's lowest-weight vertices: a coarse ramp may start well
-      // above zero at the first row off the body.
-      const baseHeight = (fromT, toT) => {
-        const end = points.filter(([x]) => {
-          const t = (front - x) / span
-          return t >= fromT && t <= toT
-        })
-        if (end.length === 0) return null
-        const lowest = Math.min(...end.map(([, , weight]) => weight))
-        const band = end.filter(([, , weight]) => weight <= lowest + 0.1)
-        return band.reduce((sum, [, z]) => sum + z, 0) / band.length
+    // The body's top (lowest z, the frame points down) and bottom per bin, from unpainted vertices.
+    const binSpan = Math.max(0.00001, maxX - minX)
+    const binOf = x => Math.min(MOLA_FIN_ROOT_BINS - 1, Math.max(0, Math.floor((x - minX) / binSpan * MOLA_FIN_ROOT_BINS)))
+    const top = new Array(MOLA_FIN_ROOT_BINS).fill(null)
+    const bottom = new Array(MOLA_FIN_ROOT_BINS).fill(null)
+    for (let index = 0; index < count; index += 1) {
+      if (kind[index] !== 0) continue
+      const bin = binOf(points[index * 3])
+      const z = points[index * 3 + 2]
+      top[bin] = top[bin] === null ? z : Math.min(top[bin], z)
+      bottom[bin] = bottom[bin] === null ? z : Math.max(bottom[bin], z)
+    }
+    const fill = values => values.map((value, bin) => {
+      if (value !== null) return value
+      for (let step = 1; step < MOLA_FIN_ROOT_BINS; step += 1) {
+        if (values[bin - step] != null) return values[bin - step]
+        if (values[bin + step] != null) return values[bin + step]
       }
-      const frontZ = baseHeight(0, 0.3)
-      const backZ = baseHeight(0.7, 1)
-      result[name].set(front, back, frontZ ?? backZ ?? 0, backZ ?? frontZ ?? 0)
+      return 0
+    })
+    const topFilled = fill(top)
+    const bottomFilled = fill(bottom)
+    const surfaceAt = (values, x) => {
+      const f = (x - minX) / binSpan * MOLA_FIN_ROOT_BINS - 0.5
+      const bin = THREE.MathUtils.clamp(Math.floor(f), 0, MOLA_FIN_ROOT_BINS - 1)
+      const next = Math.min(MOLA_FIN_ROOT_BINS - 1, bin + 1)
+      return THREE.MathUtils.lerp(values[bin], values[next], THREE.MathUtils.clamp(f - bin, 0, 1))
     }
+    const roots = new Float32Array(count)
+    const spans = { 1: [-Infinity, Infinity], 2: [-Infinity, Infinity] }
+    for (let index = 0; index < count; index += 1) {
+      const fin = kind[index]
+      if (fin === 0) continue
+      const x = points[index * 3]
+      const z = points[index * 3 + 2]
+      spans[fin][0] = Math.max(spans[fin][0], x)
+      spans[fin][1] = Math.min(spans[fin][1], x)
+      // Never above the vertex itself: a vertex at its root just stays put rather than swinging
+      // the wrong way.
+      roots[index] = fin === 1 ? Math.max(surfaceAt(topFilled, x), z) : Math.min(surfaceAt(bottomFilled, x), z)
+    }
+    geometry.setAttribute('molaFinRoot', new THREE.BufferAttribute(roots, 1))
+    if (Number.isFinite(spans[1][0])) result.dorsal.set(spans[1][0], spans[1][1])
+    if (Number.isFinite(spans[2][0])) result.anal.set(spans[2][0], spans[2][1])
   }
   molaFinBaseCache.set(geometry, result)
   return result
@@ -523,8 +554,8 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
         frame: { value: frame },
         frameInverse: { value: inverse },
         finWaveTravel: { value: finWaveTravel },
-        dorsalBase: { value: bases?.dorsal ?? new THREE.Vector4() },
-        analBase: { value: bases?.anal ?? new THREE.Vector4() },
+        dorsalSpan: { value: bases?.dorsal ?? new THREE.Vector2() },
+        analSpan: { value: bases?.anal ?? new THREE.Vector2() },
         analAmplitudeScale: { value: proceduralVertex.analAmplitudeScale ?? 1 },
         caudalBurstAmplitude: { value: proceduralVertex.caudalBurstAmplitude ?? 0 },
         caudalBeatRate: { value: proceduralVertex.caudalBeatRate ?? 1 },
@@ -575,8 +606,8 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaFrame = molaMaskUniforms.frame
       shader.uniforms.uMolaFrameInverse = molaMaskUniforms.frameInverse
       shader.uniforms.uMolaFinWaveTravel = molaMaskUniforms.finWaveTravel
-      shader.uniforms.uMolaDorsalBase = molaMaskUniforms.dorsalBase
-      shader.uniforms.uMolaAnalBase = molaMaskUniforms.analBase
+      shader.uniforms.uMolaDorsalSpan = molaMaskUniforms.dorsalSpan
+      shader.uniforms.uMolaAnalSpan = molaMaskUniforms.analSpan
       shader.uniforms.uMolaAnalAmplitudeScale = molaMaskUniforms.analAmplitudeScale
       shader.uniforms.uMolaCaudalBurstAmplitude = molaMaskUniforms.caudalBurstAmplitude
       shader.uniforms.uMolaCaudalBeatRate = molaMaskUniforms.caudalBeatRate
@@ -674,15 +705,15 @@ uniform float uMolaBurstAmplitude;
 uniform mat3 uMolaFrame;
 uniform mat3 uMolaFrameInverse;
 uniform float uMolaFinWaveTravel;
-uniform vec4 uMolaDorsalBase;
-uniform vec4 uMolaAnalBase;
+uniform vec2 uMolaDorsalSpan;
+uniform vec2 uMolaAnalSpan;
+attribute float molaFinRoot;
 uniform float uMolaAnalAmplitudeScale;
 uniform float uMolaCaudalBurstAmplitude;
 uniform float uMolaCaudalBeatRate;
-// Where a vertex sits along a rippling fin (0 leading edge, 1 trailing), and the height of
-// the fin's base there. base: front x, back x, base z at the front, base z at the back.
-float molaFinT(vec4 base, float forward) {
-  return clamp((base.x - forward) / max(0.00001, base.x - base.y), 0.0, 1.0);
+// Where a vertex sits along a rippling fin (0 leading edge, 1 trailing); span is (front, back).
+float molaFinT(vec2 span, float forward) {
+  return clamp((span.x - forward) / max(0.00001, span.x - span.y), 0.0, 1.0);
 }
 // White/grey is deliberately reserved for pectorals. Removing its shared value leaves the
 // exclusive red/green/blue dorsal, anal, and clavus weights.
@@ -703,10 +734,11 @@ void molaFinAngles(vec3 m, vec4 weights, out float dorsalAngle, out float analAn
   float dorsalLag = 0.0;
   float analLag = 0.0;
   if (uMolaFinWaveTravel > 0.0) {
-    float dorsalT = molaFinT(uMolaDorsalBase, m.x);
-    float analT = molaFinT(uMolaAnalBase, m.x);
-    dorsalRoot = vec2(0.0, mix(uMolaDorsalBase.z, uMolaDorsalBase.w, dorsalT));
-    analRoot = vec2(0.0, mix(uMolaAnalBase.z, uMolaAnalBase.w, analT));
+    float dorsalT = molaFinT(uMolaDorsalSpan, m.x);
+    float analT = molaFinT(uMolaAnalSpan, m.x);
+    // Each vertex turns about the body surface under it (see molaFinBases()).
+    dorsalRoot = vec2(0.0, molaFinRoot);
+    analRoot = vec2(0.0, molaFinRoot);
     dorsalLag = dorsalT * uMolaFinWaveTravel;
     analLag = analT * uMolaFinWaveTravel;
   }

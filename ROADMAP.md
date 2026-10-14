@@ -15,15 +15,16 @@ Status labels:
 
 ### Clown Triggerfish
 
-Status: `Current in development` (branch `feat/balistoides-conspicillum`, started 2026-10-14). Second pick for the reef conversion of The Drift. Species data, model block, and shader are in; still hidden from the Atlas and in no tank. Waiting on Jeremy's remodelled fins.
+Status: `Current in development` (`v0.22.0-dev_1`, branch `feat/balistoides-conspicillum`, started 2026-10-14). Second pick for the reef conversion of The Drift. Jeremy's model, in The Drift and the Atlas, swimming on rippling fins (balistiform `mask-fin-row`). No creature rows yet, so it shows in the Atlas only.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Balistoides conspicillum`): 50 cm TL = 2.0 WU, solitary, LC, length–weight a 0.02692 / b 2.91.
-- [x] Motion plan: balistiform variant of `mask-fin-row` (rippling dorsal and anal fins, tail beats only in bursts), in `docs/procedural/mask-fin-row.md` with the Blender contract. Jeremy chose it on 2026-10-14.
-- [x] Shader: `finWaveTravel` (fin span and base line read from the paint), `caudalBurstAmplitude` / `caudalBeatRate`, `analAmplitudeScale`, `forwardAxis` / `upAxis`; separate pectorals flutter. Checked in the Atlas on a rough test paint; the Mola is unchanged.
-- [ ] Jeremy: remodel the soft dorsal and anal fins as thin blades (12–16 loops front to back) and paint `COLOR_1`. His first export (2026-10-14, 0.84 MB) drew them in the texture's alpha over the body hull, with no paint.
-- [ ] Model intake: re-measure scale and recentring, verifier target, tune the fin keys on the real paint.
-- [ ] The Drift roster, Atlas framing (desktop, 375 px portrait, landscape), `creatures_dev` rows, Atlas tile.
+- [x] Motion: balistiform variant of `mask-fin-row` (rippling dorsal and anal fins, tail beats only in bursts), chosen by Jeremy on 2026-10-14. See `docs/procedural/mask-fin-row.md`.
+- [x] Model intake: Jeremy's remodel with thin fin blades and `COLOR_1` paint, 0.94 MB, verifier target, Atlas framing checked on desktop and a 375 px phone. Texture: no credit (Jeremy's call).
+- [ ] `creatures_dev` rows: count needs Jeremy's go-ahead. Then check it in the tank (ripple at cruise, tail-driven bursts, no pops).
+- [ ] Jeremy review on device: does the ripple read at viewing distance? `finRotationRadians 0.6` is a first pass.
+- [ ] Atlas tile (tank capture), once it is in the tank.
+- [ ] Production `creatures` rows: needs Jeremy's go-ahead on the count.
 - [ ] Juveniles (black, white-spotted, few cm): a `lifeStages.juvenile` model is possible later. Sizes are far under the 27 cm floor. `Backlog`
 
 ### Juvenile Emperor Angelfish

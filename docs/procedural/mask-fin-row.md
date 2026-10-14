@@ -130,10 +130,8 @@ always to increase `finRotationRadians`, and it is almost always wrong.
 
 ## Balistiform variant
 
-Status: **In code, waiting on the asset.** Jeremy chose this approach on 2026-10-14 and is
-remodelling the Clown Triggerfish's (`balistoides-conspicillum`) fins to the contract below.
-The shader keys are in `Fish.jsx` and were checked in the Atlas against a rough test paint
-of his first export; tune them on the real asset.
+Status: **In review** (`v0.22.0-dev_1`). Jeremy chose this approach on 2026-10-14 and
+remodelled the Clown Triggerfish's (`balistoides-conspicillum`) fins to the contract below.
 
 ### Why this type, and what it lacks
 
@@ -214,6 +212,17 @@ and turn nearly in place; the surprise is the sudden tail-driven dart.
   - grey: pectorals
   - black: body, the first dorsal spine, and the pelvic spine
 - **`COLOR_0` stays white.** Keep textures small and note their source and licence.
+
+### Shipped tuning (Clown Triggerfish, dev)
+
+`waveSpeed 7` (about 1.1 fin beats a second), `finWaveTravel 6` (one wavelength along the
+fin), `finRotationRadians 0.6`: fin rays sweep ~30–45° in balistiform swimming, and at the
+Atlas's cruise speed this turns the soft dorsal's edge ~23°, about 2 cm on a 5 cm fin. 0.35
+measured 13° and read as stiff. `analAmplitudeScale 0.8`, `analPhaseOffset 0.6`.
+`caudalBurstAmplitude 0.12` raw units (1 raw = 1.355 WU), about 4 cm of tail travel at a
+full burst, `caudalBeatRate 2.5`. Jeremy's paint ramps are coarse (body 0 → ~0.4 → ~0.9
+across 2–3 rows), which is why the base finder takes each end's lowest-weight band rather
+than a fixed threshold.
 
 ## Material notes
 

@@ -100,8 +100,8 @@ export const TANKS = [
     lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
-    // then, as cleaners.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator'],
+    // then, as cleaners. The clown triggerfish keeps to itself.
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum'],
   },
 ]
 
@@ -2102,9 +2102,6 @@ export const SPECIES = [
     name: 'Clown Triggerfish',
     scientificName: 'Balistoides conspicillum',
     family: 'Balistidae',
-    // Waiting on Jeremy's model: no `model` block and no tank yet, so it stays out of the
-    // Atlas until the GLB lands. Motion plan: docs/procedural/mask-fin-row.md, "Balistiform".
-    hiddenInAtlas: true,
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Adults are solitary; FishBase records pairs only for spawning, so no `pairBonded`.
@@ -2193,10 +2190,10 @@ export const SPECIES = [
     mass: { coefficient: 0.02692, exponent: 2.91 },
     model: {
       path: '/models/fish/balistoides-conspicillum/balistoides-conspicillum.glb',
-      // Jeremy's first export (2026-10-14): source length 4.589 (node scale 3.11 over 1.4753
-      // raw) -> 2.0 WU; recentred mid-length on the body axis. Re-measure on the remodel.
+      // Jeremy's model (2026-10-14): source length 4.589 (node scale 3.11 over 1.4753 raw)
+      // -> 2.0 WU; recentred mid-length on the body axis. 1 raw mesh unit = 1.355 WU.
       scale: 0.4358,
-      position: [0, -0.073, -0.535],
+      position: [0, -0.071, -0.223],
       followAim: 'root',
       // The photo texture carries the fin outlines in its alpha, as the angelfish's does.
       alphaBlend: true,
@@ -2217,14 +2214,17 @@ export const SPECIES = [
         forwardAxis: '-z',
         upAxis: 'y',
         waveSpeed: 7,
-        finRotationRadians: 0.35,
+        // Fin rays sweep ~30–45° in balistiform swimming; at the Atlas's cruise speed this
+        // turns the fin edge ~23° (about 2 cm on the 5 cm soft dorsal).
+        finRotationRadians: 0.6,
         finWaveTravel: 6,
         analPhaseOffset: 0.6,
         analPhaseRate: 1,
         analAmplitudeScale: 0.8,
         pectoralAmplitude: 0,
         clavusAmplitude: 0,
-        caudalBurstAmplitude: 0.06,
+        // About 4 cm of tail travel at a full burst (raw source units: 1 raw = 1.355 WU).
+        caudalBurstAmplitude: 0.12,
         caudalBeatRate: 2.5,
         turnStrength: 0.02,
         burstAmplitude: 0.4,

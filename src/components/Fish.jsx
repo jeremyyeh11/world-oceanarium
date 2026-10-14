@@ -449,12 +449,17 @@ function molaFinBases(geometry, frame) {
       const front = Math.max(...points.map(([x]) => x))
       const back = Math.min(...points.map(([x]) => x))
       const span = Math.max(0.00001, front - back)
+      // The base band is each end's lowest-weight vertices: a coarse ramp may start well
+      // above zero at the first row off the body.
       const baseHeight = (fromT, toT) => {
-        const band = points.filter(([x, , weight]) => {
+        const end = points.filter(([x]) => {
           const t = (front - x) / span
-          return weight <= 0.25 && t >= fromT && t <= toT
+          return t >= fromT && t <= toT
         })
-        return band.length ? band.reduce((sum, [, z]) => sum + z, 0) / band.length : null
+        if (end.length === 0) return null
+        const lowest = Math.min(...end.map(([, , weight]) => weight))
+        const band = end.filter(([, , weight]) => weight <= lowest + 0.1)
+        return band.reduce((sum, [, z]) => sum + z, 0) / band.length
       }
       const frontZ = baseHeight(0, 0.3)
       const backZ = baseHeight(0.7, 1)

@@ -43,6 +43,15 @@ const targets = [
     minBodyLength: 20,
   },
   {
+    name: 'Clown Triggerfish balistiform mask',
+    path: 'public/models/fish/balistoides-conspicillum/balistoides-conspicillum.glb',
+    staticMesh: true,
+    bodyMeshNames: ['clown_triggerfish'],
+    requiredFinMeshes: ['pectorall', 'pectoralr'],
+    requiredBodyAttributes: ['color_1'],
+    minVertices: 3000,
+  },
+  {
     name: 'Giant Sunfish static motion mask',
     path: 'public/models/fish/mola-alexandrini/mola-alexandrini.glb',
     staticMesh: true,

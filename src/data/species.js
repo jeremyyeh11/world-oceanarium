@@ -2191,6 +2191,51 @@ export const SPECIES = [
     sizeRange: [0.6, 1.0],
     // FishBase Bayesian length–weight (TL cm → g): about 2.4 kg at 50 cm.
     mass: { coefficient: 0.02692, exponent: 2.91 },
+    model: {
+      path: '/models/fish/balistoides-conspicillum/balistoides-conspicillum.glb',
+      // Jeremy's first export (2026-10-14): source length 4.589 (node scale 3.11 over 1.4753
+      // raw) -> 2.0 WU; recentred mid-length on the body axis. Re-measure on the remodel.
+      scale: 0.4358,
+      position: [0, -0.073, -0.535],
+      followAim: 'root',
+      // The photo texture carries the fin outlines in its alpha, as the angelfish's does.
+      alphaBlend: true,
+      alphaTest: 0.02,
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        // Balistiform: the Mola's painted-fin type with a travelling ripple (see
+        // docs/procedural/mask-fin-row.md). R soft dorsal, G anal, B caudal; separate pectorals.
+        type: 'mola-mask-vertex',
+        bodyMeshNames: ['clown_triggerfish'],
+        maskAttribute: 'color_1',
+        forwardAxis: '-z',
+        upAxis: 'y',
+        waveSpeed: 7,
+        finRotationRadians: 0.35,
+        finWaveTravel: 6,
+        analPhaseOffset: 0.6,
+        analPhaseRate: 1,
+        analAmplitudeScale: 0.8,
+        pectoralAmplitude: 0,
+        clavusAmplitude: 0,
+        caudalBurstAmplitude: 0.06,
+        caudalBeatRate: 2.5,
+        turnStrength: 0.02,
+        burstAmplitude: 0.4,
+        response: 6,
+        speedFrequencyBoost: 0.5,
+        burstFrequencyBoost: 0.3,
+        pectoralFinFlutter: 0.18,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
 ]
 

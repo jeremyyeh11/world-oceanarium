@@ -397,6 +397,74 @@ function nextSardineLod(current, distanceToCamera, lod2Distance, lod1Distance) {
   return null
 }
 
+const MOLA_FRAME_AXES = {
+  x: [1, 0, 0], '-x': [-1, 0, 0],
+  y: [0, 1, 0], '-y': [0, -1, 0],
+  z: [0, 0, 1], '-z': [0, 0, -1],
+}
+
+// mola-mask-vertex works in the Mola's raw frame: +X forward, +Y lateral, +Z down (its dorsal
+// fin sits at -Z). Another asset names its own forward and up axes and is rotated into that
+// frame and back; the Mola's defaults give the identity.
+function molaMaskFrame(config) {
+  const forward = new THREE.Vector3(...(MOLA_FRAME_AXES[config?.forwardAxis] ?? MOLA_FRAME_AXES.x))
+  const down = new THREE.Vector3(...(MOLA_FRAME_AXES[config?.upAxis] ?? MOLA_FRAME_AXES['-z'])).negate()
+  const lateral = new THREE.Vector3().crossVectors(down, forward)
+  const frame = new THREE.Matrix3().set(
+    forward.x, forward.y, forward.z,
+    lateral.x, lateral.y, lateral.z,
+    down.x, down.y, down.z,
+  )
+  return { frame, inverse: frame.clone().transpose() }
+}
+
+const molaFinBaseCache = new WeakMap()
+
+// The base line of each rippling fin, read from its paint: the fin's front and back along the
+// forward axis, and the height of its lowest-weight band near each end. The ripple's phase lag
+// runs front to back across that span, and each slice turns about the base under it, so a
+// sloping fin base stays attached.
+function molaFinBases(geometry, frame) {
+  const cached = molaFinBaseCache.get(geometry)
+  if (cached) return cached
+  const color = geometry.getAttribute('color_1')
+  const position = geometry.getAttribute('position')
+  const result = { dorsal: new THREE.Vector4(), anal: new THREE.Vector4() }
+  if (color && position) {
+    const point = new THREE.Vector3()
+    const fins = { dorsal: [], anal: [] }
+    for (let index = 0; index < color.count; index += 1) {
+      const r = color.getX(index)
+      const g = color.getY(index)
+      const grey = Math.min(r, g, color.getZ(index))
+      const dorsal = r - grey
+      const anal = g - grey
+      if (dorsal <= 0.02 && anal <= 0.02) continue
+      point.fromBufferAttribute(position, index).applyMatrix3(frame)
+      const fin = dorsal > anal ? fins.dorsal : fins.anal
+      fin.push([point.x, point.z, Math.max(dorsal, anal)])
+    }
+    for (const [name, points] of Object.entries(fins)) {
+      if (points.length === 0) continue
+      const front = Math.max(...points.map(([x]) => x))
+      const back = Math.min(...points.map(([x]) => x))
+      const span = Math.max(0.00001, front - back)
+      const baseHeight = (fromT, toT) => {
+        const band = points.filter(([x, , weight]) => {
+          const t = (front - x) / span
+          return weight <= 0.25 && t >= fromT && t <= toT
+        })
+        return band.length ? band.reduce((sum, [, z]) => sum + z, 0) / band.length : null
+      }
+      const frontZ = baseHeight(0, 0.3)
+      const backZ = baseHeight(0.7, 1)
+      result[name].set(front, back, frontZ ?? backZ ?? 0, backZ ?? frontZ ?? 0)
+    }
+  }
+  molaFinBaseCache.set(geometry, result)
+  return result
+}
+
 function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
   if (!FISH_LIGHT_MASK_ENABLED && !rim && !proceduralVertex) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
@@ -442,6 +510,21 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     clavusAmplitude: { value: proceduralVertex.clavusAmplitude ?? 0.016 },
     turnStrength: { value: proceduralVertex.turnStrength ?? 0.012 },
     burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.38 },
+    ...(() => {
+      const { frame, inverse } = molaMaskFrame(proceduralVertex)
+      const finWaveTravel = proceduralVertex.finWaveTravel ?? 0
+      const bases = finWaveTravel > 0 ? molaFinBases(geometry, frame) : null
+      return {
+        frame: { value: frame },
+        frameInverse: { value: inverse },
+        finWaveTravel: { value: finWaveTravel },
+        dorsalBase: { value: bases?.dorsal ?? new THREE.Vector4() },
+        analBase: { value: bases?.anal ?? new THREE.Vector4() },
+        analAmplitudeScale: { value: proceduralVertex.analAmplitudeScale ?? 1 },
+        caudalBurstAmplitude: { value: proceduralVertex.caudalBurstAmplitude ?? 0 },
+        caudalBeatRate: { value: proceduralVertex.caudalBeatRate ?? 1 },
+      }
+    })(),
   } : null
   const proceduralUniforms = caudalUniforms ?? molaMaskUniforms
 
@@ -484,6 +567,14 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaClavusAmplitude = molaMaskUniforms.clavusAmplitude
       shader.uniforms.uMolaTurnStrength = molaMaskUniforms.turnStrength
       shader.uniforms.uMolaBurstAmplitude = molaMaskUniforms.burstAmplitude
+      shader.uniforms.uMolaFrame = molaMaskUniforms.frame
+      shader.uniforms.uMolaFrameInverse = molaMaskUniforms.frameInverse
+      shader.uniforms.uMolaFinWaveTravel = molaMaskUniforms.finWaveTravel
+      shader.uniforms.uMolaDorsalBase = molaMaskUniforms.dorsalBase
+      shader.uniforms.uMolaAnalBase = molaMaskUniforms.analBase
+      shader.uniforms.uMolaAnalAmplitudeScale = molaMaskUniforms.analAmplitudeScale
+      shader.uniforms.uMolaCaudalBurstAmplitude = molaMaskUniforms.caudalBurstAmplitude
+      shader.uniforms.uMolaCaudalBeatRate = molaMaskUniforms.caudalBeatRate
     }
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -575,7 +666,22 @@ uniform float uMolaPectoralAmplitude;
 uniform float uMolaClavusAmplitude;
 uniform float uMolaTurnStrength;
 uniform float uMolaBurstAmplitude;
+uniform mat3 uMolaFrame;
+uniform mat3 uMolaFrameInverse;
+uniform float uMolaFinWaveTravel;
+uniform vec4 uMolaDorsalBase;
+uniform vec4 uMolaAnalBase;
+uniform float uMolaAnalAmplitudeScale;
+uniform float uMolaCaudalBurstAmplitude;
+uniform float uMolaCaudalBeatRate;
+// Where a vertex sits along a rippling fin (0 leading edge, 1 trailing), and the height of
+// the fin's base there. base: front x, back x, base z at the front, base z at the back.
+float molaFinT(vec4 base, float forward) {
+  return clamp((base.x - forward) / max(0.00001, base.x - base.y), 0.0, 1.0);
+}
 void proceduralMolaMotion(inout vec3 value) {
+  // Work in the Mola's raw frame (+X forward, +Y lateral, +Z down); identity for the Mola.
+  value = uMolaFrame * value;
   vec3 mask = clamp(color_1.rgb, 0.0, 1.0);
   // White/grey is deliberately reserved for pectorals. Removing its shared value
   // leaves the exclusive red/green/blue dorsal, anal, and clavus weights.
@@ -585,8 +691,22 @@ void proceduralMolaMotion(inout vec3 value) {
   float clavus = max(0.0, mask.b - pectoral);
   float speedStroke = mix(0.42, 1.0, uMolaSpeed);
   float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
-  float dorsalRotation = sin(uMolaPhase + uMolaDorsalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
-  float analRotation = sin(uMolaPhase * uMolaAnalPhaseRate + uMolaAnalPhaseOffset) * uMolaFinRotationRadians * speedStroke * burstStroke;
+  // A rippling (balistiform) fin lags its phase from leading to trailing edge and turns about
+  // its own base line; with no wave (the Mola) each fin swings whole about its fixed root.
+  vec2 dorsalRoot = uMolaDorsalRootYZ;
+  vec2 analRoot = uMolaAnalRootYZ;
+  float dorsalLag = 0.0;
+  float analLag = 0.0;
+  if (uMolaFinWaveTravel > 0.0) {
+    float dorsalT = molaFinT(uMolaDorsalBase, value.x);
+    float analT = molaFinT(uMolaAnalBase, value.x);
+    dorsalRoot = vec2(0.0, mix(uMolaDorsalBase.z, uMolaDorsalBase.w, dorsalT));
+    analRoot = vec2(0.0, mix(uMolaAnalBase.z, uMolaAnalBase.w, analT));
+    dorsalLag = dorsalT * uMolaFinWaveTravel;
+    analLag = analT * uMolaFinWaveTravel;
+  }
+  float dorsalRotation = sin(uMolaPhase + uMolaDorsalPhaseOffset - dorsalLag) * uMolaFinRotationRadians * speedStroke * burstStroke;
+  float analRotation = sin(uMolaPhase * uMolaAnalPhaseRate + uMolaAnalPhaseOffset - analLag) * uMolaFinRotationRadians * speedStroke * burstStroke * uMolaAnalAmplitudeScale;
   // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about
   // its own painted attachment root, creating a real tip arc instead of a
   // side-to-side translation. Quintic easing retains the painter's continuous
@@ -596,25 +716,34 @@ void proceduralMolaMotion(inout vec3 value) {
   float dorsalAngle = dorsalInfluence * dorsalRotation;
   float dorsalCos = cos(dorsalAngle);
   float dorsalSin = sin(dorsalAngle);
-  float dorsalY = value.y - uMolaDorsalRootYZ.x;
-  float dorsalZ = value.z - uMolaDorsalRootYZ.y;
-  value.y = uMolaDorsalRootYZ.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
-  value.z = uMolaDorsalRootYZ.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
+  float dorsalY = value.y - dorsalRoot.x;
+  float dorsalZ = value.z - dorsalRoot.y;
+  value.y = dorsalRoot.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
+  value.z = dorsalRoot.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
   float analInfluence = anal * anal * anal * (anal * (anal * 6.0 - 15.0) + 10.0);
   float analAngle = analInfluence * analRotation;
   float analCos = cos(analAngle);
   float analSin = sin(analAngle);
-  float analY = value.y - uMolaAnalRootYZ.x;
-  float analZ = value.z - uMolaAnalRootYZ.y;
-  value.y = uMolaAnalRootYZ.x + analY * analCos - analZ * analSin;
-  value.z = uMolaAnalRootYZ.y + analY * analSin + analZ * analCos;
+  float analY = value.y - analRoot.x;
+  float analZ = value.z - analRoot.y;
+  value.y = analRoot.x + analY * analCos - analZ * analSin;
+  value.z = analRoot.y + analY * analSin + analZ * analCos;
   float side = value.x < 0.0 ? -1.0 : 1.0;
   float pectoralStroke = sin(uMolaPhase * 0.82 + side * 0.72) * uMolaPectoralAmplitude * speedStroke;
   value.z += pectoral * pectoralStroke;
   value.x += pectoral * side * uMolaTurn * uMolaTurnStrength;
-  // The clavus is a restrained rear rudder, never a shark tail.
-  value.x += clavus * sin(uMolaPhase * 0.57 + 0.45) * uMolaClavusAmplitude * speedStroke;
-  value.z += clavus * uMolaTurn * uMolaTurnStrength;
+  if (uMolaCaudalBurstAmplitude > 0.0) {
+    // A balistiform tail: still while the fins cruise, beating side to side in a burst and
+    // leaning into turns.
+    float tail = clavus * clavus * (3.0 - 2.0 * clavus);
+    value.y += tail * sin(uMolaPhase * uMolaCaudalBeatRate) * uMolaCaudalBurstAmplitude * uMolaBurst;
+    value.y += tail * uMolaTurn * uMolaTurnStrength;
+  } else {
+    // The clavus is a restrained rear rudder, never a shark tail.
+    value.x += clavus * sin(uMolaPhase * 0.57 + 0.45) * uMolaClavusAmplitude * speedStroke;
+    value.z += clavus * uMolaTurn * uMolaTurnStrength;
+  }
+  value = uMolaFrameInverse * value;
 }` : ''}`
       )
     if (caudalUniforms) {
@@ -1245,6 +1374,27 @@ function collectProceduralFinMeshes(object) {
   return fins
 }
 
+// Independent pectoral/pelvic objects turn about their own roots on the CPU, off the rig's
+// wave clock plus the creature's phase offset.
+function flutterProceduralFins(fins, config, clock, phaseOffset, speed01, burst01, scratchQuat) {
+  fins.forEach((fin, index) => {
+    const pectoralScale = Number.isFinite(config.pectoralFinFlutter) ? config.pectoralFinFlutter : 0.12
+    const pelvicScale = Number.isFinite(config.pelvicFinFlutter) ? config.pelvicFinFlutter : 0.07
+    const flutterScale = fin.kind === 'pectoral' ? pectoralScale : pelvicScale
+    const finPhase = clock * (fin.kind === 'pectoral' ? 1.35 : 0.72)
+      + phaseOffset
+      + index * 0.83
+      + fin.side * 0.4
+    const stroke = flutterScale * (0.35 + speed01 * 0.5 + burst01 * 0.45)
+    scratchQuat.setFromEuler(finFlutterEuler.set(
+      Math.sin(finPhase) * stroke * 0.45,
+      fin.side * Math.sin(finPhase * 0.7 + 0.6) * stroke * 0.55,
+      fin.side * Math.sin(finPhase + 1.2) * stroke,
+    ))
+    fin.mesh.quaternion.copy(fin.baseQuaternion).multiply(scratchQuat)
+  })
+}
+
 function curveDeformMaxAngle(config) {
   const degrees = Number.isFinite(config?.maxAngleDegrees) ? config.maxAngleDegrees : 0
   return THREE.MathUtils.degToRad(THREE.MathUtils.clamp(degrees, 0, 24))
@@ -1493,22 +1643,7 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         + whip01 * CAUDAL_WHIP_FREQUENCY_BOOST
         + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
       )
-      proceduralFinMeshes.forEach((fin, index) => {
-        const pectoralScale = Number.isFinite(curveConfig.pectoralFinFlutter) ? curveConfig.pectoralFinFlutter : 0.12
-        const pelvicScale = Number.isFinite(curveConfig.pelvicFinFlutter) ? curveConfig.pelvicFinFlutter : 0.07
-        const flutterScale = fin.kind === 'pectoral' ? pectoralScale : pelvicScale
-        const phase = proceduralWaveClockRef.current * (fin.kind === 'pectoral' ? 1.35 : 0.72)
-          + (proceduralInput.phase ?? 0)
-          + index * 0.83
-          + fin.side * 0.4
-        const stroke = flutterScale * (0.35 + speed01 * 0.5 + burst01 * 0.45)
-        curveDeformQuatRef.current.setFromEuler(finFlutterEuler.set(
-          Math.sin(phase) * stroke * 0.45,
-          fin.side * Math.sin(phase * 0.7 + 0.6) * stroke * 0.55,
-          fin.side * Math.sin(phase + 1.2) * stroke,
-        ))
-        fin.mesh.quaternion.copy(fin.baseQuaternion).multiply(curveDeformQuatRef.current)
-      })
+      flutterProceduralFins(proceduralFinMeshes, curveConfig, proceduralWaveClockRef.current, proceduralInput.phase ?? 0, speed01, burst01, curveDeformQuatRef.current)
     } else if (curveConfig?.type === 'mola-mask-vertex') {
       const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 3.2
       curveDeformTurnRef.current = THREE.MathUtils.damp(
@@ -1526,6 +1661,9 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
         + burst01 * (curveConfig.burstFrequencyBoost ?? 0.18)
         + Math.max(0, proceduralInput.accel01 ?? 0) * 0.08
       )
+      // The Mola paints its pectorals; an asset with separate pectoral objects (the triggerfish)
+      // flutters them like a caudal fish's.
+      flutterProceduralFins(proceduralFinMeshes, curveConfig, proceduralWaveClockRef.current, proceduralInput.phase ?? 0, speed01, burst01, curveDeformQuatRef.current)
     }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current

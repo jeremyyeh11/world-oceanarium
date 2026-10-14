@@ -15,15 +15,15 @@ Status labels:
 
 ### Clown Triggerfish
 
-Status: `Current in development` (branch `feat/balistoides-conspicillum`, started 2026-10-14). Second pick for the reef conversion of The Drift. Species data is in, hidden from the Atlas, with no model and no tank yet. Waiting on Jeremy's model.
+Status: `Current in development` (branch `feat/balistoides-conspicillum`, started 2026-10-14). Second pick for the reef conversion of The Drift. Species data, model block, and shader are in; still hidden from the Atlas and in no tank. Waiting on Jeremy's remodelled fins.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Balistoides conspicillum`): 50 cm TL = 2.0 WU, solitary, LC, length–weight a 0.02692 / b 2.91.
-- [x] Motion plan: balistiform variant of `mask-fin-row` (rippling dorsal and anal fins, tail beats only in bursts), written as a proposal in `docs/procedural/mask-fin-row.md` with the Blender contract.
-- [ ] Jeremy: confirm the motion approach before any shader work (AGENTS.md: new motion is a design decision).
-- [ ] Jeremy: model to the contract (one joined mesh, nose −Z, 50 cm, `COLOR_1` paint).
-- [ ] Model intake: texture size and licence, verifier target, fin spans measured off the mesh.
-- [ ] Shader: `finWaveTravel`, `caudalBurstAmplitude`, `analAmplitudeScale`, axis keys; Atlas uses the same path.
+- [x] Motion plan: balistiform variant of `mask-fin-row` (rippling dorsal and anal fins, tail beats only in bursts), in `docs/procedural/mask-fin-row.md` with the Blender contract. Jeremy chose it on 2026-10-14.
+- [x] Shader: `finWaveTravel` (fin span and base line read from the paint), `caudalBurstAmplitude` / `caudalBeatRate`, `analAmplitudeScale`, `forwardAxis` / `upAxis`; separate pectorals flutter. Checked in the Atlas on a rough test paint; the Mola is unchanged.
+- [ ] Jeremy: remodel the soft dorsal and anal fins as thin blades (12–16 loops front to back) and paint `COLOR_1`. His first export (2026-10-14, 0.84 MB) drew them in the texture's alpha over the body hull, with no paint.
+- [ ] Jeremy: texture source and licence (1000 × 588 PNG in the first export).
+- [ ] Model intake: re-measure scale and recentring, verifier target, tune the fin keys on the real paint.
 - [ ] The Drift roster, Atlas framing (desktop, 375 px portrait, landscape), `creatures_dev` rows, Atlas tile.
 - [ ] Juveniles (black, white-spotted, few cm): a `lifeStages.juvenile` model is possible later. Sizes are far under the 27 cm floor. `Backlog`
 

@@ -128,10 +128,12 @@ time rather than sitting in permanent opposition. Speed and burst boosts are low
 The lesson generalises: for this type, restraint reads as mass. The first instinct is
 always to increase `finRotationRadians`, and it is almost always wrong.
 
-## Balistiform variant (proposed)
+## Balistiform variant
 
-Status: **Proposed — waiting on Jeremy's go-ahead and the Clown Triggerfish
-(`balistoides-conspicillum`) model.** Nothing below runs yet.
+Status: **In code, waiting on the asset.** Jeremy chose this approach on 2026-10-14 and is
+remodelling the Clown Triggerfish's (`balistoides-conspicillum`) fins to the contract below.
+The shader keys are in `Fish.jsx` and were checked in the Atlas against a rough test paint
+of his first export; tune them on the real asset.
 
 ### Why this type, and what it lacks
 
@@ -143,19 +145,28 @@ config key rather than a new architecture:
 1. **The fins ripple; they do not flap.** The Mola swings each fin as one blade, every
    point in phase. A triggerfish's soft dorsal and anal fins carry a wave that travels
    from the front of the fin to the back, all rays at the same frequency (George &
-   Westneat, gilded triggerfish). Proposed key `finWaveTravel`: radians of phase lag
-   from the fin's leading edge to its trailing edge. `0` is the Mola. Start near one
-   wavelength (about `6`) and tune by eye. The phase position comes from the vertex's
-   forward coordinate across the fin's own span (`dorsalSpan` / `analSpan`, measured
-   off the mesh), the same travelling-wave primitive the README describes.
+   Westneat, gilded triggerfish). Key `finWaveTravel`: radians of phase lag from the
+   fin's leading edge to its trailing edge. `0` is the Mola, and switches the rest of this
+   off. Started at one wavelength (`6`); tune by eye. With it on, each fin's span and base
+   line are read from its paint once per model (`molaFinBases()`): the front and back of
+   the painted fin, and the height of its lowest-weight band (weight ≤ 0.25) near each
+   end. A vertex's lag is its position across that span, and it turns about the base under
+   it rather than one fixed root, so a sloping fin base stays attached. `dorsalRootYZ` /
+   `analRootYZ` are ignored.
 2. **The tail is an engine in bursts, not a rudder.** The Mola's blue channel (clavus) is
    a restrained trim. On a triggerfish the blue channel is the caudal fin: still near
-   idle while cruising, beating under `burst01`. Proposed key `caudalBurstAmplitude`.
-3. **Axes.** The shader is written in the Mola's raw frame. Proposed keys `forwardAxis`
-   / `lateralAxis` so the triggerfish exports in the caudal convention every other fish
-   uses (nose at `-Z`, `+Y` up).
+   idle while cruising, beating under `burst01`. Key `caudalBurstAmplitude` (raw source
+   units of side-to-side travel at a full burst; `0`, the Mola, keeps the clavus trim) with
+   `caudalBeatRate` (tail beats per fin stroke). The tail also leans into turns by
+   `turnStrength`.
+3. **Axes.** The shader is written in the Mola's raw frame (+X forward, +Y lateral, +Z
+   down). Keys `forwardAxis` and `upAxis` (`'x'`, `'-z'`, …) rotate another asset into
+   that frame and back. The defaults (`'x'`, `'-z'`) are the Mola's, the identity. The
+   triggerfish uses `'-z'` and `'y'`, the caudal convention.
 
 Plus `analAmplitudeScale` (below `1`): the dorsal does more of the work than the anal.
+Separate `pectoral.l` / `pectoral.r` objects flutter on the CPU as on a caudal fish
+(`pectoralFinFlutter`); the Mola has none, so nothing changes for it.
 
 ### What produces thrust
 
@@ -182,9 +193,12 @@ and turn nearly in place; the surprise is the sudden tail-driven dart.
 
 ### Blender contract (Clown Triggerfish)
 
-- **One mesh, everything joined**, fins included, named `balistoides_conspicillum`.
-  Separate pectoral objects are fine too (`pectoral.l` / `pectoral.r`) if painting them
-  grey is awkward.
+- **One body mesh with the soft dorsal, anal, and caudal fins joined in**, keeping the
+  first export's name `clown triggerfish` (Three reads it as `clown_triggerfish`). The
+  first export's separate `pectoral.l` / `pectoral.r` objects stay as they are.
+- **The soft dorsal and anal fins are thin blades**, not bumps on the body outline: the
+  first export drew them in the texture's alpha over a thickened hull, which has nothing
+  to ripple.
 - **Orientation:** nose at `-Z`, `+Y` up, transforms applied. Origin mid-length on the
   body axis.
 - **True scale:** 50 cm nose to tail tip (0.5 Blender units), as the angelfish was.

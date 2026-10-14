@@ -2102,6 +2102,8 @@ export const SPECIES = [
     name: 'Clown Triggerfish',
     scientificName: 'Balistoides conspicillum',
     family: 'Balistidae',
+    // Tank capture (2026-10-15): fish 406 side-on in The Drift, a pilot fish for scale.
+    atlasThumbnail: '/atlas/balistoides-conspicillum-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Adults are solitary; FishBase records pairs only for spawning, so no `pairBonded`.

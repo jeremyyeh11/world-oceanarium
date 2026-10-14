@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.22.1 — Clown Triggerfish Atlas tile
+
+Status: clean `v0.22.1` (2026-10-15), on Jeremy's request. `package.json` moves to `0.22.1`.
+
+### Atlas
+
+- The Clown Triggerfish's Atlas tile: a tank capture of fish 406 side-on in The Drift, a pilot fish below it for scale, 420 × 420 like the emperor angelfish's. Captured from the WebGL canvas inside the render frame at 2264 × 1273, cropped 660 px square around the fish.
+
+### Data
+
+- 3 Clown Triggerfish in production `creatures` (2026-10-15, on Jeremy's go-ahead): ids 407–409, sizes 0.66 / 0.82 / 0.97, 1 female and 2 male, adult, matching `creatures_dev` 404–406. Insert only, checked against a snapshot: 254 → 257 rows, the existing rows unchanged.
+
 ## v0.22.0 — Clown Triggerfish
 
 Status: accepted and promoted as clean `v0.22.0` from `v0.22.0-dev_4` on Jeremy's go-ahead (2026-10-15; `dev_1` the species, model, and balistiform shader, `dev_2` lights turned fins as turned, `dev_3` stops the soft dorsal folding over, `dev_4` draws it opaque). `package.json` moves to `0.22.0`. 3 triggerfish in `creatures_dev` (ids 404–406); none in production `creatures` yet.

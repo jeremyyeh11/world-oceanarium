@@ -100,8 +100,8 @@ export const TANKS = [
     lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
-    // then, as cleaners.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator'],
+    // then, as cleaners. The clown triggerfish keeps to itself.
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum'],
   },
 ]
 
@@ -2095,6 +2095,146 @@ export const SPECIES = [
           debugForwardOffsetRatio: 0.5,
         },
       },
+    },
+  },
+  {
+    id: 'balistoides-conspicillum',
+    name: 'Clown Triggerfish',
+    scientificName: 'Balistoides conspicillum',
+    family: 'Balistidae',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Adults are solitary; FishBase records pairs only for spawning, so no `pairBonded`.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      commonDiet: 'Sea urchins, crabs and other crustaceans, molluscs, and tunicates.',
+      foundIn: 'Indo-Pacific reefs, East Africa through northern Australia to Samoa, north to southern Japan, 1 to 75 m.',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Solitary',
+        groupingBehaviour: 'Adults swim alone and in the open along deep drop-offs on clear seaward reefs, retreating into caves when approached. Juveniles are secretive, keeping to small caves rich in invertebrate growth.',
+        reproduction: 'Forms distinct pairs to spawn, over patches of mixed coral rubble and sand on clear seaward reefs.',
+      },
+      averages: {
+        // FishBase gives a 50 cm maximum (total length) and no common length, weight, or age.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Urchins',
+      social: 'Solitary',
+    },
+    description: 'A reef triggerfish up to 50 cm, black with large white spots across the belly, a yellow-netted back, and a yellow ring round the mouth. It cruises on its rippling dorsal and anal fins, keeping its armoured body rigid, and only beats its tail to dart. Alone along deep drop-offs, it cracks sea urchins, crabs, and molluscs, and retreats into a cave when approached.',
+    // FishBase: 50 cm maximum (total length). No common or maturity length is published.
+    adultLengthRangeMeters: [0.3, 0.5],
+    maxBodyLengthMeters: 0.5,
+    swim: {
+      // Balistiform gait (Korsmeyer et al. 2002, Picasso triggerfish): dorsal and anal fins
+      // alone up to ~1.5 BL/s, tail beats added intermittently above that and continuously
+      // above ~3.5 BL/s. Cruise sits inside the fin-only range; bursts are the tail-driven darts.
+      visualTimeScale: 0.8,
+      driftEnabled: false,
+      idleBLPerSec: [0.4, 0.8],
+      idleDriftBLPerSec: [0.06, 0.12],
+      snapBLPerSec: [0.9, 1.4],
+      burstBLPerSec: [2.4, 3.4],
+      burstInterval: [14.0, 26.0],
+      burstActionDuration: 0.6,
+      turnActionDuration: 0.5,
+      erraticness: 0.14,
+      // Fin-driven and very manoeuvrable: it can turn nearly in place and even back up.
+      turnRadiusBodyLengths: 0.6,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // 1 WU = 25 cm: 50 cm maximum = 2.0 WU.
+      bodyLengthWU: 2.0,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.5,
+        separationWeight: 0.3,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.3,
+        // Others give a territorial triggerfish room; it shies from what approaches it.
+        menace: 0.15,
+        wariness: 0.35,
+      },
+    },
+    // Individuals span 30 cm to the 50 cm maximum.
+    sizeRange: [0.6, 1.0],
+    // FishBase Bayesian length–weight (TL cm → g): about 2.4 kg at 50 cm.
+    mass: { coefficient: 0.02692, exponent: 2.91 },
+    model: {
+      path: '/models/fish/balistoides-conspicillum/balistoides-conspicillum.glb',
+      // Jeremy's model (2026-10-14): source length 4.589 (node scale 3.11 over 1.4753 raw)
+      // -> 2.0 WU; recentred mid-length on the body axis. 1 raw mesh unit = 1.355 WU.
+      scale: 0.4358,
+      position: [0, -0.071, -0.223],
+      followAim: 'root',
+      // Opaque, unlike the angelfish: the fin outlines are cut in the mesh and the texture's alpha
+      // is solid. Its GLB material still says BLEND, and blending one material for the whole fish
+      // drops depth writes, so the far side drew over the near (fins and tail through the body).
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        // Balistiform: the Mola's painted-fin type with a travelling ripple (see
+        // docs/procedural/mask-fin-row.md). R soft dorsal, G anal, B caudal; separate pectorals.
+        type: 'mola-mask-vertex',
+        bodyMeshNames: ['clown_triggerfish'],
+        maskAttribute: 'color_1',
+        forwardAxis: '-z',
+        upAxis: 'y',
+        waveSpeed: 7,
+        // Fin rays sweep ~30–45° in balistiform swimming; at the Atlas's cruise speed this
+        // turns the fin edge ~23° (about 2 cm on the 5 cm soft dorsal).
+        finRotationRadians: 0.6,
+        finWaveTravel: 6,
+        analPhaseOffset: 0.6,
+        analPhaseRate: 1,
+        analAmplitudeScale: 0.8,
+        pectoralAmplitude: 0,
+        clavusAmplitude: 0,
+        // About 4 cm of tail travel at a full burst (raw source units: 1 raw = 1.355 WU).
+        caudalBurstAmplitude: 0.12,
+        caudalBeatRate: 2.5,
+        turnStrength: 0.02,
+        burstAmplitude: 0.4,
+        response: 6,
+        speedFrequencyBoost: 0.5,
+        burstFrequencyBoost: 0.3,
+        pectoralFinFlutter: 0.18,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
     },
   },
 ]

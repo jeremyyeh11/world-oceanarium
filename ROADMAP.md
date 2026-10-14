@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### Clown Triggerfish
+
+Status: shipped in clean `v0.22.0` (2026-10-15, from `v0.22.0-dev_4`, branch `feat/balistoides-conspicillum`). The open items below carry over. Second pick for the reef conversion of The Drift. Jeremy's model, in The Drift and the Atlas, swimming on rippling fins (balistiform `mask-fin-row`). 3 in `creatures_dev`.
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase (`Balistoides conspicillum`): 50 cm TL = 2.0 WU, solitary, LC, length–weight a 0.02692 / b 2.91.
+- [x] Motion: balistiform variant of `mask-fin-row` (rippling dorsal and anal fins, tail beats only in bursts), chosen by Jeremy on 2026-10-14. See `docs/procedural/mask-fin-row.md`.
+- [x] Model intake: Jeremy's remodel with thin fin blades and `COLOR_1` paint, 0.94 MB, verifier target, Atlas framing checked on desktop and a 375 px phone. Texture: no credit (Jeremy's call).
+- [x] `creatures_dev` rows (2026-10-14, on Jeremy's go-ahead): 3, ids 404–406 (sizes 0.66 / 0.82 / 0.97; 1 female, 2 male; adult). Solitary and territorial, so few. Insert only: undo is a delete of those ids. Seen in The Drift locally, no runtime errors.
+- [ ] Jeremy review on device: does the ripple read at viewing distance? `finRotationRadians 0.6` is a first pass.
+- [ ] Atlas tile (tank capture), once it is in the tank.
+- [ ] Production `creatures` rows: needs Jeremy's go-ahead on the count.
+- [ ] Juveniles (black, white-spotted, few cm): a `lifeStages.juvenile` model is possible later. Sizes are far under the 27 cm floor. `Backlog`
+
 ### Juvenile Emperor Angelfish
 
 Status: shipped in clean `v0.21.0` (2026-10-13, from `v0.21.0-dev_2`, branch `feat/juvenile-angelfish`): the `life_stage` column, stage-aware species (`lifeStages`), Jeremy's juvenile model in The Drift and the Atlas, and his revised adult shading. 16 juveniles in production (ids 382–397). The open items below carry over.

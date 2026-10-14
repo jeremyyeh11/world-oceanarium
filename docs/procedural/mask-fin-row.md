@@ -128,6 +128,104 @@ time rather than sitting in permanent opposition. Speed and burst boosts are low
 The lesson generalises: for this type, restraint reads as mass. The first instinct is
 always to increase `finRotationRadians`, and it is almost always wrong.
 
+## Balistiform variant
+
+Status: **In review** (`v0.22.0-dev_1`). Jeremy chose this approach on 2026-10-14 and
+remodelled the Clown Triggerfish's (`balistoides-conspicillum`) fins to the contract below.
+
+### Why this type, and what it lacks
+
+Triggerfish swim like the Mola in the way that matters: a rigid body pushed by its
+dorsal and anal fins, steered by its pectorals. Same engine, same painted channels, so
+it stays `mola-mask-vertex` rather than a new type. Three things differ, each one new
+config key rather than a new architecture:
+
+1. **The fins ripple; they do not flap.** The Mola swings each fin as one blade, every
+   point in phase. A triggerfish's soft dorsal and anal fins carry a wave that travels
+   from the front of the fin to the back, all rays at the same frequency (George &
+   Westneat, gilded triggerfish). Key `finWaveTravel`: radians of phase lag from the
+   fin's leading edge to its trailing edge. `0` is the Mola, and switches the rest of this
+   off. Started at one wavelength (`6`); tune by eye. With it on, `molaFinBases()` reads each fin once per model:
+   its span (front and back of the painted fin along the forward axis) and, per vertex, a
+   `molaFinRoot` attribute: the height of the body surface directly under it (the top of the
+   unpainted body for the dorsal, the bottom for the anal, in 40 bins along the length). A
+   vertex's lag is its position across the span, and it turns about its own root, so a
+   sloping or curving fin base stays attached. A straight base line per fin was tried first
+   and folded the triggerfish's soft dorsal over: its base curves, the line sat above the
+   lower rows, and they swung the wrong way. `dorsalRootYZ` /
+   `analRootYZ` are ignored.
+2. **The tail is an engine in bursts, not a rudder.** The Mola's blue channel (clavus) is
+   a restrained trim. On a triggerfish the blue channel is the caudal fin: still near
+   idle while cruising, beating under `burst01`. Key `caudalBurstAmplitude` (raw source
+   units of side-to-side travel at a full burst; `0`, the Mola, keeps the clavus trim) with
+   `caudalBeatRate` (tail beats per fin stroke). The tail also leans into turns by
+   `turnStrength`.
+3. **Axes.** The shader is written in the Mola's raw frame (+X forward, +Y lateral, +Z
+   down). Keys `forwardAxis` and `upAxis` (`'x'`, `'-z'`, …) rotate another asset into
+   that frame and back. The defaults (`'x'`, `'-z'`) are the Mola's, the identity. The
+   triggerfish uses `'-z'` and `'y'`, the caudal convention.
+
+Plus `analAmplitudeScale` (below `1`): the dorsal does more of the work than the anal.
+Separate `pectoral.l` / `pectoral.r` objects flutter on the CPU as on a caudal fish
+(`pectoralFinFlutter`); the Mola has none, so nothing changes for it.
+
+### What produces thrust
+
+- **Cruise (up to ~1.5 BL/s):** dorsal and anal fins only. The body does not bend and the
+  tail does not beat. The leading rays carry the largest amplitude: they produce close
+  to half the thrust.
+- **Burst:** the tail beats, and the fins keep rippling alongside it (Korsmeyer et al.
+  2002: Picasso triggerfish, tail beats intermittent above ~1.5 BL/s and continuous above
+  ~3.5).
+- **Decoration and steering:** pectorals scull and bias turns.
+
+### Felt intention
+
+**An armoured box that glides on ripples, then snaps.** Unhurried, precise, able to stop
+and turn nearly in place; the surprise is the sudden tail-driven dart.
+
+### What must not happen
+
+- Cruising on its tail. If the tail beats at cruise speed, it reads as a reef fish
+  like the angelfish, which is the wrong animal.
+- A wave running back to front, or dorsal and anal locked in the same phase at cruise.
+- The body bending. The scaled skin is rigid; only the fins and, in bursts, the tail move.
+- The first dorsal spine (the trigger) moving. It lies folded in its groove.
+
+### Blender contract (Clown Triggerfish)
+
+- **One body mesh with the soft dorsal, anal, and caudal fins joined in**, keeping the
+  first export's name `clown triggerfish` (Three reads it as `clown_triggerfish`). The
+  first export's separate `pectoral.l` / `pectoral.r` objects stay as they are.
+- **The soft dorsal and anal fins are thin blades**, not bumps on the body outline: the
+  first export drew them in the texture's alpha over a thickened hull, which has nothing
+  to ripple.
+- **Orientation:** nose at `-Z`, `+Y` up, transforms applied. Origin mid-length on the
+  body axis.
+- **True scale:** 50 cm nose to tail tip (0.5 Blender units), as the angelfish was.
+- **Fin topology:** the soft dorsal and anal fins need loops in both directions: at least
+  12–16 divisions along the fin base (front to back) so the wave does not step, and 4–6
+  from base to edge so the arc bends. The caudal fin needs a few loops from the
+  peduncle out.
+- **`COLOR_1` paint**, each a continuous `0 → 1` ramp from the attachment to the edge,
+  no hard step at the base:
+  - pure red: soft (second) dorsal fin
+  - pure green: anal fin
+  - pure blue: caudal fin, `0` at the narrowest point of the tail stalk
+  - grey: pectorals
+  - black: body, the first dorsal spine, and the pelvic spine
+- **`COLOR_0` stays white.** Keep textures small and note their source and licence.
+
+### Shipped tuning (Clown Triggerfish, dev)
+
+`waveSpeed 7` (about 1.1 fin beats a second), `finWaveTravel 6` (one wavelength along the
+fin), `finRotationRadians 0.6`: fin rays sweep ~30–45° in balistiform swimming, and at the
+Atlas's cruise speed this turns the soft dorsal's edge ~23°, about 2 cm on a 5 cm fin. 0.35
+measured 13° and read as stiff. `analAmplitudeScale 0.8`, `analPhaseOffset 0.6`.
+`caudalBurstAmplitude 0.12` raw units (1 raw = 1.355 WU), about 4 cm of tail travel at a
+full burst, `caudalBeatRate 2.5`. Jeremy's paint ramps are coarse (body 0 → ~0.4 → ~0.9
+across 2–3 rows), which is why roots come from the body surface rather than from the paint.
+
 ## Material notes
 
 Standard opaque path. `applyModelMaterialSettings()` forces

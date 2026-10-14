@@ -8,6 +8,22 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.22.0 — Clown Triggerfish
+
+Status: accepted and promoted as clean `v0.22.0` from `v0.22.0-dev_4` on Jeremy's go-ahead (2026-10-15; `dev_1` the species, model, and balistiform shader, `dev_2` lights turned fins as turned, `dev_3` stops the soft dorsal folding over, `dev_4` draws it opaque). `package.json` moves to `0.22.0`. 3 triggerfish in `creatures_dev` (ids 404–406); none in production `creatures` yet.
+
+### Species
+
+- Clown Triggerfish (`Balistoides conspicillum`) on Jeremy's model, in The Drift and the Atlas. Facts from FishBase: 50 cm maximum (2.0 WU), solitary along deep reef drop-offs, retreating to caves when approached; pairs only to spawn. Length–weight from FishBase's Bayesian estimate (a 0.02692, b 2.91: about 2.4 kg at 50 cm). Least Concern.
+- Swims balistiform: dorsal and anal fins alone at cruise, tail beats only in bursts (Korsmeyer et al. 2002 on the Picasso triggerfish). Cruise 0.4–0.8 BL/s, bursts 2.4–3.4 BL/s, turns in 0.6 body lengths.
+- Model intake: 0.94 MB as supplied (one 1000 × 588 PNG). Opaque (`dev_4`): the texture's alpha is solid and the fins are cut in the mesh, but the GLB material is BLEND; with `alphaBlend` the single material for the whole fish lost its depth writes and the fins and tail drew through the body. Source length 4.589 → `scale 0.4358`, recentred mid-length. Jeremy remodelled the soft dorsal and anal fins as thin blades and painted `COLOR_1` (R soft dorsal, G anal, B caudal); separate `pectoral.l` / `pectoral.r`. Verifier target added.
+
+### Procedural animation
+
+- `mola-mask-vertex` gains a balistiform variant (docs/procedural/mask-fin-row.md): `finWaveTravel` sends a ripple front to back along each painted fin, with each fin's span and sloping base line read from its paint (`molaFinBases()`, once per model); `caudalBurstAmplitude` / `caudalBeatRate` make the blue channel a tail that beats only in bursts and leans into turns; `analAmplitudeScale`; `forwardAxis` / `upAxis` rotate an asset into the Mola's raw frame. Separate pectoral objects flutter on this type as on `caudal-vertex`. The Mola's defaults are the identity and leave it unchanged.
+- `dev_2`: the normal turns with its fin (`proceduralMolaNormal`, sharing `molaFinAngles` with the position), so a swung fin is lit as swung instead of in its rest pose. This applies to the Mola's fins too, a small shading change.
+- `dev_3`: each rippling-fin vertex turns about the body surface directly under it (a `molaFinRoot` attribute built once per model from the unpainted body's top and bottom in 40 bins along the length), not one straight base line per fin. The triggerfish's soft dorsal base drops from 0.36 to 0.18 raw along a curve, so the straight line sat up to 0.06 above the lower rows of a 0.07–0.15 fin, and they swung the wrong way, folding the fin over. A root is never placed above its own vertex.
+
 ## v0.21.0 — Juvenile emperor angelfish
 
 Status: accepted and promoted as clean `v0.21.0` from `v0.21.0-dev_2` on Jeremy's go-ahead (2026-10-13; `dev_1` was the life stages and the juvenile, `dev_2` the adult model's shading). `package.json` moves to `0.21.0`. Sixteen juvenile emperor angelfish were written to production `creatures` (ids 382–397, 8 female and 8 male) on the same go-ahead.

@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.22.0 — Glass window (in progress)
+
+Status: prototype on `v0.22.0-dev_1`, under review on device.
+
+### Tank view
+
+- The tank is viewed through a fixed square window in a dark viewing room (`GlassRoom.jsx`): wall, floor, window light spilling across the floor, and a 1.7 m human silhouette for scale. Screen-space only; the room never touches the 3D scene.
+- The camera lens-shifts (`setViewOffset`) and widens its FOV so the window, wherever it sits on screen, shows exactly the tank's `glass.fov` view (61° by default). Phone and desktop see the same composition inside the window.
+- Scale is derived, not placed: the window is as wide as a 61° view at the front face of the swim volume (17.6 WU, ≈ 5.2 m), and the silhouette is sized from that. Per tank via `tank.glass`.
+- Following a creature "steps up to the glass": the room scales past the screen edges and fades while the camera returns to full-bleed. Releasing steps back.
+- The wall swallows taps, so nothing behind it can be selected. Stage panning is off while the window is on.
+
 ## v0.21.0 — Juvenile emperor angelfish
 
 Status: accepted and promoted as clean `v0.21.0` from `v0.21.0-dev_2` on Jeremy's go-ahead (2026-10-13; `dev_1` was the life stages and the juvenile, `dev_2` the adult model's shading). `package.json` moves to `0.21.0`. Sixteen juvenile emperor angelfish were written to production `creatures` (ids 382–397, 8 female and 8 male) on the same go-ahead.

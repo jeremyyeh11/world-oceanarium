@@ -6,6 +6,7 @@ import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
+import GlassRoom, { DEFAULT_GLASS, getGlassLayout } from './GlassRoom'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
@@ -100,7 +101,12 @@ function summarizeRenderLoad(creatures, biomeId) {
   }
 }
 
+// Glass-window prototype: the tank is viewed through a fixed window, so the stage no
+// longer pans — the window, not the screen, decides what of the tank you see.
+const GLASS_WINDOW_ENABLED = true
+
 function getPanLimits() {
+  if (GLASS_WINDOW_ENABLED) return { enabled: false, maxPan: 0 }
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
   const stageWidth = Math.max(viewportWidth, viewportHeight * 16 / 9)
@@ -165,6 +171,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const [debugSunBaskRequestId, setDebugSunBaskRequestId] = useState(0)
   const [defaultCameraSettled, setDefaultCameraSettled] = useState(true)
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
+  const [viewportSize, setViewportSize] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
   const [recoveryNotice, setRecoveryNotice] = useState(null)
   const performanceStatsRef = useRef({ fps: null })
@@ -175,6 +182,8 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   const suppressCreatureFocusUntilRef = useRef(0)
   const fishRefsByCreatureId = useRef(new Map())
   const zoomActive = Boolean(selectedCreature)
+  const glass = tank?.glass ?? DEFAULT_GLASS
+  const glassLayout = GLASS_WINDOW_ENABLED ? getGlassLayout(viewportSize.width, viewportSize.height, glass) : null
   const visibleDebugVisuals = debugMode
   const visibleDebugPanel = debugMode && !screenshotMode
   const boneDebugAvailable = debugView !== 'all'
@@ -200,6 +209,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
     const updatePanLimits = () => {
       const nextLimits = getPanLimits()
       setPanLimits(nextLimits)
+      setViewportSize({ width: window.innerWidth, height: window.innerHeight })
       setStagePan(current => nextLimits.enabled
         ? Math.max(-nextLimits.maxPan, Math.min(nextLimits.maxPan, current))
         : 0)
@@ -681,8 +691,11 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
   return (
     <div
-      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}
-      style={{ '--stage-pan-x': `${stagePan}px` }}
+      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}${glassLayout ? ' has-glass-window' : ''}`}
+      style={{
+        '--stage-pan-x': `${stagePan}px`,
+        ...(glassLayout && { '--glass-top': `${glassLayout.top}px`, '--glass-size': `${glassLayout.size}px` }),
+      }}
     >
       <div
         className="tank-stage"
@@ -709,6 +722,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             followOrbit={followOrbit}
             followDistance={followDistance}
             followScreenOffset={followScreenOffset}
+            glassWindow={glassLayout}
             onDefaultCameraSettledChange={setDefaultCameraSettled}
             onFollowCameraClip={releaseFollowForCameraClip}
           />
@@ -757,6 +771,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
       <div className="tank-top-exposure" aria-hidden="true" />
       <div className="tank-depth-absorption" aria-hidden="true" />
+      <GlassRoom layout={glassLayout} steppedIn={zoomActive} />
 
       {screenshotMode && (
         <svg className="screenshot-grain" aria-hidden="true" focusable="false">

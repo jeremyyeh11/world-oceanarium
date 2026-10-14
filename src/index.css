@@ -1159,6 +1159,106 @@ body:has(.debug-panel) .app-version-footnote {
   mix-blend-mode: multiply;
 }
 
+/* Glass-window prototype: while standing back from the glass, the surface/depth grading
+   maps onto the window itself, so the window reads the same on every screen. */
+.tank-viewport.has-glass-window .tank-top-exposure,
+.tank-viewport.has-glass-window .tank-depth-absorption {
+  transition: top 0.9s cubic-bezier(0.5, 0, 0.2, 1), bottom 0.9s cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+.tank-viewport.has-glass-window:not(.is-following-fish) .tank-top-exposure,
+.tank-viewport.has-glass-window:not(.is-following-fish) .tank-depth-absorption {
+  top: var(--glass-top);
+  bottom: calc(100% - var(--glass-top) - var(--glass-size));
+}
+
+.glass-room {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  transform-origin: var(--glass-cx) var(--glass-cy);
+  transition:
+    transform 0.9s cubic-bezier(0.5, 0, 0.2, 1),
+    opacity 0.6s ease 0.1s;
+}
+
+.glass-room.is-stepped-in {
+  transform: scale(var(--glass-step-scale));
+  opacity: 0;
+  transition:
+    transform 0.9s cubic-bezier(0.5, 0, 0.2, 1),
+    opacity 0.5s ease 0.25s;
+}
+
+/* The wall is the only hit-testing layer: the clip-path hole lets taps through to the
+   tank, and the wall itself swallows taps so nothing behind it can be selected. */
+.glass-wall {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  background:
+    radial-gradient(circle at var(--glass-cx) var(--glass-cy), rgba(70, 175, 215, 0.2) 0%, rgba(30, 105, 140, 0.09) calc(var(--glass-size) * 0.75), transparent calc(var(--glass-size) * 1.25)),
+    linear-gradient(180deg, #050f16 0%, #071820 55%, #040c12 100%);
+}
+
+.glass-room.is-stepped-in .glass-wall {
+  pointer-events: none;
+}
+
+.glass-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(180deg, rgba(110, 200, 230, 0.12) 0%, rgba(20, 60, 78, 0.06) 18%, transparent 60%),
+    linear-gradient(180deg, #08161d 0%, #050d12 100%);
+  border-top: 1px solid rgba(120, 210, 235, 0.14);
+}
+
+/* Window light thrown across the floor toward the viewer. */
+.glass-light-spill {
+  position: absolute;
+  background: linear-gradient(180deg, rgba(120, 215, 240, 0.22) 0%, rgba(80, 180, 215, 0.08) 45%, transparent 100%);
+  clip-path: polygon(6% 0, 94% 0, 118% 100%, -18% 100%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+}
+
+.glass-figure-shadow {
+  position: absolute;
+  background: radial-gradient(ellipse 50% 50% at 50% 0%, rgba(0, 4, 8, 0.75) 0%, rgba(0, 4, 8, 0.35) 45%, transparent 100%);
+  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+  filter: blur(3px);
+}
+
+.glass-frame {
+  position: absolute;
+  box-sizing: border-box;
+  border-style: solid;
+  border-color: #0b1d25;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(140, 225, 245, 0.28),
+    0 calc(var(--glass-size) * 0.02) calc(var(--glass-size) * 0.06) rgba(0, 0, 0, 0.5);
+  background: none;
+}
+
+/* Glass depth: inner vignette plus a faint diagonal sheen. */
+.glass-pane {
+  position: absolute;
+  box-shadow: inset 0 0 calc(var(--glass-size) * 0.09) rgba(1, 10, 18, 0.65);
+  background: linear-gradient(118deg, transparent 38%, rgba(220, 245, 255, 0.045) 44%, transparent 50%, transparent 62%, rgba(220, 245, 255, 0.03) 66%, transparent 70%);
+}
+
+.glass-figure {
+  position: absolute;
+  overflow: visible;
+  fill: #01060a;
+  filter: drop-shadow(0 0 1px rgba(120, 215, 240, 0.45));
+}
+
 
 .encyclopedia-page {
   position: fixed;

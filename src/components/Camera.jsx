@@ -69,8 +69,9 @@ function isDescendantOf(node, root) {
   return false
 }
 
-export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
-  const { camera } = useThree()
+export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, glassWindow = null, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
+  const { camera, size } = useThree()
+  const lensShift = useRef({ x: 0, y: 0, initialized: false })
   const focusBoneRef = useRef(null)
   const focusBoneTargetRef = useRef(null)
   const focusBoneNameRef = useRef(null)
@@ -127,6 +128,47 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
   useEffect(() => {
     camera.position.set(0, cameraSettings.y, cameraSettings.z)
   }, [camera, biome, cameraSettings.y, cameraSettings.z])
+
+  // Eases the lens toward a target FOV and a screen-space lens shift (px from the canvas
+  // centre). The glass window uses this so the square window, wherever it sits on screen,
+  // shows exactly a `glassWindow.fov` view: the canvas FOV widens until the window covers
+  // that much, and the optical axis is shifted onto the window centre.
+  const applyLens = (targetFov, targetShiftX, targetShiftY, delta) => {
+    const shift = lensShift.current
+    let changed = false
+    if (!shift.initialized) {
+      shift.initialized = true
+      shift.x = targetShiftX
+      shift.y = targetShiftY
+      camera.fov = targetFov
+      changed = true
+    } else {
+      const nextFov = THREE.MathUtils.damp(camera.fov, targetFov, FOLLOW_FOV_DAMPING, delta)
+      if (Math.abs(nextFov - camera.fov) > 0.01) {
+        camera.fov = nextFov
+        changed = true
+      }
+      const nextX = THREE.MathUtils.damp(shift.x, targetShiftX, FOLLOW_FOV_DAMPING, delta)
+      const nextY = THREE.MathUtils.damp(shift.y, targetShiftY, FOLLOW_FOV_DAMPING, delta)
+      if (Math.abs(nextX - shift.x) > 0.05 || Math.abs(nextY - shift.y) > 0.05) {
+        shift.x = nextX
+        shift.y = nextY
+        changed = true
+      }
+    }
+    const shifted = Math.abs(shift.x) > 0.5 || Math.abs(shift.y) > 0.5
+    if (shifted) {
+      const view = camera.view
+      if (!view?.enabled || view.fullWidth !== size.width || view.fullHeight !== size.height || view.offsetX !== -shift.x || view.offsetY !== -shift.y) {
+        camera.setViewOffset(size.width, size.height, -shift.x, -shift.y, size.width, size.height)
+        changed = false
+      }
+    } else if (camera.view?.enabled) {
+      camera.clearViewOffset()
+      changed = false
+    }
+    if (changed) camera.updateProjectionMatrix()
+  }
 
   useFrame(({ clock }, delta) => {
     const now = clock.getElapsedTime()
@@ -212,12 +254,8 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
       // orbiting is a pure rotation at a fixed distance. (Previously the camera auto-widened
       // FOV whenever a position clamp cut it short of the requested distance, which made the
       // orbit feel like it lurched toward and away from the animal.)
-      const targetFov = DEFAULT_CAMERA_FOV
-      const nextFov = THREE.MathUtils.damp(camera.fov, targetFov, FOLLOW_FOV_DAMPING, delta)
-      if (Math.abs(nextFov - camera.fov) > 0.01) {
-        camera.fov = nextFov
-        camera.updateProjectionMatrix()
-      }
+      // Following steps "through" the glass: the lens returns to full-bleed.
+      applyLens(DEFAULT_CAMERA_FOV, 0, 0, delta)
 
       // Aim at the selected fish's current mesh origin every frame. Camera translation may
       // ease behind the swimmer, but look-target easing made the animal visibly trail toward
@@ -250,10 +288,12 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
     const targetDefaultY = Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y
     const targetDefaultZ = Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z
     const targetDefaultLookY = Number.isFinite(cameraSettings.lookY) ? cameraSettings.lookY : DEFAULT_CAMERA_LOOK_Y
-    const nextDefaultFov = THREE.MathUtils.damp(camera.fov, targetDefaultFov, FOLLOW_FOV_DAMPING, delta)
-    if (Math.abs(nextDefaultFov - camera.fov) > 0.01) {
-      camera.fov = nextDefaultFov
-      camera.updateProjectionMatrix()
+    if (glassWindow && glassWindow.size > 0 && size.height > 0) {
+      const windowFov = Number.isFinite(glassWindow.fov) ? glassWindow.fov : targetDefaultFov
+      const canvasFov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(windowFov) * 0.5) * size.height / glassWindow.size))
+      applyLens(canvasFov, glassWindow.offsetX, glassWindow.offsetY, delta)
+    } else {
+      applyLens(targetDefaultFov, 0, 0, delta)
     }
     camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, DEFAULT_POSITION_DAMPING, delta)
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetDefaultY, DEFAULT_POSITION_DAMPING, delta)

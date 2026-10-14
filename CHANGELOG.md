@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.22.0 — Clown Triggerfish
 
-Status: in development (`v0.22.0-dev_1`, branch `feat/balistoides-conspicillum`).
+Status: in development (`v0.22.0-dev_2`, branch `feat/balistoides-conspicillum`; `dev_2` lights turned fins as turned).
 
 ### Species
 
@@ -21,6 +21,7 @@ Status: in development (`v0.22.0-dev_1`, branch `feat/balistoides-conspicillum`)
 ### Procedural animation
 
 - `mola-mask-vertex` gains a balistiform variant (docs/procedural/mask-fin-row.md): `finWaveTravel` sends a ripple front to back along each painted fin, with each fin's span and sloping base line read from its paint (`molaFinBases()`, once per model); `caudalBurstAmplitude` / `caudalBeatRate` make the blue channel a tail that beats only in bursts and leans into turns; `analAmplitudeScale`; `forwardAxis` / `upAxis` rotate an asset into the Mola's raw frame. Separate pectoral objects flutter on this type as on `caudal-vertex`. The Mola's defaults are the identity and leave it unchanged.
+- `dev_2`: the normal turns with its fin (`proceduralMolaNormal`, sharing `molaFinAngles` with the position), so a swung fin is lit as swung instead of in its rest pose. This applies to the Mola's fins too, a small shading change.
 
 ## v0.21.0 — Juvenile emperor angelfish
 

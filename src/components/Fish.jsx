@@ -684,27 +684,27 @@ uniform float uMolaCaudalBeatRate;
 float molaFinT(vec4 base, float forward) {
   return clamp((base.x - forward) / max(0.00001, base.x - base.y), 0.0, 1.0);
 }
-void proceduralMolaMotion(inout vec3 value) {
-  // Work in the Mola's raw frame (+X forward, +Y lateral, +Z down); identity for the Mola.
-  value = uMolaFrame * value;
+// White/grey is deliberately reserved for pectorals. Removing its shared value leaves the
+// exclusive red/green/blue dorsal, anal, and clavus weights.
+vec4 molaMaskWeights() {
   vec3 mask = clamp(color_1.rgb, 0.0, 1.0);
-  // White/grey is deliberately reserved for pectorals. Removing its shared value
-  // leaves the exclusive red/green/blue dorsal, anal, and clavus weights.
   float pectoral = min(mask.r, min(mask.g, mask.b));
-  float dorsal = max(0.0, mask.r - pectoral);
-  float anal = max(0.0, mask.g - pectoral);
-  float clavus = max(0.0, mask.b - pectoral);
+  return vec4(max(0.0, mask.r - pectoral), max(0.0, mask.g - pectoral), max(0.0, mask.b - pectoral), pectoral);
+}
+// Each fin's turn at this vertex (m is in the Mola's frame), and the root it turns about.
+// Shared by the position and the normal so a turned fin is lit as turned.
+void molaFinAngles(vec3 m, vec4 weights, out float dorsalAngle, out float analAngle, out vec2 dorsalRoot, out vec2 analRoot) {
   float speedStroke = mix(0.42, 1.0, uMolaSpeed);
   float burstStroke = 1.0 + uMolaBurst * uMolaBurstAmplitude;
   // A rippling (balistiform) fin lags its phase from leading to trailing edge and turns about
   // its own base line; with no wave (the Mola) each fin swings whole about its fixed root.
-  vec2 dorsalRoot = uMolaDorsalRootYZ;
-  vec2 analRoot = uMolaAnalRootYZ;
+  dorsalRoot = uMolaDorsalRootYZ;
+  analRoot = uMolaAnalRootYZ;
   float dorsalLag = 0.0;
   float analLag = 0.0;
   if (uMolaFinWaveTravel > 0.0) {
-    float dorsalT = molaFinT(uMolaDorsalBase, value.x);
-    float analT = molaFinT(uMolaAnalBase, value.x);
+    float dorsalT = molaFinT(uMolaDorsalBase, m.x);
+    float analT = molaFinT(uMolaAnalBase, m.x);
     dorsalRoot = vec2(0.0, mix(uMolaDorsalBase.z, uMolaDorsalBase.w, dorsalT));
     analRoot = vec2(0.0, mix(uMolaAnalBase.z, uMolaAnalBase.w, analT));
     dorsalLag = dorsalT * uMolaFinWaveTravel;
@@ -712,21 +712,48 @@ void proceduralMolaMotion(inout vec3 value) {
   }
   float dorsalRotation = sin(uMolaPhase + uMolaDorsalPhaseOffset - dorsalLag) * uMolaFinRotationRadians * speedStroke * burstStroke;
   float analRotation = sin(uMolaPhase * uMolaAnalPhaseRate + uMolaAnalPhaseOffset - analLag) * uMolaFinRotationRadians * speedStroke * burstStroke * uMolaAnalAmplitudeScale;
-  // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about
-  // its own painted attachment root, creating a real tip arc instead of a
-  // side-to-side translation. Quintic easing retains the painter's continuous
-  // gradient while holding the first few root loops gentler still: no dead-zone
-  // hinge, and zero first/second derivative at the rigid attachment.
-  float dorsalInfluence = dorsal * dorsal * dorsal * (dorsal * (dorsal * 6.0 - 15.0) + 10.0);
-  float dorsalAngle = dorsalInfluence * dorsalRotation;
+  // Quintic easing retains the painter's continuous gradient while holding the first few root
+  // loops gentler still: no dead-zone hinge, and zero first/second derivative at the attachment.
+  float dorsal = weights.x;
+  float anal = weights.y;
+  dorsalAngle = dorsal * dorsal * dorsal * (dorsal * (dorsal * 6.0 - 15.0) + 10.0) * dorsalRotation;
+  analAngle = anal * anal * anal * (anal * (anal * 6.0 - 15.0) + 10.0) * analRotation;
+}
+// Turns the normal with its fin (about the forward axis), so lighting follows the stroke.
+void proceduralMolaNormal(inout vec3 normalValue) {
+  vec3 m = uMolaFrame * position;
+  vec3 n = uMolaFrame * normalValue;
+  float dorsalAngle;
+  float analAngle;
+  vec2 dorsalRoot;
+  vec2 analRoot;
+  molaFinAngles(m, molaMaskWeights(), dorsalAngle, analAngle, dorsalRoot, analRoot);
+  float angle = dorsalAngle + analAngle;
+  float c = cos(angle);
+  float s = sin(angle);
+  n = vec3(n.x, n.y * c - n.z * s, n.y * s + n.z * c);
+  normalValue = uMolaFrameInverse * n;
+}
+void proceduralMolaMotion(inout vec3 value) {
+  // Work in the Mola's raw frame (+X forward, +Y lateral, +Z down); identity for the Mola.
+  value = uMolaFrame * value;
+  vec4 weights = molaMaskWeights();
+  float clavus = weights.z;
+  float pectoral = weights.w;
+  float speedStroke = mix(0.42, 1.0, uMolaSpeed);
+  float dorsalAngle;
+  float analAngle;
+  vec2 dorsalRoot;
+  vec2 analRoot;
+  molaFinAngles(value, weights, dorsalAngle, analAngle, dorsalRoot, analRoot);
+  // Raw X maps to the Mola's forward axis. Each fin rotates in raw Y/Z about its own root,
+  // creating a real tip arc instead of a side-to-side translation.
   float dorsalCos = cos(dorsalAngle);
   float dorsalSin = sin(dorsalAngle);
   float dorsalY = value.y - dorsalRoot.x;
   float dorsalZ = value.z - dorsalRoot.y;
   value.y = dorsalRoot.x + dorsalY * dorsalCos - dorsalZ * dorsalSin;
   value.z = dorsalRoot.y + dorsalY * dorsalSin + dorsalZ * dorsalCos;
-  float analInfluence = anal * anal * anal * (anal * (anal * 6.0 - 15.0) + 10.0);
-  float analAngle = analInfluence * analRotation;
   float analCos = cos(analAngle);
   float analSin = sin(analAngle);
   float analY = value.y - analRoot.x;
@@ -778,11 +805,17 @@ proceduralAddAxis(transformed, proceduralVerticalAxis(), proceduralHugOffset);`
       )
     }
     if (molaMaskUniforms) {
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <project_vertex>',
-        `proceduralMolaMotion(transformed);
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          '#include <beginnormal_vertex>',
+          `#include <beginnormal_vertex>
+proceduralMolaNormal(objectNormal);`
+        )
+        .replace(
+          '#include <project_vertex>',
+          `proceduralMolaMotion(transformed);
 #include <project_vertex>`
-      )
+        )
     }
     shader.vertexShader = shader.vertexShader.replace(
         '#include <worldpos_vertex>',

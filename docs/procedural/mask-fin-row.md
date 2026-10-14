@@ -128,6 +128,79 @@ time rather than sitting in permanent opposition. Speed and burst boosts are low
 The lesson generalises: for this type, restraint reads as mass. The first instinct is
 always to increase `finRotationRadians`, and it is almost always wrong.
 
+## Balistiform variant (proposed)
+
+Status: **Proposed — waiting on Jeremy's go-ahead and the Clown Triggerfish
+(`balistoides-conspicillum`) model.** Nothing below runs yet.
+
+### Why this type, and what it lacks
+
+Triggerfish swim like the Mola in the way that matters: a rigid body pushed by its
+dorsal and anal fins, steered by its pectorals. Same engine, same painted channels, so
+it stays `mola-mask-vertex` rather than a new type. Three things differ, each one new
+config key rather than a new architecture:
+
+1. **The fins ripple; they do not flap.** The Mola swings each fin as one blade, every
+   point in phase. A triggerfish's soft dorsal and anal fins carry a wave that travels
+   from the front of the fin to the back, all rays at the same frequency (George &
+   Westneat, gilded triggerfish). Proposed key `finWaveTravel`: radians of phase lag
+   from the fin's leading edge to its trailing edge. `0` is the Mola. Start near one
+   wavelength (about `6`) and tune by eye. The phase position comes from the vertex's
+   forward coordinate across the fin's own span (`dorsalSpan` / `analSpan`, measured
+   off the mesh), the same travelling-wave primitive the README describes.
+2. **The tail is an engine in bursts, not a rudder.** The Mola's blue channel (clavus) is
+   a restrained trim. On a triggerfish the blue channel is the caudal fin: still near
+   idle while cruising, beating under `burst01`. Proposed key `caudalBurstAmplitude`.
+3. **Axes.** The shader is written in the Mola's raw frame. Proposed keys `forwardAxis`
+   / `lateralAxis` so the triggerfish exports in the caudal convention every other fish
+   uses (nose at `-Z`, `+Y` up).
+
+Plus `analAmplitudeScale` (below `1`): the dorsal does more of the work than the anal.
+
+### What produces thrust
+
+- **Cruise (up to ~1.5 BL/s):** dorsal and anal fins only. The body does not bend and the
+  tail does not beat. The leading rays carry the largest amplitude: they produce close
+  to half the thrust.
+- **Burst:** the tail beats, and the fins keep rippling alongside it (Korsmeyer et al.
+  2002: Picasso triggerfish, tail beats intermittent above ~1.5 BL/s and continuous above
+  ~3.5).
+- **Decoration and steering:** pectorals scull and bias turns.
+
+### Felt intention
+
+**An armoured box that glides on ripples, then snaps.** Unhurried, precise, able to stop
+and turn nearly in place; the surprise is the sudden tail-driven dart.
+
+### What must not happen
+
+- Cruising on its tail. If the tail beats at cruise speed, it reads as a reef fish
+  like the angelfish, which is the wrong animal.
+- A wave running back to front, or dorsal and anal locked in the same phase at cruise.
+- The body bending. The scaled skin is rigid; only the fins and, in bursts, the tail move.
+- The first dorsal spine (the trigger) moving. It lies folded in its groove.
+
+### Blender contract (Clown Triggerfish)
+
+- **One mesh, everything joined**, fins included, named `balistoides_conspicillum`.
+  Separate pectoral objects are fine too (`pectoral.l` / `pectoral.r`) if painting them
+  grey is awkward.
+- **Orientation:** nose at `-Z`, `+Y` up, transforms applied. Origin mid-length on the
+  body axis.
+- **True scale:** 50 cm nose to tail tip (0.5 Blender units), as the angelfish was.
+- **Fin topology:** the soft dorsal and anal fins need loops in both directions: at least
+  12–16 divisions along the fin base (front to back) so the wave does not step, and 4–6
+  from base to edge so the arc bends. The caudal fin needs a few loops from the
+  peduncle out.
+- **`COLOR_1` paint**, each a continuous `0 → 1` ramp from the attachment to the edge,
+  no hard step at the base:
+  - pure red: soft (second) dorsal fin
+  - pure green: anal fin
+  - pure blue: caudal fin, `0` at the narrowest point of the tail stalk
+  - grey: pectorals
+  - black: body, the first dorsal spine, and the pelvic spine
+- **`COLOR_0` stays white.** Keep textures small and note their source and licence.
+
 ## Material notes
 
 Standard opaque path. `applyModelMaterialSettings()` forces

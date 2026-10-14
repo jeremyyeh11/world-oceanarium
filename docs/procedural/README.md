@@ -22,7 +22,7 @@ that type's doc.
 | Type | Motion | Animals | Status |
 | --- | --- | --- | --- |
 | [caudal-wave](caudal-wave.md) | Travelling body/tail undulation | Sardinella, Mahi-mahi, Shortfin Mako; eels and sea snakes as a config variant | Implemented |
-| [mask-fin-row](mask-fin-row.md) | Rigid body, painted fins rowing from fixed roots | Giant Sunfish | Implemented |
+| [mask-fin-row](mask-fin-row.md) | Rigid body, painted fins rowing from fixed roots | Giant Sunfish; Clown Triggerfish as a proposed balistiform variant | Implemented |
 | [bell-pulse](bell-pulse.md) | Contract-and-glide jet propulsion | Jellyfish, salps | Proposed |
 | [foil-flap](foil-flap.md) | Paired oscillating foils on a rigid body | Sea turtles, penguins, sea lions | Proposed |
 | [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Rays, skates, cuttlefish | Proposed |

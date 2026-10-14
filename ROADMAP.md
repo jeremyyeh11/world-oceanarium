@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### Clown Triggerfish
+
+Status: `Current in development` (branch `feat/balistoides-conspicillum`, started 2026-10-14). Second pick for the reef conversion of The Drift. Species data is in, hidden from the Atlas, with no model and no tank yet. Waiting on Jeremy's model.
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase (`Balistoides conspicillum`): 50 cm TL = 2.0 WU, solitary, LC, length–weight a 0.02692 / b 2.91.
+- [x] Motion plan: balistiform variant of `mask-fin-row` (rippling dorsal and anal fins, tail beats only in bursts), written as a proposal in `docs/procedural/mask-fin-row.md` with the Blender contract.
+- [ ] Jeremy: confirm the motion approach before any shader work (AGENTS.md: new motion is a design decision).
+- [ ] Jeremy: model to the contract (one joined mesh, nose −Z, 50 cm, `COLOR_1` paint).
+- [ ] Model intake: texture size and licence, verifier target, fin spans measured off the mesh.
+- [ ] Shader: `finWaveTravel`, `caudalBurstAmplitude`, `analAmplitudeScale`, axis keys; Atlas uses the same path.
+- [ ] The Drift roster, Atlas framing (desktop, 375 px portrait, landscape), `creatures_dev` rows, Atlas tile.
+- [ ] Juveniles (black, white-spotted, few cm): a `lifeStages.juvenile` model is possible later. Sizes are far under the 27 cm floor. `Backlog`
+
 ### Juvenile Emperor Angelfish
 
 Status: shipped in clean `v0.21.0` (2026-10-13, from `v0.21.0-dev_2`, branch `feat/juvenile-angelfish`): the `life_stage` column, stage-aware species (`lifeStages`), Jeremy's juvenile model in The Drift and the Atlas, and his revised adult shading. 16 juveniles in production (ids 382–397). The open items below carry over.

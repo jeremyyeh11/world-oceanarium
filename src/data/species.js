@@ -2097,6 +2097,101 @@ export const SPECIES = [
       },
     },
   },
+  {
+    id: 'balistoides-conspicillum',
+    name: 'Clown Triggerfish',
+    scientificName: 'Balistoides conspicillum',
+    family: 'Balistidae',
+    // Waiting on Jeremy's model: no `model` block and no tank yet, so it stays out of the
+    // Atlas until the GLB lands. Motion plan: docs/procedural/mask-fin-row.md, "Balistiform".
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Adults are solitary; FishBase records pairs only for spawning, so no `pairBonded`.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      commonDiet: 'Sea urchins, crabs and other crustaceans, molluscs, and tunicates.',
+      foundIn: 'Indo-Pacific reefs, East Africa through northern Australia to Samoa, north to southern Japan, 1 to 75 m.',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Solitary',
+        groupingBehaviour: 'Adults swim alone and in the open along deep drop-offs on clear seaward reefs, retreating into caves when approached. Juveniles are secretive, keeping to small caves rich in invertebrate growth.',
+        reproduction: 'Forms distinct pairs to spawn, over patches of mixed coral rubble and sand on clear seaward reefs.',
+      },
+      averages: {
+        // FishBase gives a 50 cm maximum (total length) and no common length, weight, or age.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Urchins',
+      social: 'Solitary',
+    },
+    description: 'A reef triggerfish up to 50 cm, black with large white spots across the belly, a yellow-netted back, and a yellow ring round the mouth. It cruises on its rippling dorsal and anal fins, keeping its armoured body rigid, and only beats its tail to dart. Alone along deep drop-offs, it cracks sea urchins, crabs, and molluscs, and retreats into a cave when approached.',
+    // FishBase: 50 cm maximum (total length). No common or maturity length is published.
+    adultLengthRangeMeters: [0.3, 0.5],
+    maxBodyLengthMeters: 0.5,
+    swim: {
+      // Balistiform gait (Korsmeyer et al. 2002, Picasso triggerfish): dorsal and anal fins
+      // alone up to ~1.5 BL/s, tail beats added intermittently above that and continuously
+      // above ~3.5 BL/s. Cruise sits inside the fin-only range; bursts are the tail-driven darts.
+      visualTimeScale: 0.8,
+      driftEnabled: false,
+      idleBLPerSec: [0.4, 0.8],
+      idleDriftBLPerSec: [0.06, 0.12],
+      snapBLPerSec: [0.9, 1.4],
+      burstBLPerSec: [2.4, 3.4],
+      burstInterval: [14.0, 26.0],
+      burstActionDuration: 0.6,
+      turnActionDuration: 0.5,
+      erraticness: 0.14,
+      // Fin-driven and very manoeuvrable: it can turn nearly in place and even back up.
+      turnRadiusBodyLengths: 0.6,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // 1 WU = 25 cm: 50 cm maximum = 2.0 WU.
+      bodyLengthWU: 2.0,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.5,
+        separationWeight: 0.3,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.3,
+        // Others give a territorial triggerfish room; it shies from what approaches it.
+        menace: 0.15,
+        wariness: 0.35,
+      },
+    },
+    // Individuals span 30 cm to the 50 cm maximum.
+    sizeRange: [0.6, 1.0],
+    // FishBase Bayesian length–weight (TL cm → g): about 2.4 kg at 50 cm.
+    mass: { coefficient: 0.02692, exponent: 2.91 },
+  },
 ]
 
 export const CREATURES = [

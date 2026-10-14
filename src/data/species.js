@@ -2195,9 +2195,9 @@ export const SPECIES = [
       scale: 0.4358,
       position: [0, -0.071, -0.223],
       followAim: 'root',
-      // The photo texture carries the fin outlines in its alpha, as the angelfish's does.
-      alphaBlend: true,
-      alphaTest: 0.02,
+      // Opaque, unlike the angelfish: the fin outlines are cut in the mesh and the texture's alpha
+      // is solid. Its GLB material still says BLEND, and blending one material for the whole fish
+      // drops depth writes, so the far side drew over the near (fins and tail through the body).
       moveset: {
         cruise: 'procedural_cruise',
         drift: 'procedural_drift',

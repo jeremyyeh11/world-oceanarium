@@ -10,13 +10,13 @@ Versioning convention notes:
 
 ## v0.22.0 — Clown Triggerfish
 
-Status: in development (`v0.22.0-dev_3`, branch `feat/balistoides-conspicillum`; `dev_2` lights turned fins as turned, `dev_3` stops the soft dorsal folding over).
+Status: in development (`v0.22.0-dev_3`, branch `feat/balistoides-conspicillum`; `dev_2` lights turned fins as turned, `dev_3` stops the soft dorsal folding over, `dev_4` draws it opaque).
 
 ### Species
 
 - Clown Triggerfish (`Balistoides conspicillum`) on Jeremy's model, in The Drift and the Atlas. Facts from FishBase: 50 cm maximum (2.0 WU), solitary along deep reef drop-offs, retreating to caves when approached; pairs only to spawn. Length–weight from FishBase's Bayesian estimate (a 0.02692, b 2.91: about 2.4 kg at 50 cm). Least Concern.
 - Swims balistiform: dorsal and anal fins alone at cruise, tail beats only in bursts (Korsmeyer et al. 2002 on the Picasso triggerfish). Cruise 0.4–0.8 BL/s, bursts 2.4–3.4 BL/s, turns in 0.6 body lengths.
-- Model intake: 0.94 MB as supplied (one 1000 × 588 PNG with the fin outlines in its alpha, `alphaBlend`). Source length 4.589 → `scale 0.4358`, recentred mid-length. Jeremy remodelled the soft dorsal and anal fins as thin blades and painted `COLOR_1` (R soft dorsal, G anal, B caudal); separate `pectoral.l` / `pectoral.r`. Verifier target added.
+- Model intake: 0.94 MB as supplied (one 1000 × 588 PNG). Opaque (`dev_4`): the texture's alpha is solid and the fins are cut in the mesh, but the GLB material is BLEND; with `alphaBlend` the single material for the whole fish lost its depth writes and the fins and tail drew through the body. Source length 4.589 → `scale 0.4358`, recentred mid-length. Jeremy remodelled the soft dorsal and anal fins as thin blades and painted `COLOR_1` (R soft dorsal, G anal, B caudal); separate `pectoral.l` / `pectoral.r`. Verifier target added.
 
 ### Procedural animation
 

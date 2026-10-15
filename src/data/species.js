@@ -2276,7 +2276,8 @@ export const SPECIES = [
     scientificName: 'Rhincodon typus',
     family: 'Rhincodontidae',
     alternateNames: [],
-    // Tank capture (2026-10-16): fish 410 side-on, head and front half, the mako passing above.
+    // Tank render (2026-10-16, dev_3): fish 410's head in three-quarter view, the other fish and
+    // particles hidden for the frame so nothing else is in the water.
     atlasThumbnail: '/atlas/rhincodon-typus-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',

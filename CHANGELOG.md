@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.24.0 — Whale Shark (in progress)
 
-Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name). (`v0.23.0` is the situational fish lighting, open in #128.) 1 juvenile in `creatures_dev` (id 410); none in production `creatures`.
+Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name, `dev_3` a new tile). (`v0.23.0` is the situational fish lighting, open in #128.) 1 juvenile in `creatures_dev` (id 410); none in production `creatures`.
 
 ### Species
 
@@ -23,7 +23,7 @@ Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`de
 
 ### Atlas
 
-- Whale Shark tile (`dev_2`): a tank capture of fish 410 side-on, head, gill spots, and pectoral fin, with the mako passing above; 470 × 470 like the mako's.
+- Whale Shark tile: a close-up of fish 410's head in three-quarter view, mouth, eye, and spots, rendered in the tank with the other fish and particles hidden for that frame; 470 × 470 like the mako's. (`dev_2`'s side-on capture had the mako in it and read small; Jeremy asked for a closer, cleaner head shot in `dev_3`.)
 - The Atlas lists species alphabetically by scientific name (`dev_2`, Jeremy's request), so a new species slots in by name instead of at the end. The Nº shown is the place in that list, so most species renumber: the triggerfish is now Nº 002, the mahi-mahi Nº 003, and so on; the sardinella stays Nº 001 and the whale shark is Nº 011.
 
 ### Fixes

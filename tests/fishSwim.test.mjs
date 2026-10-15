@@ -847,6 +847,35 @@ withRegistry([], () => {
   assert.equal(getFishEntry('p2').repulsionScale, 1, 'the sardine does not inherit it from the cache')
 })
 
+// --- large-body clearance --------------------------------------------------------------
+
+// A mako crossing just above the middle of a whale shark: as spheres among a few neighbours they
+// barely react (the mako's boid forces cap at 0.06), but as capsules the mako is pushed up and
+// over, well past that cap. Far apart, nothing.
+{
+  const whaleShark = { id: 'whale-shark', species: 'rhincodon-typus', lifeStage: 'juvenile', biome: 'ocean', size: 1 }
+  const whaleSwim = resolveSwimProfile(whaleShark)
+  assert.equal(whaleSwim.bodyLengthWU, 24, 'a juvenile whale shark is 24 WU at size 1')
+  const crossingMako = { id: 'crossing-mako', species: 'isurus-oxyrinchus', biome: 'ocean', size: 1 }
+  const makoSelf = { position: new THREE.Vector3(6, 0.5, -20) }
+  withRegistry([
+    [whaleShark, whaleSwim, { x: 0, y: 0, z: -20 }],
+    [crossingMako, makoSwim, { x: 6, y: 0.5, z: -20 }],
+  ], () => {
+    computeBoidSteering(steering, makoSelf, crossingMako, makoSwim, null, new THREE.Vector3(-1, 0, 0))
+    assert.ok(steering.y > 0.5, `a mako crossing a whale shark's back is pushed over it (got y ${steering.y.toFixed(3)})`)
+    assert.ok(Math.abs(steering.x) < 1e-6, 'the push leaves out its own heading, so it dodges rather than brakes')
+  })
+  const farMako = { position: new THREE.Vector3(80, 0.5, -20) }
+  withRegistry([
+    [whaleShark, whaleSwim, { x: 0, y: 0, z: -20 }],
+    [crossingMako, makoSwim, { x: 80, y: 0.5, z: -20 }],
+  ], () => {
+    computeBoidSteering(steering, farMako, crossingMako, makoSwim, null, new THREE.Vector3(-1, 0, 0))
+    assert.ok(steering.length() <= 0.0600001, 'a whale shark far off adds no clearance push')
+  })
+}
+
 // --- module constants still shared with Fish.jsx -------------------------------------
 
 assert.equal(SWIM_BOX.z, 7.4, 'the swim box depth is unchanged by the extraction')

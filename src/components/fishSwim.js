@@ -115,6 +115,22 @@ const BOID_THREAT_LOOKAHEAD_SECONDS = 1.0
 // mako's 16.7 WU length from it. So the radius toward a threat is at least this many of the
 // threat's own body lengths. Only the mako is long enough for this to change anything today.
 const BOID_THREAT_BODY_LENGTH_REACH = 1.0
+// Large-body clearance. Separation treats every fish as a sphere among its nearest few
+// neighbours, which lets two long bodies pass through each other: a sphere round a 24 WU whale
+// shark is both too wide and too short, and beside a sardine school the other shark is not among
+// the nearest few. So fish this long also read each other as capsules along their length, check
+// where both will be over the next few seconds, and steer off early, over, under, or round. The
+// shorter of the two gives way more. The lookahead is long because a fish re-decides its boid
+// steering only every 1–3.4 s and then turns on a wide radius: at 4.5 s a mako closing at
+// 4.4 WU/s often made its last decision before the whale shark was in view and its next with
+// 2 WU left (measured in the tank). 8 s sees it ~35 WU out.
+export const BODY_CLEARANCE_MIN_LENGTH = 6
+const BODY_CLEARANCE_LOOKAHEAD_SECONDS = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+// Capsule radius as a share of body length (the whale shark's pectoral span is ~0.145, its body
+// ~0.09; the mako's ~0.12 and ~0.06), plus a margin in WU between the two skins.
+const BODY_CLEARANCE_RADIUS_BODY_LENGTHS = 0.1
+const BODY_CLEARANCE_MARGIN = 3
+const BODY_CLEARANCE_WEIGHT = 1.6
 export const BOID_MAX_DEBUG_NEIGHBORS = 12
 const SOLO_AGENT_WIDE_TARGET_CHANCE = 0.68
 const SOLO_AGENT_TARGET_ATTEMPTS = 16
@@ -179,7 +195,22 @@ const FISH_REGISTRY = new Map()
 // The registry entries with any menace at all — a handful (the mako and the mahi) against ~275
 // sardines — so the per-frame threat check reads these instead of scanning every fish.
 const THREAT_ENTRIES = new Map()
+// The registry entries at least BODY_CLEARANCE_MIN_LENGTH long: the mako, the whale shark, the
+// larger mahi.
+const LARGE_BODY_ENTRIES = new Map()
 const threatLevelOffset = new THREE.Vector3()
+const clearanceSelfA = new THREE.Vector3()
+const clearanceSelfB = new THREE.Vector3()
+const clearanceOtherA = new THREE.Vector3()
+const clearanceOtherB = new THREE.Vector3()
+const clearanceSelfPoint = new THREE.Vector3()
+const clearanceOtherPoint = new THREE.Vector3()
+const clearanceAway = new THREE.Vector3()
+const clearanceBestAway = new THREE.Vector3()
+const clearanceAxis = new THREE.Vector3()
+const clearanceSegmentU = new THREE.Vector3()
+const clearanceSegmentV = new THREE.Vector3()
+const clearanceSegmentW = new THREE.Vector3()
 
 // Module-private scratch. `Fish.jsx` keeps its own vectors of the same names.
 const up = new THREE.Vector3(0, 1, 0)
@@ -1460,8 +1491,100 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   }
 
   out.clampLength(0, params.maxWeight)
+  // After the cap: the big swimmers cap their social forces near zero (the mako's 0.06), and
+  // keeping two bodies apart must still be able to turn them.
+  addBodyClearance(out, fish, creature, bodyLength, forward)
   if (debugState) debugState.result.copy(out)
   return out
+}
+
+// Closest points between segments p1–q1 and p2–q2 (Ericson, Real-Time Collision Detection,
+// 5.1.9), written into outA and outB.
+function closestPointsOnSegments(p1, q1, p2, q2, outA, outB) {
+  const d1 = clearanceSegmentU.subVectors(q1, p1)
+  const d2 = clearanceSegmentV.subVectors(q2, p2)
+  const r = clearanceSegmentW.subVectors(p1, p2)
+  const a = d1.dot(d1)
+  const e = d2.dot(d2)
+  const f = d2.dot(r)
+  let s = 0
+  let t = 0
+  if (a > 1e-9 && e <= 1e-9) {
+    s = THREE.MathUtils.clamp(-d1.dot(r) / a, 0, 1)
+  } else if (a <= 1e-9 && e > 1e-9) {
+    t = THREE.MathUtils.clamp(f / e, 0, 1)
+  } else if (a > 1e-9) {
+    const b = d1.dot(d2)
+    const c = d1.dot(r)
+    const denom = a * e - b * b
+    s = denom > 1e-9 ? THREE.MathUtils.clamp((b * f - c * e) / denom, 0, 1) : 0
+    t = (b * s + f) / e
+    if (t < 0) {
+      t = 0
+      s = THREE.MathUtils.clamp(-c / a, 0, 1)
+    } else if (t > 1) {
+      t = 1
+      s = THREE.MathUtils.clamp((b - c) / a, 0, 1)
+    }
+  }
+  outA.copy(p1).addScaledVector(d1, s)
+  outB.copy(p2).addScaledVector(d2, t)
+}
+
+// A body as a segment along its heading, centred on its root, carried `seconds` ahead at its speed.
+function bodySegmentAhead(outA, outB, position, forward, speed, seconds, bodyLength) {
+  clearanceAxis.copy(forward)
+  if (clearanceAxis.lengthSq() < 1e-6) clearanceAxis.set(0, 0, -1)
+  clearanceAxis.normalize()
+  outA.copy(position).addScaledVector(clearanceAxis, speed * seconds)
+  outB.copy(outA).addScaledVector(clearanceAxis, -bodyLength * 0.5)
+  outA.addScaledVector(clearanceAxis, bodyLength * 0.5)
+}
+
+// See BODY_CLEARANCE_MIN_LENGTH. Adds, for each large body this one would come too close to over
+// the lookahead, a push away from it at the soonest, closest point, with this fish's own forward
+// component removed so it dodges sideways or vertically rather than braking.
+function addBodyClearance(out, fish, creature, bodyLength, followDirection) {
+  if (bodyLength < BODY_CLEARANCE_MIN_LENGTH || LARGE_BODY_ENTRIES.size < 2) return
+  const self = FISH_REGISTRY.get(creature.id)
+  const selfForward = followDirection ?? self?.forward
+  if (!selfForward) return
+  const selfSpeed = self?.speed ?? 0
+  const selfRadius = bodyLength * BODY_CLEARANCE_RADIUS_BODY_LENGTHS
+  const rideHostId = self?.rideHostId ?? null
+  const horizon = BODY_CLEARANCE_LOOKAHEAD_SECONDS[BODY_CLEARANCE_LOOKAHEAD_SECONDS.length - 1]
+  LARGE_BODY_ENTRIES.forEach((other, id) => {
+    if (id === creature.id || other.biome !== creature.biome) return
+    if (id === rideHostId || other.rideHostId === creature.id) return
+    const otherLength = other.bodyLength ?? 0
+    const otherSpeed = other.speed ?? 0
+    const clearance = selfRadius + otherLength * BODY_CLEARANCE_RADIUS_BODY_LENGTHS + BODY_CLEARANCE_MARGIN
+    const reach = (bodyLength + otherLength) * 0.5 + clearance + (selfSpeed + otherSpeed) * horizon
+    if (fish.position.distanceToSquared(other.position) > reach * reach) return
+    let best = 0
+    for (let i = 0; i < BODY_CLEARANCE_LOOKAHEAD_SECONDS.length; i += 1) {
+      const seconds = BODY_CLEARANCE_LOOKAHEAD_SECONDS[i]
+      bodySegmentAhead(clearanceSelfA, clearanceSelfB, fish.position, selfForward, selfSpeed, seconds, bodyLength)
+      bodySegmentAhead(clearanceOtherA, clearanceOtherB, other.position, other.forward, otherSpeed, seconds, otherLength)
+      closestPointsOnSegments(clearanceSelfA, clearanceSelfB, clearanceOtherA, clearanceOtherB, clearanceSelfPoint, clearanceOtherPoint)
+      clearanceAway.subVectors(clearanceSelfPoint, clearanceOtherPoint)
+      const distance = clearanceAway.length()
+      if (distance >= clearance) continue
+      // Sooner and closer both matter more.
+      const strength = (1 - distance / clearance) * (1 - 0.5 * seconds / horizon)
+      if (strength <= best) continue
+      best = strength
+      if (distance > 1e-4) clearanceBestAway.copy(clearanceAway).divideScalar(distance)
+      else clearanceBestAway.set(0, 1, 0)
+    }
+    if (best <= 0) return
+    clearanceAxis.copy(selfForward).normalize()
+    clearanceBestAway.addScaledVector(clearanceAxis, -clearanceBestAway.dot(clearanceAxis))
+    if (clearanceBestAway.lengthSq() < 1e-6) clearanceBestAway.set(0, 1, 0)
+    else clearanceBestAway.normalize()
+    const giveWay = THREE.MathUtils.clamp((2 * otherLength) / (bodyLength + otherLength), 0.5, 1.5)
+    out.addScaledVector(clearanceBestAway, best * giveWay * BODY_CLEARANCE_WEIGHT)
+  })
 }
 
 // How alarming the worst threat near `position` is right now: the same menace × wariness ×
@@ -1538,6 +1661,8 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
   }
   if (boidParams.menace > 0) THREAT_ENTRIES.set(creature.id, FISH_REGISTRY.get(creature.id))
   else THREAT_ENTRIES.delete(creature.id)
+  if (swim.bodyLengthWU * (creature.size ?? 1) >= BODY_CLEARANCE_MIN_LENGTH) LARGE_BODY_ENTRIES.set(creature.id, FISH_REGISTRY.get(creature.id))
+  else LARGE_BODY_ENTRIES.delete(creature.id)
 }
 
 /**
@@ -2807,6 +2932,7 @@ export function releaseSchoolState(schoolId, schoolState) {
 export function unregisterFish(creatureId) {
   FISH_REGISTRY.delete(creatureId)
   THREAT_ENTRIES.delete(creatureId)
+  LARGE_BODY_ENTRIES.delete(creatureId)
 }
 
 /** Walk every registered fish. Used by the debug overlay. */

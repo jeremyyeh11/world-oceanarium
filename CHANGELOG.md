@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.24.0 — Whale Shark (in progress)
 
-Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name, `dev_3` a new tile, `dev_4` remoras ride it). (`v0.23.0` is the situational fish lighting, open in #128.) 1 juvenile in `creatures_dev` (id 410); none in production `creatures`.
+Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name, `dev_3` a new tile, `dev_4` remoras ride it, `dev_5` big bodies keep clear of each other). (`v0.23.0` is the situational fish lighting, open in #128.) 1 juvenile in `creatures_dev` (id 410); none in production `creatures`.
 
 ### Species
 
@@ -29,6 +29,11 @@ Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`de
 ### Behavior
 
 - Remoras ride the whale shark (`dev_4`), as sharksuckers and the common remora do in the wild. It joins the mako in the `shark` host group, so the riders that rate sharks highest split between the two. 18 ride anchors fitted from its mesh (`scripts/fit-ride-anchors.mjs`, 10–55% of the length): all on the belly between the gills and mid-body, since its big pectorals rule out the flanks. Clearance ellipsoid: snout to caudal peduncle, the pectoral span across. Measured in the dev tank: within seconds two live sharksuckers were attached to the whale shark and four other riders to the mako, unchanged over 30 s.
+
+### Big bodies keep clear
+
+- Long fish (6 WU and up: the whale shark, the mako, the larger mahi) no longer pass through each other (`dev_5`, Jeremy's screenshot of the mako going through the whale shark). Boid separation treats every fish as a sphere among its nearest few neighbours, with the big swimmers' boid forces capped near zero (the mako's 0.06), so near a sardine school the other shark was not even among the neighbours. Now each reads the others as capsules along their length, checks where both will be over the next 8 s, and steers off sideways or over/under, applied after that cap; the shorter body gives way more. Fish this long also re-decide their boid steering every 0.5 s instead of every 1–3.4 s, which had let a bursting mako close ~40 WU between two looks.
+- Measured in the dev tank as the gap between the two sharks' body axes: before, the mako passed straight through at 1.5 WU; after, over 3 minutes and 4 approaches, three kept 5.3–7.5 WU apart and one fast pass came to 2.7 WU for half a second (the skins meet at about 2.6–3 WU). Covered by a new test in `tests/fishSwim.test.mjs`.
 
 ### Fixes
 

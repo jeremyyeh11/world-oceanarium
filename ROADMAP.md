@@ -15,7 +15,7 @@ Status labels:
 
 ### Whale Shark
 
-Status: `Current in development` — `v0.24.0-dev_4`, branch `feat/rhincodon-typus`. Jeremy (2026-10-16): a juvenile in the Open Sea, bigger than the mako. 6 m (24 WU) juveniles only; see the species entry.
+Status: `Current in development` — `v0.24.0-dev_5`, branch `feat/rhincodon-typus`. Jeremy (2026-10-16): a juvenile in the Open Sea, bigger than the mako. 6 m (24 WU) juveniles only; see the species entry.
 
 Subtasks:
 - [x] Species data from FishBase, maturity and growth from Norman & Stevens 2007 and Meekan et al. 2020.
@@ -27,6 +27,7 @@ Subtasks:
 - [ ] Production `creatures` rows, on Jeremy's go-ahead.
 - [ ] Filter-feeding passes near the surface through the sardine schools. `Backlog`
 - [x] Remoras ride it (`dev_4`): `shark` host group, 18 belly anchors.
+- [x] The mako and the whale shark keep clear of each other (`dev_5`): capsule look-ahead for long bodies. A fast pass can still brush skins (2.7 WU measured); small fish (sardines) are not covered by it.
 - [ ] Pilot fish escorting it (they follow whale sharks in the wild), if pilot fish join the Open Sea. `Backlog`
 
 ### Clown Triggerfish

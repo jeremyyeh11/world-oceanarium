@@ -33,6 +33,7 @@ import {
   clampToSurfaceCeiling,
   clampToSwimBounds,
   clampToSwimBoundsWithContacts,
+  BODY_CLEARANCE_MIN_LENGTH,
   computeBoidSteering,
   creatureBodyLength,
   debugForwardOffset,
@@ -233,6 +234,9 @@ const BOID_STEERING_SMOOTHING = 3.4
 const BOID_DECISION_MIN_INTERVAL = 1.0
 const BOID_DECISION_MAX_INTERVAL = 2.6
 const BOID_DECISION_JITTER = 0.3
+// Fish long enough for body clearance re-decide at least this often (seconds): the 1–3.4 s
+// interval let a bursting mako close ~40 WU on the whale shark between two looks.
+const LARGE_BODY_BOID_DECISION_INTERVAL = 0.5
 const SOLO_AGENT_TANGENT_TURN_RATE = THREE.MathUtils.degToRad(155)
 const SOLO_AGENT_TANGENT_CATCHUP_RATE = THREE.MathUtils.degToRad(260)
 const SOLO_AGENT_TANGENT_CATCHUP_ALIGNMENT = 0.72
@@ -2744,7 +2748,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (!authoredBehaviorActive) {
           if (now >= boidDecisionNextAt.current) {
             computeBoidSteering(committedBoidSteering.current, fish, creature, swim, school, agentMoveDirection, boidDebugState.current)
-            boidDecisionNextAt.current = now + boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
+            const decisionInterval = boidDecisionInterval(model, animationRef.current, boidDecisionJitter.current)
+            // Big bodies re-decide often enough to see another big body coming (see
+            // BODY_CLEARANCE_MIN_LENGTH in fishSwim.js); there are only a few of them.
+            boidDecisionNextAt.current = now + (bodyLength >= BODY_CLEARANCE_MIN_LENGTH
+              ? Math.min(decisionInterval, LARGE_BODY_BOID_DECISION_INTERVAL)
+              : decisionInterval)
           }
           smoothedBoidSteering.current.lerp(committedBoidSteering.current, 1 - Math.exp(-delta * BOID_STEERING_SMOOTHING))
         } else {

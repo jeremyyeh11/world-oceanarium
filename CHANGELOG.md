@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.24.0 — Whale Shark (in progress)
 
-Status: in development as `v0.24.0-dev_1`, waiting on Jeremy's phone review. (`v0.23.0` is the situational fish lighting, open in #128.) 1 juvenile in `creatures_dev` (id 410); none in production `creatures`.
+Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name). (`v0.23.0` is the situational fish lighting, open in #128.) 1 juvenile in `creatures_dev` (id 410); none in production `creatures`.
 
 ### Species
 
@@ -19,7 +19,12 @@ Status: in development as `v0.24.0-dev_1`, waiting on Jeremy's phone review. (`v
 - Slow cruiser: 0.08–0.13 BL/s (about 0.5–0.8 m/s at 6 m), no real burst, turns of one body length. Held further back than the mako (`boundsZMax -2`) so a 24 WU body does not fill the camera. Others give it room (`repulser`, menace `0.3`) without fleeing it as they do the mako.
 - Motion: rig-free `caudal-vertex`, a broad, slow sweep of the tall tail (0.035 body lengths, `waveSpeed 1.4`, wave from 0.22 of the length) with stiff pectorals (`pectoralFinFlutter 0.04`).
 - Model intake: 2.2 MB as supplied, about 2,300 triangles; head at -Z, root mid-length, separate pectorals. The texture is a generated three-view sheet with no alpha channel, so the material was made opaque (it said BLEND) and the 1536 × 1024 PNG (2.07 MB) re-encoded as a JPEG (184 KB, mean colour within 0.4 of the original): 0.33 MB shipped. Verifier target added.
-- Atlas framing: 3.9 display units (the diagonal pose brings the head toward the camera), shifted right; about 80% of a 375 px phone's stage. No list tile yet.
+- Atlas framing: 3.9 display units (the diagonal pose brings the head toward the camera), shifted right; about 80% of a 375 px phone's stage.
+
+### Atlas
+
+- Whale Shark tile (`dev_2`): a tank capture of fish 410 side-on, head, gill spots, and pectoral fin, with the mako passing above; 470 × 470 like the mako's.
+- The Atlas lists species alphabetically by scientific name (`dev_2`, Jeremy's request), so a new species slots in by name instead of at the end. The Nº shown is the place in that list, so most species renumber: the triggerfish is now Nº 002, the mahi-mahi Nº 003, and so on; the sardinella stays Nº 001 and the whale shark is Nº 011.
 
 ### Fixes
 

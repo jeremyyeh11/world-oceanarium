@@ -39,7 +39,11 @@ const IUCN_STATUS_STEPS = [
 const ATLAS_CAMERA_YAW_DEGREES = 0
 const ATLAS_CAMERA_PITCH_DEGREES = 15
 const ATLAS_CREATURE_DIAGONAL_YAW_RADIANS = Math.PI / 6
-const ATLAS_SPECIES = SPECIES.filter(species => !species.hiddenInAtlas)
+// Listed alphabetically by scientific name (Jeremy, 2026-10-16), so a new species slots in by
+// name rather than at the end. The Nº shown is its place in this list.
+const ATLAS_SPECIES = SPECIES
+  .filter(species => !species.hiddenInAtlas)
+  .sort((a, b) => a.scientificName.localeCompare(b.scientificName))
 
 const DEFAULT_VIEW_POSE = {
   yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,

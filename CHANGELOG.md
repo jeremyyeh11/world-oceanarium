@@ -8,6 +8,25 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.24.0 — Situational fish lighting (in progress)
+
+Status: in development as `v0.24.0-dev_4`, waiting on Jeremy's review. Renumbered from `v0.23.0` when the Whale Shark shipped as clean `v0.23.0` (2026-10-16); `dev_4` is `dev_3` rebased onto it, no other change. Earlier builds: `dev_1` (first written as `v0.18.0-dev_1` on 2026-10-09), `dev_2` more contrast after Jeremy's desktop look on 2026-10-15, `dev_3` large fish shade the fish under them. Prompted by an aquarium reference photo: fish were lit the same way wherever they swam.
+
+### Fish lighting
+
+- New shared shader term (`src/utils/fishSituationalLight.js`) on every GLB fish material and the instanced sardine LODs, applied before tone mapping and fog:
+  - Top light: backs brighten and bellies shade, strongest high in the column and inside slowly drifting light pools.
+  - Back light: a fish seen from below goes toward silhouette on its camera-facing side, with a cyan edge glow.
+  - Front light: fish in the front of the swim volume pick up light from the viewing side. It is tied to the tank, not the camera, so follow-cam close-ups keep their shading.
+- The scene lights, background, and fog are unchanged.
+- More contrast (`dev_2`, Jeremy: "a little bit more contrast"): backs brighten up to 2.15× in full sun (was 1.95×), bellies shade by up to 70% (was 50%), the from-below silhouette darkens by up to 70% (was 60%), and bellies take 60% less of the front light. In `dev_1` the front light filled bellies in, so in a level view they ended slightly brighter than with no situational light at all (+4% measured on the sunfish).
+
+### Fish shadows
+
+- Large fish shade the fish under them (`dev_3`, after Jeremy asked whether fish shadow each other; they did not: every fish mesh has `castShadow`/`receiveShadow` off and the tank has no shadow map). Shadow maps would be too costly for a full tank on a phone, so it is shader-only: any fish with a body length of 10 WU or more (the sunfish at 12.8, the mako at 16.7; not the mahi) publishes its centre, heading and length into one of four shared uniform slots each frame, and every fish and sardine fragment under its top-down footprint darkens by up to 70%. The footprint is an ellipse 1 × 0.6 body lengths, and it widens and thins with depth until it is gone about 12 WU down. Fades with the caster's opacity; the caster leaves out its own body. Atlas fish take no caster shadows.
+- `dev_4`: the juvenile Whale Shark from `v0.23.0` (22–26 WU) is over the threshold, so it casts too, with no change for it; its footprint is about 24 × 14 WU. Not yet seen live.
+- Measured on frozen frames (same frame, shadows on vs off): six fish under the sunfish, 1,977 pixels darker, the most shaded pilot fish about 48% darker; two fish under the mako, 983 pixels darker. Sardines take the shadow too (same shader), but no school passed under the mako during the check, so that is not yet seen.
+
 ## v0.23.0 — Whale Shark
 
 Status: accepted and promoted as clean `v0.23.0` from `v0.24.0-dev_5` on Jeremy's go-ahead (2026-10-16; `dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name, `dev_3` a new tile, `dev_4` remoras ride it, `dev_5` big bodies keep clear of each other). Built as `v0.24.0-dev_*` while the situational fish lighting (#128) held `v0.23.0`; this shipped first, so it takes `v0.23.0` and the lighting moves to the next number. `package.json` moves to `0.23.0`. 1 juvenile in `creatures_dev` (id 410) and 1 in production `creatures` (id 411, juvenile male, size parameter 0.5 = 6 m, on Jeremy's go-ahead; insert only, checked against a snapshot: 257 → 258 rows, the existing rows unchanged). Both carry the individual description "The biggest fish in the Open Sea, 6 m and still growing, with a spot pattern no other whale shark shares."

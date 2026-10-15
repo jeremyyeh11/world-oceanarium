@@ -10,6 +10,16 @@ import { SURFACE_PLANE_Y } from './WaterSurface'
 import { isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
+import {
+  FISH_SHADOW_CASTER_MIN_BODY_LENGTH,
+  FISH_SITUATIONAL_LIGHT_PARS,
+  bindFishShadowUniforms,
+  fishShadowSlot,
+  fishSituationalLightCall,
+  publishFishShadowCaster,
+  releaseFishShadowCaster,
+  supportsFishSituationalLight,
+} from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
 import {
@@ -313,6 +323,8 @@ const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentRuntimeClamp = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
 const ridePoseQuaternion = new THREE.Quaternion()
+const shadowCasterQuaternion = new THREE.Quaternion()
+const shadowCasterForward = new THREE.Vector3()
 const rideBlendQuaternion = new THREE.Quaternion()
 const targetLookQuaternion = new THREE.Quaternion()
 const finFlutterEuler = new THREE.Euler()
@@ -506,12 +518,14 @@ function molaFinBases(geometry, frame) {
 }
 
 function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
-  if (!FISH_LIGHT_MASK_ENABLED && !rim && !proceduralVertex) return
+  const situationalLight = supportsFishSituationalLight(material)
+  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
   const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
-  const maskUniforms = { uTime: { value: 0 } }
+  // uShadowSelf: -2 takes no caster shadows (the Atlas); FishModel sets -1 or its own slot.
+  const maskUniforms = { uTime: { value: 0 }, uShadowSelf: { value: -2 } }
   const proceduralBounds = geometry?.boundingBox
   const proceduralSourceAxis = proceduralAxisIndex(proceduralVertex?.sourceAxis, 2)
   const proceduralLateralAxis = proceduralAxisIndex(proceduralVertex?.lateralAxis, proceduralSourceAxis === 0 ? 2 : 0)
@@ -570,6 +584,7 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
+    if (situationalLight) bindFishShadowUniforms(shader, maskUniforms.uShadowSelf)
     shader.uniforms.uRimColor = { value: rimColor }
     shader.uniforms.uRimIntensity = { value: rimIntensity }
     shader.uniforms.uRimPower = { value: rimPower }
@@ -898,7 +913,12 @@ float fishMaskFbm(vec3 p) {
     amplitude *= 0.5;
   }
   return value;
-}`
+}
+${situationalLight ? FISH_SITUATIONAL_LIGHT_PARS : ''}`
+      )
+      .replace(
+        '#include <opaque_fragment>',
+        situationalLight ? fishSituationalLightCall('vFishWorldPosition', 'uFishLightMaskTime') : '#include <opaque_fragment>'
       )
       .replace(
         '#include <dithering_fragment>',
@@ -926,7 +946,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
     : proceduralVertex.type === 'caudal-vertex'
       ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
       : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${rimKey}:${proceduralKey}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
@@ -1643,7 +1663,7 @@ function applyMeshLengthVariation(root, proceduralAnimation, amount01) {
   return owned
 }
 
-function FishModel({ model, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
+function FishModel({ model, shadowCasterId = null, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
   const gltf = useGLTF(model.path)
   const meshLength01 = animationVariation?.meshLength01
   const { object, ownedGeometries } = useMemo(() => {
@@ -1831,7 +1851,10 @@ function FishModel({ model, animation = 'idle', animationVariation, animationSpe
     for (let i = 0; i < materials.length; i += 1) {
       const material = materials[i]
       const uniforms = material?.userData?.fishLightMaskUniforms
-      if (uniforms) uniforms.uTime.value = elapsed
+      if (uniforms) {
+        uniforms.uTime.value = elapsed
+        uniforms.uShadowSelf.value = fishShadowSlot(shadowCasterId)
+      }
       const proceduralUniforms = material?.userData?.proceduralFishUniforms
       if (proceduralUniforms) {
         proceduralUniforms.phase.value = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
@@ -2115,7 +2138,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   }, [creature, debug, debugSunBaskRequestId, selected, zoomActive])
 
   useEffect(() => {
-    return () => unregisterFish(creature.id)
+    return () => {
+      unregisterFish(creature.id)
+      releaseFishShadowCaster(creature.id)
+    }
   }, [creature.id])
 
   useEffect(() => {
@@ -3531,6 +3557,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       updateFishRegistryPose(creature.id, ridePoseQuaternion, frameMove.length() / Math.max(delta, 1e-4), runtimeRecoveryOpacity, waveOutRef.current)
     }
 
+    const shadowBodyLength = swim.bodyLengthWU * size
+    if (shadowBodyLength >= FISH_SHADOW_CASTER_MIN_BODY_LENGTH) {
+      shadowCasterQuaternion.copy(fish.quaternion)
+      if (!model) shadowCasterQuaternion.multiply(MODEL_FROM_PLACEHOLDER_FRAME)
+      shadowCasterForward.set(0, 0, -1).applyQuaternion(shadowCasterQuaternion)
+      publishFishShadowCaster(creature.id, fish.position, shadowCasterForward, shadowBodyLength, runtimeRecoveryOpacity)
+    }
+
     // Snapshot this frame's kinematic state so a later remount (tank switch) resumes from here.
     // Vector/quaternion state is shared by reference with the store and needs no copy; only the
     // group position and the scalar bookkeeping are mirrored back.
@@ -3691,6 +3725,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             <FishModel
               key={`${model.path}:${lodDebugColor ?? 'normal'}:${rimColor ?? 'none'}`}
               model={model}
+              shadowCasterId={creature.id}
               animation={animation}
               animationVariation={animationVariation}
               animationSpeedScaleRef={animationSpeedScaleRef}

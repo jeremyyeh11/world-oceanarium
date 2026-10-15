@@ -8,6 +8,37 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.23.0 — Whale Shark
+
+Status: accepted and promoted as clean `v0.23.0` from `v0.24.0-dev_5` on Jeremy's go-ahead (2026-10-16; `dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name, `dev_3` a new tile, `dev_4` remoras ride it, `dev_5` big bodies keep clear of each other). Built as `v0.24.0-dev_*` while the situational fish lighting (#128) held `v0.23.0`; this shipped first, so it takes `v0.23.0` and the lighting moves to the next number. `package.json` moves to `0.23.0`. 1 juvenile in `creatures_dev` (id 410) and 1 in production `creatures` (id 411, juvenile male, size parameter 0.5 = 6 m, on Jeremy's go-ahead; insert only, checked against a snapshot: 257 → 258 rows, the existing rows unchanged). Both carry the individual description "The biggest fish in the Open Sea, 6 m and still growing, with a spot pattern no other whale shark shares."
+
+### Species
+
+- Whale Shark (`Rhincodon typus`, Rhincodontidae) on Jeremy's model, in the Open Sea and the Atlas. FishBase facts: up to 20 m (female), common to 10 m, from the surface to almost 2,000 m in all tropical and warm temperate seas except the Mediterranean, alone or in feeding aggregations of more than 100, live-bearing (about 300 embryos in one female), up to 80 years. IUCN Endangered. Males mature at about 8 m (Norman & Stevens 2007) and level off at 8–9 m, females near 14.5 m (Meekan et al. 2020).
+- Juveniles only. The species is described at its true scale (20 m = 80 WU), longer than the tank is deep, so the tank keeps young sharks: `lifeStages.juvenile` sets the body length to 24 WU (6 m) with its own model scale, `sizeRange [0.92, 1.08]` (5.5–6.5 m), the size most often seen at feeding sites and larger than the 17.8 WU mako. Rows carry `life_stage = 'juvenile'`; the card shows the Juvenile chip.
+- Slow cruiser: 0.08–0.13 BL/s (about 0.5–0.8 m/s at 6 m), no real burst, turns of one body length. Held further back than the mako (`boundsZMax -2`) so a 24 WU body does not fill the camera. Others give it room (`repulser`, menace `0.3`) without fleeing it as they do the mako.
+- Motion: rig-free `caudal-vertex`, a broad, slow sweep of the tall tail (0.035 body lengths, `waveSpeed 1.4`, wave from 0.22 of the length) with stiff pectorals (`pectoralFinFlutter 0.04`).
+- Model intake: 2.2 MB as supplied, about 2,300 triangles; head at -Z, root mid-length, separate pectorals. The texture is a generated three-view sheet with no alpha channel, so the material was made opaque (it said BLEND) and the 1536 × 1024 PNG (2.07 MB) re-encoded as a JPEG (184 KB, mean colour within 0.4 of the original): 0.33 MB shipped. Verifier target added.
+- Atlas framing: 3.9 display units (the diagonal pose brings the head toward the camera), shifted right; about 80% of a 375 px phone's stage.
+
+### Atlas
+
+- Whale Shark tile: a close-up of fish 410's head in three-quarter view, mouth, eye, and spots, rendered in the tank with the other fish and particles hidden for that frame; 470 × 470 like the mako's. (`dev_2`'s side-on capture had the mako in it and read small; Jeremy asked for a closer, cleaner head shot in `dev_3`.)
+- The Atlas lists species alphabetically by scientific name (`dev_2`, Jeremy's request), so a new species slots in by name instead of at the end. The Nº shown is the place in that list, so most species renumber: the triggerfish is now Nº 002, the mahi-mahi Nº 003, and so on; the sardinella stays Nº 001 and the whale shark is Nº 011.
+
+### Behavior
+
+- Remoras ride the whale shark (`dev_4`), as sharksuckers and the common remora do in the wild. It joins the mako in the `shark` host group, so the riders that rate sharks highest split between the two. 18 ride anchors fitted from its mesh (`scripts/fit-ride-anchors.mjs`, 10–55% of the length): all on the belly between the gills and mid-body, since its big pectorals rule out the flanks. Clearance ellipsoid: snout to caudal peduncle, the pectoral span across. Measured in the dev tank: within seconds two live sharksuckers were attached to the whale shark and four other riders to the mako, unchanged over 30 s.
+
+### Big bodies keep clear
+
+- Long fish (6 WU and up: the whale shark, the mako, the larger mahi) no longer pass through each other (`dev_5`, Jeremy's screenshot of the mako going through the whale shark). Boid separation treats every fish as a sphere among its nearest few neighbours, with the big swimmers' boid forces capped near zero (the mako's 0.06), so near a sardine school the other shark was not even among the neighbours. Now each reads the others as capsules along their length, checks where both will be over the next 8 s, and steers off sideways or over/under, applied after that cap; the shorter body gives way more. Fish this long also re-decide their boid steering every 0.5 s instead of every 1–3.4 s, which had let a bursting mako close ~40 WU between two looks.
+- Measured in the dev tank as the gap between the two sharks' body axes: before, the mako passed straight through at 1.5 WU; after, over 3 minutes and 4 approaches, three kept 5.3–7.5 WU apart and one fast pass came to 2.7 WU for half a second (the skins meet at about 2.6–3 WU). Covered by a new test in `tests/fishSwim.test.mjs`.
+
+### Fixes
+
+- The creature card took length and mass from the base species, ignoring the life stage. It now resolves the stage first, so the whale shark reads 6.0 m and 1,810 kg (it read 20 m and 77 t). Juvenile angelfish share the adult's body length, so their cards are unchanged.
+
 ## v0.22.1 — Clown Triggerfish Atlas tile
 
 Status: clean `v0.22.1` (2026-10-15), on Jeremy's request. `package.json` moves to `0.22.1`.

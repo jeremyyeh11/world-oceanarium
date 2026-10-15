@@ -39,7 +39,11 @@ const IUCN_STATUS_STEPS = [
 const ATLAS_CAMERA_YAW_DEGREES = 0
 const ATLAS_CAMERA_PITCH_DEGREES = 15
 const ATLAS_CREATURE_DIAGONAL_YAW_RADIANS = Math.PI / 6
-const ATLAS_SPECIES = SPECIES.filter(species => !species.hiddenInAtlas)
+// Listed alphabetically by scientific name (Jeremy, 2026-10-16), so a new species slots in by
+// name rather than at the end. The Nº shown is its place in this list.
+const ATLAS_SPECIES = SPECIES
+  .filter(species => !species.hiddenInAtlas)
+  .sort((a, b) => a.scientificName.localeCompare(b.scientificName))
 
 const DEFAULT_VIEW_POSE = {
   yawOffset: Math.PI / 2 + ATLAS_CREATURE_DIAGONAL_YAW_RADIANS,
@@ -129,6 +133,17 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.45, -0.1, 0],
     lookAt: [0, 0.2, 0],
   },
+  // Whale shark: framed by the mako's camera. Its origin is mid-length and the diagonal yaw brings
+  // the broad head toward the camera, so it is shorter on stage than the mako (4.45) and shifted
+  // a little right to keep the head in frame.
+  'rhincodon-typus': {
+    cameraDistance: 8.9,
+    portraitPhoneDistanceScale: 1.0,
+    fov: 34,
+    maxLengthDisplayUnits: 3.9,
+    position: [0.3, -0.1, 0],
+    lookAt: [0, -0.08, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -152,6 +167,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'heniochus-acuminatus': 0.3199,
   // Supplied emperor angelfish model, nose to tail tip along Z.
   'pomacanthus-imperator': 0.4002,
+  // Supplied whale shark model, nose to tail tip along Z.
+  'rhincodon-typus': 99.8702,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

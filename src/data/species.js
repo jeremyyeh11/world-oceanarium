@@ -65,7 +65,7 @@ export const TANKS = [
     name: 'The Open Sea',
     tagline: 'A blue-water pursuit',
     // One or two lines shown under the tank name above the switcher.
-    description: 'Fast open-ocean hunters and their bait, from flickering sardinella to the cruising mako.',
+    description: 'Fast open-ocean hunters and their bait, from flickering sardinella to the cruising mako, with a young whale shark gliding through.',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // seed varies the surface caustics + background mottle so each tank has a
@@ -75,6 +75,8 @@ export const TANKS = [
       'amblygaster-sirm',
       'coryphaena-hippurus',
       'isurus-oxyrinchus',
+      // Juveniles only (see the species entry).
+      'rhincodon-typus',
       // Remoras. The sharksuckers and the common remora ride the mako; the white suckerfish,
       // marlinsucker, and slender suckerfish only occasionally; the whalesucker swims free
       // until a whale or dolphin joins the tank.
@@ -168,6 +170,30 @@ const REMORA_CAUDAL = {
   response: 8,
   speedFrequencyBoost: 0.4,
   burstFrequencyBoost: 0.3,
+}
+// Whale shark stroke, in the supplied model's source units (99.87 nose to tail tip), so the adult
+// and juvenile scales share it. Slower and lazier than the mako's lamnid beat: a broad sweep of
+// the tall tail with the front half nearly still, the wave starting behind the pectorals.
+const WHALE_SHARK_CAUDAL = {
+  type: 'caudal-vertex',
+  bodyMeshNames: ['whaleshark'],
+  sourceAxis: 'z',
+  lateralAxis: 'x',
+  tailAtMaxZ: true,
+  // 0.035 body lengths, the mako's 0.03 a touch broader.
+  amplitude: 3.5,
+  waveSpeed: 1.4,
+  waveTravel: 6.0,
+  flexStart: 0.22,
+  flexFull: 0.88,
+  // The mako's 0.0144 body lengths of turn bend.
+  turnStrength: 1.45,
+  burstAmplitude: 0.5,
+  response: 3.5,
+  speedFrequencyBoost: 0.25,
+  burstFrequencyBoost: 0.15,
+  // Stiff shark pectorals: they trim and barely move.
+  pectoralFinFlutter: 0.04,
 }
 function remoraPlaceholderModel(id, bodyLengthWU) {
   return {
@@ -2239,6 +2265,178 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
+  // Facts from FishBase, plus Norman & Stevens 2007 (males mature at about 8 m) and Meekan et al.
+  // 2020 (males level off at 8–9 m, females near 14.5 m). The species is described at its true
+  // scale; the tank keeps only juveniles (`lifeStage: 'juvenile'`, see lifeStages below), a
+  // 6 m animal of the kind that makes up most feeding aggregations. An adult would be longer than
+  // the Open Sea is deep.
+  {
+    id: 'rhincodon-typus',
+    name: 'Whale Shark',
+    scientificName: 'Rhincodon typus',
+    family: 'Rhincodontidae',
+    alternateNames: [],
+    // Tank render (2026-10-16, dev_3): fish 410's head in three-quarter view, the other fish and
+    // particles hidden for the frame so nothing else is in the water.
+    atlasThumbnail: '/atlas/rhincodon-typus-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    // A body this size parts the water: others make way, though it hunts nothing they fear.
+    repulser: true,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      commonDiet: 'Plankton, krill and other small crustaceans, fish eggs, small fishes, and squid, filtered from the water.',
+      foundIn: 'All tropical and warm temperate seas except the Mediterranean, offshore and close inshore, from the surface to almost 2,000 m, usually above 100 m.',
+      sexualDimorphism: 'Females grow larger: males level off at about 8 to 9 m, while females are expected to reach about 14.5 m.',
+      lifeSpan: 'Up to 80 years',
+      maturityAge: 'Unknown; males mature at about 8 m long',
+      social: {
+        schoolSize: 'Solitary or aggregations',
+        groupingBehaviour: 'Found alone or in seasonal feeding aggregations of more than 100, mostly young males under 7 m. Highly migratory, yet returns to the same sites each year. Often swims with schools of other open-ocean fishes, especially tunas and mackerels. The pattern of spots behind the gills is unique to each animal and stays the same for life.',
+        reproduction: 'Pups hatch from egg cases inside the mother and are born live at about 55 to 64 cm. One pregnant female carried about 300 embryos.',
+      },
+      averages: {
+        // FishBase gives a common length of 10 m (males and unsexed) but no sex-specific sizes or
+        // weights; 80 years is its maximum reported age, used as life expectancy as elsewhere.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 80,
+        femaleLifeExpectancyYears: 80,
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Up to about 300 pups',
+      },
+    },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Plankton',
+      social: 'Solitary',
+    },
+    description: 'The largest fish in the sea, up to 20 m: a filter-feeding shark, dark blue-grey above with a checkerboard of white spots and pale stripes, white below. It cruises slowly near the surface, straining plankton, fish eggs, and small fishes through its wide mouth, and the spots behind its gills are as unique as a fingerprint. The whale shark in the tank is a 6 m juvenile, the size most often seen at feeding sites.',
+    // FishBase: 20 m maximum (female, total length); males mature at about 8 m.
+    adultLengthRangeMeters: [8, 20],
+    maxBodyLengthMeters: 20,
+    swim: {
+      // An unhurried cruiser: slow, broad tail sweeps, long glides, no real burst. Speeds are in
+      // body lengths, so at the juvenile's 24 WU the cruise is about 0.5–0.8 m/s.
+      visualTimeScale: 0.8,
+      visualHeadingFollowsMotion: true,
+      driftEnabled: false,
+      idleBLPerSec: [0.08, 0.13],
+      idleDriftBLPerSec: [0.02, 0.04],
+      snapBLPerSec: [0.12, 0.17],
+      burstBLPerSec: [0.18, 0.24],
+      burstInterval: [40.0, 70.0],
+      burstActionDuration: 5.0,
+      turnActionDuration: 4.0,
+      turnTriggerThreshold: 0.042,
+      erraticness: 0.012,
+      // Broad, unhurried turns; boundary steering tightens them near the walls, as for the mako.
+      turnRadiusBodyLengths: 1.0,
+      speedMultiplier: 1.0,
+      movementBoundsScale: 1.22,
+      soloTargetVerticalBodyLengths: 0.1,
+      boundsUseSpeciesSize: false,
+      // Feeds near the surface. Held further back than the mako (z -2 rather than 4) so the
+      // nose of a 24 WU body stays well short of the camera.
+      boundsYMin: -12,
+      boundsZMin: -28,
+      boundsZMax: -2,
+      // 1 WU = 25 cm: the 20 m maximum is 80 WU. Never drawn at this size (see lifeStages).
+      bodyLengthWU: 80,
+      boids: {
+        neighborCap: 3,
+        perceptionBodyLengths: 1.2,
+        separationWeight: 0.05,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.06,
+        selfAvoidanceScale: 0.1,
+        // Harmless, but big: smaller fish give it room without fleeing it as they do the mako.
+        menace: 0.3,
+        wariness: 0.02,
+      },
+    },
+    // Where remoras ride: sharksuckers and the common remora are often seen on whale sharks, on
+    // the belly and flanks behind the gills. Anchors are in body lengths (runtime model frame,
+    // +X right, +Y up, +Z tail), so the juvenile's 24 WU scale uses them unchanged.
+    rideHost: {
+      groups: ['shark', 'large-fish'],
+      // Sampled over `whaleshark`'s faces (scripts/fit-ride-anchors.mjs) from 10% to 55% of the
+      // length: 18 points, all on the belly between the gills and mid-body (the big pectorals
+      // rule out the flanks), where remoras are mostly seen on whale sharks.
+      anchors: RIDE_ANCHORS['rhincodon-typus'].anchors,
+      waveSpan: RIDE_ANCHORS['rhincodon-typus'].waveSpan,
+      // Clearance ellipsoid riders route around: snout to caudal peduncle along Z, the pectoral
+      // span across X, the body (not the dorsal fin) in Y. At 24 WU: centre (0, 0.1, -2.4),
+      // radii (3.5, 1.8, 9.6) WU.
+      body: { center: [0, 0.006, -0.1], radii: [0.145, 0.075, 0.4] },
+    },
+    // Adults from the 8 m male maturity length to the 20 m maximum.
+    sizeRange: [0.4, 1.0],
+    // FishBase's length–weight for this body shape (TL cm → g; not species-specific): about 1.8 t
+    // at 6 m.
+    mass: { coefficient: 0.00389, exponent: 3.12 },
+    model: {
+      path: '/models/fish/rhincodon-typus/rhincodon-typus.glb',
+      // Jeremy's model (2026-10-16): source length 99.87 (nose -Z to tail tip +Z), root already
+      // mid-length on the body axis. 80 WU at size 1 for an adult; the juvenile rescales it.
+      scale: 0.801,
+      followAim: 'root',
+      // Opaque: the texture (a generated three-view sheet) has no alpha channel. The supplied
+      // GLB's BLEND material was made opaque and its 2.07 MB PNG re-encoded as a 184 KB JPEG.
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: WHALE_SHARK_CAUDAL,
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+    lifeStages: {
+      // The only stage in the tank: a 5.5–6.5 m young shark, larger than the mako (17.8 WU) and
+      // short of the ~8 m at which males mature. It keeps the species' gait, sized to itself.
+      juvenile: {
+        sizeRange: [0.92, 1.08],
+        swim: {
+          // 6 m = 24 WU at size 1.
+          bodyLengthWU: 24,
+        },
+        model: {
+          path: '/models/fish/rhincodon-typus/rhincodon-typus.glb',
+          // Source length 99.87 -> 24 WU at size 1.
+          scale: 0.2403,
+          followAim: 'root',
+          moveset: {
+            cruise: 'procedural_cruise',
+            drift: 'procedural_drift',
+            turnLeft: 'procedural_turn_left',
+            turnRight: 'procedural_turn_right',
+            burst: 'procedural_burst',
+          },
+          proceduralAnimation: WHALE_SHARK_CAUDAL,
+          debugForwardOrigin: 'head',
+          debugForwardOffsetRatio: 0.5,
+        },
+      },
+    },
+  },
 ]
 
 export const CREATURES = [
@@ -2325,4 +2523,17 @@ export const CREATURES = [
     sex: index % 2 === 0 ? 'male' : 'female',
     size,
   })),
+  // Whale shark review fixture: one 6 m juvenile male in the Open Sea.
+  {
+    id: 110,
+    species: 'rhincodon-typus',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    bornAt: '2026-10-16T00:00:00Z',
+    alive: true,
+    sex: 'male',
+    lifeStage: 'juvenile',
+    // Mid-range: 24 WU, 6 m.
+    size: 0.5,
+  },
 ]

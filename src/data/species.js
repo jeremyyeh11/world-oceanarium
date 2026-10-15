@@ -2370,6 +2370,21 @@ export const SPECIES = [
         wariness: 0.02,
       },
     },
+    // Where remoras ride: sharksuckers and the common remora are often seen on whale sharks, on
+    // the belly and flanks behind the gills. Anchors are in body lengths (runtime model frame,
+    // +X right, +Y up, +Z tail), so the juvenile's 24 WU scale uses them unchanged.
+    rideHost: {
+      groups: ['shark', 'large-fish'],
+      // Sampled over `whaleshark`'s faces (scripts/fit-ride-anchors.mjs) from 10% to 55% of the
+      // length: 18 points, all on the belly between the gills and mid-body (the big pectorals
+      // rule out the flanks), where remoras are mostly seen on whale sharks.
+      anchors: RIDE_ANCHORS['rhincodon-typus'].anchors,
+      waveSpan: RIDE_ANCHORS['rhincodon-typus'].waveSpan,
+      // Clearance ellipsoid riders route around: snout to caudal peduncle along Z, the pectoral
+      // span across X, the body (not the dorsal fin) in Y. At 24 WU: centre (0, 0.1, -2.4),
+      // radii (3.5, 1.8, 9.6) WU.
+      body: { center: [0, 0.006, -0.1], radii: [0.145, 0.075, 0.4] },
+    },
     // Adults from the 8 m male maturity length to the 20 m maximum.
     sizeRange: [0.4, 1.0],
     // FishBase's length–weight for this body shape (TL cm → g; not species-specific): about 1.8 t

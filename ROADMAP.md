@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### Whale Shark
+
+Status: `Current in development` — `v0.24.0-dev_1`, branch `feat/rhincodon-typus`. Jeremy (2026-10-16): a juvenile in the Open Sea, bigger than the mako. 6 m (24 WU) juveniles only; see the species entry.
+
+Subtasks:
+- [x] Species data from FishBase, maturity and growth from Norman & Stevens 2007 and Meekan et al. 2020.
+- [x] Model intake: opaque material, JPEG texture (2.2 → 0.33 MB), verifier target, Atlas framing on desktop and a 375 px phone.
+- [x] `creatures_dev` row (2026-10-16): 1 juvenile male, id 410, size parameter 0.5 (24 WU). Insert only: undo is a delete of id 410.
+- [ ] Jeremy review on phone: size against the mako, the slow stroke, how dark it reads at the default follow distance.
+- [ ] Atlas list tile (tank capture), before promotion.
+- [ ] Production `creatures` rows, on Jeremy's go-ahead.
+- [ ] Filter-feeding passes near the surface through the sardine schools. `Backlog`
+- [ ] Remoras and pilot fish taking it as a host (both ride whale sharks in the wild). `Backlog`
+
 ### Clown Triggerfish
 
 Status: shipped in clean `v0.22.0` (2026-10-15, from `v0.22.0-dev_4`, branch `feat/balistoides-conspicillum`). The open items below carry over. Second pick for the reef conversion of The Drift. Jeremy's model, in The Drift and the Atlas, swimming on rippling fins (balistiform `mask-fin-row`). 3 in `creatures_dev`.

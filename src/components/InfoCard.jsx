@@ -1,4 +1,4 @@
-import { creatureBodyLengthMeters, DEPTH_ZONE_BY_ID, SPECIES_BY_NAME } from '../utils/speciesLookup'
+import { creatureBodyLengthMeters, DEPTH_ZONE_BY_ID, resolveSpecies } from '../utils/speciesLookup'
 
 const DEFAULT_MASS = {
   coefficient: 0.008,
@@ -309,7 +309,8 @@ function Stat({ label, value }) {
 }
 
 export default function InfoCard({ creature, onClose, onOpenEncyclopedia, children }) {
-  const species = SPECIES_BY_NAME.get(creature.species)
+  // Staged for the creature's life stage, so a juvenile's length and mass come from its own scale.
+  const species = resolveSpecies(creature)
   const depthZone = DEPTH_ZONE_BY_ID.get(creature.depthZone)
   const depthLabel = compactDepthLabel(depthZone, creature.depthZone)
   const customName = creature.customName?.trim()

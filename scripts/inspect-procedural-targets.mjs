@@ -52,6 +52,14 @@ const targets = [
     minVertices: 3000,
   },
   {
+    name: 'Whale Shark static parts',
+    path: 'public/models/fish/rhincodon-typus/rhincodon-typus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['whaleshark'],
+    requiredFinMeshes: ['whalesharkpectorall', 'whalesharkpectoralr'],
+    minBodyLength: 90,
+  },
+  {
     name: 'Giant Sunfish static motion mask',
     path: 'public/models/fish/mola-alexandrini/mola-alexandrini.glb',
     staticMesh: true,

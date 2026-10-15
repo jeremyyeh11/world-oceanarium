@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.24.0 — Whale Shark (in progress)
+## v0.23.0 — Whale Shark
 
-Status: in development as `v0.24.0-dev_2`, waiting on Jeremy's phone review (`dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name, `dev_3` a new tile, `dev_4` remoras ride it, `dev_5` big bodies keep clear of each other). (`v0.23.0` is the situational fish lighting, open in #128.) 1 juvenile in `creatures_dev` (id 410); none in production `creatures`.
+Status: accepted and promoted as clean `v0.23.0` from `v0.24.0-dev_5` on Jeremy's go-ahead (2026-10-16; `dev_1` the species, `dev_2` its Atlas tile and the Atlas sorted by scientific name, `dev_3` a new tile, `dev_4` remoras ride it, `dev_5` big bodies keep clear of each other). Built as `v0.24.0-dev_*` while the situational fish lighting (#128) held `v0.23.0`; this shipped first, so it takes `v0.23.0` and the lighting moves to the next number. `package.json` moves to `0.23.0`. 1 juvenile in `creatures_dev` (id 410) and 1 in production `creatures` (id 411, juvenile male, size parameter 0.5 = 6 m, on Jeremy's go-ahead; insert only, checked against a snapshot: 257 → 258 rows, the existing rows unchanged). Both carry the individual description "The biggest fish in the Open Sea, 6 m and still growing, with a spot pattern no other whale shark shares."
 
 ### Species
 

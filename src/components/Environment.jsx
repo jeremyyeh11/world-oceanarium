@@ -1,23 +1,35 @@
 import { Suspense, useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import Landscape from './Landscape'
-import { sandHeight } from '../data/landscapes'
+import { sandCrest, sandHeight } from '../data/landscapes'
 
 // Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
 // hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
 // ±180 (360 wide); fade the outer band to transparent so the background shows through
 // seamlessly. depthWrite stays on — nothing renders below the floor.
-function makeFloorMaterial(color) {
+//
+// With `rise` (a landscape's sand, ±rise WU about its mean level) the sand also shades by
+// height before fog: troughs darken to 55% and crests brighten to 120%. The soft underwater
+// light barely shades gentle dunes on its own, so without this the relief reads flat,
+// especially at the default view's grazing angle.
+function makeFloorMaterial(color, rise = 0) {
   const material = new THREE.MeshStandardMaterial({
     color, roughness: 0.92, envMapIntensity: 0.28, side: THREE.DoubleSide, transparent: true, depthWrite: true,
   })
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFloorRadial = length(position.xy) / 180.0;')
+      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;\nvarying float vFloorRise;')
+      // The plane is rotated +90° about x, so its local -z is world height above floorY.
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFloorRadial = length(position.xy) / 180.0;\nvFloorRise = -position.z;')
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;')
+      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;\nvarying float vFloorRise;')
       .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(0.5, 0.94, vFloorRadial);')
+    if (rise > 0) {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <fog_fragment>',
+        `gl_FragColor.rgb *= mix(0.55, 1.2, smoothstep(${(-rise).toFixed(3)}, ${rise.toFixed(3)}, vFloorRise));\n#include <fog_fragment>`,
+      )
+    }
   }
   return material
 }
@@ -35,11 +47,18 @@ export function floorYFor(biome, landscape = null) {
   return landscape?.floorY ?? FLOOR_Y[biome] ?? -20
 }
 
+// Highest point of the floor, for keeping a camera above it: a landscape's sand rises in
+// dunes well above its mean level.
+export function floorTopFor(biome, landscape = null) {
+  return landscape ? sandCrest(landscape) : floorYFor(biome)
+}
+
 function NoiseFloor({ biome, landscape }) {
   const ref = useRef()
   const floorY = floorYFor(biome, landscape)
   const color = landscape?.floorColor ?? FLOOR_COLORS[biome] ?? '#0e1f33'
-  const material = useMemo(() => makeFloorMaterial(color), [color])
+  const rise = landscape ? sandCrest(landscape) - landscape.floorY : 0
+  const material = useMemo(() => makeFloorMaterial(color, rise), [color, rise])
 
   // Material is created imperatively (not as a JSX tag), so R3F won't auto-dispose it.
   // Free the old shader program/GPU resources when the biome changes or the floor unmounts.
@@ -68,7 +87,8 @@ function NoiseFloor({ biome, landscape }) {
     // into the horizon. The visible near-floor is unchanged (it sits well below the swim
     // zone and is already fog-dimmed), so this only affects grazing/low orbit angles.
     <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]} position={[0, floorY, 0]} material={material}>
-      <planeGeometry args={[360, 360, 96, 96]} />
+      {/* A landscape's hummocks and ripples need finer vertices (1.9 WU) than open water's. */}
+      <planeGeometry args={[360, 360, landscape ? 192 : 96, landscape ? 192 : 96]} />
     </mesh>
   )
 }

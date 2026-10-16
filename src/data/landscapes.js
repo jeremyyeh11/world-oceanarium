@@ -71,11 +71,13 @@ const LIMESTONE_KIT = {
 export const LANDSCAPES = {
   reefs: {
     kit: LIMESTONE_KIT,
-    // Two metres below the Mola's 14 WU dive floor, so its fins clear the sand.
-    floorY: -22,
+    // The sand's mean level. With floorRelief the highest dune crest is floorY + 2.18 ×
+    // floorRelief = -20.4, just under the Mola's lowest fin (y -20 at its 14 WU dive floor);
+    // troughs reach -27.6.
+    floorY: -24,
     floorColor: '#a39c80',
-    // Height of the low sand ripples, in WU.
-    floorRelief: 0.5,
+    // Scale of the sand's dunes, hummocks and ripples (see sandHeight), in WU.
+    floorRelief: 1.65,
     // Rock tops stay under the water surface (y 4.6): each piece gets its own limit between
     // maxTop - topJitter and maxTop, so tall pieces never line up into a flat skyline.
     maxTop: 3.5,
@@ -160,13 +162,23 @@ export function landscapeForTank(tank) {
   return tank?.landscape ? LANDSCAPES[tank.landscape] ?? null : null
 }
 
-// Smooth low sand ripples. Seabed vertices and every placed piece sample the same function,
-// so rocks sit on the sand rather than on a guessed flat height.
+// The sand's shape: a broad swell (wavelength about 200 WU), dunes (40–60 WU), hummocks
+// (about 18 WU) and fine ripples (6 WU). Seabed vertices and every placed piece sample the
+// same function, so rocks sit on the sand rather than on a guessed flat height. The terms
+// peak at SAND_PEAK × floorRelief above floorY.
+const SAND_PEAK = 0.6 + 1 + 0.5 + 0.08
 export function sandHeight(landscape, x, z) {
   const relief = landscape.floorRelief ?? 0
-  const ripple = Math.sin(x * 0.11 + z * 0.04) * 0.6 + Math.sin(z * 0.17 - x * 0.05 + 1.3) * 0.4
+  const dunes = Math.sin(x * 0.11 + z * 0.04) * 0.6 + Math.sin(z * 0.17 - x * 0.05 + 1.3) * 0.4
   const swell = Math.sin(x * 0.031 + 0.7) * Math.sin(z * 0.027 + 2.1)
-  return landscape.floorY + relief * (ripple * 0.6 + swell)
+  const hummocks = Math.sin(x * 0.35 + z * 0.12 + 0.4) * Math.sin(z * 0.29 - x * 0.08 + 2.2)
+  const ripples = Math.sin(x * 0.95 + z * 0.42)
+  return landscape.floorY + relief * (dunes * 0.6 + swell + hummocks * 0.5 + ripples * 0.08)
+}
+
+// Highest the sand can reach anywhere: the camera's floor guard keeps above it.
+export function sandCrest(landscape) {
+  return landscape.floorY + SAND_PEAK * (landscape.floorRelief ?? 0)
 }
 
 export function seededRandom(seed) {
@@ -295,6 +307,8 @@ export function landscapePieces(landscape) {
       : clearance.floorTop - 0.05
     let height = rawHeight
     if (base - pieceSink(height) + height > topLimit) height = topLimit - base + pieceSink(height)
+    // A floor-zone piece on a dune crest can be capped down to nothing.
+    if (height < 0.4) continue
     const y = base - pieceSink(height)
     const piece = { kind, x, y, z, width, height, depth, yaw, seed, hx, hz, top: y + height }
     const zone = pieceZone(landscape, piece)

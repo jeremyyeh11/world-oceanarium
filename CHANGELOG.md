@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_6` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_7` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -42,6 +42,11 @@ Status: in development as `v0.25.0-dev_6` (2026-10-17, branch `feat/reef-landsca
   - UVs are re-projected per piece after the stretch, cube-style in world space (Blender's Cube Projection): one tile of the GWC Rock 008 texture set (colour, normal, roughness) every 6 WU (1.5 m) on every rock, with a random texture offset per piece. Measured over every triangle: linear texture density 0.79–1.0 of the target (1st–99th percentile, median 0.93), the low end being cube projection's slant on faces between two axes (floor 0.76).
   - `scripts/build-landscape-kit.py` (headless Blender, Jeremy's open scene untouched) welds each rock, decimates it to three detail levels, and resizes the textures: rockN_hi (at most 3,000 triangles) for pieces within 30 WU of the camera, rockN_lo (600, or 120 for the small rocks) further out, and a 40-triangle rubble chunk. Kit 1.0 MB plus 0.96 MB of 1024 px textures, down from 9.8 MB. A first build decimated the rocks without welding them and tore the distant ones into floating shards (Jeremy: "rocks are broken"); welding fixed it.
   - Rendering: the pieces bake into 18 chunk meshes 60 WU square, one draw call each, so the frustum culls whatever is off screen. 139k triangles and 338k vertices in all; the default view draws 114k and 280k. Rubble is 600 chunks (was 800).
+- Deeper sand relief (`dev_7`, Jeremy: "the sand layer can have greater displacement. now its too flat"):
+  - The sand now has dunes (40–60 WU wavelength), a broad swell, hummocks (about 18 WU) and fine ripples (6 WU), spanning y -27.2 to -20.6: 1.7 m from trough to crest, up from about 0.4 m. Its mean level drops from y -22 to -24 so the highest crest under the swim volume (measured -20.56) stays below the Mola's lowest fin at y -20. The seabed mesh is finer for it (192 segments, 1.9 WU, was 96).
+  - The sand shades by height before fog: troughs at 55%, crests at 120%. The soft underwater light barely shades dunes on its own, and the default view sees the sand 40 WU or more away at a grazing angle, so without it the relief still read flat.
+  - The follow camera's floor guard now keeps 1.6 WU above the highest crest (y -20.4) rather than the mean level, so it never dips under a dune.
+  - Floor-zone boulders sitting on a crest are capped lower to stay under y -20; any capped below 0.4 WU are dropped. All 210 pieces still clear the swim volume.
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

@@ -19,7 +19,7 @@
 // pieces fill the sides for wide screens.
 //
 // Prototype: each piece renders as a procedural placeholder rock (Landscape.jsx) until the
-// modelled GLBs land. `kind` names the model it stands in for: bommie, boulder, wall.
+// modelled GLBs land. `kind` names the model it stands in for: bommie, boulder, wall, cliff.
 
 export const LANDSCAPES = {
   reefs: {
@@ -38,6 +38,10 @@ export const LANDSCAPES = {
       ['wall', -34, -62, 22, 21, 10, -0.2, 13],
       ['wall', -48, -56, 20, 18, 10, 0.3, 16],
       ['bommie', -60, -70, 12, 24, 10, 0, 17],
+      // Tall cliffs at the edges: the inner pair frames the phone, the outer pair wide screens.
+      // Tops stay about 1–2 WU under the water surface (y 4.6).
+      ['cliff', -17, -55, 9, 24, 9, 0.2, 18],
+      ['cliff', -50, -58, 14, 26.5, 11, 0.25, 19],
       ['boulder', -13, -50, 4.5, 3.5, 4, 1.1, 14],
       // Back right canyon wall
       ['bommie', 10, -52.5, 8, 12, 7, -0.5, 21],
@@ -46,17 +50,20 @@ export const LANDSCAPES = {
       ['wall', 36, -64, 24, 23, 11, 0.15, 23],
       ['wall', 49, -58, 22, 20, 10, -0.2, 26],
       ['bommie', 61, -72, 12, 25, 10, 0, 27],
+      ['cliff', 17, -56, 9, 25, 9, -0.2, 28],
+      ['cliff', 51, -59, 14, 26.5, 11, -0.25, 29],
       ['boulder', 6.5, -49.5, 3.5, 2.6, 3.2, 0.2, 24],
       // Far ridge, seen through the gap between the walls
       ['wall', -2, -76, 34, 11, 12, 0.05, 31],
       // Foreground left: reef rising in front of the swim volume, framing the glass
       ['wall', -9, -3, 10, 18, 6, 0.2, 51],
       ['bommie', -3, 1, 5, 18, 5, 0.5, 52],
-      ['wall', -17, 0, 9, 17, 7, -0.3, 53],
+      // Foreground cliff framing the left edge of a wide screen, rising almost to the surface.
+      ['cliff', -15.5, -1, 9, 26, 9, -0.3, 53],
       // Foreground right
       ['wall', 10, -3, 11, 18.5, 6, -0.25, 61],
       ['bommie', 3.2, 1.5, 4.5, 17, 4.5, -0.4, 62],
-      ['wall', 18, 1, 10, 15, 7, 0.35, 63],
+      ['cliff', 14, -0.5, 10, 25, 8, 0.35, 63],
       // Low boulders under the swim volume (tops below y -20)
       ['boulder', -14, -12, 3.5, 1.6, 3, 0.7, 41],
       ['boulder', 10, -6, 3, 1.4, 2.6, 2.1, 42],

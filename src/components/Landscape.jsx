@@ -8,11 +8,14 @@ import { sandHeight } from '../data/landscapes'
 // seed always builds the same rock.
 //
 // taper widens the top (a bommie's overhang); flatBottom squashes everything below it so the
-// rock sits flat on the sand instead of balancing on a point.
+// rock sits flat on the sand instead of balancing on a point. column pushes the sphere out
+// toward a cylinder, so a tall cliff keeps steep sides and a broad top instead of tapering
+// to a spike.
 const ROCK_PROFILES = {
   boulder: { detail: 5, roughness: 0.42, taper: 0, flatBottom: -0.4 },
   bommie: { detail: 7, roughness: 0.5, taper: 0.55, flatBottom: -0.7 },
   wall: { detail: 7, roughness: 0.55, taper: 0.35, flatBottom: -0.55 },
+  cliff: { detail: 8, roughness: 0.42, taper: 0.1, flatBottom: -0.85, column: 0.75 },
   rubble: { detail: 1, roughness: 0.4, taper: 0, flatBottom: -0.3 },
 }
 
@@ -45,6 +48,12 @@ function makeRockGeometry(kind, seed) {
       )
       amp *= 0.55
       freq *= 2.3
+    }
+    if (profile.column) {
+      const ring = Math.hypot(scratch.x, scratch.z)
+      const widen = THREE.MathUtils.lerp(1, 1 / Math.max(ring, 0.3), profile.column)
+      scratch.x *= widen
+      scratch.z *= widen
     }
     scratch.multiplyScalar((1 + profile.roughness * n) * (1 + profile.taper * scratch.y))
     if (scratch.y < profile.flatBottom) scratch.y = profile.flatBottom + (scratch.y - profile.flatBottom) * 0.15

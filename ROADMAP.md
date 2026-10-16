@@ -15,12 +15,13 @@ Status labels:
 
 ### The Reefs landscape
 
-Status: `Current in development` — `v0.25.0-dev_2` prototype (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
+Status: `Current in development` — `v0.25.0-dev_3` prototype (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
 
 - [x] Rename The Drift to The Reefs (`the-reefs`); The Open Sea untouched.
 - [x] Raised sand seabed (y -22), fixed rock layout behind the swim volume, fixed-seed rubble, thinner fog (`dev_1`).
 - [x] Jeremy review of `dev_1` on phone: "looks good"; wants more on the sides and some foreground rocks for depth → `dev_2`.
-- [ ] Jeremy review of `dev_2` on phone: side and foreground rocks. Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
+- [x] Jeremy review of `dev_2`: wants taller cliffs on the edges → `dev_3`.
+- [ ] Jeremy review of `dev_3` on phone: edge cliffs, side and foreground rocks. Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
 - [ ] Jeremy models the rocks (bommie, 2–3 boulders, wall/ledge, rubble): GLB, +Y up, real metres, origin at base centre, about 2–5k triangles, one shared texture. Swap them in for the placeholders.
 - [ ] Rocks inside the swim volume: fish avoid rocks (collision shapes in the steer step), then reef behaviour such as angelfish keeping close to rock. Until then every piece must sit in a free zone (back, foreground or floor; see the header of `src/data/landscapes.js`). `Next`
 - [ ] Follow cam can orbit into a rock when following a fish near the back. `Backlog`

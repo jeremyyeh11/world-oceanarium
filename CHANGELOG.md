@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_7` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_8` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -47,6 +47,12 @@ Status: in development as `v0.25.0-dev_7` (2026-10-17, branch `feat/reef-landsca
   - The sand shades by height before fog: troughs at 55%, crests at 120%. The soft underwater light barely shades dunes on its own, and the default view sees the sand 40 WU or more away at a grazing angle, so without it the relief still read flat.
   - The follow camera's floor guard now keeps 1.6 WU above the highest crest (y -20.4) rather than the mean level, so it never dips under a dune.
   - Floor-zone boulders sitting on a crest are capped lower to stay under y -20; any capped below 0.4 WU are dropped. All 210 pieces still clear the swim volume.
+- Zoom, sand hills, taller rocks (`dev_8`, Jeremy: "some can go higher ... should we consider zooming in a bit? ... add another layer of displacement with large texture scale"):
+  - The Reefs zooms in about 1.35×: its resting camera's FOV is 47° (was 61°), from a new per-tank `camera` override (any of Camera.jsx's fov, y, z, lookY). Fish and rocks read larger, ahead of corals. The Open Sea keeps 61°, and follow mode keeps its own framing. Fish swim bounds still come from the 60° projection, so at the sides fish leave the zoomed frame more often.
+  - Large sand hills on top of the kept grain: up to 10 WU (2.5 m), rising only outside the swim clearance over a 32 WU ramp, so the basin under the fish is unchanged (crest -20.56) while dunes climb toward the reef walls and in front of the glass (sand from y -27 to -11.7). The grain shading now comes from a per-vertex `sandGrain` attribute, so the hills do not darken the basin.
+  - The follow camera's floor guard samples the sand under the camera instead of one global height, so it clears the hills without stopping it from following fish low over the basin.
+  - Rocks through the surface: the camera sits only 2 m under the water, so a rock capped below the surface never climbs past the middle of the screen. A quarter of the tall back and side pieces, and the four canyon cliffs, now break the surface, raised to a top between y 9 and 14; rocks in front of the glass never do. The tall outcrop band is 22–36 WU (was 20–30). 13 pieces break the surface; tops reach 13.7.
+  - The phone-framing cliffs move in to x ±12.5 so the zoomed phone view keeps them at its edges, and every rock sinks 15% of its height into the sand (was 8%): the kit rocks' uneven undersides showed gaps under low, wide pieces such as the far ridge.
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

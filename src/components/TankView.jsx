@@ -705,6 +705,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           <Camera
             biome={biome.id}
             landscape={landscapeForTank(tank)}
+            cameraSettings={tank?.camera}
             focusTarget={focusedFishRef?.current ?? null}
             focusCenterBoneName={selectedModel?.followBone ?? null}
             focusMeshOrigin={followMeshOrigin}

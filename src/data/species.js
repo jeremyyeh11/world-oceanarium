@@ -106,6 +106,10 @@ export const TANKS = [
     // Fixed seabed and rocks from src/data/landscapes.js. Tanks without one keep the
     // biome's open-water floor.
     landscape: 'reefs',
+    // Optional resting-camera overrides (Camera.jsx DEFAULT_CAMERA_SETTINGS: fov, y, z, lookY).
+    // The Reefs zooms in about 1.35× (61° → 47°): fish and rocks read larger, which suits the
+    // smaller reef life and corals to come. Follow mode keeps its own framing.
+    camera: { fov: 47 },
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.

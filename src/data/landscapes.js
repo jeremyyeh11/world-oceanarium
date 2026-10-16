@@ -78,10 +78,20 @@ export const LANDSCAPES = {
     floorColor: '#a39c80',
     // Scale of the sand's dunes, hummocks and ripples (see sandHeight), in WU.
     floorRelief: 1.65,
+    // Large sand hills on top of that grain, rising only outside the basin the fish swim
+    // over: zero inside the swim clearance (x ±63, z -47 to -7.5), ramping up over `ramp`
+    // WU beyond it to as much as `height` WU (2.5 m), so the basin floor stays below the
+    // Mola's fins while dunes climb toward the reef walls and in front of the glass.
+    hills: { height: 10, ramp: 32 },
     // Rock tops stay under the water surface (y 4.6): each piece gets its own limit between
     // maxTop - topJitter and maxTop, so tall pieces never line up into a flat skyline.
     maxTop: 3.5,
     topJitter: 7,
+    // A share of the tall pieces (raw height at least minHeight), and the hand-placed pieces
+    // in `seeds`, break the surface instead: they are raised to a top between top - 5 and
+    // top. The camera sits only 2 m under the surface, so a rock capped below it never climbs
+    // past the middle of the screen; at y 14 a canyon cliff reaches the top quarter.
+    pierce: { share: 0.25, minHeight: 14, top: 14, jitter: 5, seeds: [18, 28, 19, 29] },
     // The free zones around the swim volume (see the header). Only hand-placed pieces use
     // the foreground zone in front of the camera (z 10); a generated piece there must stand
     // behind the camera, at outcropFront and beyond, so it never blocks the default view.
@@ -97,8 +107,8 @@ export const LANDSCAPES = {
       ['wall', -48, -56, 20, 18, 10, 0.3, 16],
       ['bommie', -60, -70, 12, 24, 10, 0, 17],
       // Tall cliffs at the edges: the inner pair frames the phone, the outer pair wide screens.
-      ['cliff', -17, -55, 9, 24, 9, 0.2, 18],
-      ['cliff', -50, -58, 14, 26.5, 11, 0.25, 19],
+      ['cliff', -12.5, -56, 12, 24, 10, 0.2, 18],
+      ['cliff', -50, -59, 16, 26.5, 12, 0.25, 19],
       ['boulder', -13, -50, 4.5, 3.5, 4, 1.1, 14],
       // Back right canyon wall
       ['bommie', 10, -52.5, 8, 12, 7, -0.5, 21],
@@ -107,11 +117,11 @@ export const LANDSCAPES = {
       ['wall', 36, -64, 24, 23, 11, 0.15, 23],
       ['wall', 49, -58, 22, 20, 10, -0.2, 26],
       ['bommie', 61, -72, 12, 25, 10, 0, 27],
-      ['cliff', 17, -56, 9, 25, 9, -0.2, 28],
-      ['cliff', 51, -59, 14, 26.5, 11, -0.25, 29],
+      ['cliff', 12.5, -57, 12, 25, 10, -0.2, 28],
+      ['cliff', 51, -60, 16, 26.5, 12, -0.25, 29],
       ['boulder', 6.5, -49.5, 3.5, 2.6, 3.2, 0.2, 24],
       // Far ridge, seen through the gap between the walls
-      ['wall', -2, -76, 34, 11, 12, 0.05, 31],
+      ['wall', -2, -76, 30, 15, 13, 0.05, 31],
       // Foreground left: reef rising in front of the swim volume, framing the glass
       ['wall', -9, -3, 10, 18, 6, 0.2, 51],
       ['bommie', -3, 1, 5, 18, 5, 0.5, 52],
@@ -146,7 +156,7 @@ export const LANDSCAPES = {
       count: 40,
       outer: { x: 125, back: -125, front: 75 },
       gap: { x: 12, z: -72 },
-      heights: [[0.35, 6, 12], [0.4, 12, 20], [0.25, 20, 30]],
+      heights: [[0.3, 6, 12], [0.4, 12, 20], [0.3, 22, 36]],
       width: [8, 18],
       satellites: [1, 3],
       kinds: ['cliff', 'wall', 'bommie', 'wall'],
@@ -162,23 +172,35 @@ export function landscapeForTank(tank) {
   return tank?.landscape ? LANDSCAPES[tank.landscape] ?? null : null
 }
 
-// The sand's shape: a broad swell (wavelength about 200 WU), dunes (40–60 WU), hummocks
-// (about 18 WU) and fine ripples (6 WU). Seabed vertices and every placed piece sample the
-// same function, so rocks sit on the sand rather than on a guessed flat height. The terms
-// peak at SAND_PEAK × floorRelief above floorY.
+// The sand's grain: a broad swell (wavelength about 200 WU), dunes (40–60 WU), hummocks
+// (about 18 WU) and fine ripples (6 WU), in [-1, 1]. It peaks at SAND_PEAK × floorRelief
+// above floorY, which keeps the basin under the swim volume below y -20.
 const SAND_PEAK = 0.6 + 1 + 0.5 + 0.08
-export function sandHeight(landscape, x, z) {
-  const relief = landscape.floorRelief ?? 0
+export function sandGrain(x, z) {
   const dunes = Math.sin(x * 0.11 + z * 0.04) * 0.6 + Math.sin(z * 0.17 - x * 0.05 + 1.3) * 0.4
   const swell = Math.sin(x * 0.031 + 0.7) * Math.sin(z * 0.027 + 2.1)
   const hummocks = Math.sin(x * 0.35 + z * 0.12 + 0.4) * Math.sin(z * 0.29 - x * 0.08 + 2.2)
   const ripples = Math.sin(x * 0.95 + z * 0.42)
-  return landscape.floorY + relief * (dunes * 0.6 + swell + hummocks * 0.5 + ripples * 0.08)
+  return (dunes * 0.6 + swell + hummocks * 0.5 + ripples * 0.08) / SAND_PEAK
 }
 
-// Highest the sand can reach anywhere: the camera's floor guard keeps above it.
-export function sandCrest(landscape) {
-  return landscape.floorY + SAND_PEAK * (landscape.floorRelief ?? 0)
+// The large hills (see `hills` above): zero inside the swim clearance, rising outside it.
+function sandHills(landscape, x, z) {
+  const { hills, clearance } = landscape
+  if (!hills) return 0
+  const dx = Math.max(Math.abs(x) - clearance.side, 0)
+  const dz = Math.max(clearance.back - z, z - clearance.front, 0)
+  const t = Math.min(Math.hypot(dx, dz) / hills.ramp, 1)
+  const ramp = t * t * (3 - 2 * t)
+  // Uneven crests, wavelengths of about 70–230 WU, so the hills read as separate dunes.
+  const shape = 0.5 + 0.5 * (Math.sin(x * 0.043 + 1.1) * Math.sin(z * 0.051 + 0.3) * 0.6 + Math.sin((x + z) * 0.027 + 2) * 0.4)
+  return ramp * hills.height * (0.3 + 0.7 * shape)
+}
+
+// Sand height at a point. Seabed vertices, every placed piece and the follow camera's floor
+// guard sample the same function, so rocks sit on the sand and the camera stays above it.
+export function sandHeight(landscape, x, z) {
+  return landscape.floorY + (landscape.floorRelief ?? 0) * SAND_PEAK * sandGrain(x, z) + sandHills(landscape, x, z)
 }
 
 export function seededRandom(seed) {
@@ -192,9 +214,10 @@ export function seededRandom(seed) {
   }
 }
 
-// How far a piece's flattened base sinks into the sand so no gap shows.
+// How far a piece's base sinks into the sand so no gap shows. The kit rocks have uneven
+// undersides, so a low, wide piece needs a good share of its height buried.
 function pieceSink(height) {
-  return Math.min(1.2, height * 0.08) + 0.1
+  return Math.min(3, height * 0.15) + 0.2
 }
 
 // Half extents of a piece's footprint once yawed.
@@ -302,11 +325,21 @@ export function landscapePieces(landscape) {
     const base = baseHeight(landscape, x, z, width, depth)
     const { hx, hz } = footprint(width, depth, yaw)
     const openZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side || z - hz >= clearance.front
-    const topLimit = openZone
-      ? landscape.maxTop - seededRandom(seed)() * (landscape.topJitter ?? 0)
-      : clearance.floorTop - 0.05
+    const pick = seededRandom(seed)
+    const jitter = pick()
+    const { pierce } = landscape
+    // Only back and side pieces break the surface: one in front of the glass would wall off
+    // the view.
+    const farZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side
+    const pierces = farZone && pierce && (pierce.seeds?.includes(seed) || (rawHeight >= pierce.minHeight && pick() < pierce.share))
+    const topLimit = !openZone
+      ? clearance.floorTop - 0.05
+      : pierces
+        ? pierce.top - jitter * pierce.jitter
+        : landscape.maxTop - jitter * (landscape.topJitter ?? 0)
     let height = rawHeight
-    if (base - pieceSink(height) + height > topLimit) height = topLimit - base + pieceSink(height)
+    // A piercing piece grows to its target; every other piece is only ever capped.
+    if (pierces || base - pieceSink(height) + height > topLimit) height = topLimit - base + pieceSink(height)
     // A floor-zone piece on a dune crest can be capped down to nothing.
     if (height < 0.4) continue
     const y = base - pieceSink(height)

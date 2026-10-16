@@ -1,33 +1,35 @@
 import { Suspense, useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import Landscape from './Landscape'
-import { sandCrest, sandHeight } from '../data/landscapes'
+import { sandGrain, sandHeight } from '../data/landscapes'
 
 // Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
 // hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
 // ±180 (360 wide); fade the outer band to transparent so the background shows through
 // seamlessly. depthWrite stays on — nothing renders below the floor.
 //
-// With `rise` (a landscape's sand, ±rise WU about its mean level) the sand also shades by
-// height before fog: troughs darken to 55% and crests brighten to 120%. The soft underwater
-// light barely shades gentle dunes on its own, so without this the relief reads flat,
-// especially at the default view's grazing angle.
-function makeFloorMaterial(color, rise = 0) {
+// With `grainShade` (a landscape's sand) the sand also shades by its grain before fog,
+// from a per-vertex `sandGrain` attribute in [-1, 1]: troughs darken to 55% and crests
+// brighten to 120%. The soft underwater light barely shades gentle dunes on its own, so
+// without this the relief reads flat, especially at the default view's grazing angle. The
+// large hills are left out of it, or the whole basin would read dark against them.
+function makeFloorMaterial(color, grainShade = false) {
   const material = new THREE.MeshStandardMaterial({
     color, roughness: 0.92, envMapIntensity: 0.28, side: THREE.DoubleSide, transparent: true, depthWrite: true,
   })
   material.onBeforeCompile = (shader) => {
+    const grainVertex = grainShade ? '\nattribute float sandGrain;\nvarying float vSandGrain;' : ''
+    const grainFragment = grainShade ? '\nvarying float vSandGrain;' : ''
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;\nvarying float vFloorRise;')
-      // The plane is rotated +90° about x, so its local -z is world height above floorY.
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFloorRadial = length(position.xy) / 180.0;\nvFloorRise = -position.z;')
+      .replace('#include <common>', `#include <common>\nvarying float vFloorRadial;${grainVertex}`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvFloorRadial = length(position.xy) / 180.0;${grainShade ? '\nvSandGrain = sandGrain;' : ''}`)
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;\nvarying float vFloorRise;')
+      .replace('#include <common>', `#include <common>\nvarying float vFloorRadial;${grainFragment}`)
       .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(0.5, 0.94, vFloorRadial);')
-    if (rise > 0) {
+    if (grainShade) {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <fog_fragment>',
-        `gl_FragColor.rgb *= mix(0.55, 1.2, smoothstep(${(-rise).toFixed(3)}, ${rise.toFixed(3)}, vFloorRise));\n#include <fog_fragment>`,
+        'gl_FragColor.rgb *= mix(0.55, 1.2, smoothstep(-1.0, 1.0, vSandGrain));\n#include <fog_fragment>',
       )
     }
   }
@@ -47,18 +49,18 @@ export function floorYFor(biome, landscape = null) {
   return landscape?.floorY ?? FLOOR_Y[biome] ?? -20
 }
 
-// Highest point of the floor, for keeping a camera above it: a landscape's sand rises in
-// dunes well above its mean level.
-export function floorTopFor(biome, landscape = null) {
-  return landscape ? sandCrest(landscape) : floorYFor(biome)
+// Floor height under a point, for keeping a camera above it: a landscape's sand rises in
+// dunes and hills well above its mean level.
+export function floorHeightAt(biome, landscape, x, z) {
+  return landscape ? sandHeight(landscape, x, z) : floorYFor(biome)
 }
 
 function NoiseFloor({ biome, landscape }) {
   const ref = useRef()
   const floorY = floorYFor(biome, landscape)
   const color = landscape?.floorColor ?? FLOOR_COLORS[biome] ?? '#0e1f33'
-  const rise = landscape ? sandCrest(landscape) - landscape.floorY : 0
-  const material = useMemo(() => makeFloorMaterial(color, rise), [color, rise])
+  const grainShade = Boolean(landscape)
+  const material = useMemo(() => makeFloorMaterial(color, grainShade), [color, grainShade])
 
   // Material is created imperatively (not as a JSX tag), so R3F won't auto-dispose it.
   // Free the old shader program/GPU resources when the biome changes or the floor unmounts.
@@ -66,7 +68,9 @@ function NoiseFloor({ biome, landscape }) {
 
   useEffect(() => {
     if (!ref.current) return
-    const pos = ref.current.geometry.attributes.position
+    const geometry = ref.current.geometry
+    const pos = geometry.attributes.position
+    const grain = landscape ? new Float32Array(pos.count) : null
     // The plane is rotated +90° about x: local y becomes world z and local -z becomes world
     // height. A landscape's sand uses the same smooth function its rocks are placed on.
     for (let i = 0; i < pos.count; i++) {
@@ -76,7 +80,9 @@ function NoiseFloor({ biome, landscape }) {
         ? sandHeight(landscape, x, y) - landscape.floorY
         : noise(x * 0.2, y * 0.2) * 1.2 + noise(x * 0.6, y * 0.6) * 0.4
       pos.setZ(i, -bump)
+      if (grain) grain[i] = sandGrain(x, y)
     }
+    if (grain) geometry.setAttribute('sandGrain', new THREE.BufferAttribute(grain, 1))
     pos.needsUpdate = true
     ref.current.geometry.computeVertexNormals()
   }, [landscape])

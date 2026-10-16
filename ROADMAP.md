@@ -15,7 +15,7 @@ Status labels:
 
 ### The Reefs landscape
 
-Status: `Current in development` — `v0.25.0-dev_7` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
+Status: `Current in development` — `v0.25.0-dev_8` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
 
 - [x] Rename The Drift to The Reefs (`the-reefs`); The Open Sea untouched.
 - [x] Raised sand seabed (y -22), fixed rock layout behind the swim volume, fixed-seed rubble, thinner fog (`dev_1`).
@@ -25,7 +25,9 @@ Status: `Current in development` — `v0.25.0-dev_7` (2026-10-17, branch `feat/r
 - [x] Jeremy review of `dev_4`: rocks too even in height, ring too obvious → `dev_5` outcrops and varied heights.
 - [x] Jeremy review of `dev_5` → sent his limestone rocks to kitbash → `dev_6`.
 - [x] Jeremy review of `dev_6`: rocks broken (fixed before push: weld before decimating); sand too flat → `dev_7`.
-- [ ] Jeremy review of `dev_7` on phone: sand relief, rock shapes, texture scale (one tile per 1.5 m). Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
+- [x] Jeremy review of `dev_7`: rocks stop at mid-screen, zoom in, add large sand hills → `dev_8`.
+- [ ] Jeremy review of `dev_8` on phone: zoom level (47°), rocks breaking the surface, sand hills.
+- [ ] With the zoom, fish leave the frame at the sides more often (swim bounds still assume 60°). Decide whether The Reefs' swim bounds should follow its camera. `Backlog` Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
 - [x] Jeremy's limestone boulders kitbashed in for the placeholders (`dev_6`). More rocks can join the kit: rebuild with `scripts/build-landscape-kit.py` and list the new indices in `LIMESTONE_KIT.variants`.
 - [ ] Rocks inside the swim volume: fish avoid rocks (collision shapes in the steer step), then reef behaviour such as angelfish keeping close to rock. Until then every piece must sit in a free zone (back, foreground or floor; see the header of `src/data/landscapes.js`). `Next`
 - [ ] Follow cam can orbit into a rock when following a fish near the edge of the swim volume (more likely now that rock surrounds it). `Backlog`

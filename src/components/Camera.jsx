@@ -2,7 +2,7 @@ import { useThree, useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { SURFACE_PLANE_Y } from './WaterSurface'
-import { floorTopFor } from './Environment'
+import { floorHeightAt } from './Environment'
 
 const CAMERA_LIMITS = {
   ocean: { min: -50, max: 3 },
@@ -84,7 +84,6 @@ export default function Camera({ biome = 'ocean', landscape = null, focusTarget 
   const cameraClipStartedAt = useRef(null)
   const lastCameraClipExitAt = useRef(-Infinity)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
-  const minFollowCameraY = floorTopFor(biome, landscape) + FOLLOW_FLOOR_CLEARANCE
 
   const setDefaultCameraSettled = (settled) => {
     if (defaultCameraSettled.current === settled) return
@@ -124,8 +123,13 @@ export default function Camera({ biome = 'ocean', landscape = null, focusTarget 
     return bone
   }
 
+  // A tank's cameraSettings may override only some fields (The Reefs sets just fov).
   useEffect(() => {
-    camera.position.set(0, cameraSettings.y, cameraSettings.z)
+    camera.position.set(
+      0,
+      Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y,
+      Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z,
+    )
   }, [camera, biome, cameraSettings.y, cameraSettings.z])
 
   useFrame(({ clock }, delta) => {
@@ -201,6 +205,9 @@ export default function Camera({ biome = 'ocean', landscape = null, focusTarget 
       // creature drifted near the edge of its volume, which made dragging to that side feel dead
       // and the orbit lurch — the world now fades cleanly at every angle, so those bounds are gone.
       desiredCameraPosition.copy(framedFocus).add(followOffset)
+      // The floor guard follows the seabed under the camera: a landscape's sand rises in
+      // hills toward its edges, well above the basin the fish swim over.
+      const minFollowCameraY = floorHeightAt(biome, landscape, desiredCameraPosition.x, desiredCameraPosition.z) + FOLLOW_FLOOR_CLEARANCE
       desiredCameraPosition.y = THREE.MathUtils.clamp(desiredCameraPosition.y, minFollowCameraY, MAX_FOLLOW_CAMERA_Y)
       camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredCameraPosition.x, FOLLOW_POSITION_DAMPING, delta)
       camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredCameraPosition.y, FOLLOW_POSITION_DAMPING, delta)

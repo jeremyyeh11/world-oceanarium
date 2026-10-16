@@ -1,4 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
+import { REEFS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -90,16 +91,27 @@ export const TANKS = [
     ],
   },
   {
-    id: 'the-drift',
-    name: 'The Drift',
-    tagline: 'Slow grazers of the open blue',
-    description: 'A calmer, dimmer column where soft-bodied giants drift on the current.',
+    // Formerly The Drift.
+    id: 'the-reefs',
+    name: 'The Reefs',
+    tagline: 'Reef fish among the rocks',
+    description: 'A sheltered reef where angelfish, bannerfish and triggerfish keep house, and a giant sunfish comes in from the blue to be cleaned.',
     biome: 'ocean',
     depthZone: 'epipelagic',
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.
-    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
+    // Reef water is clearer than open blue: thinner fog (ocean 0.032) lets the rocks read
+    // behind the swim volume, about 60 WU from the camera.
+    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1, density: 0.016 },
+    // Fixed seabed and rocks from src/data/landscapes.js. Tanks without one keep the
+    // biome's open-water floor.
+    landscape: 'reefs',
+    // Optional resting-camera overrides (Camera.jsx DEFAULT_CAMERA_SETTINGS: fov, y, z, lookY).
+    // The Reefs' view (landscapes.js REEFS_VIEW) is zoomed about 1.35×, lower, further back
+    // and pitched up: fish and rocks read larger, which suits the smaller reef life and corals
+    // to come. Follow mode keeps its own framing.
+    camera: REEFS_VIEW,
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.

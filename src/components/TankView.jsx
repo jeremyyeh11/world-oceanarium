@@ -9,6 +9,7 @@ import InfoCard from './InfoCard'
 import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
 import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
+import { landscapeForTank } from '../data/landscapes'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 
@@ -703,6 +704,8 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}
+            landscape={landscapeForTank(tank)}
+            cameraSettings={tank?.camera}
             focusTarget={focusedFishRef?.current ?? null}
             focusCenterBoneName={selectedModel?.followBone ?? null}
             focusMeshOrigin={followMeshOrigin}

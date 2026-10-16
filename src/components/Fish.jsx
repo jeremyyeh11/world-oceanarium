@@ -22,6 +22,7 @@ import {
 } from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
+import { pushOutOfRocks, steerAroundRocks } from './rockObstacles'
 import {
   BOID_MAX_DEBUG_NEIGHBORS,
   DEFAULT_BURST_ACTION_DURATION,
@@ -2815,6 +2816,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
         if (desiredDirection.current.lengthSq() < 0.0001) desiredDirection.current.copy(targetDesiredDirection)
 
+        // Landscape rocks: bend the desired heading around the first rock ahead of the current
+        // one (see rockObstacles.js); the urgency raises the turn rate below.
+        const rockUrgency = steerAroundRocks(targetDesiredDirection, fish.position, desiredDirection.current, bodyLength, velocity.current)
+
         // Spine bend intent: signed yaw between current and desired heading.
         const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
           ? model.curveDeform.turnIntentScale
@@ -2849,6 +2854,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const openWaterTurnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
         let turnStep = openWaterTurnStep
         turnStep = boundaryAvoidanceTurnStep(turnStep, fish.position, desiredDirection.current, bounds, swim, bodyLength, forwardSpeed, delta)
+        // Up to three times the open-water rate when a rock is close ahead.
+        if (rockUrgency > 0) turnStep = Math.max(turnStep, openWaterTurnStep * (1 + 2 * rockUrgency))
         const boundaryRecoveryActive = isSoloAgent
           && (boundaryContacts.current !== 0 || turnStep > openWaterTurnStep + 1e-9)
         if (escapeActive) {
@@ -2914,6 +2921,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
         // A remora closing on its host never passes through it (see keepRiderClearOfHost).
         if (steersByRide) keepRiderClearOfHost(fish.position, ride, bodyLength)
+        // Landscape rocks: never end a frame inside one (padded for the body). The heading
+        // loses its into-rock part, so the fish slides along the face instead of pressing on.
+        const rockNormal = pushOutOfRocks(fish.position, bodyLength)
+        if (rockNormal) {
+          const into = desiredDirection.current.dot(rockNormal)
+          if (into < 0) desiredDirection.current.addScaledVector(rockNormal, -into)
+          if (desiredDirection.current.lengthSq() > 1e-6) desiredDirection.current.normalize()
+          else desiredDirection.current.copy(rockNormal)
+        }
 
         // Mola deep-exit recovery: past the soft rear wall it fades out, snaps back inside the
         // shared bounds, retargets, and fades back in. While the follow cam is on it, recovery

@@ -2,7 +2,8 @@ import { useThree, useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { SURFACE_PLANE_Y } from './WaterSurface'
-import { FLOOR_Y } from './Environment'
+import { floorHeightAt } from './Environment'
+import { pushOutOfRocks } from './rockObstacles'
 
 const CAMERA_LIMITS = {
   ocean: { min: -50, max: 3 },
@@ -57,6 +58,8 @@ const MAX_FOLLOW_CAMERA_Y = SURFACE_PLANE_Y - FOLLOW_SURFACE_CLEARANCE
 // exposes the underside of the world. This is the only positional guard the orbit needs now
 // that horizontal edges/floor/background all fade cleanly.
 const FOLLOW_FLOOR_CLEARANCE = 1.6
+// Body length handed to pushOutOfRocks for the follow camera: its pad works out to about 1 WU.
+const FOLLOW_ROCK_CLEARANCE_LENGTH = 2
 
 // Walks up the parent chain to check that `node` is still part of `root`'s subtree. Used to
 // detect when a cached focus bone has been detached by a model remount.
@@ -69,7 +72,7 @@ function isDescendantOf(node, root) {
   return false
 }
 
-export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
+export default function Camera({ biome = 'ocean', landscape = null, focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
   const { camera } = useThree()
   const focusBoneRef = useRef(null)
   const focusBoneTargetRef = useRef(null)
@@ -84,7 +87,6 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
   const cameraClipStartedAt = useRef(null)
   const lastCameraClipExitAt = useRef(-Infinity)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
-  const minFollowCameraY = (FLOOR_Y[biome] ?? -20) + FOLLOW_FLOOR_CLEARANCE
 
   const setDefaultCameraSettled = (settled) => {
     if (defaultCameraSettled.current === settled) return
@@ -124,8 +126,13 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
     return bone
   }
 
+  // A tank's cameraSettings may override only some fields (The Reefs sets just fov).
   useEffect(() => {
-    camera.position.set(0, cameraSettings.y, cameraSettings.z)
+    camera.position.set(
+      0,
+      Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y,
+      Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z,
+    )
   }, [camera, biome, cameraSettings.y, cameraSettings.z])
 
   useFrame(({ clock }, delta) => {
@@ -201,7 +208,12 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
       // creature drifted near the edge of its volume, which made dragging to that side feel dead
       // and the orbit lurch — the world now fades cleanly at every angle, so those bounds are gone.
       desiredCameraPosition.copy(framedFocus).add(followOffset)
+      // The floor guard follows the seabed under the camera: a landscape's sand rises in
+      // hills toward its edges, well above the basin the fish swim over.
+      const minFollowCameraY = floorHeightAt(biome, landscape, desiredCameraPosition.x, desiredCameraPosition.z) + FOLLOW_FLOOR_CLEARANCE
       desiredCameraPosition.y = THREE.MathUtils.clamp(desiredCameraPosition.y, minFollowCameraY, MAX_FOLLOW_CAMERA_Y)
+      // Never orbit into a landscape rock: hold the camera on its surface (about 1 WU off).
+      pushOutOfRocks(desiredCameraPosition, FOLLOW_ROCK_CLEARANCE_LENGTH)
       camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredCameraPosition.x, FOLLOW_POSITION_DAMPING, delta)
       camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredCameraPosition.y, FOLLOW_POSITION_DAMPING, delta)
       camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredCameraPosition.z, FOLLOW_POSITION_DAMPING, delta)

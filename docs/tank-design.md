@@ -83,14 +83,15 @@ export const TANKS = [
     species: ['amblygaster-sirm', 'coryphaena-hippurus', 'isurus-oxyrinchus'],
   },
   {
-    id: 'the-drift',
-    name: 'The Drift',
-    tagline: 'Slow grazers of the open blue',
-    description: 'A calmer, dimmer column ...',
+    id: 'the-reefs',           // formerly the-drift / The Drift
+    name: 'The Reefs',
+    tagline: 'Reef fish among the rocks',
+    description: 'A sheltered reef ...',
     biome: 'ocean',
     depthZone: 'epipelagic',
     seed: 953,
-    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 }, // optional palette overrides
+    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1, density: 0.016 }, // optional palette overrides
+    landscape: 'reefs',        // optional fixed seabed + rocks (src/data/landscapes.js)
     species: ['mola-alexandrini'],
   },
 ]
@@ -216,8 +217,19 @@ driven by tank fields:
   caustic noise domain (`WaterSurface.jsx`). Same palette, but a genuinely different
   stretch of water — so every tank is distinct and stable without hand-authoring.
 - **`lighting`** (deliberate art direction) — optional palette overrides merged over
-  the biome palette. Use for a real mood shift: The Drift lowers `exposure` and softens
-  `backgroundBeamAlpha` to read calmer and dimmer than The Open Sea.
+  the biome palette. Use for a real mood shift: The Reefs lowers `exposure` and softens
+  `backgroundBeamAlpha` to read calmer and dimmer than The Open Sea, and thins the fog
+  (`density`) so its rocks read as clear reef water.
+- **`camera`** (optional) — resting-camera overrides for the tank (any of `fov`, `y`, `z`,
+  `lookY` from `DEFAULT_CAMERA_SETTINGS` in `Camera.jsx`). The Reefs uses `REEFS_VIEW` from
+  `src/data/landscapes.js`, so its rock detail levels measure from the same viewpoint.
+- **`landscape`** (fixed set dressing) — names an entry in `src/data/landscapes.js`: the
+  tank's seabed height and colour, hand-placed rocks, fixed-seed outcrops and rubble, and the
+  rock kit they are kitbashed from (`public/models/landscape/`, built by
+  `scripts/build-landscape-kit.py`).
+  It is identical on every load. Keep every tall piece behind the swim volume of the
+  tank's deepest-roaming species (fish do not avoid rocks yet); the file header records
+  the current clearances. Tanks without one keep the biome's open-water floor.
 
 Rule of thumb: give every tank a unique `seed`; reach for `lighting` only when a tank
 should feel meaningfully different in mood.

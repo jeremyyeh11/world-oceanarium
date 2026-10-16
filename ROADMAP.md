@@ -13,6 +13,30 @@ Status labels:
 
 ## Current work
 
+### The Reefs landscape
+
+Status: shipped in clean `v0.25.0` (2026-10-17, from `v0.25.0-dev_11`, branch `feat/reef-landscape`, #130). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals. The open items below carry over.
+
+- [x] Rename The Drift to The Reefs (`the-reefs`); The Open Sea untouched.
+- [x] Raised sand seabed (y -22), fixed rock layout behind the swim volume, fixed-seed rubble, thinner fog (`dev_1`).
+- [x] Jeremy review of `dev_1` on phone: "looks good"; wants more on the sides and some foreground rocks for depth → `dev_2`.
+- [x] Jeremy review of `dev_2`: wants taller cliffs on the edges → `dev_3`.
+- [x] Jeremy review of `dev_3`: only two layers, and the follow cam shows it is staged → `dev_4` rings of rock all round, mid and far layers, seabed scatter.
+- [x] Jeremy review of `dev_4`: rocks too even in height, ring too obvious → `dev_5` outcrops and varied heights.
+- [x] Jeremy review of `dev_5` → sent his limestone rocks to kitbash → `dev_6`.
+- [x] Jeremy review of `dev_6`: rocks broken (fixed before push: weld before decimating); sand too flat → `dev_7`.
+- [x] Jeremy review of `dev_7`: rocks stop at mid-screen, zoom in, add large sand hills → `dev_8`.
+- [x] Jeremy review of `dev_8`: more seabed-to-cliff transition, keep side cliffs in frame, off-centre rocks, camera back/down/up → `dev_9`.
+- [x] Jeremy review of `dev_9`: too many columns, mountain behind, floating rocks, triangle massif on the right → `dev_10`.
+- [x] Jeremy review of `dev_10`: chose fish steering around rocks → `dev_11`.
+- [x] Jeremy review of `dev_11` on phone: "looks good"; promoted to clean `v0.25.0`.
+- [x] Bring the right massif to the middle distance: fish steer around rocks (`dev_11`, `src/components/rockObstacles.js`).
+- [ ] With the zoom, fish leave the frame at the sides more often (swim bounds still assume 60°). Decide whether The Reefs' swim bounds should follow its camera. `Backlog` Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
+- [x] Jeremy's limestone boulders kitbashed in for the placeholders (`dev_6`). More rocks can join the kit: rebuild with `scripts/build-landscape-kit.py` and list the new indices in `LIMESTONE_KIT.variants`.
+- [x] Rocks inside the swim volume: fish avoid rocks (`dev_11`). Reef behaviour such as angelfish keeping close to rock is still open. `Backlog`
+- [x] Follow cam no longer orbits into a rock: held on its surface (`dev_11`).
+- [ ] Corals on the rocks. `Backlog`
+
 ### Situational fish lighting
 
 Status: shipped in clean `v0.24.0` (2026-10-16, from `v0.24.0-dev_4`, branch `feat/situational-fish-lighting`, #128). The open items below carry over. Jeremy (2026-10-09): fish lighting "too flat and similar everywhere"; wants a mix of top-lit, front-lit and back-lit fish.

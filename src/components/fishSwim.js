@@ -17,6 +17,7 @@ import { SURFACE_PLANE_Y } from '../utils/waterSurfaceGeometry.js'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup.js'
 import { creatureRepulsesOthers } from '../utils/creatureMoments.js'
 import { hashString } from '../utils/hash.js'
+import { insideRock, nudgeOutOfRocks } from './rockObstacles.js'
 
 const DEPTH_Y = {
   epipelagic: [-2.2, 3.0],
@@ -970,6 +971,7 @@ export function pickSoloAgentSteeringDestination(out, creature, swim, rand, from
     out.set(targetX, randomRange(rand, targetYMin, limitedTargetYMax), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
+    if (insideRock(out, bodyLength)) continue
     return out
   }
 
@@ -1043,6 +1045,7 @@ export function pickMolaSunBaskTarget(out, creature, swim, rand, from, forward) 
     out.set(targetX, molaSunBaskSurfaceCenterYMax(creature, swim, bounds), targetZ)
     if (from && out.distanceTo(from) < minDistance) continue
     if (from && forward && !destinationInForwardCone(out, from, forward)) continue
+    if (insideRock(out, bodyLength)) continue
     return out
   }
 
@@ -1134,7 +1137,8 @@ export function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
       randomRange(rand, bounds.yMin, bounds.yMax),
       targetZ,
     )
-    if (!from || out.distanceTo(from) >= minDistance) return out
+    // Never a target inside a landscape rock (see rockObstacles.js).
+    if ((!from || out.distanceTo(from) >= minDistance) && !insideRock(out, bodyLength)) return out
   }
 
   if (from) {
@@ -1144,7 +1148,7 @@ export function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
     clampToSwimBounds(out, bounds)
   }
 
-  return out
+  return nudgeOutOfRocks(out, bodyLength)
 }
 
 export function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startForward) {
@@ -1171,11 +1175,11 @@ export function pickSoloAgentContinuationTarget(out, creature, swim, rand, from,
     out.copy(from).addScaledVector(agentContinuationDirection, distance)
     out.y += randomRange(rand, -bodyLength * 0.18, bodyLength * 0.18)
     clampToSwimBounds(out, bounds)
-    if (out.distanceTo(from) >= minDistance) return out
+    if (out.distanceTo(from) >= minDistance && !insideRock(out, bodyLength)) return out
   }
 
   out.copy(from).addScaledVector(agentContinuationCenter, minDistance)
-  return clampToSwimBounds(out, bounds)
+  return nudgeOutOfRocks(clampToSwimBounds(out, bounds), bodyLength)
 }
 
 

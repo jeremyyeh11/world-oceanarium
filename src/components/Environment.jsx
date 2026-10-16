@@ -1,21 +1,38 @@
-import { useRef, useEffect, useMemo } from 'react'
+import { Suspense, useRef, useEffect, useLayoutEffect, useMemo } from 'react'
 import * as THREE from 'three'
+import Landscape from './Landscape'
+import { landscapePieces, sandGrain, sandHeight } from '../data/landscapes'
+import { clearRockObstacles, setRockObstacles } from './rockObstacles'
 
 // Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
 // hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
 // ±180 (360 wide); fade the outer band to transparent so the background shows through
 // seamlessly. depthWrite stays on — nothing renders below the floor.
-function makeFloorMaterial(color) {
+//
+// With `grainShade` (a landscape's sand) the sand also shades by its grain before fog,
+// from a per-vertex `sandGrain` attribute in [-1, 1]: troughs darken to 55% and crests
+// brighten to 120%. The soft underwater light barely shades gentle dunes on its own, so
+// without this the relief reads flat, especially at the default view's grazing angle. The
+// large hills are left out of it, or the whole basin would read dark against them.
+function makeFloorMaterial(color, grainShade = false) {
   const material = new THREE.MeshStandardMaterial({
     color, roughness: 0.92, envMapIntensity: 0.28, side: THREE.DoubleSide, transparent: true, depthWrite: true,
   })
   material.onBeforeCompile = (shader) => {
+    const grainVertex = grainShade ? '\nattribute float sandGrain;\nvarying float vSandGrain;' : ''
+    const grainFragment = grainShade ? '\nvarying float vSandGrain;' : ''
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFloorRadial = length(position.xy) / 180.0;')
+      .replace('#include <common>', `#include <common>\nvarying float vFloorRadial;${grainVertex}`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvFloorRadial = length(position.xy) / 180.0;${grainShade ? '\nvSandGrain = sandGrain;' : ''}`)
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vFloorRadial;')
+      .replace('#include <common>', `#include <common>\nvarying float vFloorRadial;${grainFragment}`)
       .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(0.5, 0.94, vFloorRadial);')
+    if (grainShade) {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <fog_fragment>',
+        'gl_FragColor.rgb *= mix(0.55, 1.2, smoothstep(-1.0, 1.0, vSandGrain));\n#include <fog_fragment>',
+      )
+    }
   }
   return material
 }
@@ -28,10 +45,23 @@ function noise(x, z) {
 export const FLOOR_Y = { ocean: -52, 'tropical-river': -12, lake: -20 }
 const FLOOR_COLORS = { ocean: '#0e1f33', 'tropical-river': '#1a2e14', lake: '#1a2e1c' }
 
-function NoiseFloor({ biome }) {
+// A tank landscape brings its own seabed height; every other tank uses its biome's floor.
+export function floorYFor(biome, landscape = null) {
+  return landscape?.floorY ?? FLOOR_Y[biome] ?? -20
+}
+
+// Floor height under a point, for keeping a camera above it: a landscape's sand rises in
+// dunes and hills well above its mean level.
+export function floorHeightAt(biome, landscape, x, z) {
+  return landscape ? sandHeight(landscape, x, z) : floorYFor(biome)
+}
+
+function NoiseFloor({ biome, landscape }) {
   const ref = useRef()
-  const floorY = FLOOR_Y[biome] ?? -20
-  const material = useMemo(() => makeFloorMaterial(FLOOR_COLORS[biome] ?? '#0e1f33'), [biome])
+  const floorY = floorYFor(biome, landscape)
+  const color = landscape?.floorColor ?? FLOOR_COLORS[biome] ?? '#0e1f33'
+  const grainShade = Boolean(landscape)
+  const material = useMemo(() => makeFloorMaterial(color, grainShade), [color, grainShade])
 
   // Material is created imperatively (not as a JSX tag), so R3F won't auto-dispose it.
   // Free the old shader program/GPU resources when the biome changes or the floor unmounts.
@@ -39,16 +69,24 @@ function NoiseFloor({ biome }) {
 
   useEffect(() => {
     if (!ref.current) return
-    const pos = ref.current.geometry.attributes.position
+    const geometry = ref.current.geometry
+    const pos = geometry.attributes.position
+    const grain = landscape ? new Float32Array(pos.count) : null
+    // The plane is rotated +90° about x: local y becomes world z and local -z becomes world
+    // height. A landscape's sand uses the same smooth function its rocks are placed on.
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i)
       const y = pos.getY(i)
-      const bump = noise(x * 0.2, y * 0.2) * 1.2 + noise(x * 0.6, y * 0.6) * 0.4
+      const bump = landscape
+        ? sandHeight(landscape, x, y) - landscape.floorY
+        : noise(x * 0.2, y * 0.2) * 1.2 + noise(x * 0.6, y * 0.6) * 0.4
       pos.setZ(i, -bump)
+      if (grain) grain[i] = sandGrain(x, y)
     }
+    if (grain) geometry.setAttribute('sandGrain', new THREE.BufferAttribute(grain, 1))
     pos.needsUpdate = true
     ref.current.geometry.computeVertexNormals()
-  }, [])
+  }, [landscape])
 
   return (
     // Oversized seabed: the extra span pushes the plane's edges far out into the distance
@@ -56,7 +94,8 @@ function NoiseFloor({ biome }) {
     // into the horizon. The visible near-floor is unchanged (it sits well below the swim
     // zone and is already fog-dimmed), so this only affects grazing/low orbit angles.
     <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]} position={[0, floorY, 0]} material={material}>
-      <planeGeometry args={[360, 360, 96, 96]} />
+      {/* A landscape's hummocks and ripples need finer vertices (1.9 WU) than open water's. */}
+      <planeGeometry args={[360, 360, landscape ? 192 : 96, landscape ? 192 : 96]} />
     </mesh>
   )
 }
@@ -75,10 +114,33 @@ function RiverVegetation() {
   ))
 }
 
-export default function Environment({ biome }) {
+// Rocks fish can meet: anything reaching above the Mola's lowest fin (y -21 leaves a margin)
+// near the swim volume. maxPad covers the largest body pad rockObstacles.js applies.
+const ROCK_OBSTACLE_OPTIONS = {
+  region: { xMin: -85, xMax: 85, zMin: -75, zMax: 25 },
+  floorTop: -21,
+  maxPad: 8,
+}
+
+export default function Environment({ biome, landscape = null }) {
+  // Publish the tank's rocks to the fish before their first frame (layout effect), from the
+  // same seeded layout the Landscape renders, so avoidance never waits for the rock kit.
+  const pieces = useMemo(() => (landscape ? landscapePieces(landscape) : null), [landscape])
+  useLayoutEffect(() => {
+    if (!pieces) return undefined
+    const owner = setRockObstacles(pieces, ROCK_OBSTACLE_OPTIONS)
+    return () => clearRockObstacles(owner)
+  }, [pieces])
+
   return (
     <group>
-      <NoiseFloor biome={biome} />
+      <NoiseFloor biome={biome} landscape={landscape} />
+      {/* The rock kit loads on its own so the seabed and fish never wait for it. */}
+      {landscape && (
+        <Suspense fallback={null}>
+          <Landscape landscape={landscape} />
+        </Suspense>
+      )}
       {biome === 'tropical-river' && <RiverVegetation />}
     </group>
   )

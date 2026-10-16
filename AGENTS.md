@@ -127,6 +127,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 - `1 WU = 25 cm` for real-world scale.
 - Use body-length-scaled movement and camera framing for large animals.
 - Every creature uses the unified steer → boids → turn-cap → integrate → clamp pipeline. Schools derive their base heading from a shared migration goal + formation slot; creatures outside a school use a personal roaming/authored target.
+- Landscape rocks (`src/components/rockObstacles.js`) join that pipeline: steer around the first rock ahead, push out of any rock after the clamps, and never pick a target inside one. A tank's rocks come from `src/data/landscapes.js`; hand-placed pieces flagged `inSwim` may stand in the swim volume, everything else stays outside it.
 - A normally-schooling creature that is currently unpaired must still use the solo fallback (`Boolean(species) && !isSchooling`) so odd live counts cannot create a movement dead zone.
 - Exception to the unified pipeline: a remora clamped to a host (ride stages `latch`/`attached`) takes its pose from the host's published pose plus an anchor, like the Mola sun-bask hold. Ride hosts run `useFrame` at priority −1 so riders read the same frame's pose. See `docs/ride-hosts.md`.
 - Current Mola axis convention: GLB `+Y` up, `+Z` forward.

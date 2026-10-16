@@ -15,7 +15,7 @@ Status labels:
 
 ### Situational fish lighting
 
-Status: `Current in development` — `v0.24.0-dev_4` (renumbered from `v0.23.0-dev_3` after the Whale Shark took `v0.23.0`). Jeremy (2026-10-09): fish lighting "too flat and similar everywhere"; wants a mix of top-lit, front-lit and back-lit fish.
+Status: shipped in clean `v0.24.0` (2026-10-16, from `v0.24.0-dev_4`, branch `feat/situational-fish-lighting`, #128). The open items below carry over. Jeremy (2026-10-09): fish lighting "too flat and similar everywhere"; wants a mix of top-lit, front-lit and back-lit fish.
 
 - [x] Shared top/back/front light term on GLB fish and sardine LODs (`src/utils/fishSituationalLight.js`).
 - [x] Jeremy desktop look at `dev_1` (2026-10-15): "looks great", wants a little more contrast → `dev_2`.

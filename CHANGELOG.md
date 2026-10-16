@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.24.0 — Situational fish lighting (in progress)
+## v0.24.0 — Situational fish lighting
 
-Status: in development as `v0.24.0-dev_4`, waiting on Jeremy's review. Renumbered from `v0.23.0` when the Whale Shark shipped as clean `v0.23.0` (2026-10-16); `dev_4` is `dev_3` rebased onto it, no other change. Earlier builds: `dev_1` (first written as `v0.18.0-dev_1` on 2026-10-09), `dev_2` more contrast after Jeremy's desktop look on 2026-10-15, `dev_3` large fish shade the fish under them. Prompted by an aquarium reference photo: fish were lit the same way wherever they swam.
+Status: accepted and promoted as clean `v0.24.0` from `v0.24.0-dev_4` on Jeremy's go-ahead (2026-10-16; `dev_1` the light terms, first written as `v0.18.0-dev_1` on 2026-10-09; `dev_2` more contrast after Jeremy's desktop look on 2026-10-15; `dev_3` large fish shade the fish under them; `dev_4` renumbered from `v0.23.0` when the Whale Shark shipped as clean `v0.23.0`, no other change). `package.json` moves to `0.24.0`. Prompted by an aquarium reference photo: fish were lit the same way wherever they swam.
 
 ### Fish lighting
 

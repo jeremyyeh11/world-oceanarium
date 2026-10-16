@@ -58,15 +58,17 @@ const LIMESTONE_KIT = {
     bommie: [2, 0, 1, 7],
     wall: [3, 4, 8, 0],
     boulder: [5, 6, 7, 0, 3],
+    // Stack tiers: the wide rocks, laid whichever way fits a low, wide box best.
+    ledge: [4, 8, 3, 0],
     talus: [5, 6, 7, 5, 6, 7, 5, 6, 7, 0],
     rubble: [5, 6, 7],
   },
   // Largest tilt off upright, in radians; rubble tumbles freely.
-  tilt: { cliff: 0.12, bommie: 0.2, wall: 0.18, boulder: 0.45, talus: 0.5 },
+  tilt: { cliff: 0.12, bommie: 0.2, wall: 0.18, boulder: 0.45, talus: 0.5, ledge: 0.15 },
   // Most uneven stretch allowed per kind: no axis scales more than this many times another.
   // Beyond it rocks read as stretched spikes or squashed pancakes; tall kinds get a little
   // more so the edge cliffs keep their height.
-  maxStretch: { cliff: 2.6, bommie: 2.3, wall: 2, boulder: 2, talus: 2 },
+  maxStretch: { cliff: 2.6, bommie: 2.3, wall: 2, boulder: 2, talus: 2, ledge: 2.4 },
 }
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
@@ -91,15 +93,39 @@ export const LANDSCAPES = {
     // WU beyond it to as much as `height` WU (2.5 m), so the basin floor stays below the
     // Mola's fins while dunes climb toward the reef walls and in front of the glass.
     hills: { height: 10, ramp: 32 },
+    // A massif behind the swim clearance, highest on the right and falling away to the left,
+    // so from the resting camera the reef forms a triangle (Jeremy: "do it on the right side,
+    // slope towards the left"). From the back line (z -47) the sand climbs over `length` WU
+    // to `height` WU at the right (x >= xHigh), down to lowShare of it at the left (x <= xLow).
+    // Steep because fog hides everything past about 90 WU from the camera.
+    mountain: { height: 26, length: 36, xLow: -45, xHigh: 45, lowShare: 0.2 },
+    // The sand never rises above this, 4.6 WU (1.15 m) under the water surface (y 4.6).
+    sandMax: 0,
+    // Rows of terrace stacks on the slope, front to back: [z, count, stack height range].
+    // The first row leaves the central valley open (|x| < gap).
+    terraces: {
+      seed: 1201,
+      xSpan: 72,
+      // Stacks about as tall as they are wide, so each tier is a chunky boulder mass (about
+      // half as tall as wide) rather than a flat slab.
+      rows: [
+        { z: -55, count: 9, height: [8, 12], gap: 15 },
+        { z: -64, count: 10, height: [9, 13], gap: 8 },
+        { z: -73, count: 10, height: [9, 14] },
+        { z: -83, count: 9, height: [10, 15] },
+      ],
+      width: [10, 17],
+      depth: [9, 13],
+    },
     // Rock tops stay under the water surface (y 4.6): each piece gets its own limit between
     // maxTop - topJitter and maxTop, so tall pieces never line up into a flat skyline.
     maxTop: 3.5,
     topJitter: 7,
-    // A share of the tall generated or unfixed pieces (raw height at least minHeight) break the
-    // surface instead: they are raised to a top between top - jitter and top. The camera sits
-    // only 2 m under the surface, so a rock capped below it never climbs past the middle of
-    // the screen; at y 14 a canyon cliff reaches the top quarter.
-    pierce: { share: 0.25, minHeight: 14, top: 14, jitter: 5 },
+    // A share of the tall generated or unfixed pieces (raw height at least minHeight) may
+    // break the surface, raised to a top between top - jitter and top. Off (share 0) since
+    // dev_10: random surface-breakers made a forest of columns (Jeremy: "looks too much like
+    // zhangjiajie"); only the central valley's fixed-top cliffs (options.top) rise that far.
+    pierce: { share: 0, minHeight: 14, top: 14, jitter: 5 },
     // Talus aprons around pieces at least minHeight tall (see talusFor): buttress and boulder
     // counts per piece.
     talus: { minHeight: 14, buttress: [0, 1], boulders: [1, 3] },
@@ -111,47 +137,51 @@ export const LANDSCAPES = {
     // centre on the sand; width/height/depth are its bounding box in WU. options.top fixes
     // the piece's top (y), growing or capping it, to hold the composition.
     rocks: [
-      // The back canyon, deliberately uneven: the left side stands nearer and taller, the
-      // right further back and lower with a smaller spire beside it, so the two framing
-      // cliffs never mirror each other. The inner pair (x -10.5 and 15) frames a 375 px
-      // phone's zoomed view (about ±13 WU wide at z -55); the outer pair (x -36 and 41)
-      // frames a wide screen's (about ±52 WU).
+      // The back canyon, deliberately uneven: the left framing cliff stands nearer and
+      // lower, the right one further back and taller with a spire beside it, leading up the
+      // massif behind it, so the two never mirror each other and the reef reads as a
+      // triangle rising to the right. Only the central valley stands in columns: the inner
+      // cliffs (x -10.5 and 15) frame a 375 px phone's zoomed view (about ±13 WU wide at
+      // z -55). Everything beyond them builds up in horizontal stacks of ledges, including
+      // the outer pair (x -37 and 42) that frames a wide screen (about ±52 WU).
       // Left
-      ['cliff', -10.5, -53.5, 12, 24, 10, 0.2, 18, { top: 14 }],
+      ['cliff', -10.5, -53.5, 12, 24, 10, 0.2, 18, { top: 7 }],
       ['bommie', -18, -52, 7, 15, 7, 0.4, 11],
-      ['wall', -21, -56, 16, 17, 9, 0.3, 12],
-      ['wall', -28, -54, 12, 13, 7, 0.5, 15],
-      ['cliff', -36, -57, 15, 26.5, 12, 0.25, 19, { top: 13 }],
-      ['wall', -34, -64, 22, 21, 10, -0.2, 13],
-      ['wall', -50, -58, 20, 18, 10, 0.3, 16],
-      ['bommie', -60, -70, 12, 24, 10, 0, 17],
+      ['stack', -22, -57, 18, 14, 10, 0.3, 12],
+      ['stack', -29, -55, 14, 10, 8, 0.5, 15],
+      ['stack', -37, -59, 20, 14, 12, 0.25, 19],
+      ['stack', -36, -67, 24, 16, 12, -0.2, 13],
+      ['stack', -52, -60, 22, 14, 11, 0.3, 16],
+      ['stack', -62, -73, 22, 18, 12, 0, 17, { tiers: 3 }],
       // Right
-      ['cliff', 15, -63, 14, 25, 11, -0.2, 28, { top: 8 }],
-      ['cliff', 8.5, -57, 7, 18, 6, 0.6, 32, { top: -1 }],
-      ['bommie', 21, -52, 8, 12, 7, -0.5, 21],
-      ['wall', 24, -59, 18, 19, 10, -0.3, 22],
-      ['wall', 30, -54, 12, 11, 7, -0.4, 25],
-      ['cliff', 41, -67, 16, 26.5, 12, -0.25, 29, { top: 10 }],
-      ['wall', 36, -72, 24, 23, 11, 0.15, 23],
-      ['wall', 52, -60, 22, 20, 10, -0.2, 26],
-      ['bommie', 61, -74, 12, 25, 10, 0, 27],
+      ['cliff', 15, -63, 14, 25, 11, -0.2, 28, { top: 13 }],
+      ['cliff', 8.5, -57, 7, 18, 6, 0.6, 32, { top: 3 }],
+      ['stack', 21, -54, 11, 9, 8, -0.5, 21],
+      ['stack', 25, -61, 20, 15, 11, -0.3, 22],
+      ['stack', 31, -56, 14, 9, 8, -0.4, 25],
+      ['stack', 42, -69, 24, 20, 13, -0.25, 29, { tiers: 3 }],
+      ['stack', 38, -76, 26, 17, 12, 0.15, 23],
+      ['stack', 53, -63, 22, 14, 11, -0.2, 26],
       // Off-centre rocks in the gap, at different depths and heights, so the canyon is not an
       // empty symmetric valley: a mid bommie left of centre, a low wide rock right of it, and
       // a faint spire and ridge further back.
       ['bommie', -3, -63, 8, 14, 7, 0.9, 33, { top: -7 }],
       ['wall', 4.5, -50, 9, 4, 6, 0.3, 34],
       ['cliff', 1.5, -88, 6, 20, 6, -0.4, 35, { top: 2 }],
-      ['wall', 9, -80, 26, 15, 13, 0.05, 31],
+      ['stack', 9, -81, 28, 13, 14, 0.05, 31],
       ['boulder', -13, -49.5, 4.5, 3.5, 4, 1.1, 14],
       ['boulder', 11, -49.5, 3.5, 2.6, 3.2, 0.2, 24],
-      // Foreground, between the swim volume and the glass, also uneven: a tall cliff at a
-      // wide screen's left edge, a lower wall at its right.
-      ['wall', -9, -3, 10, 18, 6, 0.2, 51],
-      ['bommie', -3, 1, 5, 18, 5, 0.5, 52],
-      ['cliff', -11, -1, 9, 26, 9, -0.3, 53],
-      ['wall', 10, -3, 11, 18.5, 6, -0.25, 61],
-      ['bommie', 3.2, 1.5, 4.5, 17, 4.5, -0.4, 62],
-      ['wall', 12.5, -2.5, 9, 14, 7, 0.35, 63],
+      // Foreground, between the swim volume and the glass: low on the left, and on the right
+      // a run of stacks stepping up toward the screen's right edge, nearly to the surface,
+      // the near half of the triangle the massif behind completes.
+      ['wall', -9, -3, 10, 10, 6, 0.2, 51],
+      ['bommie', -3, 1, 5, 12, 5, 0.5, 52],
+      ['stack', -12, 0.5, 12, 11, 9, -0.3, 53],
+      ['bommie', 3.2, 1.5, 4.5, 14, 4.5, -0.4, 62],
+      ['stack', 6, -1.5, 8, 9, 7, 0.3, 61, { tiers: 2 }],
+      ['stack', 10.5, 0, 10, 14, 8, -0.2, 63],
+      ['stack', 15.5, 0.5, 12, 20, 9, 0.2, 64, { tiers: 3 }],
+      ['stack', 21.5, -0.5, 12, 26, 9, -0.3, 65, { tiers: 3 }],
       // Low boulders and mounds under the swim volume (tops below y -20). The mounds at
       // z -34 to -44 are the middle layer of the default view, between the foreground and
       // the back canyon.
@@ -168,24 +198,25 @@ export const LANDSCAPES = {
       ['boulder', 40, -34, 8, 1.5, 5, 0.8, 54],
       ['boulder', -40, -41, 9, 1.5, 6, -0.6, 55],
     ],
-    // Outcrops: clusters scattered over the area around the swim volume, out to `outer`.
+    // Outcrops: clusters scattered over the area around the swim volume, out to `outer`, each
+    // a stack of ledges with smaller rocks leaning on it.
     // `gap` keeps open water behind the back canyon's centre (|x| < gap.x, z > gap.z) for the
-    // phone's view down the middle. Main rock heights are drawn from three bands (low mound,
-    // mid, tall spire) so neighbours differ.
+    // phone's view down the middle. Stack heights are drawn from three bands (low mound, mid,
+    // tall) so neighbours differ.
     outcrops: {
       seed: 901,
-      count: 40,
+      count: 30,
       outer: { x: 125, back: -125, front: 75 },
       gap: { x: 12, z: -72 },
-      heights: [[0.3, 6, 12], [0.4, 12, 20], [0.3, 22, 36]],
-      width: [8, 18],
+      skipBack: 70,
+      heights: [[0.4, 5, 10], [0.4, 10, 16], [0.2, 16, 22]],
+      width: [7, 24],
       satellites: [1, 3],
-      kinds: ['cliff', 'wall', 'bommie', 'wall'],
     },
     // Low boulders over the whole seabed, so a follow cam looking down never finds bare sand.
     scatter: { seed: 801, count: 60, xMin: -100, xMax: 100, zMin: -100, zMax: 60, width: [2, 6], height: [0.8, 1.8] },
     // Rubble chunks, 10–30 cm each.
-    rubble: { count: 600, seed: 4127, xMin: -110, xMax: 110, zMin: -110, zMax: 60, sizeMin: 0.4, sizeMax: 1.2 },
+    rubble: { count: 450, seed: 4127, xMin: -110, xMax: 110, zMin: -110, zMax: 60, sizeMin: 0.4, sizeMax: 1.2 },
   },
 }
 
@@ -218,10 +249,28 @@ function sandHills(landscape, x, z) {
   return ramp * hills.height * (0.3 + 0.7 * shape)
 }
 
+// How much of the massif's height stands at this x: lowShare on the left, all of it on the
+// right. Terraces use it too, so their stacks grow with the slope.
+export function massifShare(landscape, x) {
+  const { mountain } = landscape
+  if (!mountain) return 0
+  const t = Math.min(Math.max((x - mountain.xLow) / (mountain.xHigh - mountain.xLow), 0), 1)
+  return mountain.lowShare + (1 - mountain.lowShare) * t * t * (3 - 2 * t)
+}
+
+// The massif behind the swim clearance (see `mountain` above).
+function sandMountain(landscape, z, x) {
+  const { mountain, clearance } = landscape
+  if (!mountain || z >= clearance.back) return 0
+  const t = Math.min((clearance.back - z) / mountain.length, 1)
+  return mountain.height * t * t * (3 - 2 * t) * massifShare(landscape, x) * (0.88 + 0.12 * Math.sin(x * 0.07 + z * 0.05))
+}
+
 // Sand height at a point. Seabed vertices, every placed piece and the follow camera's floor
 // guard sample the same function, so rocks sit on the sand and the camera stays above it.
 export function sandHeight(landscape, x, z) {
-  return landscape.floorY + (landscape.floorRelief ?? 0) * SAND_PEAK * sandGrain(x, z) + sandHills(landscape, x, z)
+  const height = landscape.floorY + (landscape.floorRelief ?? 0) * SAND_PEAK * sandGrain(x, z) + sandHills(landscape, x, z) + sandMountain(landscape, z, x)
+  return Math.min(height, landscape.sandMax ?? Infinity)
 }
 
 export function seededRandom(seed) {
@@ -282,24 +331,49 @@ function outcropPieces(landscape, outcrops) {
     const cz = outer.back + rand() * (outer.front - outer.back)
     const inside = Math.abs(cx) < side + 4 && cz > back - 4 && cz < outcropFront + 6
     const inGap = Math.abs(cx) < gap.x && cz > gap.z && cz < back
-    if (inside || inGap) continue
+    // The terraces own the slope behind the canyon.
+    const onSlope = outcrops.skipBack && cz < back && Math.abs(cx) < outcrops.skipBack
+    if (inside || inGap || onSlope) continue
     const seedBase = outcrops.seed * 1000 + placed * 10
-    const mainWidth = pick(outcrops.width)
     const mainHeight = pickHeight()
+    // Width follows height, so a low stack is a mound of boulders rather than a flat slab.
+    const mainWidth = Math.min(outcrops.width[1], Math.max(outcrops.width[0], mainHeight * (1.1 + rand() * 0.7)))
     const mainYaw = rand() * Math.PI * 2
-    const kind = outcrops.kinds[Math.floor(rand() * outcrops.kinds.length)]
-    pieces.push([kind, cx, cz, mainWidth, mainHeight, mainWidth * (0.55 + rand() * 0.4), mainYaw, seedBase])
+    // The main rock is a stack of ledges; its leaning satellites keep the kit's other shapes.
+    pieces.push(['stack', cx, cz, mainWidth, mainHeight, mainWidth * (0.55 + rand() * 0.4), mainYaw, seedBase])
     const satellites = Math.round(pick(outcrops.satellites))
     for (let i = 1; i <= satellites; i++) {
       const angle = rand() * Math.PI * 2
       const distance = mainWidth * (0.45 + rand() * 0.45)
       const width = mainWidth * (0.3 + rand() * 0.45)
-      const height = mainHeight * (0.25 + rand() * 0.5)
+      // Never taller than wide: leaning rocks stay blocky, not columns.
+      const height = Math.min(mainHeight * (0.25 + rand() * 0.5), width * 0.9)
       const satKind = height < 6 ? 'boulder' : rand() < 0.5 ? 'bommie' : 'wall'
       pieces.push([satKind, cx + Math.cos(angle) * distance, cz + Math.sin(angle) * distance, width, height, width * (0.6 + rand() * 0.35), rand() * Math.PI * 2, seedBase + i])
     }
     placed++
   }
+  return pieces
+}
+
+// Terrace rows: stacks spread across each row with uneven spacing and depth, so the slope
+// reads as layered rock rather than a wall.
+function terracePieces(landscape, terraces) {
+  const rand = seededRandom(terraces.seed)
+  const pick = ([min, max]) => min + rand() * (max - min)
+  const pieces = []
+  terraces.rows.forEach((row, r) => {
+    const step = (2 * terraces.xSpan) / row.count
+    for (let i = 0; i < row.count; i++) {
+      const x = -terraces.xSpan + step * (i + 0.5) + (rand() - 0.5) * step * 0.6
+      if (row.gap && Math.abs(x) < row.gap) continue
+      const z = row.z + (rand() - 0.5) * 6
+      // Stacks grow with the massif: taller toward the right, where the slope is highest.
+      const grow = 0.6 + 0.8 * massifShare(landscape, x)
+      const width = pick(terraces.width) * (0.8 + 0.4 * massifShare(landscape, x))
+      pieces.push(['stack', x, z, width, pick(row.height) * grow, pick(terraces.depth), (rand() - 0.5) * 0.8, terraces.seed * 1000 + r * 50 + i])
+    }
+  })
   return pieces
 }
 
@@ -333,14 +407,50 @@ export function pieceZone(landscape, piece) {
 // generated pieces in front of the camera, so the generated parts can never clash.
 export function landscapePieces(landscape) {
   const generated = [
+    ...(landscape.terraces ? terracePieces(landscape, landscape.terraces) : []),
     ...(landscape.outcrops ? outcropPieces(landscape, landscape.outcrops) : []),
     ...(landscape.scatter ? scatterPieces(landscape, landscape.scatter) : []),
   ]
   const pieces = []
   const place = (rock, isGenerated) => {
+    if (rock[0] === 'stack') return placeStack(rock, isGenerated)
     const piece = placePiece(landscape, rock, isGenerated)
     if (piece) pieces.push(piece)
     return piece
+  }
+  // A stack: 2–3 wide, low ledge tiers, each smaller one set off-centre and resting on the
+  // one below, so outcrops and canyon walls build up in horizontal layers instead of
+  // standing as columns. Returns the bottom tier, which takes the talus.
+  const placeStack = ([, x, z, width, height, depth, yaw, seed, options], isGenerated) => {
+    const rand = seededRandom((seed * 747796405 + 1) >>> 0)
+    const tiers = options?.tiers ?? 2 + Math.floor(rand() * 2)
+    const shares = [0.5, 0.35, 0.25].slice(0, tiers)
+    const total = shares.reduce((sum, share) => sum + share, 0)
+    let below = null
+    let bottom = null
+    for (let i = 0; i < tiers; i++) {
+      const scale = [1, 0.7, 0.48][i]
+      const tierWidth = width * scale * (0.9 + rand() * 0.2)
+      const tierDepth = depth * scale * (0.9 + rand() * 0.2)
+      // Tiers overlap by a quarter of their height, so the parts add up to the stack height.
+      const tierHeight = height * (shares[i] / total) * 1.25
+      const angle = rand() * Math.PI * 2
+      const shift = i === 0 ? 0 : width * (0.08 + rand() * 0.14)
+      const tierX = (below?.x ?? x) + Math.cos(angle) * shift
+      const tierZ = (below?.z ?? z) + Math.sin(angle) * shift
+      const tierYaw = yaw + (rand() - 0.5) * 0.8
+      // Each tier sinks a third of its height into the one below; Landscape.jsx then drops it
+      // onto the lower rock's real top, which sits below its box when the rock was shrunk
+      // to fit, so no tier hangs in the water.
+      const tierOptions = below ? { baseY: below.top - tierHeight * 0.35, sink: 0 } : undefined
+      const piece = placePiece(landscape, ['ledge', tierX, tierZ, tierWidth, tierHeight, tierDepth, tierYaw, seed * 10 + i, tierOptions], isGenerated)
+      if (!piece) break
+      if (below) piece.restsOn = below.seed
+      pieces.push(piece)
+      bottom ??= piece
+      below = piece
+    }
+    return bottom
   }
   const parents = [
     ...landscape.rocks.map(rock => place(rock, false)),
@@ -357,7 +467,9 @@ export function landscapePieces(landscape) {
 
 function placePiece(landscape, [kind, x, z, width, rawHeight, depth, yaw, seed, options], isGenerated) {
   const { clearance, pierce } = landscape
-  const base = baseHeight(landscape, x, z, width, depth)
+  // A stacked tier rests on the tier below (options.baseY) instead of the sand.
+  const base = options?.baseY ?? baseHeight(landscape, x, z, width, depth)
+  const sinkOf = height => options?.sink ?? pieceSink(height)
   const { hx, hz } = footprint(width, depth, yaw)
   const openZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side || z - hz >= clearance.front
   // Only back and side pieces break the surface: one in front of the glass would wall off
@@ -375,10 +487,10 @@ function placePiece(landscape, [kind, x, z, width, rawHeight, depth, yaw, seed, 
       : landscape.maxTop - jitter * (landscape.topJitter ?? 0))
   let height = rawHeight
   // A fixed-top or piercing piece grows to its target; every other piece is only capped.
-  if (fixedTop !== null || pierces || base - pieceSink(height) + height > topLimit) height = topLimit - base + pieceSink(height)
+  if (fixedTop !== null || pierces || base - sinkOf(height) + height > topLimit) height = topLimit - base + sinkOf(height)
   // A floor-zone piece on a dune crest can be capped down to nothing.
   if (height < 0.4) return null
-  const y = base - pieceSink(height)
+  const y = base - sinkOf(height)
   const piece = { kind, x, y, z, width, height, depth, yaw, seed, hx, hz, top: y + height }
   const zone = pieceZone(landscape, piece)
   if (zone === 'clash') return null
@@ -409,7 +521,9 @@ function talusFor(landscape, parent) {
       const angle = rand() * Math.PI * 2
       const distance = reach * pick(tier.distance)
       const width = Math.max(1.2, parentSize * pick(tier.width))
-      const height = Math.max(0.8, parent.height * pick(tier.height))
+      // At most about as tall as wide, so a tall cliff's apron steps down instead of
+      // sprouting columns of its own.
+      const height = Math.min(Math.max(0.8, parent.height * pick(tier.height)), width * 1.1)
       rocks.push(['talus', parent.x + Math.cos(angle) * distance, parent.z + Math.sin(angle) * distance, width, height, width * (0.6 + rand() * 0.4), rand() * Math.PI * 2, 5000000 + parent.seed * 10 + k])
     }
   }

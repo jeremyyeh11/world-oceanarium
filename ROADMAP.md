@@ -15,7 +15,7 @@ Status labels:
 
 ### The Reefs landscape
 
-Status: `Current in development` — `v0.25.0-dev_9` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
+Status: `Current in development` — `v0.25.0-dev_10` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
 
 - [x] Rename The Drift to The Reefs (`the-reefs`); The Open Sea untouched.
 - [x] Raised sand seabed (y -22), fixed rock layout behind the swim volume, fixed-seed rubble, thinner fog (`dev_1`).
@@ -27,7 +27,9 @@ Status: `Current in development` — `v0.25.0-dev_9` (2026-10-17, branch `feat/r
 - [x] Jeremy review of `dev_6`: rocks broken (fixed before push: weld before decimating); sand too flat → `dev_7`.
 - [x] Jeremy review of `dev_7`: rocks stop at mid-screen, zoom in, add large sand hills → `dev_8`.
 - [x] Jeremy review of `dev_8`: more seabed-to-cliff transition, keep side cliffs in frame, off-centre rocks, camera back/down/up → `dev_9`.
-- [ ] Jeremy review of `dev_9` on phone: talus, uneven canyon composition, new camera. Many tall pieces share the same stretched flat-topped rock; more tall rocks in the kit would vary the skyline.
+- [x] Jeremy review of `dev_9`: too many columns, mountain behind, floating rocks, triangle massif on the right → `dev_10`.
+- [ ] Jeremy review of `dev_10` on phone: stacks, massif, triangle composition.
+- [ ] Bring the right massif to the middle distance: today rock can only stand behind z -47, at the glass, or below y -20, because fish use x ±56 from z -40 to -8. Either shrink The Reefs' swim volume on the right (per-tank swim bounds) or teach fish to avoid rock. `Next`
 - [ ] With the zoom, fish leave the frame at the sides more often (swim bounds still assume 60°). Decide whether The Reefs' swim bounds should follow its camera. `Backlog` Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
 - [x] Jeremy's limestone boulders kitbashed in for the placeholders (`dev_6`). More rocks can join the kit: rebuild with `scripts/build-landscape-kit.py` and list the new indices in `LIMESTONE_KIT.variants`.
 - [ ] Rocks inside the swim volume: fish avoid rocks (collision shapes in the steer step), then reef behaviour such as angelfish keeping close to rock. Until then every piece must sit in a free zone (back, foreground or floor; see the header of `src/data/landscapes.js`). `Next`

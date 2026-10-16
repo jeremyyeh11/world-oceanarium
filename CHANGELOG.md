@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_9` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface, `dev_9` talus, uneven canyon, lower camera). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_10` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface, `dev_9` talus, uneven canyon, lower camera, `dev_10` stacked ledges and a massif on the right). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -59,6 +59,12 @@ Status: in development as `v0.25.0-dev_9` (2026-10-17, branch `feat/reef-landsca
   - Off-centre rocks in the gap: a mid bommie left of centre (top -7), a low wide rock right of it, a faint spire far back (top 2), and the far ridge moved right.
   - The Reefs' camera moves back and down, pitched up: z 14 (was 10), y -6 (was -3.35), about 7° up (was 3.4°), still 47°. It lives in `REEFS_VIEW` in landscapes.js, which the tank's `camera` and the rock detail levels share. Generated rocks in front of the swim volume now stand at z 16 or beyond, behind the moved camera.
   - Cost: 159k rock triangles; the default view draws 102k (244k vertices).
+- Stacked ledges and a massif on the right (`dev_10`, Jeremy: "too many columns ... go more horizontal stacking ... looks too much like zhangjiajie", "stack up like a mini mountain behind ... enough layers to see it", then "some floating rocks ... make the hill more pronounced ... on the right side, slope towards the left so it gives a triangle composition"):
+  - New `stack` pieces: 2–3 wide, low ledge tiers (from the wide kit rocks), each smaller one set off-centre and resting on the one below, sunk a third of its height into it. Landscape.jsx measures each placed rock's real top and drops the next tier onto it, so tiers no longer float where a rock was shrunk to fit its box.
+  - Only the central valley stands in columns (the two framing cliffs, the spire beside the right one, the far spire, the mid bommie). The outer canyon walls, the wide-screen edge pieces and the generated outcrops are now stacks; outcrop width follows height, and leaning and talus rocks are never much taller than wide. Random surface-breakers are off (`pierce.share` 0).
+  - A massif behind the swim clearance: the sand climbs over 36 WU from the back line to 26 WU at the right, 20% of that at the left, capped at y 0. Four terrace rows of stacks (z -55 to -83, 38 stacks) step up it, taller and wider toward the right, fading into the fog. Outcrops leave the slope to the terraces.
+  - Triangle composition: the left valley cliff drops to top y 7 and the right one rises to 13, with its spire at 3; the left foreground is lower (tops about -12) and the right foreground steps up toward the right edge (tops -13.8, -8.6, -3.3, -0.8). On a phone the right cliff now stands above the left with the massif behind it. On a 16:9 screen the right foreground run is mostly outside the frame: near the glass the frame is only about ±11 WU wide.
+  - 333 pieces, none in the swim volume; 207k rock triangles, 146k in the default view.
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

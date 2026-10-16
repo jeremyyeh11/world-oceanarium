@@ -142,12 +142,19 @@ function makeLandscapeChunks(landscape, rocks) {
   const camera = new THREE.Vector3(0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
   const pieces = [...landscapePieces(landscape), ...(landscape.rubble ? rubblePieces(landscape) : [])]
   const chunks = new Map()
+  // How far each placed rock's real top sits below its box top (rocks shrink to fit their
+  // box), so a stacked tier can be dropped onto the rock it rests on.
+  const topShortfall = new Map()
   for (const piece of pieces) {
     const look = pieceLook(kit, piece, rocks)
     const near = camera.distanceTo(scratchA.set(piece.x, piece.y + piece.height / 2, piece.z)) < kit.hiDetailDistance
     const lod = piece.kind === 'rubble' ? 'rubble' : near ? 'hi' : 'lo'
     const source = rocks[`rock${look.rock}_${lod}`] ?? rocks[`rock${look.rock}_lo`]
     const placed = placeRock(source, piece, look.rotation, piece.kind === 'rubble' ? Infinity : kit.maxStretch[piece.kind] ?? 2)
+    const drop = topShortfall.get(piece.restsOn) ?? 0
+    if (drop > 0) placed.translate(0, -drop, 0)
+    placed.computeBoundingBox()
+    topShortfall.set(piece.seed, piece.top - placed.boundingBox.max.y)
     const projected = projectUVs(placed, kit.textureTileWU, look.uvOffset)
     placed.dispose()
     const key = `${Math.floor(piece.x / kit.chunkWU)}:${Math.floor(piece.z / kit.chunkWU)}`

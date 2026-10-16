@@ -63,6 +63,7 @@ export default function App() {
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
   const [screenshotMode, setScreenshotMode] = useState(false)
   const [screenshotHelpVisible, setScreenshotHelpVisible] = useState(false)
+  const [diverMode, setDiverMode] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
   const [landingOpen, setLandingOpen] = useState(true)
   const [tankMenuOpen, setTankMenuOpen] = useState(false)
@@ -166,12 +167,27 @@ export default function App() {
   // Screenshot mode and the landing gate both hide the dock; leaving the menu
   // open behind them would spring it back open on return.
   useEffect(() => {
-    if (screenshotMode || landingOpen) setTankMenuOpen(false)
-  }, [screenshotMode, landingOpen])
+    if (screenshotMode || diverMode || landingOpen) setTankMenuOpen(false)
+  }, [screenshotMode, diverMode, landingOpen])
 
   useEffect(() => {
-    if (screenshotMode) setEncyclopediaOpen(false)
-  }, [screenshotMode])
+    if (screenshotMode || diverMode) setEncyclopediaOpen(false)
+  }, [screenshotMode, diverMode])
+
+  // Esc surfaces the diver. Screenshot mode and the open menu each claim Esc first, so
+  // backing out of a capture taken in diver mode leaves the diver where it was.
+  useEffect(() => {
+    if (!diverMode || screenshotMode || topMenuOpen) return undefined
+
+    const exitOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      setDiverMode(false)
+    }
+
+    window.addEventListener('keydown', exitOnEscape)
+    return () => window.removeEventListener('keydown', exitOnEscape)
+  }, [diverMode, screenshotMode, topMenuOpen])
 
   useEffect(() => {
     const playButtonSfx = (event) => {
@@ -426,6 +442,11 @@ export default function App() {
     setScreenshotHelpVisible(true)
   }
 
+  const toggleDiverMode = () => {
+    setTopMenuOpen(false)
+    setDiverMode(current => !current)
+  }
+
   const handleAudioToggle = () => {
     if (!audioStarted) {
       startAudio()
@@ -473,7 +494,7 @@ export default function App() {
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} onOpenEncyclopedia={openEncyclopedia} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (
@@ -485,7 +506,7 @@ export default function App() {
       {/* Screenshot mode is the one place the tube effect has to go: captures are
           meant to show the scene, not the interface it is framed by. */}
       {!screenshotMode && <div className="crt-screen" aria-hidden="true" />}
-      {screen === 'tank' && !screenshotMode && TANKS.length > 1 && (
+      {screen === 'tank' && !screenshotMode && !diverMode && TANKS.length > 1 && (
         <div
           className={`tank-switcher-dock${tankMenuCollapsible ? ' is-collapsible' : ''}${tankMenuOpen ? ' is-open' : ''}`}
           ref={tankDockRef}
@@ -535,8 +556,10 @@ export default function App() {
       )}
       {!screenshotMode && (
         <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
-          {screen === 'tank' && <SearchControl creatures={creatureData.creatures} active />}
-          {screen === 'tank' && (
+          {/* Search and the Atlas both lead to a followed fish or a full-screen page; the
+              diver keeps only the menu, which is also the way back up on a phone. */}
+          {screen === 'tank' && !diverMode && <SearchControl creatures={creatureData.creatures} active />}
+          {screen === 'tank' && !diverMode && (
             <button
               className="encyclopedia-toggle"
               type="button"
@@ -591,6 +614,20 @@ export default function App() {
                 <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
                   <path d="M4 8.5h3.2l1.2-2h7.2l1.2 2H20v9.5H4V8.5Z" />
                   <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
+                </svg>
+              </button>
+              <button
+                className={`diver-toggle${diverMode ? ' is-active' : ''}`}
+                type="button"
+                role="menuitem"
+                aria-label={diverMode ? 'Exit diver camera' : 'Enter diver camera'}
+                aria-pressed={diverMode}
+                onClick={toggleDiverMode}
+              >
+                {/* Dive mask with a snorkel. */}
+                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M3 9.6A2.1 2.1 0 0 1 5.1 7.5h10.8A2.1 2.1 0 0 1 18 9.6v2.8a2.1 2.1 0 0 1-2.1 2.1h-2.2a1.6 1.6 0 0 1-1.4-.9l-.4-.8a1 1 0 0 0-1.8 0l-.4.8a1.6 1.6 0 0 1-1.4.9H5.1A2.1 2.1 0 0 1 3 12.4V9.6Z" />
+                  <path d="M21 4v10.5a4 4 0 0 1-4 4h-2" />
                 </svg>
               </button>
               <button

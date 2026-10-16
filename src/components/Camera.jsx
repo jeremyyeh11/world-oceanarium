@@ -72,7 +72,7 @@ function isDescendantOf(node, root) {
   return false
 }
 
-export default function Camera({ biome = 'ocean', landscape = null, focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
+export default function Camera({ biome = 'ocean', landscape = null, focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, diverActive = false, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
   const { camera } = useThree()
   const focusBoneRef = useRef(null)
   const focusBoneTargetRef = useRef(null)
@@ -137,6 +137,16 @@ export default function Camera({ biome = 'ocean', landscape = null, focusTarget 
 
   useFrame(({ clock }, delta) => {
     const now = clock.getElapsedTime()
+    // DiverCamera owns the camera while it is active. Forget the smoothing state so that,
+    // on exit, the resting camera eases back from wherever the diver left it.
+    if (diverActive) {
+      setDefaultCameraSettled(false)
+      cameraClipStartedAt.current = null
+      previousFocusTarget.current = null
+      hasSmoothedFocus.current = false
+      hasSmoothedDefaultLookTarget.current = false
+      return
+    }
     if (focusTarget) {
       setDefaultCameraSettled(false)
       focusBounds.setFromObject(focusTarget)

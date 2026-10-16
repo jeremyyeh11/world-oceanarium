@@ -69,6 +69,7 @@ button { font: inherit; }
 .fullscreen-toggle,
 .audio-toggle,
 .screenshot-toggle,
+.diver-toggle,
 .sources-toggle,
 .top-menu-toggle,
 .encyclopedia-toggle,
@@ -189,7 +190,10 @@ button { font: inherit; }
 .audio-toggle:focus-visible,
 .audio-toggle.is-active,
 .screenshot-toggle:hover,
+.diver-toggle:hover,
+.diver-toggle.is-active,
 .screenshot-toggle:focus-visible,
+.diver-toggle:focus-visible,
 .sources-toggle:hover,
 .sources-toggle:focus-visible,
 .sources-toggle.is-active,
@@ -221,6 +225,7 @@ button { font: inherit; }
 .fullscreen-toggle:focus-visible,
 .audio-toggle:focus-visible,
 .screenshot-toggle:focus-visible,
+.diver-toggle:focus-visible,
 .sources-toggle:focus-visible,
 .top-menu-toggle:focus-visible,
 .encyclopedia-toggle:focus-visible,
@@ -319,6 +324,7 @@ button { font: inherit; }
   .fullscreen-toggle,
   .audio-toggle,
   .screenshot-toggle,
+  .diver-toggle,
   .top-menu-toggle,
   .fish-search-button {
     width: var(--top-control-size);
@@ -875,6 +881,35 @@ body:has(.debug-panel) .app-version-footnote {
 
 .focus-hint-controls-mobile {
   display: none !important;
+}
+
+/* Diver camera: the key readout holds long enough to read, then clears the frame. */
+.diver-hint {
+  animation: diver-hint-fade 7s ease-in-out forwards;
+}
+
+@keyframes diver-hint-fade {
+  0%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.tank-viewport.is-diver-mode .tank-stage {
+  cursor: grab;
+}
+
+.tank-viewport.is-diver-mode .tank-stage:active {
+  cursor: grabbing;
+}
+
+/* Keyed to the input, not the width: a narrow desktop window still has WASD. */
+@media (hover: none), (pointer: coarse) {
+  .tank-viewport.is-diver-mode .focus-hint-controls-desktop {
+    display: none !important;
+  }
+
+  .tank-viewport.is-diver-mode .focus-hint-controls-mobile {
+    display: block !important;
+  }
 }
 
 @media (hover: none), (pointer: coarse), (max-width: 768px) {

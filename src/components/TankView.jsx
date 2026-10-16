@@ -1,6 +1,7 @@
 import { Canvas, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Camera from './Camera'
+import DiverCamera from './DiverCamera'
 import Biome from './Biome'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
@@ -38,6 +39,8 @@ const FOLLOW_ZOOM_SELECTION_SUPPRESS_MS = 360
 const FOLLOW_TOUCH_GESTURE_RESET_MS = 90
 const SEARCH_FOCUS_EVENT = 'world-oceanarium-focus-creature'
 const RECOVERY_NOTICE_DURATION_MS = 4200
+// Matches Camera.jsx's resting FOV for tanks that do not set their own.
+const DIVER_DEFAULT_FOV = 61
 
 const clampFollowOrbit = ({ yaw, pitch }) => ({
   yaw: Math.max(-MAX_FOLLOW_ORBIT_YAW, Math.min(MAX_FOLLOW_ORBIT_YAW, yaw)),
@@ -150,7 +153,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, diverMode = false, onBack, onOpenEncyclopedia }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -384,6 +387,8 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   }
 
   const selectCreatureFromPointer = (creature, fishRef) => {
+    // The diver camera's drags are looks, never picks.
+    if (diverMode) return
     if (performance.now() < suppressCreatureFocusUntilRef.current) return
     focusCreature(creature, fishRef)
   }
@@ -410,6 +415,15 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
     releaseFocus()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tank?.id])
+
+  // The diver starts from the current view, so drop any followed fish and centre the stage
+  // (the phone's sideways pan would otherwise offset the whole free-cam frame).
+  useEffect(() => {
+    if (!diverMode) return
+    releaseFocus()
+    setStagePan(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diverMode])
 
   const releaseFocusForRuntimeRecovery = (creature) => {
     const name = creatureDisplayName(creature)
@@ -520,6 +534,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   }
 
   const startStageDrag = (event) => {
+    if (diverMode) return
     if (event.button !== 0) return
 
     if (selectedCreature && event.pointerType === 'touch') {
@@ -562,6 +577,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   }
 
   const moveStageDrag = (event) => {
+    if (diverMode) return
     if (selectedCreature && event.pointerType === 'touch') event.preventDefault()
 
     if (event.pointerType === 'touch' && touchPointsRef.current.has(event.pointerId)) {
@@ -682,7 +698,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
   return (
     <div
-      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}`}
+      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}${diverMode ? ' is-diver-mode' : ''}`}
       style={{ '--stage-pan-x': `${stagePan}px` }}
     >
       <div
@@ -714,6 +730,13 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             followScreenOffset={followScreenOffset}
             onDefaultCameraSettledChange={setDefaultCameraSettled}
             onFollowCameraClip={releaseFollowForCameraClip}
+            diverActive={diverMode}
+          />
+          <DiverCamera
+            active={diverMode}
+            biome={biome.id}
+            landscape={landscapeForTank(tank)}
+            fov={Number.isFinite(tank?.camera?.fov) ? tank.camera.fov : DIVER_DEFAULT_FOV}
           />
           <Biome
             key={tank?.id ?? biome.id}
@@ -722,7 +745,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             creatures={creatures}
             tankVisitSeed={tankVisitSeed}
             selectedCreatureId={selectedCreature?.id}
-            zoomActive={zoomActive}
+            zoomActive={zoomActive || diverMode}
             debugSunBaskRequestId={debugSunBaskRequestId}
             soloRuntimeRecoveryEnabled={!zoomActive && defaultCameraSettled}
             hideSelectionSilhouette={screenshotMode}
@@ -798,6 +821,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
       )}
 
       {!screenshotMode && selectedCreature && <FocusHint />}
+      {!screenshotMode && diverMode && <DiverHint />}
       {recoveryNotice && (
         <div key={recoveryNotice.id} className="runtime-recovery-notice" role="status" aria-live="polite">
           {recoveryNotice.text}
@@ -1060,6 +1084,18 @@ function FocusHint() {
       <span className="focus-hint-title">Following fish</span>
       <span className="focus-hint-controls focus-hint-controls-desktop">scroll to zoom · drag to orbit</span>
       <span className="focus-hint-controls focus-hint-controls-mobile">pinch to zoom · drag to orbit</span>
+    </div>
+  )
+}
+
+// Fades itself out (index.css) so a held free-cam frame is clean, but stays mounted, so the
+// keys are a glance away again on the next entry.
+function DiverHint() {
+  return (
+    <div className="focus-hint diver-hint" style={{ zIndex: 30 }}>
+      <span className="focus-hint-title">Diver camera</span>
+      <span className="focus-hint-controls focus-hint-controls-desktop">WASD swim · Q/E sink/rise · shift faster · drag to look · esc to surface</span>
+      <span className="focus-hint-controls focus-hint-controls-mobile">drag to look · two fingers to drift · spread to swim</span>
     </div>
   )
 }

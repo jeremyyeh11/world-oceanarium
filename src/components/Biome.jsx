@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import Environment from './Environment'
+import { landscapeForTank } from '../data/landscapes'
 import Fish from './Fish'
 import OceanBubbles from './OceanBubbles'
 import SardineInstancedLayer from './SardineInstancedLayer'
@@ -121,7 +122,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
 
   return (
     <group>
-      <Environment biome={name} />
+      <Environment biome={name} landscape={landscapeForTank(tank)} />
       {name === 'ocean' && <OceanBubbles />}
       {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} debugStatsEnabled={debugStatsEnabled} />}
       {visibleCreatures.map(creature => {

@@ -1,5 +1,7 @@
 import { useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
+import Landscape from './Landscape'
+import { sandHeight } from '../data/landscapes'
 
 // Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
 // hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
@@ -28,10 +30,16 @@ function noise(x, z) {
 export const FLOOR_Y = { ocean: -52, 'tropical-river': -12, lake: -20 }
 const FLOOR_COLORS = { ocean: '#0e1f33', 'tropical-river': '#1a2e14', lake: '#1a2e1c' }
 
-function NoiseFloor({ biome }) {
+// A tank landscape brings its own seabed height; every other tank uses its biome's floor.
+export function floorYFor(biome, landscape = null) {
+  return landscape?.floorY ?? FLOOR_Y[biome] ?? -20
+}
+
+function NoiseFloor({ biome, landscape }) {
   const ref = useRef()
-  const floorY = FLOOR_Y[biome] ?? -20
-  const material = useMemo(() => makeFloorMaterial(FLOOR_COLORS[biome] ?? '#0e1f33'), [biome])
+  const floorY = floorYFor(biome, landscape)
+  const color = landscape?.floorColor ?? FLOOR_COLORS[biome] ?? '#0e1f33'
+  const material = useMemo(() => makeFloorMaterial(color), [color])
 
   // Material is created imperatively (not as a JSX tag), so R3F won't auto-dispose it.
   // Free the old shader program/GPU resources when the biome changes or the floor unmounts.
@@ -40,15 +48,19 @@ function NoiseFloor({ biome }) {
   useEffect(() => {
     if (!ref.current) return
     const pos = ref.current.geometry.attributes.position
+    // The plane is rotated +90° about x: local y becomes world z and local -z becomes world
+    // height. A landscape's sand uses the same smooth function its rocks are placed on.
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i)
       const y = pos.getY(i)
-      const bump = noise(x * 0.2, y * 0.2) * 1.2 + noise(x * 0.6, y * 0.6) * 0.4
+      const bump = landscape
+        ? sandHeight(landscape, x, y) - landscape.floorY
+        : noise(x * 0.2, y * 0.2) * 1.2 + noise(x * 0.6, y * 0.6) * 0.4
       pos.setZ(i, -bump)
     }
     pos.needsUpdate = true
     ref.current.geometry.computeVertexNormals()
-  }, [])
+  }, [landscape])
 
   return (
     // Oversized seabed: the extra span pushes the plane's edges far out into the distance
@@ -75,10 +87,11 @@ function RiverVegetation() {
   ))
 }
 
-export default function Environment({ biome }) {
+export default function Environment({ biome, landscape = null }) {
   return (
     <group>
-      <NoiseFloor biome={biome} />
+      <NoiseFloor biome={biome} landscape={landscape} />
+      {landscape && <Landscape landscape={landscape} />}
       {biome === 'tropical-river' && <RiverVegetation />}
     </group>
   )

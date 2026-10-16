@@ -24,7 +24,7 @@ The project values:
 The current clean release is `v0.14.0`, promoting the accepted procedural caudal-fish build. The ocean sunlight zone contains two deliberately curated tanks:
 
 - **The Open Sea** — spotted sardinella, Mahi-mahi, and a Shortfin Mako Shark form a bait → mid-predator → apex-predator assemblage.
-- **The Drift** — a Giant Sunfish occupies a calmer, dimmer tank built around its slower rhythm and authored sun-bask behavior.
+- **The Reefs** (formerly The Drift) — reef fish over a sand-and-rock seabed, with a Giant Sunfish that comes in from the blue to be cleaned.
 
 Current foundations:
 

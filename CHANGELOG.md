@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.25.0 — The Reefs landscape
+
+Status: in development as `v0.25.0-dev_1` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+
+### Tanks
+
+- The Drift is renamed The Reefs (tank id `the-drift` → `the-reefs`), with a new tagline and description. The Open Sea is unchanged.
+
+### Landscape
+
+- New per-tank `landscape` key (`src/data/landscapes.js`), rendered by `src/components/Landscape.jsx` inside `Environment`:
+  - Sand seabed at y -22 (the ocean biome floor stays at -52 for The Open Sea), with low smooth ripples that the rocks are placed on.
+  - Fixed hand-placed layout: two bommies and four wall pieces framing a canyon at the back, a far ridge in the gap, and nine low boulders, plus 240 rubble chunks from a fixed seed (one instanced draw call).
+  - Placeholder rocks are seeded, displaced icosahedrons with flat facets and baked top-light vertex colour, standing in for the bommie, boulder and wall models.
+- Clearance, measured live: the sunfish and its followers roam back to z -40 and down to y -14, so every tall piece stands at z -47 or further back and the boulders under the swim volume stay below y -20. Fish do not avoid rocks yet; nothing reaches them.
+- The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
+- The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
+
 ## v0.24.0 — Situational fish lighting
 
 Status: accepted and promoted as clean `v0.24.0` from `v0.24.0-dev_4` on Jeremy's go-ahead (2026-10-16; `dev_1` the light terms, first written as `v0.18.0-dev_1` on 2026-10-09; `dev_2` more contrast after Jeremy's desktop look on 2026-10-15; `dev_3` large fish shade the fish under them; `dev_4` renumbered from `v0.23.0` when the Whale Shark shipped as clean `v0.23.0`, no other change). `package.json` moves to `0.24.0`. Prompted by an aquarium reference photo: fish were lit the same way wherever they swam.

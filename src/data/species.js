@@ -90,16 +90,22 @@ export const TANKS = [
     ],
   },
   {
-    id: 'the-drift',
-    name: 'The Drift',
-    tagline: 'Slow grazers of the open blue',
-    description: 'A calmer, dimmer column where soft-bodied giants drift on the current.',
+    // Formerly The Drift.
+    id: 'the-reefs',
+    name: 'The Reefs',
+    tagline: 'Reef fish among the rocks',
+    description: 'A sheltered reef where angelfish, bannerfish and triggerfish keep house, and a giant sunfish comes in from the blue to be cleaned.',
     biome: 'ocean',
     depthZone: 'epipelagic',
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.
-    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1 },
+    // Reef water is clearer than open blue: thinner fog (ocean 0.032) lets the rocks read
+    // behind the swim volume, about 60 WU from the camera.
+    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1, density: 0.016 },
+    // Fixed seabed and rocks from src/data/landscapes.js. Tanks without one keep the
+    // biome's open-water floor.
+    landscape: 'reefs',
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.

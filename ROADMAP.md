@@ -13,6 +13,18 @@ Status labels:
 
 ## Current work
 
+### The Reefs landscape
+
+Status: `Current in development` — `v0.25.0-dev_1` prototype (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
+
+- [x] Rename The Drift to The Reefs (`the-reefs`); The Open Sea untouched.
+- [x] Raised sand seabed (y -22), fixed rock layout behind the swim volume, fixed-seed rubble, thinner fog (`dev_1`).
+- [ ] Jeremy review of `dev_1` on phone: layout, rock scale, sand colour, fog.
+- [ ] Jeremy models the rocks (bommie, 2–3 boulders, wall/ledge, rubble): GLB, +Y up, real metres, origin at base centre, about 2–5k triangles, one shared texture. Swap them in for the placeholders.
+- [ ] Rocks inside the swim volume: fish avoid rocks (collision shapes in the steer step), then reef behaviour such as angelfish keeping close to rock. Until then every tall piece must stay behind z -47. `Next`
+- [ ] Follow cam can orbit into a rock when following a fish near the back. `Backlog`
+- [ ] Corals on the rocks. `Backlog`
+
 ### Situational fish lighting
 
 Status: shipped in clean `v0.24.0` (2026-10-16, from `v0.24.0-dev_4`, branch `feat/situational-fish-lighting`, #128). The open items below carry over. Jeremy (2026-10-09): fish lighting "too flat and similar everywhere"; wants a mix of top-lit, front-lit and back-lit fish.

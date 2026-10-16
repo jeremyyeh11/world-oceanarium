@@ -2,7 +2,7 @@ import { useThree, useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { SURFACE_PLANE_Y } from './WaterSurface'
-import { FLOOR_Y } from './Environment'
+import { floorYFor } from './Environment'
 
 const CAMERA_LIMITS = {
   ocean: { min: -50, max: 3 },
@@ -69,7 +69,7 @@ function isDescendantOf(node, root) {
   return false
 }
 
-export default function Camera({ biome = 'ocean', focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
+export default function Camera({ biome = 'ocean', landscape = null, focusTarget = null, focusCenterBoneName = null, focusMeshOrigin = false, followOrbit = { yaw: 0, pitch: 0 }, followDistance = 3.2, followScreenOffset = 0, cameraSettings = DEFAULT_CAMERA_SETTINGS, onDefaultCameraSettledChange = null, onFollowCameraClip = null, onFocusBoneMissingChange = null }) {
   const { camera } = useThree()
   const focusBoneRef = useRef(null)
   const focusBoneTargetRef = useRef(null)
@@ -84,7 +84,7 @@ export default function Camera({ biome = 'ocean', focusTarget = null, focusCente
   const cameraClipStartedAt = useRef(null)
   const lastCameraClipExitAt = useRef(-Infinity)
   const limits = CAMERA_LIMITS[biome] ?? CAMERA_LIMITS.ocean
-  const minFollowCameraY = (FLOOR_Y[biome] ?? -20) + FOLLOW_FLOOR_CLEARANCE
+  const minFollowCameraY = floorYFor(biome, landscape) + FOLLOW_FLOOR_CLEARANCE
 
   const setDefaultCameraSettled = (settled) => {
     if (defaultCameraSettled.current === settled) return

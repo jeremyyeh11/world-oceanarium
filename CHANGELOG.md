@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.26.0 — Diver camera
+
+Status: accepted and promoted as clean `v0.26.0` from `v0.26.0-dev_2` on Jeremy's go-ahead (2026-10-17, branch `feat/diver-camera`, #131; `dev_1` the diver camera, `dev_2` faster swim, slower mouse, pointer lock, Esc to exit). `package.json` and `package-lock.json` move to `0.26.0`. Jeremy (2026-10-17): a free camera, WASD and mouse, from the menu like screenshot mode; movement eases in and out with a delayed drag so it stays smooth. The authored views stay slow or static; this is the way to any other angle.
+
+### Camera
+
+- New diver camera (`src/components/DiverCamera.jsx`), toggled from the controls menu (dive-mask key, below screenshot). Esc exits; the resting camera then eases back from wherever the diver stopped.
+- Desktop: WASD/arrows swim (W follows the look direction, pitch included), Q/E (or C/Space) sink/rise, Shift for the boost, wheel to glide forward/back. The mouse looks through pointer lock (`dev_2`, Jeremy: "hide cursor and dont require a click and drag"): no cursor, no button, 0.0021 rad per pixel. The browser spends Esc on releasing the lock, so a release while the page has focus exits the diver; a release from switching windows does not, and a click re-locks. Where the lock is refused (an embedded frame), plain mouse movement still looks. Phone: one finger drags the view, two fingers drift, spreading them swims forward.
+- Smoothing: every input passes two exponential stages (move rate 2.4, look rate 4.4), so a key press is an S-curve: about 1.6 s to cruise speed, a ~2 s glide to a stop after release; a mouse flick lands over ~0.9 s. Cruise 3 WU/s (0.75 m/s; 2 WU/s in `dev_1`), boost ×2.5.
+- Stays in the water: under the surface (0.35 WU clearance), 1 WU over the sand (`floorHeightAt`), out of the rocks (`pushOutOfRocks`), inside x ±60, z -70 to 30. Hitting a limit stops that part of the motion rather than bouncing.
+- While diving, fish use the follow cam's close-range LOD, fish picks and stage panning are off, and the dock, search and Atlas are hidden; screenshot mode still works on top of it.
+
 ## v0.25.0 — The Reefs landscape
 
 Status: accepted and promoted as clean `v0.25.0` from `v0.25.0-dev_11` on Jeremy's go-ahead (2026-10-17, branch `feat/reef-landscape`, #130; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface, `dev_9` talus, uneven canyon, lower camera, `dev_10` stacked ledges and a massif on the right, `dev_11` fish steer around rocks). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` was a prototype with placeholder rocks; `dev_6` kitbashed Jeremy's limestone rocks in. `package.json` moves to `0.25.0`.

@@ -182,6 +182,19 @@ export const LANDSCAPES = {
       ['stack', 10.5, 0, 10, 14, 8, -0.2, 63],
       ['stack', 15.5, 0.5, 12, 20, 9, 0.2, 64, { tiers: 3 }],
       ['stack', 21.5, -0.5, 12, 26, 9, -0.3, 65, { tiers: 3 }],
+      // The near half of the massif, inside the swim volume (inSwim: fish steer around it):
+      // stacks stepping up toward the right and back, from low mounds at x 14 to near the
+      // surface at x 53, leaving the centre open. With the massif behind the canyon this
+      // makes the triangle rising to the right in the default view.
+      ['stack', 14, -36, 10, 7, 9, 0.4, 71, { inSwim: true, tiers: 2 }],
+      ['stack', 22, -27, 11, 8, 10, 0.3, 73, { inSwim: true, tiers: 2 }],
+      ['stack', 22, -42, 12, 11, 11, -0.2, 72, { inSwim: true }],
+      ['stack', 31, -36, 14, 15, 12, 0.1, 74, { inSwim: true, tiers: 3 }],
+      ['stack', 34, -22, 12, 11, 10, -0.4, 75, { inSwim: true }],
+      ['stack', 41, -43, 16, 20, 13, -0.2, 76, { inSwim: true, tiers: 3 }],
+      ['stack', 45, -29, 15, 18, 13, 0.3, 77, { inSwim: true, tiers: 3 }],
+      ['stack', 53, -38, 16, 24, 14, 0.1, 78, { inSwim: true, tiers: 3 }],
+      ['stack', 55, -22, 14, 20, 12, -0.3, 79, { inSwim: true, tiers: 3 }],
       // Low boulders and mounds under the swim volume (tops below y -20). The mounds at
       // z -34 to -44 are the middle layer of the default view, between the foreground and
       // the back canyon.
@@ -284,10 +297,12 @@ export function seededRandom(seed) {
   }
 }
 
-// How far a piece's base sinks into the sand so no gap shows. The kit rocks have uneven
-// undersides, so a low, wide piece needs a good share of its height buried.
-function pieceSink(height) {
-  return Math.min(3, height * 0.15) + 0.2
+// How far a piece's base sinks into the sand so no gap shows. The kit rocks have curved,
+// uneven undersides: laid flat, a wide rock touches the sand at one point and its edges lift,
+// so low, wide kinds bury a larger share of their height than tall ones.
+const SINK_SHARE = { ledge: 0.35, talus: 0.3, boulder: 0.25 }
+function pieceSink(height, kind) {
+  return Math.min(4, height * (SINK_SHARE[kind] ?? 0.15)) + 0.2
 }
 
 // Half extents of a piece's footprint once yawed.
@@ -429,20 +444,24 @@ export function landscapePieces(landscape) {
     let below = null
     let bottom = null
     for (let i = 0; i < tiers; i++) {
-      const scale = [1, 0.7, 0.48][i]
+      // Each tier well inside the one below, so none overhangs a lower rock that was shrunk
+      // to fit its box and reads as a plate hanging in the water.
+      const scale = [1, 0.62, 0.4][i]
       const tierWidth = width * scale * (0.9 + rand() * 0.2)
       const tierDepth = depth * scale * (0.9 + rand() * 0.2)
-      // Tiers overlap by a quarter of their height, so the parts add up to the stack height.
-      const tierHeight = height * (shares[i] / total) * 1.25
+      // Tiers overlap by half their height, so the parts add up to the stack height.
+      const tierHeight = height * (shares[i] / total) * (i === 0 ? 1 : 1.5)
       const angle = rand() * Math.PI * 2
-      const shift = i === 0 ? 0 : width * (0.08 + rand() * 0.14)
+      const shift = i === 0 ? 0 : width * (0.04 + rand() * 0.08)
       const tierX = (below?.x ?? x) + Math.cos(angle) * shift
       const tierZ = (below?.z ?? z) + Math.sin(angle) * shift
       const tierYaw = yaw + (rand() - 0.5) * 0.8
-      // Each tier sinks a third of its height into the one below; Landscape.jsx then drops it
+      // Each tier sinks half its height into the one below; Landscape.jsx then drops it
       // onto the lower rock's real top, which sits below its box when the rock was shrunk
       // to fit, so no tier hangs in the water.
-      const tierOptions = below ? { baseY: below.top - tierHeight * 0.35, sink: 0 } : undefined
+      const tierOptions = below
+        ? { baseY: below.top - tierHeight * 0.5, sink: 0, inSwim: options?.inSwim }
+        : options?.inSwim ? { inSwim: true } : undefined
       const piece = placePiece(landscape, ['ledge', tierX, tierZ, tierWidth, tierHeight, tierDepth, tierYaw, seed * 10 + i, tierOptions], isGenerated)
       if (!piece) break
       if (below) piece.restsOn = below.seed
@@ -469,9 +488,9 @@ function placePiece(landscape, [kind, x, z, width, rawHeight, depth, yaw, seed, 
   const { clearance, pierce } = landscape
   // A stacked tier rests on the tier below (options.baseY) instead of the sand.
   const base = options?.baseY ?? baseHeight(landscape, x, z, width, depth)
-  const sinkOf = height => options?.sink ?? pieceSink(height)
+  const sinkOf = height => options?.sink ?? pieceSink(height, kind)
   const { hx, hz } = footprint(width, depth, yaw)
-  const openZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side || z - hz >= clearance.front
+  const openZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side || z - hz >= clearance.front || Boolean(options?.inSwim)
   // Only back and side pieces break the surface: one in front of the glass would wall off
   // the view.
   const farZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side
@@ -493,7 +512,10 @@ function placePiece(landscape, [kind, x, z, width, rawHeight, depth, yaw, seed, 
   const y = base - sinkOf(height)
   const piece = { kind, x, y, z, width, height, depth, yaw, seed, hx, hz, top: y + height }
   const zone = pieceZone(landscape, piece)
-  if (zone === 'clash') return null
+  // Pieces flagged inSwim stand in the swim volume on purpose: fish steer around them
+  // (src/components/rockObstacles.js).
+  if (zone === 'clash' && !options?.inSwim) return null
+  if (options?.inSwim) piece.inSwim = true
   if (isGenerated && zone === 'foreground' && z - hz < clearance.outcropFront) return null
   return piece
 }
@@ -524,7 +546,7 @@ function talusFor(landscape, parent) {
       // At most about as tall as wide, so a tall cliff's apron steps down instead of
       // sprouting columns of its own.
       const height = Math.min(Math.max(0.8, parent.height * pick(tier.height)), width * 1.1)
-      rocks.push(['talus', parent.x + Math.cos(angle) * distance, parent.z + Math.sin(angle) * distance, width, height, width * (0.6 + rand() * 0.4), rand() * Math.PI * 2, 5000000 + parent.seed * 10 + k])
+      rocks.push(['talus', parent.x + Math.cos(angle) * distance, parent.z + Math.sin(angle) * distance, width, height, width * (0.6 + rand() * 0.4), rand() * Math.PI * 2, 5000000 + parent.seed * 10 + k, parent.inSwim ? { inSwim: true } : undefined])
     }
   }
   return rocks

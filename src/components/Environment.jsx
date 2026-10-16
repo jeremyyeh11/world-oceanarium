@@ -1,7 +1,8 @@
-import { Suspense, useRef, useEffect, useMemo } from 'react'
+import { Suspense, useRef, useEffect, useLayoutEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import Landscape from './Landscape'
-import { sandGrain, sandHeight } from '../data/landscapes'
+import { landscapePieces, sandGrain, sandHeight } from '../data/landscapes'
+import { clearRockObstacles, setRockObstacles } from './rockObstacles'
 
 // Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
 // hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
@@ -113,7 +114,24 @@ function RiverVegetation() {
   ))
 }
 
+// Rocks fish can meet: anything reaching above the Mola's lowest fin (y -21 leaves a margin)
+// near the swim volume. maxPad covers the largest body pad rockObstacles.js applies.
+const ROCK_OBSTACLE_OPTIONS = {
+  region: { xMin: -85, xMax: 85, zMin: -75, zMax: 25 },
+  floorTop: -21,
+  maxPad: 8,
+}
+
 export default function Environment({ biome, landscape = null }) {
+  // Publish the tank's rocks to the fish before their first frame (layout effect), from the
+  // same seeded layout the Landscape renders, so avoidance never waits for the rock kit.
+  const pieces = useMemo(() => (landscape ? landscapePieces(landscape) : null), [landscape])
+  useLayoutEffect(() => {
+    if (!pieces) return undefined
+    const owner = setRockObstacles(pieces, ROCK_OBSTACLE_OPTIONS)
+    return () => clearRockObstacles(owner)
+  }, [pieces])
+
   return (
     <group>
       <NoiseFloor biome={biome} landscape={landscape} />

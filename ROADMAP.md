@@ -15,7 +15,7 @@ Status labels:
 
 ### The Reefs landscape
 
-Status: `Current in development` — `v0.25.0-dev_11` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
+Status: shipped in clean `v0.25.0` (2026-10-17, from `v0.25.0-dev_11`, branch `feat/reef-landscape`, #130). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals. The open items below carry over.
 
 - [x] Rename The Drift to The Reefs (`the-reefs`); The Open Sea untouched.
 - [x] Raised sand seabed (y -22), fixed rock layout behind the swim volume, fixed-seed rubble, thinner fog (`dev_1`).
@@ -29,7 +29,7 @@ Status: `Current in development` — `v0.25.0-dev_11` (2026-10-17, branch `feat/
 - [x] Jeremy review of `dev_8`: more seabed-to-cliff transition, keep side cliffs in frame, off-centre rocks, camera back/down/up → `dev_9`.
 - [x] Jeremy review of `dev_9`: too many columns, mountain behind, floating rocks, triangle massif on the right → `dev_10`.
 - [x] Jeremy review of `dev_10`: chose fish steering around rocks → `dev_11`.
-- [ ] Jeremy review of `dev_11` on phone: the right massif in the swim volume, fish moving around it (follow a fish there), floating ledges.
+- [x] Jeremy review of `dev_11` on phone: "looks good"; promoted to clean `v0.25.0`.
 - [x] Bring the right massif to the middle distance: fish steer around rocks (`dev_11`, `src/components/rockObstacles.js`).
 - [ ] With the zoom, fish leave the frame at the sides more often (swim bounds still assume 60°). Decide whether The Reefs' swim bounds should follow its camera. `Backlog` Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
 - [x] Jeremy's limestone boulders kitbashed in for the placeholders (`dev_6`). More rocks can join the kit: rebuild with `scripts/build-landscape-kit.py` and list the new indices in `LIMESTONE_KIT.variants`.

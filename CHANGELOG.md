@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_11` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface, `dev_9` talus, uneven canyon, lower camera, `dev_10` stacked ledges and a massif on the right, `dev_11` fish steer around rocks). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: accepted and promoted as clean `v0.25.0` from `v0.25.0-dev_11` on Jeremy's go-ahead (2026-10-17, branch `feat/reef-landscape`, #130; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface, `dev_9` talus, uneven canyon, lower camera, `dev_10` stacked ledges and a massif on the right, `dev_11` fish steer around rocks). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` was a prototype with placeholder rocks; `dev_6` kitbashed Jeremy's limestone rocks in. `package.json` moves to `0.25.0`.
 
 ### Tanks
 

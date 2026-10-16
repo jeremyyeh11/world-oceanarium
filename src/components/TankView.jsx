@@ -153,7 +153,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, diverMode = false, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, diverMode = false, onExitDiverMode = null, onBack, onOpenEncyclopedia }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -737,6 +737,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             biome={biome.id}
             landscape={landscapeForTank(tank)}
             fov={Number.isFinite(tank?.camera?.fov) ? tank.camera.fov : DIVER_DEFAULT_FOV}
+            onExit={onExitDiverMode}
           />
           <Biome
             key={tank?.id ?? biome.id}
@@ -1094,7 +1095,7 @@ function DiverHint() {
   return (
     <div className="focus-hint diver-hint" style={{ zIndex: 30 }}>
       <span className="focus-hint-title">Diver camera</span>
-      <span className="focus-hint-controls focus-hint-controls-desktop">WASD swim · Q/E sink/rise · shift faster · drag to look · esc to surface</span>
+      <span className="focus-hint-controls focus-hint-controls-desktop">WASD swim · Q/E sink/rise · shift faster · mouse to look · esc to exit</span>
       <span className="focus-hint-controls focus-hint-controls-mobile">drag to look · two fingers to drift · spread to swim</span>
     </div>
   )

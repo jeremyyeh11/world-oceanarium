@@ -10,13 +10,13 @@ Versioning convention notes:
 
 ## v0.26.0 — Diver camera
 
-Status: in development (`v0.26.0-dev_1`, branch `feat/diver-camera`). Jeremy (2026-10-17): a free camera, WASD and mouse, from the menu like screenshot mode; movement eases in and out with a delayed drag so it stays smooth. The authored views stay slow or static; this is the way to any other angle.
+Status: in development (`v0.26.0-dev_2`, branch `feat/diver-camera`, #131; `dev_2` faster swim, slower mouse, pointer lock, Esc to exit). Jeremy (2026-10-17): a free camera, WASD and mouse, from the menu like screenshot mode; movement eases in and out with a delayed drag so it stays smooth. The authored views stay slow or static; this is the way to any other angle.
 
 ### Camera
 
-- New diver camera (`src/components/DiverCamera.jsx`), toggled from the controls menu (dive-mask key, below screenshot). Esc or the same key surfaces; the resting camera then eases back from wherever the diver stopped.
-- Desktop: WASD/arrows swim (W follows the look direction, pitch included), Q/E (or C/Space) sink/rise, Shift for the boost, drag to look, wheel to glide forward/back. Phone: one finger drags the view, two fingers drift, spreading them swims forward.
-- Smoothing: every input passes two exponential stages (move rate 2.4, look rate 4.4), so a key press is an S-curve: about 1.6 s to cruise speed, a ~2 s glide to a stop after release; a mouse flick lands over ~0.9 s. Cruise 2 WU/s (0.5 m/s), boost ×2.5.
+- New diver camera (`src/components/DiverCamera.jsx`), toggled from the controls menu (dive-mask key, below screenshot). Esc exits; the resting camera then eases back from wherever the diver stopped.
+- Desktop: WASD/arrows swim (W follows the look direction, pitch included), Q/E (or C/Space) sink/rise, Shift for the boost, wheel to glide forward/back. The mouse looks through pointer lock (`dev_2`, Jeremy: "hide cursor and dont require a click and drag"): no cursor, no button, 0.0021 rad per pixel. The browser spends Esc on releasing the lock, so a release while the page has focus exits the diver; a release from switching windows does not, and a click re-locks. Where the lock is refused (an embedded frame), plain mouse movement still looks. Phone: one finger drags the view, two fingers drift, spreading them swims forward.
+- Smoothing: every input passes two exponential stages (move rate 2.4, look rate 4.4), so a key press is an S-curve: about 1.6 s to cruise speed, a ~2 s glide to a stop after release; a mouse flick lands over ~0.9 s. Cruise 3 WU/s (0.75 m/s; 2 WU/s in `dev_1`), boost ×2.5.
 - Stays in the water: under the surface (0.35 WU clearance), 1 WU over the sand (`floorHeightAt`), out of the rocks (`pushOutOfRocks`), inside x ±60, z -70 to 30. Hitting a limit stops that part of the motion rather than bouncing.
 - While diving, fish use the follow cam's close-range LOD, fish picks and stage panning are off, and the dock, search and Atlas are hidden; screenshot mode still works on top of it.
 

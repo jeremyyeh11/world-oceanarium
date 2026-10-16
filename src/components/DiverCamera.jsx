@@ -5,21 +5,23 @@ import { SURFACE_PLANE_Y } from './WaterSurface'
 import { floorHeightAt } from './Environment'
 import { pushOutOfRocks } from './rockObstacles'
 
-// Diver camera: a free camera swum with WASD (or two fingers on a phone) and aimed by
-// dragging. Everything an input asks for passes through two exponential stages before it
-// reaches the camera, so a step in input comes out as an S-curve: the camera eases into a
-// swim, carries a little drift after the key is let go, and eases to a stop. Look works the
-// same way, so a fast flick of the mouse still lands as a slow pan.
+// Diver camera: a free camera swum with WASD (or two fingers on a phone) and aimed with the
+// mouse (pointer lock: no cursor, no drag) or a finger drag. Everything an input asks for
+// passes through two exponential stages before it reaches the camera, so a step in input
+// comes out as an S-curve: the camera eases into a swim, carries a little drift after the
+// key is let go, and eases to a stop. Look works the same way, so a fast flick of the mouse
+// still lands as a slow pan.
 //
-// Speeds follow the tank's scale (1 WU = 25 cm): a cruise of 2 WU/s is a calm 0.5 m/s fin
-// pace, and the boost is a steady 1.25 m/s, never a dash.
-const SWIM_SPEED = 2
+// Speeds follow the tank's scale (1 WU = 25 cm): a cruise of 3 WU/s is an easy 0.75 m/s fin
+// pace, and the boost is a steady 1.9 m/s, never a dash.
+const SWIM_SPEED = 3
 const SWIM_BOOST = 2.5
 // Damping rates of the two move stages and the two look stages. Two equal stages of rate k
 // reach ~90% of a step in about 3.9 / k seconds: ~1.6 s for a swim, ~0.9 s for a look.
 const MOVE_DAMPING = 2.4
 const LOOK_DAMPING = 4.4
-const MOUSE_LOOK_SPEED = 0.0032
+// Radians per pixel of locked-mouse movement.
+const MOUSE_LOOK_SPEED = 0.0021
 const TOUCH_LOOK_SPEED = 0.0042
 // Two-finger touch: dragging the pair strafes/rises, spreading it swims forward. Each pixel
 // adds this much velocity (WU/s) to the first stage, so a gesture reads as a push that the
@@ -83,10 +85,12 @@ function touchCentroidAndSpread(points) {
   return { x, y, spread: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0 }
 }
 
-export default function DiverCamera({ active = false, biome = 'ocean', landscape = null, fov = 61 }) {
+export default function DiverCamera({ active = false, biome = 'ocean', landscape = null, fov = 61, onExit = null }) {
   const camera = useThree(state => state.camera)
   const domElement = useThree(state => state.gl.domElement)
   const state = useRef(null)
+  const onExitRef = useRef(onExit)
+  onExitRef.current = onExit
 
   // Input lives in a ref: the frame loop reads it, the listeners write it, nothing re-renders.
   const input = useRef({
@@ -96,7 +100,6 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     lookTargetPitch: 0,
     impulse: new THREE.Vector3(),
     pointers: new Map(),
-    mouseLook: null,
     pinch: null,
   })
 
@@ -111,8 +114,35 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     current.boost = false
     current.impulse.set(0, 0, 0)
     current.pointers.clear()
-    current.mouseLook = null
     current.pinch = null
+
+    // A mouse looks through pointer lock: the cursor hides and plain movement turns the view.
+    // Entering from the menu is a click, so the lock usually takes at once; if the browser
+    // refuses it, the next click on the scene asks again.
+    const finePointer = window.matchMedia?.('(pointer: fine)').matches ?? false
+    const isLocked = () => document.pointerLockElement === domElement
+    // Where the lock is refused (an embedded frame, a strict browser), plain mouse movement
+    // over the scene still looks; the cursor just stops at the window edge.
+    let lockRefused = false
+    const onPointerLockError = () => {
+      lockRefused = true
+    }
+    const requestLock = () => {
+      if (!finePointer || isLocked() || !domElement.requestPointerLock) return
+      try {
+        Promise.resolve(domElement.requestPointerLock()).catch(() => {})
+      } catch {
+        // Unsupported or refused; the next click on the scene tries again.
+      }
+    }
+
+    // The browser spends Esc on releasing the lock and never passes the key on, so a release
+    // while the page still has focus is the Esc. A release from switching away is not:
+    // the diver stays, and a click picks the lock back up.
+    const onPointerLockChange = () => {
+      if (isLocked()) return
+      if (document.visibilityState === 'visible' && document.hasFocus()) onExitRef.current?.()
+    }
 
     const onKeyDown = (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return
@@ -131,7 +161,6 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     const releaseAll = () => {
       current.keys.clear()
       current.boost = false
-      current.mouseLook = null
       current.pinch = null
       current.pointers.clear()
     }
@@ -143,12 +172,11 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
 
     const onPointerDown = (event) => {
       if (event.pointerType === 'mouse') {
-        if (event.button !== 0) return
-        current.mouseLook = { pointerId: event.pointerId, x: event.clientX, y: event.clientY }
-      } else {
-        current.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
-        current.pinch = current.pointers.size >= 2 ? touchCentroidAndSpread(current.pointers) : null
+        requestLock()
+        return
       }
+      current.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+      current.pinch = current.pointers.size >= 2 ? touchCentroidAndSpread(current.pointers) : null
       try {
         domElement.setPointerCapture(event.pointerId)
       } catch {
@@ -157,12 +185,9 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     }
 
     const onPointerMove = (event) => {
-      const mouse = current.mouseLook
-      if (mouse && mouse.pointerId === event.pointerId) {
+      if (event.pointerType === 'mouse') {
         // Mouse looks the way it moves, like a first-person camera.
-        addLook(event.clientX - mouse.x, event.clientY - mouse.y, MOUSE_LOOK_SPEED)
-        mouse.x = event.clientX
-        mouse.y = event.clientY
+        if (isLocked() || lockRefused) addLook(event.movementX, event.movementY, MOUSE_LOOK_SPEED)
         return
       }
 
@@ -189,7 +214,6 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     }
 
     const onPointerUp = (event) => {
-      if (current.mouseLook?.pointerId === event.pointerId) current.mouseLook = null
       current.pointers.delete(event.pointerId)
       current.pinch = current.pointers.size >= 2 ? touchCentroidAndSpread(current.pointers) : null
       try {
@@ -213,8 +237,15 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     domElement.addEventListener('pointerup', onPointerUp)
     domElement.addEventListener('pointercancel', onPointerUp)
     domElement.addEventListener('wheel', onWheel, { passive: false })
+    document.addEventListener('pointerlockchange', onPointerLockChange)
+    document.addEventListener('pointerlockerror', onPointerLockError)
+    requestLock()
 
     return () => {
+      // Listener first, so releasing the lock on the way out is not read as an Esc.
+      document.removeEventListener('pointerlockchange', onPointerLockChange)
+      document.removeEventListener('pointerlockerror', onPointerLockError)
+      if (isLocked()) document.exitPointerLock?.()
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', releaseAll)

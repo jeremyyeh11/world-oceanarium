@@ -174,8 +174,9 @@ export default function App() {
     if (screenshotMode || diverMode) setEncyclopediaOpen(false)
   }, [screenshotMode, diverMode])
 
-  // Esc surfaces the diver. Screenshot mode and the open menu each claim Esc first, so
-  // backing out of a capture taken in diver mode leaves the diver where it was.
+  // Esc exits the diver camera. While the mouse is locked the browser spends Esc on the
+  // release and DiverCamera reports it through onExitDiverMode; this covers touch and an
+  // unlocked mouse. Screenshot mode and the open menu each claim Esc first.
   useEffect(() => {
     if (!diverMode || screenshotMode || topMenuOpen) return undefined
 
@@ -447,6 +448,8 @@ export default function App() {
     setDiverMode(current => !current)
   }
 
+  const exitDiverMode = () => setDiverMode(false)
+
   const handleAudioToggle = () => {
     if (!audioStarted) {
       startAudio()
@@ -494,7 +497,7 @@ export default function App() {
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onOpenEncyclopedia={openEncyclopedia} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onExitDiverMode={exitDiverMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (

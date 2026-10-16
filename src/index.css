@@ -893,12 +893,9 @@ body:has(.debug-panel) .app-version-footnote {
   100% { opacity: 0; }
 }
 
+/* Pointer lock hides the cursor; this covers the moment before the lock takes. */
 .tank-viewport.is-diver-mode .tank-stage {
-  cursor: grab;
-}
-
-.tank-viewport.is-diver-mode .tank-stage:active {
-  cursor: grabbing;
+  cursor: none;
 }
 
 /* Keyed to the input, not the width: a narrow desktop window still has WASD. */

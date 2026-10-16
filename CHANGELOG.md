@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rings of rock all round and more layers). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -31,6 +31,11 @@ Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landsca
   - 60 low boulders and 800 rubble chunks over the whole seabed (x ±110, z -110 to 60), so the sand under a followed fish is never bare.
   - A new `side` free zone (inner face at |x| 63 or more). `landscapePieces` places every piece (base on the sand, top capped 1.1 WU under the surface, or under y -20 where only the floor zone fits) and drops any generated piece that would reach the swim volume; a node check of all 168 pieces found none in it.
 - Draw cost: all pieces are welded (`mergeVertices`, so flat shading now comes from the material) and baked into one mesh: 129k triangles in one draw call, plus 16k for the instanced rubble, about 17% of The Reefs' 867k scene triangles. Placeholder detail is lower to match (boulder 4, bommie/wall/cliff 6, rubble 0).
+- Outcrops instead of rings, varied heights (`dev_5`, Jeremy: "all the rocks are too flat in height ... and the ring is too obvious"):
+  - The three rings are replaced by 40 outcrops from a fixed seed: clusters of one main rock and 1–3 smaller ones leaning on it, scattered over the area around the swim volume out to x ±125, z -125 to 75, at uneven spacing. Open water stays behind the canyon's centre (|x| < 12, z -47 to -72). Generated pieces may not stand in front of the camera; only the hand-placed foreground does.
+  - Main rock heights come from three bands: low mound 6–12 WU (35%), mid 12–20 (40%), tall 20–30 (25%); the smaller rocks are 25–75% of their main rock.
+  - Each piece's top limit is now its own, between 3.5 and 7 WU under the old shared cap of y 3.5 (`topJitter`), so tall pieces no longer line up just under the surface. Rock tops (pieces over 3 WU) now spread from y -19 to 2.8, median -12.7; in `dev_4` many sat exactly at 3.5.
+  - 210 pieces, none in the swim volume (node check); 158k rock triangles in one draw call (was 129k).
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

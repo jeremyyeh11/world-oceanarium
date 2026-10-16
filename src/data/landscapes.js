@@ -1,7 +1,7 @@
 // Fixed set dressing for tanks that carry a `landscape` key (see TANKS in species.js).
 //
 // The layout is identical on every load. Hero pieces are placed by hand in `rocks`; the
-// rings, floor scatter and rubble are generated, but each from a fixed seed, so they are
+// outcrops, floor scatter and rubble are generated, but each from a fixed seed, so they are
 // just as stable. Nothing here reads the tank-visit seed.
 //
 // Units are world units (1 WU = 25 cm). Fish do not avoid rocks yet, so every piece
@@ -17,9 +17,11 @@
 //   floor: anywhere, top below y -20 (under the Mola's deepest fin)
 //
 // Layers, front to back in the default view: foreground pieces, low mounds on the floor,
-// the hand-placed back canyon (z -47 to -64), then rings B and C fading into the fog. The
-// rings also wrap the sides and the space behind the camera, so a follow cam looking any
-// way sees reef at the edge of the water instead of bare sand.
+// the hand-placed back canyon (z -47 to -64), then outcrops fading into the fog. Outcrops
+// also fill the sides and the space behind the camera, so a follow cam looking any way sees
+// reef at the edge of the water instead of bare sand. They are scattered clusters (one main
+// rock with smaller ones leaning on it) at uneven spacing and heights, so no line or ring
+// shows.
 //
 // The phone frame is narrow (about ±16 WU wide at z -50, ±3 WU at z 0), so the back walls
 // start close to the centre to frame open blue between them on a 375 px screen, and the
@@ -36,11 +38,14 @@ export const LANDSCAPES = {
     floorColor: '#a39c80',
     // Height of the low sand ripples, in WU.
     floorRelief: 0.5,
-    // Rock tops stay this far below the water surface (y 4.6).
+    // Rock tops stay under the water surface (y 4.6): each piece gets its own limit between
+    // maxTop - topJitter and maxTop, so tall pieces never line up into a flat skyline.
     maxTop: 3.5,
-    // The free zones around the swim volume (see the header). The rings' near stretch runs
-    // behind the camera (z 10) at ringFront, so it never blocks the default view.
-    clearance: { side: 63, back: -47, front: -7.5, floorTop: -20, ringFront: 12 },
+    topJitter: 7,
+    // The free zones around the swim volume (see the header). Only hand-placed pieces use
+    // the foreground zone in front of the camera (z 10); a generated piece there must stand
+    // behind the camera, at outcropFront and beyond, so it never blocks the default view.
+    clearance: { side: 63, back: -47, front: -7.5, floorTop: -20, outcropFront: 12 },
     // [kind, x, z, width, height, depth, yaw (rad), seed]. x/z sit the piece's base centre
     // on the sand; width/height/depth are its bounding box in WU.
     rocks: [
@@ -92,15 +97,20 @@ export const LANDSCAPES = {
       ['boulder', 40, -34, 8, 1.5, 5, 0.8, 54],
       ['boulder', -40, -41, 9, 1.5, 6, -0.6, 55],
     ],
-    // Rings of rock around the swim volume, each walked along a rectangle `offset` WU
-    // outside the clearance (further when a piece is too wide for it), from the back
-    // round the sides to behind the camera. `back: false` skips the back stretch, which
-    // the hand-placed canyon covers; `gap` keeps open water in the middle of the back.
-    rings: [
-      { seed: 701, count: 30, offset: [3, 9], width: [8, 15], height: [16, 26], kinds: ['cliff', 'wall', 'bommie'], back: false },
-      { seed: 702, count: 28, offset: [16, 26], width: [12, 20], height: [18, 27], kinds: ['cliff', 'wall'], gap: 12 },
-      { seed: 703, count: 24, offset: [34, 46], width: [16, 26], height: [20, 28], kinds: ['cliff', 'wall'] },
-    ],
+    // Outcrops: clusters scattered over the area around the swim volume, out to `outer`.
+    // `gap` keeps open water behind the back canyon's centre (|x| < gap.x, z > gap.z) for the
+    // phone's view down the middle. Main rock heights are drawn from three bands (low mound,
+    // mid, tall spire) so neighbours differ.
+    outcrops: {
+      seed: 901,
+      count: 40,
+      outer: { x: 125, back: -125, front: 75 },
+      gap: { x: 12, z: -72 },
+      heights: [[0.35, 6, 12], [0.4, 12, 20], [0.25, 20, 30]],
+      width: [8, 18],
+      satellites: [1, 3],
+      kinds: ['cliff', 'wall', 'bommie', 'wall'],
+    },
     // Low boulders over the whole seabed, so a follow cam looking down never finds bare sand.
     scatter: { seed: 801, count: 60, xMin: -100, xMax: 100, zMin: -100, zMax: 60, width: [2, 6], height: [0.8, 1.8] },
     // Rubble chunks, 10–30 cm each, one instanced draw.
@@ -155,35 +165,46 @@ function baseHeight(landscape, x, z, width, depth) {
   )
 }
 
-function ringPieces(landscape, ring) {
-  const { side, back, ringFront } = landscape.clearance
-  const rand = seededRandom(ring.seed)
+function outcropPieces(landscape, outcrops) {
+  const { side, back, outcropFront } = landscape.clearance
+  const { outer, gap } = outcrops
+  const rand = seededRandom(outcrops.seed)
   const pick = ([min, max]) => min + rand() * (max - min)
+  const pickHeight = () => {
+    let r = rand()
+    for (const [share, min, max] of outcrops.heights) {
+      if (r < share) return min + rand() * (max - min)
+      r -= share
+    }
+    const [, min, max] = outcrops.heights[outcrops.heights.length - 1]
+    return min + rand() * (max - min)
+  }
   const pieces = []
-  for (let i = 0; i < ring.count; i++) {
-    const kind = ring.kinds[Math.floor(rand() * ring.kinds.length)]
-    const width = pick(ring.width)
-    const depth = width * (0.55 + rand() * 0.4)
-    const height = pick(ring.height)
-    const yaw = rand() * Math.PI * 2
-    // Any yaw fits inside this radius, so the piece clears the zone edge at every angle.
-    const reach = Math.hypot(width, depth) / 2 + 0.5
-    const out = Math.max(pick(ring.offset), reach)
-    const x0 = side + out
-    const zBack = back - out
-    const zFront = ringFront + out
-    const stretches = [2 * x0, zFront - zBack, 2 * x0, zFront - zBack]
-    const perimeter = stretches.reduce((sum, length) => sum + length, 0)
-    let t = ((i + 0.5 + (rand() - 0.5) * 0.7) / ring.count) * perimeter
-    let x
-    let z
-    let onBack = false
-    if (t < stretches[0]) { x = -x0 + t; z = zBack; onBack = true }
-    else if ((t -= stretches[0]) < stretches[1]) { x = x0; z = zBack + t }
-    else if ((t -= stretches[1]) < stretches[2]) { x = x0 - t; z = zFront }
-    else { t -= stretches[2]; x = -x0; z = zFront - t }
-    if (onBack && (ring.back === false || Math.abs(x) < (ring.gap ?? 0))) continue
-    pieces.push([kind, x, z, width, height, depth, yaw, ring.seed * 100 + i])
+  let placed = 0
+  // Rejection-sample cluster centres: outside the swim clearance (with a margin), inside the
+  // outer bound, and out of the back gap. Capped attempts keep this deterministic and finite.
+  for (let attempt = 0; placed < outcrops.count && attempt < outcrops.count * 40; attempt++) {
+    const cx = (rand() * 2 - 1) * outer.x
+    const cz = outer.back + rand() * (outer.front - outer.back)
+    const inside = Math.abs(cx) < side + 4 && cz > back - 4 && cz < outcropFront + 6
+    const inGap = Math.abs(cx) < gap.x && cz > gap.z && cz < back
+    if (inside || inGap) continue
+    const seedBase = outcrops.seed * 1000 + placed * 10
+    const mainWidth = pick(outcrops.width)
+    const mainHeight = pickHeight()
+    const mainYaw = rand() * Math.PI * 2
+    const kind = outcrops.kinds[Math.floor(rand() * outcrops.kinds.length)]
+    pieces.push([kind, cx, cz, mainWidth, mainHeight, mainWidth * (0.55 + rand() * 0.4), mainYaw, seedBase])
+    const satellites = Math.round(pick(outcrops.satellites))
+    for (let i = 1; i <= satellites; i++) {
+      const angle = rand() * Math.PI * 2
+      const distance = mainWidth * (0.45 + rand() * 0.45)
+      const width = mainWidth * (0.3 + rand() * 0.45)
+      const height = mainHeight * (0.25 + rand() * 0.5)
+      const satKind = height < 6 ? 'boulder' : rand() < 0.5 ? 'bommie' : 'wall'
+      pieces.push([satKind, cx + Math.cos(angle) * distance, cz + Math.sin(angle) * distance, width, height, width * (0.6 + rand() * 0.35), rand() * Math.PI * 2, seedBase + i])
+    }
+    placed++
   }
   return pieces
 }
@@ -213,25 +234,34 @@ export function pieceZone(landscape, piece) {
 }
 
 // Every piece, placed: base on the sand, height capped so its top stays under the surface
-// (and under the floor-zone limit when that is the only zone it fits). Pieces that would
-// still reach the swim volume are dropped, so the generated parts can never clash.
+// (at a per-piece limit, see topJitter) and under the floor-zone limit when that is the only
+// zone it fits. Pieces that would still reach the swim volume are dropped, and so are
+// generated pieces in front of the camera, so the generated parts can never clash.
 export function landscapePieces(landscape) {
-  const raw = [
-    ...landscape.rocks,
-    ...(landscape.rings ?? []).flatMap(ring => ringPieces(landscape, ring)),
+  const generated = [
+    ...(landscape.outcrops ? outcropPieces(landscape, landscape.outcrops) : []),
     ...(landscape.scatter ? scatterPieces(landscape, landscape.scatter) : []),
   ]
+  const raw = [
+    ...landscape.rocks.map(rock => [rock, false]),
+    ...generated.map(rock => [rock, true]),
+  ]
+  const { clearance } = landscape
   const pieces = []
-  for (const [kind, x, z, width, rawHeight, depth, yaw, seed] of raw) {
+  for (const [[kind, x, z, width, rawHeight, depth, yaw, seed], isGenerated] of raw) {
     const base = baseHeight(landscape, x, z, width, depth)
     const { hx, hz } = footprint(width, depth, yaw)
-    const openZone = z + hz <= landscape.clearance.back || Math.abs(x) - hx >= landscape.clearance.side || z - hz >= landscape.clearance.front
-    const topLimit = openZone ? landscape.maxTop : landscape.clearance.floorTop - 0.05
+    const openZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side || z - hz >= clearance.front
+    const topLimit = openZone
+      ? landscape.maxTop - seededRandom(seed)() * (landscape.topJitter ?? 0)
+      : clearance.floorTop - 0.05
     let height = rawHeight
     if (base - pieceSink(height) + height > topLimit) height = topLimit - base + pieceSink(height)
     const y = base - pieceSink(height)
     const piece = { kind, x, y, z, width, height, depth, yaw, seed, hx, hz, top: y + height }
-    if (pieceZone(landscape, piece) === 'clash') continue
+    const zone = pieceZone(landscape, piece)
+    if (zone === 'clash') continue
+    if (isGenerated && zone === 'foreground' && z - hz < clearance.outcropFront) continue
     pieces.push(piece)
   }
   return pieces

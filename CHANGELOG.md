@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.26.0 — Diver camera
 
-Status: in development (`v0.26.0-dev_2`, branch `feat/diver-camera`, #131; `dev_2` faster swim, slower mouse, pointer lock, Esc to exit). Jeremy (2026-10-17): a free camera, WASD and mouse, from the menu like screenshot mode; movement eases in and out with a delayed drag so it stays smooth. The authored views stay slow or static; this is the way to any other angle.
+Status: accepted and promoted as clean `v0.26.0` from `v0.26.0-dev_2` on Jeremy's go-ahead (2026-10-17, branch `feat/diver-camera`, #131; `dev_1` the diver camera, `dev_2` faster swim, slower mouse, pointer lock, Esc to exit). `package.json` and `package-lock.json` move to `0.26.0`. Jeremy (2026-10-17): a free camera, WASD and mouse, from the menu like screenshot mode; movement eases in and out with a delayed drag so it stays smooth. The authored views stay slow or static; this is the way to any other angle.
 
 ### Camera
 

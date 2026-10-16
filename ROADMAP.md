@@ -15,11 +15,11 @@ Status labels:
 
 ### Diver camera
 
-Status: `Current in development` (`v0.26.0-dev_2`, branch `feat/diver-camera`, #131). Jeremy (2026-10-17): free cam from the menu, WASD + mouse, eased drag so motion stays smooth.
+Status: shipped in clean `v0.26.0` (2026-10-17, from `v0.26.0-dev_2`, branch `feat/diver-camera`, #131). Jeremy (2026-10-17): free cam from the menu, WASD + mouse, eased drag so motion stays smooth. `Archive candidate`; the open item below carries over.
 
-- [x] Diver camera with two-stage eased move and look, menu toggle, Esc to surface, phone touch gestures (`dev_1`).
+- [x] Diver camera with two-stage eased move and look, menu toggle, Esc to exit, phone touch gestures (`dev_1`).
 - [x] Jeremy review of `dev_1`: WASD a bit faster, mouse a bit slower, hide cursor and no click-drag, "esc to exit" → `dev_2` (3 WU/s, 0.0021 rad/px, pointer lock).
-- [ ] Jeremy review of `dev_2`: pointer lock feel on desktop, touch gestures on phone.
+- [ ] `Backlog`: tune on device if needed — pointer lock feel on desktop Chrome/Safari, two-finger drift/spread on phone (neither could be exercised in the preview pane).
 
 ### The Reefs landscape
 

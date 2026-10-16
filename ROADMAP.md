@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Situational fish lighting
+
+Status: shipped in clean `v0.24.0` (2026-10-16, from `v0.24.0-dev_4`, branch `feat/situational-fish-lighting`, #128). The open items below carry over. Jeremy (2026-10-09): fish lighting "too flat and similar everywhere"; wants a mix of top-lit, front-lit and back-lit fish.
+
+- [x] Shared top/back/front light term on GLB fish and sardine LODs (`src/utils/fishSituationalLight.js`).
+- [x] Jeremy desktop look at `dev_1` (2026-10-15): "looks great", wants a little more contrast → `dev_2`.
+- [ ] Jeremy review of `dev_2` on phone: contrast, silhouette and edge glow, and whether species still read in the default view.
+- [x] Large fish shade the fish under them, shader-only (`dev_3`): sunfish and mako, four shared caster slots.
+- [ ] Jeremy review of `dev_3`: is the shadow under the sunfish strong enough at viewing distance? Strength `0.7` (`uFishShadowStrength`) and the 1 × 0.6 body-length footprint are a first pass.
+- [ ] See a sardine school pass under the mako's or the whale shark's shadow (the sardine shader takes it, not yet seen live). The whale shark casts from `dev_4` on.
+- [ ] Check mobile frame rate with a full tank (an extra noise lookup and a few ALU ops per fish fragment).
+- [ ] Optional follow-up: line the light pools up with the god-ray shafts.
+
 ### Whale Shark
 
 Status: shipped in clean `v0.23.0` (2026-10-16, from `v0.24.0-dev_5`, branch `feat/rhincodon-typus`). The open items below carry over. Jeremy (2026-10-16): a juvenile in the Open Sea, bigger than the mako. 6 m (24 WU) juveniles only; see the species entry.

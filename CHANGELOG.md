@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_6` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -36,6 +36,12 @@ Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landsca
   - Main rock heights come from three bands: low mound 6–12 WU (35%), mid 12–20 (40%), tall 20–30 (25%); the smaller rocks are 25–75% of their main rock.
   - Each piece's top limit is now its own, between 3.5 and 7 WU under the old shared cap of y 3.5 (`topJitter`), so tall pieces no longer line up just under the surface. Rock tops (pieces over 3 WU) now spread from y -19 to 2.8, median -12.7; in `dev_4` many sat exactly at 3.5.
   - 210 pieces, none in the swim volume (node check); 158k rock triangles in one draw call (was 129k).
+- Jeremy's limestone rocks, kitbashed (`dev_6`, Jeremy: "replace with the rocks in this ... principle of kitbashing ... reproject uvs"):
+  - The placeholder rocks are gone. Every piece and rubble chunk is now one of the nine rocks in Jeremy's `limestone boulders.glb`, spun, tilted (cliffs up to 0.12 rad, boulders 0.45; walls and boulders may also lie on a side or upside down; rubble tumbles freely) and stretched non-uniformly into its box, all from the piece's seed, so the layout stays fixed.
+  - Best fit: each piece tries eight rock-and-orientation candidates and keeps the one needing the least uneven stretch, so tall slots get tall rocks. No axis stretches more than 2× another (2.3× bommies, 2.6× cliffs); beyond that the longer axes shrink instead, so a piece only ever gets smaller than its box and keeps its clearance.
+  - UVs are re-projected per piece after the stretch, cube-style in world space (Blender's Cube Projection): one tile of the GWC Rock 008 texture set (colour, normal, roughness) every 6 WU (1.5 m) on every rock, with a random texture offset per piece. Measured over every triangle: linear texture density 0.79–1.0 of the target (1st–99th percentile, median 0.93), the low end being cube projection's slant on faces between two axes (floor 0.76).
+  - `scripts/build-landscape-kit.py` (headless Blender, Jeremy's open scene untouched) welds each rock, decimates it to three detail levels, and resizes the textures: rockN_hi (at most 3,000 triangles) for pieces within 30 WU of the camera, rockN_lo (600, or 120 for the small rocks) further out, and a 40-triangle rubble chunk. Kit 1.0 MB plus 0.96 MB of 1024 px textures, down from 9.8 MB. A first build decimated the rocks without welding them and tore the distant ones into floating shards (Jeremy: "rocks are broken"); welding fixed it.
+  - Rendering: the pieces bake into 18 chunk meshes 60 WU square, one draw call each, so the frustum culls whatever is off screen. 139k triangles and 338k vertices in all; the default view draws 114k and 280k. Rubble is 600 chunks (was 800).
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

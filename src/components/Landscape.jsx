@@ -1,165 +1,208 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
-import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { landscapePieces, sandHeight, seededRandom } from '../data/landscapes'
+import { useGLTF, useTexture } from '@react-three/drei'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
 
-// Placeholder rocks for a tank landscape (src/data/landscapes.js), standing in for the
-// modelled GLBs until they land. Each piece is a seeded, displaced icosahedron, so the same
-// seed always builds the same rock. All pieces are baked into one mesh (one draw call); the
-// rubble is a second, instanced one.
-//
-// taper widens the top (a bommie's overhang); flatBottom squashes everything below it so the
-// rock sits flat on the sand instead of balancing on a point. column pushes the sphere out
-// toward a cylinder, so a tall cliff keeps steep sides and a broad top instead of tapering
-// to a spike.
-// detail sets the triangle count, 20 × (detail + 1)²: with about 170 pieces in one tank,
-// keep it low enough for phones (about 130k triangles for The Reefs).
-const ROCK_PROFILES = {
-  boulder: { detail: 4, roughness: 0.42, taper: 0, flatBottom: -0.4 },
-  bommie: { detail: 6, roughness: 0.5, taper: 0.55, flatBottom: -0.7 },
-  wall: { detail: 6, roughness: 0.55, taper: 0.35, flatBottom: -0.55 },
-  cliff: { detail: 6, roughness: 0.42, taper: 0.1, flatBottom: -0.85, column: 0.75 },
-  rubble: { detail: 0, roughness: 0.4, taper: 0, flatBottom: -0.3 },
+// Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
+// modelled rocks. Every piece and rubble chunk is transformed, given fresh UVs and baked into
+// a few chunk meshes (one draw call each, culled when off screen).
+
+const scratchA = new THREE.Vector3()
+const scratchB = new THREE.Vector3()
+const scratchC = new THREE.Vector3()
+
+// Base orientations a rock can be laid in before its spin: upright, on either side, or upside
+// down. Tall kinds stay upright so cliffs and bommies keep their silhouette.
+const LAYS = [[0, 0, 0], [Math.PI / 2, 0, 0], [-Math.PI / 2, 0, 0], [0, 0, Math.PI / 2], [0, 0, -Math.PI / 2], [Math.PI, 0, 0]]
+const UPRIGHT_KINDS = new Set(['cliff', 'bommie'])
+const FIT_CANDIDATES = 8
+const UP = new THREE.Vector3(0, 1, 0)
+
+// Size of a rock's bounds once rotated.
+function rotatedSize(geometry, quaternion) {
+  const position = geometry.attributes.position
+  const min = new THREE.Vector3(Infinity, Infinity, Infinity)
+  const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity)
+  for (let i = 0; i < position.count; i++) {
+    scratchA.fromBufferAttribute(position, i).applyQuaternion(quaternion)
+    min.min(scratchA)
+    max.max(scratchA)
+  }
+  return max.sub(min)
 }
 
-const ROCK_COLOR = '#b3a88e'
-const scratch = new THREE.Vector3()
+// How unevenly a rock of this size has to stretch to fill a piece's box (1 = uniform).
+function stretchOf(size, piece) {
+  const scales = [piece.width / size.x, piece.height / size.y, piece.depth / size.z]
+  return Math.max(...scales) / Math.min(...scales)
+}
 
-// Builds a rock in a unit box: x and z span [-0.5, 0.5], y spans [0, 1] with the base at 0,
-// so a scale of [width, height, depth] gives the piece its size in WU directly.
-function makeRockGeometry(kind, seed) {
-  const profile = ROCK_PROFILES[kind] ?? ROCK_PROFILES.boulder
-  const rand = seededRandom(seed)
-  const octaves = [0, 1, 2, 3].map(() => [
-    0.8 + rand() * 0.8, 0.8 + rand() * 0.8, 0.8 + rand() * 0.8,
-    rand() * Math.PI * 2, rand() * Math.PI * 2, rand() * Math.PI * 2,
-  ])
-  // Icosahedron geometry is non-indexed: a vertex shared by several faces exists once per
-  // face. The displacement is a smooth function of position, so those copies move together
-  // and the surface never cracks; they are welded afterwards to cut the vertex count about
-  // six-fold. The material's flatShading keeps the faceted look without split normals.
-  const source = new THREE.IcosahedronGeometry(1, profile.detail)
-  const sourcePos = source.attributes.position
-  for (let i = 0; i < sourcePos.count; i++) {
-    scratch.fromBufferAttribute(sourcePos, i).normalize()
-    let n = 0
-    let amp = 1
-    let freq = 1.6
-    for (const [fx, fy, fz, px, py, pz] of octaves) {
-      n += amp * 0.5 * (
-        Math.sin(scratch.x * freq * fx + px) * Math.sin(scratch.y * freq * fy + py)
-        + Math.sin(scratch.z * freq * fz + pz)
-      )
-      amp *= 0.55
-      freq *= 2.3
-    }
-    if (profile.column) {
-      const ring = Math.hypot(scratch.x, scratch.z)
-      const widen = THREE.MathUtils.lerp(1, 1 / Math.max(ring, 0.3), profile.column)
-      scratch.x *= widen
-      scratch.z *= widen
-    }
-    scratch.multiplyScalar((1 + profile.roughness * n) * (1 + profile.taper * scratch.y))
-    if (scratch.y < profile.flatBottom) scratch.y = profile.flatBottom + (scratch.y - profile.flatBottom) * 0.15
-    sourcePos.setXYZ(i, scratch.x, scratch.y, scratch.z)
+// Seeded per-piece choices: which kit rock, how it is laid, spun and tilted before it is
+// fitted to its box, and where its texture starts. Several rock-and-orientation candidates
+// are tried and the one needing the least uneven stretch wins, so a tall slot gets a tall
+// rock and a low mound gets a rock laid on its side rather than a squashed spire.
+function pieceLook(kit, piece, rocks) {
+  const rand = seededRandom((piece.seed * 2654435761) >>> 0)
+  const variants = kit.variants[piece.kind] ?? kit.variants.boulder
+  const uvOffset = [rand(), rand()]
+  if (piece.kind === 'rubble') {
+    const rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(rand() * Math.PI * 2, rand() * Math.PI * 2, rand() * Math.PI * 2))
+    return { rock: variants[Math.floor(rand() * variants.length)], rotation, uvOffset }
   }
-  source.deleteAttribute('normal')
-  source.deleteAttribute('uv')
-  const geometry = mergeVertices(source)
-  source.dispose()
-  const pos = geometry.attributes.position
+  const tilt = kit.tilt[piece.kind] ?? 0.2
+  let best = null
+  for (let c = 0; c < FIT_CANDIDATES; c++) {
+    const rock = variants[Math.floor(rand() * variants.length)]
+    const lay = UPRIGHT_KINDS.has(piece.kind) ? LAYS[0] : LAYS[Math.floor(rand() * LAYS.length)]
+    const rotation = new THREE.Quaternion().setFromAxisAngle(UP, rand() * Math.PI * 2)
+      .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler((rand() * 2 - 1) * tilt, 0, (rand() * 2 - 1) * tilt)))
+      .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(...lay)))
+    const stretch = stretchOf(rotatedSize(rocks[`rock${rock}_lo`], rotation), piece)
+    if (!best || stretch < best.stretch) best = { rock, rotation, stretch }
+  }
+  return { ...best, uvOffset }
+}
 
+// Fits a kit rock to a piece: rotate it, squeeze its bounds into the piece's box with the base
+// at 0, then yaw and place it. No axis stretches more than maxStretch times another: the
+// longer axes are shrunk instead, so a piece only ever gets smaller than its box and its
+// clearance from the swim volume holds.
+function placeRock(source, piece, rotation, maxStretch) {
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', source.attributes.position.clone())
+  geometry.setAttribute('normal', source.attributes.normal.clone())
+  geometry.setIndex(source.index.clone())
+  geometry.applyQuaternion(rotation)
   geometry.computeBoundingBox()
   const box = geometry.boundingBox
   const size = box.getSize(new THREE.Vector3())
   const center = box.getCenter(new THREE.Vector3())
+  const scales = [piece.width / size.x, piece.height / size.y, piece.depth / size.z]
+  const cap = Math.min(...scales) * maxStretch
   geometry.translate(-center.x, -box.min.y, -center.z)
-  geometry.scale(1 / size.x, 1 / size.y, 1 / size.z)
-  geometry.computeVertexNormals()
-
-  // Light tops, dark undersides and base: reads as sunlit rock with shaded overhangs even
-  // before textures.
-  const normals = geometry.attributes.normal
-  const colors = new Float32Array(pos.count * 3)
-  const tint = 0.94 + rand() * 0.12
-  for (let i = 0; i < pos.count; i++) {
-    const shade = THREE.MathUtils.clamp(0.5 + normals.getY(i) * 0.28 + pos.getY(i) * 0.22, 0.2, 1)
-    colors[i * 3] = shade * tint
-    colors[i * 3 + 1] = shade
-    colors[i * 3 + 2] = shade * (2 - tint)
-  }
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  geometry.scale(...scales.map(scale => Math.min(scale, cap)))
+  geometry.rotateY(piece.yaw)
+  geometry.translate(piece.x, piece.y, piece.z)
   return geometry
 }
 
-// Every placed piece, baked into one geometry.
-function makeLandscapeGeometry(landscape) {
-  const matrix = new THREE.Matrix4()
-  const position = new THREE.Vector3()
-  const rotation = new THREE.Quaternion()
-  const scale = new THREE.Vector3()
-  const up = new THREE.Vector3(0, 1, 0)
-  const parts = landscapePieces(landscape).map(piece => {
-    const part = makeRockGeometry(piece.kind, piece.seed)
-    part.applyMatrix4(matrix.compose(
-      position.set(piece.x, piece.y, piece.z),
-      rotation.setFromAxisAngle(up, piece.yaw),
-      scale.set(piece.width, piece.height, piece.depth),
-    ))
-    return part
-  })
-  const merged = mergeGeometries(parts)
-  parts.forEach(part => part.dispose())
-  return merged
+// Cube-projects UVs in world space, after the rock has been stretched, so the texture keeps
+// one size on every rock (Blender's Cube Projection). Each triangle maps along the axis its
+// face points most along; a vertex shared by triangles on different axes is split, so each
+// projection keeps its own UV. Signs follow the face direction so the normal map's bumps
+// stay the right way round on opposite faces.
+function projectUVs(geometry, tile, [offsetU, offsetV]) {
+  const position = geometry.attributes.position
+  const normal = geometry.attributes.normal
+  const index = geometry.index.array
+  const remap = new Map()
+  const positions = []
+  const normals = []
+  const uvs = []
+  const indices = new Uint32Array(index.length)
+  for (let t = 0; t < index.length; t += 3) {
+    scratchA.fromBufferAttribute(position, index[t])
+    scratchB.fromBufferAttribute(position, index[t + 1]).sub(scratchA)
+    scratchC.fromBufferAttribute(position, index[t + 2]).sub(scratchA)
+    scratchB.cross(scratchC)
+    const ax = Math.abs(scratchB.x)
+    const ay = Math.abs(scratchB.y)
+    const az = Math.abs(scratchB.z)
+    const axis = ax >= ay && ax >= az ? 0 : ay >= az ? 1 : 2
+    const sign = Math.sign(axis === 0 ? scratchB.x : axis === 1 ? scratchB.y : scratchB.z) || 1
+    for (let k = 0; k < 3; k++) {
+      const vertex = index[t + k]
+      const key = vertex * 6 + axis * 2 + (sign > 0 ? 1 : 0)
+      let mapped = remap.get(key)
+      if (mapped === undefined) {
+        mapped = positions.length / 3
+        remap.set(key, mapped)
+        const x = position.getX(vertex)
+        const y = position.getY(vertex)
+        const z = position.getZ(vertex)
+        positions.push(x, y, z)
+        normals.push(normal.getX(vertex), normal.getY(vertex), normal.getZ(vertex))
+        const [u, v] = axis === 0 ? [-sign * z, y] : axis === 1 ? [x, -sign * z] : [sign * x, y]
+        uvs.push(u / tile + offsetU, v / tile + offsetV)
+      }
+      indices[t + k] = mapped
+    }
+  }
+  const projected = new THREE.BufferGeometry()
+  projected.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  projected.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
+  projected.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+  projected.setIndex(new THREE.BufferAttribute(indices, 1))
+  return projected
 }
 
-function Rubble({ landscape, material }) {
-  const ref = useRef()
-  const { count, seed, xMin, xMax, zMin, zMax, sizeMin, sizeMax } = landscape.rubble
-  const geometry = useMemo(() => makeRockGeometry('rubble', seed), [seed])
-  useEffect(() => () => geometry.dispose(), [geometry])
-
-  useLayoutEffect(() => {
-    const mesh = ref.current
-    if (!mesh) return
-    const rand = seededRandom(seed + 1)
-    const matrix = new THREE.Matrix4()
-    const position = new THREE.Vector3()
-    const rotation = new THREE.Quaternion()
-    const euler = new THREE.Euler()
-    const scale = new THREE.Vector3()
-    for (let i = 0; i < count; i++) {
-      const x = xMin + rand() * (xMax - xMin)
-      const z = zMin + rand() * (zMax - zMin)
-      const s = sizeMin + rand() * (sizeMax - sizeMin)
-      scale.set(s * (0.8 + rand() * 0.5), s * (0.45 + rand() * 0.35), s * (0.8 + rand() * 0.5))
-      position.set(x, sandHeight(landscape, x, z) - scale.y * 0.25, z)
-      rotation.setFromEuler(euler.set((rand() - 0.5) * 0.4, rand() * Math.PI * 2, (rand() - 0.5) * 0.4))
-      mesh.setMatrixAt(i, matrix.compose(position, rotation, scale))
-    }
-    mesh.instanceMatrix.needsUpdate = true
-    mesh.computeBoundingSphere()
-    // A new geometry or material rebuilds the instancedMesh (they are its args), which
-    // resets every instance to the origin, so the placement must rerun with it.
-  }, [landscape, geometry, material, count, seed, xMin, xMax, zMin, zMax, sizeMin, sizeMax])
-
-  return <instancedMesh ref={ref} args={[geometry, material, count]} />
+function makeLandscapeChunks(landscape, rocks) {
+  const { kit } = landscape
+  const camera = new THREE.Vector3(0, -3.35, 10)
+  const pieces = [...landscapePieces(landscape), ...(landscape.rubble ? rubblePieces(landscape) : [])]
+  const chunks = new Map()
+  for (const piece of pieces) {
+    const look = pieceLook(kit, piece, rocks)
+    const near = camera.distanceTo(scratchA.set(piece.x, piece.y + piece.height / 2, piece.z)) < kit.hiDetailDistance
+    const lod = piece.kind === 'rubble' ? 'rubble' : near ? 'hi' : 'lo'
+    const source = rocks[`rock${look.rock}_${lod}`] ?? rocks[`rock${look.rock}_lo`]
+    const placed = placeRock(source, piece, look.rotation, piece.kind === 'rubble' ? Infinity : kit.maxStretch[piece.kind] ?? 2)
+    const projected = projectUVs(placed, kit.textureTileWU, look.uvOffset)
+    placed.dispose()
+    const key = `${Math.floor(piece.x / kit.chunkWU)}:${Math.floor(piece.z / kit.chunkWU)}`
+    if (!chunks.has(key)) chunks.set(key, [])
+    chunks.get(key).push(projected)
+  }
+  return [...chunks].map(([key, parts]) => {
+    const merged = mergeGeometries(parts)
+    parts.forEach(part => part.dispose())
+    merged.computeBoundingSphere()
+    return { key, geometry: merged }
+  })
 }
 
 export default function Landscape({ landscape }) {
-  const material = useMemo(() => new THREE.MeshStandardMaterial({
-    color: ROCK_COLOR, roughness: 0.95, metalness: 0, flatShading: true, vertexColors: true, envMapIntensity: 0.35,
-  }), [])
-  const geometry = useMemo(() => makeLandscapeGeometry(landscape), [landscape])
+  const { kit } = landscape
+  const gltf = useGLTF(kit.path)
+  const textures = useTexture(kit.textures)
+  const rocks = useMemo(() => {
+    const byName = {}
+    gltf.scene.traverse(object => { if (object.isMesh) byName[object.name] = object.geometry })
+    return byName
+  }, [gltf])
+
+  const material = useMemo(() => {
+    for (const texture of Object.values(textures)) {
+      texture.wrapS = THREE.RepeatWrapping
+      texture.wrapT = THREE.RepeatWrapping
+      texture.anisotropy = 4
+      texture.needsUpdate = true
+    }
+    textures.color.colorSpace = THREE.SRGBColorSpace
+    // Roughness is read from the green channel; the greyscale map has it in all three.
+    return new THREE.MeshStandardMaterial({
+      map: textures.color, normalMap: textures.normal, roughnessMap: textures.roughness,
+      roughness: 1, metalness: 0, envMapIntensity: 0.35,
+    })
+  }, [textures])
+  const chunks = useMemo(() => makeLandscapeChunks(landscape, rocks), [landscape, rocks])
 
   // Built imperatively, so R3F won't dispose them; free them when the tank unmounts.
   useEffect(() => () => material.dispose(), [material])
-  useEffect(() => () => geometry.dispose(), [geometry])
+  useEffect(() => () => chunks.forEach(chunk => chunk.geometry.dispose()), [chunks])
 
   return (
     <group>
-      <mesh geometry={geometry} material={material} />
-      {landscape.rubble && <Rubble landscape={landscape} material={material} />}
+      {chunks.map(chunk => <mesh key={chunk.key} geometry={chunk.geometry} material={material} />)}
     </group>
   )
+}
+
+// Fetch the rock kits with the rest of the tank's assets, so the landing gate's progress
+// covers them and the first visit to a landscaped tank does not pop the rocks in late.
+for (const { kit } of Object.values(LANDSCAPES)) {
+  if (!kit) continue
+  useGLTF.preload(kit.path)
+  useTexture.preload(Object.values(kit.textures))
 }

@@ -28,11 +28,49 @@
 // foreground pieces nearest the centre poke into the phone's bottom corners. The outer
 // pieces fill the sides for wide screens.
 //
-// Prototype: each piece renders as a procedural placeholder rock (Landscape.jsx) until the
-// modelled GLBs land. `kind` names the model it stands in for: bommie, boulder, wall, cliff.
+// Rocks are kitbashed from a small kit of modelled rocks (`kit`): each piece picks one rock
+// by its seed, spins and tilts it, and stretches it non-uniformly into its own box, so a
+// handful of models gives endless different shapes. `kind` only biases which rocks fit a
+// slot: tall ones for cliffs and bommies, wide ones for walls, small ones for boulders.
+
+// Jeremy's limestone boulders (`_blender models/landscape/limestone boulders.glb`), cut down
+// to three detail levels per rock with the textures resized to 1024 px. rockN_hi is the
+// close-up mesh (at most 3000 triangles), rockN_lo the distant one (about 600; 120 for the
+// small rocks) and rockN_rubble a 40-triangle chunk of the three small rocks.
+const LIMESTONE_KIT = {
+  path: '/models/landscape/limestone-boulders.glb',
+  textures: {
+    color: '/models/landscape/limestone-color.jpg',
+    normal: '/models/landscape/limestone-normal.jpg',
+    roughness: '/models/landscape/limestone-roughness.jpg',
+  },
+  // UVs are re-projected per piece after it is stretched, so the texture repeats every
+  // textureTileWU on every rock whatever its scale.
+  textureTileWU: 6,
+  // Pieces whose centre is within this distance of the default camera use the _hi meshes.
+  hiDetailDistance: 30,
+  // The baked landscape is split into square chunks this many WU wide, so the frustum culls
+  // whatever is behind or beside the camera instead of drawing every rock every frame.
+  chunkWU: 60,
+  // Rock indices (0–8) each kind draws from. 1 and 2 are tall, 3, 4 and 8 wide, 5–7 small.
+  variants: {
+    cliff: [1, 2, 0],
+    bommie: [2, 0, 1, 7],
+    wall: [3, 4, 8, 0],
+    boulder: [5, 6, 7, 0, 3],
+    rubble: [5, 6, 7],
+  },
+  // Largest tilt off upright, in radians; rubble tumbles freely.
+  tilt: { cliff: 0.12, bommie: 0.2, wall: 0.18, boulder: 0.45 },
+  // Most uneven stretch allowed per kind: no axis scales more than this many times another.
+  // Beyond it rocks read as stretched spikes or squashed pancakes; tall kinds get a little
+  // more so the edge cliffs keep their height.
+  maxStretch: { cliff: 2.6, bommie: 2.3, wall: 2, boulder: 2 },
+}
 
 export const LANDSCAPES = {
   reefs: {
+    kit: LIMESTONE_KIT,
     // Two metres below the Mola's 14 WU dive floor, so its fins clear the sand.
     floorY: -22,
     floorColor: '#a39c80',
@@ -113,8 +151,8 @@ export const LANDSCAPES = {
     },
     // Low boulders over the whole seabed, so a follow cam looking down never finds bare sand.
     scatter: { seed: 801, count: 60, xMin: -100, xMax: 100, zMin: -100, zMax: 60, width: [2, 6], height: [0.8, 1.8] },
-    // Rubble chunks, 10–30 cm each, one instanced draw.
-    rubble: { count: 800, seed: 4127, xMin: -110, xMax: 110, zMin: -110, zMax: 60, sizeMin: 0.4, sizeMax: 1.2 },
+    // Rubble chunks, 10–30 cm each.
+    rubble: { count: 600, seed: 4127, xMin: -110, xMax: 110, zMin: -110, zMax: 60, sizeMin: 0.4, sizeMax: 1.2 },
   },
 }
 
@@ -263,6 +301,23 @@ export function landscapePieces(landscape) {
     if (zone === 'clash') continue
     if (isGenerated && zone === 'foreground' && z - hz < clearance.outcropFront) continue
     pieces.push(piece)
+  }
+  return pieces
+}
+
+// Rubble chunks on the sand: floor-level and tiny, so no zone check is needed.
+export function rubblePieces(landscape) {
+  const { count, seed, xMin, xMax, zMin, zMax, sizeMin, sizeMax } = landscape.rubble
+  const rand = seededRandom(seed + 1)
+  const pieces = []
+  for (let i = 0; i < count; i++) {
+    const x = xMin + rand() * (xMax - xMin)
+    const z = zMin + rand() * (zMax - zMin)
+    const size = sizeMin + rand() * (sizeMax - sizeMin)
+    const width = size * (0.8 + rand() * 0.5)
+    const height = size * (0.45 + rand() * 0.35)
+    const depth = size * (0.8 + rand() * 0.5)
+    pieces.push({ kind: 'rubble', x, y: sandHeight(landscape, x, z) - height * 0.25, z, width, height, depth, yaw: rand() * Math.PI * 2, seed: seed * 10000 + i })
   }
   return pieces
 }

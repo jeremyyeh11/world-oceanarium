@@ -15,7 +15,7 @@ Status labels:
 
 ### The Reefs landscape
 
-Status: `Current in development` — `v0.25.0-dev_5` prototype (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
+Status: `Current in development` — `v0.25.0-dev_6` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals.
 
 - [x] Rename The Drift to The Reefs (`the-reefs`); The Open Sea untouched.
 - [x] Raised sand seabed (y -22), fixed rock layout behind the swim volume, fixed-seed rubble, thinner fog (`dev_1`).
@@ -23,8 +23,9 @@ Status: `Current in development` — `v0.25.0-dev_5` prototype (2026-10-17, bran
 - [x] Jeremy review of `dev_2`: wants taller cliffs on the edges → `dev_3`.
 - [x] Jeremy review of `dev_3`: only two layers, and the follow cam shows it is staged → `dev_4` rings of rock all round, mid and far layers, seabed scatter.
 - [x] Jeremy review of `dev_4`: rocks too even in height, ring too obvious → `dev_5` outcrops and varied heights.
-- [ ] Jeremy review of `dev_5` on phone: height variation, and whether any line or ring still shows when orbiting a followed fish. Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
-- [ ] Jeremy models the rocks (bommie, 2–3 boulders, wall/ledge, rubble): GLB, +Y up, real metres, origin at base centre, about 2–5k triangles, one shared texture. Swap them in for the placeholders.
+- [x] Jeremy review of `dev_5` → sent his limestone rocks to kitbash → `dev_6`.
+- [ ] Jeremy review of `dev_6` on phone: rock shapes, texture scale (one tile per 1.5 m), and whether the stretch limits look right. Up close the foreground placeholders are pale and visibly faceted; real models will fix the facets.
+- [x] Jeremy's limestone boulders kitbashed in for the placeholders (`dev_6`). More rocks can join the kit: rebuild with `scripts/build-landscape-kit.py` and list the new indices in `LIMESTONE_KIT.variants`.
 - [ ] Rocks inside the swim volume: fish avoid rocks (collision shapes in the steer step), then reef behaviour such as angelfish keeping close to rock. Until then every piece must sit in a free zone (back, foreground or floor; see the header of `src/data/landscapes.js`). `Next`
 - [ ] Follow cam can orbit into a rock when following a fish near the edge of the swim volume (more likely now that rock surrounds it). `Backlog`
 - [ ] Corals on the rocks. `Backlog`

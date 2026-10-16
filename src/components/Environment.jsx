@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from 'react'
+import { Suspense, useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import Landscape from './Landscape'
 import { sandHeight } from '../data/landscapes'
@@ -91,7 +91,12 @@ export default function Environment({ biome, landscape = null }) {
   return (
     <group>
       <NoiseFloor biome={biome} landscape={landscape} />
-      {landscape && <Landscape landscape={landscape} />}
+      {/* The rock kit loads on its own so the seabed and fish never wait for it. */}
+      {landscape && (
+        <Suspense fallback={null}>
+          <Landscape landscape={landscape} />
+        </Suspense>
+      )}
       {biome === 'tropical-river' && <RiverVegetation />}
     </group>
   )

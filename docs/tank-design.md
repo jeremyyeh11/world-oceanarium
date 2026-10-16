@@ -221,7 +221,9 @@ driven by tank fields:
   `backgroundBeamAlpha` to read calmer and dimmer than The Open Sea, and thins the fog
   (`density`) so its rocks read as clear reef water.
 - **`landscape`** (fixed set dressing) — names an entry in `src/data/landscapes.js`: the
-  tank's seabed height and colour, hand-placed rocks, and a fixed-seed rubble scatter.
+  tank's seabed height and colour, hand-placed rocks, fixed-seed outcrops and rubble, and the
+  rock kit they are kitbashed from (`public/models/landscape/`, built by
+  `scripts/build-landscape-kit.py`).
   It is identical on every load. Keep every tall piece behind the swim volume of the
   tank's deepest-roaming species (fish do not avoid rocks yet); the file header records
   the current clearances. Tanks without one keep the biome's open-water floor.

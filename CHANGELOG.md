@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_1` (2026-10-17, branch `feat/reef-landscape`). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_2` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -22,7 +22,8 @@ Status: in development as `v0.25.0-dev_1` (2026-10-17, branch `feat/reef-landsca
   - Sand seabed at y -22 (the ocean biome floor stays at -52 for The Open Sea), with low smooth ripples that the rocks are placed on.
   - Fixed hand-placed layout: two bommies and four wall pieces framing a canyon at the back, a far ridge in the gap, and nine low boulders, plus 240 rubble chunks from a fixed seed (one instanced draw call).
   - Placeholder rocks are seeded, displaced icosahedrons with flat facets and baked top-light vertex colour, standing in for the bommie, boulder and wall models.
-- Clearance, measured live: the sunfish and its followers roam back to z -40 and down to y -14, so every tall piece stands at z -47 or further back and the boulders under the swim volume stay below y -20. Fish do not avoid rocks yet; nothing reaches them.
+- Clearance: The Reefs' swim volume is x ±56, z -40 to -15, y -14 to 2.8 (sunfish and followers, from `swimBounds`), plus the triggerfish's box reaching forward to z -8.3. Fish do not avoid rocks yet, so every piece sits in one of three free zones, checked against its rotated footprint: back (front face at z -47 or further), foreground (footprint in front of z -7.5, between the fish and the glass), or floor (top below y -20).
+- More rock on the sides and in the foreground (`dev_2`, Jeremy: "add some more on the left and right side ... also some in the foreground to present depth"): four more back walls and bommies out to x ±67 for wide screens, and six foreground pieces rising to y -4 to -8 just behind the glass. The phone shows a centre crop of the 16:9 frame (about ±0.27 WU per WU of distance), so the two inner foreground bommies sit at x ±3 to reach its bottom corners; the rest show when panning and on wide screens. Rubble now 320 chunks over x ±64.
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

@@ -1,43 +1,47 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { mulberry32 } from './fishSwim'
-import { sandHeight } from '../data/landscapes'
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { landscapePieces, sandHeight, seededRandom } from '../data/landscapes'
 
 // Placeholder rocks for a tank landscape (src/data/landscapes.js), standing in for the
 // modelled GLBs until they land. Each piece is a seeded, displaced icosahedron, so the same
-// seed always builds the same rock.
+// seed always builds the same rock. All pieces are baked into one mesh (one draw call); the
+// rubble is a second, instanced one.
 //
 // taper widens the top (a bommie's overhang); flatBottom squashes everything below it so the
 // rock sits flat on the sand instead of balancing on a point. column pushes the sphere out
 // toward a cylinder, so a tall cliff keeps steep sides and a broad top instead of tapering
 // to a spike.
+// detail sets the triangle count, 20 × (detail + 1)²: with about 170 pieces in one tank,
+// keep it low enough for phones (about 130k triangles for The Reefs).
 const ROCK_PROFILES = {
-  boulder: { detail: 5, roughness: 0.42, taper: 0, flatBottom: -0.4 },
-  bommie: { detail: 7, roughness: 0.5, taper: 0.55, flatBottom: -0.7 },
-  wall: { detail: 7, roughness: 0.55, taper: 0.35, flatBottom: -0.55 },
-  cliff: { detail: 8, roughness: 0.42, taper: 0.1, flatBottom: -0.85, column: 0.75 },
-  rubble: { detail: 1, roughness: 0.4, taper: 0, flatBottom: -0.3 },
+  boulder: { detail: 4, roughness: 0.42, taper: 0, flatBottom: -0.4 },
+  bommie: { detail: 6, roughness: 0.5, taper: 0.55, flatBottom: -0.7 },
+  wall: { detail: 6, roughness: 0.55, taper: 0.35, flatBottom: -0.55 },
+  cliff: { detail: 6, roughness: 0.42, taper: 0.1, flatBottom: -0.85, column: 0.75 },
+  rubble: { detail: 0, roughness: 0.4, taper: 0, flatBottom: -0.3 },
 }
 
 const ROCK_COLOR = '#b3a88e'
 const scratch = new THREE.Vector3()
 
 // Builds a rock in a unit box: x and z span [-0.5, 0.5], y spans [0, 1] with the base at 0,
-// so a mesh scale of [width, height, depth] gives the piece its size in WU directly.
+// so a scale of [width, height, depth] gives the piece its size in WU directly.
 function makeRockGeometry(kind, seed) {
   const profile = ROCK_PROFILES[kind] ?? ROCK_PROFILES.boulder
-  const rand = mulberry32(seed)
+  const rand = seededRandom(seed)
   const octaves = [0, 1, 2, 3].map(() => [
     0.8 + rand() * 0.8, 0.8 + rand() * 0.8, 0.8 + rand() * 0.8,
     rand() * Math.PI * 2, rand() * Math.PI * 2, rand() * Math.PI * 2,
   ])
   // Icosahedron geometry is non-indexed: a vertex shared by several faces exists once per
   // face. The displacement is a smooth function of position, so those copies move together
-  // and the surface never cracks; the split normals give the faceted placeholder look.
-  const geometry = new THREE.IcosahedronGeometry(1, profile.detail)
-  const pos = geometry.attributes.position
-  for (let i = 0; i < pos.count; i++) {
-    scratch.fromBufferAttribute(pos, i).normalize()
+  // and the surface never cracks; they are welded afterwards to cut the vertex count about
+  // six-fold. The material's flatShading keeps the faceted look without split normals.
+  const source = new THREE.IcosahedronGeometry(1, profile.detail)
+  const sourcePos = source.attributes.position
+  for (let i = 0; i < sourcePos.count; i++) {
+    scratch.fromBufferAttribute(sourcePos, i).normalize()
     let n = 0
     let amp = 1
     let freq = 1.6
@@ -57,8 +61,13 @@ function makeRockGeometry(kind, seed) {
     }
     scratch.multiplyScalar((1 + profile.roughness * n) * (1 + profile.taper * scratch.y))
     if (scratch.y < profile.flatBottom) scratch.y = profile.flatBottom + (scratch.y - profile.flatBottom) * 0.15
-    pos.setXYZ(i, scratch.x, scratch.y, scratch.z)
+    sourcePos.setXYZ(i, scratch.x, scratch.y, scratch.z)
   }
+  source.deleteAttribute('normal')
+  source.deleteAttribute('uv')
+  const geometry = mergeVertices(source)
+  source.dispose()
+  const pos = geometry.attributes.position
 
   geometry.computeBoundingBox()
   const box = geometry.boundingBox
@@ -83,15 +92,25 @@ function makeRockGeometry(kind, seed) {
   return geometry
 }
 
-// Lowest sand height under a piece's footprint, so no edge of its base floats.
-function baseHeight(landscape, x, z, width, depth) {
-  const hx = width * 0.5
-  const hz = depth * 0.5
-  return Math.min(
-    sandHeight(landscape, x, z),
-    sandHeight(landscape, x - hx, z), sandHeight(landscape, x + hx, z),
-    sandHeight(landscape, x, z - hz), sandHeight(landscape, x, z + hz),
-  )
+// Every placed piece, baked into one geometry.
+function makeLandscapeGeometry(landscape) {
+  const matrix = new THREE.Matrix4()
+  const position = new THREE.Vector3()
+  const rotation = new THREE.Quaternion()
+  const scale = new THREE.Vector3()
+  const up = new THREE.Vector3(0, 1, 0)
+  const parts = landscapePieces(landscape).map(piece => {
+    const part = makeRockGeometry(piece.kind, piece.seed)
+    part.applyMatrix4(matrix.compose(
+      position.set(piece.x, piece.y, piece.z),
+      rotation.setFromAxisAngle(up, piece.yaw),
+      scale.set(piece.width, piece.height, piece.depth),
+    ))
+    return part
+  })
+  const merged = mergeGeometries(parts)
+  parts.forEach(part => part.dispose())
+  return merged
 }
 
 function Rubble({ landscape, material }) {
@@ -103,7 +122,7 @@ function Rubble({ landscape, material }) {
   useLayoutEffect(() => {
     const mesh = ref.current
     if (!mesh) return
-    const rand = mulberry32(seed + 1)
+    const rand = seededRandom(seed + 1)
     const matrix = new THREE.Matrix4()
     const position = new THREE.Vector3()
     const rotation = new THREE.Quaternion()
@@ -131,27 +150,15 @@ export default function Landscape({ landscape }) {
   const material = useMemo(() => new THREE.MeshStandardMaterial({
     color: ROCK_COLOR, roughness: 0.95, metalness: 0, flatShading: true, vertexColors: true, envMapIntensity: 0.35,
   }), [])
-  const pieces = useMemo(() => landscape.rocks.map(([kind, x, z, width, height, depth, yaw, seed]) => {
-    // Sink the base a little so the flattened bottom never shows a gap against the sand.
-    const sink = Math.min(1.2, height * 0.08) + 0.1
-    return {
-      key: `${kind}-${seed}`,
-      geometry: makeRockGeometry(kind, seed),
-      position: [x, baseHeight(landscape, x, z, width, depth) - sink, z],
-      rotation: [0, yaw, 0],
-      scale: [width, height, depth],
-    }
-  }), [landscape])
+  const geometry = useMemo(() => makeLandscapeGeometry(landscape), [landscape])
 
   // Built imperatively, so R3F won't dispose them; free them when the tank unmounts.
   useEffect(() => () => material.dispose(), [material])
-  useEffect(() => () => pieces.forEach(piece => piece.geometry.dispose()), [pieces])
+  useEffect(() => () => geometry.dispose(), [geometry])
 
   return (
     <group>
-      {pieces.map(piece => (
-        <mesh key={piece.key} geometry={piece.geometry} material={material} position={piece.position} rotation={piece.rotation} scale={piece.scale} />
-      ))}
+      <mesh geometry={geometry} material={material} />
       {landscape.rubble && <Rubble landscape={landscape} material={material} />}
     </group>
   )

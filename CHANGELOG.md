@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rings of rock all round and more layers). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -25,6 +25,12 @@ Status: in development as `v0.25.0-dev_3` (2026-10-17, branch `feat/reef-landsca
 - Clearance: The Reefs' swim volume is x ±56, z -40 to -15, y -14 to 2.8 (sunfish and followers, from `swimBounds`), plus the triggerfish's box reaching forward to z -8.3. Fish do not avoid rocks yet, so every piece sits in one of three free zones, checked against its rotated footprint: back (front face at z -47 or further), foreground (footprint in front of z -7.5, between the fish and the glass), or floor (top below y -20).
 - More rock on the sides and in the foreground (`dev_2`, Jeremy: "add some more on the left and right side ... also some in the foreground to present depth"): four more back walls and bommies out to x ±67 for wide screens, and six foreground pieces rising to y -4 to -8 just behind the glass. The phone shows a centre crop of the 16:9 frame (about ±0.27 WU per WU of distance), so the two inner foreground bommies sit at x ±3 to reach its bottom corners; the rest show when panning and on wide screens. Rubble now 320 chunks over x ±64.
 - Tall cliffs at the edges (`dev_3`, Jeremy: "some taller cliffs on the edges"): a new `cliff` placeholder shape (`column` pushes the sphere toward a cylinder, so it keeps steep sides and a broad top instead of tapering to a spike). Six cliffs 24–26.5 WU tall (6–6.6 m), tops 1–4 WU under the water surface: one pair at the back at x ±17 frames the phone's default view, one pair at the back at x ±50 frames wide screens, and the foreground pair at x about ±15 (replacing two foreground walls) frames a wide screen's left and right edges.
+- Rings of rock all round, more layers (`dev_4`, Jeremy: "only two layers ... when i click on a fish and look around, its clearly staged"):
+  - Three generated rings of rock (fixed seeds, so still identical on every load) walk a rectangle around the swim volume at 3–9, 16–26 and 34–46 WU out: along the sides and behind the camera (z 12 and beyond, so the default view is never blocked), and across the back for the two outer rings (the middle one keeps open water at |x| < 12). A follow cam looking any way now sees reef at the edge of the water.
+  - Default view layers, front to back: foreground pieces, five new low mounds at z -34 to -44, the hand-placed back canyon, then the two outer rings fading into the fog.
+  - 60 low boulders and 800 rubble chunks over the whole seabed (x ±110, z -110 to 60), so the sand under a followed fish is never bare.
+  - A new `side` free zone (inner face at |x| 63 or more). `landscapePieces` places every piece (base on the sand, top capped 1.1 WU under the surface, or under y -20 where only the floor zone fits) and drops any generated piece that would reach the swim volume; a node check of all 168 pieces found none in it.
+- Draw cost: all pieces are welded (`mergeVertices`, so flat shading now comes from the material) and baked into one mesh: 129k triangles in one draw call, plus 16k for the instanced rubble, about 17% of The Reefs' 867k scene triangles. Placeholder detail is lower to match (boulder 4, bommie/wall/cliff 6, rubble 0).
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

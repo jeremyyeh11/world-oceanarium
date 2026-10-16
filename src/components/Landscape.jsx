@@ -139,7 +139,7 @@ function projectUVs(geometry, tile, [offsetU, offsetV]) {
 
 function makeLandscapeChunks(landscape, rocks) {
   const { kit } = landscape
-  const camera = new THREE.Vector3(0, -3.35, 10)
+  const camera = new THREE.Vector3(0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
   const pieces = [...landscapePieces(landscape), ...(landscape.rubble ? rubblePieces(landscape) : [])]
   const chunks = new Map()
   for (const piece of pieces) {

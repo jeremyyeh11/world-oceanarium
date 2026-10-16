@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.25.0 — The Reefs landscape
 
-Status: in development as `v0.25.0-dev_8` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
+Status: in development as `v0.25.0-dev_9` (2026-10-17, branch `feat/reef-landscape`; `dev_1` the prototype, `dev_2` side and foreground rocks, `dev_3` tall edge cliffs, `dev_4` rock all round and more layers, `dev_5` outcrops instead of rings, varied heights, `dev_6` Jeremy's limestone rocks, kitbashed, `dev_7` deeper sand relief, `dev_8` zoom, sand hills, rocks through the surface, `dev_9` talus, uneven canyon, lower camera). Jeremy (2026-10-16): add a landscape (rocks now, corals later) to the tank formerly called The Drift, renamed The Reefs; the landscape is fixed and does not change between loads. `dev_1` is a prototype with placeholder rocks while Jeremy models the real ones.
 
 ### Tanks
 
@@ -53,6 +53,12 @@ Status: in development as `v0.25.0-dev_8` (2026-10-17, branch `feat/reef-landsca
   - The follow camera's floor guard samples the sand under the camera instead of one global height, so it clears the hills without stopping it from following fish low over the basin.
   - Rocks through the surface: the camera sits only 2 m under the water, so a rock capped below the surface never climbs past the middle of the screen. A quarter of the tall back and side pieces, and the four canyon cliffs, now break the surface, raised to a top between y 9 and 14; rocks in front of the glass never do. The tall outcrop band is 22–36 WU (was 20–30). 13 pieces break the surface; tops reach 13.7.
   - The phone-framing cliffs move in to x ±12.5 so the zoomed phone view keeps them at its edges, and every rock sinks 15% of its height into the sand (was 8%): the kit rocks' uneven undersides showed gaps under low, wide pieces such as the far ridge.
+- Talus, an uneven canyon, a lower camera (`dev_9`, Jeremy: "more transition from the seabed to the cliffs ... maintain the composition with the cliffs on the two sides ... a bit of rocks in the center, but not necessarily in symmetry"; then "move the camera a bit back and down, point slightly up"):
+  - Talus aprons: around every piece at least 14 WU tall, up to one buttress rock (30–60% of its height) leaning on it and one to three boulders (8–25%) around that, all kitbashed from the small kit rocks and through the same zone checks (capped to the floor zone, or dropped, where they would reach the swim volume). 137 talus rocks; 352 pieces in all.
+  - The back canyon is laid out again unevenly: the left framing cliff stands nearer and taller (x -10.5, z -53.5, top y 14), the right one further back and lower (x 15, z -63, top 8) with a smaller spire beside it (top -1), and the wide-screen pair likewise (x -36 top 13; x 41 top 10). Hand-placed rocks can fix their top (`options.top`, the tuple's ninth entry), growing or capping the piece, to hold the composition.
+  - Off-centre rocks in the gap: a mid bommie left of centre (top -7), a low wide rock right of it, a faint spire far back (top 2), and the far ridge moved right.
+  - The Reefs' camera moves back and down, pitched up: z 14 (was 10), y -6 (was -3.35), about 7° up (was 3.4°), still 47°. It lives in `REEFS_VIEW` in landscapes.js, which the tank's `camera` and the rock detail levels share. Generated rocks in front of the swim volume now stand at z 16 or beyond, behind the moved camera.
+  - Cost: 159k rock triangles; the default view draws 102k (244k vertices).
 - The follow camera's floor guard uses the tank's seabed (y -22 + 1.6) instead of the biome's.
 - The Reefs' fog is thinner (`density` 0.016, was the ocean's 0.032) so the rocks read about 60 WU from the camera.
 

@@ -58,18 +58,26 @@ const LIMESTONE_KIT = {
     bommie: [2, 0, 1, 7],
     wall: [3, 4, 8, 0],
     boulder: [5, 6, 7, 0, 3],
+    talus: [5, 6, 7, 5, 6, 7, 5, 6, 7, 0],
     rubble: [5, 6, 7],
   },
   // Largest tilt off upright, in radians; rubble tumbles freely.
-  tilt: { cliff: 0.12, bommie: 0.2, wall: 0.18, boulder: 0.45 },
+  tilt: { cliff: 0.12, bommie: 0.2, wall: 0.18, boulder: 0.45, talus: 0.5 },
   // Most uneven stretch allowed per kind: no axis scales more than this many times another.
   // Beyond it rocks read as stretched spikes or squashed pancakes; tall kinds get a little
   // more so the edge cliffs keep their height.
-  maxStretch: { cliff: 2.6, bommie: 2.3, wall: 2, boulder: 2 },
+  maxStretch: { cliff: 2.6, bommie: 2.3, wall: 2, boulder: 2, talus: 2 },
 }
+
+// The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
+// so the rock detail levels measure distance from the same viewpoint. Back and down from the
+// default (z 10, y -3.35) and pitched up about 7° (was 3.4°), zoomed about 1.35× (47°,
+// was 61°): the reef rises around and above the viewer instead of being looked across.
+export const REEFS_VIEW = { fov: 47, y: -6, z: 14, lookY: -4.3 }
 
 export const LANDSCAPES = {
   reefs: {
+    view: REEFS_VIEW,
     kit: LIMESTONE_KIT,
     // The sand's mean level. With floorRelief the highest dune crest is floorY + 2.18 ×
     // floorRelief = -20.4, just under the Mola's lowest fin (y -20 at its 14 WU dive floor);
@@ -87,50 +95,63 @@ export const LANDSCAPES = {
     // maxTop - topJitter and maxTop, so tall pieces never line up into a flat skyline.
     maxTop: 3.5,
     topJitter: 7,
-    // A share of the tall pieces (raw height at least minHeight), and the hand-placed pieces
-    // in `seeds`, break the surface instead: they are raised to a top between top - 5 and
-    // top. The camera sits only 2 m under the surface, so a rock capped below it never climbs
-    // past the middle of the screen; at y 14 a canyon cliff reaches the top quarter.
-    pierce: { share: 0.25, minHeight: 14, top: 14, jitter: 5, seeds: [18, 28, 19, 29] },
+    // A share of the tall generated or unfixed pieces (raw height at least minHeight) break the
+    // surface instead: they are raised to a top between top - jitter and top. The camera sits
+    // only 2 m under the surface, so a rock capped below it never climbs past the middle of
+    // the screen; at y 14 a canyon cliff reaches the top quarter.
+    pierce: { share: 0.25, minHeight: 14, top: 14, jitter: 5 },
+    // Talus aprons around pieces at least minHeight tall (see talusFor): buttress and boulder
+    // counts per piece.
+    talus: { minHeight: 14, buttress: [0, 1], boulders: [1, 3] },
     // The free zones around the swim volume (see the header). Only hand-placed pieces use
-    // the foreground zone in front of the camera (z 10); a generated piece there must stand
+    // the foreground zone in front of the camera (z 14); a generated piece there must stand
     // behind the camera, at outcropFront and beyond, so it never blocks the default view.
-    clearance: { side: 63, back: -47, front: -7.5, floorTop: -20, outcropFront: 12 },
-    // [kind, x, z, width, height, depth, yaw (rad), seed]. x/z sit the piece's base centre
-    // on the sand; width/height/depth are its bounding box in WU.
+    clearance: { side: 63, back: -47, front: -7.5, floorTop: -20, outcropFront: 16 },
+    // [kind, x, z, width, height, depth, yaw (rad), seed, options?]. x/z sit the piece's base
+    // centre on the sand; width/height/depth are its bounding box in WU. options.top fixes
+    // the piece's top (y), growing or capping it, to hold the composition.
     rocks: [
-      // Back left canyon wall
-      ['bommie', -9, -52, 7, 15, 7, 0.4, 11],
-      ['wall', -19, -54, 16, 17, 9, 0.3, 12],
-      ['wall', -27, -53, 12, 13, 7, 0.5, 15],
-      ['wall', -34, -62, 22, 21, 10, -0.2, 13],
-      ['wall', -48, -56, 20, 18, 10, 0.3, 16],
+      // The back canyon, deliberately uneven: the left side stands nearer and taller, the
+      // right further back and lower with a smaller spire beside it, so the two framing
+      // cliffs never mirror each other. The inner pair (x -10.5 and 15) frames a 375 px
+      // phone's zoomed view (about ±13 WU wide at z -55); the outer pair (x -36 and 41)
+      // frames a wide screen's (about ±52 WU).
+      // Left
+      ['cliff', -10.5, -53.5, 12, 24, 10, 0.2, 18, { top: 14 }],
+      ['bommie', -18, -52, 7, 15, 7, 0.4, 11],
+      ['wall', -21, -56, 16, 17, 9, 0.3, 12],
+      ['wall', -28, -54, 12, 13, 7, 0.5, 15],
+      ['cliff', -36, -57, 15, 26.5, 12, 0.25, 19, { top: 13 }],
+      ['wall', -34, -64, 22, 21, 10, -0.2, 13],
+      ['wall', -50, -58, 20, 18, 10, 0.3, 16],
       ['bommie', -60, -70, 12, 24, 10, 0, 17],
-      // Tall cliffs at the edges: the inner pair frames the phone, the outer pair wide screens.
-      ['cliff', -12.5, -56, 12, 24, 10, 0.2, 18],
-      ['cliff', -50, -59, 16, 26.5, 12, 0.25, 19],
-      ['boulder', -13, -50, 4.5, 3.5, 4, 1.1, 14],
-      // Back right canyon wall
-      ['bommie', 10, -52.5, 8, 12, 7, -0.5, 21],
-      ['wall', 19, -56, 18, 19, 10, -0.3, 22],
-      ['wall', 27, -54, 12, 11, 7, -0.4, 25],
-      ['wall', 36, -64, 24, 23, 11, 0.15, 23],
-      ['wall', 49, -58, 22, 20, 10, -0.2, 26],
-      ['bommie', 61, -72, 12, 25, 10, 0, 27],
-      ['cliff', 12.5, -57, 12, 25, 10, -0.2, 28],
-      ['cliff', 51, -60, 16, 26.5, 12, -0.25, 29],
-      ['boulder', 6.5, -49.5, 3.5, 2.6, 3.2, 0.2, 24],
-      // Far ridge, seen through the gap between the walls
-      ['wall', -2, -76, 30, 15, 13, 0.05, 31],
-      // Foreground left: reef rising in front of the swim volume, framing the glass
+      // Right
+      ['cliff', 15, -63, 14, 25, 11, -0.2, 28, { top: 8 }],
+      ['cliff', 8.5, -57, 7, 18, 6, 0.6, 32, { top: -1 }],
+      ['bommie', 21, -52, 8, 12, 7, -0.5, 21],
+      ['wall', 24, -59, 18, 19, 10, -0.3, 22],
+      ['wall', 30, -54, 12, 11, 7, -0.4, 25],
+      ['cliff', 41, -67, 16, 26.5, 12, -0.25, 29, { top: 10 }],
+      ['wall', 36, -72, 24, 23, 11, 0.15, 23],
+      ['wall', 52, -60, 22, 20, 10, -0.2, 26],
+      ['bommie', 61, -74, 12, 25, 10, 0, 27],
+      // Off-centre rocks in the gap, at different depths and heights, so the canyon is not an
+      // empty symmetric valley: a mid bommie left of centre, a low wide rock right of it, and
+      // a faint spire and ridge further back.
+      ['bommie', -3, -63, 8, 14, 7, 0.9, 33, { top: -7 }],
+      ['wall', 4.5, -50, 9, 4, 6, 0.3, 34],
+      ['cliff', 1.5, -88, 6, 20, 6, -0.4, 35, { top: 2 }],
+      ['wall', 9, -80, 26, 15, 13, 0.05, 31],
+      ['boulder', -13, -49.5, 4.5, 3.5, 4, 1.1, 14],
+      ['boulder', 11, -49.5, 3.5, 2.6, 3.2, 0.2, 24],
+      // Foreground, between the swim volume and the glass, also uneven: a tall cliff at a
+      // wide screen's left edge, a lower wall at its right.
       ['wall', -9, -3, 10, 18, 6, 0.2, 51],
       ['bommie', -3, 1, 5, 18, 5, 0.5, 52],
-      // Foreground cliff framing the left edge of a wide screen, rising almost to the surface.
-      ['cliff', -15.5, -1, 9, 26, 9, -0.3, 53],
-      // Foreground right
+      ['cliff', -11, -1, 9, 26, 9, -0.3, 53],
       ['wall', 10, -3, 11, 18.5, 6, -0.25, 61],
       ['bommie', 3.2, 1.5, 4.5, 17, 4.5, -0.4, 62],
-      ['cliff', 14, -0.5, 10, 25, 8, 0.35, 63],
+      ['wall', 12.5, -2.5, 9, 14, 7, 0.35, 63],
       // Low boulders and mounds under the swim volume (tops below y -20). The mounds at
       // z -34 to -44 are the middle layer of the default view, between the foreground and
       // the back canyon.
@@ -315,41 +336,84 @@ export function landscapePieces(landscape) {
     ...(landscape.outcrops ? outcropPieces(landscape, landscape.outcrops) : []),
     ...(landscape.scatter ? scatterPieces(landscape, landscape.scatter) : []),
   ]
-  const raw = [
-    ...landscape.rocks.map(rock => [rock, false]),
-    ...generated.map(rock => [rock, true]),
-  ]
-  const { clearance } = landscape
   const pieces = []
-  for (const [[kind, x, z, width, rawHeight, depth, yaw, seed], isGenerated] of raw) {
-    const base = baseHeight(landscape, x, z, width, depth)
-    const { hx, hz } = footprint(width, depth, yaw)
-    const openZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side || z - hz >= clearance.front
-    const pick = seededRandom(seed)
-    const jitter = pick()
-    const { pierce } = landscape
-    // Only back and side pieces break the surface: one in front of the glass would wall off
-    // the view.
-    const farZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side
-    const pierces = farZone && pierce && (pierce.seeds?.includes(seed) || (rawHeight >= pierce.minHeight && pick() < pierce.share))
-    const topLimit = !openZone
-      ? clearance.floorTop - 0.05
-      : pierces
-        ? pierce.top - jitter * pierce.jitter
-        : landscape.maxTop - jitter * (landscape.topJitter ?? 0)
-    let height = rawHeight
-    // A piercing piece grows to its target; every other piece is only ever capped.
-    if (pierces || base - pieceSink(height) + height > topLimit) height = topLimit - base + pieceSink(height)
-    // A floor-zone piece on a dune crest can be capped down to nothing.
-    if (height < 0.4) continue
-    const y = base - pieceSink(height)
-    const piece = { kind, x, y, z, width, height, depth, yaw, seed, hx, hz, top: y + height }
-    const zone = pieceZone(landscape, piece)
-    if (zone === 'clash') continue
-    if (isGenerated && zone === 'foreground' && z - hz < clearance.outcropFront) continue
-    pieces.push(piece)
+  const place = (rock, isGenerated) => {
+    const piece = placePiece(landscape, rock, isGenerated)
+    if (piece) pieces.push(piece)
+    return piece
+  }
+  const parents = [
+    ...landscape.rocks.map(rock => place(rock, false)),
+    ...generated.map(rock => place(rock, true)),
+  ].filter(Boolean)
+  if (landscape.talus) {
+    for (const parent of parents) {
+      if (parent.height < landscape.talus.minHeight || parent.kind === 'boulder') continue
+      talusFor(landscape, parent).forEach(rock => place(rock, true))
+    }
   }
   return pieces
+}
+
+function placePiece(landscape, [kind, x, z, width, rawHeight, depth, yaw, seed, options], isGenerated) {
+  const { clearance, pierce } = landscape
+  const base = baseHeight(landscape, x, z, width, depth)
+  const { hx, hz } = footprint(width, depth, yaw)
+  const openZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side || z - hz >= clearance.front
+  // Only back and side pieces break the surface: one in front of the glass would wall off
+  // the view.
+  const farZone = z + hz <= clearance.back || Math.abs(x) - hx >= clearance.side
+  const pick = seededRandom(seed)
+  const jitter = pick()
+  // A hand-placed piece may fix its top (options.top) to hold the composition.
+  const fixedTop = options?.top !== undefined && (farZone || options.top <= landscape.maxTop) ? options.top : null
+  const pierces = fixedTop === null && farZone && pierce && rawHeight >= pierce.minHeight && pick() < pierce.share
+  const topLimit = !openZone
+    ? clearance.floorTop - 0.05
+    : fixedTop ?? (pierces
+      ? pierce.top - jitter * pierce.jitter
+      : landscape.maxTop - jitter * (landscape.topJitter ?? 0))
+  let height = rawHeight
+  // A fixed-top or piercing piece grows to its target; every other piece is only capped.
+  if (fixedTop !== null || pierces || base - pieceSink(height) + height > topLimit) height = topLimit - base + pieceSink(height)
+  // A floor-zone piece on a dune crest can be capped down to nothing.
+  if (height < 0.4) return null
+  const y = base - pieceSink(height)
+  const piece = { kind, x, y, z, width, height, depth, yaw, seed, hx, hz, top: y + height }
+  const zone = pieceZone(landscape, piece)
+  if (zone === 'clash') return null
+  if (isGenerated && zone === 'foreground' && z - hz < clearance.outcropFront) return null
+  return piece
+}
+
+// The step from seabed to cliff: around each tall piece, one or two buttress rocks about half
+// its height leaning on it, then a few boulders around those (the rubble does the rest).
+// Each talus rock goes through the same zone checks, so where the apron would reach the
+// swim volume it is capped to the floor zone or dropped.
+function talusFor(landscape, parent) {
+  const { talus } = landscape
+  const rand = seededRandom((parent.seed * 2246822519 + 7) >>> 0)
+  const pick = ([min, max]) => min + rand() * (max - min)
+  const reach = Math.max(parent.hx, parent.hz)
+  const parentSize = Math.min(parent.width, parent.depth)
+  const rocks = []
+  const tiers = [
+    // count, distance (× reach), width (× parent size), height (× parent height)
+    { count: talus.buttress, distance: [0.55, 0.85], width: [0.35, 0.6], height: [0.3, 0.6] },
+    { count: talus.boulders, distance: [0.9, 1.5], width: [0.15, 0.35], height: [0.08, 0.25] },
+  ]
+  let k = 0
+  for (const tier of tiers) {
+    const count = Math.round(pick(tier.count))
+    for (let i = 0; i < count; i++, k++) {
+      const angle = rand() * Math.PI * 2
+      const distance = reach * pick(tier.distance)
+      const width = Math.max(1.2, parentSize * pick(tier.width))
+      const height = Math.max(0.8, parent.height * pick(tier.height))
+      rocks.push(['talus', parent.x + Math.cos(angle) * distance, parent.z + Math.sin(angle) * distance, width, height, width * (0.6 + rand() * 0.4), rand() * Math.PI * 2, 5000000 + parent.seed * 10 + k])
+    }
+  }
+  return rocks
 }
 
 // Rubble chunks on the sand: floor-level and tiny, so no zone check is needed.

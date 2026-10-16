@@ -220,6 +220,9 @@ driven by tank fields:
   the biome palette. Use for a real mood shift: The Reefs lowers `exposure` and softens
   `backgroundBeamAlpha` to read calmer and dimmer than The Open Sea, and thins the fog
   (`density`) so its rocks read as clear reef water.
+- **`camera`** (optional) — resting-camera overrides for the tank (any of `fov`, `y`, `z`,
+  `lookY` from `DEFAULT_CAMERA_SETTINGS` in `Camera.jsx`). The Reefs uses `REEFS_VIEW` from
+  `src/data/landscapes.js`, so its rock detail levels measure from the same viewpoint.
 - **`landscape`** (fixed set dressing) — names an entry in `src/data/landscapes.js`: the
   tank's seabed height and colour, hand-placed rocks, fixed-seed outcrops and rubble, and the
   rock kit they are kitbashed from (`public/models/landscape/`, built by

@@ -2478,11 +2478,11 @@ export const SPECIES = [
       biome: 'Coral Reef',
       commonDiet: 'Reef fishes, and nothing else.',
       foundIn: 'Indo-Pacific reefs, Red Sea to the Phoenix Islands and Samoa, north to the Ryukyu Islands, south to Australia, 1 to 20 m.',
-      // Open (2026-10-18): Jeremy says males are smaller. Khasanah et al. 2019 (PMC6769801) found
-      // squaretail males in the larger size classes (smallest mature male 42 cm, female 33 cm); its
-      // "males 34–55 cm, females 34–80 cm" ranges are the camouflage grouper's. The Solomon Islands
-      // study (JCU thesis 52614) also found males larger. Confirm before filling.
-      sexualDimorphism: 'Unknown',
+      // Solomon Islands (JCU thesis 52614): males grow faster and reach larger sizes. Khasanah et al.
+      // 2019 (PMC6769801, Indonesia, n = 24): males in the larger size classes, smallest mature male
+      // 42 cm against 33 cm for females. That paper's "males 34–55 cm, females 34–80 cm" ranges are
+      // the camouflage grouper's, not this species'.
+      sexualDimorphism: 'Males tend to grow faster and larger than females.',
       // Oldest aged fish: 14 years on the Great Barrier Reef, 9 on the Red Sea coast of Saudi Arabia.
       lifeSpan: 'Up to 14 years',
       // Pohnpei, Micronesia: females mature at 36.6 cm, about 2 years; males about 3 years.

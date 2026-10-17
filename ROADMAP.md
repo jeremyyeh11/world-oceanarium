@@ -29,7 +29,7 @@ Subtasks:
 - [x] `creatures_dev`: 3 groupers (ids 412–414, ≈ 51, 59, 69 cm), backed up before/after (`v0.28.0-dev_1`). Production has none.
 - [x] Atlas tile: rendered from fish 414 alone in open water, 470 × 470 (`public/atlas/plectropomus-areolatus-thumbnail.png`).
 - [ ] Production rows on Jeremy's go-ahead (backup before/after).
-- [ ] Sexual dimorphism: Jeremy says males are smaller; sources found say males grow larger. Settle before filling `sexualDimorphism`.
+- [x] Sexual dimorphism: "Males tend to grow faster and larger than females" (Solomon Islands JCU thesis; Khasanah et al. 2019, whose males-smaller ranges are the camouflage grouper's).
 - [ ] Hovering near rock and coral, shared with the angelfish's open reef-behaviour item under The Reefs landscape. `Backlog`
 
 ### Diver camera

@@ -6,6 +6,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.28.0',
+    date: '2026-10-18',
+    title: 'Squaretail Coral Grouper',
+    changes: [
+      ['new', 'The Squaretail Coral Grouper joins The Reefs and the Atlas: a shy, spotted hunter of coral reefs, listed as Vulnerable because it is fished where it gathers to spawn.'],
+      ['fix', 'Long species names no longer run under the close button on a fish\'s card.'],
+    ],
+  },
+  {
     version: 'v0.27.0',
     title: 'Tracking a fish',
     changes: [

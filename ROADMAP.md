@@ -15,7 +15,7 @@ Status labels:
 
 ### Squaretail Coral Grouper
 
-Status: `Current in development` (branch `feat/plectropomus-areolatus`, started 2026-10-18). Jeremy's pick for The Reefs: a caudal swimmer, low effort, IUCN Vulnerable, not a shark. Species data is in, hidden from the Atlas, with no model and no tank yet. Waiting on Jeremy's model.
+Status: shipped in clean `v0.28.0` (2026-10-18, from `v0.28.0-dev_1`, branch `feat/plectropomus-areolatus`, #133). Jeremy's pick for The Reefs: a caudal swimmer, low effort, IUCN Vulnerable, not a shark. The open items below carry over.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Plectropomus areolatus`): 80 cm TL = 3.2 WU, solitary piscivore, VU (2016, A2bd), sexual pattern unresolved (FishBase says protogynous; Rhodes et al. 2013 found no transitionals; a Solomon Islands study found it gonochoristic), length–weight a 0.01096 / b 3.07.

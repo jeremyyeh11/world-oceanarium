@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.28.0 — Squaretail Coral Grouper
 
-Status: in development as `v0.28.0-dev_1` (branch `feat/plectropomus-areolatus`). Jeremy (2026-10-18): a caudal swimmer for The Reefs, low effort, IUCN Vulnerable or worse, not a shark.
+Status: accepted and promoted as clean `v0.28.0` from `v0.28.0-dev_1` on Jeremy's go-ahead (2026-10-18, branch `feat/plectropomus-areolatus`, #133). `package.json` and `package-lock.json` move to `0.28.0`. Jeremy (2026-10-18): a caudal swimmer for The Reefs, low effort, IUCN Vulnerable or worse, not a shark.
 
 ### Species
 

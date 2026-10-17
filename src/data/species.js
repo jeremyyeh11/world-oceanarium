@@ -115,7 +115,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum'],
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus'],
   },
 ]
 
@@ -2456,9 +2456,7 @@ export const SPECIES = [
     name: 'Squaretail Coral Grouper',
     scientificName: 'Plectropomus areolatus',
     family: 'Epinephelidae',
-    // Waiting on Jeremy's model: no `model` block and no tank yet, so it stays out of the
-    // Atlas until the GLB lands. Texture photo: Rickard Zerpe, credited in IMAGE_CREDITS.
-    hiddenInAtlas: true,
+    // Texture photo: Rickard Zerpe, credited in IMAGE_CREDITS.
     biome: 'ocean',
     depthZone: 'epipelagic',
     // FishBase calls it often shy; adults live spread out and only gather to spawn.
@@ -2478,7 +2476,8 @@ export const SPECIES = [
       biome: 'Coral Reef',
       commonDiet: 'Reef fishes, and nothing else.',
       foundIn: 'Indo-Pacific reefs, Red Sea to the Phoenix Islands and Samoa, north to the Ryukyu Islands, south to Australia, 1 to 20 m.',
-      // Protogynous: individuals change sex rather than the sexes looking different.
+      // Open (2026-10-18): Jeremy says males are smaller; the Solomon Islands study (JCU thesis
+      // 52614) and a spawning-aggregation tagging study found males larger. Confirm before filling.
       sexualDimorphism: 'Unknown',
       // Oldest aged fish: 14 years on the Great Barrier Reef, 9 on the Red Sea coast of Saudi Arabia.
       lifeSpan: 'Up to 14 years',
@@ -2487,7 +2486,9 @@ export const SPECIES = [
       social: {
         schoolSize: 'Solitary',
         groupingBehaviour: 'A shy fish of lagoons and seaward reefs with rich coral growth, most often met in channels along the reef front. Adults live spread out across the reef and come together only to spawn.',
-        reproduction: 'Begins life female and later changes to male. Before spawning around the full moon, fish gather in channels along the reef front, and the eggs are scattered into open water with no parental care.',
+        // FishBase lists protogyny, but no fish changing sex has been found (Rhodes et al. 2013,
+        // Pohnpei: "unresolved"), and a Solomon Islands study found separate sexes (JCU thesis 52614).
+        reproduction: 'Long thought to change sex from female to male, but no fish caught mid-change has been found, and a Solomon Islands study found the sexes separate from the start. Before spawning around the full moon, fish gather in channels along the reef front, and the eggs are scattered into open water with no parental care.',
       },
       averages: {
         // FishBase gives an 80 cm maximum (total length) and no common length or weight.
@@ -2549,6 +2550,46 @@ export const SPECIES = [
     sizeRange: [0.5, 0.9],
     // FishBase Bayesian length–weight (TL cm → g): about 0.9 kg at 40 cm, 7.6 kg at 80 cm.
     mass: { coefficient: 0.01096, exponent: 3.07 },
+    model: {
+      path: '/models/fish/plectropomus-areolatus/plectropomus-areolatus.glb',
+      // Jeremy's model (2026-10-18): source length 0.8002 (1 raw = 1 m) -> 3.2 WU; recentred
+      // mid-length on the body axis (y ≈ -0.004 raw, snout to tail stalk). The texture's alpha
+      // was solid, so it ships as a JPEG with the GLB's BLEND dropped.
+      scale: 3.999,
+      position: [0, 0.016, 0.155],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['squaretail_coral_grouper'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Subcarangiform: a little more body in the wave than the jacks, at a slow beat.
+        // About 0.05 body lengths of stroke (pilot fish 0.043); fin roots sit at 0.30.
+        amplitude: 0.04,
+        waveSpeed: 2.2,
+        waveTravel: 4.0,
+        flexStart: 0.3,
+        flexFull: 0.85,
+        turnStrength: 0.026,
+        burstAmplitude: 0.9,
+        response: 6,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        // Groupers hold station on their pectorals, so these work harder than a jack's.
+        pectoralFinFlutter: 0.14,
+        pelvicFinFlutter: 0.06,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
 ]
 

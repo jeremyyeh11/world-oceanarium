@@ -133,6 +133,16 @@ const targets = [
     minBodyLength: 0.19,
     minVertices: 1000,
   },
+  {
+    name: 'Squaretail Coral Grouper static parts',
+    path: 'public/models/fish/plectropomus-areolatus/plectropomus-areolatus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['squaretail_coral_grouper'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.79,
+    minVertices: 3000,
+  },
   // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
   // the real models replace them: unit length, single body mesh, same contract.
   ...SPECIES

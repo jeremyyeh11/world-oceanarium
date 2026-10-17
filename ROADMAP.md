@@ -18,12 +18,14 @@ Status labels:
 Status: `Current in development` (branch `feat/plectropomus-areolatus`, started 2026-10-18). Jeremy's pick for The Reefs: a caudal swimmer, low effort, IUCN Vulnerable, not a shark. Species data is in, hidden from the Atlas, with no model and no tank yet. Waiting on Jeremy's model.
 
 Subtasks:
-- [x] Species data and Atlas copy from FishBase (`Plectropomus areolatus`): 80 cm TL = 3.2 WU, solitary piscivore, VU (2016, A2bd), protogynous, length–weight a 0.01096 / b 3.07.
+- [x] Species data and Atlas copy from FishBase (`Plectropomus areolatus`): 80 cm TL = 3.2 WU, solitary piscivore, VU (2016, A2bd), sexual pattern unresolved (FishBase says protogynous; Rhodes et al. 2013 found no transitionals; a Solomon Islands study found it gonochoristic), length–weight a 0.01096 / b 3.07.
 - [x] Texture photo credited: Rickard Zerpe, Raja Ampat, CC BY 2.0 (`IMAGE_CREDITS` in `src/data/sources.js`). Red Sea Creatures' gallery for this species mixes in Coral Hinds (*Cephalopholis miniata*): use photos with the white-edged square tail and dark pelvic fins.
-- [ ] Jeremy: model (one joined mesh, nose −Z, 80 cm, `caudal-wave` contract in `docs/procedural/caudal-wave.md`).
-- [ ] Model intake: texture size and licence check, verifier target, Atlas pose and framing (desktop, 375 px portrait, landscape).
-- [ ] Motion: `caudal-vertex` tuned slow and deliberate at cruise with rare hard bursts; swim values in the entry are starting values.
-- [ ] The Reefs roster, `creatures_dev` rows (backup before/after), Atlas tile, Sources check that the credit shows.
+- [x] Jeremy's model (2026-10-18): body + separate pectoral/pelvic objects, nose −Z, 0.8002 raw = 80 cm → scale 3.999. Texture alpha solid, so the 2.9 MB PNG shipped as a 193 KB JPEG (q85, colours unchanged) with BLEND dropped: GLB 3.0 → 0.35 MB. Verifier target added.
+- [x] In the Atlas and The Reefs roster; Sources shows the Zerpe credit.
+- [ ] Atlas framing check at 375 px portrait and landscape phone.
+- [ ] Motion: `caudal-vertex` (amplitude 0.04 raw ≈ 0.05 BL, waveSpeed 2.2, waveTravel 4.0, flex 0.30–0.85); swim values in the entry are starting values. Jeremy review on device.
+- [ ] `creatures_dev` rows (count from Jeremy; backup before/after), then Atlas tile from the tank.
+- [ ] Sexual dimorphism: Jeremy says males are smaller; sources found say males grow larger. Settle before filling `sexualDimorphism`.
 - [ ] Hovering near rock and coral, shared with the angelfish's open reef-behaviour item under The Reefs landscape. `Backlog`
 
 ### Diver camera

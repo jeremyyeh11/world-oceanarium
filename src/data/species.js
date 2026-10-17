@@ -2476,8 +2476,10 @@ export const SPECIES = [
       biome: 'Coral Reef',
       commonDiet: 'Reef fishes, and nothing else.',
       foundIn: 'Indo-Pacific reefs, Red Sea to the Phoenix Islands and Samoa, north to the Ryukyu Islands, south to Australia, 1 to 20 m.',
-      // Open (2026-10-18): Jeremy says males are smaller; the Solomon Islands study (JCU thesis
-      // 52614) and a spawning-aggregation tagging study found males larger. Confirm before filling.
+      // Open (2026-10-18): Jeremy says males are smaller. Khasanah et al. 2019 (PMC6769801) found
+      // squaretail males in the larger size classes (smallest mature male 42 cm, female 33 cm); its
+      // "males 34–55 cm, females 34–80 cm" ranges are the camouflage grouper's. The Solomon Islands
+      // study (JCU thesis 52614) also found males larger. Confirm before filling.
       sexualDimorphism: 'Unknown',
       // Oldest aged fish: 14 years on the Great Barrier Reef, 9 on the Red Sea coast of Saudi Arabia.
       lifeSpan: 'Up to 14 years',
@@ -2488,7 +2490,9 @@ export const SPECIES = [
         groupingBehaviour: 'A shy fish of lagoons and seaward reefs with rich coral growth, most often met in channels along the reef front. Adults live spread out across the reef and come together only to spawn.',
         // FishBase lists protogyny, but no fish changing sex has been found (Rhodes et al. 2013,
         // Pohnpei: "unresolved"), and a Solomon Islands study found separate sexes (JCU thesis 52614).
-        reproduction: 'Long thought to change sex from female to male, but no fish caught mid-change has been found, and a Solomon Islands study found the sexes separate from the start. Before spawning around the full moon, fish gather in channels along the reef front, and the eggs are scattered into open water with no parental care.',
+        // Moon phase varies by region: full moon in Palau and Pohnpei (FishBase), new moon in
+        // Wakatobi, Indonesia, where fish spawn from noon to dusk (Khasanah et al. 2019, Animals, PMC6769801).
+        reproduction: 'Long thought to change sex from female to male, but no fish caught mid-change has been found, and a Solomon Islands study found the sexes separate from the start. Fish gather to spawn in channels along the reef front around the full or new moon, depending on the region, and in Indonesia spawn by day from noon until dusk. The eggs are scattered into open water with no parental care.',
       },
       averages: {
         // FishBase gives an 80 cm maximum (total length) and no common length or weight.
@@ -2511,7 +2515,7 @@ export const SPECIES = [
       diet: 'Fish',
       social: 'Solitary',
     },
-    description: 'A coral grouper up to 80 cm, pale grey to reddish brown and covered in small dark-edged blue spots, with dark fins and a square-cut tail edged in white. A shy hunter of rich coral reefs, it eats only fish. Around the full moon of the spawning season it gathers with others in channels along the reef front, and fishing at those gatherings is why the species is Vulnerable.',
+    description: 'A coral grouper up to 80 cm, pale grey to reddish brown and covered in small dark-edged blue spots, with dark fins and a square-cut tail edged in white. A shy hunter of rich coral reefs, it eats only fish. Around the full or new moon of the spawning season it gathers with others in channels along the reef front, and fishing at those gatherings is why the species is Vulnerable.',
     // FishBase: 80 cm maximum (total length); females mature at 36.6 cm.
     adultLengthRangeMeters: [0.37, 0.8],
     maxBodyLengthMeters: 0.8,

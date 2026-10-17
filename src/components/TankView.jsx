@@ -1095,7 +1095,7 @@ function DiverHint() {
   return (
     <div className="focus-hint diver-hint" style={{ zIndex: 30 }}>
       <span className="focus-hint-title">Diver camera</span>
-      <span className="focus-hint-controls focus-hint-controls-desktop">WASD swim · Q/E sink/rise · shift faster · mouse to look · esc to exit</span>
+      <span className="focus-hint-controls focus-hint-controls-desktop">WASD swim · Q/E sink/rise · shift faster · mouse to look · hold right to aim, click to track · esc to exit</span>
       <span className="focus-hint-controls focus-hint-controls-mobile">drag to look · two fingers to drift · spread to swim</span>
     </div>
   )

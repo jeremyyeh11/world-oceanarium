@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { SURFACE_PLANE_Y } from './WaterSurface'
 import { floorHeightAt } from './Environment'
 import { pushOutOfRocks } from './rockObstacles'
+import { forEachFish, getFishEntry } from './fishSwim'
 
 // Diver camera: a free camera swum with WASD (or two fingers on a phone) and aimed with the
 // mouse (pointer lock: no cursor, no drag) or a finger drag. Everything an input asks for
@@ -12,16 +13,16 @@ import { pushOutOfRocks } from './rockObstacles'
 // key is let go, and eases to a stop. Look works the same way, so a fast flick of the mouse
 // still lands as a slow pan.
 //
-// Speeds follow the tank's scale (1 WU = 25 cm): a cruise of 3 WU/s is an easy 0.75 m/s fin
-// pace, and the boost is a steady 1.9 m/s, never a dash.
-const SWIM_SPEED = 3
+// Speeds follow the tank's scale (1 WU = 25 cm): a cruise of 2.2 WU/s is an unhurried
+// 0.55 m/s fin pace, and the boost is a steady 1.4 m/s, never a dash.
+const SWIM_SPEED = 2.2
 const SWIM_BOOST = 2.5
 // Damping rates of the two move stages and the two look stages. Two equal stages of rate k
 // reach ~90% of a step in about 3.9 / k seconds: ~1.6 s for a swim, ~0.9 s for a look.
 const MOVE_DAMPING = 2.4
 const LOOK_DAMPING = 4.4
-// Radians per pixel of locked-mouse movement.
-const MOUSE_LOOK_SPEED = 0.0021
+// Radians per pixel of locked-mouse movement: about 1,900 px of mouse travel per full turn.
+const MOUSE_LOOK_SPEED = 0.0014
 const TOUCH_LOOK_SPEED = 0.0042
 // Two-finger touch: dragging the pair strafes/rises, spreading it swims forward. Each pixel
 // adds this much velocity (WU/s) to the first stage, so a gesture reads as a push that the
@@ -38,6 +39,30 @@ const ROCK_CLEARANCE_LENGTH = 2
 // Past the swim volume the world fades into fog; the diver may reach it but not leave it.
 const HORIZONTAL_LIMITS = { minX: -60, maxX: 60, minZ: -70, maxZ: 30 }
 const FOV_DAMPING = 3.4
+// Tracking (desktop): holding the right button stops the mouse turning the view and moves an
+// aim cursor over it instead, starting from the middle. The fish under the cursor is framed and
+// the point on it marked; a left click while holding locks onto that point, and a left click
+// detaches. The point is found by raycasting that one fish's meshes along the cursor's ray (or,
+// on a miss, its nearest vertex to the ray) and is kept in the fish's own frame, so it stays on
+// the same part of the body through every turn, pitch and bank (the swimming wave is drawn on
+// the GPU, so a point on the tail follows the body but not the wave's sway). A sardine drawn by
+// the instanced layer has no meshes of its own and is tracked by its centre.
+// While locked, the look target follows the point and passes through the same two look stages
+// as the mouse, so the camera trails it by the same ~0.9 s a mouse flick takes to land.
+// A fish counts as under the crosshair when its body (half its length either side of its
+// centre) comes within TARGET_CONE of the view axis; the current pick wins ties by
+// TARGET_STICKINESS so a crowded school does not flicker between fish.
+// Reach of the pick, out to where The Reefs' thinner fog still shows a large fish; a locked
+// fish is let go a little further out.
+const TARGET_RANGE = 80
+const TRACK_RANGE = 110
+const TARGET_CONE = THREE.MathUtils.degToRad(7)
+const TARGET_STICKINESS = THREE.MathUtils.degToRad(1.5)
+const RETICLE_MIN_PX = 34
+const RETICLE_MAX_SCREEN = 0.7
+const RETICLE_BODY_PAD = 1.2
+const POINT_RETICLE_PX = 18
+const CURSOR_PX = 22
 
 const KEY_BINDINGS = {
   KeyW: ['forward', 1], ArrowUp: ['forward', 1],
@@ -53,6 +78,13 @@ const forward = new THREE.Vector3()
 const right = new THREE.Vector3()
 const desiredVelocity = new THREE.Vector3()
 const clampedPosition = new THREE.Vector3()
+const toFish = new THREE.Vector3()
+const projected = new THREE.Vector3()
+const trackedPoint = new THREE.Vector3()
+const aimNdc = new THREE.Vector2()
+const vertexWorld = new THREE.Vector3()
+const aimRaycaster = new THREE.Raycaster()
+const aimHits = []
 
 function isTypingTarget(target) {
   if (!target) return false
@@ -70,6 +102,160 @@ function dampVector(current, target, lambda, delta) {
 function stopIntoSurface(velocity, normal) {
   const into = velocity.dot(normal)
   if (into < 0) velocity.addScaledVector(normal, -into)
+}
+
+function wrapAngle(angle) {
+  return Math.atan2(Math.sin(angle), Math.cos(angle))
+}
+
+// The nearest drawn-mesh hit of the aim ray (aimRaycaster, already set) on one fish, or null.
+function rayHitOnFish(fish) {
+  fish.updateWorldMatrix(true, true)
+  aimHits.length = 0
+  aimRaycaster.intersectObject(fish, true, aimHits)
+  // The hidden tap-target box surrounds the body; only a hit on a drawn mesh counts.
+  let found = null
+  for (const hit of aimHits) {
+    if (!isBodyMesh(hit.object)) continue
+    found = hit
+    break
+  }
+  aimHits.length = 0
+  return found
+}
+
+// What the aim cursor is over, written to `current`: the fish whose drawn body the ray hits
+// first, and the hit point in that fish's own frame. Every fish near the ray is tested, so a
+// remora riding a shark loses to the shark's flank when the cursor is on the flank. When the
+// ray hits no body, the fish closest to it within TARGET_CONE is taken (the current pick wins
+// ties by TARGET_STICKINESS), with its nearest vertex to the ray as the point.
+function pickAimedFish(current) {
+  const ray = aimRaycaster.ray
+  let hitId = null
+  let hitDistance = Infinity
+  let nearId = null
+  let nearScore = Infinity
+  forEachFish((entry, id) => {
+    toFish.subVectors(entry.position, ray.origin)
+    const distance = toFish.length()
+    if (distance < 0.5 || distance > TARGET_RANGE) return
+    const cos = toFish.dot(ray.direction) / distance
+    if (cos <= 0) return
+    const offAxis = Math.acos(Math.min(1, cos))
+    const bodyAngle = Math.atan((entry.bodyLength ?? 1) * 0.5 / distance)
+    const miss = Math.max(0, offAxis - bodyAngle)
+    if (miss > TARGET_CONE) return
+    if (miss === 0 && entry.object) {
+      const hit = rayHitOnFish(entry.object)
+      if (hit && hit.distance < hitDistance) {
+        hitDistance = hit.distance
+        hitId = id
+        trackedPoint.copy(hit.point)
+      }
+    }
+    let score = miss + distance * 0.0015
+    if (id === current.candidateId) score -= TARGET_STICKINESS
+    if (score < nearScore) {
+      nearScore = score
+      nearId = id
+    }
+  })
+
+  if (hitId != null) {
+    current.candidateId = hitId
+    current.aimHasPoint = true
+    getFishEntry(hitId).object.worldToLocal(current.aimLocal.copy(trackedPoint))
+    return
+  }
+  current.candidateId = nearId
+  const fish = nearId != null ? getFishEntry(nearId)?.object : null
+  current.aimHasPoint = Boolean(fish && nearestVertexToRay(fish, ray, trackedPoint))
+  if (current.aimHasPoint) fish.worldToLocal(current.aimLocal.copy(trackedPoint))
+}
+
+function isBodyMesh(object) {
+  return object.isMesh && !object.isInstancedMesh && !object.userData?.interactionProxy
+}
+
+// The vertex of a fish's meshes nearest the aim ray, in world space. A miss happens on thin fins
+// and on the tail, whose drawn shape the GPU swimming wave moves off the rest geometry the ray
+// tests, so the nearest vertex stands in for the part the cursor is over.
+function nearestVertexToRay(fish, ray, out) {
+  let bestDistanceSq = Infinity
+  fish.traverse(child => {
+    if (!isBodyMesh(child)) return
+    const positions = child.geometry?.attributes?.position
+    if (!positions) return
+    for (let index = 0; index < positions.count; index += 1) {
+      vertexWorld.fromBufferAttribute(positions, index).applyMatrix4(child.matrixWorld)
+      const distanceSq = ray.distanceSqToPoint(vertexWorld)
+      if (distanceSq < bestDistanceSq) {
+        bestDistanceSq = distanceSq
+        out.copy(vertexWorld)
+      }
+    }
+  })
+  return bestDistanceSq < Infinity
+}
+
+// World position of what a fish entry is tracked by: the stored body point, else its centre.
+function trackedWorldPoint(entry, local, out) {
+  if (local && entry.object) {
+    entry.object.updateWorldMatrix(true, false)
+    return entry.object.localToWorld(out.copy(local))
+  }
+  return out.copy(entry.position)
+}
+
+function placeReticle(element, camera, size, worldPoint, side) {
+  projected.copy(worldPoint).project(camera)
+  if (projected.z >= 1) return false
+  const x = (projected.x + 1) * 0.5 * size.width
+  const y = (1 - projected.y) * 0.5 * size.height
+  element.style.width = `${side}px`
+  element.style.height = `${side}px`
+  element.style.transform = `translate3d(${x - side / 2}px, ${y - side / 2}px, 0)`
+  return true
+}
+
+function setReticleMode(slot, mode) {
+  if (mode === slot.mode) return
+  slot.mode = mode
+  slot.element.hidden = mode === 'hidden'
+  slot.element.className = `diver-reticle diver-reticle--${slot.kind} is-${mode}`
+}
+
+// Draws the tracking marks while the right button is held: the aim cursor, a frame round the
+// fish under it, and a small square on the point that is (or would be) tracked. Written
+// straight to the DOM from the frame loop, so holding the button never re-renders React.
+function updateReticle(reticleState, current, camera, size) {
+  if (!reticleState) return
+  const { cursor, frame, point } = reticleState
+  let cursorMode = 'hidden'
+  let frameMode = 'hidden'
+  let pointMode = 'hidden'
+
+  if (current.aiming) {
+    const tracking = current.trackId != null
+    const shownId = tracking ? current.trackId : current.candidateId
+    const entry = shownId != null ? getFishEntry(shownId) : null
+    cursorMode = 'aim'
+    cursor.element.style.transform = `translate3d(${current.aimX - CURSOR_PX / 2}px, ${current.aimY - CURSOR_PX / 2}px, 0)`
+    if (entry) {
+      const distance = Math.max(0.01, camera.position.distanceTo(entry.position))
+      const viewHeight = 2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5)
+      const bodyPx = ((entry.bodyLength ?? 1) * RETICLE_BODY_PAD / viewHeight) * size.height
+      const frameSide = THREE.MathUtils.clamp(bodyPx, RETICLE_MIN_PX, Math.min(size.width, size.height) * RETICLE_MAX_SCREEN)
+      if (placeReticle(frame.element, camera, size, entry.position, frameSide)) frameMode = tracking ? 'context' : 'candidate'
+      const local = tracking ? (current.trackHasPoint ? current.trackLocal : null) : (current.aimHasPoint ? current.aimLocal : null)
+      trackedWorldPoint(entry, local, trackedPoint)
+      if (placeReticle(point.element, camera, size, trackedPoint, POINT_RETICLE_PX)) pointMode = tracking ? 'locked' : 'aim'
+    }
+  }
+
+  setReticleMode(cursor, cursorMode)
+  setReticleMode(frame, frameMode)
+  setReticleMode(point, pointMode)
 }
 
 function touchCentroidAndSpread(points) {
@@ -101,7 +287,20 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     impulse: new THREE.Vector3(),
     pointers: new Map(),
     pinch: null,
+    aiming: false,
+    // Aim cursor in canvas pixels; null until the frame loop centres it on a fresh press.
+    aimX: null,
+    aimY: null,
+    candidateId: null,
+    // The point under the cursor on the candidate, in its frame (valid when aimHasPoint).
+    aimLocal: new THREE.Vector3(),
+    aimHasPoint: false,
+    trackId: null,
+    // The locked point, in the tracked fish's frame (its centre when trackHasPoint is false).
+    trackLocal: new THREE.Vector3(),
+    trackHasPoint: false,
   })
+  const reticle = useRef(null)
 
   useEffect(() => {
     if (!active) {
@@ -115,6 +314,21 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     current.impulse.set(0, 0, 0)
     current.pointers.clear()
     current.pinch = null
+    current.aiming = false
+    current.candidateId = null
+    current.aimHasPoint = false
+    current.trackId = null
+    current.trackHasPoint = false
+
+    // The tracking marks sit over the canvas, in the wrapper react-three-fiber gives it.
+    const makeReticle = (kind) => {
+      const element = document.createElement('div')
+      element.setAttribute('aria-hidden', 'true')
+      element.hidden = true
+      domElement.parentElement?.appendChild(element)
+      return { kind, element, mode: '' }
+    }
+    reticle.current = { frame: makeReticle('frame'), point: makeReticle('point'), cursor: makeReticle('cursor') }
 
     // A mouse looks through pointer lock: the cursor hides and plain movement turns the view.
     // Entering from the menu is a click, so the lock usually takes at once; if the browser
@@ -163,9 +377,12 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
       current.boost = false
       current.pinch = null
       current.pointers.clear()
+      current.aiming = false
     }
 
     const addLook = (deltaX, deltaY, speed) => {
+      // A tracked fish owns the view; detach to look around again.
+      if (current.trackId != null) return
       current.lookTargetYaw -= deltaX * speed
       current.lookTargetPitch = THREE.MathUtils.clamp(current.lookTargetPitch - deltaY * speed, -MAX_PITCH, MAX_PITCH)
     }
@@ -186,8 +403,17 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
 
     const onPointerMove = (event) => {
       if (event.pointerType === 'mouse') {
+        if (!isLocked() && !lockRefused) return
+        // Aiming moves the cursor, one pixel per pixel; clamped to the canvas in the frame loop.
+        if (current.aiming) {
+          if (current.aimX != null) {
+            current.aimX += event.movementX
+            current.aimY += event.movementY
+          }
+          return
+        }
         // Mouse looks the way it moves, like a first-person camera.
-        if (isLocked() || lockRefused) addLook(event.movementX, event.movementY, MOUSE_LOOK_SPEED)
+        addLook(event.movementX, event.movementY, MOUSE_LOOK_SPEED)
         return
       }
 
@@ -211,6 +437,37 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
         current.impulse.z -= (next.spread - current.pinch.spread) * TOUCH_PINCH_IMPULSE
       }
       current.pinch = next
+    }
+
+    // Buttons come from mouse events: a press while another button is held fires only a
+    // pointermove under Pointer Events, so right-hold plus left click never reaches pointerdown.
+    const onMouseDown = (event) => {
+      if (event.button === 2) {
+        event.preventDefault()
+        current.aiming = true
+        current.aimX = null
+        current.aimY = null
+        return
+      }
+      if (event.button !== 0) return
+      // The click that takes the pointer lock is not a confirm.
+      if (!isLocked() && !lockRefused) return
+      if (current.trackId != null) {
+        current.trackId = null
+      } else if (current.aiming && current.candidateId != null) {
+        // Lock exactly what the marks showed on the last frame.
+        current.trackId = current.candidateId
+        current.trackHasPoint = current.aimHasPoint
+        current.trackLocal.copy(current.aimLocal)
+      }
+    }
+
+    const onMouseUp = (event) => {
+      if (event.button === 2) current.aiming = false
+    }
+
+    const onContextMenu = (event) => {
+      event.preventDefault()
     }
 
     const onPointerUp = (event) => {
@@ -237,6 +494,9 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
     domElement.addEventListener('pointerup', onPointerUp)
     domElement.addEventListener('pointercancel', onPointerUp)
     domElement.addEventListener('wheel', onWheel, { passive: false })
+    domElement.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('mouseup', onMouseUp)
+    domElement.addEventListener('contextmenu', onContextMenu)
     document.addEventListener('pointerlockchange', onPointerLockChange)
     document.addEventListener('pointerlockerror', onPointerLockError)
     requestLock()
@@ -254,11 +514,20 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
       domElement.removeEventListener('pointerup', onPointerUp)
       domElement.removeEventListener('pointercancel', onPointerUp)
       domElement.removeEventListener('wheel', onWheel)
+      domElement.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('mouseup', onMouseUp)
+      domElement.removeEventListener('contextmenu', onContextMenu)
       releaseAll()
+      current.trackId = null
+      current.candidateId = null
+      reticle.current.frame.element.remove()
+      reticle.current.point.element.remove()
+      reticle.current.cursor.element.remove()
+      reticle.current = null
     }
   }, [active, domElement])
 
-  useFrame((_, frameDelta) => {
+  useFrame((frameState, frameDelta) => {
     if (!active) return
     const delta = Math.min(frameDelta, MAX_FRAME_DELTA)
     const current = input.current
@@ -279,6 +548,24 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
       }
     }
     const diver = state.current
+
+    // Damped track: aim the look target at the fish and let the look stages supply the lag.
+    if (current.trackId != null) {
+      const tracked = getFishEntry(current.trackId)
+      if (tracked) {
+        trackedWorldPoint(tracked, current.trackHasPoint ? current.trackLocal : null, trackedPoint)
+        toFish.subVectors(trackedPoint, camera.position)
+      }
+      const distance = tracked ? toFish.length() : 0
+      if (!tracked || distance > TRACK_RANGE) {
+        current.trackId = null
+      } else if (distance > 0.01) {
+        const yaw = Math.atan2(-toFish.x, -toFish.z)
+        const pitch = Math.atan2(toFish.y, Math.hypot(toFish.x, toFish.z))
+        current.lookTargetYaw += wrapAngle(yaw - current.lookTargetYaw)
+        current.lookTargetPitch = THREE.MathUtils.clamp(pitch, -MAX_PITCH, MAX_PITCH)
+      }
+    }
 
     diver.yawLead = THREE.MathUtils.damp(diver.yawLead, current.lookTargetYaw, LOOK_DAMPING, delta)
     diver.pitchLead = THREE.MathUtils.damp(diver.pitchLead, current.lookTargetPitch, LOOK_DAMPING, delta)
@@ -340,6 +627,28 @@ export default function DiverCamera({ active = false, biome = 'ocean', landscape
       camera.fov = nextFov
       camera.updateProjectionMatrix()
     }
+
+    // The marks and the aim ray read this frame's pose, not the one the last render left.
+    camera.updateMatrixWorld()
+    const { width, height } = frameState.size
+    if (current.aiming) {
+      if (current.aimX == null) {
+        current.aimX = width / 2
+        current.aimY = height / 2
+      }
+      current.aimX = THREE.MathUtils.clamp(current.aimX, 0, width)
+      current.aimY = THREE.MathUtils.clamp(current.aimY, 0, height)
+    }
+    if (current.aiming && current.trackId == null) {
+      aimNdc.set((current.aimX / width) * 2 - 1, 1 - (current.aimY / height) * 2)
+      aimRaycaster.setFromCamera(aimNdc, camera)
+      aimRaycaster.far = TARGET_RANGE
+      pickAimedFish(current)
+    } else if (!current.aiming) {
+      current.candidateId = null
+      current.aimHasPoint = false
+    }
+    updateReticle(reticle.current, current, camera, frameState.size)
   })
 
   return null

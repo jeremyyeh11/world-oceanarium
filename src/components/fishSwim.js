@@ -1628,6 +1628,7 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
   const entry = FISH_REGISTRY.get(creature.id)
   const registryForward = forward?.lengthSq?.() > 0.0001 ? forward : null
   if (entry) {
+    entry.object = fish
     entry.position.copy(fish.position)
     if (registryForward) entry.forward.copy(registryForward)
     else entry.forward.set(0, 0, -1)
@@ -1643,6 +1644,9 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
     entry.rideHostId = rideHostId
   } else {
     FISH_REGISTRY.set(creature.id, {
+      // The fish's scene group, read-only: the diver camera raycasts its meshes to track a
+      // point on the body in the fish's own frame.
+      object: fish,
       position: fish.position.clone(),
       forward: registryForward ? registryForward.clone() : new THREE.Vector3(0, 0, -1),
       radius,
@@ -2925,7 +2929,7 @@ export function advancePairFollow(ride, rider, leaderId, side, bond, riderBodyLe
 }
 
 // `SCHOOL_STATES`, `FISH_REGISTRY` and `THREAT_ENTRIES` stay private to this module. `Fish.jsx`
-// only ever cleans up or reads, so it gets these four accessors instead of the Maps.
+// and the diver camera only ever clean up or read, so they get these accessors instead of the Maps.
 
 /** Drop a school's shared state on unmount, but only if it is still the live one. */
 export function releaseSchoolState(schoolId, schoolState) {

@@ -29,7 +29,13 @@ button { font: inherit; }
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  cursor: default;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.app-version-footnote:hover,
+.app-version-footnote:focus-visible {
+  color: rgba(220, 245, 255, 0.6);
 }
 
 .version-label-short {
@@ -891,6 +897,68 @@ body:has(.debug-panel) .app-version-footnote {
 @keyframes diver-hint-fade {
   0%, 80% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+/* Diver tracking marks, positioned every frame by DiverCamera: a frame round the fish and a
+   small square on the point of its body that is (or would be) tracked. Dashed while searching
+   the middle of the view; the point turns solid and heavier once locked, and the frame fades
+   back to context. */
+.diver-reticle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(124, 255, 168, 0.9);
+  box-shadow: 0 0 10px rgba(124, 255, 168, 0.35), inset 0 0 10px rgba(124, 255, 168, 0.12);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.diver-reticle[hidden] {
+  display: none;
+}
+
+/* Aim cursor: a thin cross with a gap in the middle, so the point it is over stays visible. */
+.diver-reticle--cursor {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  box-shadow: none;
+  background:
+    linear-gradient(rgba(124, 255, 168, 0.95), rgba(124, 255, 168, 0.95)) center top / 1px 8px no-repeat,
+    linear-gradient(rgba(124, 255, 168, 0.95), rgba(124, 255, 168, 0.95)) center bottom / 1px 8px no-repeat,
+    linear-gradient(rgba(124, 255, 168, 0.95), rgba(124, 255, 168, 0.95)) left center / 8px 1px no-repeat,
+    linear-gradient(rgba(124, 255, 168, 0.95), rgba(124, 255, 168, 0.95)) right center / 8px 1px no-repeat;
+  filter: drop-shadow(0 0 3px rgba(124, 255, 168, 0.6));
+}
+
+.diver-reticle--frame.is-candidate {
+  opacity: 0.55;
+}
+
+.diver-reticle--frame.is-context {
+  border-style: dashed;
+  opacity: 0.3;
+}
+
+.diver-reticle--point.is-aim {
+  opacity: 0.85;
+}
+
+.diver-reticle--point.is-locked {
+  border-width: 2px;
+  box-shadow: 0 0 14px rgba(124, 255, 168, 0.5), inset 0 0 12px rgba(124, 255, 168, 0.18);
+}
+
+.diver-reticle--point.is-locked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  background: rgba(124, 255, 168, 0.95);
 }
 
 /* Pointer lock hides the cursor; this covers the moment before the lock takes. */

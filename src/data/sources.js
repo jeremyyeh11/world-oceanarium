@@ -43,29 +43,6 @@ export const SOURCES = [
     provides: ['Status framework', 'Species assessments'],
   },
   {
-    // CC BY 2.0 asks for credit, a link to the licence, and a note of changes.
-    id: 'zerpe-emperor-angelfish',
-    name: 'Rickard Zerpe',
-    fullName: 'Emperor angelfish (Pomacanthus imperator), via Wikimedia Commons',
-    kicker: 'Texture photo · CC BY 2.0',
-    url: 'https://commons.wikimedia.org/wiki/File:Emperor_angelfish_(Pomacanthus_imperator)_(32827796637).jpg',
-    summary:
-      'The photograph the Emperor Angelfish model is textured from, licensed CC BY 2.0 (creativecommons.org/licenses/by/2.0). Modified: mapped onto the 3D model, the fins cut out, and resized.',
-    provides: ['Emperor Angelfish texture'],
-  },
-  {
-    // CC BY-SA 4.0 asks for credit, a link to the licence, a note of changes, and that the
-    // adapted texture is shared under the same licence.
-    id: 'delso-emperor-angelfish-juvenile',
-    name: 'Diego Delso',
-    fullName: 'Juvenile emperor angelfish (Pomacanthus imperator), Ad Dimaniyat Islands, Oman, via Wikimedia Commons',
-    kicker: 'Texture photo · CC BY-SA 4.0',
-    url: 'https://commons.wikimedia.org/wiki/File:Pez_%C3%A1ngel_emperador_(Pomacanthus_imperator),_islas_Ad_Dimaniyat,_Om%C3%A1n,_2024-08-14,_DD_47.jpg',
-    summary:
-      'The photograph the juvenile Emperor Angelfish model is textured from, licensed CC BY-SA 4.0 (creativecommons.org/licenses/by-sa/4.0). Modified: mapped onto the 3D model and resized; the adapted texture is shared under the same licence.',
-    provides: ['Juvenile Emperor Angelfish texture'],
-  },
-  {
     id: 'world-oceanarium',
     name: 'world-oceanarium',
     fullName: 'GitHub repository',
@@ -74,5 +51,30 @@ export const SOURCES = [
     summary:
       'The oceanarium itself: the implementation, and the shipped species data showing how the references above were applied to each animal.',
     provides: ['Implementation', 'Species data'],
+  },
+]
+
+// Photographs the models are textured from. The Sources panel groups them in one
+// Image credits section after the references. Each licence asks for credit, a link
+// to the licence, and a note of changes; CC BY-SA also asks that the adapted
+// texture is shared under the same licence, which `changes` says.
+export const IMAGE_CREDITS = [
+  {
+    id: 'zerpe-emperor-angelfish',
+    subject: 'Emperor Angelfish texture',
+    author: 'Rickard Zerpe',
+    work: 'Emperor angelfish (Pomacanthus imperator)',
+    url: 'https://commons.wikimedia.org/wiki/File:Emperor_angelfish_(Pomacanthus_imperator)_(32827796637).jpg',
+    licence: { name: 'CC BY 2.0', url: 'https://creativecommons.org/licenses/by/2.0/' },
+    changes: 'Mapped onto the 3D model, the fins cut out, and resized.',
+  },
+  {
+    id: 'delso-emperor-angelfish-juvenile',
+    subject: 'Juvenile Emperor Angelfish texture',
+    author: 'Diego Delso',
+    work: 'Juvenile emperor angelfish (Pomacanthus imperator), Ad Dimaniyat Islands, Oman',
+    url: 'https://commons.wikimedia.org/wiki/File:Pez_%C3%A1ngel_emperador_(Pomacanthus_imperator),_islas_Ad_Dimaniyat,_Om%C3%A1n,_2024-08-14,_DD_47.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model and resized; the adapted texture is shared under the same licence.',
   },
 ]

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { SOURCES } from '../data/sources'
+import { IMAGE_CREDITS, SOURCES } from '../data/sources'
 
 function displayHost(url) {
   try {
@@ -88,6 +88,31 @@ export default function SourcesModal({ onClose }) {
               </a>
             </li>
           ))}
+          {IMAGE_CREDITS.length > 0 && (
+            <li>
+              <section className="sources-credits" aria-labelledby="sources-credits-title">
+                <h3 id="sources-credits-title" className="sources-credits-title">Image credits</h3>
+                <p className="sources-credits-intro">
+                  Photographs from Wikimedia Commons that the 3D models are textured from.
+                </p>
+                <ul className="sources-credits-list">
+                  {IMAGE_CREDITS.map(credit => (
+                    <li key={credit.id} className="sources-credit">
+                      <strong>{credit.subject}</strong>
+                      <span>
+                        <a href={credit.url} target="_blank" rel="noreferrer noopener">{credit.work}</a>
+                        {' by '}{credit.author}
+                        {', '}
+                        <a href={credit.licence.url} target="_blank" rel="noreferrer noopener">{credit.licence.name}</a>
+                        .
+                      </span>
+                      <span className="sources-credit-changes">Modified: {credit.changes}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </li>
+          )}
         </ul>
       </div>
     </div>

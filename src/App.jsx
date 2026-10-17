@@ -4,6 +4,7 @@ import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
 import LandingGate from './components/LandingGate'
 import SourcesModal from './components/SourcesModal'
+import ChangelogModal from './components/ChangelogModal'
 import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { useSceneReady } from './hooks/useSceneReady'
@@ -16,6 +17,9 @@ import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from './version'
 const BIOME_BY_ID = new Map(BIOMES.map(biome => [biome.id, biome]))
 const DEBUG_TAP_WINDOW_MS = 1200
 const DEBUG_REQUIRED_TAPS = 3
+// A lone tap on the version label opens the changelog, but only once no second tap
+// follows within this window, so the triple tap that toggles debug never opens it.
+const CHANGELOG_TAP_DELAY_MS = 320
 const AUDIO_BOOT_START_DELAYS_MS = [0, 60, 180, 500, 1200, 2500]
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 const AUDIO_SESSION_RECOVERY_MS = 2500
@@ -69,11 +73,13 @@ export default function App() {
   const [tankMenuOpen, setTankMenuOpen] = useState(false)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
   const [sourcesOpen, setSourcesOpen] = useState(false)
+  const [changelogOpen, setChangelogOpen] = useState(false)
   const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
   const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
   const audioEnabled = audioStarted && !audioMuted
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
+  const changelogTapTimer = useRef(null)
   const screenshotExitHold = useRef(null)
   const topControlsRef = useRef(null)
   const tankListRef = useRef(null)
@@ -414,8 +420,15 @@ export default function App() {
     }
   }
 
+  const clearChangelogTap = () => {
+    if (!changelogTapTimer.current) return
+    window.clearTimeout(changelogTapTimer.current)
+    changelogTapTimer.current = null
+  }
+
   const resetDebugTaps = () => {
     debugTapCount.current = 0
+    clearChangelogTap()
     if (!debugTapTimer.current) return
     window.clearTimeout(debugTapTimer.current)
     debugTapTimer.current = null
@@ -427,6 +440,15 @@ export default function App() {
     }
 
     debugTapCount.current += 1
+    clearChangelogTap()
+
+    if (debugTapCount.current === 1) {
+      changelogTapTimer.current = window.setTimeout(() => {
+        changelogTapTimer.current = null
+        setTopMenuOpen(false)
+        setChangelogOpen(true)
+      }, CHANGELOG_TAP_DELAY_MS)
+    }
 
     if (debugTapCount.current >= DEBUG_REQUIRED_TAPS) {
       resetDebugTaps()
@@ -702,6 +724,7 @@ export default function App() {
         </div>
       )}
       {!screenshotMode && sourcesOpen && <SourcesModal onClose={() => setSourcesOpen(false)} />}
+      {!screenshotMode && changelogOpen && <ChangelogModal onClose={() => setChangelogOpen(false)} />}
       {!screenshotMode && encyclopediaOpen && (
         <EncyclopediaPage
           initialSpeciesId={encyclopediaSpeciesId}
@@ -713,7 +736,8 @@ export default function App() {
         <button
           className="app-version-footnote"
           type="button"
-          aria-label="Tap three times to toggle debug mode"
+          aria-label="Show changelog"
+          aria-haspopup="dialog"
           onPointerUp={handleDebugTap}
           onContextMenu={(event) => event.preventDefault()}
         >

@@ -26,7 +26,9 @@ Subtasks:
 - [ ] Texture touch-ups (optional): the pale hard-edged patch behind the pectoral where the photo's fin was painted out, and the side projection streaking along the top of the back (seen from above). No spiny dorsal (7–8 low spines; folded flat in the reference photo).
 - [ ] Atlas framing check at 375 px portrait and landscape phone.
 - [ ] Motion: `caudal-vertex` (amplitude 0.04 raw ≈ 0.05 BL, waveSpeed 2.2, waveTravel 4.0, flex 0.30–0.85); swim values in the entry are starting values. Jeremy review on device.
-- [ ] `creatures_dev` rows (count from Jeremy; backup before/after), then Atlas tile from the tank.
+- [x] `creatures_dev`: 3 groupers (ids 412–414, ≈ 51, 59, 69 cm), backed up before/after (`v0.28.0-dev_1`). Production has none.
+- [ ] Atlas tile from the tank.
+- [ ] Production rows on Jeremy's go-ahead (backup before/after).
 - [ ] Sexual dimorphism: Jeremy says males are smaller; sources found say males grow larger. Settle before filling `sexualDimorphism`.
 - [ ] Hovering near rock and coral, shared with the angelfish's open reef-behaviour item under The Reefs landscape. `Backlog`
 

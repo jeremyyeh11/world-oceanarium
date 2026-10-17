@@ -55,7 +55,9 @@ const styles = {
     letterSpacing: '0.01em',
     textTransform: 'uppercase',
     textShadow: '-1px 1px 1px rgba(240,127,164,0.4), 1px -1px 1px rgba(127,220,242,0.4), 0 0 16px rgba(127,220,242,0.18)',
-    whiteSpace: 'nowrap',
+    // Long names wrap between words ("Squaretail Coral Grouper" ran under the close button).
+    whiteSpace: 'normal',
+    textWrap: 'balance',
   },
   titleLine: {
     display: 'flex',

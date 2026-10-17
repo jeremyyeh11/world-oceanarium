@@ -13,6 +13,25 @@ Status labels:
 
 ## Current work
 
+### Squaretail Coral Grouper
+
+Status: shipped in clean `v0.28.0` (2026-10-18, from `v0.28.0-dev_1`, branch `feat/plectropomus-areolatus`, #133). Jeremy's pick for The Reefs: a caudal swimmer, low effort, IUCN Vulnerable, not a shark. The open items below carry over.
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase (`Plectropomus areolatus`): 80 cm TL = 3.2 WU, solitary piscivore, VU (2016, A2bd), sexual pattern unresolved (FishBase says protogynous; Rhodes et al. 2013 found no transitionals; a Solomon Islands study found it gonochoristic), length–weight a 0.01096 / b 3.07.
+- [x] Texture photo credited: Rickard Zerpe, Raja Ampat, CC BY 2.0 (`IMAGE_CREDITS` in `src/data/sources.js`). Red Sea Creatures' gallery for this species mixes in Coral Hinds (*Cephalopholis miniata*): use photos with the white-edged square tail and dark pelvic fins.
+- [x] Jeremy's model (2026-10-18): body + separate pectoral/pelvic objects, nose −Z, 0.8002 raw = 80 cm → scale 3.999. Texture alpha solid, so the 2.9 MB PNG shipped as a 193 KB JPEG (q85, colours unchanged) with BLEND dropped: GLB 3.0 → 0.35 MB. Verifier target added.
+- [x] In the Atlas and The Reefs roster; Sources shows the Zerpe credit.
+- [x] Shape review: side view matches FishBase (SL/depth ≈ 3.4, range 2.9–3.9) and the photo. Jeremy narrowed the body (2026-10-18): width 16.2 → 13.7 cm, 72% of depth (was 85%), pectorals moved in to the body surface.
+- [ ] Texture touch-ups (optional): the pale hard-edged patch behind the pectoral where the photo's fin was painted out, and the side projection streaking along the top of the back (seen from above). No spiny dorsal (7–8 low spines; folded flat in the reference photo).
+- [ ] Atlas framing check at 375 px portrait and landscape phone.
+- [ ] Motion: `caudal-vertex` (amplitude 0.04 raw ≈ 0.05 BL, waveSpeed 2.2, waveTravel 4.0, flex 0.30–0.85); swim values in the entry are starting values. Jeremy review on device.
+- [x] `creatures_dev`: 3 groupers (ids 412–414, ≈ 51, 59, 69 cm), backed up before/after (`v0.28.0-dev_1`). Production has none.
+- [x] Atlas tile: rendered from fish 414 alone in open water, 470 × 470 (`public/atlas/plectropomus-areolatus-thumbnail.png`).
+- [ ] Production rows on Jeremy's go-ahead (backup before/after).
+- [x] Sexual dimorphism: "Males tend to grow faster and larger than females" (Solomon Islands JCU thesis; Khasanah et al. 2019, whose males-smaller ranges are the camouflage grouper's).
+- [ ] Hovering near rock and coral, shared with the angelfish's open reef-behaviour item under The Reefs landscape. `Backlog`
+
 ### Diver camera
 
 Status: shipped in clean `v0.26.0` (2026-10-17, from `v0.26.0-dev_2`, branch `feat/diver-camera`, #131). Jeremy (2026-10-17): free cam from the menu, WASD + mouse, eased drag so motion stays smooth. `Archive candidate`; the open item below carries over.

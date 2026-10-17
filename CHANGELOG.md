@@ -8,6 +8,27 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.28.0 — Squaretail Coral Grouper
+
+Status: accepted and promoted as clean `v0.28.0` from `v0.28.0-dev_1` on Jeremy's go-ahead (2026-10-18, branch `feat/plectropomus-areolatus`, #133). `package.json` and `package-lock.json` move to `0.28.0`. Jeremy (2026-10-18): a caudal swimmer for The Reefs, low effort, IUCN Vulnerable or worse, not a shark.
+
+### Species
+
+- Squaretail Coral Grouper (`plectropomus-areolatus`, Epinephelidae, IUCN Vulnerable): Jeremy's model in The Reefs and the Atlas on `caudal-vertex`, 80 cm = 3.2 WU, with independent pectoral and pelvic fins. Facts from FishBase; the reproduction copy says the sexual pattern is unresolved (FishBase lists protogyny, but Rhodes et al. 2013 found no fish changing sex and a Solomon Islands study found separate sexes). Swim values are starting values: slow cruise, rare hard bursts, menace and wariness 0.3.
+- Model intake: the texture's alpha was solid, so the 2.9 MB PNG ships as a 193 KB JPEG (quality 85, mean colour unchanged) with the GLB's BLEND dropped; the GLB goes from 3.0 MB to 0.35 MB. Jeremy narrowed the body after review (width 72% of depth, was 85%). Added to `verify:procedural-fish-assets`.
+- Sources: Rickard Zerpe's photo (CC BY 2.0) joins the Image credits.
+- `creatures_dev`: 3 groupers (ids 412–414; sizes 0.35, 0.6, 0.9 ≈ 51, 59, 69 cm), backed up before and after. Production has none.
+
+- Atlas tile: a three-quarter head close-up of fish 414, rendered alone in open water (470 × 470).
+
+### Tooling
+
+- `npm run build` now runs `scripts/verify-atlas-tiles.mjs` first (`prebuild`): every Atlas species needs an `atlasThumbnail` file in `public/`. A `-dev_` version only warns; a clean version fails. Tiles had been forgotten until after promotion (triggerfish, then the grouper at `dev_1`). The new-species checklist now makes the tile part of the step where the species first swims.
+
+### Interface
+
+- Info card: the species name wraps between words (`whiteSpace: normal`, `textWrap: balance`) instead of staying on one line. "Squaretail Coral Grouper", the longest name yet, ran under the close button on desktop; it now takes two lines there and still fits one line at 375 px.
+
 ## v0.27.0 — Diver tracking, changelog, grouped image credits
 
 Status: accepted and promoted as clean `v0.27.0` from `v0.27.0-dev_1` on Jeremy's go-ahead (2026-10-17, branch `cleanup`, #132). `package.json` and `package-lock.json` move to `0.27.0`. Jeremy (2026-10-17): the version label opens the changelog history for visitors (features and fixes only); image credits in one section of the Sources panel instead of a card each; slower WASD and a less sensitive mouse in the diver camera. Then: "holding down right click reveals a green tracking square of what the camera is tracking, then left click confirms it. left click again detaches", tracking as a damped track that lags like the mouse look; then "focus on a specific part of the fish not the whole fish", and "its still tracking like the center of the fish and i cant select lets say the tail or the face".

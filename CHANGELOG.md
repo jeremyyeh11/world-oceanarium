@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.27.0 — Diver tracking, changelog, grouped image credits
 
-Status: in review as `v0.27.0-dev_1` (branch `cleanup`). Jeremy (2026-10-17): the version label opens the changelog history for visitors (features and fixes only); image credits in one section of the Sources panel instead of a card each; slower WASD and a less sensitive mouse in the diver camera. Then: "holding down right click reveals a green tracking square of what the camera is tracking, then left click confirms it. left click again detaches", tracking as a damped track that lags like the mouse look; then "focus on a specific part of the fish not the whole fish", and "its still tracking like the center of the fish and i cant select lets say the tail or the face".
+Status: accepted and promoted as clean `v0.27.0` from `v0.27.0-dev_1` on Jeremy's go-ahead (2026-10-17, branch `cleanup`, #132). `package.json` and `package-lock.json` move to `0.27.0`. Jeremy (2026-10-17): the version label opens the changelog history for visitors (features and fixes only); image credits in one section of the Sources panel instead of a card each; slower WASD and a less sensitive mouse in the diver camera. Then: "holding down right click reveals a green tracking square of what the camera is tracking, then left click confirms it. left click again detaches", tracking as a damped track that lags like the mouse look; then "focus on a specific part of the fish not the whole fish", and "its still tracking like the center of the fish and i cant select lets say the tail or the face".
 
 ### Interface
 

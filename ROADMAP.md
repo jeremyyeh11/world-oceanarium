@@ -22,6 +22,8 @@ Subtasks:
 - [x] Texture photo credited: Rickard Zerpe, Raja Ampat, CC BY 2.0 (`IMAGE_CREDITS` in `src/data/sources.js`). Red Sea Creatures' gallery for this species mixes in Coral Hinds (*Cephalopholis miniata*): use photos with the white-edged square tail and dark pelvic fins.
 - [x] Jeremy's model (2026-10-18): body + separate pectoral/pelvic objects, nose −Z, 0.8002 raw = 80 cm → scale 3.999. Texture alpha solid, so the 2.9 MB PNG shipped as a 193 KB JPEG (q85, colours unchanged) with BLEND dropped: GLB 3.0 → 0.35 MB. Verifier target added.
 - [x] In the Atlas and The Reefs roster; Sources shows the Zerpe credit.
+- [x] Shape review: side view matches FishBase (SL/depth ≈ 3.4, range 2.9–3.9) and the photo. Jeremy narrowed the body (2026-10-18): width 16.2 → 13.7 cm, 72% of depth (was 85%), pectorals moved in to the body surface.
+- [ ] Texture touch-ups (optional): the pale hard-edged patch behind the pectoral where the photo's fin was painted out, and the side projection streaking along the top of the back (seen from above). No spiny dorsal (7–8 low spines; folded flat in the reference photo).
 - [ ] Atlas framing check at 375 px portrait and landscape phone.
 - [ ] Motion: `caudal-vertex` (amplitude 0.04 raw ≈ 0.05 BL, waveSpeed 2.2, waveTravel 4.0, flex 0.30–0.85); swim values in the entry are starting values. Jeremy review on device.
 - [ ] `creatures_dev` rows (count from Jeremy; backup before/after), then Atlas tile from the tank.

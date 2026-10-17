@@ -2457,6 +2457,8 @@ export const SPECIES = [
     scientificName: 'Plectropomus areolatus',
     family: 'Epinephelidae',
     // Texture photo: Rickard Zerpe, credited in IMAGE_CREDITS.
+    // Rendered tile (2026-10-18): fish 414 alone in open water, three-quarter head facing left.
+    atlasThumbnail: '/atlas/plectropomus-areolatus-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // FishBase calls it often shy; adults live spread out and only gather to spawn.

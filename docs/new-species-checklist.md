@@ -72,6 +72,7 @@ Write this before implementation:
 - [ ] Landscape mobile: existing desktop-style Atlas layout remains usable unless a deliberate species-specific exception is designed.
 - [ ] Capture the new species at desktop, portrait mobile, and landscape mobile. Inspect edge clearance, scale readability, text collision, and stage contrast.
 - [ ] Confirm the specimen moves in Atlas when its intended presentation includes procedural motion.
+- [ ] **Atlas list tile.** Capture `public/atlas/<slug>-thumbnail.png` as soon as the species swims in a tank, and set `atlasThumbnail` on the entry: a square three-quarter head close-up facing left, rendered with only the target fish visible (no other fish in frame), as the mako's and whale shark's are. Do it in the same build that first shows the species, not at promotion. `npm run build` runs `scripts/verify-atlas-tiles.mjs` first: it warns on a `-dev_` version and fails a clean version while any Atlas species has no tile.
 
 ## 7. Creature data and release safety
 
@@ -97,5 +98,6 @@ Report these plainly:
 - Biological/behavioral contract and any deliberate simplification.
 - Asset contract: scale, animation path, root/bone follow target, and Atlas pose.
 - Screenshots/video: tank, desktop Atlas, portrait mobile Atlas, landscape mobile Atlas.
+- The Atlas list tile (the new `public/atlas/<slug>-thumbnail.png`).
 - Exact checks run and their result.
 - Review URL/version/commit, with clear distinction between technical gates and requested visual/feel approval.

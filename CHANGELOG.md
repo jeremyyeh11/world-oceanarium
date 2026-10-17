@@ -19,6 +19,12 @@ Status: in development as `v0.28.0-dev_1` (branch `feat/plectropomus-areolatus`)
 - Sources: Rickard Zerpe's photo (CC BY 2.0) joins the Image credits.
 - `creatures_dev`: 3 groupers (ids 412–414; sizes 0.35, 0.6, 0.9 ≈ 51, 59, 69 cm), backed up before and after. Production has none.
 
+- Atlas tile: a three-quarter head close-up of fish 414, rendered alone in open water (470 × 470).
+
+### Tooling
+
+- `npm run build` now runs `scripts/verify-atlas-tiles.mjs` first (`prebuild`): every Atlas species needs an `atlasThumbnail` file in `public/`. A `-dev_` version only warns; a clean version fails. Tiles had been forgotten until after promotion (triggerfish, then the grouper at `dev_1`). The new-species checklist now makes the tile part of the step where the species first swims.
+
 ### Interface
 
 - Info card: the species name wraps between words (`whiteSpace: normal`, `textWrap: balance`) instead of staying on one line. "Squaretail Coral Grouper", the longest name yet, ran under the close button on desktop; it now takes two lines there and still fits one line at 375 px.

@@ -27,7 +27,7 @@ Subtasks:
 - [ ] Atlas framing check at 375 px portrait and landscape phone.
 - [ ] Motion: `caudal-vertex` (amplitude 0.04 raw ≈ 0.05 BL, waveSpeed 2.2, waveTravel 4.0, flex 0.30–0.85); swim values in the entry are starting values. Jeremy review on device.
 - [x] `creatures_dev`: 3 groupers (ids 412–414, ≈ 51, 59, 69 cm), backed up before/after (`v0.28.0-dev_1`). Production has none.
-- [ ] Atlas tile from the tank.
+- [x] Atlas tile: rendered from fish 414 alone in open water, 470 × 470 (`public/atlas/plectropomus-areolatus-thumbnail.png`).
 - [ ] Production rows on Jeremy's go-ahead (backup before/after).
 - [ ] Sexual dimorphism: Jeremy says males are smaller; sources found say males grow larger. Settle before filling `sexualDimorphism`.
 - [ ] Hovering near rock and coral, shared with the angelfish's open reef-behaviour item under The Reefs landscape. `Backlog`

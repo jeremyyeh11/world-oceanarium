@@ -77,4 +77,13 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Mapped onto the 3D model and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    id: 'zerpe-squaretail-coral-grouper',
+    subject: 'Squaretail Coral Grouper texture',
+    author: 'Rickard Zerpe',
+    work: 'Squaretail coral grouper (Plectropomus areolatus), Raja Ampat, Indonesia',
+    url: 'https://commons.wikimedia.org/wiki/File:Squaretail_coral_grouper_(Plectropomus_areolatus)_(46722835651).jpg',
+    licence: { name: 'CC BY 2.0', url: 'https://creativecommons.org/licenses/by/2.0/' },
+    changes: 'Mapped onto the 3D model, the fins cut out, and resized.',
+  },
 ]

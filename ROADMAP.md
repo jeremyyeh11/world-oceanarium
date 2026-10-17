@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Squaretail Coral Grouper
+
+Status: `Current in development` (branch `feat/plectropomus-areolatus`, started 2026-10-18). Jeremy's pick for The Reefs: a caudal swimmer, low effort, IUCN Vulnerable, not a shark. Species data is in, hidden from the Atlas, with no model and no tank yet. Waiting on Jeremy's model.
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase (`Plectropomus areolatus`): 80 cm TL = 3.2 WU, solitary piscivore, VU (2016, A2bd), protogynous, length–weight a 0.01096 / b 3.07.
+- [x] Texture photo credited: Rickard Zerpe, Raja Ampat, CC BY 2.0 (`IMAGE_CREDITS` in `src/data/sources.js`). Red Sea Creatures' gallery for this species mixes in Coral Hinds (*Cephalopholis miniata*): use photos with the white-edged square tail and dark pelvic fins.
+- [ ] Jeremy: model (one joined mesh, nose −Z, 80 cm, `caudal-wave` contract in `docs/procedural/caudal-wave.md`).
+- [ ] Model intake: texture size and licence check, verifier target, Atlas pose and framing (desktop, 375 px portrait, landscape).
+- [ ] Motion: `caudal-vertex` tuned slow and deliberate at cruise with rare hard bursts; swim values in the entry are starting values.
+- [ ] The Reefs roster, `creatures_dev` rows (backup before/after), Atlas tile, Sources check that the credit shows.
+- [ ] Hovering near rock and coral, shared with the angelfish's open reef-behaviour item under The Reefs landscape. `Backlog`
+
 ### Diver camera
 
 Status: shipped in clean `v0.26.0` (2026-10-17, from `v0.26.0-dev_2`, branch `feat/diver-camera`, #131). Jeremy (2026-10-17): free cam from the menu, WASD + mouse, eased drag so motion stays smooth. `Archive candidate`; the open item below carries over.

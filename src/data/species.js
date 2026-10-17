@@ -2449,6 +2449,107 @@ export const SPECIES = [
       },
     },
   },
+  // Facts from FishBase (Heemstra & Randall 1993 and its population and maturity tables). Picked
+  // for The Reefs (Jeremy, 2026-10-18): a caudal swimmer, IUCN Vulnerable, above the 27 cm floor.
+  {
+    id: 'plectropomus-areolatus',
+    name: 'Squaretail Coral Grouper',
+    scientificName: 'Plectropomus areolatus',
+    family: 'Epinephelidae',
+    // Waiting on Jeremy's model: no `model` block and no tank yet, so it stays out of the
+    // Atlas until the GLB lands. Texture photo: Rickard Zerpe, credited in IMAGE_CREDITS.
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // FishBase calls it often shy; adults live spread out and only gather to spawn.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Feeds exclusively on fishes (FishBase).
+    predator: true,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 2016 (A2bd): declines from fishing, above all at spawning aggregations.
+      code: 'VU',
+      label: 'Vulnerable',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      commonDiet: 'Reef fishes, and nothing else.',
+      foundIn: 'Indo-Pacific reefs, Red Sea to the Phoenix Islands and Samoa, north to the Ryukyu Islands, south to Australia, 1 to 20 m.',
+      // Protogynous: individuals change sex rather than the sexes looking different.
+      sexualDimorphism: 'Unknown',
+      // Oldest aged fish: 14 years on the Great Barrier Reef, 9 on the Red Sea coast of Saudi Arabia.
+      lifeSpan: 'Up to 14 years',
+      // Pohnpei, Micronesia: females mature at 36.6 cm, about 2 years; males about 3 years.
+      maturityAge: 'Females about 2 years; males about 3 years',
+      social: {
+        schoolSize: 'Solitary',
+        groupingBehaviour: 'A shy fish of lagoons and seaward reefs with rich coral growth, most often met in channels along the reef front. Adults live spread out across the reef and come together only to spawn.',
+        reproduction: 'Begins life female and later changes to male. Before spawning around the full moon, fish gather in channels along the reef front, and the eggs are scattered into open water with no parental care.',
+      },
+      averages: {
+        // FishBase gives an 80 cm maximum (total length) and no common length or weight.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Females about 2 years; males about 3 years',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Fish',
+      social: 'Solitary',
+    },
+    description: 'A coral grouper up to 80 cm, pale grey to reddish brown and covered in small dark-edged blue spots, with dark fins and a square-cut tail edged in white. A shy hunter of rich coral reefs, it eats only fish. Around the full moon of the spawning season it gathers with others in channels along the reef front, and fishing at those gatherings is why the species is Vulnerable.',
+    // FishBase: 80 cm maximum (total length); females mature at 36.6 cm.
+    adultLengthRangeMeters: [0.37, 0.8],
+    maxBodyLengthMeters: 0.8,
+    swim: {
+      // Starting values until the model lands and the motion is reviewed: a stalking reef
+      // predator, slow and deliberate at cruise, with rare hard bursts from the tail.
+      visualTimeScale: 0.8,
+      driftEnabled: false,
+      idleBLPerSec: [0.3, 0.6],
+      idleDriftBLPerSec: [0.05, 0.1],
+      snapBLPerSec: [0.8, 1.2],
+      burstBLPerSec: [3.0, 4.5],
+      burstInterval: [16.0, 30.0],
+      burstActionDuration: 0.5,
+      turnActionDuration: 0.6,
+      erraticness: 0.1,
+      // Broad pectorals let a grouper turn tightly for its length.
+      turnRadiusBodyLengths: 1.2,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // 1 WU = 25 cm: 80 cm maximum = 3.2 WU.
+      bodyLengthWU: 3.2,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.5,
+        separationWeight: 0.3,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.3,
+        // A fish-eater: smaller fish give it room. Shy itself, so it yields to what approaches.
+        menace: 0.3,
+        wariness: 0.3,
+      },
+    },
+    // Individuals span 40 cm (just past female maturity) to 72 cm, the largest regional records.
+    sizeRange: [0.5, 0.9],
+    // FishBase Bayesian length–weight (TL cm → g): about 0.9 kg at 40 cm, 7.6 kg at 80 cm.
+    mass: { coefficient: 0.01096, exponent: 3.07 },
+  },
 ]
 
 export const CREATURES = [

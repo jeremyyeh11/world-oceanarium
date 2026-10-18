@@ -6,7 +6,7 @@ import { castReefRay, findReefSite, hasReefSurfaces, pickViewHome, reefSegmentCl
 // there, in four modes:
 //   patrol   cruise past a rock face and on (no stop)
 //   hover    settle a body length or so off a face and hang there, turning slowly
-//   peck     settle nose-close to a face, then dart in, bite, and jerk back, a few times over
+//   peck     settle nose-close to a face, then ease in, nibble, and ease back, once or a few times
 //   shelter  tuck into the most enclosed nook it can find, turn to face out, and wait
 //
 // Travel to a site runs on the unified steer → boids → turn-cap → integrate → clamp pipeline,
@@ -26,18 +26,22 @@ const REEF_DEFAULTS = {
   newHomeChance: 0.12,
   hoverSeconds: [4, 10],
   shelterSeconds: [10, 22],
-  pecks: [2, 5],
-  peckRestSeconds: [0.4, 1.1],
-  lungeSeconds: 0.28,
-  biteSeconds: 0.16,
-  recoilSeconds: 0.16,
+  // A gentle nibble, not a strike (Jeremy, 2026-10-19: "it actually looks too sharp ... it can just
+  // be a gentle peck, not multiple violent pecks"). Was 2–5 pecks of a 0.28 s dart, 0.16 s bite and
+  // 0.16 s snap back, 0.4–1.1 s apart.
+  pecks: [1, 3],
+  peckRestSeconds: [1.2, 3.0],
+  lungeSeconds: 0.6,
+  biteSeconds: 0.35,
+  recoilSeconds: 0.7,
   // The models are recentred mid-length, so the snout is half a body length ahead of the origin.
   noseBodyLengths: 0.5,
-  // Snout clearance from the face between pecks, and how much further back the jerk carries.
-  peckGapBodyLengths: 0.32,
-  recoilBodyLengths: 0.12,
-  // Side-to-side head shake while biting (a triggerfish worrying at an urchin shakes harder).
-  biteShakeDegrees: 4,
+  // Snout clearance from the face between pecks (was 0.32), and how much further back than that
+  // it eases after a peck (was 0.12).
+  peckGapBodyLengths: 0.18,
+  recoilBodyLengths: 0.03,
+  // Side-to-side head shake while nibbling (a triggerfish worrying at an urchin shakes harder).
+  biteShakeDegrees: 1.5,
   hoverStandoffBodyLengths: [1.0, 1.6],
   patrolStandoffBodyLengths: [1.4, 2.6],
   // Turning on the spot, on its fins.
@@ -525,7 +529,7 @@ export function stepReefOwned(reef, profile, position, delta, now, speeds, bodyL
     } else if (phase === 'lunge') {
       const u = THREE.MathUtils.clamp(elapsed / profile.lungeSeconds, 0, 1)
       position.lerpVectors(reef.peckFrom, reef.peckContact, u * u * (3 - 2 * u))
-      reef.effort = THREE.MathUtils.lerp(speeds.idle, speeds.snap, 0.5)
+      reef.effort = speeds.idle * 0.6
       if (u >= 1) {
         reef.peckPhase = 'bite'
         reef.phaseStartedAt = now
@@ -533,7 +537,7 @@ export function stepReefOwned(reef, profile, position, delta, now, speeds, bodyL
     } else if (phase === 'bite') {
       position.copy(reef.peckContact)
       const fade = 1 - THREE.MathUtils.clamp(elapsed / profile.biteSeconds, 0, 1)
-      reef.shake = Math.sin(elapsed * Math.PI * 2 * 8) * THREE.MathUtils.degToRad(profile.biteShakeDegrees) * fade
+      reef.shake = Math.sin(elapsed * Math.PI * 2 * 5) * THREE.MathUtils.degToRad(profile.biteShakeDegrees) * fade
       reef.effort = speeds.idle * 0.3
       if (elapsed >= profile.biteSeconds) {
         reef.peckPhase = 'recoil'
@@ -541,11 +545,10 @@ export function stepReefOwned(reef, profile, position, delta, now, speeds, bodyL
         reef.recoilTo.copy(reef.peckRest).addScaledVector(reef.peckNormal, profile.recoilBodyLengths * bodyLength)
       }
     } else if (phase === 'recoil') {
-      // The jerk back: fast off the rock, easing out.
+      // Back off the rock, easing in and out like the approach.
       const u = THREE.MathUtils.clamp(elapsed / profile.recoilSeconds, 0, 1)
-      const eased = 1 - (1 - u) * (1 - u) * (1 - u)
-      position.lerpVectors(reef.peckContact, reef.recoilTo, eased)
-      reef.effort = speeds.snap
+      position.lerpVectors(reef.peckContact, reef.recoilTo, u * u * (3 - 2 * u))
+      reef.effort = speeds.idle * 0.5
       if (u >= 1) {
         reef.pecksLeft -= 1
         choosePeckSpot(reef, profile, bodyLength, rand, false)

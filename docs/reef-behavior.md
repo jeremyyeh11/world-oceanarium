@@ -6,8 +6,8 @@ state machine is `src/components/reefBehavior.js`, the rock queries `src/compone
 and `src/components/Fish.jsx` runs it on the solo-agent path.
 
 What it should feel like: watching a reef, not an aquarium of drifting fish. Each fish has a
-patch of rock it keeps to, and the moments at the rock (a nose to the face, a quick bite and a
-jerk back, a fish turning round inside a crevice to look out) are what make the rocks read as
+patch of rock it keeps to, and the moments at the rock (a nose eased to the face for a gentle
+nibble, a fish turning round inside a crevice to look out) are what make the rocks read as
 somewhere fish live rather than set dressing.
 
 ## Modes
@@ -15,10 +15,11 @@ somewhere fish live rather than set dressing.
 - `patrol`: swim to a point a couple of body lengths off a face, and on. No stop.
 - `hover`: settle 1 to 1.6 body lengths off a face and hang there, looking into the reef and
   slowly wandering its heading (`hoverSeconds`).
-- `peck`: settle with the snout `peckGapBodyLengths` off the face, then a run of `pecks`: dart in
-  (`lungeSeconds`, eased), bite (`biteSeconds`, with a head shake of `biteShakeDegrees`), jerk back
-  (`recoilSeconds`, ease-out, `recoilBodyLengths` past the rest point), rest
-  (`peckRestSeconds`). Each peck lands on a fresh spot found on the drawn rock, a little way along
+- `peck`: settle with the snout `peckGapBodyLengths` off the face, then a few gentle `pecks`:
+  ease in (`lungeSeconds`), nibble (`biteSeconds`, with a small head shake of
+  `biteShakeDegrees`), ease back (`recoilSeconds`, `recoilBodyLengths` past the rest point),
+  rest (`peckRestSeconds`). In and out both ease at each end: a gentle peck, not a strike
+  (Jeremy, dev_12). Each peck lands on a fresh spot found on the drawn rock, a little way along
   the face.
 - `shelter`: settle nose-in to the most enclosed nook the search finds, turn round on the spot to
   face out, and wait (`shelterSeconds`). A sheltered fish does not startle.
@@ -42,7 +43,7 @@ shelter search that finds no nook falls back to a hover.
 
 Stages 2 to 4 own position and facing outright, like the Mola's sun-bask hold. That is the one
 exception to the unified pipeline here: the rock proxies' padding would keep a snout off the
-rock, and the jerk back moves the fish backwards, which the forward-only integrator cannot do.
+rock, and easing back off it moves the fish backwards, which the forward-only integrator cannot do.
 Boid forces fade while it is at the rock. The body may tilt up to 35° (the swimming limit is
 15°) to graze a sloped face, and does not bank as it turns on the spot.
 

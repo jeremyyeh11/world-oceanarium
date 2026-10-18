@@ -2081,12 +2081,12 @@ export const SPECIES = [
     // Rough length–weight for a deep, compressed body; no published weight for this species.
     mass: { coefficient: 0.02, exponent: 3 },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It grazes sponges and other
-    // encrusting animals on ledges and in caves, so it pecks most, in long runs, between spells
-    // hanging at the face.
+    // encrusting animals on ledges and in caves, so it pecks most, a few gentle nibbles at a
+    // time, between spells hanging at the face.
     reef: {
       affinity: 0.85,
       modes: { patrol: 0.2, hover: 0.25, peck: 0.45, shelter: 0.1 },
-      pecks: [3, 7],
+      pecks: [2, 4],
     },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
@@ -2305,15 +2305,16 @@ export const SPECIES = [
       },
     },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It cracks sea urchins, crabs and
-    // molluscs off the reef: fewer, slower pecks with a hard shake of the head. Between them it
-    // cruises the drop-off, and it retreats into a cave when approached.
+    // molluscs off the reef: a slightly firmer peck than the others, holding on longer with a small
+    // shake of the head. Between them it cruises the drop-off, and it retreats into a cave when
+    // approached.
     reef: {
       affinity: 0.7,
       modes: { patrol: 0.4, hover: 0.1, peck: 0.3, shelter: 0.2 },
-      pecks: [2, 4],
-      lungeSeconds: 0.32,
-      biteSeconds: 0.3,
-      biteShakeDegrees: 9,
+      pecks: [1, 3],
+      lungeSeconds: 0.5,
+      biteSeconds: 0.45,
+      biteShakeDegrees: 3,
       turnDegreesPerSecond: 130,
       startleShelterChance: 0.85,
     },

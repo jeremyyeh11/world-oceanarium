@@ -95,7 +95,25 @@ export const LANDSCAPES = {
     // Painted rock light and shadow (Landscape.jsx applyRockShade), after the same references:
     // dark rock under bright water, sunlit tops and dark undersides. The bases are only lightly
     // darkened (low 0.6, was 0.35): the deep shadow comes with distance (heightFog in species.js).
-    rockShade: { tone: 0.66, top: 1.2, underside: 0.25, low: 0.6, lowY: -24, highY: -6 },
+    // `warm` tints the sunlit tops toward ochre near the surface, a stand-in for the colour
+    // corals will bring against the blue.
+    rockShade: {
+      tone: 0.66, top: 1.2, underside: 0.25, low: 0.6, lowY: -24, highY: -6,
+      warm: { color: [1.18, 1.02, 0.78], strength: 0.5, yLow: -18, yHigh: 0 },
+    },
+    // Sunlight caustics on rock tops and sand (utils/caustics.js), projected in world space and
+    // slanted along the sun (the key light comes from the upper left, x -8 y 12 z 8). Kept
+    // subtle (Jeremy: "dont over do this"): cells about 1.5 WU (37 cm) across, a slow drift,
+    // under half strength by the sand, and gone beyond 60 WU.
+    caustics: {
+      strength: 0.9,
+      scale: 12,
+      speed: 0.02,
+      color: [1.0, 0.97, 0.88],
+      slant: [0.4, -0.4],
+      depth: [-24, 0, 0.6],
+      fade: [25, 60],
+    },
     // Scale of the sand's dunes, hummocks and ripples (see sandHeight), in WU.
     floorRelief: 1.65,
     // Large sand hills on top of that grain, rising only outside the basin the fish swim

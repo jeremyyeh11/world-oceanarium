@@ -4,6 +4,7 @@ import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
 import { clearReefSurfaces, setReefSurfaces } from './reefSites'
+import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
 // modelled rocks. Every piece and rubble chunk is transformed, given fresh UVs and baked into
@@ -143,20 +144,30 @@ function projectUVs(geometry, tile, [offsetU, offsetV]) {
 // Darkens the whole rock by `tone`, its downward faces toward `underside` and its upward ones
 // up to `top`, and its lower reaches toward `low` (from `lowY` up to `highY`, world y). The
 // baked chunks are in world space, so the vertex normal and position are already world ones.
-function applyRockShade(material, shade) {
-  if (!shade) return
+// `shade.warm` tints the upward faces near the surface warmer (sunlight, and a stand-in for
+// the colour corals will bring): by up to `strength` toward `color`, from `yLow` to `yHigh`.
+// `caustics` (utils/caustics.js) adds the sunlight net on top.
+function applyRockShade(material, shade, caustics) {
+  if (!shade && !caustics) return
+  const warm = shade?.warm
   material.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvRockUp = normal.y;\nvRockY = position.y;')
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
-      .replace('#include <map_fragment>', `#include <map_fragment>
+    if (shade) {
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvRockUp = normal.y;\nvRockY = position.y;')
+      const warmGlsl = warm ? `
+        float rockWarm = smoothstep(0.3, 0.9, vRockUp) * smoothstep(${warm.yLow.toFixed(2)}, ${warm.yHigh.toFixed(2)}, vRockY) * ${warm.strength.toFixed(3)};
+        diffuseColor.rgb *= mix(vec3(1.0), vec3(${warm.color.map(c => c.toFixed(3)).join(', ')}), rockWarm);` : ''
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
+        .replace('#include <map_fragment>', `#include <map_fragment>
         float rockFacing = mix(${shade.underside.toFixed(3)}, ${shade.top.toFixed(3)}, smoothstep(-0.5, 0.8, vRockUp));
         float rockHeight = mix(${shade.low.toFixed(3)}, 1.0, smoothstep(${shade.lowY.toFixed(2)}, ${shade.highY.toFixed(2)}, vRockY));
-        diffuseColor.rgb *= ${shade.tone.toFixed(3)} * rockFacing * rockHeight;`)
+        diffuseColor.rgb *= ${shade.tone.toFixed(3)} * rockFacing * rockHeight;${warmGlsl}`)
+    }
+    applyCaustics(shader, caustics)
   }
-  material.customProgramCacheKey = () => `rock-shade:${JSON.stringify(shade)}`
+  material.customProgramCacheKey = () => `rock-shade:${JSON.stringify(shade)}|${causticsCacheKey(caustics)}`
 }
 
 // Whether a piece's box reaches into the landscape's reef reach (see reefSites.js).
@@ -227,9 +238,9 @@ export default function Landscape({ landscape }) {
       map: textures.color, normalMap: textures.normal, roughnessMap: textures.roughness,
       roughness: 1, metalness: 0, envMapIntensity: 0.35,
     })
-    applyRockShade(rockMaterial, landscape.rockShade)
+    applyRockShade(rockMaterial, landscape.rockShade, landscape.caustics)
     return rockMaterial
-  }, [textures, landscape.rockShade])
+  }, [textures, landscape.rockShade, landscape.caustics])
   const { chunks, reefSurfaces } = useMemo(() => makeLandscapeChunks(landscape, rocks), [landscape, rocks])
 
   // Built imperatively, so R3F won't dispose them; free them when the tank unmounts.

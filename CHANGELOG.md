@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.29.0 — Reef behaviour (in progress)
 
-Status: in development as `v0.29.0-dev_7` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+Status: in development as `v0.29.0-dev_8` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
 
 ### Behaviour
 
@@ -36,7 +36,7 @@ Jeremy (2026-10-18): "the whole view looks a bit dead. should we change up the c
 - The foreground bommie at x 3.2 (seed 62) is capped at y -12: from the lower eye it rose to 63% down the frame as a column; it pokes up from the bottom edge again.
 - The mid-ground outcrop moves 4 WU nearer (main stack z -29, was -33; the satellite to x -7, z -23.5). With fish starting at their rocks, the phone sees 22% of the fish at a rock (15% at dev_1). The camera change on its own barely moves that (23% from the old view against 22% from the new, same fish), and a reef fish is still about 20 px long on a 375 px phone (18 px before): the gain is mood and framing, not size.
 
-### Colour (dev_4 to dev_7)
+### Colour (dev_4 to dev_8)
 
 Jeremy (2026-10-18) sent five reef photos as colour references: "i think u may darken the limestone if u need to / paint shadows". What they share: dark rock against bright water, sunlit tops and near-black undersides, distance fading to luminous azure, sunbeams from the surface, pale sand.
 
@@ -44,6 +44,8 @@ Jeremy (2026-10-18) sent five reef photos as colour references: "i think u may d
 - Water by height (dev_6; Jeremy: "not a big fan of the super bright cyan blue. look at the references again", then "there should be a stronger gradient. closer to the sea bed = darker. closer to surface = more cyan"). dev_4's all-over bright cyan (haze `#2a96cc`) read flat; the references share a deep blue that darkens with depth and distance. New `utils/heightFog.js` patches three's fog chunks once so the fog colour follows the world height of what it covers: deep navy `#03152c` at the sand's mean level (y -24) to cyan `#43b6d8` at the surface (y 4.6), and what lies by the sand is lit at half strength (`seabedLight` 0.5). A tank opts in with `lighting.heightFog`; SceneLighting switches it on just before the tank's scene renders and off after, so the Open Sea and the Atlas render as before (checked: strength 0 and the scene's render hooks restored after switching tanks). Background from `#8edbf2` overhead through `#47bde0` at 0.3 and `#17609b` at the horizon to `#03142b` straight down, with the steps inside the band the resting view sees (0.35 to 0.58); surface tint `#6cc6e2`; fallback haze `#14588f`, density 0.013, exposure 1.06. Pale sand `#c4bea2` (was `#a39c80`).
 - Deep blue, not black, and dark with distance (dev_7; Jeremy: "bottom is way too dark. i think the dark also = more deep blue rather than black. can u accentuate this darkness in the background and keep the foreground lighter?"). The light lost near the sea bed now scales with the fog factor, so near rock and fish keep their light and the shadow gathers further off. The sea-bed haze is deep blue `#0b3070` (was near-black `#03152c`), and the bottom of the background runs `#11478a` → `#0a2c60` (was `#0c3a68` → `#03142b`). Fog density 0.016 (was 0.013), so the distance carries more of it. The painted shade on rock bases eases (low 0.6, was 0.35; overall tone 0.66, was 0.6; undersides 0.25, was 0.22).
 - No light shafts in The Reefs (`lighting.godRays: false`, dev_5). dev_4 had made them near-white additive sunbeams placed for the low camera; Jeremy: "idw the fake sun beams". The Open Sea and the Atlas keep theirs.
+- Warm sunlit tops (dev_8): the rock's upward faces near the surface tint toward ochre (`rockShade.warm`: up to 0.5 of the way to ×[1.18, 1.02, 0.78], from y -18 to 0), a stand-in for the colour corals will bring against the blue.
+- Caustics (dev_8; Jeremy: "dont over do this ... make sure the caustics is 3d space projected on the landscape this time. keep it optimised"). New `utils/caustics.js`: a tileable 256 × 256 Voronoi edge net built once on the CPU, sampled twice per fragment at two scales drifting apart and combined by their minimum, added as light (times the surface colour) to the rock and sand shaders. Each point looks it up by its world position, slanted along the sun ([0.4, −0.4] per WU of height), so it lies on the landscape and holds still under a moving camera. Upward faces only (|normal.y| on the double-sided sand); cells about 1.5 WU (37 cm) across, drifting 0.02 tiles a second; 60% strength at the sand rising to full at y 0; faded out between 25 and 60 WU from the camera so it never shimmers. Measured cost in the resting view: 7.1 ms median frame with it, 6.9 ms without (noise).
 - Still missing from the references: colour on the rock (coral, sponges). That needs coral models.
 
 ### Known issues (dev_1)

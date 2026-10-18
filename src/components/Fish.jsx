@@ -32,6 +32,7 @@ import {
   reefSheltered,
   reefStartled,
   resetReefState,
+  spawnReefBehavior,
   startReefBehavior,
   stepReefOwned,
   stepReefTravel,
@@ -2469,6 +2470,29 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         position = fish.position
       } else {
         position = pickSoloAgentTarget(schoolBasePosition, creature, swim, agentRand.current)
+        // A reef fish opens at its rock, already hovering, pecking or sheltering (or just off
+        // it), near where it would have spawned; without a site it spawns as above.
+        if (reefConfig) {
+          const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+          const leader = pairFollow ? getFishEntry(pairFollow.leaderId) : null
+          const placed = spawnReefBehavior(reefRef.current, reefConfig, {
+            bodyLength,
+            region: bounds,
+            contains: point => pointInSwimBounds(point, bounds),
+            position: leader?.position ?? position,
+            rand: agentRand.current,
+            now,
+            cruiseSpeed: motion.idleSpeed * organicMotion.speedScale,
+            home: leader?.position ?? null,
+          }, position)
+          if (placed) {
+            agentBehavior.current = REEF_BEHAVIOR
+            agentBehaviorStartedAt.current = now
+            agentTarget.current.copy(reefRef.current.site.entry)
+            agentHasTarget.current = reefRef.current.stage === 'travel'
+            desiredDirection.current.copy(reefRef.current.facing)
+          }
+        }
       }
       if (desiredDirection.current.lengthSq() > 0.0001) tangent.copy(desiredDirection.current)
       else if (hasVisualForward.current) tangent.copy(visualForward.current)

@@ -145,12 +145,16 @@ function boxDistance(box, point) {
  *   normalY     [min, max] of the face normal's y: which faces suit (sides, gentle tops, undersides)
  *   minEnclosure   only nooks at least this enclosed; the most enclosed of the tries wins
  *   enclosureReach  how far the enclosure rays look (WU)
+ *   force       search even if another fish already did this frame (spawning)
  */
 export function findReefSite(out, query) {
   if (!hasReefSurfaces()) return null
-  const clock = performance.now()
-  if (clock - lastSearchAt < SEARCH_WINDOW_MS) return false
-  lastSearchAt = clock
+  // `force` skips the once-a-frame limit: placing the reef fish at their rocks as the tank opens.
+  if (!query.force) {
+    const clock = performance.now()
+    if (clock - lastSearchAt < SEARCH_WINDOW_MS) return false
+    lastSearchAt = clock
+  }
 
   const { region, contains, near, radius, from, rand, standoff, clearance, entryDistance, normalY } = query
   const minEnclosure = query.minEnclosure ?? 0

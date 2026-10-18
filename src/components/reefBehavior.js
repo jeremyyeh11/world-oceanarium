@@ -228,6 +228,7 @@ export function startReefBehavior(reef, profile, ctx) {
   const near = ctx.home ?? (roaming ? homeQuery.copy(ctx.position) : reef.home)
   const radius = profile.homeRadiusBodyLengths * bodyLength * (roaming ? 2 : 1)
   const found = findReefSite(reef.site, {
+    force: ctx.force,
     region: ctx.region,
     contains: ctx.contains,
     near,
@@ -282,6 +283,44 @@ export function startReefBehavior(reef, profile, ctx) {
   reef.progressDistance = distance
   reef.progressCheckAt = ctx.now + TRAVEL_PROGRESS_SECONDS
   return 'started'
+}
+
+/**
+ * Place a reef fish as the tank opens, already about its business instead of scattered through
+ * open water: at a rock near `ctx.position` (its spawn point), hovering, pecking or sheltering in
+ * the species' own mix, part-way through the visit so the tank does not move off in step. With
+ * chance 1 - affinity it starts a few body lengths off the rock instead, swimming past it.
+ * Same ctx as startReefBehavior. Returns false (spawn it the ordinary way) if no site was found.
+ * On success `position` is moved to the start point and `reef.facing` set.
+ */
+export function spawnReefBehavior(reef, profile, ctx, position) {
+  const { rand, now, bodyLength } = ctx
+  const atRock = rand() < profile.affinity
+  // A patrol has nothing to be mid-way through: those start as hovers.
+  let mode = pickMode(profile, rand)
+  if (atRock && mode === 'patrol') mode = 'hover'
+  if (!atRock) mode = 'patrol'
+  reef.retryMode = mode
+  let result = 'busy'
+  // Spawn searches skip the frame limit; a shelter that finds no nook falls back to a hover.
+  for (let tries = 0; tries < 4 && result === 'busy'; tries++) result = startReefBehavior(reef, profile, { ...ctx, force: true })
+  if (result !== 'started') {
+    resetReefState(reef)
+    return false
+  }
+  if (reef.mode === 'patrol') {
+    // Off the face, already on its way past.
+    position.copy(reef.site.entry)
+    reef.facing.copy(reef.outward).applyAxisAngle(UP, (rand() < 0.5 ? -1 : 1) * Math.PI / 2)
+    return true
+  }
+  position.copy(reef.site.rest)
+  reef.facing.copy(reef.mode === 'shelter' ? reef.outward : reef.faceIn)
+  finishSettle(reef, profile, bodyLength, rand, now)
+  // Part-way through: hold time left anywhere in its span, and a peck run already under way.
+  reef.until = now + (reef.until - now) * (0.35 + 0.65 * rand())
+  if (reef.stage === 'peck') reef.phaseUntil = now + rand() * profile.peckRestSeconds[1]
+  return true
 }
 
 /**

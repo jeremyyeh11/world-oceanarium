@@ -72,6 +72,15 @@ is retried twice before the decision goes to open water. Measured on desktop (20
 peck search takes 0.3 ms median, a shelter search 0.8 ms median and 4.8 ms worst; building the
 trees for the 87 reachable rocks takes about 13 ms once per tank mount.
 
+## Spawning
+
+On a fish's first frame (not a remount after a tank switch), `spawnReefBehavior` picks a site
+near where it would have spawned and starts it part-way through: hovering, pecking or
+sheltering in the species' own mix, with 35% to 100% of the hold left. With chance
+`1 - affinity` it starts at the site's entry point instead, swimming past. A pair follower
+starts by its mate's rock if the mate is already up. Spawn searches skip the once-a-frame
+limit, so the first frame does them all (10.3 ms on desktop with 42 reef fish).
+
 ## Home and mates
 
 A fish's home is the first site it finds; most sites are picked within `homeRadiusBodyLengths`

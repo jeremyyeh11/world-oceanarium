@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.29.0 — Reef behaviour (in progress)
 
-Status: in development as `v0.29.0-dev_1` (branch `feat/reef-behavior`). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+Status: in development as `v0.29.0-dev_2` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
 
 ### Behaviour
 
@@ -18,6 +18,7 @@ Status: in development as `v0.29.0-dev_1` (branch `feat/reef-behavior`). Jeremy 
 - Travel to a site runs on the unified pipeline. Settling in, the time at the rock, and turning to leave own the pose, like the sun-bask hold. Measured peck cycle on a 1.6 WU angelfish: snout 0.51 WU off the face at rest, in to 0.02 WU in 0.29 s, a 0.2 s bite, back to 0.7 WU in 0.19 s.
 - Sites come from raycasts of the drawn rocks, not the steering ellipsoids, so a peck lands on the visible face. Landscape keeps the rocks inside the new `reefReach` box whole, each with a three-mesh-bvh tree (now a direct dependency, the same 0.8.3 drei already installs). One search per frame at most: 0.3 ms median for a peck site, 0.8 ms median and 4.8 ms worst for a shelter (desktop). Tree build is about 13 ms per tank mount.
 - Each fish keeps a home rock; its open-water swims stay within its home range. A pair follower lets its mate be while the mate is at a rock and does its own reef behaviour nearby. A fish at a rock finishes before it rejoins its mate or follows the sunfish.
+- Reef fish open at their rocks (dev_2; Jeremy: "when i start the app, it seems like all the fish are just randomly scattered across"). On its first frame each picks a site near where it would have spawned and starts part-way through a hover, peck run or shelter; with chance 1 − affinity it starts just off the rock instead. A pair follower starts by its mate's rock. On a fresh load 31 of the first 42 reef fish were at a rock (was none); the spawn frame took 10.3 ms on desktop, since spawn searches skip the once-a-frame limit. After the first visits about 55% stay within 5 body lengths of rock; most of the rest are with a mate or the sunfish.
 - After leaving a rock, the rock clamp comes back over 1.5 s, so the fish eases out of the proxy padding instead of jumping.
 - Swim volumes: the four species now reach down to y -19 and back to z -52 (`REEF_BOUNDS`), keeping their own front edges. The triggerfish and grouper no longer keep to a shallow band under the surface (y -1.9 to 2.7).
 

@@ -24,6 +24,9 @@ const DOWN = new THREE.Vector3(0, -1, 0)
 const OVERHEAD = [UP, new THREE.Vector3(0.6, 0.8, 0), new THREE.Vector3(-0.6, 0.8, 0)]
 // One site search per this many ms (about a frame), however many fish want one.
 const SEARCH_WINDOW_MS = 12
+// Where the fish lines up, in entry distances out from the rest point: the full distance, else
+// nearer, else further out (past the padded plate over a fish hiding under a table).
+const ENTRY_SHARES = [1, 0.6, 1.6]
 
 let surfaces = null
 let lastSearchAt = -Infinity
@@ -44,27 +47,71 @@ const outward = new THREE.Vector3()
 const segment = new THREE.Vector3()
 const candidates = []
 
+// Two surface sets share the queries: the tank's rocks (Landscape, as the rock kit loads) and its
+// table corals (once their placement finishes, see coralPlacement.js). Every ray meets both, since
+// a coral plate is as solid as rock; a site search can ask for one kind (`query.kind`). Each mesh
+// keeps its kind, and a coral its plate (`metas`), so searches can aim under or at the plate.
+let rockSet = null
+let coralSet = null
+
+function surfaceMesh(geometry) {
+  if (!geometry.boundingBox) geometry.computeBoundingBox()
+  if (!geometry.boundingSphere) geometry.computeBoundingSphere()
+  if (!geometry.boundsTree) geometry.boundsTree = new MeshBVH(geometry)
+  const mesh = new THREE.Mesh(geometry, SURFACE_MATERIAL)
+  mesh.raycast = acceleratedRaycast
+  mesh.updateMatrixWorld(true)
+  return mesh
+}
+
+function rebuildSurfaces() {
+  if (!rockSet) {
+    surfaces = null
+    return
+  }
+  const corals = coralSet?.meshes ?? []
+  const meshes = [...rockSet.meshes, ...corals]
+  surfaces = {
+    meshes,
+    boxes: meshes.map(mesh => mesh.geometry.boundingBox),
+    kinds: meshes.map((_, i) => (i < rockSet.meshes.length ? 'rock' : 'coral')),
+    metas: [...rockSet.meshes.map(() => null), ...(coralSet?.metas ?? [])],
+    viewpoint: rockSet.viewpoint,
+  }
+}
+
 // geometries: world-space BufferGeometries, one per reachable rock (Landscape owns and frees them).
 // view: the tank's resting camera ({ x, y, z, lookX, lookY, lookZ }, Camera.jsx settings), so
 // fish can favour the reef the visitor actually sees (pickViewHome, `viewBias` below).
 export function setReefSurfaces(geometries, view = null) {
-  const meshes = geometries.map(geometry => {
-    if (!geometry.boundingBox) geometry.computeBoundingBox()
-    if (!geometry.boundingSphere) geometry.computeBoundingSphere()
-    if (!geometry.boundsTree) geometry.boundsTree = new MeshBVH(geometry)
-    const mesh = new THREE.Mesh(geometry, SURFACE_MATERIAL)
-    mesh.raycast = acceleratedRaycast
-    mesh.updateMatrixWorld(true)
-    return mesh
-  })
   let viewpoint = null
   if (view) {
     const position = new THREE.Vector3(view.x ?? 0, view.y ?? 0, view.z ?? 0)
     const target = new THREE.Vector3(view.lookX ?? position.x, view.lookY ?? position.y, view.lookZ ?? 0)
     viewpoint = { position, forward: target.sub(position).normalize() }
   }
-  surfaces = { meshes, boxes: meshes.map(mesh => mesh.geometry.boundingBox), viewpoint }
-  return surfaces
+  rockSet = { meshes: geometries.map(surfaceMesh), viewpoint }
+  rebuildSurfaces()
+  return rockSet
+}
+
+// geometries: world-space BufferGeometries, one per reachable table coral. metas, one per
+// geometry: { centre (Vector3, the plate's centre), underside, top (y of the plate's underside
+// and top), radius, foot (Vector3, the stalk's foot) }.
+export function setCoralSurfaces(geometries, metas) {
+  coralSet = { meshes: geometries.map(surfaceMesh), metas }
+  rebuildSurfaces()
+  return coralSet
+}
+
+export function clearCoralSurfaces(owner) {
+  if (coralSet !== owner) return
+  coralSet = null
+  rebuildSurfaces()
+}
+
+export function hasCoralSurfaces() {
+  return surfaces !== null && (coralSet?.meshes.length ?? 0) > 0
 }
 
 // A random point in the middle of the resting view, 18 to 58 WU out and within 15% of the
@@ -85,7 +132,9 @@ export function pickViewHome(out, rand) {
 }
 
 export function clearReefSurfaces(owner) {
-  if (surfaces === owner) surfaces = null
+  if (rockSet !== owner) return
+  rockSet = null
+  rebuildSurfaces()
 }
 
 export function hasReefSurfaces() {
@@ -161,6 +210,8 @@ function boxDistance(box, point) {
  * query:
  *   region      { xMin, xMax, yMin, yMax, zMin, zMax }: the box of the fish's swim volume
  *   contains    (point) => bool: exact test against the swim volume
+ *   reachable   (point) => bool: the fish can swim to it (outside every padded steering shape);
+ *               an entry point it cannot reach leaves it circling short of the site
  *   near, radius   prefer rocks within `radius` of `near` (its home), falling back to any
  *   from        where the fish is: most tries aim at the side of the rock facing it
  *   rand        seeded random
@@ -173,6 +224,10 @@ function boxDistance(box, point) {
  *   force       search even if another fish already did this frame (spawning)
  *   viewBias    share of tries that come at the rock from the resting camera's side and keep
  *               only a rest point the camera can see (0 = ignore the view)
+ *   kind        'rock' or 'coral': only surfaces of that kind (default: any)
+ *   aim         at a coral: 'under' aims the ray below its plate, at the stalk or the rock behind
+ *               it (hiding under the table, or between two tiers), 'rim' at the plate's edge
+ *   requireCover  keep only rest points with a surface straight overhead within enclosureReach
  */
 export function findReefSite(out, query) {
   if (!hasReefSurfaces()) return null
@@ -183,16 +238,18 @@ export function findReefSite(out, query) {
     lastSearchAt = clock
   }
 
-  const { region, contains, near, radius, from, rand, standoff, clearance, entryDistance, normalY } = query
+  const { region, contains, reachable, near, radius, from, rand, standoff, clearance, entryDistance, normalY } = query
   const viewpoint = surfaces.viewpoint
   const viewBias = viewpoint ? query.viewBias ?? 0 : 0
   const minEnclosure = query.minEnclosure ?? 0
   const attempts = query.attempts ?? 8
-  const { boxes } = surfaces
+  const { boxes, kinds, metas } = surfaces
+  const kind = query.kind ?? null
   // Rocks that reach into the swim volume, near home if any are.
   candidates.length = 0
   for (let pass = 0; pass < 2 && candidates.length === 0; pass++) {
     for (let i = 0; i < boxes.length; i++) {
+      if (kind && kinds[i] !== kind) continue
       const box = boxes[i]
       const reach = entryDistance + standoff
       if (box.max.x < region.xMin - reach || box.min.x > region.xMax + reach) continue
@@ -208,31 +265,51 @@ export function findReefSite(out, query) {
   let bestEnclosure = -1
   for (let attempt = 0; attempt < attempts; attempt++) {
     // The nearest of three rocks drawn at random, so most sites are a short swim away.
-    let box = boxes[candidates[Math.floor(rand() * candidates.length)]]
+    let index = candidates[Math.floor(rand() * candidates.length)]
     if (from) {
       for (let draw = 0; draw < 2; draw++) {
-        const other = boxes[candidates[Math.floor(rand() * candidates.length)]]
-        if (boxDistance(other, from) < boxDistance(box, from)) box = other
+        const other = candidates[Math.floor(rand() * candidates.length)]
+        if (boxDistance(boxes[other], from) < boxDistance(boxes[index], from)) index = other
       }
     }
+    const box = boxes[index]
+    const plate = metas[index]
     box.getCenter(aim)
     box.getSize(half).multiplyScalar(0.5)
     // Aim at the rock inside the height band the fish can reach. Most tries go at the side
     // facing the fish (`from`), so the site is a short swim away on its own side of the rock;
-    // the rest come at it from anywhere.
-    const yLow = Math.max(box.min.y, region.yMin)
-    const yHigh = Math.min(box.max.y, region.yMax)
+    // the rest come at it from anywhere. At a coral, under its plate (from the foot to just
+    // below the underside, at the stalk) or at the plate's rim.
+    let yLow = Math.max(box.min.y, region.yMin)
+    let yHigh = Math.min(box.max.y, region.yMax)
+    if (plate && query.aim === 'under') {
+      yHigh = Math.min(yHigh, plate.underside - 0.15)
+      aim.x = plate.foot.x
+      aim.z = plate.foot.z
+      half.set(plate.radius * 0.3, half.y, plate.radius * 0.3)
+    } else if (plate && query.aim === 'rim') {
+      yLow = Math.max(yLow, plate.underside - 0.1)
+      yHigh = Math.min(yHigh, plate.top + 0.1)
+      aim.x = plate.centre.x
+      aim.z = plate.centre.z
+    }
     if (yHigh <= yLow) continue
     let angle = rand() * Math.PI * 2
     // Some tries face the camera: aim at the rock's side toward it, and see the site from it.
     const fromView = viewBias > 0 && rand() < viewBias
+    // Under a table the ray keeps aiming at the stalk; only its approach turns toward the viewer.
+    const keepAim = plate && query.aim === 'under'
     if (fromView) {
-      aim.x = THREE.MathUtils.clamp(viewpoint.position.x, box.min.x, box.max.x)
-      aim.z = THREE.MathUtils.clamp(viewpoint.position.z, box.min.z, box.max.z)
+      if (!keepAim) {
+        aim.x = THREE.MathUtils.clamp(viewpoint.position.x, box.min.x, box.max.x)
+        aim.z = THREE.MathUtils.clamp(viewpoint.position.z, box.min.z, box.max.z)
+      }
       angle = Math.atan2(viewpoint.position.z - aim.z, viewpoint.position.x - aim.x) + (rand() * 2 - 1) * Math.PI / 4
     } else if (from && rand() < 0.75) {
-      aim.x = THREE.MathUtils.clamp(from.x, box.min.x, box.max.x)
-      aim.z = THREE.MathUtils.clamp(from.z, box.min.z, box.max.z)
+      if (!keepAim) {
+        aim.x = THREE.MathUtils.clamp(from.x, box.min.x, box.max.x)
+        aim.z = THREE.MathUtils.clamp(from.z, box.min.z, box.max.z)
+      }
       angle = Math.atan2(from.z - aim.z, from.x - aim.x) + (rand() * 2 - 1) * Math.PI / 3
     }
     aim.x += (rand() * 2 - 1) * half.x * 0.5
@@ -264,14 +341,17 @@ export function findReefSite(out, query) {
     if (outward.lengthSq() < 0.04) continue
     outward.normalize()
     let entryOk = false
-    for (const share of [1, 0.6]) {
+    for (const share of ENTRY_SHARES) {
       entry.copy(rest).addScaledVector(outward, entryDistance * share)
       if (!contains(entry)) continue
+      if (reachable && !reachable(entry)) continue
       if (castReefRay(rest, outward, entryDistance * share) >= 0) continue
       entryOk = true
       break
     }
     if (!entryOk) continue
+    // Hiding under a table: something (the plate) straight overhead.
+    if (query.requireCover && castReefRay(rest, UP, query.enclosureReach ?? clearance * 4) < 0) continue
     const enclosure = minEnclosure > 0 ? enclosureAt(rest, faceNormal, query.enclosureReach ?? clearance * 4) : 0
     if (enclosure < minEnclosure || enclosure <= bestEnclosure) continue
     bestEnclosure = enclosure

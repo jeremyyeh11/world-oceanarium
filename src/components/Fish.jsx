@@ -3208,7 +3208,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         : (behavior?.type === 'sun-bask'
           ? `sun-bask ${behavior.stage}`
           : behavior?.type === 'reef'
-            ? `reef ${reefRef.current.mode} ${reefRef.current.stage}${reefRef.current.stage === 'peck' ? ` ${reefRef.current.peckPhase} ×${reefRef.current.pecksLeft}` : ''}`
+            ? `reef ${reefRef.current.mode} ${reefRef.current.stage}${reefRef.current.siteKind === 'coral' ? ' coral' : ''}${reefRef.current.stage === 'peck' ? ` ${reefRef.current.peckPhase} ×${reefRef.current.pecksLeft}` : ''}`
             : (behavior?.type ?? 'choose-behavior'))
     }
 

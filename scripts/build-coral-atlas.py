@@ -14,10 +14,13 @@
 # tank's texture size (1.5 m a tile) and darkened toward the tank's rock tone. Each table's
 # foot is found by a ray down onto the rock (a ray in for one growing out of a wall); its stalk
 # sinks a little into the rock, and its plate is checked against the rock, as in the tank
-# (src/components/coralPlacement.js). No sand: a patch of it read as a white glow under the
-# rock (Jeremy: "remove the white radial highlight"), so every table grows from the rock. Everything
-# is in metres, centred on the origin. With a preview folder it also renders the cluster from the
-# Atlas's angle (30 degrees down, turned like its pose) and from the front.
+# (src/components/coralPlacement.js); every table grows from the rock. Under it lies a faint patch
+# of sand: a disc with a soft edge and a darker patch where the rock sits (its alpha needs the
+# species' `model.alphaBlend`). A first, brighter patch read as a white glow (Jeremy: "remove the
+# white radial highlight"), so this one is dark and mostly transparent ("add the radial sand
+# highlight gradient thing back ... but make it more subtle"). Everything is in metres, centred on
+# the rock and tables. With a preview folder it also renders the cluster from the Atlas's angle
+# (30 degrees down, turned like its pose) and from the front.
 
 import bpy, sys, os, math
 from mathutils import Matrix, Vector
@@ -258,6 +261,66 @@ around(0, 1.4, 60, 0.95, play=0.2)                  # cream, back-right shoulder
 around(1, 1.0, -90, 0.75, play=0.1)                 # pink, front shoulder
 around(2, 0.6, -45, 0.8, play=0.0)                  # small, front-right shoulder
 
+# --- Sand ---------------------------------------------------------------------------------
+# A faint disc of sand at the rocks' foot line, generated here so the build needs no extra asset:
+# pale sand (the tank floor's #c4bea2) with a little grain, toned well down, at most 60% opaque,
+# fading out from 30% of its radius, a little darker under the rock (the Atlas draws no shadows).
+SAND_SIZE = 256
+SAND_RADIUS = 3.0
+SAND_TONE = (0.25, 0.25, 0.25)
+SAND_ALPHA = 0.6
+lo_r, hi_r = world_bounds(bottom)
+rock_reach = max(hi_r.x - lo_r.x, hi_r.y - lo_r.y) / 2 + 0.3
+grain_seed = [12345]
+
+def grain():
+    grain_seed[0] = (grain_seed[0] * 1103515245 + 12345) % 2147483648
+    return grain_seed[0] / 2147483648 - 0.5
+
+pixels = [0.0] * (SAND_SIZE * SAND_SIZE * 4)
+for py in range(SAND_SIZE):
+    for px in range(SAND_SIZE):
+        u = (px + 0.5) / SAND_SIZE * 2 - 1
+        v = (py + 0.5) / SAND_SIZE * 2 - 1
+        r = math.hypot(u, v)
+        if r > 1:
+            continue
+        edge = max(0.0, min(1.0, (1 - r) / 0.7))
+        alpha = SAND_ALPHA * edge * edge * (3 - 2 * edge)
+        d = r * SAND_RADIUS / max(rock_reach, 0.01)
+        shade = 0.75 + 0.25 * max(0.0, min(1.0, (d - 0.55) / 0.7))
+        ripple = 0.03 * math.sin(u * 23.0 + v * 7.0) + 0.02 * math.sin(v * 31.0 - u * 11.0)
+        g = grain() * 0.06 + ripple
+        k = (py * SAND_SIZE + px) * 4
+        pixels[k:k + 4] = [max(0.0, min(1.0, (0.77 + g) * shade)), max(0.0, min(1.0, (0.745 + g) * shade)),
+                           max(0.0, min(1.0, (0.635 + g) * shade)), alpha]
+generated = bpy.data.images.new('coral-sand', SAND_SIZE, SAND_SIZE, alpha=True)
+generated.pixels = pixels
+os.makedirs(os.path.dirname(out_path), exist_ok=True)
+sand_path = os.path.join(os.path.dirname(out_path), 'coral-sand.png')
+generated.filepath_raw = sand_path
+generated.file_format = 'PNG'
+generated.save()
+sand_img = bpy.data.images.load(sand_path)
+sand_mat = bpy.data.materials.new('sand')
+sand_mat.use_nodes = True
+nt = sand_mat.node_tree
+b = nt.nodes['Principled BSDF']
+b.inputs['Roughness'].default_value = 1.0
+tex = nt.nodes.new('ShaderNodeTexImage')
+tex.image = sand_img
+nt.links.new(toned(nt, tex.outputs['Color'], SAND_TONE), b.inputs['Base Color'])
+nt.links.new(tex.outputs['Alpha'], b.inputs['Alpha'])
+if hasattr(sand_mat, 'surface_render_method'):
+    sand_mat.surface_render_method = 'BLENDED'
+else:
+    sand_mat.blend_method = 'BLEND'
+bpy.ops.mesh.primitive_circle_add(vertices=64, radius=SAND_RADIUS, fill_type='TRIFAN', calc_uvs=True,
+                                  location=(centre.x, centre.y, FOOT_Z))
+sand = bpy.context.active_object
+sand.name = 'sand'
+sand.data.materials.append(sand_mat)
+
 # Centre the cluster on the origin.
 objs = rocks + placed
 update()
@@ -266,18 +329,19 @@ hi = Vector((max(world_bounds(o)[1].x for o in objs), max(world_bounds(o)[1].y f
 shift = -(lo + hi) / 2
 for o in rocks:
     o.data.transform(Matrix.Translation(shift))
-for o in placed:
+for o in placed + [sand]:
     o.matrix_world = Matrix.Translation(shift) @ o.matrix_world
 update()
 print('BOUNDS', tuple(round(v, 3) for v in (hi - lo)))
 
 bpy.ops.object.select_all(action='DESELECT')
-for o in objs:
+for o in objs + [sand]:
     o.select_set(True)
 bpy.context.view_layer.objects.active = objs[0]
-os.makedirs(os.path.dirname(out_path), exist_ok=True)
-bpy.ops.export_scene.gltf(filepath=out_path, export_format='GLB', use_selection=True, export_image_format='JPEG',
+# AUTO keeps the sand's alpha as a PNG and the baked maps as JPEGs.
+bpy.ops.export_scene.gltf(filepath=out_path, export_format='GLB', use_selection=True, export_image_format='AUTO',
                           export_texcoords=True, export_normals=True, export_yup=True, export_animations=False)
+os.remove(sand_path)
 print('GLB', out_path, os.path.getsize(out_path))
 
 if preview_dir:

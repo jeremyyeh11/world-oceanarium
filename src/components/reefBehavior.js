@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { castReefRay, findReefSite, hasReefSurfaces, pickViewHome, reefSegmentClear } from './reefSites.js'
+import { castReefRay, findReefSite, hasCoralSurfaces, hasReefSurfaces, pickViewHome, reefSegmentClear } from './reefSites.js'
+import { insideRock } from './rockObstacles.js'
 
 // Reef behaviour for reef-associated species (a `reef` block in species.js; see
 // docs/reef-behavior.md). A reef fish keeps a home on the rocks and spends most of its time
@@ -50,7 +51,18 @@ const REEF_DEFAULTS = {
   turnDegreesPerSecond: 150,
   // After a startle, the chance its next move is to shelter.
   startleShelterChance: 0.5,
+  // Where there are table corals (landscapes.js `corals`), the share of each mode's visits that
+  // go to one instead of to rock (Jeremy, 2026-10-19: "build fish behavior to interact with the
+  // corals, hide underneath, within, peck at it"). A coral shelter hides under a table's plate, or
+  // between two stacked plates; a peck or hover is at a plate's rim. A coral search that finds
+  // nothing falls back to rock, which a thin, ragged rim often makes happen: measured over 90 s
+  // (138 visits), these shares gave 62% of shelters at coral but only 12–19% of hovers, patrols
+  // and pecks, hence the higher shares for those.
+  coral: { patrol: 0.35, hover: 0.5, peck: 0.6, shelter: 0.6 },
 }
+// A shelter under a coral table counts as enclosed with less around it than a rock nook: the
+// plate overhead is what hides the fish (the search keeps only spots with cover straight above).
+const CORAL_SHELTER_MIN_ENCLOSURE = 0.25
 
 // Snout clearance from the face once tucked into a shelter, before it turns to face out.
 const SHELTER_GAP_BODY_LENGTHS = 0.15
@@ -104,7 +116,8 @@ export function reefProfile(species) {
   const modes = { ...REEF_DEFAULTS.modes, ...(settings.modes ?? {}) }
   const total = Object.values(modes).reduce((sum, weight) => sum + Math.max(0, weight), 0) || 1
   for (const key of Object.keys(modes)) modes[key] = Math.max(0, modes[key]) / total
-  return { ...REEF_DEFAULTS, ...settings, modes }
+  const coral = { ...REEF_DEFAULTS.coral, ...(settings.coral ?? {}) }
+  return { ...REEF_DEFAULTS, ...settings, modes, coral }
 }
 
 export function createReefState() {
@@ -158,6 +171,10 @@ export function createReefState() {
     // and how many searches in a row have come up empty.
     retryMode: null,
     failedSearches: 0,
+    // 'rock' or 'coral': what the current site is on, and what the retried search must ask for
+    // (null = choose again).
+    siteKind: 'rock',
+    retryKind: null,
   }
 }
 
@@ -165,6 +182,7 @@ export function resetReefState(reef) {
   reef.mode = null
   reef.stage = 'idle'
   reef.retryMode = null
+  reef.retryKind = null
 }
 
 /** Whether the behaviour owns the fish's position and facing this frame. */
@@ -225,6 +243,10 @@ export function startReefBehavior(reef, profile, ctx) {
   const { bodyLength, rand } = ctx
   const mode = reef.retryMode ?? (reef.shelterQueued ? 'shelter' : pickMode(profile, rand))
   reef.retryMode = null
+  // On rock or on a table coral (`profile.coral`, the share of this mode's visits).
+  const kind = reef.retryKind ?? (hasCoralSurfaces() && rand() < (profile.coral[mode] ?? 0) ? 'coral' : 'rock')
+  reef.retryKind = null
+  const onCoral = kind === 'coral'
   const nose = profile.noseBodyLengths * bodyLength
   const standoff = mode === 'peck'
     ? nose + profile.peckGapBodyLengths * bodyLength
@@ -244,6 +266,9 @@ export function startReefBehavior(reef, profile, ctx) {
     force: ctx.force,
     region: ctx.region,
     contains: ctx.contains,
+    // The steering keeps a fish outside the rocks' and tables' padded shapes, so a line-up point
+    // inside one is never reached (measured 2026-10-19: 10 of 13 such trips were given up).
+    reachable: point => !insideRock(point, bodyLength),
     near,
     radius,
     from: ctx.position,
@@ -252,13 +277,25 @@ export function startReefBehavior(reef, profile, ctx) {
     clearance: CLEARANCE_BODY_LENGTHS * bodyLength,
     entryDistance,
     normalY: FACE_NORMAL_Y[mode],
-    minEnclosure: mode === 'shelter' ? SHELTER_MIN_ENCLOSURE : 0,
+    minEnclosure: mode === 'shelter' ? (onCoral ? CORAL_SHELTER_MIN_ENCLOSURE : SHELTER_MIN_ENCLOSURE) : 0,
     enclosureReach: Math.max(1.5, 2.5 * bodyLength),
-    attempts: mode === 'shelter' ? 10 : 8,
+    // A coral's rim is a narrow target: more tries before falling back to rock.
+    attempts: mode === 'shelter' ? 10 : onCoral ? 12 : 8,
     viewBias: VIEW_SITE_BIAS,
+    kind,
+    // Under a coral's plate to hide (or between two tiers), at its rim otherwise.
+    aim: onCoral ? (mode === 'shelter' ? 'under' : 'rim') : undefined,
+    requireCover: onCoral && mode === 'shelter',
   })
   if (found === false) {
     reef.retryMode = mode
+    reef.retryKind = kind
+    return 'busy'
+  }
+  if (!found && onCoral) {
+    // No coral spot near enough: the same move on rock, searched next frame.
+    reef.retryMode = mode
+    reef.retryKind = 'rock'
     return 'busy'
   }
   if (!found) {
@@ -285,6 +322,7 @@ export function startReefBehavior(reef, profile, ctx) {
     reef.hasHome = true
   }
   reef.mode = mode
+  reef.siteKind = kind
   reef.stage = 'travel'
   reef.entryDistance = entryDistance
   reef.faceIn.copy(reef.site.normal).negate()

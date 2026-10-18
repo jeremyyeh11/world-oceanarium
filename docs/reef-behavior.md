@@ -65,7 +65,10 @@ fish, and casts a nearly level ray at it. The hit is kept if:
   undersides too for shelter);
 - the rest point is inside the fish's swim volume, with nothing between it and the face;
 - there is `0.55 BL` of free room round the rest point (to turn on the spot);
-- the entry point is in the volume, with a clear line in;
+- the entry point is in the volume, with a clear line in, and outside every rock's and table's
+  padded steering shape (rockObstacles.js `insideRock`, the query's `reachable`): the steering
+  keeps a fish out of that padding, so it would circle short of an entry inside it and give up.
+  It is tried at 1, then 0.6, then 1.6 entry distances out;
 - for a shelter, the share of rays meeting rock within `2.5 BL` is at least 0.35: the 8 level
   rays that do not point into the face, plus 3 overhead. The most enclosed of 10 tries wins.
 
@@ -95,6 +98,55 @@ mate's position as home. While the leader is at a rock (`reefHold` on its regist
 follower stops station-keeping and does its own reef behaviour nearby; at a rock, a fish finishes
 before it rejoins its mate or starts following a host.
 
+## Corals
+
+Where a landscape has table corals (`corals` in landscapes.js, placed by coralPlacement.js), the
+reef fish use them as well as the rock (Jeremy, 2026-10-19: "build fish behavior to interact with
+the corals, hide underneath, within, peck at it"). The tables join the surfaces the site search
+raycasts (`setCoralSurfaces` in reefSites.js, beside the rocks' `setReefSurfaces`): one surface per
+table inside `reefReach`, built from its `_lo` mesh (700 triangles, 300 for the small table) with a
+BVH tree, and kept for the session with the placement. Every ray meets coral as it meets rock, so
+lines in, room to turn and enclosure all see the plates.
+
+Each reef decision picks its kind first: a coral with the mode's share in the species' `coral`
+block (`REEF_DEFAULTS.coral`: patrol 0.35, hover 0.5, peck 0.6, shelter 0.6), else rock. A coral
+search asks for that kind only (`query.kind`) and aims by mode (`query.aim`):
+
+- shelter, `under`: the level ray aims at the stalk, below the plate's underside. The rest point
+  lands under the plate (hiding underneath) or between two stacked tiers (within), and is kept
+  only with a surface straight overhead (`requireCover`). The plate overhead is what hides the
+  fish, so a coral shelter needs less enclosure than a rock nook (0.25, against 0.35).
+- peck, hover, patrol, `rim`: the ray aims at the plate's rim height from outside, so the fish
+  nibbles along a plate's edge or hangs off it. A rim is a narrow target: coral searches get 12
+  tries (8 for rock).
+
+A coral search that finds nothing tries the same move on rock the next frame. The site's kind is
+on the reef state (`siteKind`) and in the debug label (`reef shelter hold coral`).
+
+By species (species.js `reef.coral`): the grouper hides under the tables most (0.8) and hangs by
+them in ambush (0.5), after Kerry & Bellwood (2012): large reef fishes, coral trout among them,
+used table corals at least three times as much as branching or massive ones. The juvenile emperor
+angelfish shelters under them (0.7); the adult nibbles their rims (0.65); the bannerfish hangs by
+them (0.6); the clown triggerfish, whose prey is on the rock, seldom pecks them (0.1) but takes
+cover under them (0.5).
+
+A rest point under a plate is inside the plate's padded steering ellipsoid (rockObstacles.js
+`setExtraObstacles`); stages 2 to 4 own the pose there, and on leaving the rock clamp eases back
+in over 1.5 s as it does at a rock. The entry point is not: it must be outside every padded shape
+(see Sites), which the 1.6 entry-distance try gets past a plate over a sheltering fish.
+
+Measured on desktop (2026-10-19, `v0.30.1-dev_1`):
+
+- Shares: over about 90 s, corals took 7 of 11 shelters, 10 of 21 hovers and 4 of 18 pecks, and
+  5 of the grouper's 6 visits. Coral trips settle as often as rock ones (59% against 62%).
+- Leaving: the fastest move in the first 2 s after leaving a coral was 8 WU/s (rock 8.4), with no
+  jumps.
+- Searches: a coral shelter 1.4 ms median and 3.3 ms worst (rock 1.9 and 4.2), a coral rim
+  0.4 and 1.4 ms (rock 0.3 and 1.1); 44% of coral shelter searches find a spot (rock 18%).
+- In view: the clusters stand in front of the resting camera, so a fish at a coral is on screen
+  and not hidden by rock 66% of the time on desktop (a fish at rock 17%) and 45% on a 375 px
+  phone (rock 31%).
+
 ## Swim volume
 
 Reef fish use `REEF_BOUNDS` (species.js): down to y -19 (the basin's highest dune crest is
@@ -108,10 +160,12 @@ are never picked.
 
 ## Tuning
 
-Every `reef` key overrides `REEF_DEFAULTS` in `reefBehavior.js`. A life stage can carry its own
-`reef` block (the juvenile emperor angelfish shelters most). The debug label shows
-`reef <mode> <stage>`, with the peck phase and pecks left; `getFishEntry(id).reef` exposes the
-live state for console checks.
+Every `reef` key overrides `REEF_DEFAULTS` in `reefBehavior.js` (`modes` and `coral` merge key by
+key). A life stage can carry its own `reef` block (the juvenile emperor angelfish shelters most).
+The debug label shows `reef <mode> <stage>`, `coral` when the site is on one, and the peck phase
+and pecks left; `getFishEntry(id).reef` exposes the live state for console checks (import the
+module through the app's own `?t=` URL, from `performance.getEntriesByType('resource')`: a bare
+import of an edited module loads a second, empty copy).
 
 ## Known limits
 

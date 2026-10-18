@@ -344,6 +344,14 @@ const curveDeformAxisY = new THREE.Vector3(0, 1, 0)
 const curveDeformAxisZ = new THREE.Vector3(0, 0, 1)
 const agentRuntimeClamp = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
+const rockAvoidBase = new THREE.Vector3()
+const rockAvoidDelta = new THREE.Vector3()
+// Rock avoidance smoothing (per second): it reaches ~63% of a new bend in 0.1 s and lets go of
+// it over ~0.4 s.
+const ROCK_AVOID_RISE = 10
+const ROCK_AVOID_FALL = 2.5
+// After the rock clamp pushes a fish off a face, its steering keeps off that face this long.
+const ROCK_CONTACT_MEMORY_SECONDS = 0.35
 const ridePoseQuaternion = new THREE.Quaternion()
 const shadowCasterQuaternion = new THREE.Quaternion()
 const shadowCasterForward = new THREE.Vector3()
@@ -2031,6 +2039,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const runtimeRecoveryFade = useRef({ phase: 'idle', startedAt: 0 })
   const simulationTime = useRef(runtime.simulationTime)
   const smoothedBoidSteering = useRef(runtime.smoothedBoidSteering)
+  // The rock-avoidance bend and urgency, smoothed (see the rock step below).
+  const rockAvoidSmoothed = useRef(new THREE.Vector3())
+  const rockUrgencySmoothed = useRef(0)
+  // The last rock face the clamp pushed this fish off, and when (simulation time).
+  const rockContactNormal = useRef(new THREE.Vector3())
+  const rockContactAt = useRef(-Infinity)
   // Boid decisions are committed and held for ~one animation cycle, then re-decided.
   // Between ticks the committed vector is eased in, so heading changes are smooth and
   // infrequent instead of recomputed every frame.
@@ -2987,11 +3001,37 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           )
         }
 
+        // Just pressed against a rock: steer along its face, not back into it. Otherwise the turn
+        // step aimed the heading into the rock every frame and the clamp slid it back along the
+        // face the next, and the heading flipped between the two (the swim walls do the same
+        // with boundaryContacts above).
+        if (now - rockContactAt.current < ROCK_CONTACT_MEMORY_SECONDS) {
+          const into = targetDesiredDirection.dot(rockContactNormal.current)
+          if (into < 0) {
+            targetDesiredDirection.addScaledVector(rockContactNormal.current, -into)
+            if (targetDesiredDirection.lengthSq() > 1e-6) targetDesiredDirection.normalize()
+            else targetDesiredDirection.copy(rockContactNormal.current)
+          }
+        }
+
         if (desiredDirection.current.lengthSq() < 0.0001) desiredDirection.current.copy(targetDesiredDirection)
 
         // Landscape rocks: bend the desired heading around the first rock ahead of the current
-        // one (see rockObstacles.js); the urgency raises the turn rate below.
-        const rockUrgency = steerAroundRocks(targetDesiredDirection, fish.position, desiredDirection.current, bodyLength, velocity.current)
+        // one (see rockObstacles.js); the urgency raises the turn rate below. The bend is smoothed
+        // per fish, quick to come on and slow to let go: taken raw it switched off the frame the
+        // probe cleared, the heading swung back into the rock, the probe hit again, and a small
+        // fast-turning fish (a juvenile angelfish turns ~180°/s) vibrated, its heading flipping
+        // every frame.
+        rockAvoidBase.copy(targetDesiredDirection)
+        const rawRockUrgency = steerAroundRocks(targetDesiredDirection, fish.position, desiredDirection.current, bodyLength, velocity.current)
+        rockAvoidDelta.subVectors(targetDesiredDirection, rockAvoidBase)
+        const rockAvoidAlpha = 1 - Math.exp(-delta * (rawRockUrgency >= rockUrgencySmoothed.current ? ROCK_AVOID_RISE : ROCK_AVOID_FALL))
+        rockAvoidSmoothed.current.lerp(rockAvoidDelta, rockAvoidAlpha)
+        rockUrgencySmoothed.current += (rawRockUrgency - rockUrgencySmoothed.current) * rockAvoidAlpha
+        targetDesiredDirection.copy(rockAvoidBase).add(rockAvoidSmoothed.current)
+        if (targetDesiredDirection.lengthSq() > 1e-6) targetDesiredDirection.normalize()
+        else targetDesiredDirection.copy(rockAvoidBase)
+        const rockUrgency = rockUrgencySmoothed.current
 
         // Spine bend intent: signed yaw between current and desired heading.
         const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
@@ -3110,6 +3150,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           if (into < 0) desiredDirection.current.addScaledVector(rockNormal, -into)
           if (desiredDirection.current.lengthSq() > 1e-6) desiredDirection.current.normalize()
           else desiredDirection.current.copy(rockNormal)
+          // Remembered for the next frames' steering (see ROCK_CONTACT_MEMORY_SECONDS).
+          rockContactNormal.current.copy(rockNormal)
+          rockContactAt.current = now
         }
         // The sand: never below it (a landscape's dunes rise above the swim floor at The Reefs'
         // front); a fish meeting it levels off and skims along it.

@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.29.0 — Reef behaviour (in progress)
+## v0.29.0 — Reef behaviour and a new look for The Reefs
 
-Status: in development as `v0.29.0-dev_13` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+Status: accepted and promoted as clean `v0.29.0` from `v0.29.0-dev_13` on Jeremy's go-ahead (2026-10-19, branch `feat/reef-behavior`, #134). `package.json` and `package-lock.json` move to `0.29.0`; `three-mesh-bvh` (0.8.3, already installed by drei) is now a direct dependency. Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
 
 ### Behaviour
 

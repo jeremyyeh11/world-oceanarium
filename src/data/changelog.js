@@ -6,6 +6,17 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.29.0',
+    date: '2026-10-19',
+    title: 'Life on the reef',
+    changes: [
+      ['new', 'Reef fish now live on the rocks: they keep a home patch, nose in to pick at the rock, hang about off the face, and tuck into nooks, where a passing threat leaves them be.'],
+      ['new', 'The Reefs has a new look: shallow blue water that deepens toward the sea bed, sunlit rock with shadowed undersides, and sunlight dappling the sand.'],
+      ['new', 'A new view of The Reefs, from low among the rocks, with a reef outcrop in the middle where the fish gather.'],
+      ['fix', 'Fish no longer shiver when they swim close past a rock.'],
+    ],
+  },
+  {
     version: 'v0.28.0',
     date: '2026-10-18',
     title: 'Squaretail Coral Grouper',

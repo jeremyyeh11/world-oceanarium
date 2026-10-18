@@ -70,6 +70,35 @@ export function clearRockObstacles(owner) {
   if (field === owner) field = null
 }
 
+// The sand as an obstacle too (a landscape's dunes and hills rise above its mean level, and The
+// Reefs' reef fish swim low enough to meet them at the front). Environment publishes the sand
+// height function and the highest it gets anywhere a fish swims (`top`), so fish well clear of
+// the sand never pay for a lookup.
+let seabed = null
+
+export function setSeabed(height, top) {
+  seabed = { height, top }
+  return seabed
+}
+
+export function clearSeabed(owner) {
+  if (seabed === owner) seabed = null
+}
+
+// Sand height under a point, or -Infinity with no landscape.
+export function seabedHeightAt(x, z) {
+  return seabed ? seabed.height(x, z) : -Infinity
+}
+
+// Clamp: keeps `position` at least `pad` above the sand. Returns whether it lifted it.
+export function liftAboveSeabed(position, pad) {
+  if (!seabed || position.y > seabed.top + pad) return false
+  const floor = seabed.height(position.x, position.z) + pad
+  if (position.y >= floor) return false
+  position.y = floor
+  return true
+}
+
 export function hasRockObstacles() {
   return field !== null && field.count > 0
 }

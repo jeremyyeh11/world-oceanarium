@@ -481,19 +481,19 @@ export function glideAlongCeiling(direction, position, bounds) {
 export function horizontalBoundRepulsion(out, position, bounds, margin) {
   out.set(0, 0, 0)
   if (!(margin > 0)) return out
-  const halfX = projectedScreenHalfXAtZ(position.z)
-  const k = projectedScreenSideKAtZ(position.z)
+  const halfX = halfXAt(bounds, position.z)
+  const k = sideKAt(bounds, position.z)
   const sideNormalLength = Math.hypot(1, k)
   const intoRight = THREE.MathUtils.clamp(1 - ((halfX - position.x) / sideNormalLength) / margin, 0, 1)
   const intoLeft = THREE.MathUtils.clamp(1 - ((halfX + position.x) / sideNormalLength) / margin, 0, 1)
   const intoFront = THREE.MathUtils.clamp((position.z - (bounds.zMax - margin)) / margin, 0, 1)
   const intoBack = THREE.MathUtils.clamp((bounds.zMin + margin - position.z) / margin, 0, 1)
   if (intoRight > 0) {
-    setSideBoundaryOutwardNormal(agentBoundaryNormal, 1, position.z)
+    setSideBoundaryOutwardNormal(agentBoundaryNormal, 1, position.z, bounds)
     out.addScaledVector(agentBoundaryNormal, -(intoRight * intoRight) * SOFT_WALL_STRENGTH)
   }
   if (intoLeft > 0) {
-    setSideBoundaryOutwardNormal(agentBoundaryNormal, -1, position.z)
+    setSideBoundaryOutwardNormal(agentBoundaryNormal, -1, position.z, bounds)
     out.addScaledVector(agentBoundaryNormal, -(intoLeft * intoLeft) * SOFT_WALL_STRENGTH)
   }
   out.z = (intoBack * intoBack - intoFront * intoFront) * SOFT_WALL_STRENGTH
@@ -511,7 +511,7 @@ export function horizontalBoundRepulsion(out, position, bounds, margin) {
 export function glideAlongWalls(direction, position, bounds) {
   const contacts = swimBoundaryContactMask(position, bounds) & SWIM_BOUNDARY_CONTACT_HORIZONTAL
   if (!contacts) return false
-  const changed = applyBoundaryContactRecovery(direction, position, contacts, 0)
+  const changed = applyBoundaryContactRecovery(direction, position, contacts, 0, bounds)
   if (!changed) return false
   if (direction.x * direction.x + direction.z * direction.z < 0.0001) {
     // Nothing remains in the horizontal plane. A single-wall hit takes the tangent toward the
@@ -647,21 +647,32 @@ function projectedScreenSideKAtZ(z) {
     : 0
 }
 
-function setSideBoundaryOutwardNormal(out, side, z) {
-  const k = projectedScreenSideKAtZ(z)
+function setSideBoundaryOutwardNormal(out, side, z, bounds) {
+  const k = sideKAt(bounds, z)
   const inverseLength = 1 / Math.hypot(1, k)
   return out.set(side * inverseLength, 0, k * inverseLength)
 }
 
+// A swim volume's sides are the camera's wedge (projectedScreenHalfXAtZ), unless the volume is a
+// box (swim.boundsHalfX: The Reefs' reef fish, whose camera no longer sits where the wedge assumes):
+// then they are straight, at ±bounds.x at every depth.
+function halfXAt(bounds, z) {
+  return bounds?.box ? bounds.x : projectedScreenHalfXAtZ(z)
+}
+
+function sideKAt(bounds, z) {
+  return bounds?.box ? 0 : projectedScreenSideKAtZ(z)
+}
+
 // The x range is symmetric about the centre line, so per-frame callers read the half-width
-// directly (projectedScreenHalfXAtZ) instead of allocating a { xMin, xMax } pair each call.
+// directly (halfXAt) instead of allocating a { xMin, xMax } pair each call.
 export function swimXRangeAtZ(bounds, z) {
-  const halfX = projectedScreenHalfXAtZ(z)
+  const halfX = halfXAt(bounds, z)
   return { xMin: -halfX, xMax: halfX }
 }
 
 function randomXInSwimBoundsAtZ(rand, bounds, z, minT = 0, maxT = 1) {
-  const halfX = projectedScreenHalfXAtZ(z)
+  const halfX = halfXAt(bounds, z)
   return THREE.MathUtils.lerp(-halfX, halfX, randomRange(rand, minT, maxT))
 }
 
@@ -694,8 +705,10 @@ function computeSwimBounds(depthZone, swim, size) {
   const yMax = swim.boundsYMax ?? rawYMax - verticalMargin
   const nearX = projectedScreenHalfXAtZ(zMax)
   const farX = projectedScreenHalfXAtZ(zMin)
-  const x = Math.max(nearX, farX)
+  const box = Number.isFinite(swim.boundsHalfX)
+  const x = box ? swim.boundsHalfX : Math.max(nearX, farX)
   return {
+    box,
     x,
     z: Math.max(Math.abs(zMin), Math.abs(zMax)),
     xMin: -x,
@@ -720,7 +733,7 @@ const SWIM_BOUNDARY_CONTACT_HORIZONTAL = SWIM_BOUNDARY_CONTACT_LEFT
 const SWIM_BOUNDARY_CONTACT_EPSILON = 0.0001
 
 export function swimBoundaryContactMask(point, bounds, epsilon = SWIM_BOUNDARY_CONTACT_EPSILON) {
-  const halfX = projectedScreenHalfXAtZ(point.z)
+  const halfX = halfXAt(bounds, point.z)
   let contacts = 0
   if (point.x <= -halfX + epsilon) contacts |= SWIM_BOUNDARY_CONTACT_LEFT
   if (point.x >= halfX - epsilon) contacts |= SWIM_BOUNDARY_CONTACT_RIGHT
@@ -733,7 +746,7 @@ export function swimBoundaryContactMask(point, bounds, epsilon = SWIM_BOUNDARY_C
 
 function clampSwimPoint(point, bounds) {
   point.z = THREE.MathUtils.clamp(point.z, bounds.zMin, bounds.zMax)
-  const halfX = projectedScreenHalfXAtZ(point.z)
+  const halfX = halfXAt(bounds, point.z)
   point.x = THREE.MathUtils.clamp(point.x, -halfX, halfX)
   point.y = THREE.MathUtils.clamp(point.y, bounds.yMin, bounds.yMax)
 }
@@ -765,8 +778,8 @@ export function isMolaDeepZExit(point, bounds, bodyLength) {
 // ray-to-box time, a fish skimming parallel to a wall reads as "far" even when hugging it —
 // only a heading actually aimed at a wall returns a short distance.
 function distanceToSwimBoundaryAhead(position, forward, bounds) {
-  const halfX = projectedScreenHalfXAtZ(position.z)
-  const k = projectedScreenSideKAtZ(position.z)
+  const halfX = halfXAt(bounds, position.z)
+  const k = sideKAt(bounds, position.z)
   let best = Infinity
   const towardRight = forward.x + k * forward.z
   if (towardRight > 1e-4) {
@@ -817,9 +830,9 @@ export function boundaryAvoidanceTurnStep(baseStep, position, forward, bounds, s
 // sequential projections can make an earlier wall outward again; instead move once along the
 // normalized sum of all inward normals far enough to satisfy every plane. Scalar/unrolled on the
 // hot path: no arrays, callbacks or temporary vectors.
-function applyBoundaryContactRecovery(direction, position, contacts, inwardBias) {
+function applyBoundaryContactRecovery(direction, position, contacts, inwardBias, bounds) {
   if (!contacts) return false
-  const k = projectedScreenSideKAtZ(position.z)
+  const k = sideKAt(bounds, position.z)
   const sideInverseLength = 1 / Math.hypot(1, k)
   const sideZ = k * sideInverseLength
   let sumX = 0
@@ -926,6 +939,7 @@ export function shapeDirectionForBoundaryContacts(direction, position, bounds, c
     position,
     activeContacts,
     SOLO_AGENT_BOUNDARY_CONTACT_INWARD_BIAS,
+    bounds,
   )
 }
 
@@ -1075,21 +1089,21 @@ export function shapeSoloAgentSteeringDesired(out, position, target, forward, cr
 
   let changed = shapeDirectionForBoundaryContacts(out, position, bounds)
   const threshold = Math.max(0.42, bodyLength * AGENT_BOUNDARY_TANGENT_DISTANCE_BODY_LENGTHS)
-  const halfX = projectedScreenHalfXAtZ(position.z)
-  const sideNormalLength = Math.hypot(1, projectedScreenSideKAtZ(position.z))
+  const halfX = halfXAt(bounds, position.z)
+  const sideNormalLength = Math.hypot(1, sideKAt(bounds, position.z))
 
   // Two fixed passes let simultaneous near-wall constraints settle without arrays or a dynamic
   // solver. Exact contacts already use the active-set correction above, so corners are guaranteed
   // feasible; this is only the smooth run-up before contact.
   for (let pass = 0; pass < 2; pass += 1) {
-    setSideBoundaryOutwardNormal(agentBoundaryNormal, -1, position.z)
+    setSideBoundaryOutwardNormal(agentBoundaryNormal, -1, position.z, bounds)
     changed = softenDirectionNearBoundary(
       out,
       agentBoundaryNormal,
       (halfX + position.x) / sideNormalLength,
       threshold,
     ) || changed
-    setSideBoundaryOutwardNormal(agentBoundaryNormal, 1, position.z)
+    setSideBoundaryOutwardNormal(agentBoundaryNormal, 1, position.z, bounds)
     changed = softenDirectionNearBoundary(
       out,
       agentBoundaryNormal,
@@ -1688,6 +1702,17 @@ export function updateFishRegistryPose(creatureId, quaternion, speed = 0, opacit
   entry.opacity = opacity
   entry.wave = wave
   entry.hasPose = true
+}
+
+/**
+ * Whether a reef fish is holding at a rock this frame (its pair follower leaves it be meanwhile),
+ * and its reef state by reference, read-only, for debugging (see reefBehavior.js).
+ */
+export function setFishReefHold(creatureId, holding, reef = null) {
+  const entry = FISH_REGISTRY.get(creatureId)
+  if (!entry) return
+  entry.reefHold = holding
+  entry.reef = reef
 }
 
 /**
@@ -2877,7 +2902,8 @@ export function advancePairFollow(ride, rider, leaderId, side, bond, riderBodyLe
     ride.pairApart = !ride.pairApart && rand() < bond.apartChance
     ride.pairUntil = now + randomRangeFromPair(rand, ride.pairApart ? bond.apartSeconds : bond.togetherSeconds)
   }
-  if (ride.pairApart) {
+  // Apart, or the leader is busy at a rock (see reefBehavior.js): roam on its own meanwhile.
+  if (ride.pairApart || leader.reefHold) {
     if (ride.stage === 'pair') resetRideState(ride)
     return ride
   }

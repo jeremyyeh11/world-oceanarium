@@ -101,14 +101,56 @@ export const TANKS = [
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.
-    // Reef water is clearer than open blue: thinner fog (ocean 0.032) lets the rocks read
-    // behind the swim volume, about 60 WU from the camera.
-    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1, density: 0.016 },
+    // Shallow reef water (Jeremy, 2026-10-18: "the waters should be shallower and maybe the
+    // colours are brighter and less foggy", then colour references). The references share a
+    // deep, saturated blue that darkens with distance and depth, bright only up by the surface;
+    // an all-over bright cyan (dev_4) read flat ("not a big fan of the super bright cyan blue").
+    // Fog is thinner than the open sea (0.032) so the reef reads further off. The value contrast
+    // is in the rock (landscapes.js rockShade).
+    lighting: {
+      envTop: '#a9daf2',
+      envHorizon: '#2a78b8',
+      envDeep: '#061f3d',
+      fog: '#14588f',
+      hemiSky: '#b6dcf5',
+      // Dark fill from below, so undersides sink into shadow.
+      hemiGround: '#061a2c',
+      key: '#fff0d4',
+      fill: '#1f6aa6',
+      density: 0.016,
+      exposure: 1.06,
+      // Cyan overhead, through blue at the horizon, to deep blue straight down (not black:
+      // Jeremy, "the dark also = more deep blue rather than black"). The resting
+      // view only sees from about 27° above the horizon (0.35 down the gradient) to 15° below it
+      // (0.58), so the cyan reaches well down and the steps sit inside that band.
+      backgroundStops: [
+        [0, '#8edbf2'],
+        [0.3, '#47bde0'],
+        [0.4, '#2a90c6'],
+        [0.5, '#17609b'],
+        [0.6, '#11478a'],
+        [0.75, '#0d3876'],
+        [1, '#0a2c60'],
+      ],
+      // The water's colour by height (utils/heightFog.js; Jeremy: "closer to the sea bed =
+      // darker. closer to surface = more cyan"): distant rock and fish near the sand fade into
+      // deep blue, those up by the surface into cyan, from the sand's mean level to the surface;
+      // and what lies far off by the sand is lit at half strength. The darkness gathers with
+      // distance and the foreground stays lit ("accentuate this darkness in the background and
+      // keep the foreground lighter").
+      heightFog: { low: '#0b3070', high: '#43b6d8', yLow: -24, yHigh: 4.6, strength: 1, seabedLight: 0.5 },
+      backgroundBeamAlpha: 0.1,
+      // The underside of the surface (WaterSurface.jsx), cyan to match the top of the gradient.
+      surfaceColor: '#6cc6e2',
+      surfaceAttenuationColor: '#45a6cc',
+      // No light shafts (UnderwaterFX.jsx god rays): Jeremy, 2026-10-18, "idw the fake sun beams".
+      godRays: false,
+    },
     // Fixed seabed and rocks from src/data/landscapes.js. Tanks without one keep the
     // biome's open-water floor.
     landscape: 'reefs',
     // Optional resting-camera overrides (Camera.jsx DEFAULT_CAMERA_SETTINGS: fov, y, z, lookY).
-    // The Reefs' view (landscapes.js REEFS_VIEW) is zoomed about 1.35×, lower, further back
+    // The Reefs' view (landscapes.js REEFS_VIEW) is zoomed about 1.5×, lower, further back
     // and pitched up: fish and rocks read larger, which suits the smaller reef life and corals
     // to come. Follow mode keeps its own framing.
     camera: REEFS_VIEW,
@@ -153,6 +195,19 @@ const REMORA_SWIM = {
 // Riders share their host's swim volume, so every anchor on it stays reachable.
 const OPEN_SEA_RIDER_BOUNDS = { movementBoundsScale: 1.22, boundsYMin: -14, boundsZMin: -26, boundsZMax: 4 }
 const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZMin: -25, boundsZMax: 0 }
+// Reef fish reach down, back and forward to the rocks of The Reefs (landscapes.js): to y -19,
+// above the basin's highest dune crest (-20.5), back to z -52, the canyon's front faces, and
+// forward to z +8, among and in front of the foreground rocks (since dev_10, with the camera back
+// at z 25: Jeremy,
+// "can we have the fish swim closer also? so they also hang around the foreground rocks ... u may
+// jsut expand the swim boundary. im okay with them swimming off screen also"). A box ±58 WU wide
+// (boundsHalfX) rather than the shared wedge that narrows toward the old camera at z 12 (±13 at
+// z 0, ±7.6 at z 5), so the foreground rocks on the right are in reach too; it spans the near
+// massif on the right. Out to z +8 the faces of the foreground rocks that look toward the camera
+// are in reach too. The sand climbs above the y -19 floor from z +2 (to -18.1 at z +6); fish are
+// kept above it (rockObstacles.js liftAboveSeabed), so the floor follows the dunes there. A
+// superset of the Mola's volume, so a cleaner following it still reaches every station.
+const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
 // Length–weight for the slender echeneid body, fitted to the two published maxima:
 // Echeneis naucrates 2.3 kg at 110 cm and Remora remora 1.1 kg at 86.4 cm (both ≈0.0017).
 const REMORA_MASS = { coefficient: 0.0017, exponent: 3 }
@@ -1830,6 +1885,7 @@ export const SPECIES = [
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
       ...DRIFT_RIDER_BOUNDS,
+      ...REEF_BOUNDS,
       // 1 WU = 25 cm: 25 cm maximum total length = 1.0 WU, just under the sardinella.
       bodyLengthWU: 1.0,
       boids: {
@@ -1847,6 +1903,13 @@ export const SPECIES = [
     sizeRange: [0.6, 1.0],
     // Rough length–weight for a deep, compressed body; no published weight for this species.
     mass: { coefficient: 0.02, exponent: 3 },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). Adults keep "rarely more than a
+    // few metres off the reef" but feed on plankton in the water over it, so they hang off the
+    // faces and cruise past them more than they peck; the young pick at the rock and at fishes.
+    reef: {
+      affinity: 0.75,
+      modes: { patrol: 0.4, hover: 0.35, peck: 0.15, shelter: 0.1 },
+    },
     hitchhiker: {
       // Follows rather than rides, and less often than the pilot fish: it takes the sunfish
       // on 40% of its checks, holds a station for a shorter spell, and usually roams off after
@@ -1999,6 +2062,7 @@ export const SPECIES = [
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
       ...DRIFT_RIDER_BOUNDS,
+      ...REEF_BOUNDS,
       // 1 WU = 25 cm: 40 cm maximum = 1.6 WU, half again the sardinella.
       bodyLengthWU: 1.6,
       boids: {
@@ -2016,6 +2080,14 @@ export const SPECIES = [
     sizeRange: [0.62, 1.0],
     // Rough length–weight for a deep, compressed body; no published weight for this species.
     mass: { coefficient: 0.02, exponent: 3 },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It grazes sponges and other
+    // encrusting animals on ledges and in caves, so it pecks most, a few gentle nibbles at a
+    // time, between spells hanging at the face.
+    reef: {
+      affinity: 0.85,
+      modes: { patrol: 0.2, hover: 0.25, peck: 0.45, shelter: 0.1 },
+      pecks: [1, 3],
+    },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
       attaches: false,
@@ -2083,6 +2155,12 @@ export const SPECIES = [
     lifeStages: {
       juvenile: {
         pairBonded: false,
+        // Juveniles hide under ledges and in holes: they shelter most, for longer.
+        reef: {
+          affinity: 0.9,
+          modes: { patrol: 0.15, hover: 0.2, peck: 0.25, shelter: 0.4 },
+          shelterSeconds: [15, 35],
+        },
         // 8–14 cm against the species' 40 cm (bodyLengthWU 1.6): 0.32–0.56 WU, under the 1.08 WU
         // sardinella floor, as a real juvenile is.
         sizeRange: [0.2, 0.35],
@@ -2210,6 +2288,8 @@ export const SPECIES = [
       turnRadiusBodyLengths: 0.6,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
+      // Down to the reef and forward to the foreground rocks.
+      ...REEF_BOUNDS,
       // 1 WU = 25 cm: 50 cm maximum = 2.0 WU.
       bodyLengthWU: 2.0,
       boids: {
@@ -2223,6 +2303,17 @@ export const SPECIES = [
         menace: 0.15,
         wariness: 0.35,
       },
+    },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It cracks sea urchins, crabs and
+    // molluscs off the reef: a slightly firmer peck than the others, holding on longer. Between
+    // them it cruises the drop-off, and it retreats into a cave when approached.
+    reef: {
+      affinity: 0.7,
+      modes: { patrol: 0.4, hover: 0.1, peck: 0.3, shelter: 0.2 },
+      lungeSeconds: 0.5,
+      biteSeconds: 0.45,
+      turnDegreesPerSecond: 130,
+      startleShelterChance: 0.85,
     },
     // Individuals span 30 cm to the 50 cm maximum.
     sizeRange: [0.6, 1.0],
@@ -2538,6 +2629,8 @@ export const SPECIES = [
       turnRadiusBodyLengths: 1.2,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
+      // Down to the reef and forward to the foreground rocks.
+      ...REEF_BOUNDS,
       // 1 WU = 25 cm: 80 cm maximum = 3.2 WU.
       bodyLengthWU: 3.2,
       boids: {
@@ -2551,6 +2644,18 @@ export const SPECIES = [
         menace: 0.3,
         wariness: 0.3,
       },
+    },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). A shy ambush hunter that eats
+    // only fish: it hangs still off a face or under a ledge for long spells and never pecks at
+    // the rock.
+    reef: {
+      affinity: 0.8,
+      modes: { patrol: 0.25, hover: 0.45, peck: 0, shelter: 0.3 },
+      hoverSeconds: [10, 24],
+      shelterSeconds: [15, 35],
+      hoverStandoffBodyLengths: [0.9, 1.3],
+      turnDegreesPerSecond: 90,
+      startleShelterChance: 0.7,
     },
     // Individuals span 40 cm (just past female maturity) to 72 cm, the largest regional records.
     sizeRange: [0.5, 0.9],

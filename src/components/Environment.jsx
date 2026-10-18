@@ -1,8 +1,10 @@
 import { Suspense, useRef, useEffect, useLayoutEffect, useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { CAUSTIC_TIME, applyCaustics, causticsCacheKey } from '../utils/caustics'
 import Landscape from './Landscape'
 import { landscapePieces, sandGrain, sandHeight } from '../data/landscapes'
-import { clearRockObstacles, setRockObstacles } from './rockObstacles'
+import { clearRockObstacles, clearSeabed, setRockObstacles, setSeabed } from './rockObstacles'
 
 // Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
 // hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
@@ -14,7 +16,9 @@ import { clearRockObstacles, setRockObstacles } from './rockObstacles'
 // brighten to 120%. The soft underwater light barely shades gentle dunes on its own, so
 // without this the relief reads flat, especially at the default view's grazing angle. The
 // large hills are left out of it, or the whole basin would read dark against them.
-function makeFloorMaterial(color, grainShade = false) {
+//
+// `caustics` (a landscape's, utils/caustics.js) lays the sunlight net on the sand too.
+function makeFloorMaterial(color, grainShade = false, caustics = null) {
   const material = new THREE.MeshStandardMaterial({
     color, roughness: 0.92, envMapIntensity: 0.28, side: THREE.DoubleSide, transparent: true, depthWrite: true,
   })
@@ -33,7 +37,10 @@ function makeFloorMaterial(color, grainShade = false) {
         'gl_FragColor.rgb *= mix(0.55, 1.2, smoothstep(-1.0, 1.0, vSandGrain));\n#include <fog_fragment>',
       )
     }
+    // The plane is double-sided with its normals facing down, so the sand takes |normal.y|.
+    applyCaustics(shader, caustics && { ...caustics, twoSided: true })
   }
+  material.customProgramCacheKey = () => `floor:${grainShade}|${causticsCacheKey(caustics)}`
   return material
 }
 
@@ -61,7 +68,8 @@ function NoiseFloor({ biome, landscape }) {
   const floorY = floorYFor(biome, landscape)
   const color = landscape?.floorColor ?? FLOOR_COLORS[biome] ?? '#0e1f33'
   const grainShade = Boolean(landscape)
-  const material = useMemo(() => makeFloorMaterial(color, grainShade), [color, grainShade])
+  const caustics = landscape?.caustics ?? null
+  const material = useMemo(() => makeFloorMaterial(color, grainShade, caustics), [color, grainShade, caustics])
 
   // Material is created imperatively (not as a JSX tag), so R3F won't auto-dispose it.
   // Free the old shader program/GPU resources when the biome changes or the floor unmounts.
@@ -100,6 +108,14 @@ function NoiseFloor({ biome, landscape }) {
   )
 }
 
+// Advances the caustics' shared clock (utils/caustics.js) while a landscape with them is up.
+function CausticClock() {
+  useFrame(({ clock }) => {
+    CAUSTIC_TIME.value = clock.getElapsedTime()
+  })
+  return null
+}
+
 function RiverVegetation() {
   const plants = [
     [-7, -10.2, -2.4, 2.3], [-5.4, -10.4, 1.8, 3.1], [-3.2, -10.8, -1.1, 1.8],
@@ -131,10 +147,23 @@ export default function Environment({ biome, landscape = null }) {
     const owner = setRockObstacles(pieces, ROCK_OBSTACLE_OPTIONS)
     return () => clearRockObstacles(owner)
   }, [pieces])
+  // The sand, for fish to stay above (rockObstacles.js liftAboveSeabed), with its highest point
+  // over the obstacle region found once on a 1 WU grid.
+  useLayoutEffect(() => {
+    if (!landscape) return undefined
+    const { region } = ROCK_OBSTACLE_OPTIONS
+    let top = -Infinity
+    for (let x = region.xMin; x <= region.xMax; x += 1) {
+      for (let z = region.zMin; z <= region.zMax; z += 1) top = Math.max(top, sandHeight(landscape, x, z))
+    }
+    const owner = setSeabed((x, z) => sandHeight(landscape, x, z), top)
+    return () => clearSeabed(owner)
+  }, [landscape])
 
   return (
     <group>
       <NoiseFloor biome={biome} landscape={landscape} />
+      {landscape?.caustics && <CausticClock />}
       {/* The rock kit loads on its own so the seabed and fish never wait for it. */}
       {landscape && (
         <Suspense fallback={null}>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { disableHeightFog, enableHeightFog } from '../utils/heightFog'
 
 // Baseline tank lighting: generated HDRI-equivalent environment, ACES tone mapping,
 // hemisphere/key/fill lights, and exponential water-depth fade. New tanks should add
@@ -204,6 +205,28 @@ export default function SceneLighting({ biome = 'ocean', seed = 0, paletteOverri
       envTexture.dispose()
     }
   }, [envTexture, backgroundTexture, gl, palette.exposure, scene])
+
+  // Height-graded fog (utils/heightFog.js), for a palette with `heightFog`: set from this
+  // render's camera just before the scene draws, and off again after it.
+  useEffect(() => {
+    const settings = palette.heightFog
+    if (!settings) return undefined
+    const previousBefore = scene.onBeforeRender
+    const previousAfter = scene.onAfterRender
+    scene.onBeforeRender = (renderer, renderScene, camera, ...rest) => {
+      enableHeightFog(settings, camera)
+      previousBefore?.call(scene, renderer, renderScene, camera, ...rest)
+    }
+    scene.onAfterRender = (...args) => {
+      disableHeightFog()
+      previousAfter?.call(scene, ...args)
+    }
+    return () => {
+      scene.onBeforeRender = previousBefore
+      scene.onAfterRender = previousAfter
+      disableHeightFog()
+    }
+  }, [palette.heightFog, scene])
 
   return (
     <>

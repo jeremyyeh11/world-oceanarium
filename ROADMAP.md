@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Reef behaviour
+
+Status: shipped in clean `v0.29.0` (2026-10-19, from `v0.29.0-dev_13`, branch `feat/reef-behavior`, #134), with The Reefs' new look (height-graded water, painted rock shade, caustics, the resting camera from Jeremy's diver shot). See `docs/reef-behavior.md`. The open items below carry over.
+
+Subtasks:
+- [x] `reef` profiles and the patrol / hover / peck / shelter state machine (`reefBehavior.js`); sites raycast from the drawn rocks with BVH trees (`reefSites.js`).
+- [x] Reef swim volumes (`REEF_BOUNDS`): down to y -19, back to z -52.
+- [x] The reef was mostly off-screen (phone saw 1.5% of the fish at a rock). Jeremy chose a mid-ground outcrop near the centre: two horizontal stacks stepping up to the right, top y -10.7. The phone now sees 15%. Needs his eyes on the composition, at 375 px and on desktop.
+- [ ] Caves: the landscape has none, so larger fish rarely find a shelter. Real overhangs or caves would need new landscape pieces.
+- [x] Motion review: pecks made gentle (dev_12), then in, out, hang about, move on with no wiggle (dev_13); vibration at rocks fixed (dev_11).
+- [ ] Frame time: The Reefs' resting view measured ~7 ms a frame at dev_8 against 2.5 ms at dev_1 (desktop, hidden pane); caustics are ~0.2 ms of it. Cause not found yet.
+- [ ] Coral: the references' colour on the rock needs coral models; the warm sunlit tops stand in for now.
+
 ### Squaretail Coral Grouper
 
 Status: shipped in clean `v0.28.0` (2026-10-18, from `v0.28.0-dev_1`, branch `feat/plectropomus-areolatus`, #133). Jeremy's pick for The Reefs: a caudal swimmer, low effort, IUCN Vulnerable, not a shark. The open items below carry over.

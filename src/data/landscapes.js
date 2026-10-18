@@ -4,11 +4,12 @@
 // outcrops, floor scatter and rubble are generated, but each from a fixed seed, so they are
 // just as stable. Nothing here reads the tank-visit seed.
 //
-// Units are world units (1 WU = 25 cm). Fish do not avoid rocks yet, so every piece
-// stays out of the swim volume of every species in the tank. For The Reefs that volume is
-// x ±56, z -40 to -15, y -14 to 2.8 (the Mola and its followers), plus the triggerfish's
-// shallower box reaching forward to z -8.3. The Mola's 13 WU body reaches about 6.6 WU past
-// its centre. That leaves four zones, checked against each piece's rotated footprint
+// Units are world units (1 WU = 25 cm). Fish steer round rocks (rockObstacles.js), but only the
+// hand-placed pieces flagged `inSwim` stand in the swim volume on purpose (the near massif and
+// the mid-ground outcrop); every other piece stays out of it. For The Reefs that volume is
+// x ±56, z -40 to -15, y -14 to 2.8 (the Mola and its followers); the reef fish reach further,
+// down to y -19 and back to z -52 (REEF_BOUNDS in species.js), to get at the rocks. The Mola's
+// 13 WU body reaches about 6.6 WU past its centre. That leaves four zones, checked against each piece's rotated footprint
 // (`clearance` below; `pieceZone` names a piece's zone):
 //   back: front face at z <= -47, any height
 //   side: inner face at |x| >= 63, any height
@@ -73,9 +74,14 @@ const LIMESTONE_KIT = {
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
-// default (z 10, y -3.35) and pitched up about 7° (was 3.4°), zoomed about 1.35× (47°,
-// was 61°): the reef rises around and above the viewer instead of being looked across.
-export const REEFS_VIEW = { fov: 47, y: -6, z: 14, lookY: -4.3 }
+// default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
+// the viewer instead of being looked across. Since v0.29.0-dev_10 it is the pose Jeremy framed
+// in the diver camera ("ok yea do it"): back and to the right of the foreground rocks, at
+// x 12, y -9.8, z 25.2, turned 9.5° left and pitched 5.4° up (looking at x 7.8, y -7.4 on the
+// z 0 plane). The foreground rocks frame the bottom, the outcrop and its fish sit mid-frame
+// (the turn centres even a 375 px phone on it, at x 2.9), and the canyon columns stand behind.
+// The nearest rock is a scatter boulder 3.6 WU behind and below the camera.
+export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY: -7.4 }
 
 export const LANDSCAPES = {
   reefs: {
@@ -85,7 +91,31 @@ export const LANDSCAPES = {
     // floorRelief = -20.4, just under the Mola's lowest fin (y -20 at its 14 WU dive floor);
     // troughs reach -27.6.
     floorY: -24,
-    floorColor: '#a39c80',
+    // Pale sand, so it reads bright against the dark rock as in Jeremy's colour references
+    // (2026-10-18); was #a39c80.
+    floorColor: '#c4bea2',
+    // Painted rock light and shadow (Landscape.jsx applyRockShade), after the same references:
+    // dark rock under bright water, sunlit tops and dark undersides. The bases are only lightly
+    // darkened (low 0.6, was 0.35): the deep shadow comes with distance (heightFog in species.js).
+    // `warm` tints the sunlit tops toward ochre near the surface, a stand-in for the colour
+    // corals will bring against the blue.
+    rockShade: {
+      tone: 0.66, top: 1.2, underside: 0.25, low: 0.6, lowY: -24, highY: -6,
+      warm: { color: [1.18, 1.02, 0.78], strength: 0.5, yLow: -18, yHigh: 0 },
+    },
+    // Sunlight caustics on rock tops and sand (utils/caustics.js), projected in world space and
+    // slanted along the sun (the key light comes from the upper left, x -8 y 12 z 8). Kept
+    // subtle (Jeremy: "dont over do this"): cells about 1.5 WU (37 cm) across, a slow drift,
+    // under half strength by the sand, and gone beyond 60 WU.
+    caustics: {
+      strength: 0.9,
+      scale: 12,
+      speed: 0.02,
+      color: [1.0, 0.97, 0.88],
+      slant: [0.4, -0.4],
+      depth: [-24, 0, 0.6],
+      fade: [25, 60],
+    },
     // Scale of the sand's dunes, hummocks and ripples (see sandHeight), in WU.
     floorRelief: 1.65,
     // Large sand hills on top of that grain, rising only outside the basin the fish swim
@@ -133,6 +163,9 @@ export const LANDSCAPES = {
     // the foreground zone in front of the camera (z 14); a generated piece there must stand
     // behind the camera, at outcropFront and beyond, so it never blocks the default view.
     clearance: { side: 63, back: -47, front: -7.5, floorTop: -20, outcropFront: 16 },
+    // Rocks the reef fish can reach (their swim volume, REEF_BOUNDS in species.js, plus a few
+    // WU of standoff): kept whole for their site raycasts (src/components/reefSites.js).
+    reefReach: { xMin: -64, xMax: 64, yMin: -21, yMax: 4, zMin: -58, zMax: 10 },
     // [kind, x, z, width, height, depth, yaw (rad), seed, options?]. x/z sit the piece's base
     // centre on the sand; width/height/depth are its bounding box in WU. options.top fixes
     // the piece's top (y), growing or capping it, to hold the composition.
@@ -177,7 +210,9 @@ export const LANDSCAPES = {
       ['wall', -9, -3, 10, 10, 6, 0.2, 51],
       ['bommie', -3, 1, 5, 12, 5, 0.5, 52],
       ['stack', -12, 0.5, 12, 11, 9, -0.3, 53],
-      ['bommie', 3.2, 1.5, 4.5, 14, 4.5, -0.4, 62],
+      // Capped since the view dropped to y -9 (dev_3), where it rose mid-frame as a column; it
+      // pokes up from the bottom edge again.
+      ['bommie', 3.2, 1.5, 4.5, 14, 4.5, -0.4, 62, { top: -12 }],
       ['stack', 6, -1.5, 8, 9, 7, 0.3, 61, { tiers: 2 }],
       ['stack', 10.5, 0, 10, 14, 8, -0.2, 63],
       ['stack', 15.5, 0.5, 12, 20, 9, 0.2, 64, { tiers: 3 }],
@@ -195,6 +230,12 @@ export const LANDSCAPES = {
       ['stack', 45, -29, 15, 18, 13, 0.3, 77, { inSwim: true, tiers: 3 }],
       ['stack', 53, -38, 16, 24, 14, 0.1, 78, { inSwim: true, tiers: 3 }],
       ['stack', 55, -22, 14, 20, 12, -0.3, 79, { inSwim: true, tiers: 3 }],
+      // A low outcrop in the middle ground, inside the swim volume, where the phone's narrow
+      // frame (about ±9 WU at z -30) sees the reef fish at the rock. Two horizontal stacks
+      // stepping up to the right like the rest of the reef, their tops well below the eye
+      // line so the open blue down the middle stays clear.
+      ['stack', 2.5, -29, 16, 19, 11, 0.35, 81, { inSwim: true, tiers: 3 }],
+      ['stack', -7, -23.5, 8, 10, 7, -0.5, 82, { inSwim: true, tiers: 2 }],
       // Low boulders and mounds under the swim volume (tops below y -20). The mounds at
       // z -34 to -44 are the middle layer of the default view, between the foreground and
       // the back canyon.

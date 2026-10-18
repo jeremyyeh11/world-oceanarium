@@ -1,8 +1,10 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
+import { clearReefSurfaces, setReefSurfaces } from './reefSites'
+import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
 // modelled rocks. Every piece and rubble chunk is transformed, given fresh UVs and baked into
@@ -137,11 +139,53 @@ function projectUVs(geometry, tile, [offsetU, offsetV]) {
   return projected
 }
 
+// Painted light and shadow on the rock (a landscape's `rockShade`): the scene lights alone leave the
+// limestone one even mid value, where a reef under sun reads as dark rock with sunlit tops.
+// Darkens the whole rock by `tone`, its downward faces toward `underside` and its upward ones
+// up to `top`, and its lower reaches toward `low` (from `lowY` up to `highY`, world y). The
+// baked chunks are in world space, so the vertex normal and position are already world ones.
+// `shade.warm` tints the upward faces near the surface warmer (sunlight, and a stand-in for
+// the colour corals will bring): by up to `strength` toward `color`, from `yLow` to `yHigh`.
+// `caustics` (utils/caustics.js) adds the sunlight net on top.
+function applyRockShade(material, shade, caustics) {
+  if (!shade && !caustics) return
+  const warm = shade?.warm
+  material.onBeforeCompile = (shader) => {
+    if (shade) {
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvRockUp = normal.y;\nvRockY = position.y;')
+      const warmGlsl = warm ? `
+        float rockWarm = smoothstep(0.3, 0.9, vRockUp) * smoothstep(${warm.yLow.toFixed(2)}, ${warm.yHigh.toFixed(2)}, vRockY) * ${warm.strength.toFixed(3)};
+        diffuseColor.rgb *= mix(vec3(1.0), vec3(${warm.color.map(c => c.toFixed(3)).join(', ')}), rockWarm);` : ''
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
+        .replace('#include <map_fragment>', `#include <map_fragment>
+        float rockFacing = mix(${shade.underside.toFixed(3)}, ${shade.top.toFixed(3)}, smoothstep(-0.5, 0.8, vRockUp));
+        float rockHeight = mix(${shade.low.toFixed(3)}, 1.0, smoothstep(${shade.lowY.toFixed(2)}, ${shade.highY.toFixed(2)}, vRockY));
+        diffuseColor.rgb *= ${shade.tone.toFixed(3)} * rockFacing * rockHeight;${warmGlsl}`)
+    }
+    applyCaustics(shader, caustics)
+  }
+  material.customProgramCacheKey = () => `rock-shade:${JSON.stringify(shade)}|${causticsCacheKey(caustics)}`
+}
+
+// Whether a piece's box reaches into the landscape's reef reach (see reefSites.js).
+function inReefReach(reach, piece) {
+  if (!reach || piece.kind === 'rubble') return false
+  const r = Math.max(piece.width, piece.depth) / 2
+  return piece.x + r > reach.xMin && piece.x - r < reach.xMax
+    && piece.z + r > reach.zMin && piece.z - r < reach.zMax
+    && piece.y + piece.height > reach.yMin && piece.y < reach.yMax
+}
+
 function makeLandscapeChunks(landscape, rocks) {
   const { kit } = landscape
-  const camera = new THREE.Vector3(0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
+  const camera = new THREE.Vector3(landscape.view?.x ?? 0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
   const pieces = [...landscapePieces(landscape), ...(landscape.rubble ? rubblePieces(landscape) : [])]
   const chunks = new Map()
+  // The placed rocks reef fish can reach, kept whole (not merged) for their raycasts.
+  const reefSurfaces = []
   // How far each placed rock's real top sits below its box top (rocks shrink to fit their
   // box), so a stacked tier can be dropped onto the rock it rests on.
   const topShortfall = new Map()
@@ -156,17 +200,19 @@ function makeLandscapeChunks(landscape, rocks) {
     placed.computeBoundingBox()
     topShortfall.set(piece.seed, piece.top - placed.boundingBox.max.y)
     const projected = projectUVs(placed, kit.textureTileWU, look.uvOffset)
-    placed.dispose()
+    if (inReefReach(landscape.reefReach, piece)) reefSurfaces.push(placed)
+    else placed.dispose()
     const key = `${Math.floor(piece.x / kit.chunkWU)}:${Math.floor(piece.z / kit.chunkWU)}`
     if (!chunks.has(key)) chunks.set(key, [])
     chunks.get(key).push(projected)
   }
-  return [...chunks].map(([key, parts]) => {
-    const merged = mergeGeometries(parts)
+  const merged = [...chunks].map(([key, parts]) => {
+    const geometry = mergeGeometries(parts)
     parts.forEach(part => part.dispose())
-    merged.computeBoundingSphere()
-    return { key, geometry: merged }
+    geometry.computeBoundingSphere()
+    return { key, geometry }
   })
+  return { chunks: merged, reefSurfaces }
 }
 
 export default function Landscape({ landscape }) {
@@ -188,16 +234,24 @@ export default function Landscape({ landscape }) {
     }
     textures.color.colorSpace = THREE.SRGBColorSpace
     // Roughness is read from the green channel; the greyscale map has it in all three.
-    return new THREE.MeshStandardMaterial({
+    const rockMaterial = new THREE.MeshStandardMaterial({
       map: textures.color, normalMap: textures.normal, roughnessMap: textures.roughness,
       roughness: 1, metalness: 0, envMapIntensity: 0.35,
     })
-  }, [textures])
-  const chunks = useMemo(() => makeLandscapeChunks(landscape, rocks), [landscape, rocks])
+    applyRockShade(rockMaterial, landscape.rockShade, landscape.caustics)
+    return rockMaterial
+  }, [textures, landscape.rockShade, landscape.caustics])
+  const { chunks, reefSurfaces } = useMemo(() => makeLandscapeChunks(landscape, rocks), [landscape, rocks])
 
   // Built imperatively, so R3F won't dispose them; free them when the tank unmounts.
   useEffect(() => () => material.dispose(), [material])
   useEffect(() => () => chunks.forEach(chunk => chunk.geometry.dispose()), [chunks])
+  // Reef fish raycast the rocks they can reach (reefSites.js) for as long as the tank is up.
+  useLayoutEffect(() => {
+    const owner = setReefSurfaces(reefSurfaces, landscape.view)
+    return () => clearReefSurfaces(owner)
+  }, [reefSurfaces, landscape.view])
+  useEffect(() => () => reefSurfaces.forEach(geometry => geometry.dispose()), [reefSurfaces])
 
   return (
     <group>

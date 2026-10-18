@@ -96,7 +96,12 @@ function seedOffset(seed) {
   return [(h & 0xffff) / 0xffff * 100, ((h >>> 16) & 0xffff) / 0xffff * 100]
 }
 
-export default function WaterSurface({ seed = 0 }) {
+// The surface's own tint, seen from below. A tank can override both (its `lighting.surfaceColor`
+// and `lighting.surfaceAttenuationColor`): The Reefs' shallow water is turquoise, not slate blue.
+const DEFAULT_SURFACE_COLOR = '#4f78a8'
+const DEFAULT_SURFACE_ATTENUATION_COLOR = '#3f709a'
+
+export default function WaterSurface({ seed = 0, color = DEFAULT_SURFACE_COLOR, attenuationColor = DEFAULT_SURFACE_ATTENUATION_COLOR }) {
   const gl = useThree(state => state.gl)
   const environment = useEnvironment({ files: SURFACE_ENVIRONMENT })
   const uniforms = useMemo(() => ({
@@ -149,13 +154,13 @@ export default function WaterSurface({ seed = 0 }) {
     <mesh position={SURFACE_PLANE_POSITION} rotation={SURFACE_PLANE_ROTATION} raycast={() => null}>
       <planeGeometry args={SURFACE_PLANE_SIZE} />
       <meshPhysicalMaterial
-        color="#4f78a8"
+        color={color}
         roughness={0.26}
         metalness={0}
         transmission={0.88}
         thickness={0.08}
         ior={1.333}
-        attenuationColor="#3f709a"
+        attenuationColor={attenuationColor}
         attenuationDistance={80}
         specularIntensity={0.92}
         specularColor="#d5e8f7"

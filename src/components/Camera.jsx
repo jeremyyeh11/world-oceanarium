@@ -126,14 +126,16 @@ export default function Camera({ biome = 'ocean', landscape = null, focusTarget 
     return bone
   }
 
-  // A tank's cameraSettings may override only some fields (The Reefs sets just fov).
+  // A tank's cameraSettings may override only some fields: fov, x, y, z, and the look target
+  // lookX, lookY, lookZ. Without lookX the camera looks straight ahead along -z (the default
+  // tanks); The Reefs sits off to the right and turns back toward the middle.
   useEffect(() => {
     camera.position.set(
-      0,
+      Number.isFinite(cameraSettings.x) ? cameraSettings.x : 0,
       Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y,
       Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z,
     )
-  }, [camera, biome, cameraSettings.y, cameraSettings.z])
+  }, [camera, biome, cameraSettings.x, cameraSettings.y, cameraSettings.z])
 
   useFrame(({ clock }, delta) => {
     const now = clock.getElapsedTime()
@@ -272,15 +274,21 @@ export default function Camera({ biome = 'ocean', landscape = null, focusTarget 
     const targetDefaultY = Number.isFinite(cameraSettings.y) ? cameraSettings.y : DEFAULT_CAMERA_Y
     const targetDefaultZ = Number.isFinite(cameraSettings.z) ? cameraSettings.z : DEFAULT_CAMERA_Z
     const targetDefaultLookY = Number.isFinite(cameraSettings.lookY) ? cameraSettings.lookY : DEFAULT_CAMERA_LOOK_Y
+    const targetDefaultX = Number.isFinite(cameraSettings.x) ? cameraSettings.x : 0
+    const targetDefaultLookZ = Number.isFinite(cameraSettings.lookZ) ? cameraSettings.lookZ : 0
     const nextDefaultFov = THREE.MathUtils.damp(camera.fov, targetDefaultFov, FOLLOW_FOV_DAMPING, delta)
     if (Math.abs(nextDefaultFov - camera.fov) > 0.01) {
       camera.fov = nextDefaultFov
       camera.updateProjectionMatrix()
     }
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, DEFAULT_POSITION_DAMPING, delta)
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, targetDefaultX, DEFAULT_POSITION_DAMPING, delta)
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetDefaultY, DEFAULT_POSITION_DAMPING, delta)
     camera.position.z = THREE.MathUtils.damp(camera.position.z, targetDefaultZ, DEFAULT_POSITION_DAMPING, delta)
-    defaultLookTarget.set(camera.position.x, targetDefaultLookY, 0)
+    defaultLookTarget.set(
+      Number.isFinite(cameraSettings.lookX) ? cameraSettings.lookX : camera.position.x,
+      targetDefaultLookY,
+      targetDefaultLookZ,
+    )
     if (!hasSmoothedDefaultLookTarget.current) {
       camera.getWorldDirection(currentCameraForward)
       const initialLookDistance = Math.max(1, camera.position.distanceTo(defaultLookTarget))
@@ -291,7 +299,7 @@ export default function Camera({ biome = 'ocean', landscape = null, focusTarget 
     smoothedDefaultLookTarget.current.y = THREE.MathUtils.damp(smoothedDefaultLookTarget.current.y, defaultLookTarget.y, FOLLOW_LOOK_DAMPING, delta)
     smoothedDefaultLookTarget.current.z = THREE.MathUtils.damp(smoothedDefaultLookTarget.current.z, defaultLookTarget.z, FOLLOW_LOOK_DAMPING, delta)
     camera.lookAt(smoothedDefaultLookTarget.current)
-    defaultCameraPosition.set(0, targetDefaultY, targetDefaultZ)
+    defaultCameraPosition.set(targetDefaultX, targetDefaultY, targetDefaultZ)
     setDefaultCameraSettled(
       camera.position.distanceTo(defaultCameraPosition) <= DEFAULT_CAMERA_SETTLED_POSITION_EPSILON
       && smoothedDefaultLookTarget.current.distanceTo(defaultLookTarget) <= DEFAULT_CAMERA_SETTLED_LOOK_EPSILON,

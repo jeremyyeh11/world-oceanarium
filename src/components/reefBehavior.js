@@ -6,7 +6,8 @@ import { castReefRay, findReefSite, hasReefSurfaces, pickViewHome, reefSegmentCl
 // there, in four modes:
 //   patrol   cruise past a rock face and on (no stop)
 //   hover    settle a body length or so off a face and hang there, turning slowly
-//   peck     settle nose-close to a face, then ease in, nibble, and ease back, once or a few times
+//   peck     settle nose-close to a face, ease in for a nibble and back out once or twice, hang
+//            about the spot a little, and move on
 //   shelter  tuck into the most enclosed nook it can find, turn to face out, and wait
 //
 // Travel to a site runs on the unified steer → boids → turn-cap → integrate → clamp pipeline,
@@ -29,8 +30,11 @@ const REEF_DEFAULTS = {
   // A gentle nibble, not a strike (Jeremy, 2026-10-19: "it actually looks too sharp ... it can just
   // be a gentle peck, not multiple violent pecks"). Was 2–5 pecks of a 0.28 s dart, 0.16 s bite and
   // 0.16 s snap back, 0.4–1.1 s apart.
-  pecks: [1, 3],
+  // Then "in out, hover around, move on" (Jeremy, 2026-10-19): one or two pecks at the same spot,
+  // facing it steadily, and a spell hanging about before leaving.
+  pecks: [1, 2],
   peckRestSeconds: [1.2, 3.0],
+  afterPeckHoverSeconds: [2, 5],
   lungeSeconds: 0.6,
   biteSeconds: 0.35,
   recoilSeconds: 0.7,
@@ -40,8 +44,6 @@ const REEF_DEFAULTS = {
   // it eases after a peck (was 0.12).
   peckGapBodyLengths: 0.18,
   recoilBodyLengths: 0.03,
-  // Side-to-side head shake while nibbling (a triggerfish worrying at an urchin shakes harder).
-  biteShakeDegrees: 1.5,
   hoverStandoffBodyLengths: [1.0, 1.6],
   patrolStandoffBodyLengths: [1.4, 2.6],
   // Turning on the spot, on its fins.
@@ -144,10 +146,10 @@ export function createReefState() {
     leaveStart: new THREE.Vector3(),
     leaveSpeed: 0,
     urgent: false,
-    // Per-frame outputs: yaw shake while biting (rad) and the swimming effort the tail and fins
-    // read as speed (WU/s).
-    shake: 0,
+    // Per-frame output: the swimming effort the tail and fins read as speed (WU/s).
     effort: 0,
+    // Where a hold hangs: the rest point for a hover or shelter, a little further out after pecking.
+    holdAnchor: new THREE.Vector3(),
     wanderPhase: Math.random() * Math.PI * 2,
     // Rock-proxy clamp strength (0..1): 0 at the rock, easing back to 1 after leaving.
     clampBlend: 0,
@@ -162,7 +164,6 @@ export function createReefState() {
 export function resetReefState(reef) {
   reef.mode = null
   reef.stage = 'idle'
-  reef.shake = 0
   reef.retryMode = null
 }
 
@@ -381,7 +382,6 @@ function beginReefLeave(reef, position, rand, now, urgent) {
   // Out from the face and off to one side.
   const side = rand() < 0.5 ? -1 : 1
   reef.leaveDirection.copy(reef.outward).applyAxisAngle(UP, side * THREE.MathUtils.degToRad(25 + rand() * 45))
-  reef.shake = 0
 }
 
 /** Whether it is tucked in a shelter, where a threat does not startle it. */
@@ -404,13 +404,15 @@ export function reefStartled(reef, position, rand, now, profile) {
   else reef.urgent = true
 }
 
-// Next peck spot: a short way along the face from the site, found on the drawn rock.
+// Next peck spot: almost the same place, a touch along the face, found on the drawn rock. The
+// fish keeps facing the site the whole visit (along its normal), so the rock's small facets never
+// swing its heading; a facet normal used to re-aim it up to ~40° between pecks.
 function choosePeckSpot(reef, profile, bodyLength, rand, first) {
   const nose = profile.noseBodyLengths * bodyLength
   const gap = profile.peckGapBodyLengths * bodyLength
   const normal = reef.site.normal
+  reef.peckNormal.copy(normal)
   if (first) {
-    reef.peckNormal.copy(normal)
     reef.peckRest.copy(reef.site.rest)
     reef.peckContact.copy(reef.site.point).addScaledVector(normal, nose + 0.02)
     return
@@ -420,18 +422,17 @@ function choosePeckSpot(reef, profile, bodyLength, rand, first) {
   basisA.normalize()
   basisB.crossVectors(normal, basisA).normalize()
   probeFrom.copy(reef.site.point)
-    .addScaledVector(basisA, (rand() * 2 - 1) * 0.3 * bodyLength)
-    .addScaledVector(basisB, (rand() * 2 - 1) * 0.15 * bodyLength)
+    .addScaledVector(basisA, (rand() * 2 - 1) * 0.1 * bodyLength)
+    .addScaledVector(basisB, (rand() * 2 - 1) * 0.06 * bodyLength)
     .addScaledVector(normal, nose + gap + 0.3 * bodyLength)
   probeDirection.copy(normal).negate()
   const far = nose + gap + 0.9 * bodyLength
   if (castReefRay(probeFrom, probeDirection, far, hitPoint, hitNormal) < 0) return
-  if (hitNormal.dot(normal) < 0.75) return
-  scratchB.copy(hitPoint).addScaledVector(hitNormal, nose + gap)
-  if (scratchB.distanceTo(reef.peckRest) > 0.5 * bodyLength) return
-  reef.peckNormal.copy(hitNormal)
+  if (hitNormal.dot(normal) < 0.6) return
+  scratchB.copy(hitPoint).addScaledVector(normal, nose + gap)
+  if (scratchB.distanceTo(reef.peckRest) > 0.3 * bodyLength) return
   reef.peckRest.copy(scratchB)
-  reef.peckContact.copy(hitPoint).addScaledVector(hitNormal, nose + 0.02)
+  reef.peckContact.copy(hitPoint).addScaledVector(normal, nose + 0.02)
 }
 
 function finishSettle(reef, profile, bodyLength, rand, now) {
@@ -445,6 +446,7 @@ function finishSettle(reef, profile, bodyLength, rand, now) {
     reef.phaseUntil = now + randomIn(rand, profile.peckRestSeconds)
   } else {
     reef.stage = 'hold'
+    reef.holdAnchor.copy(reef.site.rest)
     reef.until = now + randomIn(rand, reef.mode === 'shelter' ? profile.shelterSeconds : profile.hoverSeconds)
   }
 }
@@ -456,7 +458,6 @@ function finishSettle(reef, profile, bodyLength, rand, now) {
  */
 export function stepReefOwned(reef, profile, position, delta, now, speeds, bodyLength, rand) {
   const turnStep = THREE.MathUtils.degToRad(profile.turnDegreesPerSecond) * delta
-  reef.shake = 0
 
   if (reef.stage === 'settle') {
     const T = reef.settleSeconds
@@ -490,15 +491,18 @@ export function stepReefOwned(reef, profile, position, delta, now, speeds, bodyL
 
   if (reef.stage === 'hold') {
     const t = now - reef.stageStartedAt
-    goal.copy(reef.site.rest)
-    goal.y += Math.sin(t * 0.9 + reef.wanderPhase) * 0.04 * bodyLength
+    // Hanging about: a slow bob and drift round the anchor, the heading wandering only a little
+    // (±14°, was ±34°, which read as wiggling side to side). The drift and wander ease in over
+    // the first 1.5 s, so the hold starts from where the fish already is and faces.
+    const wander = THREE.MathUtils.smoothstep(t, 0, 1.5)
+    goal.copy(reef.holdAnchor)
+    goal.y += Math.sin(t * 0.9 + reef.wanderPhase) * 0.04 * bodyLength * wander
     scratch.crossVectors(UP, reef.outward)
-    goal.addScaledVector(scratch, Math.sin(t * 0.37 + reef.wanderPhase * 1.3) * 0.06 * bodyLength)
-    position.lerp(goal, 1 - Math.exp(-delta * 3))
-    // Hovering it looks into the reef, wandering a little either way; sheltering it turns round
-    // to face out of the nook.
-    if (reef.mode === 'shelter') goal.copy(reef.outward).applyAxisAngle(UP, Math.sin(t * 0.19 + reef.wanderPhase) * 0.3)
-    else goal.copy(reef.faceIn).applyAxisAngle(UP, Math.sin(t * 0.23 + reef.wanderPhase) * 0.6)
+    goal.addScaledVector(scratch, Math.sin(t * 0.31 + reef.wanderPhase * 1.3) * 0.12 * bodyLength * wander)
+    position.lerp(goal, 1 - Math.exp(-delta * 2))
+    // Hovering it looks into the reef; sheltering it turns round to face out of the nook.
+    if (reef.mode === 'shelter') goal.copy(reef.outward).applyAxisAngle(UP, Math.sin(t * 0.19 + reef.wanderPhase) * 0.2 * wander)
+    else goal.copy(reef.faceIn).applyAxisAngle(UP, Math.sin(t * 0.17 + reef.wanderPhase) * 0.25 * wander)
     clampPitch(goal.normalize(), MAX_REEF_PITCH)
     const remaining = rotateToward(reef.facing, goal, turnStep)
     const turning = THREE.MathUtils.clamp(remaining / Math.max(1e-4, turnStep), 0, 1)
@@ -510,15 +514,17 @@ export function stepReefOwned(reef, profile, position, delta, now, speeds, bodyL
   if (reef.stage === 'peck') {
     const elapsed = now - reef.phaseStartedAt
     const phase = reef.peckPhase
-    goal.copy(reef.peckNormal).negate()
-    clampPitch(goal, MAX_REEF_PITCH)
-    rotateToward(reef.facing, goal, turnStep)
+    rotateToward(reef.facing, reef.faceIn, turnStep)
     if (phase === 'rest') {
       position.lerp(reef.peckRest, 1 - Math.exp(-delta * 5))
       reef.effort = speeds.idle * 0.3
       if (now >= reef.phaseUntil) {
         if (reef.pecksLeft <= 0) {
-          beginReefLeave(reef, position, rand, now, false)
+          // Done: hang about a little further off the spot, then move on.
+          reef.stage = 'hold'
+          reef.stageStartedAt = now
+          reef.holdAnchor.copy(reef.site.rest).addScaledVector(reef.site.normal, 0.35 * bodyLength)
+          reef.until = now + randomIn(rand, profile.afterPeckHoverSeconds)
           return
         }
         reef.peckPhase = 'lunge'
@@ -536,8 +542,6 @@ export function stepReefOwned(reef, profile, position, delta, now, speeds, bodyL
       }
     } else if (phase === 'bite') {
       position.copy(reef.peckContact)
-      const fade = 1 - THREE.MathUtils.clamp(elapsed / profile.biteSeconds, 0, 1)
-      reef.shake = Math.sin(elapsed * Math.PI * 2 * 5) * THREE.MathUtils.degToRad(profile.biteShakeDegrees) * fade
       reef.effort = speeds.idle * 0.3
       if (elapsed >= profile.biteSeconds) {
         reef.peckPhase = 'recoil'

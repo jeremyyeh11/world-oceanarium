@@ -3334,12 +3334,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
     if (reefPoseOwned) {
       // At the rock the body faces exactly where the reef behaviour turns it, tilting further
-      // than the swimming pitch limit to graze a sloped face, and shaking its head as it bites.
+      // than the swimming pitch limit to graze a sloped face.
       const reef = reefRef.current
       visualForward.current.copy(reef.facing)
       visualPitch.current = Math.asin(THREE.MathUtils.clamp(reef.facing.y, -1, 1))
       pitchedForward.copy(reef.facing)
-      if (reef.shake) pitchedForward.applyAxisAngle(up, reef.shake)
     }
     if (riding) {
       // Heading continuity for the moment the remora lets go.

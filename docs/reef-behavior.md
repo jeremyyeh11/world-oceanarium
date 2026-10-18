@@ -15,11 +15,12 @@ somewhere fish live rather than set dressing.
 - `patrol`: swim to a point a couple of body lengths off a face, and on. No stop.
 - `hover`: settle 1 to 1.6 body lengths off a face and hang there, looking into the reef and
   slowly wandering its heading (`hoverSeconds`).
-- `peck`: settle with the snout `peckGapBodyLengths` off the face, then a few gentle `pecks`:
-  ease in (`lungeSeconds`), nibble (`biteSeconds`, with a small head shake of
-  `biteShakeDegrees`), ease back (`recoilSeconds`, `recoilBodyLengths` past the rest point),
-  rest (`peckRestSeconds`). In and out both ease at each end: a gentle peck, not a strike
-  (Jeremy, dev_12). Each peck lands on a fresh spot found on the drawn rock, a little way along
+- `peck`: settle with the snout `peckGapBodyLengths` off the face, then one or two gentle
+  `pecks` at the same spot: ease in (`lungeSeconds`), nibble (`biteSeconds`), ease back
+  (`recoilSeconds`, `recoilBodyLengths` past the rest point), rest (`peckRestSeconds`); then
+  hang about a little further off the spot (`afterPeckHoverSeconds`) and move on. The fish faces
+  the site steadily the whole visit, with no head shake and no re-aiming at the rock's facets:
+  "in out, hover around, move on" (Jeremy, dev_13). Each peck lands on a fresh spot found on the drawn rock, a little way along
   the face.
 - `shelter`: settle nose-in to the most enclosed nook the search finds, turn round on the spot to
   face out, and wait (`shelterSeconds`). A sheltered fish does not startle.

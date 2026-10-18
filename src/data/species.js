@@ -2086,7 +2086,7 @@ export const SPECIES = [
     reef: {
       affinity: 0.85,
       modes: { patrol: 0.2, hover: 0.25, peck: 0.45, shelter: 0.1 },
-      pecks: [2, 4],
+      pecks: [1, 3],
     },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
@@ -2305,16 +2305,13 @@ export const SPECIES = [
       },
     },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It cracks sea urchins, crabs and
-    // molluscs off the reef: a slightly firmer peck than the others, holding on longer with a small
-    // shake of the head. Between them it cruises the drop-off, and it retreats into a cave when
-    // approached.
+    // molluscs off the reef: a slightly firmer peck than the others, holding on longer. Between
+    // them it cruises the drop-off, and it retreats into a cave when approached.
     reef: {
       affinity: 0.7,
       modes: { patrol: 0.4, hover: 0.1, peck: 0.3, shelter: 0.2 },
-      pecks: [1, 3],
       lungeSeconds: 0.5,
       biteSeconds: 0.45,
-      biteShakeDegrees: 3,
       turnDegreesPerSecond: 130,
       startleShelterChance: 0.85,
     },

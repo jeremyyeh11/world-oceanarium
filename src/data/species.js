@@ -126,12 +126,12 @@ export const TANKS = [
         [0.78, '#1879ae'],
         [1, '#0f5a86'],
       ],
-      backgroundBeamAlpha: 0.3,
+      backgroundBeamAlpha: 0.1,
       // The underside of the surface (WaterSurface.jsx), bright cyan to match.
       surfaceColor: '#8edcf2',
       surfaceAttenuationColor: '#5cc0de',
-      // Near-white sunbeams added over the bright water (UnderwaterFX.jsx).
-      rays: { strength: 2.4, color: [0.85, 0.96, 1.0], additive: true, zOffset: -18, heightScale: 1.4, widthScale: 1.8 },
+      // No light shafts (UnderwaterFX.jsx god rays): Jeremy, 2026-10-18, "idw the fake sun beams".
+      godRays: false,
     },
     // Fixed seabed and rocks from src/data/landscapes.js. Tanks without one keep the
     // biome's open-water floor.

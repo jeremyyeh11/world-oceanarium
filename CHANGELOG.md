@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.29.0 — Reef behaviour (in progress)
 
-Status: in development as `v0.29.0-dev_4` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+Status: in development as `v0.29.0-dev_5` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
 
 ### Behaviour
 
@@ -36,13 +36,13 @@ Jeremy (2026-10-18): "the whole view looks a bit dead. should we change up the c
 - The foreground bommie at x 3.2 (seed 62) is capped at y -12: from the lower eye it rose to 63% down the frame as a column; it pokes up from the bottom edge again.
 - The mid-ground outcrop moves 4 WU nearer (main stack z -29, was -33; the satellite to x -7, z -23.5). With fish starting at their rocks, the phone sees 22% of the fish at a rock (15% at dev_1). The camera change on its own barely moves that (23% from the old view against 22% from the new, same fish), and a reef fish is still about 20 px long on a 375 px phone (18 px before): the gain is mood and framing, not size.
 
-### Colour (dev_4)
+### Colour (dev_4, dev_5)
 
 Jeremy (2026-10-18) sent five reef photos as colour references: "i think u may darken the limestone if u need to / paint shadows". What they share: dark rock against bright water, sunlit tops and near-black undersides, distance fading to luminous azure, sunbeams from the surface, pale sand.
 
 - Painted rock shade (`rockShade` on the landscape, `applyRockShade` in Landscape.jsx): the limestone is darkened to 0.6, its upward faces lifted to 1.2 of that and its downward ones taken to 0.22, and it darkens toward its base (0.35 at the sand, y -24, to full at y -6). The hemisphere fill from below is near-black (`#06202c`), so undersides stay in shadow.
-- Water: haze `#2a96cc` (azure, was grey-teal `#1f6f8c`), background from `#b8f2ff` at the surface to `#0f5a86`, surface tint `#8edcf2`, beams in the background 0.3. Pale sand `#c4bea2` (was `#a39c80`).
-- Sunbeams: the light shafts take per-tank settings (`lighting.rays`, UnderwaterFX.jsx). The open sea's pale blue shafts at 7% opacity read darker than The Reefs' bright water and vanished; here they are near-white, added (additive blending), 2.4× as strong, and stand 18 WU further back, 1.4× longer and 1.8× wider, so the low camera sees them whole, falling onto the reef. The Open Sea and the Atlas keep their shafts as they were.
+- Water: haze `#2a96cc` (azure, was grey-teal `#1f6f8c`), background from `#b8f2ff` at the surface to `#0f5a86`, surface tint `#8edcf2`, background beam glow kept at 0.1. Pale sand `#c4bea2` (was `#a39c80`).
+- No light shafts in The Reefs (`lighting.godRays: false`, dev_5). dev_4 had made them near-white additive sunbeams placed for the low camera; Jeremy: "idw the fake sun beams". The Open Sea and the Atlas keep theirs.
 - Still missing from the references: colour on the rock (coral, sponges). That needs coral models.
 
 ### Known issues (dev_1)

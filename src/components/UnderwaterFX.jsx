@@ -5,11 +5,6 @@ import * as THREE from 'three'
 const GOD_RAY_LEFT_ANGLE = -Math.PI / 12
 const GOD_RAY_SURFACE_START_Y = 15
 const SUSPENDED_PARTICLE_COUNT = 240
-// The open sea's shafts: a faint blue haze laid over dark water. A tank can override them
-// (its `lighting.rays`): over The Reefs' bright shallow water a blue shaft reads darker than
-// the water behind it, so there they are near-white sunbeams, added rather than laid over, and
-// they stand further back (zOffset), longer and wider, where its low camera sees them whole.
-const DEFAULT_RAYS = { strength: 1, color: [0.34, 0.70, 0.90], additive: false, zOffset: 0, heightScale: 1, widthScale: 1 }
 
 const BASIC_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -31,7 +26,6 @@ const RAY_FRAGMENT = /* glsl */ `
   uniform float uTime;
   uniform float uSeed;
   uniform float uStrength;
-  uniform vec3 uColor;
   uniform float uFadeLength;
   varying vec2 vUv;
   varying float vFacing;
@@ -83,7 +77,7 @@ const RAY_FRAGMENT = /* glsl */ `
     // Fade the shaft out as the view grazes the plane so it never reads as an edge-on seam.
     float facingFade = smoothstep(0.12, 0.42, vFacing);
     float alpha = center * sideFade * vertical * shimmer * breath * facingFade * uStrength * 0.32;
-    gl_FragColor = vec4(uColor, alpha);
+    gl_FragColor = vec4(0.34, 0.70, 0.90, alpha);
   }
 `
 
@@ -129,7 +123,7 @@ const PARTICLE_FRAGMENT = /* glsl */ `
   }
 `
 
-function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rotation, strength, seed, fadeLength, color, additive }) {
+function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rotation, strength, seed, fadeLength }) {
   const material = useRef()
   const centerY = surfaceY - Math.cos(rotation) * height * 0.5
   const uniforms = useMemo(() => ({
@@ -137,8 +131,7 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
     uSeed: { value: seed },
     uStrength: { value: strength },
     uFadeLength: { value: fadeLength },
-    uColor: { value: new THREE.Color(...color) },
-  }), [seed, strength, fadeLength, color])
+  }), [seed, strength, fadeLength])
 
   useFrame(({ clock }) => {
     if (!material.current) return
@@ -157,7 +150,7 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
           transparent
           depthWrite={false}
           depthTest
-          blending={additive ? THREE.AdditiveBlending : THREE.NormalBlending}
+          blending={THREE.NormalBlending}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -165,7 +158,7 @@ function LightRay({ x, surfaceY = GOD_RAY_SURFACE_START_Y, z, width, height, rot
   )
 }
 
-function LightRays({ settings }) {
+function LightRays() {
   const rays = useMemo(() => [
     [-11.4, GOD_RAY_SURFACE_START_Y, -4.8, 3.2, 18.5, GOD_RAY_LEFT_ANGLE, 0.22, 1.1, 0.78],
     [-6.6, GOD_RAY_SURFACE_START_Y, -2.6, 5.2, 20.0, GOD_RAY_LEFT_ANGLE, 0.18, 3.6, 0.94],
@@ -186,7 +179,7 @@ function LightRays({ settings }) {
   return rays.map(([x, surfaceY, z, width, height, rotation, strength, seed, fadeLength]) => {
     const fannedRotation = rotation + (x + 3) * 0.010
     return (
-      <LightRay key={seed} x={x} surfaceY={surfaceY} z={z + settings.zOffset} width={width * settings.widthScale} height={height * settings.heightScale} rotation={fannedRotation} strength={strength * settings.strength} seed={seed} fadeLength={fadeLength} color={settings.color} additive={settings.additive} />
+      <LightRay key={seed} x={x} surfaceY={surfaceY} z={z} width={width} height={height} rotation={fannedRotation} strength={strength} seed={seed} fadeLength={fadeLength} />
     )
   })
 }
@@ -243,13 +236,12 @@ function SuspendedParticles() {
   )
 }
 
-export default function UnderwaterFX({ biome = 'ocean', showGodRays = true, rays = null }) {
-  const raySettings = useMemo(() => ({ ...DEFAULT_RAYS, ...(rays ?? {}) }), [rays])
+export default function UnderwaterFX({ biome = 'ocean', showGodRays = true }) {
   if (biome !== 'ocean') return null
 
   return (
     <group>
-      {showGodRays && <LightRays settings={raySettings} />}
+      {showGodRays && <LightRays />}
       <SuspendedParticles />
       {/* Surface shimmer now lives in WaterSurface; keep this disabled to avoid a duplicate mid-screen horizon band. */}
     </group>

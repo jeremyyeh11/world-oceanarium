@@ -108,7 +108,7 @@ live state for console checks.
   small fish find often and fish over about 1.5 BL rarely (a 2 BL fish found one in 0 of 40
   searches).
 - On the resting camera, most reachable rock is the massif on the right (x 14 to 55), outside a
-  375 px phone frame (about ±9 WU wide at z -30). The mid-ground outcrop at x -6.5 to 2.5,
-  z -26.5 to -33 (seeds 81 and 82 in landscapes.js, top y -10.7) is there so the phone sees reef
-  life: with it, the resting phone view sees 15% of the fish at a rock (1.5% without), and 12% to
-  16% of each reef species. Fish only use it when it falls near their home.
+  375 px phone frame (about ±8 WU wide at z -29). The mid-ground outcrop at x -7 to 2.5,
+  z -23.5 to -29 (seeds 81 and 82 in landscapes.js, top y -11.1) is there so the phone sees reef
+  life: the resting phone view sees 22% of the fish at a rock (1.5% without it). Fish only use it
+  when it falls near their home.

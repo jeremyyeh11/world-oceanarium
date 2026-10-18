@@ -101,14 +101,39 @@ export const TANKS = [
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.
-    // Reef water is clearer than open blue: thinner fog (ocean 0.032) lets the rocks read
-    // behind the swim volume, about 60 WU from the camera.
-    lighting: { exposure: 0.97, backgroundBeamAlpha: 0.1, density: 0.016 },
+    // Shallow reef water (Jeremy, 2026-10-18: "the waters should be shallower and maybe the
+    // colours are brighter and less foggy"): clear turquoise lit by warm sun from above,
+    // instead of the open sea's deep cobalt. Fog is thinner again (ocean 0.032, was 0.016 here)
+    // so the reef reads further off, and the haze is a light sea green rather than dark blue.
+    lighting: {
+      envTop: '#b4ecff',
+      envHorizon: '#2f9fcc',
+      envDeep: '#08354d',
+      fog: '#1f6f8c',
+      hemiSky: '#bdeeff',
+      hemiGround: '#123a40',
+      key: '#fff0d4',
+      fill: '#2b93b5',
+      density: 0.011,
+      exposure: 1.12,
+      backgroundStops: [
+        [0, '#8fe0f7'],
+        [0.14, '#4cbbe4'],
+        [0.34, '#2a93c6'],
+        [0.56, '#1d7aa6'],
+        [0.78, '#166588'],
+        [1, '#0d4a66'],
+      ],
+      backgroundBeamAlpha: 0.22,
+      // The underside of the surface (WaterSurface.jsx), turquoise to match.
+      surfaceColor: '#62bcd8',
+      surfaceAttenuationColor: '#4aa8c6',
+    },
     // Fixed seabed and rocks from src/data/landscapes.js. Tanks without one keep the
     // biome's open-water floor.
     landscape: 'reefs',
     // Optional resting-camera overrides (Camera.jsx DEFAULT_CAMERA_SETTINGS: fov, y, z, lookY).
-    // The Reefs' view (landscapes.js REEFS_VIEW) is zoomed about 1.35×, lower, further back
+    // The Reefs' view (landscapes.js REEFS_VIEW) is zoomed about 1.5×, lower, further back
     // and pitched up: fish and rocks read larger, which suits the smaller reef life and corals
     // to come. Follow mode keeps its own framing.
     camera: REEFS_VIEW,

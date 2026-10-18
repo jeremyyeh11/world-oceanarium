@@ -760,7 +760,12 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
           />
-          <WaterSurface biome={biome.id} seed={tank?.seed ?? 0} />
+          <WaterSurface
+            biome={biome.id}
+            seed={tank?.seed ?? 0}
+            color={tank?.lighting?.surfaceColor}
+            attenuationColor={tank?.lighting?.surfaceAttenuationColor}
+          />
           <UnderwaterFX biome={biome.id} showGodRays={!zoomActive && defaultCameraSettled} />
           {/* Compiles shaders and uploads every texture up front. three.js otherwise
               defers a texture's GPU upload until the frame it is first drawn, which

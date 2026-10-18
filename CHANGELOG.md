@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.29.0 — Reef behaviour (in progress)
 
-Status: in development as `v0.29.0-dev_2` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+Status: in development as `v0.29.0-dev_3` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
 
 ### Behaviour
 
@@ -25,6 +25,16 @@ Status: in development as `v0.29.0-dev_2` (branch `feat/reef-behavior`, #134). J
 ### Landscape
 
 - A mid-ground outcrop inside the swim volume, just right of centre, so the phone sees reef life (Jeremy: "Add a mid-ground rock outcrop inside the swim volume near the centre ... horizontal limestone stacks, no columns, keep the triangle"). A three-tier stack at x 2.5, z -33 (16 × 11 WU base, top y -10.7) and a lower two-tier stack to its left at x -6.5, z -26.5 (top y -17.6), so it steps up to the right like the rest of the reef. The top stays 4.7 WU below the resting camera's eye line, keeping the open blue down the middle. Without it, the reachable rock was almost all the right-hand massif, and a 375 px phone saw 1.5% of the fish at a rock; with it, 15%, and 12% to 16% of each reef species (fish in frame, not behind rock, within 55 WU). The sunfish passes over it at y -3 without stalling.
+
+### Look (dev_3)
+
+Jeremy (2026-10-18): "the whole view looks a bit dead. should we change up the camera position a bit? Also maybe since its the reefs the waters should be shallower and maybe the colours are brighter and less foggy?"
+
+- Shallow-reef water for The Reefs: the tank's `lighting` now overrides the whole palette, not just exposure and fog. Turquoise background and environment (`#8fe0f7` at the surface down to `#0d4a66`), a light sea-green haze (`#1f6f8c`, was the ocean's `#0a2d5e`), warm key sunlight (`#fff0d4`), exposure 1.12 (was 0.97), fog density 0.011 (was 0.016), brighter beams (0.22, was 0.1). The water depth itself is unchanged (sand at -24, surface at 4.6).
+- The water surface takes a per-tank tint (`lighting.surfaceColor`, `lighting.surfaceAttenuationColor`, WaterSurface.jsx): turquoise here, so the underside no longer reads as dark slate.
+- Resting camera: eye at y -9 (was -6), looking at y -7.5 (was -4.3), 42° (was 47°), still at z 14. The outcrop's top now sits at eye level against open water. A closer camera (z 9) was tried and dropped: it looked down onto bare sand and stood the foreground bommie in mid-frame.
+- The foreground bommie at x 3.2 (seed 62) is capped at y -12: from the lower eye it rose to 63% down the frame as a column; it pokes up from the bottom edge again.
+- The mid-ground outcrop moves 4 WU nearer (main stack z -29, was -33; the satellite to x -7, z -23.5). With fish starting at their rocks, the phone sees 22% of the fish at a rock (15% at dev_1). The camera change on its own barely moves that (23% from the old view against 22% from the new, same fish), and a reef fish is still about 20 px long on a 375 px phone (18 px before): the gain is mood and framing, not size.
 
 ### Known issues (dev_1)
 

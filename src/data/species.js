@@ -102,34 +102,44 @@ export const TANKS = [
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.
     // Shallow reef water (Jeremy, 2026-10-18: "the waters should be shallower and maybe the
-    // colours are brighter and less foggy", then colour references): luminous cyan near the
-    // surface deepening to azure, lit by warm sun from above, instead of the open sea's deep
-    // cobalt. Fog is thinner again (ocean 0.032, was 0.016 here) so the reef reads further off,
-    // fading into bright azure. The value contrast is in the rock (landscapes.js rockShade).
+    // colours are brighter and less foggy", then colour references). The references share a
+    // deep, saturated blue that darkens with distance and depth, bright only up by the surface;
+    // an all-over bright cyan (dev_4) read flat ("not a big fan of the super bright cyan blue").
+    // Fog is thinner than the open sea (0.032) so the reef reads further off. The value contrast
+    // is in the rock (landscapes.js rockShade).
     lighting: {
-      envTop: '#c4f3ff',
-      envHorizon: '#36aedb',
-      envDeep: '#08354d',
-      fog: '#2a96cc',
-      hemiSky: '#c6f1ff',
+      envTop: '#a9daf2',
+      envHorizon: '#2a78b8',
+      envDeep: '#061f3d',
+      fog: '#14588f',
+      hemiSky: '#b6dcf5',
       // Dark fill from below, so undersides sink into shadow.
-      hemiGround: '#06202c',
+      hemiGround: '#061a2c',
       key: '#fff0d4',
-      fill: '#2b93b5',
-      density: 0.011,
-      exposure: 1.12,
+      fill: '#1f6aa6',
+      density: 0.013,
+      exposure: 1.06,
+      // Cyan overhead, through blue at the horizon, to near-black navy straight down. The resting
+      // view only sees from about 27° above the horizon (0.35 down the gradient) to 15° below it
+      // (0.58), so the cyan reaches well down and the steps sit inside that band.
       backgroundStops: [
-        [0, '#b8f2ff'],
-        [0.14, '#62cff2'],
-        [0.34, '#33a9de'],
-        [0.56, '#2291c9'],
-        [0.78, '#1879ae'],
-        [1, '#0f5a86'],
+        [0, '#8edbf2'],
+        [0.3, '#47bde0'],
+        [0.4, '#2a90c6'],
+        [0.5, '#17609b'],
+        [0.6, '#0c3a68'],
+        [0.75, '#06223f'],
+        [1, '#03142b'],
       ],
+      // The water's colour by height (utils/heightFog.js; Jeremy: "closer to the sea bed =
+      // darker. closer to surface = more cyan"): distant rock and fish near the sand fade into
+      // deep navy, those up by the surface into cyan, from the sand's mean level to the surface;
+      // and what lies by the sand is lit at half strength.
+      heightFog: { low: '#03152c', high: '#43b6d8', yLow: -24, yHigh: 4.6, strength: 1, seabedLight: 0.5 },
       backgroundBeamAlpha: 0.1,
-      // The underside of the surface (WaterSurface.jsx), bright cyan to match.
-      surfaceColor: '#8edcf2',
-      surfaceAttenuationColor: '#5cc0de',
+      // The underside of the surface (WaterSurface.jsx), cyan to match the top of the gradient.
+      surfaceColor: '#6cc6e2',
+      surfaceAttenuationColor: '#45a6cc',
       // No light shafts (UnderwaterFX.jsx god rays): Jeremy, 2026-10-18, "idw the fake sun beams".
       godRays: false,
     },

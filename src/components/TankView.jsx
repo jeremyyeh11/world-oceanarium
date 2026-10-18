@@ -766,7 +766,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             color={tank?.lighting?.surfaceColor}
             attenuationColor={tank?.lighting?.surfaceAttenuationColor}
           />
-          <UnderwaterFX biome={biome.id} showGodRays={!zoomActive && defaultCameraSettled} />
+          <UnderwaterFX biome={biome.id} showGodRays={!zoomActive && defaultCameraSettled} rays={tank?.lighting?.rays} />
           {/* Compiles shaders and uploads every texture up front. three.js otherwise
               defers a texture's GPU upload until the frame it is first drawn, which
               is why a species used to stutter the moment it swam into view — and at

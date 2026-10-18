@@ -138,6 +138,27 @@ function projectUVs(geometry, tile, [offsetU, offsetV]) {
   return projected
 }
 
+// Painted light and shadow on the rock (a landscape's `rockShade`): the scene lights alone leave the
+// limestone one even mid value, where a reef under sun reads as dark rock with sunlit tops.
+// Darkens the whole rock by `tone`, its downward faces toward `underside` and its upward ones
+// up to `top`, and its lower reaches toward `low` (from `lowY` up to `highY`, world y). The
+// baked chunks are in world space, so the vertex normal and position are already world ones.
+function applyRockShade(material, shade) {
+  if (!shade) return
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvRockUp = normal.y;\nvRockY = position.y;')
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vRockUp;\nvarying float vRockY;')
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        float rockFacing = mix(${shade.underside.toFixed(3)}, ${shade.top.toFixed(3)}, smoothstep(-0.5, 0.8, vRockUp));
+        float rockHeight = mix(${shade.low.toFixed(3)}, 1.0, smoothstep(${shade.lowY.toFixed(2)}, ${shade.highY.toFixed(2)}, vRockY));
+        diffuseColor.rgb *= ${shade.tone.toFixed(3)} * rockFacing * rockHeight;`)
+  }
+  material.customProgramCacheKey = () => `rock-shade:${JSON.stringify(shade)}`
+}
+
 // Whether a piece's box reaches into the landscape's reef reach (see reefSites.js).
 function inReefReach(reach, piece) {
   if (!reach || piece.kind === 'rubble') return false
@@ -202,11 +223,13 @@ export default function Landscape({ landscape }) {
     }
     textures.color.colorSpace = THREE.SRGBColorSpace
     // Roughness is read from the green channel; the greyscale map has it in all three.
-    return new THREE.MeshStandardMaterial({
+    const rockMaterial = new THREE.MeshStandardMaterial({
       map: textures.color, normalMap: textures.normal, roughnessMap: textures.roughness,
       roughness: 1, metalness: 0, envMapIntensity: 0.35,
     })
-  }, [textures])
+    applyRockShade(rockMaterial, landscape.rockShade)
+    return rockMaterial
+  }, [textures, landscape.rockShade])
   const { chunks, reefSurfaces } = useMemo(() => makeLandscapeChunks(landscape, rocks), [landscape, rocks])
 
   // Built imperatively, so R3F won't dispose them; free them when the tank unmounts.

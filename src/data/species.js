@@ -102,32 +102,36 @@ export const TANKS = [
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.
     // Shallow reef water (Jeremy, 2026-10-18: "the waters should be shallower and maybe the
-    // colours are brighter and less foggy"): clear turquoise lit by warm sun from above,
-    // instead of the open sea's deep cobalt. Fog is thinner again (ocean 0.032, was 0.016 here)
-    // so the reef reads further off, and the haze is a light sea green rather than dark blue.
+    // colours are brighter and less foggy", then colour references): luminous cyan near the
+    // surface deepening to azure, lit by warm sun from above, instead of the open sea's deep
+    // cobalt. Fog is thinner again (ocean 0.032, was 0.016 here) so the reef reads further off,
+    // fading into bright azure. The value contrast is in the rock (landscapes.js rockShade).
     lighting: {
-      envTop: '#b4ecff',
-      envHorizon: '#2f9fcc',
+      envTop: '#c4f3ff',
+      envHorizon: '#36aedb',
       envDeep: '#08354d',
-      fog: '#1f6f8c',
-      hemiSky: '#bdeeff',
-      hemiGround: '#123a40',
+      fog: '#2a96cc',
+      hemiSky: '#c6f1ff',
+      // Dark fill from below, so undersides sink into shadow.
+      hemiGround: '#06202c',
       key: '#fff0d4',
       fill: '#2b93b5',
       density: 0.011,
       exposure: 1.12,
       backgroundStops: [
-        [0, '#8fe0f7'],
-        [0.14, '#4cbbe4'],
-        [0.34, '#2a93c6'],
-        [0.56, '#1d7aa6'],
-        [0.78, '#166588'],
-        [1, '#0d4a66'],
+        [0, '#b8f2ff'],
+        [0.14, '#62cff2'],
+        [0.34, '#33a9de'],
+        [0.56, '#2291c9'],
+        [0.78, '#1879ae'],
+        [1, '#0f5a86'],
       ],
-      backgroundBeamAlpha: 0.22,
-      // The underside of the surface (WaterSurface.jsx), turquoise to match.
-      surfaceColor: '#62bcd8',
-      surfaceAttenuationColor: '#4aa8c6',
+      backgroundBeamAlpha: 0.3,
+      // The underside of the surface (WaterSurface.jsx), bright cyan to match.
+      surfaceColor: '#8edcf2',
+      surfaceAttenuationColor: '#5cc0de',
+      // Near-white sunbeams added over the bright water (UnderwaterFX.jsx).
+      rays: { strength: 2.4, color: [0.85, 0.96, 1.0], additive: true, zOffset: -18, heightScale: 1.4, widthScale: 1.8 },
     },
     // Fixed seabed and rocks from src/data/landscapes.js. Tanks without one keep the
     // biome's open-water floor.

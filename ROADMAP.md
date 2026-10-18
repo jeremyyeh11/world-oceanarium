@@ -13,6 +13,17 @@ Status labels:
 
 ## Current work
 
+### Reef behaviour
+
+Status: `Current in development` — `v0.29.0-dev_1` (branch `feat/reef-behavior`). Jeremy (2026-10-18): reef fish should hang out around rocks, poke at them (swim forward and jerk back), hide in caves. See `docs/reef-behavior.md`.
+
+Subtasks:
+- [x] `reef` profiles and the patrol / hover / peck / shelter state machine (`reefBehavior.js`); sites raycast from the drawn rocks with BVH trees (`reefSites.js`).
+- [x] Reef swim volumes (`REEF_BOUNDS`): down to y -19, back to z -52.
+- [x] The reef was mostly off-screen (phone saw 1.5% of the fish at a rock). Jeremy chose a mid-ground outcrop near the centre: two horizontal stacks stepping up to the right, top y -10.7. The phone now sees 15%. Needs his eyes on the composition, at 375 px and on desktop.
+- [ ] Caves: the landscape has none, so larger fish rarely find a shelter. Real overhangs or caves would need new landscape pieces.
+- [ ] Device review of the motion: peck timing, hover wander, the turn on the spot when leaving.
+
 ### Squaretail Coral Grouper
 
 Status: shipped in clean `v0.28.0` (2026-10-18, from `v0.28.0-dev_1`, branch `feat/plectropomus-areolatus`, #133). Jeremy's pick for The Reefs: a caudal swimmer, low effort, IUCN Vulnerable, not a shark. The open items below carry over.

@@ -8,6 +8,28 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.29.0 — Reef behaviour (in progress)
+
+Status: in development as `v0.29.0-dev_1` (branch `feat/reef-behavior`). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+
+### Behaviour
+
+- Reef fish keep to the rocks (`docs/reef-behavior.md`). The bannerfish, emperor angelfish (adult and juvenile), clown triggerfish and squaretail grouper each get a `reef` profile: `affinity` (share of decisions spent at the reef, 0.7 to 0.9) and weights for four modes. `patrol` cruises past a face; `hover` hangs 1 to 1.6 BL off it; `peck` darts in to the face, bites, jerks back and repeats 2 to 7 times; `shelter` tucks into a nook, turns to face out, and is not startled there. By species: the angelfish pecks most (grazing sponges), the triggerfish pecks fewer and harder with a head shake and shelters after a scare (85%), the grouper hovers and shelters for long spells and never pecks, and the juvenile angelfish shelters most.
+- Travel to a site runs on the unified pipeline. Settling in, the time at the rock, and turning to leave own the pose, like the sun-bask hold. Measured peck cycle on a 1.6 WU angelfish: snout 0.51 WU off the face at rest, in to 0.02 WU in 0.29 s, a 0.2 s bite, back to 0.7 WU in 0.19 s.
+- Sites come from raycasts of the drawn rocks, not the steering ellipsoids, so a peck lands on the visible face. Landscape keeps the rocks inside the new `reefReach` box whole, each with a three-mesh-bvh tree (now a direct dependency, the same 0.8.3 drei already installs). One search per frame at most: 0.3 ms median for a peck site, 0.8 ms median and 4.8 ms worst for a shelter (desktop). Tree build is about 13 ms per tank mount.
+- Each fish keeps a home rock; its open-water swims stay within its home range. A pair follower lets its mate be while the mate is at a rock and does its own reef behaviour nearby. A fish at a rock finishes before it rejoins its mate or follows the sunfish.
+- After leaving a rock, the rock clamp comes back over 1.5 s, so the fish eases out of the proxy padding instead of jumping.
+- Swim volumes: the four species now reach down to y -19 and back to z -52 (`REEF_BOUNDS`), keeping their own front edges. The triggerfish and grouper no longer keep to a shallow band under the surface (y -1.9 to 2.7).
+
+### Landscape
+
+- A mid-ground outcrop inside the swim volume, just right of centre, so the phone sees reef life (Jeremy: "Add a mid-ground rock outcrop inside the swim volume near the centre ... horizontal limestone stacks, no columns, keep the triangle"). A three-tier stack at x 2.5, z -33 (16 × 11 WU base, top y -10.7) and a lower two-tier stack to its left at x -6.5, z -26.5 (top y -17.6), so it steps up to the right like the rest of the reef. The top stays 4.7 WU below the resting camera's eye line, keeping the open blue down the middle. Without it, the reachable rock was almost all the right-hand massif, and a 375 px phone saw 1.5% of the fish at a rock; with it, 15%, and 12% to 16% of each reef species (fish in frame, not behind rock, within 55 WU). The sunfish passes over it at y -3 without stalling.
+
+### Known issues (dev_1)
+
+- No caves in the landscape: shelters are nooks between ledge tiers, common for small fish and rare above about 1.5 BL.
+- Fish use the outcrop only when it is near their home, so most reef activity is still on the right-hand massif, which desktop sees partly and the phone not at all.
+
 ## v0.28.0 — Squaretail Coral Grouper
 
 Status: accepted and promoted as clean `v0.28.0` from `v0.28.0-dev_1` on Jeremy's go-ahead (2026-10-18, branch `feat/plectropomus-areolatus`, #133). `package.json` and `package-lock.json` move to `0.28.0`. Jeremy (2026-10-18): a caudal swimmer for The Reefs, low effort, IUCN Vulnerable or worse, not a shark.

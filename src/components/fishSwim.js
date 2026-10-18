@@ -1691,6 +1691,17 @@ export function updateFishRegistryPose(creatureId, quaternion, speed = 0, opacit
 }
 
 /**
+ * Whether a reef fish is holding at a rock this frame (its pair follower leaves it be meanwhile),
+ * and its reef state by reference, read-only, for debugging (see reefBehavior.js).
+ */
+export function setFishReefHold(creatureId, holding, reef = null) {
+  const entry = FISH_REGISTRY.get(creatureId)
+  if (!entry) return
+  entry.reefHold = holding
+  entry.reef = reef
+}
+
+/**
  * The caudal-vertex wave's sideways offset at `tail01` (0 at the nose, 1 at the tail) and its
  * rate of change along the body per unit of `tail01`, both in the model's source units, for
  * parts moved on the CPU (independent fins, clamped riders). Mirrors proceduralFishCurve in the
@@ -2877,7 +2888,8 @@ export function advancePairFollow(ride, rider, leaderId, side, bond, riderBodyLe
     ride.pairApart = !ride.pairApart && rand() < bond.apartChance
     ride.pairUntil = now + randomRangeFromPair(rand, ride.pairApart ? bond.apartSeconds : bond.togetherSeconds)
   }
-  if (ride.pairApart) {
+  // Apart, or the leader is busy at a rock (see reefBehavior.js): roam on its own meanwhile.
+  if (ride.pairApart || leader.reefHold) {
     if (ride.stage === 'pair') resetRideState(ride)
     return ride
   }

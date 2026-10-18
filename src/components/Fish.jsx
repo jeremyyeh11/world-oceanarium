@@ -22,7 +22,20 @@ import {
 } from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
-import { pushOutOfRocks, steerAroundRocks } from './rockObstacles'
+import { nudgeOutOfRocks, pushOutOfRocks, steerAroundRocks } from './rockObstacles'
+import {
+  REEF_CLAMP_RECOVERY_SECONDS,
+  beginReefSettle,
+  createReefState,
+  reefOwnsPose,
+  reefProfile,
+  reefSheltered,
+  reefStartled,
+  resetReefState,
+  startReefBehavior,
+  stepReefOwned,
+  stepReefTravel,
+} from './reefBehavior'
 import {
   BOID_MAX_DEBUG_NEIGHBORS,
   DEFAULT_BURST_ACTION_DURATION,
@@ -83,6 +96,7 @@ import {
   rideHostProfile,
   rotateDirectionToward,
   schoolAlarmAt,
+  setFishReefHold,
   schoolFormationOffset,
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
@@ -295,6 +309,12 @@ const RIDE_APPROACH_VELOCITY_RESPONSE = 3.2
 // way within the 1.4 s release window, so the hard clamp that follows moves it imperceptibly.
 const RIDE_RELEASE_BOUNDS_RESPONSE = 3
 const RIDE_APPROACH_BEHAVIOR = Object.freeze({ type: 'ride' })
+// A reef behaviour (reefBehavior.js) occupies the behaviour slot; its stage lives in the fish's
+// reef state. Travelling, it steers on the pipeline to the site's entry point, slowing to this
+// share of cruise over the last few body lengths so it does not arrive at a rush.
+const REEF_BEHAVIOR = Object.freeze({ type: 'reef' })
+const REEF_ARRIVAL_SPEED_SCALE = 0.6
+const REEF_ARRIVAL_BODY_LENGTHS = 3
 // Model-less creatures are posed by lookAt(+forward) then a quarter turn, which puts their
 // head at local -X; models face local -Z. Converts a model-frame pose to the placeholder frame.
 const PLACEHOLDER_FROM_MODEL_FRAME = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5)
@@ -363,6 +383,13 @@ function updateDebugLine(lineRef, start, end) {
 function updateDebugVectorLine(lineRef, start, vector, scale = 1) {
   debugBoidVectorEnd.copy(start).addScaledVector(vector, scale)
   updateDebugLine(lineRef, start, debugBoidVectorEnd)
+}
+
+// Whether a point lies inside a swim volume (its x range narrows toward the camera).
+function pointInSwimBounds(point, bounds) {
+  if (point.y < bounds.yMin || point.y > bounds.yMax || point.z < bounds.zMin || point.z > bounds.zMax) return false
+  const { xMin, xMax } = swimXRangeAtZ(bounds, point.z)
+  return point.x >= xMin && point.x <= xMax
 }
 
 function depthFadeFromScreenZ(z) {
@@ -1967,6 +1994,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const pairFollow = isSoloAgent && pair?.leaderId != null ? pair : null
   const pairBond = useMemo(() => (pairFollow ? pairBondProfile(species) : null), [pairFollow, species])
   const steersByRide = Boolean(hitchhiker || pairFollow)
+  // Reef-associated species hang around the rocks: hover, peck and shelter (reefBehavior.js).
+  const reefConfig = useMemo(() => (isSoloAgent && !isMolaCreature(creature) ? reefProfile(species) : null), [isSoloAgent, species, creature])
+  const reefRef = useRef(null)
+  if (!reefRef.current) reefRef.current = createReefState()
+  const reefPendingRetry = useRef(false)
   const isRideHost = useMemo(() => Boolean(rideHostProfile(species)), [species])
   const ride = runtime.ride
   const rideRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:ride`)))
@@ -2192,6 +2224,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     sunBaskQueued.current = false
     queuedSunBaskRequestId.current = 0
     runtimeRecoveryFade.current = { phase: 'idle', startedAt: 0 }
+    // A fish resumed at a rock eases out of the rock proxies' padding rather than popping out.
+    resetReefState(reefRef.current)
+    reefRef.current.clampBlend = 0
+    reefRef.current.hasHome = false
+    reefPendingRetry.current = false
   }, [creature.id, creature.species])
 
   useEffect(() => {
@@ -2310,12 +2347,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     // Hitchhiker step: decide on / close on / clamp to / let go of a host. Runs on last frame's
     // pose; hosts have already published this frame's (RIDE_HOST_FRAME_PRIORITY).
+    // At a rock, a reef fish finishes what it is doing before it rejoins its mate or takes up
+    // with a host.
+    const reefAtRock = Boolean(reefConfig) && reefOwnsPose(reefRef.current)
     if (steersByRide && hasFollowPosition.current) {
       const rideSpeeds = { idle: motion.idleSpeed * organicMotion.speedScale, burst: motion.burstSpeed * organicMotion.speedScale }
-      if (pairFollow && pairBond) {
+      if (pairFollow && pairBond && !reefAtRock) {
         advancePairFollow(ride, creature, pairFollow.leaderId, pairFollow.side, pairBond, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds, rideRand.current)
       }
-      if (hitchhiker && ride.stage !== 'pair') {
+      if (hitchhiker && ride.stage !== 'pair' && !(reefAtRock && ride.stage === 'free')) {
         ridePoseQuaternion.copy(fish.quaternion)
         if (!model) ridePoseQuaternion.multiply(MODEL_FROM_PLACEHOLDER_FRAME)
         advanceRide(
@@ -2381,10 +2421,20 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     // frame's steering see the threat; the burst itself is triggered with the other actions below.
     let startled = false
     // A clamped or docking remora is carried by its host; it does not bolt off it.
+    // Nor does a reef fish tucked into a shelter: that is where it goes to be safe.
     if (model && !riding && hasFollowPosition.current && now >= startleReadyAt.current
+      && !(reefConfig && reefSheltered(reefRef.current))
       && threatLevelAt(fish.position, creature, swim, startleEscape.current) >= THREAT_STARTLE_LEVEL * (1 - SCHOOL_ALARM_PRIMING * schoolAlarm)) {
       startled = true
       if (isSchooling) raiseSchoolAlarm(schoolState, fish.position)
+      if (reefConfig) {
+        // Travelling to a site it gives it up; at the rock it breaks off (see reefStartled).
+        reefStartled(reefRef.current, fish.position, agentRand.current, now, reefConfig)
+        if (agentBehavior.current?.type === 'reef' && reefRef.current.stage === 'idle') {
+          agentBehavior.current = null
+          agentHasTarget.current = false
+        }
+      }
       // Which way round to turn if the escape lies dead astern: toward whichever side it leans.
       const escape = startleEscape.current
       startleTurnSide.current = Math.sign(desiredDirection.current.z * escape.x - desiredDirection.current.x * escape.z) || 1
@@ -2444,6 +2494,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (steersByRide && ride.approaching) {
         // Closing on a host (or keeping station by a mate): the moving intercept point replaces the roaming target, and the
         // behavior slot stays occupied so no roaming target is picked meanwhile.
+        // A reef site it was on its way to is dropped (the ride never starts while it is at a rock).
+        if (reefConfig && reefRef.current.stage === 'travel') resetReefState(reefRef.current)
         agentBehavior.current = RIDE_APPROACH_BEHAVIOR
         agentTarget.current.copy(ride.target)
         agentHasTarget.current = true
@@ -2452,7 +2504,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         ? Math.min(bodyLength * MOLA_SUN_BASK_REACHED_BODY_LENGTHS, MOLA_SUN_BASK_REACHED_MAX)
         : soloAgentReachedDistance(creature, bodyLength)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
-      if (agentBehavior.current && agentBehavior.current.type !== 'ride' && targetDistance <= reachedDistance) {
+      if (agentBehavior.current && agentBehavior.current.type !== 'ride' && agentBehavior.current.type !== 'reef' && targetDistance <= reachedDistance) {
         if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
           const plannedDistance = Math.max(0.001, agentBehavior.current.approachDistance ?? 0)
           const distanceProgress = plannedDistance > 0.001
@@ -2503,7 +2555,54 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
       }
 
-      if (!agentBehavior.current && now >= nextAgentRetargetAt.current) {
+      // Reef travel: once the way in from here is clear, settle in to the rock; a patrol that has
+      // passed its face, or a site it cannot get to, frees the slot.
+      if (agentBehavior.current?.type === 'reef' && reefRef.current.stage === 'travel') {
+        const travel = stepReefTravel(reefRef.current, position, now, reachedDistance, bodyLength)
+        if (travel === 'settle') {
+          beginReefSettle(reefRef.current, position, visualForward.current, velocity.current * organicMotion.speedScale, bodyLength, now)
+          agentHasTarget.current = false
+        } else if (travel !== 'travel') {
+          resetReefState(reefRef.current)
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
+        }
+      } else if (agentBehavior.current?.type === 'reef' && reefRef.current.stage === 'idle') {
+        // Dropped by a startle or a ride.
+        agentBehavior.current = null
+        agentHasTarget.current = false
+      }
+
+      if (!agentBehavior.current && now >= nextAgentRetargetAt.current && reefConfig
+        && (reefPendingRetry.current || agentRand.current() < reefConfig.affinity)) {
+        // To the reef: by its mate if it has one, else round its own home.
+        const leader = pairFollow ? getFishEntry(pairFollow.leaderId) : null
+        const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        const result = startReefBehavior(reefRef.current, reefConfig, {
+          bodyLength,
+          region: bounds,
+          contains: point => pointInSwimBounds(point, bounds),
+          position,
+          rand: agentRand.current,
+          now,
+          cruiseSpeed: motion.idleSpeed * organicMotion.speedScale,
+          home: leader?.position ?? null,
+        })
+        // Another fish searched the rocks this frame: try again next frame.
+        reefPendingRetry.current = result === 'busy'
+        if (result === 'started') {
+          agentBehavior.current = REEF_BEHAVIOR
+          agentBehaviorStartedAt.current = now
+          agentBehaviorDistance.current = 0
+          agentTarget.current.copy(reefRef.current.site.entry)
+          agentHasTarget.current = true
+        } else if (result === 'busy') {
+          nextAgentRetargetAt.current = now
+        }
+      }
+
+      if (!agentBehavior.current && now >= nextAgentRetargetAt.current && !reefPendingRetry.current) {
         const usesDepthResidency = isMolaCreature(creature)
         const forceSunBask = usesDepthResidency && sunBaskQueued.current
         const canSunBask = usesDepthResidency
@@ -2544,6 +2643,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             currentForward,
             usesDepthResidency ? agentDepthMode.current : 'any',
           )
+          if (destination && reefConfig && reefRef.current.hasHome && !pairFollow) {
+            // A reef fish's swims into open water stay within its home range ("rarely more than a
+            // few metres off the reef"), rather than crossing the whole tank.
+            const home = reefRef.current.home
+            const range = reefConfig.homeRadiusBodyLengths * bodyLength
+            destination.sub(home)
+            if (destination.length() > range) destination.setLength(range)
+            destination.add(home)
+            clampToSwimBounds(destination, swimBounds(creature.depthZone, swim, creature.size ?? 1))
+            nudgeOutOfRocks(destination, bodyLength)
+          }
           if (destination) {
             if (usesDepthResidency) agentDepthTargetsRemaining.current = Math.max(0, agentDepthTargetsRemaining.current - 1)
             agentBehavior.current = { type: 'steer', completion: 'arrival' }
@@ -2645,6 +2755,36 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         desiredDirection.current.copy(ride.forward)
         agentMoveDirection.copy(ride.forward)
         agentBehaviorDistance.current = 0
+      } else if (reefConfig && reefOwnsPose(reefRef.current)) {
+        boundaryContacts.current = 0
+        // At the rock (settling in, hovering, pecking, sheltering, turning to leave): the reef
+        // behaviour owns position and facing outright, like the sun-bask hold. Boid forces fade
+        // so they do not snap back in when it leaves.
+        const reef = reefRef.current
+        stepReefOwned(
+          reef,
+          reefConfig,
+          fish.position,
+          delta,
+          now,
+          { idle: motion.idleSpeed * organicMotion.speedScale, snap: motion.snapSpeed * organicMotion.speedScale },
+          bodyLength,
+          agentRand.current,
+        )
+        desiredDirection.current.copy(reef.facing)
+        agentMoveDirection.copy(reef.facing)
+        smoothedBoidSteering.current.multiplyScalar(Math.exp(-delta * BOID_STEERING_SMOOTHING))
+        // The tail and fins read the swimming effort; no turn or burst actions at the rock.
+        velocity.current = reef.effort / Math.max(0.001, organicMotion.speedScale)
+        animationCooldown.current = Math.max(animationCooldown.current, now + 0.25)
+        agentBehaviorDistance.current = 0
+        if (reef.stage === 'done') {
+          // Off the rock and facing away: back on the pipeline from here.
+          resetReefState(reef)
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.2, 0.6)
+        }
       } else {
         // Base desired heading — the only mode-specific step.
         if (isSchooling) {
@@ -2846,6 +2986,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         } else if (agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'exit') {
           const exitElapsed = Math.max(0, now - (agentBehavior.current.stageStartedAt ?? agentBehaviorStartedAt.current))
           authoredSpeedScale = THREE.MathUtils.smoothstep(exitElapsed, 0, MOLA_SUN_BASK_EXIT_SPEED_RAMP_DURATION)
+        } else if (agentBehavior.current?.type === 'reef' && reefRef.current.mode !== 'patrol' && agentHasTarget.current) {
+          const remaining = fish.position.distanceTo(agentTarget.current) / Math.max(0.001, bodyLength)
+          authoredSpeedScale = THREE.MathUtils.lerp(REEF_ARRIVAL_SPEED_SCALE, 1, THREE.MathUtils.smoothstep(remaining, 0.5, REEF_ARRIVAL_BODY_LENGTHS))
         }
 
         // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
@@ -2923,7 +3066,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (steersByRide) keepRiderClearOfHost(fish.position, ride, bodyLength)
         // Landscape rocks: never end a frame inside one (padded for the body). The heading
         // loses its into-rock part, so the fish slides along the face instead of pressing on.
+        // Just off a rock, a reef fish is still inside the proxy's padding: the clamp comes back
+        // over REEF_CLAMP_RECOVERY_SECONDS, so it eases away from the face instead of jumping.
+        const rockClampBlend = reefConfig ? reefRef.current.clampBlend : 1
+        if (rockClampBlend < 1) agentRuntimeClamp.copy(fish.position)
         const rockNormal = pushOutOfRocks(fish.position, bodyLength)
+        if (rockNormal && rockClampBlend < 1) fish.position.lerpVectors(agentRuntimeClamp, fish.position, rockClampBlend)
         if (rockNormal) {
           const into = desiredDirection.current.dot(rockNormal)
           if (into < 0) desiredDirection.current.addScaledVector(rockNormal, -into)
@@ -2976,10 +3124,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         ? `${hitchhiker.attaches ? `ride ${ride.stage}` : 'follow'}${ride.hostId != null ? ` → ${ride.hostId}${ride.anchorIndex >= 0 ? ` #${ride.anchorIndex}` : ''}` : ''}`
         : (behavior?.type === 'sun-bask'
           ? `sun-bask ${behavior.stage}`
-          : (behavior?.type ?? 'choose-behavior'))
+          : behavior?.type === 'reef'
+            ? `reef ${reefRef.current.mode} ${reefRef.current.stage}${reefRef.current.stage === 'peck' ? ` ${reefRef.current.peckPhase} ×${reefRef.current.pecksLeft}` : ''}`
+            : (behavior?.type ?? 'choose-behavior'))
     }
 
     updateFishRegistry(fish, creature, swim, school, desiredDirection.current, registrySpeed, steersByRide ? ride.hostId : null)
+    // Reef fish at the rock: its mate lets it be, and the rock clamp stays off until it leaves.
+    const reefPoseOwned = Boolean(reefConfig) && reefOwnsPose(reefRef.current)
+    if (reefConfig) {
+      const reef = reefRef.current
+      reef.clampBlend = reefPoseOwned ? 0 : Math.min(1, reef.clampBlend + delta / REEF_CLAMP_RECOVERY_SECONDS)
+      setFishReefHold(creature.id, reefPoseOwned && reef.stage !== 'leave', reef)
+    }
 
     let runtimeRecoveryOpacity = 1
     let recoveryFadeState = runtimeRecoveryFade.current
@@ -3091,6 +3248,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         : 1 - THREE.MathUtils.smoothstep(stageElapsed, 0, MOLA_SUN_BASK_LOOK_AT_EXIT_BLEND_DURATION)
       pitchedForward.lerpVectors(visualForward.current, behavior.holdForward, freezeAlpha).normalize()
       visualForward.current.copy(pitchedForward)
+    }
+    if (reefPoseOwned) {
+      // At the rock the body faces exactly where the reef behaviour turns it, tilting further
+      // than the swimming pitch limit to graze a sloped face, and shaking its head as it bites.
+      const reef = reefRef.current
+      visualForward.current.copy(reef.facing)
+      visualPitch.current = Math.asin(THREE.MathUtils.clamp(reef.facing.y, -1, 1))
+      pitchedForward.copy(reef.facing)
+      if (reef.shake) pitchedForward.applyAxisAngle(up, reef.shake)
     }
     if (riding) {
       // Heading continuity for the moment the remora lets go.
@@ -3558,7 +3724,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       // model's source units: WU over the model scale and the creature's size.
       curveDeformInputRef.current.hug = hitchhiker ? ride.hug / Math.max(1e-6, (model.scale ?? 1) * size) : 0
 
-      const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask'
+      // Nor does a reef fish turning on the spot at a rock bank into the turn.
+      const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask' || reefPoseOwned
       const bank = suppressProceduralBank ? 0 : THREE.MathUtils.clamp(turn * 4, -MAX_MODEL_BANK, MAX_MODEL_BANK)
       bankQuaternion.setFromAxisAngle(pitchedForward, -bank)
       fish.quaternion.premultiply(bankQuaternion)

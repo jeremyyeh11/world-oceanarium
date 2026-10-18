@@ -4,11 +4,12 @@
 // outcrops, floor scatter and rubble are generated, but each from a fixed seed, so they are
 // just as stable. Nothing here reads the tank-visit seed.
 //
-// Units are world units (1 WU = 25 cm). Fish do not avoid rocks yet, so every piece
-// stays out of the swim volume of every species in the tank. For The Reefs that volume is
-// x ±56, z -40 to -15, y -14 to 2.8 (the Mola and its followers), plus the triggerfish's
-// shallower box reaching forward to z -8.3. The Mola's 13 WU body reaches about 6.6 WU past
-// its centre. That leaves four zones, checked against each piece's rotated footprint
+// Units are world units (1 WU = 25 cm). Fish steer round rocks (rockObstacles.js), but only the
+// hand-placed pieces flagged `inSwim` stand in the swim volume on purpose (the near massif and
+// the mid-ground outcrop); every other piece stays out of it. For The Reefs that volume is
+// x ±56, z -40 to -15, y -14 to 2.8 (the Mola and its followers); the reef fish reach further,
+// down to y -19 and back to z -52 (REEF_BOUNDS in species.js), to get at the rocks. The Mola's
+// 13 WU body reaches about 6.6 WU past its centre. That leaves four zones, checked against each piece's rotated footprint
 // (`clearance` below; `pieceZone` names a piece's zone):
 //   back: front face at z <= -47, any height
 //   side: inner face at |x| >= 63, any height
@@ -133,6 +134,9 @@ export const LANDSCAPES = {
     // the foreground zone in front of the camera (z 14); a generated piece there must stand
     // behind the camera, at outcropFront and beyond, so it never blocks the default view.
     clearance: { side: 63, back: -47, front: -7.5, floorTop: -20, outcropFront: 16 },
+    // Rocks the reef fish can reach (their swim volume, REEF_BOUNDS in species.js, plus a few
+    // WU of standoff): kept whole for their site raycasts (src/components/reefSites.js).
+    reefReach: { xMin: -64, xMax: 64, yMin: -21, yMax: 4, zMin: -58, zMax: -4 },
     // [kind, x, z, width, height, depth, yaw (rad), seed, options?]. x/z sit the piece's base
     // centre on the sand; width/height/depth are its bounding box in WU. options.top fixes
     // the piece's top (y), growing or capping it, to hold the composition.
@@ -195,6 +199,12 @@ export const LANDSCAPES = {
       ['stack', 45, -29, 15, 18, 13, 0.3, 77, { inSwim: true, tiers: 3 }],
       ['stack', 53, -38, 16, 24, 14, 0.1, 78, { inSwim: true, tiers: 3 }],
       ['stack', 55, -22, 14, 20, 12, -0.3, 79, { inSwim: true, tiers: 3 }],
+      // A low outcrop in the middle ground, inside the swim volume, where the phone's narrow
+      // frame (about ±9 WU at z -30) sees the reef fish at the rock. Two horizontal stacks
+      // stepping up to the right like the rest of the reef, their tops well below the eye
+      // line so the open blue down the middle stays clear.
+      ['stack', 2.5, -33, 16, 19, 11, 0.35, 81, { inSwim: true, tiers: 3 }],
+      ['stack', -6.5, -26.5, 8, 10, 7, -0.5, 82, { inSwim: true, tiers: 2 }],
       // Low boulders and mounds under the swim volume (tops below y -20). The mounds at
       // z -34 to -44 are the middle layer of the default view, between the foreground and
       // the back canyon.

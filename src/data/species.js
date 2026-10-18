@@ -153,6 +153,11 @@ const REMORA_SWIM = {
 // Riders share their host's swim volume, so every anchor on it stays reachable.
 const OPEN_SEA_RIDER_BOUNDS = { movementBoundsScale: 1.22, boundsYMin: -14, boundsZMin: -26, boundsZMax: 4 }
 const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZMin: -25, boundsZMax: 0 }
+// Reef fish reach down and back to the rocks of The Reefs (landscapes.js): to y -19, above the
+// basin's highest dune crest (-20.5), and back to z -52, the canyon's front faces. The x range
+// spans the near massif on the right. Each species keeps its own front edge (boundsZMax). A
+// superset of the Mola's volume, so a cleaner following it still reaches every station.
+const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37 }
 // Length–weight for the slender echeneid body, fitted to the two published maxima:
 // Echeneis naucrates 2.3 kg at 110 cm and Remora remora 1.1 kg at 86.4 cm (both ≈0.0017).
 const REMORA_MASS = { coefficient: 0.0017, exponent: 3 }
@@ -1830,6 +1835,7 @@ export const SPECIES = [
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
       ...DRIFT_RIDER_BOUNDS,
+      ...REEF_BOUNDS,
       // 1 WU = 25 cm: 25 cm maximum total length = 1.0 WU, just under the sardinella.
       bodyLengthWU: 1.0,
       boids: {
@@ -1847,6 +1853,13 @@ export const SPECIES = [
     sizeRange: [0.6, 1.0],
     // Rough length–weight for a deep, compressed body; no published weight for this species.
     mass: { coefficient: 0.02, exponent: 3 },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). Adults keep "rarely more than a
+    // few metres off the reef" but feed on plankton in the water over it, so they hang off the
+    // faces and cruise past them more than they peck; the young pick at the rock and at fishes.
+    reef: {
+      affinity: 0.75,
+      modes: { patrol: 0.4, hover: 0.35, peck: 0.15, shelter: 0.1 },
+    },
     hitchhiker: {
       // Follows rather than rides, and less often than the pilot fish: it takes the sunfish
       // on 40% of its checks, holds a station for a shorter spell, and usually roams off after
@@ -1999,6 +2012,7 @@ export const SPECIES = [
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
       ...DRIFT_RIDER_BOUNDS,
+      ...REEF_BOUNDS,
       // 1 WU = 25 cm: 40 cm maximum = 1.6 WU, half again the sardinella.
       bodyLengthWU: 1.6,
       boids: {
@@ -2016,6 +2030,14 @@ export const SPECIES = [
     sizeRange: [0.62, 1.0],
     // Rough length–weight for a deep, compressed body; no published weight for this species.
     mass: { coefficient: 0.02, exponent: 3 },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It grazes sponges and other
+    // encrusting animals on ledges and in caves, so it pecks most, in long runs, between spells
+    // hanging at the face.
+    reef: {
+      affinity: 0.85,
+      modes: { patrol: 0.2, hover: 0.25, peck: 0.45, shelter: 0.1 },
+      pecks: [3, 7],
+    },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
       attaches: false,
@@ -2083,6 +2105,12 @@ export const SPECIES = [
     lifeStages: {
       juvenile: {
         pairBonded: false,
+        // Juveniles hide under ledges and in holes: they shelter most, for longer.
+        reef: {
+          affinity: 0.9,
+          modes: { patrol: 0.15, hover: 0.2, peck: 0.25, shelter: 0.4 },
+          shelterSeconds: [15, 35],
+        },
         // 8–14 cm against the species' 40 cm (bodyLengthWU 1.6): 0.32–0.56 WU, under the 1.08 WU
         // sardinella floor, as a real juvenile is.
         sizeRange: [0.2, 0.35],
@@ -2210,6 +2238,9 @@ export const SPECIES = [
       turnRadiusBodyLengths: 0.6,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
+      // Down to the reef, keeping its old front edge (z -8.3).
+      ...REEF_BOUNDS,
+      boundsZMax: 6.7,
       // 1 WU = 25 cm: 50 cm maximum = 2.0 WU.
       bodyLengthWU: 2.0,
       boids: {
@@ -2223,6 +2254,19 @@ export const SPECIES = [
         menace: 0.15,
         wariness: 0.35,
       },
+    },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It cracks sea urchins, crabs and
+    // molluscs off the reef: fewer, slower pecks with a hard shake of the head. Between them it
+    // cruises the drop-off, and it retreats into a cave when approached.
+    reef: {
+      affinity: 0.7,
+      modes: { patrol: 0.4, hover: 0.1, peck: 0.3, shelter: 0.2 },
+      pecks: [2, 4],
+      lungeSeconds: 0.32,
+      biteSeconds: 0.3,
+      biteShakeDegrees: 9,
+      turnDegreesPerSecond: 130,
+      startleShelterChance: 0.85,
     },
     // Individuals span 30 cm to the 50 cm maximum.
     sizeRange: [0.6, 1.0],
@@ -2538,6 +2582,9 @@ export const SPECIES = [
       turnRadiusBodyLengths: 1.2,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
+      // Down to the reef, keeping its old front edge (z -8.7).
+      ...REEF_BOUNDS,
+      boundsZMax: 6.3,
       // 1 WU = 25 cm: 80 cm maximum = 3.2 WU.
       bodyLengthWU: 3.2,
       boids: {
@@ -2551,6 +2598,18 @@ export const SPECIES = [
         menace: 0.3,
         wariness: 0.3,
       },
+    },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). A shy ambush hunter that eats
+    // only fish: it hangs still off a face or under a ledge for long spells and never pecks at
+    // the rock.
+    reef: {
+      affinity: 0.8,
+      modes: { patrol: 0.25, hover: 0.45, peck: 0, shelter: 0.3 },
+      hoverSeconds: [10, 24],
+      shelterSeconds: [15, 35],
+      hoverStandoffBodyLengths: [0.9, 1.3],
+      turnDegreesPerSecond: 90,
+      startleShelterChance: 0.7,
     },
     // Individuals span 40 cm (just past female maturity) to 72 cm, the largest regional records.
     sizeRange: [0.5, 0.9],

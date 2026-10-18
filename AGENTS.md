@@ -42,6 +42,7 @@ Important paths:
 - `docs/new-species-checklist.md` — required species feature path: biological contract, asset/scale, motion feel, Atlas, responsive QA, and release evidence
 - `docs/ride-hosts.md` — remoras riding hosts: `rideHost` anchors, `hitchhiker` host weights, the ride stages, and how to add a host
 - `docs/reef-behavior.md` — reef fish at the rocks: `reef` profiles, the patrol/hover/peck/shelter modes and stages, site raycasts, swim volume
+- `src/components/coralPlacement.js` — table corals on the reef rocks: which rocks get a cluster, and the foot/top/shoulder placement against the drawn rock. The coral kit and its Atlas specimen are built by `scripts/build-coral-kit.py` and `scripts/build-coral-atlas.py` (headless Blender)
 - `src/version.js` — visible bottom-right version label
 - `CHANGELOG.md` — categorized release-bucket notes
 - `ROADMAP.md` — active TODOs, release blockers, and review follow-ups ordered by current work, priority, then chronology
@@ -128,7 +129,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 - `1 WU = 25 cm` for real-world scale.
 - Use body-length-scaled movement and camera framing for large animals.
 - Every creature uses the unified steer → boids → turn-cap → integrate → clamp pipeline. Schools derive their base heading from a shared migration goal + formation slot; creatures outside a school use a personal roaming/authored target.
-- Landscape rocks (`src/components/rockObstacles.js`) join that pipeline: steer around the first rock ahead, push out of any rock after the clamps, and never pick a target inside one. A tank's rocks come from `src/data/landscapes.js`; hand-placed pieces flagged `inSwim` may stand in the swim volume, everything else stays outside it.
+- Landscape rocks (`src/components/rockObstacles.js`) join that pipeline: steer around the first rock ahead, push out of any rock after the clamps, and never pick a target inside one. A tank's rocks come from `src/data/landscapes.js`; hand-placed pieces flagged `inSwim` may stand in the swim volume, everything else stays outside it. Table coral plates join the same field as extra obstacles (`setExtraObstacles`) once their placement finishes.
 - A normally-schooling creature that is currently unpaired must still use the solo fallback (`Boolean(species) && !isSchooling`) so odd live counts cannot create a movement dead zone.
 - Reef-associated species (a `reef` block) hover at, peck at and shelter in the rocks: `src/components/reefBehavior.js`, sites from raycasts of the drawn rocks in `src/components/reefSites.js`. Travel to a site runs on the pipeline; settling in, the time at the rock and turning to leave own the pose, like the sun-bask hold. See `docs/reef-behavior.md`.
 - Exception to the unified pipeline: a remora clamped to a host (ride stages `latch`/`attached`) takes its pose from the host's published pose plus an anchor, like the Mola sun-bask hold. Ride hosts run `useFrame` at priority −1 so riders read the same frame's pose. See `docs/ride-hosts.md`.

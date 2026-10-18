@@ -1,9 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
 import { clearReefSurfaces, setReefSurfaces } from './reefSites'
+import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
+import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
@@ -186,6 +188,9 @@ function makeLandscapeChunks(landscape, rocks) {
   const chunks = new Map()
   // The placed rocks reef fish can reach, kept whole (not merged) for their raycasts.
   const reefSurfaces = []
+  // The placed rocks table corals can grow on, grouped by rock (coralRockOf) and kept whole too.
+  const bySeed = landscape.corals ? new Map(pieces.map(piece => [piece.seed, piece])) : null
+  const coralRocks = new Map()
   // How far each placed rock's real top sits below its box top (rocks shrink to fit their
   // box), so a stacked tier can be dropped onto the rock it rests on.
   const topShortfall = new Map()
@@ -200,8 +205,14 @@ function makeLandscapeChunks(landscape, rocks) {
     placed.computeBoundingBox()
     topShortfall.set(piece.seed, piece.top - placed.boundingBox.max.y)
     const projected = projectUVs(placed, kit.textureTileWU, look.uvOffset)
-    if (inReefReach(landscape.reefReach, piece)) reefSurfaces.push(placed)
-    else placed.dispose()
+    const reachable = inReefReach(landscape.reefReach, piece)
+    if (reachable) reefSurfaces.push(placed)
+    const rock = bySeed && piece.kind !== 'rubble' ? coralRockOf(piece, bySeed) : null
+    if (rock !== null) {
+      if (!coralRocks.has(rock)) coralRocks.set(rock, [])
+      coralRocks.get(rock).push(placed)
+    }
+    if (!reachable && rock === null) placed.dispose()
     const key = `${Math.floor(piece.x / kit.chunkWU)}:${Math.floor(piece.z / kit.chunkWU)}`
     if (!chunks.has(key)) chunks.set(key, [])
     chunks.get(key).push(projected)
@@ -212,7 +223,124 @@ function makeLandscapeChunks(landscape, rocks) {
     geometry.computeBoundingSphere()
     return { key, geometry }
   })
-  return { chunks: merged, reefSurfaces }
+  return { chunks: merged, reefSurfaces, coralRocks }
+}
+
+const PLACEMENT_SLICE_MS = 6
+// Placed corals per landscape, for the session.
+const PLACED_CORALS = new WeakMap()
+
+// Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
+// merged per kit model and square chunk (culled when off screen), each coral from the _hi,
+// _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
+// obstacles. Loads on its own, so the rocks never wait.
+function Corals({ landscape, coralRocks }) {
+  const { kit } = landscape.corals
+  const gltf = useGLTF(kit.path)
+  const maps = useTexture(kit.models.flatMap(model => [model.color, model.normal]))
+  const meshes = useMemo(() => {
+    const byName = {}
+    gltf.scene.traverse(object => { if (object.isMesh) byName[object.name] = object.geometry })
+    return byName
+  }, [gltf])
+
+  const materials = useMemo(() => kit.models.map((model, i) => {
+    const [color, normal] = [maps[i * 2], maps[i * 2 + 1]]
+    for (const texture of [color, normal]) {
+      // Baked onto the glTF's own UVs, which run top-down.
+      texture.flipY = false
+      texture.anisotropy = 4
+      texture.needsUpdate = true
+    }
+    color.colorSpace = THREE.SRGBColorSpace
+    const coralMaterial = new THREE.MeshStandardMaterial({
+      map: color, normalMap: normal, roughness: 0.95, metalness: 0, envMapIntensity: 0.35,
+    })
+    applyRockShade(coralMaterial, null, landscape.caustics)
+    return coralMaterial
+  }), [kit, maps, landscape.caustics])
+
+  // Placement runs in slices of about PLACEMENT_SLICE_MS per frame (a few hundred ms in all on a
+  // phone would otherwise freeze the tank), and is kept for the session: the same landscape
+  // always places the same corals, so a return visit draws them at once.
+  const [corals, setCorals] = useState(() => PLACED_CORALS.get(landscape) ?? null)
+  useEffect(() => {
+    const cached = PLACED_CORALS.get(landscape)
+    if (cached) {
+      setCorals(cached)
+      return undefined
+    }
+    const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
+    const steps = placeCorals(landscape, coralClusters(landscape, coralRocks, landscape.view), measures, landscape.view)
+    let timer = null
+    const step = () => {
+      const until = performance.now() + PLACEMENT_SLICE_MS
+      while (performance.now() < until) {
+        const { done, value } = steps.next()
+        if (done) {
+          PLACED_CORALS.set(landscape, value)
+          setCorals(value)
+          return
+        }
+      }
+      timer = setTimeout(step, 0)
+    }
+    step()
+    return () => clearTimeout(timer)
+  }, [kit, meshes, landscape, coralRocks])
+
+  const { merged, obstacles } = useMemo(() => {
+    if (!corals) return { merged: [], obstacles: [] }
+    const camera = new THREE.Vector3(landscape.view?.x ?? 0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
+    const parts = new Map()
+    for (const coral of corals) {
+      const distance = camera.distanceTo(scratchA.set(coral.plate.x, coral.plate.y, coral.plate.z))
+      const lod = distance < kit.hiDetailDistance ? 'hi' : distance < kit.loDetailDistance ? 'lo' : 'far'
+      const source = meshes[`${kit.models[coral.model].name}_${lod}`]
+      const geometry = new THREE.BufferGeometry()
+      for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, source.attributes[attribute].clone())
+      geometry.setIndex(source.index.clone())
+      geometry.applyMatrix4(coral.matrix)
+      const key = `${coral.model}:${Math.floor(coral.plate.x / kit.chunkWU)}:${Math.floor(coral.plate.z / kit.chunkWU)}`
+      if (!parts.has(key)) parts.set(key, { model: coral.model, list: [] })
+      parts.get(key).list.push(geometry)
+    }
+    return {
+      merged: [...parts].map(([key, { model, list }]) => {
+        const geometry = mergeGeometries(list)
+        list.forEach(part => part.dispose())
+        geometry.computeBoundingSphere()
+        return { key, model, geometry }
+      }),
+      obstacles: corals.map(coral => coral.obstacle),
+    }
+  }, [kit, meshes, landscape, corals])
+
+  useLayoutEffect(() => {
+    if (!obstacles.length) return undefined
+    const owner = setExtraObstacles(obstacles)
+    return () => clearExtraObstacles(owner)
+  }, [obstacles])
+  useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
+  useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
+
+  return merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)
+}
+
+// Built rocks per landscape, kept for the session. React renders a tank several times before
+// it commits: on a tank switch, while the new tank's models are still loading, each one that
+// suspends makes React throw the uncommitted render away and render it again once it arrives.
+// The Reefs took five passes (2026-10-19, production build) and each rebuilt every rock, 200 to
+// 400 ms on the main thread, about 1.3 s wasted per visit. The layout is deterministic, so it is
+// built once per landscape and loaded kit and reused by every later pass and every return visit.
+const BUILT_LANDSCAPES = new WeakMap()
+
+function builtLandscape(landscape, gltf, rocks) {
+  const built = BUILT_LANDSCAPES.get(landscape)
+  if (built?.gltf === gltf) return built.result
+  const result = makeLandscapeChunks(landscape, rocks)
+  BUILT_LANDSCAPES.set(landscape, { gltf, result })
+  return result
 }
 
 export default function Landscape({ landscape }) {
@@ -241,9 +369,10 @@ export default function Landscape({ landscape }) {
     applyRockShade(rockMaterial, landscape.rockShade, landscape.caustics)
     return rockMaterial
   }, [textures, landscape.rockShade, landscape.caustics])
-  const { chunks, reefSurfaces } = useMemo(() => makeLandscapeChunks(landscape, rocks), [landscape, rocks])
+  const { chunks, reefSurfaces, coralRocks } = useMemo(() => builtLandscape(landscape, gltf, rocks), [landscape, gltf, rocks])
 
-  // Built imperatively, so R3F won't dispose them; free them when the tank unmounts.
+  // Built imperatively, so R3F won't dispose them; free their GPU copies when the tank
+  // unmounts. The chunks stay cached (builtLandscape): three uploads them again on a return visit.
   useEffect(() => () => material.dispose(), [material])
   useEffect(() => () => chunks.forEach(chunk => chunk.geometry.dispose()), [chunks])
   // Reef fish raycast the rocks they can reach (reefSites.js) for as long as the tank is up.
@@ -251,19 +380,28 @@ export default function Landscape({ landscape }) {
     const owner = setReefSurfaces(reefSurfaces, landscape.view)
     return () => clearReefSurfaces(owner)
   }, [reefSurfaces, landscape.view])
-  useEffect(() => () => reefSurfaces.forEach(geometry => geometry.dispose()), [reefSurfaces])
+  // The reef surfaces and the rocks corals grow on stay cached with the chunks; they are only
+  // raycast, never drawn, so there is nothing on the GPU to free.
 
   return (
     <group>
       {chunks.map(chunk => <mesh key={chunk.key} geometry={chunk.geometry} material={material} />)}
+      {landscape.corals && (
+        <Suspense fallback={null}>
+          <Corals landscape={landscape} coralRocks={coralRocks} />
+        </Suspense>
+      )}
     </group>
   )
 }
 
 // Fetch the rock kits with the rest of the tank's assets, so the landing gate's progress
 // covers them and the first visit to a landscaped tank does not pop the rocks in late.
-for (const { kit } of Object.values(LANDSCAPES)) {
+for (const { kit, corals } of Object.values(LANDSCAPES)) {
   if (!kit) continue
   useGLTF.preload(kit.path)
   useTexture.preload(Object.values(kit.textures))
+  if (!corals) continue
+  useGLTF.preload(corals.kit.path)
+  useTexture.preload(corals.kit.models.flatMap(model => [model.color, model.normal]))
 }

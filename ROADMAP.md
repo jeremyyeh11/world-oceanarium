@@ -13,6 +13,25 @@ Status labels:
 
 ## Current work
 
+### Table corals
+
+Status: shipped in clean `v0.30.0` (2026-10-19, branch `feat/table-corals`, kept open for `v0.30.x`). Jeremy's table coral (*Acropora hyacinthus*) model, baked into a three-model kit with three detail levels, placed as dense clusters crowning a few reef rocks after his photo of a bommie, and in the Atlas as a cluster on a small rock. The open items below carry over.
+
+Subtasks:
+- [x] Coral kit bake (`scripts/build-coral-kit.py`): 39 MB GLB to 0.8 MB plus 1024 px colour and normal maps; `_hi` / `_lo` / `_far` meshes.
+- [x] Placement against the drawn rocks (`src/components/coralPlacement.js`): ledges, walls and sand at a rock's foot; no floating, no plates through rock or sand, gaps between tiers.
+- [x] Dense clusters, fewer of them (Jeremy: "denser clusters but less number of clusters everywhere"): foot / top / shoulder passes per rock; the outcrop plus up to 14 rocks in front of the resting camera, 5 m apart. 130 tables in 9 clusters.
+- [x] Scale check: 40 cm to 2.5 m plates against real tables (adults ~1.5 m) and a lineup with a person and three reef fish.
+- [x] Fish steer round the plates (`setExtraObstacles` in rockObstacles.js).
+- [x] Atlas entry (Endangered, IUCN 2023) with a cluster specimen (`scripts/build-coral-atlas.py`), a 30° camera (`pitchDegrees`), warmed plates, and Jeremy's own tank capture as the tile.
+- [x] Image credits: Ryan McMinds (CC BY 2.0), Holobionics (CC BY-SA 4.0).
+- [x] Rocks built once per page load (`builtLandscape`): switching to The Reefs had rebuilt them on every one of five render passes.
+- [ ] Tank coral colour: plates read pale grey from the resting view; only the Atlas copies are warmed. Jeremy to decide whether the tank gets a warm tint too. `Backlog`
+- [ ] The tall foreground pillars carry no tables (TOP_MIN_SPREAD 0.45), so the resting view shows the outcrop and the near mound's clusters only. Option: a few shoulder tables on the pillars. `Backlog`
+- [ ] Reef fish steer round the plates but do not hover at or shelter under them: add the corals to the reef site raycasts (`reefSites.js`). `Backlog`
+- [ ] More coral forms for the photo look (staghorn, massive mounds, encrusting growth). `Backlog`
+- [ ] Switching to The Reefs still renders the tank five times while models load (only the rock build is cached); the first-visit stall is now ~230 ms. `Backlog`
+
 ### Reef behaviour
 
 Status: shipped in clean `v0.29.0` (2026-10-19, from `v0.29.0-dev_13`, branch `feat/reef-behavior`, #134), with The Reefs' new look (height-graded water, painted rock shade, caustics, the resting camera from Jeremy's diver shot). See `docs/reef-behavior.md`. The open items below carry over.
@@ -24,7 +43,7 @@ Subtasks:
 - [ ] Caves: the landscape has none, so larger fish rarely find a shelter. Real overhangs or caves would need new landscape pieces.
 - [x] Motion review: pecks made gentle (dev_12), then in, out, hang about, move on with no wiggle (dev_13); vibration at rocks fixed (dev_11).
 - [ ] Frame time: The Reefs' resting view measured ~7 ms a frame at dev_8 against 2.5 ms at dev_1 (desktop, hidden pane); caustics are ~0.2 ms of it. Cause not found yet.
-- [ ] Coral: the references' colour on the rock needs coral models; the warm sunlit tops stand in for now.
+- [x] Coral: table coral clusters on the rocks in `v0.30.0` (see Table corals); the warm sunlit tops stay.
 
 ### Squaretail Coral Grouper
 
@@ -75,7 +94,7 @@ Status: shipped in clean `v0.25.0` (2026-10-17, from `v0.25.0-dev_11`, branch `f
 - [x] Jeremy's limestone boulders kitbashed in for the placeholders (`dev_6`). More rocks can join the kit: rebuild with `scripts/build-landscape-kit.py` and list the new indices in `LIMESTONE_KIT.variants`.
 - [x] Rocks inside the swim volume: fish avoid rocks (`dev_11`). Reef behaviour such as angelfish keeping close to rock is still open. `Backlog`
 - [x] Follow cam no longer orbits into a rock: held on its surface (`dev_11`).
-- [ ] Corals on the rocks. `Backlog`
+- [x] Corals on the rocks: table coral clusters in `v0.30.0` (see Table corals).
 
 ### Situational fish lighting
 

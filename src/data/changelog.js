@@ -6,6 +6,16 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.30.0',
+    date: '2026-10-19',
+    title: 'Table corals',
+    changes: [
+      ['new', 'Table corals grow on The Reefs: clusters of flat, branching plates crowning the rocks, big tables spreading out low over the sand and small ones standing on top.'],
+      ['new', 'The Hyacinth Table Coral joins the Atlas: an Endangered coral whose tables are colonies of thousands of tiny polyps.'],
+      ['fix', 'Switching to The Reefs no longer stalls while the rocks are built, and going back to it is quicker still.'],
+    ],
+  },
+  {
     version: 'v0.29.0',
     date: '2026-10-19',
     title: 'Life on the reef',

@@ -72,6 +72,30 @@ const LIMESTONE_KIT = {
   maxStretch: { cliff: 2.6, bommie: 2.3, wall: 2, boulder: 2, talus: 2, ledge: 2.4 },
 }
 
+// Jeremy's table corals (Acropora hyacinthus, `_blender models/acropora hyacinthus.glb`, 2026-10-19),
+// baked by scripts/build-coral-kit.py: coralN_hi (3000 triangles; 1400 for the small one) carries
+// the full model's colour and bristly surface in coralN-color/-normal.jpg, coralN_lo (700; 300)
+// shares them. In metres, origin at the foot of the stalk. 0: the cream 2.5 m table with a
+// raised tier, 1: the pink 2.2 m table on a far off-centre stalk, 2: a small 0.7 m table.
+const TABLE_CORAL_KIT = {
+  path: '/models/landscape/table-corals.glb',
+  models: ['coral0', 'coral1', 'coral2'].map(name => ({
+    name,
+    color: `/models/landscape/${name}-color.jpg`,
+    normal: `/models/landscape/${name}-normal.jpg`,
+  })),
+  // Plates narrower than this many WU use the small model (2); wider ones the two big tables.
+  smallBelowWU: 3,
+  // Corals within this distance of the resting camera use the _hi meshes, then _lo out to
+  // loDetailDistance, and _far (160 triangles; 60 for the small one) beyond. Only the
+  // foreground rocks (from about 25 WU out) are close enough for _hi; a metre-wide plate at
+  // 40 WU spans about 60 px, plenty for _lo's 700 triangles.
+  hiDetailDistance: 30,
+  loDetailDistance: 60,
+  // Merged in square chunks this many WU wide (per model), so off-screen ones are culled.
+  chunkWU: 60,
+}
+
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
@@ -271,6 +295,34 @@ export const LANDSCAPES = {
     scatter: { seed: 801, count: 60, xMin: -100, xMax: 100, zMin: -100, zMax: 60, width: [2, 6], height: [0.8, 1.8] },
     // Rubble chunks, 10–30 cm each.
     rubble: { count: 450, seed: 4127, xMin: -110, xMax: 110, zMin: -110, zMax: 60, sizeMin: 0.4, sizeMax: 1.2 },
+    // Table corals (src/components/coralPlacement.js), after Jeremy's references (2026-10-19):
+    // a bommie crowned with tables, thin plates of many sizes in overlapping tiers, the biggest
+    // low and spreading out over the sand, the smallest on top on visible stalks. He found
+    // corals on most rocks "very sparse" and asked for "denser clusters but less number of
+    // clusters everywhere": a few rocks each get a full crown, the rest stay bare.
+    // Each cluster covers the rocks with the `hosts` seeds (from `rocks` above); `count` is its
+    // number of tables, `width` the plate width range in WU, `wallShare` the share of its
+    // shoulder tables growing out of a wall, and `frontBias` the share on the side facing the
+    // resting camera. Widths run 1.6 to 10 WU, 40 cm to 2.5 m: adult tables average about 1.5 m
+    // across (147 ± 49 cm, tagged colonies in the Philippines), young ones of 20 to 60 cm make
+    // up most of a reef's tables, and the largest reach several metres (SeaLifeBase). The kit's
+    // biggest model is a 2.5 m table.
+    corals: {
+      kit: TABLE_CORAL_KIT,
+      clusters: [
+        // The mid-ground outcrop, mid-frame on a phone.
+        { hosts: [81, 82], count: 26, seed: 6101, width: [1.6, 10], wallShare: 0.25, frontBias: 0.75 },
+      ],
+      // Then up to `clusters` more, each on a stack, bommie, wall or boulder at least
+      // minHeight WU tall (1 m), wide for its height (a crown needs a top), whose top reaches minTop, within maxDistance WU of the resting
+      // camera (fog hides the rest) and at least `spacing` WU (5 m) from every other cluster,
+      // nearer rocks a little likelier. A rock gets one table per areaPerCoral WU² of its
+      // footprint, within `count`.
+      scatter: {
+        seed: 6203, clusters: 14, spacing: 20, minHeight: 4, minTop: -21, maxDistance: 95,
+        areaPerCoral: 6, count: [10, 26], width: [1.6, 10], wallShare: 0.25, frontBias: 0.7,
+      },
+    },
   },
 }
 

@@ -86,4 +86,22 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY 2.0', url: 'https://creativecommons.org/licenses/by/2.0/' },
     changes: 'Mapped onto the 3D model, the fins cut out, and resized.',
   },
+  {
+    id: 'mcminds-table-coral',
+    subject: 'Table coral texture (cream tables)',
+    author: 'Ryan McMinds',
+    work: 'Acropora hyacinthus, Kelso Reef',
+    url: 'https://commons.wikimedia.org/wiki/File:Acropora_hyacinthus,_Kelso_Reef.jpg',
+    licence: { name: 'CC BY 2.0', url: 'https://creativecommons.org/licenses/by/2.0/' },
+    changes: 'Mapped onto the 3D models, baked into a new texture, and resized.',
+  },
+  {
+    id: 'holobionics-table-coral',
+    subject: 'Table coral texture (pink table)',
+    author: 'Holobionics',
+    work: 'Lodestone Reef, Valentines Day 2016 CoralScape',
+    url: 'https://commons.wikimedia.org/wiki/File:Lodestone_Reef,_Valentines_Day_2016_CoralScape.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
+  },
 ]

@@ -64,6 +64,23 @@ const DEFAULT_VIEW_POSE = {
 // A portrait phone's stage is ~360 px wide, so each species sets its own phone zoom
 // (portraitPhoneDistanceScale, a multiple of cameraDistance) to fill about 85% of it.
 const VIEW_POSES_BY_SPECIES = {
+  // The table coral cluster (a small bommie crowned with tables), front on and
+  // turned a little, looking 30° down onto it as in Jeremy's photo (2026-10-19: "camera angled
+  // a bit down from above").
+  'acropora-hyacinthus': {
+    yawOffset: -0.4,
+    pitchDegrees: 30,
+    // Looking down this steeply puts the camera high: the model is shown smaller and the camera
+    // closer than for a fish, so on every viewport (phones pull back up to 1.12×) it stays well
+    // under the water surface at y 4.6. Above it, the stage turns into a flat blue silhouette.
+    maxLengthDisplayUnits: 2.7,
+    cameraDistance: 6.4,
+    // Wider than tall, so phones zoom in less than for a fish.
+    portraitPhoneDistanceScale: 1.12,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.1, 0],
+    lookAt: [0, -0.1, 0],
+  },
   'amblygaster-sirm': {
     maxLengthDisplayUnits: 1.35,
     portraitPhoneDistanceScale: 0.68,
@@ -169,6 +186,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'pomacanthus-imperator': 0.4002,
   // Supplied whale shark model, nose to tail tip along Z.
   'rhincodon-typus': 99.8702,
+  // The table coral cluster, widest across (scripts/build-coral-atlas.py prints its bounds).
+  'acropora-hyacinthus': 5.013,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -210,7 +229,8 @@ function viewPoseForSpecies(species) {
 function atlasCameraPosition(pose) {
   const distance = pose.cameraDistance ?? pose.cameraPosition?.[2] ?? 9.2
   const yaw = THREE.MathUtils.degToRad(ATLAS_CAMERA_YAW_DEGREES)
-  const pitch = THREE.MathUtils.degToRad(ATLAS_CAMERA_PITCH_DEGREES)
+  // A pose can look further down than the usual 15° (`pitchDegrees`), as the coral does.
+  const pitch = THREE.MathUtils.degToRad(pose.pitchDegrees ?? ATLAS_CAMERA_PITCH_DEGREES)
   const lookAt = pose.lookAt ?? pose.position ?? [0, 0, 0]
   const horizontalDistance = Math.cos(pitch) * distance
 

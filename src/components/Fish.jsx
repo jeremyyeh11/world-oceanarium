@@ -22,7 +22,7 @@ import {
 } from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
-import { nudgeOutOfRocks, pushOutOfRocks, steerAroundRocks } from './rockObstacles'
+import { liftAboveSeabed, nudgeOutOfRocks, pushOutOfRocks, seabedHeightAt, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
   beginReefSettle,
@@ -386,11 +386,18 @@ function updateDebugVectorLine(lineRef, start, vector, scale = 1) {
   updateDebugLine(lineRef, start, debugBoidVectorEnd)
 }
 
-// Whether a point lies inside a swim volume (its x range narrows toward the camera).
-function pointInSwimBounds(point, bounds) {
+// How far above the sand a fish's centre stays: about its half-depth, plus a margin.
+function seabedPad(bodyLength) {
+  return bodyLength * 0.3 + 0.2
+}
+
+// Whether a point lies inside a swim volume (its x range narrows toward the camera unless the
+// volume is a box) and clear of the sand for a body of `bodyLength`.
+function pointInSwimBounds(point, bounds, bodyLength = 0) {
   if (point.y < bounds.yMin || point.y > bounds.yMax || point.z < bounds.zMin || point.z > bounds.zMax) return false
   const { xMin, xMax } = swimXRangeAtZ(bounds, point.z)
-  return point.x >= xMin && point.x <= xMax
+  if (point.x < xMin || point.x > xMax) return false
+  return point.y >= seabedHeightAt(point.x, point.z) + seabedPad(bodyLength)
 }
 
 function depthFadeFromScreenZ(z) {
@@ -2478,7 +2485,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const placed = spawnReefBehavior(reefRef.current, reefConfig, {
             bodyLength,
             region: bounds,
-            contains: point => pointInSwimBounds(point, bounds),
+            contains: point => pointInSwimBounds(point, bounds, bodyLength),
             position: leader?.position ?? position,
             rand: agentRand.current,
             now,
@@ -2606,7 +2613,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const result = startReefBehavior(reefRef.current, reefConfig, {
           bodyLength,
           region: bounds,
-          contains: point => pointInSwimBounds(point, bounds),
+          contains: point => pointInSwimBounds(point, bounds, bodyLength),
           position,
           rand: agentRand.current,
           now,
@@ -2678,6 +2685,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             clampToSwimBounds(destination, swimBounds(creature.depthZone, swim, creature.size ?? 1))
             nudgeOutOfRocks(destination, bodyLength)
           }
+          // Never a target buried in a dune (the sand rises above the swim floor at The Reefs' front).
+          if (destination) liftAboveSeabed(destination, seabedPad(bodyLength) * 1.5)
           if (destination) {
             if (usesDepthResidency) agentDepthTargetsRemaining.current = Math.max(0, agentDepthTargetsRemaining.current - 1)
             agentBehavior.current = { type: 'steer', completion: 'arrival' }
@@ -3101,6 +3110,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           if (into < 0) desiredDirection.current.addScaledVector(rockNormal, -into)
           if (desiredDirection.current.lengthSq() > 1e-6) desiredDirection.current.normalize()
           else desiredDirection.current.copy(rockNormal)
+        }
+        // The sand: never below it (a landscape's dunes rise above the swim floor at The Reefs'
+        // front); a fish meeting it levels off and skims along it.
+        if (liftAboveSeabed(fish.position, seabedPad(bodyLength)) && desiredDirection.current.y < 0) {
+          desiredDirection.current.y = 0
+          if (desiredDirection.current.lengthSq() > 1e-6) desiredDirection.current.normalize()
+          else desiredDirection.current.copy(tangent)
         }
 
         // Mola deep-exit recovery: past the soft rear wall it fades out, snaps back inside the

@@ -45,7 +45,9 @@ const segment = new THREE.Vector3()
 const candidates = []
 
 // geometries: world-space BufferGeometries, one per reachable rock (Landscape owns and frees them).
-export function setReefSurfaces(geometries) {
+// view: the tank's resting camera ({ x, y, z, lookX, lookY, lookZ }, Camera.jsx settings), so
+// fish can favour the reef the visitor actually sees (pickViewHome, `viewBias` below).
+export function setReefSurfaces(geometries, view = null) {
   const meshes = geometries.map(geometry => {
     if (!geometry.boundingBox) geometry.computeBoundingBox()
     if (!geometry.boundingSphere) geometry.computeBoundingSphere()
@@ -55,8 +57,31 @@ export function setReefSurfaces(geometries) {
     mesh.updateMatrixWorld(true)
     return mesh
   })
-  surfaces = { meshes, boxes: meshes.map(mesh => mesh.geometry.boundingBox) }
+  let viewpoint = null
+  if (view) {
+    const position = new THREE.Vector3(view.x ?? 0, view.y ?? 0, view.z ?? 0)
+    const target = new THREE.Vector3(view.lookX ?? position.x, view.lookY ?? position.y, view.lookZ ?? 0)
+    viewpoint = { position, forward: target.sub(position).normalize() }
+  }
+  surfaces = { meshes, boxes: meshes.map(mesh => mesh.geometry.boundingBox), viewpoint }
   return surfaces
+}
+
+// A random point in the middle of the resting view, 18 to 58 WU out and within 15% of the
+// distance to either side (a 375 px phone sees about ±18% at 42°), low among the reef:
+// somewhere for a reef fish to make its home where it will be seen. Returns null without a view.
+export function pickViewHome(out, rand) {
+  const viewpoint = surfaces?.viewpoint
+  if (!viewpoint) return null
+  const distance = 18 + rand() * 40
+  segment.crossVectors(viewpoint.forward, UP)
+  if (segment.lengthSq() < 1e-6) segment.set(1, 0, 0)
+  segment.normalize()
+  out.copy(viewpoint.position)
+    .addScaledVector(viewpoint.forward, distance)
+    .addScaledVector(segment, (rand() * 2 - 1) * distance * 0.15)
+  out.y = -18 + rand() * 6
+  return out
 }
 
 export function clearReefSurfaces(owner) {
@@ -146,6 +171,8 @@ function boxDistance(box, point) {
  *   minEnclosure   only nooks at least this enclosed; the most enclosed of the tries wins
  *   enclosureReach  how far the enclosure rays look (WU)
  *   force       search even if another fish already did this frame (spawning)
+ *   viewBias    share of tries that come at the rock from the resting camera's side and keep
+ *               only a rest point the camera can see (0 = ignore the view)
  */
 export function findReefSite(out, query) {
   if (!hasReefSurfaces()) return null
@@ -157,6 +184,8 @@ export function findReefSite(out, query) {
   }
 
   const { region, contains, near, radius, from, rand, standoff, clearance, entryDistance, normalY } = query
+  const viewpoint = surfaces.viewpoint
+  const viewBias = viewpoint ? query.viewBias ?? 0 : 0
   const minEnclosure = query.minEnclosure ?? 0
   const attempts = query.attempts ?? 8
   const { boxes } = surfaces
@@ -195,7 +224,13 @@ export function findReefSite(out, query) {
     const yHigh = Math.min(box.max.y, region.yMax)
     if (yHigh <= yLow) continue
     let angle = rand() * Math.PI * 2
-    if (from && rand() < 0.75) {
+    // Some tries face the camera: aim at the rock's side toward it, and see the site from it.
+    const fromView = viewBias > 0 && rand() < viewBias
+    if (fromView) {
+      aim.x = THREE.MathUtils.clamp(viewpoint.position.x, box.min.x, box.max.x)
+      aim.z = THREE.MathUtils.clamp(viewpoint.position.z, box.min.z, box.max.z)
+      angle = Math.atan2(viewpoint.position.z - aim.z, viewpoint.position.x - aim.x) + (rand() * 2 - 1) * Math.PI / 4
+    } else if (from && rand() < 0.75) {
       aim.x = THREE.MathUtils.clamp(from.x, box.min.x, box.max.x)
       aim.z = THREE.MathUtils.clamp(from.z, box.min.z, box.max.z)
       angle = Math.atan2(from.z - aim.z, from.x - aim.x) + (rand() * 2 - 1) * Math.PI / 3
@@ -218,6 +253,12 @@ export function findReefSite(out, query) {
     const back = castReefRay(rest, rayDirection, standoff + 0.6)
     if (back < 0 || Math.abs(back - standoff) > 0.3) continue
     if (!roomToTurn(rest, faceNormal, clearance)) continue
+    if (fromView) {
+      segment.subVectors(rest, viewpoint.position)
+      const sight = segment.length()
+      segment.divideScalar(sight)
+      if (castReefRay(viewpoint.position, segment, sight - 0.3) >= 0) continue
+    }
     // Line up level with the face, out from the rest point, and come straight in.
     outward.set(faceNormal.x, 0, faceNormal.z)
     if (outward.lengthSq() < 0.04) continue

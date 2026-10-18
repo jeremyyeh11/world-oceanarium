@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { CAUSTIC_TIME, applyCaustics, causticsCacheKey } from '../utils/caustics'
 import Landscape from './Landscape'
 import { landscapePieces, sandGrain, sandHeight } from '../data/landscapes'
-import { clearRockObstacles, setRockObstacles } from './rockObstacles'
+import { clearRockObstacles, clearSeabed, setRockObstacles, setSeabed } from './rockObstacles'
 
 // Radial alpha fade so the seabed's outer rim dissolves to nothing instead of ending in a
 // hard edge/horizon line when the follow cam looks toward it. The plane's local xy spans
@@ -147,6 +147,18 @@ export default function Environment({ biome, landscape = null }) {
     const owner = setRockObstacles(pieces, ROCK_OBSTACLE_OPTIONS)
     return () => clearRockObstacles(owner)
   }, [pieces])
+  // The sand, for fish to stay above (rockObstacles.js liftAboveSeabed), with its highest point
+  // over the obstacle region found once on a 1 WU grid.
+  useLayoutEffect(() => {
+    if (!landscape) return undefined
+    const { region } = ROCK_OBSTACLE_OPTIONS
+    let top = -Infinity
+    for (let x = region.xMin; x <= region.xMax; x += 1) {
+      for (let z = region.zMin; z <= region.zMax; z += 1) top = Math.max(top, sandHeight(landscape, x, z))
+    }
+    const owner = setSeabed((x, z) => sandHeight(landscape, x, z), top)
+    return () => clearSeabed(owner)
+  }, [landscape])
 
   return (
     <group>

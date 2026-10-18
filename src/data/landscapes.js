@@ -75,13 +75,13 @@ const LIMESTONE_KIT = {
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
-// the viewer instead of being looked across. Since v0.29.0-dev_9 (Jeremy's diver-camera shot,
-// "nice foreground and background composition") the eye sits low among the reef, at y -12.5
-// (was -9 at dev_3, -6 before), pitched up about 4.7°: the foreground rocks rise above the eye
-// line and frame the bottom, the outcrop and its fish sit in the middle, and the canyon columns
-// stand behind against the bright water. It still looks straight down -z. A camera closer than
-// z 14 lands among the foreground pieces.
-export const REEFS_VIEW = { fov: 42, y: -12.5, z: 14, lookY: -11.35 }
+// the viewer instead of being looked across. Since v0.29.0-dev_10 it is the pose Jeremy framed
+// in the diver camera ("ok yea do it"): back and to the right of the foreground rocks, at
+// x 12, y -9.8, z 25.2, turned 9.5° left and pitched 5.4° up (looking at x 7.8, y -7.4 on the
+// z 0 plane). The foreground rocks frame the bottom, the outcrop and its fish sit mid-frame
+// (the turn centres even a 375 px phone on it, at x 2.9), and the canyon columns stand behind.
+// The nearest rock is a scatter boulder 3.6 WU behind and below the camera.
+export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY: -7.4 }
 
 export const LANDSCAPES = {
   reefs: {
@@ -165,7 +165,7 @@ export const LANDSCAPES = {
     clearance: { side: 63, back: -47, front: -7.5, floorTop: -20, outcropFront: 16 },
     // Rocks the reef fish can reach (their swim volume, REEF_BOUNDS in species.js, plus a few
     // WU of standoff): kept whole for their site raycasts (src/components/reefSites.js).
-    reefReach: { xMin: -64, xMax: 64, yMin: -21, yMax: 4, zMin: -58, zMax: -4 },
+    reefReach: { xMin: -64, xMax: 64, yMin: -21, yMax: 4, zMin: -58, zMax: 10 },
     // [kind, x, z, width, height, depth, yaw (rad), seed, options?]. x/z sit the piece's base
     // centre on the sand; width/height/depth are its bounding box in WU. options.top fixes
     // the piece's top (y), growing or capping it, to hold the composition.

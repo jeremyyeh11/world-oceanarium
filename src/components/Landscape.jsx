@@ -181,7 +181,7 @@ function inReefReach(reach, piece) {
 
 function makeLandscapeChunks(landscape, rocks) {
   const { kit } = landscape
-  const camera = new THREE.Vector3(0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
+  const camera = new THREE.Vector3(landscape.view?.x ?? 0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
   const pieces = [...landscapePieces(landscape), ...(landscape.rubble ? rubblePieces(landscape) : [])]
   const chunks = new Map()
   // The placed rocks reef fish can reach, kept whole (not merged) for their raycasts.
@@ -248,9 +248,9 @@ export default function Landscape({ landscape }) {
   useEffect(() => () => chunks.forEach(chunk => chunk.geometry.dispose()), [chunks])
   // Reef fish raycast the rocks they can reach (reefSites.js) for as long as the tank is up.
   useLayoutEffect(() => {
-    const owner = setReefSurfaces(reefSurfaces)
+    const owner = setReefSurfaces(reefSurfaces, landscape.view)
     return () => clearReefSurfaces(owner)
-  }, [reefSurfaces])
+  }, [reefSurfaces, landscape.view])
   useEffect(() => () => reefSurfaces.forEach(geometry => geometry.dispose()), [reefSurfaces])
 
   return (

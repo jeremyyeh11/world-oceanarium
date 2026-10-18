@@ -195,11 +195,19 @@ const REMORA_SWIM = {
 // Riders share their host's swim volume, so every anchor on it stays reachable.
 const OPEN_SEA_RIDER_BOUNDS = { movementBoundsScale: 1.22, boundsYMin: -14, boundsZMin: -26, boundsZMax: 4 }
 const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZMin: -25, boundsZMax: 0 }
-// Reef fish reach down and back to the rocks of The Reefs (landscapes.js): to y -19, above the
-// basin's highest dune crest (-20.5), and back to z -52, the canyon's front faces. The x range
-// spans the near massif on the right. Each species keeps its own front edge (boundsZMax). A
+// Reef fish reach down, back and forward to the rocks of The Reefs (landscapes.js): to y -19,
+// above the basin's highest dune crest (-20.5), back to z -52, the canyon's front faces, and
+// forward to z +8, among and in front of the foreground rocks (since dev_10, with the camera back
+// at z 25: Jeremy,
+// "can we have the fish swim closer also? so they also hang around the foreground rocks ... u may
+// jsut expand the swim boundary. im okay with them swimming off screen also"). A box ±58 WU wide
+// (boundsHalfX) rather than the shared wedge that narrows toward the old camera at z 12 (±13 at
+// z 0, ±7.6 at z 5), so the foreground rocks on the right are in reach too; it spans the near
+// massif on the right. Out to z +8 the faces of the foreground rocks that look toward the camera
+// are in reach too. The sand climbs above the y -19 floor from z +2 (to -18.1 at z +6); fish are
+// kept above it (rockObstacles.js liftAboveSeabed), so the floor follows the dunes there. A
 // superset of the Mola's volume, so a cleaner following it still reaches every station.
-const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37 }
+const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
 // Length–weight for the slender echeneid body, fitted to the two published maxima:
 // Echeneis naucrates 2.3 kg at 110 cm and Remora remora 1.1 kg at 86.4 cm (both ≈0.0017).
 const REMORA_MASS = { coefficient: 0.0017, exponent: 3 }
@@ -2280,9 +2288,8 @@ export const SPECIES = [
       turnRadiusBodyLengths: 0.6,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
-      // Down to the reef, keeping its old front edge (z -8.3).
+      // Down to the reef and forward to the foreground rocks.
       ...REEF_BOUNDS,
-      boundsZMax: 6.7,
       // 1 WU = 25 cm: 50 cm maximum = 2.0 WU.
       bodyLengthWU: 2.0,
       boids: {
@@ -2624,9 +2631,8 @@ export const SPECIES = [
       turnRadiusBodyLengths: 1.2,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
-      // Down to the reef, keeping its old front edge (z -8.7).
+      // Down to the reef and forward to the foreground rocks.
       ...REEF_BOUNDS,
-      boundsZMax: 6.3,
       // 1 WU = 25 cm: 80 cm maximum = 3.2 WU.
       bodyLengthWU: 3.2,
       boids: {

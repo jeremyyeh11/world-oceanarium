@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { castReefRay, findReefSite, hasReefSurfaces, reefSegmentClear } from './reefSites.js'
+import { castReefRay, findReefSite, hasReefSurfaces, pickViewHome, reefSegmentClear } from './reefSites.js'
 
 // Reef behaviour for reef-associated species (a `reef` block in species.js; see
 // docs/reef-behavior.md). A reef fish keeps a home on the rocks and spends most of its time
@@ -66,6 +66,12 @@ const FACE_NORMAL_Y = { patrol: [-0.3, 0.7], hover: [-0.25, 0.55], peck: [-0.25,
 const SHELTER_MIN_ENCLOSURE = 0.35
 // Empty searches retried (one a frame) before the decision goes to open water instead.
 const SEARCH_RETRIES = 2
+// The visitor's reef: a new home goes to the middle of the resting view this often (else round
+// where the fish is), and this share of site searches comes at a rock from the camera's side and
+// keeps only a spot it can see (reefSites.js). Since dev_10's wider, deeper volume, homes spread
+// over the whole reef and the fish at a rock were in sight 3–4% of the time.
+const VIEW_HOME_SHARE = 0.6
+const VIEW_SITE_BIAS = 0.5
 // How steeply the fish may tilt at the rock: grazing a sloped face, nose down.
 const MAX_REEF_PITCH = THREE.MathUtils.degToRad(35)
 const LEAVE_MAX_SECONDS = 5
@@ -225,7 +231,9 @@ export function startReefBehavior(reef, profile, ctx) {
   const entryDistance = Math.max(ENTRY_MIN, ENTRY_BODY_LENGTHS * bodyLength)
   // Near home, or anywhere (round where it is now) when it has none yet or moves house.
   const roaming = !ctx.home && (!reef.hasHome || rand() < profile.newHomeChance)
-  const near = ctx.home ?? (roaming ? homeQuery.copy(ctx.position) : reef.home)
+  const near = ctx.home ?? (roaming
+    ? ((rand() < VIEW_HOME_SHARE && pickViewHome(homeQuery, rand)) || homeQuery.copy(ctx.position))
+    : reef.home)
   const radius = profile.homeRadiusBodyLengths * bodyLength * (roaming ? 2 : 1)
   const found = findReefSite(reef.site, {
     force: ctx.force,
@@ -242,6 +250,7 @@ export function startReefBehavior(reef, profile, ctx) {
     minEnclosure: mode === 'shelter' ? SHELTER_MIN_ENCLOSURE : 0,
     enclosureReach: Math.max(1.5, 2.5 * bodyLength),
     attempts: mode === 'shelter' ? 10 : 8,
+    viewBias: VIEW_SITE_BIAS,
   })
   if (found === false) {
     reef.retryMode = mode

@@ -84,7 +84,11 @@ limit, so the first frame does them all (10.3 ms on desktop with 42 reef fish).
 ## Home and mates
 
 A fish's home is the first site it finds; most sites are picked within `homeRadiusBodyLengths`
-of it, and `newHomeChance` of decisions move house to a rock anywhere. A pair follower uses its
+of it, and `newHomeChance` of decisions move house. A new home goes to the middle of the resting
+view 60% of the time (`pickViewHome`: 18 to 58 WU out, within 15% of that to either side), else
+round where the fish is; and half of all site searches come at a rock from the camera's side and
+keep only a spot the camera can see (`viewBias`). Landscape passes the tank's resting view to
+reefSites.js for both. A pair follower uses its
 mate's position as home. While the leader is at a rock (`reefHold` on its registry entry), the
 follower stops station-keeping and does its own reef behaviour nearby; at a rock, a fish finishes
 before it rejoins its mate or starts following a host.
@@ -92,8 +96,13 @@ before it rejoins its mate or starts following a host.
 ## Swim volume
 
 Reef fish use `REEF_BOUNDS` (species.js): down to y -19 (the basin's highest dune crest is
--20.5) and back to z -52 (the canyon's front faces), across the full width. Each keeps its own
-front edge. Rocks a fish cannot reach from its volume are never picked.
+-20.5), back to z -52 (the canyon's front faces) and forward to z +8, among and in front of the
+foreground rocks. It is a box ±58 WU wide (`boundsHalfX`; fishSwim.js `halfXAt`) rather than
+the shared wedge, which narrows toward the old camera at z 12 and would keep them off the
+foreground rocks on the right. Toward the front the sand rises above y -19 (to -18.1 at z +6),
+so every fish is kept above the sand (rockObstacles.js `liftAboveSeabed`), open-water targets
+are lifted out of it, and reef sites must clear it. Rocks a fish cannot reach from its volume
+are never picked.
 
 ## Tuning
 
@@ -107,8 +116,9 @@ live state for console checks.
 - The landscape has no caves. Shelters are concave spots between and under ledge tiers, which
   small fish find often and fish over about 1.5 BL rarely (a 2 BL fish found one in 0 of 40
   searches).
-- On the resting camera, most reachable rock is the massif on the right (x 14 to 55), outside a
-  375 px phone frame (about ±8 WU wide at z -29). The mid-ground outcrop at x -7 to 2.5,
-  z -23.5 to -29 (seeds 81 and 82 in landscapes.js, top y -11.1) is there so the phone sees reef
-  life: the resting phone view sees 22% of the fish at a rock (1.5% without it). Fish only use it
-  when it falls near their home.
+- The resting view (dev_10, Jeremy's diver-camera pose at x 12, z 25.2, turned 9.5° left) sees
+  the foreground rocks, the mid-ground outcrop (seeds 81 and 82 in landscapes.js) and the canyon.
+  Measured after the fish settle (in frame, not behind rock, within 60 WU): desktop sees 38% of
+  the reef fish and 17% of those at a rock, a 375 px phone 16% and 8%; 59% of the fish at a rock
+  are at the foreground rocks. Much of the reef activity is still out of frame or behind the near
+  rocks.

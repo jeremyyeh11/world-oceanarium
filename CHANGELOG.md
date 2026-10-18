@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.29.0 — Reef behaviour (in progress)
 
-Status: in development as `v0.29.0-dev_9` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+Status: in development as `v0.29.0-dev_10` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
 
 ### Behaviour
 
@@ -48,9 +48,13 @@ Jeremy (2026-10-18) sent five reef photos as colour references: "i think u may d
 - Caustics (dev_8; Jeremy: "dont over do this ... make sure the caustics is 3d space projected on the landscape this time. keep it optimised"). New `utils/caustics.js`: a tileable 256 × 256 Voronoi edge net built once on the CPU, sampled twice per fragment at two scales drifting apart and combined by their minimum, added as light (times the surface colour) to the rock and sand shaders. Each point looks it up by its world position, slanted along the sun ([0.4, −0.4] per WU of height), so it lies on the landscape and holds still under a moving camera. Upward faces only (|normal.y| on the double-sided sand); cells about 1.5 WU (37 cm) across, drifting 0.02 tiles a second; 60% strength at the sand rising to full at y 0; faded out between 25 and 60 WU from the camera so it never shimmers. Measured cost in the resting view: 7.1 ms median frame with it, 6.9 ms without (noise).
 - Still missing from the references: colour on the rock (coral, sponges). That needs coral models.
 
-### Camera (dev_9)
+### Camera (dev_9, dev_10)
 
 - Resting view from Jeremy's diver-camera screenshot ("can we make this the defautl caemra view? or something liek this but aligned to world xz. nice foreground and background composition"): eye at y -12.5 (was -9), looking at y -11.35 (about 4.7° up, was about 6°), still 42° at z 14 on the x 0 line, straight down -z. The canyon columns sat at the same screen x in his shot as in the dev_7 view, which fixed the field of view and z; the height and pitch were solved from where the foreground bommie's top (on the eye line) and the left column's top (a quarter down) fall in it. The near rocks now rise above the eye line and frame the bottom of the frame, the outcrop and its fish sit in the middle, and the columns stand behind. On a 375 px phone the outcrop and its fish sit in the centre between the near rocks and a column.
+- dev_10: the resting view is the pose Jeremy framed in the diver camera in the browser pane ("ok yea do it"), read off the live camera: x 12, y -9.8, z 25.2, turned 9.5° left and pitched 5.4° up, 42°. The resting camera takes an x position and a look target now (`x`, `lookX`, `lookY`, `lookZ`; Camera.jsx), and the rock detail levels measure from the same x. The turn centres even a 375 px phone on the outcrop (x 2.9 at its depth). The nearest rock is a scatter boulder 3.6 WU behind and below the camera.
+- Reef fish come forward to the foreground rocks (dev_10; Jeremy: "can we have the fish swim closer also? so they also hang around the foreground rocks", "u may jsut expand the swim boundary. im okay with them swimming off screen also"). Their volume runs to z +8 (was -15, or -8.3 for the triggerfish and grouper) and is a box ±58 WU wide (new `boundsHalfX`; fishSwim.js `halfXAt`/`sideKAt`) rather than the shared wedge that narrows toward the old camera (±13 at z 0); every other species keeps the wedge. The site raycasts reach the foreground rocks (`reefReach` to z 10).
+- The sand is an obstacle (rockObstacles.js `setSeabed`/`liftAboveSeabed`): toward the front it rises above the reef fish's y -19 floor (to -18.1 at z +6), so fish are kept about half a body depth above it and level off along it, open-water targets are lifted out of it, and reef sites must clear it. Measured: no fish below the sand over 1,260 samples.
+- Reef fish favour what the visitor sees: 60% of new homes go to the middle of the resting view (18 to 58 WU out, within 15% of that to either side), and half of site searches come at a rock from the camera's side and keep only a spot the camera can see (one more ray). Without that, the wider volume spread homes over the whole reef and the fish at a rock were in sight 3–4% of the time. Settled, desktop now sees 38% of the reef fish (17% of those at a rock) and a 375 px phone 16% (8%); 59% of the fish at a rock are at the foreground rocks.
 
 ### Known issues (dev_1)
 

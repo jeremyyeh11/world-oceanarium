@@ -74,12 +74,14 @@ const LIMESTONE_KIT = {
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
-// default (z 10, y -3.35), pitched up about 6° and zoomed about 1.5× (42°, was 61°): the reef
-// rises around and above the viewer instead of being looked across. Since v0.29.0-dev_3 the eye
-// sits at y -9 (was -6), level with the mid-ground outcrop's top, so the reef fish at the rocks
-// sit against open water rather than below the frame's middle, and it zooms in a little more
-// (was 47°). A camera closer than z 14 lands among the foreground pieces.
-export const REEFS_VIEW = { fov: 42, y: -9, z: 14, lookY: -7.5 }
+// default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
+// the viewer instead of being looked across. Since v0.29.0-dev_9 (Jeremy's diver-camera shot,
+// "nice foreground and background composition") the eye sits low among the reef, at y -12.5
+// (was -9 at dev_3, -6 before), pitched up about 4.7°: the foreground rocks rise above the eye
+// line and frame the bottom, the outcrop and its fish sit in the middle, and the canyon columns
+// stand behind against the bright water. It still looks straight down -z. A camera closer than
+// z 14 lands among the foreground pieces.
+export const REEFS_VIEW = { fov: 42, y: -12.5, z: 14, lookY: -11.35 }
 
 export const LANDSCAPES = {
   reefs: {

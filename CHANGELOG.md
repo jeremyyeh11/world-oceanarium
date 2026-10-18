@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.29.0 — Reef behaviour (in progress)
 
-Status: in development as `v0.29.0-dev_8` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
+Status: in development as `v0.29.0-dev_9` (branch `feat/reef-behavior`, #134). Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".
 
 ### Behaviour
 
@@ -47,6 +47,10 @@ Jeremy (2026-10-18) sent five reef photos as colour references: "i think u may d
 - Warm sunlit tops (dev_8): the rock's upward faces near the surface tint toward ochre (`rockShade.warm`: up to 0.5 of the way to ×[1.18, 1.02, 0.78], from y -18 to 0), a stand-in for the colour corals will bring against the blue.
 - Caustics (dev_8; Jeremy: "dont over do this ... make sure the caustics is 3d space projected on the landscape this time. keep it optimised"). New `utils/caustics.js`: a tileable 256 × 256 Voronoi edge net built once on the CPU, sampled twice per fragment at two scales drifting apart and combined by their minimum, added as light (times the surface colour) to the rock and sand shaders. Each point looks it up by its world position, slanted along the sun ([0.4, −0.4] per WU of height), so it lies on the landscape and holds still under a moving camera. Upward faces only (|normal.y| on the double-sided sand); cells about 1.5 WU (37 cm) across, drifting 0.02 tiles a second; 60% strength at the sand rising to full at y 0; faded out between 25 and 60 WU from the camera so it never shimmers. Measured cost in the resting view: 7.1 ms median frame with it, 6.9 ms without (noise).
 - Still missing from the references: colour on the rock (coral, sponges). That needs coral models.
+
+### Camera (dev_9)
+
+- Resting view from Jeremy's diver-camera screenshot ("can we make this the defautl caemra view? or something liek this but aligned to world xz. nice foreground and background composition"): eye at y -12.5 (was -9), looking at y -11.35 (about 4.7° up, was about 6°), still 42° at z 14 on the x 0 line, straight down -z. The canyon columns sat at the same screen x in his shot as in the dev_7 view, which fixed the field of view and z; the height and pitch were solved from where the foreground bommie's top (on the eye line) and the left column's top (a quarter down) fall in it. The near rocks now rise above the eye line and frame the bottom of the frame, the outcrop and its fish sit in the middle, and the columns stand behind. On a 375 px phone the outcrop and its fish sit in the centre between the near rocks and a column.
 
 ### Known issues (dev_1)
 

@@ -8,6 +8,39 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.30.0 — Table corals
+
+Status: accepted and promoted as clean `v0.30.0` on Jeremy's go-ahead (2026-10-19, branch `feat/table-corals`; "this is good enough to merge a clean version to main first"). `package.json` and `package-lock.json` move to `0.30.0`. The branch stays open for `v0.30.x` iterations. Jeremy (2026-10-18/19) asked for a coral to start The Reefs' colour, chose the table coral (*Acropora hyacinthus*), modelled it from reference photos, and set the look from his photos of a bommie crowned with tables.
+
+### Corals
+
+- Coral kit (`scripts/build-coral-kit.py`, headless Blender 5.2): Jeremy's GLB (three corals, ~40k triangles, 35 MB of Commons photo textures) is welded, moved so its origin is the stalk's foot, decimated to `coralN_hi` (3,000 triangles; 1,400 for the small one), `coralN_lo` (700; 300) and `coralN_far` (160; 60), and the full-detail source is baked onto `_hi` into a 1024 px colour map and a tangent-space normal map that keeps the bristly branch tips (512 px for the small one). 39 MB in, 0.8 MB GLB plus six JPEG maps out (`public/models/landscape/table-corals.glb`, `coral0..2-color/-normal.jpg`). The models: a 2.5 m cream table with a raised tier, a 2.2 m pink table on a far off-centre stalk, and a 0.7 m small table.
+- Placement (`src/components/coralPlacement.js`), once per landscape, against the rocks as drawn. A table grows where a ray finds rock: down onto a ledge (normal y ≥ 0.5) or the sand at a rock's foot, stalk sunk a sixth of its height; or in toward a wall, plate out of the face and stalk inside the rock (kept only if the stalk's foot and middle test inside). A candidate is kept only if at most 6 of 32 plate points are inside rock, no plate point dips into the sand, it clears every plate already placed with 20 cm of water between overlapping tiers, and it stays below `maxTop`. Plates tilt at most 5° and overhang away from the rock.
+- Clusters, after Jeremy's photo (2026-10-19: "denser clusters but less number of clusters everywhere"): each cluster crowns one rock (a stack with its tiers and talus, `coralRockOf`) in three passes: about 20% big tables (50–80% of the rock's narrower width) low round its foot, on a low ledge or the sand within 2 WU, spreading out over the sand; 30% small ones (15–32%) on its top on visible stalks; the rest (20–45%) up its shoulders, a quarter of them out of a wall. Earlier builds this cycle spread 541 tables over 58 rocks; Jeremy found them "very sparse".
+- Where: the mid-ground outcrop (hand-placed, 26 tables) plus up to 14 more clusters on rocks at least 1 m tall and at least 0.45 as wide as tall (the slim foreground pillars stay bare: a table on a post reads as a mushroom), whose tops reach y -21, within 95 WU of the resting camera and in front of it (within 75° of its view, favouring the view itself and nearer rocks), at least 20 WU (5 m) apart. Result: 130 tables in 9 clusters.
+- Scale: 1 WU = 25 cm as for the fish. Widths 40 cm to 2.5 m: adult tables average 1.47 ± 0.49 m (tagged colonies, Philippines), young colonies of 20–60 cm make up most of a reef's tables, the largest reach several metres (SeaLifeBase). A lineup render against a 1.65 m person and the angelfish, triggerfish and grouper at true length confirmed the proportions.
+- Drawn merged per model and 60 WU chunk (frustum-culled), each table from `_hi`, `_lo` or `_far` by distance from the resting camera (30 / 60 WU). Placement runs in slices of about 6 ms a frame (a generator yielding every 20 candidate spots; longest step measured 2.2 ms) and is kept per landscape for the session.
+- Fish steer round the plates: rockObstacles.js takes a second, extra obstacle set (`setExtraObstacles`), and each plate publishes an ellipsoid box from its underside to its top.
+- Image credits: Ryan McMinds, "Acropora hyacinthus, Kelso Reef" (CC BY 2.0), and Holobionics, "Lodestone Reef, Valentines Day 2016 CoralScape" (CC BY-SA 4.0; the adapted texture is shared alike), in Sources.
+
+### Atlas
+
+- New entry: Hyacinth Table Coral (`acropora-hyacinthus`), Endangered (IUCN 2023, A3ce), not a swimming creature: no `swim`, no tank roster slot, no creature rows. Range per Rassmussen et al. 2025 (central Pacific and Australia's east coast), 1–25 m; diet, colonial grouping, hermaphrodite broadcast spawning a night or two after a full moon (season by latitude). Unknowns left `Unknown`. It sorts first (Nº 001).
+- The specimen is a cluster (`scripts/build-coral-atlas.py`): nine of the tank's tables crowning a small bommie (the kit's blockiest rock, `rock0`, with a low lump at each front corner), one 2.8 m table spreading out low at the front-right, small ones on top on their stalks, placed with the tank's checks. The Atlas's brighter, bluer lights washed the plates grey-white, so the Atlas copies are tinted ×(0.95, 0.8, 0.7); the tank's corals are unchanged. A soft sand patch was tried and dropped (Jeremy: "remove the white radial highlight").
+- The camera can look down further per species (`pitchDegrees`, EncyclopediaPage.jsx): the coral is seen from 30° above (others 15°). The model is shown smaller and the camera closer (2.7 display units at 6.4) so the phone's pulled-back camera stays under the water surface (y 4.6); above it the stage turned into a flat blue silhouette.
+- List tile: Jeremy's own capture of a coral cluster in the tank, square-cropped to 470 px.
+
+### Performance
+
+- The Reefs' rocks are built once per page load (`builtLandscape`, Landscape.jsx). Switching tanks, React rendered the new tank five times before committing while its models loaded (production build), and each pass rebuilt every rock: 200–400 ms each, about 1.3 s of main thread wasted per visit. Measured on the production build, first visit: one build, stalls 228 + 64 + 162 ms (was eight stalls totalling about 1.9 s); return visit: no build, 90 + 67 ms. GPU copies are still freed when the tank unmounts and re-uploaded on return.
+
+### Known issues
+
+- In the tank the plates read pale grey from the resting view (fog and distance); only the Atlas copies are warmed.
+- The two tall foreground pillars carry no tables, so from the resting view the clusters show on the outcrop and the near foreground mound; the massif's clusters show from the diver camera.
+- Reef fish steer round the plates but do not hover at or shelter under them yet (sites come from rock raycasts only).
+- Switching to The Reefs still renders the tank five times while models load; only the rock build is cached.
+
 ## v0.29.0 — Reef behaviour and a new look for The Reefs
 
 Status: accepted and promoted as clean `v0.29.0` from `v0.29.0-dev_13` on Jeremy's go-ahead (2026-10-19, branch `feat/reef-behavior`, #134). `package.json` and `package-lock.json` move to `0.29.0`; `three-mesh-bvh` (0.8.3, already installed by drei) is now a direct dependency. Jeremy (2026-10-18): "write new behavior for reef associated fish to have reef associated behavior? hang out around rocks, feed from/poke at rocks (swim forward and jerk back), hide in caves, etc".

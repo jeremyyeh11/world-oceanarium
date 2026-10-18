@@ -34,10 +34,20 @@ function cellKey(cx, cz) {
   return cx * 73856093 ^ cz * 19349663
 }
 
-// pieces: placed landscape pieces ({ x, y, z, width, height, depth, yaw }). `reach` keeps only
-// rocks a fish can come near (anything below `floorTop` or outside `region` is skipped).
-export function setRockObstacles(pieces, { region, floorTop, maxPad }) {
-  const kept = pieces.filter(piece => piece.y + piece.height > floorTop
+// Two sources share the field: the tank's rocks (Environment, from the seeded layout, before
+// the first frame) and extra obstacles that only exist once a model has loaded, such as the
+// table corals (Landscape.jsx, placed against the drawn rocks). Either can change or clear
+// without the other; the field is rebuilt from both.
+let rocks = null
+let extras = null
+
+function buildField() {
+  if (!rocks) {
+    field = null
+    return
+  }
+  const { region, floorTop, maxPad } = rocks.options
+  const kept = [...rocks.pieces, ...(extras?.pieces ?? [])].filter(piece => piece.y + piece.height > floorTop
     && piece.x + piece.width > region.xMin && piece.x - piece.width < region.xMax
     && piece.z + piece.depth > region.zMin && piece.z - piece.depth < region.zMax)
   const data = new Float32Array(kept.length * STRIDE)
@@ -63,11 +73,34 @@ export function setRockObstacles(pieces, { region, floorTop, maxPad }) {
     }
   })
   field = { data, grid, count: kept.length, maxPad }
-  return field
+}
+
+// pieces: placed landscape pieces ({ x, y, z, width, height, depth, yaw }). `options.region`
+// and `options.floorTop` keep only rocks a fish can come near (anything below `floorTop` or
+// outside `region` is skipped); `options.maxPad` is the largest body pad.
+export function setRockObstacles(pieces, options) {
+  rocks = { pieces, options }
+  buildField()
+  return rocks
 }
 
 export function clearRockObstacles(owner) {
-  if (field === owner) field = null
+  if (rocks !== owner) return
+  rocks = null
+  buildField()
+}
+
+// Extra obstacles in the same piece form, filtered with the rocks' options.
+export function setExtraObstacles(pieces) {
+  extras = { pieces }
+  buildField()
+  return extras
+}
+
+export function clearExtraObstacles(owner) {
+  if (extras !== owner) return
+  extras = null
+  buildField()
 }
 
 // The sand as an obstacle too (a landscape's dunes and hills rise above its mean level, and The

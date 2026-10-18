@@ -2702,6 +2702,77 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
+  // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since
+  // corals are animals"). Not a swimming creature: no `swim`, no tank roster slot, no creature
+  // rows. Its tables are placed on the rocks by the landscape (landscapes.js `corals`,
+  // src/components/coralPlacement.js); the Atlas shows a cluster of them on a small rock.
+  // Facts: SeaLifeBase (IUCN EN, 2023, A3ce; tables several metres across), Wikipedia (1-25 m;
+  // range narrowed by Rassmussen et al. 2025), reproduction from the Philippine, Taiwanese,
+  // Japanese and Singapore spawning studies (PMC6350966, Zool. Stud. 57-46, Toh 2012).
+  {
+    id: 'acropora-hyacinthus',
+    name: 'Hyacinth Table Coral',
+    scientificName: 'Acropora hyacinthus',
+    family: 'Acroporidae',
+    // Tile (2026-10-19): Jeremy's own capture of a table coral cluster in The Reefs, square-
+    // cropped round the cluster and scaled to 470 px.
+    atlasThumbnail: '/atlas/acropora-hyacinthus-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 2023 (A3ce): projected declines as reefs warm and degrade.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Table width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The central Pacific and the east coast of Australia, including the Great Barrier Reef, on upper reef slopes 1 to 25 m deep. Once thought to range across the whole Indo-Pacific.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each table is one colony: thousands of tiny polyps sharing one skeleton. Tables grow on shallow upper reef slopes, often crowding one another in overlapping tiers, with fish sheltering in the shade beneath.',
+        reproduction: 'Each colony makes both eggs and sperm, once a year. A night or two after a full moon it releases them into the water to meet those of other colonies. The season shifts with latitude, from March in the Philippines to July and August in southern Japan.',
+      },
+      averages: {
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A table coral: one colony of thousands of tiny polyps building a flat, lattice-like plate on a short stalk, growing into tables several metres across. It lives on shallow upper reef slopes, where its tables shade the fish below. Expected to keep declining as reefs warm and degrade, it is listed as Endangered.',
+    // The biggest table's width (Jeremy's model of a Kelso Reef table); tables grow larger.
+    maxBodyLengthMeters: 2.5,
+    model: {
+      path: '/models/fish/acropora-hyacinthus/acropora-hyacinthus.glb',
+      // Nine of the tank's tables crowning a small bommie, centred on its bounds, after
+      // Jeremy's photo of one (scripts/build-coral-atlas.py, 2026-10-19: "in the atlas, show a
+      // cluster instead of one single stalk"). 1 raw = 1 m -> 4 WU.
+      scale: 4,
+    },
+  },
 ]
 
 export const CREATURES = [

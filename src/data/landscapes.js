@@ -93,8 +93,9 @@ export const LANDSCAPES = {
     // (2026-10-18); was #a39c80.
     floorColor: '#c4bea2',
     // Painted rock light and shadow (Landscape.jsx applyRockShade), after the same references:
-    // dark rock under bright water, sunlit tops, near-black undersides and lower reaches.
-    rockShade: { tone: 0.6, top: 1.2, underside: 0.22, low: 0.35, lowY: -24, highY: -6 },
+    // dark rock under bright water, sunlit tops and dark undersides. The bases are only lightly
+    // darkened (low 0.6, was 0.35): the deep shadow comes with distance (heightFog in species.js).
+    rockShade: { tone: 0.66, top: 1.2, underside: 0.25, low: 0.6, lowY: -24, highY: -6 },
     // Scale of the sand's dunes, hummocks and ripples (see sandHeight), in WU.
     floorRelief: 1.65,
     // Large sand hills on top of that grain, rising only outside the basin the fish swim

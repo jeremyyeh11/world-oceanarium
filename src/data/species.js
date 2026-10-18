@@ -117,9 +117,10 @@ export const TANKS = [
       hemiGround: '#061a2c',
       key: '#fff0d4',
       fill: '#1f6aa6',
-      density: 0.013,
+      density: 0.016,
       exposure: 1.06,
-      // Cyan overhead, through blue at the horizon, to near-black navy straight down. The resting
+      // Cyan overhead, through blue at the horizon, to deep blue straight down (not black:
+      // Jeremy, "the dark also = more deep blue rather than black"). The resting
       // view only sees from about 27° above the horizon (0.35 down the gradient) to 15° below it
       // (0.58), so the cyan reaches well down and the steps sit inside that band.
       backgroundStops: [
@@ -127,15 +128,17 @@ export const TANKS = [
         [0.3, '#47bde0'],
         [0.4, '#2a90c6'],
         [0.5, '#17609b'],
-        [0.6, '#0c3a68'],
-        [0.75, '#06223f'],
-        [1, '#03142b'],
+        [0.6, '#11478a'],
+        [0.75, '#0d3876'],
+        [1, '#0a2c60'],
       ],
       // The water's colour by height (utils/heightFog.js; Jeremy: "closer to the sea bed =
       // darker. closer to surface = more cyan"): distant rock and fish near the sand fade into
-      // deep navy, those up by the surface into cyan, from the sand's mean level to the surface;
-      // and what lies by the sand is lit at half strength.
-      heightFog: { low: '#03152c', high: '#43b6d8', yLow: -24, yHigh: 4.6, strength: 1, seabedLight: 0.5 },
+      // deep blue, those up by the surface into cyan, from the sand's mean level to the surface;
+      // and what lies far off by the sand is lit at half strength. The darkness gathers with
+      // distance and the foreground stays lit ("accentuate this darkness in the background and
+      // keep the foreground lighter").
+      heightFog: { low: '#0b3070', high: '#43b6d8', yLow: -24, yHigh: 4.6, strength: 1, seabedLight: 0.5 },
       backgroundBeamAlpha: 0.1,
       // The underside of the surface (WaterSurface.jsx), cyan to match the top of the gradient.
       surfaceColor: '#6cc6e2',

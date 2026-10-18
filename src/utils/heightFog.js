@@ -2,7 +2,8 @@ import * as THREE from 'three'
 
 // Height-graded water: the fog colour depends on the world height of what it covers, deep near
 // the sea bed and bright near the surface, instead of one colour at every depth. Light fades with
-// depth too: what lies near the sea bed is lit less (`seabedLight` of full at the low height). A tank opts in
+// depth too: what lies near the sea bed is lit less (`seabedLight` of full at the low height),
+// the more so the further off it is, so the foreground keeps its light. A tank opts in
 // with `lighting.heightFog` (SceneLighting.jsx); with none, the shaders give exactly three's own
 // fog.
 //
@@ -50,7 +51,9 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(
   if ( fogHeightRange.z > 0.0 ) {
     float fogHeightT = clamp( ( vFogWorldY - fogHeightRange.x ) / max( 0.001, fogHeightRange.y - fogHeightRange.x ), 0.0, 1.0 );
     fogTint = mix( fogColor, mix( fogHeightLow, fogHeightHigh, fogHeightT ), fogHeightRange.z );
-    gl_FragColor.rgb *= mix( 1.0, mix( fogHeightRange.w, 1.0, fogHeightT ), fogHeightRange.z );
+    // Light lost near the sea bed grows with distance, like the fog: the foreground keeps its
+    // light and the deep shadow gathers further off.
+    gl_FragColor.rgb *= mix( 1.0, mix( fogHeightRange.w, 1.0, fogHeightT ), fogHeightRange.z * fogFactor );
   }
   gl_FragColor.rgb = mix( gl_FragColor.rgb, fogTint, fogFactor );`,
 )

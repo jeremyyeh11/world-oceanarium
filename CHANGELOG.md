@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.31.0 — Staghorn coral
 
-Status: in review as `v0.31.0-dev_3` (2026-10-20, branch `feat/staghorn-coral`, #139). Jeremy supplied a staghorn coral model (*Acropora muricata*). In `dev_1` it grew as thickets on their own at the foot of a few rocks (his first pick); seeing them he asked to "place the staghorns together with the table corals so they look like a cluster? a bommie? now they just look so sad and separate", with "same colour ones" clustered together, "not a random scatter", after his photos of staghorn fields with tables among them and a staghorn thicket crowning a rock. On `dev_2` he found the low detail levels "really bad" ("i shouldnt be able to see sharp pointy edges") and saw backface problems.
+Status: accepted and promoted as clean `v0.31.0` from `v0.31.0-dev_3` on Jeremy's go-ahead (2026-10-20, branch `feat/staghorn-coral`, #139: "push and merge to main"). `package.json` and `package-lock.json` move to `0.31.0`. Jeremy supplied a staghorn coral model (*Acropora muricata*). In `dev_1` it grew as thickets on their own at the foot of a few rocks (his first pick); seeing them he asked to "place the staghorns together with the table corals so they look like a cluster? a bommie? now they just look so sad and separate", with "same colour ones" clustered together, "not a random scatter", after his photos of staghorn fields with tables among them and a staghorn thicket crowning a rock. On `dev_2` he found the low detail levels "really bad" ("i shouldnt be able to see sharp pointy edges") and saw backface problems.
 
 ### Corals
 

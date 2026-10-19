@@ -11,7 +11,8 @@
 # its base (the point that sinks into sand), decimated to a close-up mesh (staghornN_hi), and
 # unwrapped; the full-detail source is baked onto it, its photo colour into staghornN-color.jpg
 # and its surface (the corallites along the branches) into a tangent-space staghornN-normal.jpg.
-# staghornN_lo and staghornN_far are decimated from staghornN_hi and share its UVs and maps.
+# staghornN_lo, staghornN_far and staghornN_min are decimated from staghornN_hi and share its UVs
+# and maps.
 # Branches are thin, so the meshes keep more triangles than a table of the same size: the
 # decimator otherwise pinches a branch tip off.
 
@@ -30,13 +31,17 @@ KEEP = ['orange.001', 'orange.002', 'cream.004', 'cream.001', 'blue.004', 'blue.
 by_name = {o.name: o for o in scene.objects if o.type == 'MESH'}
 sources = [by_name[name] for name in KEEP]
 
-# Triangle targets and map size per colony, by its largest dimension (m).
+# Triangle targets and map size per colony, by its largest dimension (m). Collapse decimation
+# flattens a thin branch into a pointed blade once its tube runs out of triangles: at the first
+# budgets (_lo 600-1100, _far 160-300) Jeremy saw "sharp pointy edges" (2026-10-20), so _lo and
+# _far keep about half and a sixth of _hi. _min keeps the old _far budget for the back of the reef,
+# where a colony is a few dozen pixels tall.
 def plan(size):
     if size > 1.0:
-        return {'hi': 3500, 'lo': 1100, 'far': 300, 'tex': 1024}
+        return {'hi': 4000, 'lo': 1800, 'far': 600, 'min': 300, 'tex': 1024}
     if size > 0.6:
-        return {'hi': 2500, 'lo': 800, 'far': 220, 'tex': 512}
-    return {'hi': 1800, 'lo': 600, 'far': 160, 'tex': 512}
+        return {'hi': 3000, 'lo': 1300, 'far': 450, 'min': 220, 'tex': 512}
+    return {'hi': 2200, 'lo': 1000, 'far': 350, 'min': 160, 'tex': 512}
 
 def tri_count(me):
     return sum(len(p.vertices) - 2 for p in me.polygons)
@@ -138,7 +143,8 @@ for index, src_obj in enumerate(sources):
 
     lo = decimated(hi, p['lo'], f'staghorn{index}_lo')
     far = decimated(hi, p['far'], f'staghorn{index}_far')
-    for o in (hi, lo, far):
+    least = decimated(hi, p['min'], f'staghorn{index}_min')
+    for o in (hi, lo, far, least):
         o.data.materials.clear()
         print('LOD', src_obj.name, o.name, tri_count(o.data), 'dims', tuple(round(d, 3) for d in o.dimensions))
         exported.append(o)
@@ -148,7 +154,7 @@ for o in list(scene.objects):
         bpy.data.objects.remove(o, do_unlink=True)
 
 if preview_dir:
-    # Each LOD side by side, textured, for a look before shipping: rows hi / lo / far.
+    # Each LOD side by side, textured, for a look before shipping: rows hi / lo / far / min.
     scene.render.engine = 'BLENDER_EEVEE'
     scene.render.resolution_x = 1800
     scene.render.resolution_y = 1000
@@ -163,7 +169,7 @@ if preview_dir:
     scene.collection.objects.link(sun)
     shown = []
     for i, o in enumerate(exported):
-        index, row = divmod(i, 3)
+        index, row = divmod(i, 4)
         mat = bpy.data.materials.new(f'show{i}')
         mat.use_nodes = True
         nodes, links = mat.node_tree.nodes, mat.node_tree.links
@@ -186,8 +192,8 @@ if preview_dir:
         shown.append(show)
     cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam'))
     cam.data.type = 'ORTHO'
-    cam.data.ortho_scale = 11.6
-    cam.location = (4.75, -20, -1.1)
+    cam.data.ortho_scale = 13.6
+    cam.location = (4.75, -20, -2.0)
     cam.rotation_euler = (1.5708, 0, 0)
     scene.collection.objects.link(cam)
     scene.camera = cam

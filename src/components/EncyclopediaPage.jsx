@@ -201,7 +201,7 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // The table coral cluster, widest across (scripts/build-coral-atlas.py prints its bounds).
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).
-  'acropora-muricata': 3.158,
+  'acropora-muricata': 3.157,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

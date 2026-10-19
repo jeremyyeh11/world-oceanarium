@@ -98,8 +98,8 @@ const TABLE_CORAL_KIT = {
 
 // Jeremy's staghorn corals (Acropora muricata, `_blender models/acropora muricata.glb`,
 // 2026-10-20), baked by scripts/build-staghorn-kit.py: two colonies per colour, a big one and a
-// small one, each with _hi (1800 to 3500 triangles), _lo and _far meshes sharing its colour and
-// normal maps. In metres, origin at the middle of the base. 0: orange-brown, 1.1 m tall; 1:
+// small one, each with _hi (2200 to 4000 triangles), _lo (1000-1800), _far (350-600) and _min
+// (160-300) meshes sharing its colour and normal maps. In metres, origin at the middle of the base. 0: orange-brown, 1.1 m tall; 1:
 // orange-brown, 0.65 m; 2: cream, a low spreading 1.1 m colony; 3: cream, 0.35 m; 4: blue,
 // 0.55 m; 5: blue, 0.45 m.
 const STAGHORN_KIT = {
@@ -112,13 +112,17 @@ const STAGHORN_KIT = {
   // The kit's models by colour, [big, small].
   colours: [[0, 1], [2, 3], [4, 5]],
   // Unlike the tables, each bommie's staghorn switches level by the live camera's distance to it
-  // (Landscape.jsx staghornLods): _hi within hiDetailDistance, _lo to loDetailDistance, _far
-  // beyond. Only bommies within closeUpReach of the resting camera have a _hi level; the rest
-  // are _lo up close. Picked by the resting camera's distance as the tables are, the first
-  // staghorn thickets (dev_1) drew 121k triangles from the resting view, 3 times the tables'.
-  hiDetailDistance: 20,
-  loDetailDistance: 45,
-  closeUpReach: 50,
+  // (Landscape.jsx staghornLods): _hi within hiDetailDistance, _lo to loDetailDistance, _far to
+  // farDetailDistance and _min beyond. A bommie's _hi meshes are only built while the camera is
+  // within hiBuildDistance of it and freed beyond hiDropDistance (StaghornBommie); until then its
+  // close-up level is _lo.
+  hiDetailDistance: 22,
+  loDetailDistance: 50,
+  farDetailDistance: 75,
+  hiBuildDistance: 28,
+  hiDropDistance: 45,
+  // Two-sided: a thin branch seen edge-on at _lo or _far can show its inside.
+  doubleSided: true,
 }
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js

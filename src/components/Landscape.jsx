@@ -1,5 +1,6 @@
-import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
@@ -270,7 +271,7 @@ function coralReefSurfaces(landscape, corals, meshes, kit) {
 }
 
 // A coral kit's meshes by name and one material per kit model (its baked colour and normal
-// maps), shaded like the rock.
+// maps), shaded like the rock; two-sided when the kit says so (`doubleSided`).
 function useCoralKit(kit, caustics) {
   const gltf = useGLTF(kit.path)
   const maps = useTexture(kit.models.flatMap(model => [model.color, model.normal]))
@@ -290,6 +291,7 @@ function useCoralKit(kit, caustics) {
     color.colorSpace = THREE.SRGBColorSpace
     const coralMaterial = new THREE.MeshStandardMaterial({
       map: color, normalMap: normal, roughness: 0.95, metalness: 0, envMapIntensity: 0.35,
+      side: kit.doubleSided ? THREE.DoubleSide : THREE.FrontSide,
     })
     applyRockShade(coralMaterial, null, caustics)
     return coralMaterial
@@ -366,46 +368,80 @@ function mergeKitModels(placed, kit, meshes, view, centreOf) {
 
 // One THREE.LOD per bommie's staghorn, each level its colonies merged per kit model, switched by
 // the live camera's distance to them: the diver and follow cameras come right up to bommies the
-// resting view only sees far off, and the _far meshes read as shards up close. Only bommies
-// within kit.closeUpReach of the resting camera get a _hi level (the _hi meshes for all of them
-// would hold about 300k triangles); the rest are _lo up close.
-function staghornLods(colonies, kit, meshes, materials, view) {
-  const camera = new THREE.Vector3(view?.x ?? 0, view?.y ?? -3.35, view?.z ?? 10)
+// resting view only sees far off. The close-up level starts as the _lo meshes and gets the _hi
+// ones only while the camera is near (StaghornBommie): _hi for every bommie would hold about a
+// million triangles, and _lo up close showed flattened, pointed branches (Jeremy, 2026-10-20).
+function staghornLods(colonies, kit, meshes, materials) {
   const bySite = new Map()
   for (const colony of colonies) {
     if (!bySite.has(colony.site)) bySite.set(colony.site, [])
     bySite.get(colony.site).push(colony)
   }
-  const local = new THREE.Matrix4()
   return [...bySite].map(([site, list]) => {
     const centre = new THREE.Vector3()
     list.forEach(colony => centre.add(colony.base))
     centre.divideScalar(list.length)
     const toLocal = new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z)
+    const byModel = new Map()
+    for (const colony of list) {
+      if (!byModel.has(colony.model)) byModel.set(colony.model, [])
+      byModel.get(colony.model).push(colony)
+    }
+    const models = [...byModel]
+    // This bommie's colonies of one kit model at one level, merged, in the LOD's frame.
+    const local = new THREE.Matrix4()
+    const merge = (level, model, group) => {
+      const parts = group.map(colony => kitGeometry(meshes[`${kit.models[model].name}_${level}`], local.multiplyMatrices(toLocal, colony.matrix)))
+      const geometry = mergeGeometries(parts)
+      parts.forEach(part => part.dispose())
+      geometry.computeBoundingSphere()
+      return geometry
+    }
     const lod = new THREE.LOD()
     lod.position.copy(centre)
-    const levels = camera.distanceTo(centre) < kit.closeUpReach
-      ? [['hi', 0], ['lo', kit.hiDetailDistance], ['far', kit.loDetailDistance]]
-      : [['lo', 0], ['far', kit.loDetailDistance]]
-    const geometries = []
-    for (const [level, distance] of levels) {
-      const byModel = new Map()
-      for (const colony of list) {
-        if (!byModel.has(colony.model)) byModel.set(colony.model, [])
-        byModel.get(colony.model).push(kitGeometry(meshes[`${kit.models[colony.model].name}_${level}`], local.multiplyMatrices(toLocal, colony.matrix)))
-      }
-      const group = new THREE.Group()
-      for (const [model, parts] of byModel) {
-        const geometry = mergeGeometries(parts)
-        parts.forEach(part => part.dispose())
-        geometry.computeBoundingSphere()
-        geometries.push(geometry)
-        group.add(new THREE.Mesh(geometry, materials[model]))
-      }
-      lod.addLevel(group, distance)
-    }
-    return { key: site, lod, geometries }
+    const lo = models.map(([model, group]) => merge('lo', model, group))
+    const far = models.map(([model, group]) => merge('far', model, group))
+    const least = models.map(([model, group]) => merge('min', model, group))
+    const near = new THREE.Group()
+    const mid = new THREE.Group()
+    const distant = new THREE.Group()
+    const back = new THREE.Group()
+    models.forEach(([model], i) => {
+      near.add(new THREE.Mesh(lo[i], materials[model]))
+      mid.add(new THREE.Mesh(lo[i], materials[model]))
+      distant.add(new THREE.Mesh(far[i], materials[model]))
+      back.add(new THREE.Mesh(least[i], materials[model]))
+    })
+    lod.addLevel(near, 0)
+    lod.addLevel(mid, kit.hiDetailDistance)
+    lod.addLevel(distant, kit.loDetailDistance)
+    lod.addLevel(back, kit.farDetailDistance)
+    return { key: site, lod, near, lo, models, merge, geometries: [...lo, ...far, ...least] }
   })
+}
+
+// Swaps a bommie's close-up level to the _hi meshes while the live camera is within
+// kit.hiBuildDistance of it, one kit model a frame (each merge is a few ms), and back to _lo
+// (freeing the _hi meshes) beyond kit.hiDropDistance.
+function StaghornBommie({ bommie, kit }) {
+  const hi = useRef([])
+  useFrame(({ camera }) => {
+    const built = hi.current
+    const distance = camera.position.distanceTo(bommie.lod.position)
+    if (distance < kit.hiBuildDistance && built.length < bommie.models.length) {
+      const i = built.length
+      const [model, group] = bommie.models[i]
+      const geometry = bommie.merge('hi', model, group)
+      built.push(geometry)
+      bommie.near.children[i].geometry = geometry
+    } else if (distance > kit.hiDropDistance && built.length) {
+      bommie.near.children.forEach((mesh, i) => { mesh.geometry = bommie.lo[i] })
+      built.forEach(geometry => geometry.dispose())
+      hi.current = []
+    }
+  })
+  useEffect(() => () => hi.current.forEach(geometry => geometry.dispose()), [])
+  return <primitive object={bommie.lod} />
 }
 
 // Extra rock obstacles (rockObstacles.js) for as long as the component is up.
@@ -475,15 +511,15 @@ function Staghorn({ landscape, clusters, tables }) {
   const { bommies, obstacles } = useMemo(() => {
     if (!colonies) return { bommies: [], obstacles: [] }
     return {
-      bommies: staghornLods(colonies, kit, meshes, materials, landscape.view),
+      bommies: staghornLods(colonies, kit, meshes, materials),
       obstacles: colonies.map(colony => colony.obstacle),
     }
-  }, [kit, meshes, materials, landscape, colonies])
+  }, [kit, meshes, materials, colonies])
 
   useExtraObstacles(obstacles)
   useEffect(() => () => bommies.forEach(bommie => bommie.geometries.forEach(geometry => geometry.dispose())), [bommies])
 
-  return bommies.map(bommie => <primitive key={bommie.key} object={bommie.lod} />)
+  return bommies.map(bommie => <StaghornBommie key={bommie.key} bommie={bommie} kit={kit} />)
 }
 
 // Built rocks per landscape, kept for the session. React renders a tank several times before

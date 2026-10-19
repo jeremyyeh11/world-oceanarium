@@ -15,7 +15,7 @@ Status labels:
 
 ### Staghorn coral
 
-Status: `Current in development` as `v0.31.0-dev_2` (2026-10-20, branch `feat/staghorn-coral`, #139): Jeremy's staghorn model (*Acropora muricata*) in one-colour patches on the table corals' bommies (his ask after `dev_1`'s separate thickets looked "sad and separate"), an Atlas entry with a three-patch specimen and an in-tank tile.
+Status: `Current in development` as `v0.31.0-dev_3` (2026-10-20, branch `feat/staghorn-coral`, #139): Jeremy's staghorn model (*Acropora muricata*) in one-colour patches on the table corals' bommies (his ask after `dev_1`'s separate thickets looked "sad and separate"), an Atlas entry with a three-patch specimen and an in-tank tile.
 
 Subtasks:
 - [x] Staghorn kit bake (`scripts/build-staghorn-kit.py`): 42 MB GLB to 1.4 MB plus twelve maps; two colonies per colour.
@@ -23,7 +23,8 @@ Subtasks:
 - [x] `dev_2`: staghorn on the table bommies, one colour per patch (`src/components/staghornPlacement.js`): 371 colonies on 9 bommies, clear of the plates.
 - [x] Live-camera detail levels per bommie (`THREE.LOD`).
 - [x] Atlas entry (Endangered, 2023), specimen (`scripts/build-staghorn-atlas.py`) and tile.
-- [ ] Jeremy's phone review of `v0.31.0-dev_2`: density on the bommies, and frame rate (the staghorn draws 94k triangles from the resting view, 2.5 times the tables). `Blocked / waiting review`
+- [x] `dev_3`: no pointed blades (higher `_lo`/`_far` budgets, a `_min` level, `_hi` built near the camera on every bommie) and two-sided drawing.
+- [ ] Jeremy's phone review of `v0.31.0-dev_3`: close-ups, and frame rate (the staghorn draws 134k triangles from the resting view, 3.5 times the tables). `Blocked / waiting review`
 - [ ] Texture provenance: the source GLB's images are named `311551-enhanced`, `1052_C02_05-enhanced` and `StaghornAcroporaCoral5-enhanced`; no source found. Credit in `src/data/sources.js` if any is a Commons/CC photo. `Next`
 - [ ] Small reef fish sheltering among the branches (staghorn is a classic damselfish home; the tank's reef fish are all larger). `Backlog`
 - [ ] The Atlas specimen GLB is 4.9 MB (the table coral's 3.3 MB): it embeds every colony's maps; `_lo` meshes or shared maps would cut it. `Backlog`

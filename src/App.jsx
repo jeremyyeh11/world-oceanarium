@@ -505,7 +505,12 @@ export default function App() {
 
   const activeTank = TANKS.find(t => t.id === activeTankId) ?? TANKS[0]
   const activeBiome = BIOME_BY_ID.get(activeTank?.biome)
-  const tankSpeciesCount = new Set(creatureData.creatures.map(creature => creature.species)).size
+  // Every species in the tanks: those with creature rows, and those that live in a tank's
+  // landscape (`landscapeSpecies`, the corals), which have no rows.
+  const tankSpeciesCount = new Set([
+    ...creatureData.creatures.map(creature => creature.species),
+    ...TANKS.flatMap(tank => tank.landscapeSpecies ?? []),
+  ]).size
   const tankMenuCollapsible = compactTankMenu || TANKS.length > TANK_INLINE_LIMIT
   const tankListVisible = !tankMenuCollapsible || tankMenuOpen
 

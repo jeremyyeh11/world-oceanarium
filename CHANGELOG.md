@@ -8,6 +8,28 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.30.1 — Fish at the corals
+
+Status: accepted and promoted as clean `v0.30.1` from `v0.30.1-dev_1` on Jeremy's go-ahead (2026-10-19, branch `feat/table-corals`, #136; "Looks good on my phone"). `package.json` and `package-lock.json` move to `0.30.1`. Jeremy (2026-10-19): "build fish behavior to interact with the corals, hide underneath, within, peck at it"; "add the radial sand highlight gradient thing back to the atlas, but make it more subtle than the previous iteration"; "does number of species include the corals? on the landing modal at the start".
+
+### Behaviour
+
+- Reef fish use the table corals (`docs/reef-behavior.md`, Corals). The tables inside `reefReach` join the surfaces the site search raycasts (`setCoralSurfaces` in reefSites.js beside the rocks' set), one per table from its `_lo` mesh with a BVH tree, built once per placement. Each reef decision picks coral or rock first, by the species' share for that mode (`reef.coral`; defaults patrol 0.35, hover 0.5, peck 0.6, shelter 0.6); a coral search that finds nothing tries rock the next frame.
+- Hiding under and within: a coral shelter aims below the plate, at the stalk, and keeps only a rest point with a surface straight overhead (`requireCover`), so the fish tucks under a table or between two stacked tiers. With the plate overhead it needs less enclosure than a rock nook (0.25, against 0.35). Pecks, hovers and patrols aim at the plate's rim height, with 12 tries (rock 8).
+- By species: the grouper hides under the tables most (0.8) and hangs by them (0.5), after Kerry & Bellwood (2012): large reef fishes, coral trout among them, used tabular corals at least three times as much as branching or massive ones (Lizard Island). The juvenile emperor angelfish shelters under them (0.7), the adult nibbles their rims (0.65), the bannerfish hangs by them (0.6), and the clown triggerfish, whose prey is on the rock, seldom pecks them (0.1) but takes cover under them (0.5).
+- Line-up points a fish can reach: a site's entry point must now lie outside every rock's and table's padded steering shape (`reachable`, rockObstacles.js `insideRock`), else a nearer one, else one 1.6 entry distances out. Before, about a quarter of trips lined up inside the padding, and 10 of 13 such trips were given up circling short of the site, on rock and coral alike.
+- Measured on desktop at The Reefs: over about 90 s, corals took 7 of 11 shelters, 10 of 21 hovers and 4 of 18 pecks (an earlier 60 s run: 13 of 16, 12 of 41 and 14 of 27), and 5 of the grouper's 6 visits. Coral trips settle as often as rock ones (59% against 62%; the rest are mostly startles and stalls far from the site). Leaving a coral is as smooth as leaving rock: fastest move in the first 2 s 8 WU/s (rock 8.4), no jumps. Search cost, one a frame at most: coral shelter 1.4 ms median, 3.3 ms worst (rock 1.9 / 4.2); coral rim 0.4 / 1.4 ms (rock 0.3 / 1.1).
+- In view: the clusters stand in front of the resting camera, so a fish at a coral is on screen and not hidden by rock 66% of the time on desktop (a fish at rock 17%) and 45% on a 375 px phone (rock 31%).
+- Debug label: `reef shelter hold coral`.
+
+### Atlas
+
+- The sand patch is back, fainter (Jeremy: "more subtle than the previous iteration"): a 3 m disc at the rocks' foot line, the tank floor's sand toned to 25% (was 45%), at most 60% opaque (was fully), fading out from 30% of its radius (was 40%), a little darker under the rock. On the stage it measures RGB(40, 70, 104) against the backdrop's RGB(13, 39, 76); the first patch measured RGB(125, 147, 160) and read as a white glow. Alpha-blended again (`model.alphaBlend`); GLB 3.28 MB (was 3.18). Checked on desktop, 375 px portrait and 812 × 375 landscape.
+
+### Landing
+
+- The species count on the landing card includes the coral: 13 (was 12). A tank lists species that have no creature rows in `landscapeSpecies` (The Reefs: `acropora-hyacinthus`), and App.jsx counts them with the creature species.
+
 ## v0.30.0 — Table corals
 
 Status: accepted and promoted as clean `v0.30.0` on Jeremy's go-ahead (2026-10-19, branch `feat/table-corals`; "this is good enough to merge a clean version to main first"). `package.json` and `package-lock.json` move to `0.30.0`. The branch stays open for `v0.30.x` iterations. Jeremy (2026-10-18/19) asked for a coral to start The Reefs' colour, chose the table coral (*Acropora hyacinthus*), modelled it from reference photos, and set the look from his photos of a bommie crowned with tables.

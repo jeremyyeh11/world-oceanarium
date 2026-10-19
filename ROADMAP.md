@@ -15,7 +15,9 @@ Status labels:
 
 ### Table corals
 
-Status: shipped in clean `v0.30.0` (2026-10-19, branch `feat/table-corals`, kept open for `v0.30.x`). Jeremy's table coral (*Acropora hyacinthus*) model, baked into a three-model kit with three detail levels, placed as dense clusters crowning a few reef rocks after his photo of a bommie, and in the Atlas as a cluster on a small rock. The open items below carry over.
+Status: shipped in clean `v0.30.1` (2026-10-19, from `v0.30.1-dev_1`, branch `feat/table-corals`, #136): fish hide under and between the tables, nibble their rims and hang by them; a fainter Atlas sand patch; the coral in the landing species count. Design in `docs/reef-behavior.md` (Corals). The open items below carry over.
+
+Before that, clean `v0.30.0` (2026-10-19, #135): Jeremy's table coral (*Acropora hyacinthus*) model, baked into a three-model kit with three detail levels, placed as dense clusters crowning a few reef rocks after his photo of a bommie, and in the Atlas as a cluster on a small rock.
 
 Subtasks:
 - [x] Coral kit bake (`scripts/build-coral-kit.py`): 39 MB GLB to 0.8 MB plus 1024 px colour and normal maps; `_hi` / `_lo` / `_far` meshes.
@@ -28,7 +30,10 @@ Subtasks:
 - [x] Rocks built once per page load (`builtLandscape`): switching to The Reefs had rebuilt them on every one of five render passes.
 - [ ] Tank coral colour: plates read pale grey from the resting view; only the Atlas copies are warmed. Jeremy to decide whether the tank gets a warm tint too. `Backlog`
 - [ ] The tall foreground pillars carry no tables (TOP_MIN_SPREAD 0.45), so the resting view shows the outcrop and the near mound's clusters only. Option: a few shoulder tables on the pillars. `Backlog`
-- [ ] Reef fish steer round the plates but do not hover at or shelter under them: add the corals to the reef site raycasts (`reefSites.js`). `Backlog`
+- [x] Reef fish at the corals (`v0.30.1-dev_1`): the tables join the reef site raycasts (`setCoralSurfaces`); shelters under a plate or between tiers, pecks and hovers at the rim, shares per species (`reef.coral`). Entry points must be reachable (outside the padded steering shapes).
+- [x] Atlas sand patch back, fainter (`v0.30.1-dev_1`): RGB(40, 70, 104) on the stage, was RGB(125, 147, 160).
+- [x] Landing species count includes the coral (`landscapeSpecies` on The Reefs): 13.
+- [x] Jeremy's phone review of `v0.30.1-dev_1` (2026-10-19: "Looks good on my phone").
 - [ ] More coral forms for the photo look (staghorn, massive mounds, encrusting growth). `Backlog`
 - [ ] Switching to The Reefs still renders the tank five times while models load (only the rock build is cached); the first-visit stall is now ~230 ms. `Backlog`
 
@@ -44,6 +49,7 @@ Subtasks:
 - [x] Motion review: pecks made gentle (dev_12), then in, out, hang about, move on with no wiggle (dev_13); vibration at rocks fixed (dev_11).
 - [ ] Frame time: The Reefs' resting view measured ~7 ms a frame at dev_8 against 2.5 ms at dev_1 (desktop, hidden pane); caustics are ~0.2 ms of it. Cause not found yet.
 - [x] Coral: table coral clusters on the rocks in `v0.30.0` (see Table corals); the warm sunlit tops stay.
+- [ ] About 40% of trips to a site are given up on the way, on rock and coral alike (measured 2026-10-19, `v0.30.1-dev_1`): mostly the 3 s progress check firing while the fish is still 10 to 65 body lengths off, and travel timeouts. Find why fish far from a site stop closing on it (boids, rock steering, or slow turns). `Backlog`
 
 ### Squaretail Coral Grouper
 

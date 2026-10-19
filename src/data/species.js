@@ -158,6 +158,10 @@ export const TANKS = [
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
     species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus'],
+    // Species that live in the tank as part of its landscape rather than as creature rows: the
+    // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
+    // species (the landing card) like the fish do.
+    landscapeSpecies: ['acropora-hyacinthus'],
   },
 ]
 
@@ -1909,6 +1913,8 @@ export const SPECIES = [
     reef: {
       affinity: 0.75,
       modes: { patrol: 0.4, hover: 0.35, peck: 0.15, shelter: 0.1 },
+      // Where there are table corals it hangs by them about as often as by the rock.
+      coral: { hover: 0.6 },
     },
     hitchhiker: {
       // Follows rather than rides, and less often than the pilot fish: it takes the sunfish
@@ -2087,6 +2093,9 @@ export const SPECIES = [
       affinity: 0.85,
       modes: { patrol: 0.2, hover: 0.25, peck: 0.45, shelter: 0.1 },
       pecks: [1, 3],
+      // Rich coral is its home ground (FishBase): it nibbles along the table corals' rims and
+      // tucks under them as well as at the rock.
+      coral: { peck: 0.65, shelter: 0.5 },
     },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
@@ -2160,6 +2169,8 @@ export const SPECIES = [
           affinity: 0.9,
           modes: { patrol: 0.15, hover: 0.2, peck: 0.25, shelter: 0.4 },
           shelterSeconds: [15, 35],
+          // Under a table coral's plate is as good a hole as any.
+          coral: { shelter: 0.7 },
         },
         // 8–14 cm against the species' 40 cm (bodyLengthWU 1.6): 0.32–0.56 WU, under the 1.08 WU
         // sardinella floor, as a real juvenile is.
@@ -2314,6 +2325,9 @@ export const SPECIES = [
       biteSeconds: 0.45,
       turnDegreesPerSecond: 130,
       startleShelterChance: 0.85,
+      // Its prey is on the rock, not the coral, so it seldom pecks a table; but a big fish takes
+      // cover under one as readily as in a cave (Kerry & Bellwood 2012, below at the grouper).
+      coral: { patrol: 0.2, hover: 0.15, peck: 0.1, shelter: 0.5 },
     },
     // Individuals span 30 cm to the 50 cm maximum.
     sizeRange: [0.6, 1.0],
@@ -2656,6 +2670,11 @@ export const SPECIES = [
       hoverStandoffBodyLengths: [0.9, 1.3],
       turnDegreesPerSecond: 90,
       startleShelterChance: 0.7,
+      // Large reef fishes, coral trout among them, use table corals for cover more than any other
+      // coral: at least three times the abundance, biomass and residence time of branching or
+      // massive corals (Kerry & Bellwood 2012, Coral Reefs 31:415, Lizard Island). It hides under
+      // the tables most of all, and hangs by them in ambush.
+      coral: { shelter: 0.8, hover: 0.5 },
     },
     // Individuals span 40 cm (just past female maturity) to 72 cm, the largest regional records.
     sizeRange: [0.5, 0.9],
@@ -2767,10 +2786,13 @@ export const SPECIES = [
     maxBodyLengthMeters: 2.5,
     model: {
       path: '/models/fish/acropora-hyacinthus/acropora-hyacinthus.glb',
-      // Nine of the tank's tables crowning a small bommie, centred on its bounds, after
-      // Jeremy's photo of one (scripts/build-coral-atlas.py, 2026-10-19: "in the atlas, show a
-      // cluster instead of one single stalk"). 1 raw = 1 m -> 4 WU.
+      // Nine of the tank's tables crowning a small bommie on a faint patch of sand, centred on
+      // the rock and tables, after Jeremy's photo of one (scripts/build-coral-atlas.py,
+      // 2026-10-19: "in the atlas, show a cluster instead of one single stalk"). 1 raw = 1 m
+      // -> 4 WU.
       scale: 4,
+      // The sand's soft edge is alpha-blended; the rock and tables are opaque.
+      alphaBlend: true,
     },
   },
 ]

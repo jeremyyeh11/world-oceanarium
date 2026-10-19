@@ -6,6 +6,16 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.30.1',
+    date: '2026-10-19',
+    title: 'Fish at the corals',
+    changes: [
+      ['new', 'Reef fish now use the table corals: they hide under the plates or between two tiers, nibble along the edges, and hang about beside them. The grouper likes them most.'],
+      ['new', 'In the Atlas, the Hyacinth Table Coral\'s bommie sits on a faint patch of sand.'],
+      ['fix', 'The species count on the welcome card now includes the coral.'],
+    ],
+  },
+  {
     version: 'v0.30.0',
     date: '2026-10-19',
     title: 'Table corals',

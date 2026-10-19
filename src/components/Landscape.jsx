@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
-import { clearReefSurfaces, setReefSurfaces } from './reefSites'
+import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
@@ -229,6 +229,42 @@ function makeLandscapeChunks(landscape, rocks) {
 const PLACEMENT_SLICE_MS = 6
 // Placed corals per landscape, for the session.
 const PLACED_CORALS = new WeakMap()
+// The tables reef fish can reach, as raycast surfaces (reefSites.js setCoralSurfaces), per placement.
+const CORAL_REEF_SURFACES = new WeakMap()
+
+// One world-space geometry per table inside the landscape's reef reach, from its _lo mesh (700
+// triangles, 300 for the small one: plenty for a ray), with its plate for the site search to aim
+// under or at. Built once per placement and kept for the session, BVH trees and all.
+function coralReefSurfaces(landscape, corals, meshes, kit) {
+  const cached = CORAL_REEF_SURFACES.get(corals)
+  if (cached) return cached
+  const reach = landscape.reefReach
+  const geometries = []
+  const metas = []
+  for (const coral of corals) {
+    const { plate } = coral
+    if (reach && (plate.x < reach.xMin || plate.x > reach.xMax || plate.z < reach.zMin || plate.z > reach.zMax
+      || plate.y < reach.yMin || plate.y > reach.yMax)) continue
+    const source = meshes[`${kit.models[coral.model].name}_lo`]
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', source.attributes.position.clone())
+    geometry.setIndex(source.index.clone())
+    geometry.applyMatrix4(coral.matrix)
+    geometry.computeBoundingBox()
+    geometries.push(geometry)
+    // The plate is the top 40% of the model: underside at 60% of its height, top at 100%.
+    metas.push({
+      centre: new THREE.Vector3(plate.x, plate.y, plate.z),
+      underside: plate.y - plate.thickness / 2,
+      top: plate.y + plate.thickness / 2,
+      radius: plate.radius,
+      foot: new THREE.Vector3().setFromMatrixPosition(coral.matrix),
+    })
+  }
+  const result = { geometries, metas }
+  CORAL_REEF_SURFACES.set(corals, result)
+  return result
+}
 
 // Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
 // merged per kit model and square chunk (culled when off screen), each coral from the _hi,
@@ -321,6 +357,13 @@ function Corals({ landscape, coralRocks }) {
     const owner = setExtraObstacles(obstacles)
     return () => clearExtraObstacles(owner)
   }, [obstacles])
+  // Reef fish hide under, between and peck at the tables they can reach (reefSites.js).
+  const reefCorals = useMemo(() => (corals ? coralReefSurfaces(landscape, corals, meshes, kit) : null), [landscape, corals, meshes, kit])
+  useLayoutEffect(() => {
+    if (!reefCorals?.geometries.length) return undefined
+    const owner = setCoralSurfaces(reefCorals.geometries, reefCorals.metas)
+    return () => clearCoralSurfaces(owner)
+  }, [reefCorals])
   useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
   useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
 

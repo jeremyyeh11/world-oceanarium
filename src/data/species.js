@@ -161,7 +161,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata'],
   },
 ]
 
@@ -2792,6 +2792,79 @@ export const SPECIES = [
       // -> 4 WU.
       scale: 4,
       // The sand's soft edge is alpha-blended; the rock and tables are opaque.
+      alphaBlend: true,
+    },
+  },
+  // The second coral for The Reefs' landscape (Jeremy's staghorn model, 2026-10-20). Like the
+  // table coral, a landscape species: no `swim`, no roster slot, no creature rows. Its thickets
+  // grow at the foot of a few rocks (landscapes.js `staghorn`, src/components/staghornPlacement.js);
+  // the Atlas shows a thicket round a low rock (scripts/build-staghorn-atlas.py).
+  // Facts: SeaLifeBase (IUCN EN, 27 April 2023, A3ce; hermaphrodite; thickets dominating
+  // lagoons), Wikipedia (range, 5-30 m, thickets up to 10 m across, blue, brown or cream with
+  // pale tips; formerly Acropora formosa), spawning from Oliver 1987 (JCU thesis, A. formosa:
+  // once a year in the mass spawning).
+  {
+    id: 'acropora-muricata',
+    name: 'Staghorn Coral',
+    scientificName: 'Acropora muricata',
+    family: 'Acroporidae',
+    // Tile (2026-10-20): an in-tank close-up of a brown and blue thicket at a rock's foot, rendered
+    // square at 940 px with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/acropora-muricata-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 April 2023 (A3ce): projected declines as reefs warm and degrade.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Thicket width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the Red Sea and East Africa to the central Pacific, on shallow reefs, reef slopes and in lagoons, 5 to 30 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each colony is thousands of tiny polyps sharing one branching skeleton. Branches broken off by storms take root where they land and grow into new colonies, so thickets spread across lagoons and shallow slopes, often as one clone.',
+        reproduction: 'Each colony makes both eggs and sperm and releases them once a year, in the mass spawning a few nights after a full moon, when many reef corals spawn together. It also spreads by fragments, which grow into new colonies.',
+      },
+      averages: {
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A branching coral whose colonies grow like antlers, blue, brown or cream with pale tips, into thickets up to 10 m across. Broken branches take root and grow on, so a thicket can cover a lagoon floor, sheltering small fish between its branches. Bleaching and the decline of reefs have made it Endangered.',
+    // The Atlas thicket's width, for the scale comparison; thickets grow to 10 m (Wikipedia).
+    maxBodyLengthMeters: 3,
+    model: {
+      path: '/models/fish/acropora-muricata/acropora-muricata.glb',
+      // Twelve of the tank's colonies in a thicket round a low rock, on a faint patch of sand,
+      // centred on the rock and colonies (scripts/build-staghorn-atlas.py). 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      // The sand's soft edge is alpha-blended; the rock and colonies are opaque.
       alphaBlend: true,
     },
   },

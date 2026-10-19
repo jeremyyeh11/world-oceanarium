@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### Staghorn coral
+
+Status: `Current in development` as `v0.31.0-dev_1` (2026-10-20, branch `feat/staghorn-coral`): Jeremy's staghorn model (*Acropora muricata*) as thickets at the foot of a few reef rocks (his pick), an Atlas entry with a thicket specimen and an in-tank tile.
+
+Subtasks:
+- [x] Staghorn kit bake (`scripts/build-staghorn-kit.py`): 42 MB GLB to 1.4 MB plus twelve maps; two colonies per colour.
+- [x] Thicket placement at rock feet (`src/components/staghornPlacement.js`): 96 colonies in 6 thickets, clear of the table clusters.
+- [x] Live-camera detail levels per thicket (`THREE.LOD`).
+- [x] Atlas entry (Endangered, 2023), specimen (`scripts/build-staghorn-atlas.py`) and tile.
+- [ ] Jeremy's phone review of `v0.31.0-dev_1`: thicket count, size and colour from the resting view, where they read small and dim behind the foreground rocks. `Blocked / waiting review`
+- [ ] Texture provenance: the source GLB's images are named `311551-enhanced`, `1052_C02_05-enhanced` and `StaghornAcroporaCoral5-enhanced`; no source found. Credit in `src/data/sources.js` if any is a Commons/CC photo. `Next`
+- [ ] Small reef fish sheltering among the branches (staghorn is a classic damselfish home; the tank's reef fish are all larger). `Backlog`
+- [ ] The Atlas specimen GLB is 4.9 MB (the table coral's 3.3 MB): it embeds every colony's maps; `_lo` meshes or shared maps would cut it. `Backlog`
+
 ### Table corals
 
 Status: shipped in clean `v0.30.1` (2026-10-19, from `v0.30.1-dev_1`, branch `feat/table-corals`, #136): fish hide under and between the tables, nibble their rims and hang by them; a fainter Atlas sand patch; the coral in the landing species count. Design in `docs/reef-behavior.md` (Corals). The open items below carry over.
@@ -34,7 +48,7 @@ Subtasks:
 - [x] Atlas sand patch back, fainter (`v0.30.1-dev_1`): RGB(40, 70, 104) on the stage, was RGB(125, 147, 160).
 - [x] Landing species count includes the coral (`landscapeSpecies` on The Reefs): 13.
 - [x] Jeremy's phone review of `v0.30.1-dev_1` (2026-10-19: "Looks good on my phone").
-- [ ] More coral forms for the photo look (staghorn, massive mounds, encrusting growth). `Backlog`
+- [ ] More coral forms for the photo look (massive mounds, encrusting growth; staghorn in progress above). `Backlog`
 - [ ] Switching to The Reefs still renders the tank five times while models load (only the rock build is cached); the first-visit stall is now ~230 ms. `Backlog`
 
 ### Reef behaviour

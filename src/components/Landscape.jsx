@@ -6,6 +6,7 @@ import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data
 import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
+import { measureColony, placeThickets, thicketSites } from './staghornPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
@@ -189,7 +190,7 @@ function makeLandscapeChunks(landscape, rocks) {
   // The placed rocks reef fish can reach, kept whole (not merged) for their raycasts.
   const reefSurfaces = []
   // The placed rocks table corals can grow on, grouped by rock (coralRockOf) and kept whole too.
-  const bySeed = landscape.corals ? new Map(pieces.map(piece => [piece.seed, piece])) : null
+  const bySeed = landscape.corals || landscape.staghorn ? new Map(pieces.map(piece => [piece.seed, piece])) : null
   const coralRocks = new Map()
   // How far each placed rock's real top sits below its box top (rocks shrink to fit their
   // box), so a stacked tier can be dropped onto the rock it rests on.
@@ -229,6 +230,8 @@ function makeLandscapeChunks(landscape, rocks) {
 const PLACEMENT_SLICE_MS = 6
 // Placed corals per landscape, for the session.
 const PLACED_CORALS = new WeakMap()
+// Placed staghorn colonies per landscape, for the session.
+const PLACED_THICKETS = new WeakMap()
 // The tables reef fish can reach, as raycast surfaces (reefSites.js setCoralSurfaces), per placement.
 const CORAL_REEF_SURFACES = new WeakMap()
 
@@ -266,12 +269,9 @@ function coralReefSurfaces(landscape, corals, meshes, kit) {
   return result
 }
 
-// Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
-// merged per kit model and square chunk (culled when off screen), each coral from the _hi,
-// _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
-// obstacles. Loads on its own, so the rocks never wait.
-function Corals({ landscape, coralRocks }) {
-  const { kit } = landscape.corals
+// A coral kit's meshes by name and one material per kit model (its baked colour and normal
+// maps), shaded like the rock.
+function useCoralKit(kit, caustics) {
   const gltf = useGLTF(kit.path)
   const maps = useTexture(kit.models.flatMap(model => [model.color, model.normal]))
   const meshes = useMemo(() => {
@@ -279,7 +279,6 @@ function Corals({ landscape, coralRocks }) {
     gltf.scene.traverse(object => { if (object.isMesh) byName[object.name] = object.geometry })
     return byName
   }, [gltf])
-
   const materials = useMemo(() => kit.models.map((model, i) => {
     const [color, normal] = [maps[i * 2], maps[i * 2 + 1]]
     for (const texture of [color, normal]) {
@@ -292,30 +291,35 @@ function Corals({ landscape, coralRocks }) {
     const coralMaterial = new THREE.MeshStandardMaterial({
       map: color, normalMap: normal, roughness: 0.95, metalness: 0, envMapIntensity: 0.35,
     })
-    applyRockShade(coralMaterial, null, landscape.caustics)
+    applyRockShade(coralMaterial, null, caustics)
     return coralMaterial
-  }), [kit, maps, landscape.caustics])
+  }), [kit, maps, caustics])
+  useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
+  return { meshes, materials }
+}
 
-  // Placement runs in slices of about PLACEMENT_SLICE_MS per frame (a few hundred ms in all on a
-  // phone would otherwise freeze the tank), and is kept for the session: the same landscape
-  // always places the same corals, so a return visit draws them at once.
-  const [corals, setCorals] = useState(() => PLACED_CORALS.get(landscape) ?? null)
+// Runs a placement generator (coralPlacement.js, staghornPlacement.js) in slices of about
+// PLACEMENT_SLICE_MS per frame (a few hundred ms in all on a phone would otherwise freeze the
+// tank) and keeps its result for the session in `cache`, by landscape: the same landscape always
+// places the same corals, so a return visit draws them at once. start() makes the generator;
+// it is rerun when `inputs` change.
+function useSlicedPlacement(cache, landscape, start, inputs) {
+  const [placed, setPlaced] = useState(() => cache.get(landscape) ?? null)
   useEffect(() => {
-    const cached = PLACED_CORALS.get(landscape)
+    const cached = cache.get(landscape)
     if (cached) {
-      setCorals(cached)
+      setPlaced(cached)
       return undefined
     }
-    const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
-    const steps = placeCorals(landscape, coralClusters(landscape, coralRocks, landscape.view), measures, landscape.view)
+    const steps = start()
     let timer = null
     const step = () => {
       const until = performance.now() + PLACEMENT_SLICE_MS
       while (performance.now() < until) {
         const { done, value } = steps.next()
         if (done) {
-          PLACED_CORALS.set(landscape, value)
-          setCorals(value)
+          cache.set(landscape, value)
+          setPlaced(value)
           return
         }
       }
@@ -323,40 +327,117 @@ function Corals({ landscape, coralRocks }) {
     }
     step()
     return () => clearTimeout(timer)
-  }, [kit, meshes, landscape, coralRocks])
+  // start() is a fresh closure every render; `inputs` are what it reads.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cache, landscape, ...inputs])
+  return placed
+}
 
-  const { merged, obstacles } = useMemo(() => {
-    if (!corals) return { merged: [], obstacles: [] }
-    const camera = new THREE.Vector3(landscape.view?.x ?? 0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
-    const parts = new Map()
-    for (const coral of corals) {
-      const distance = camera.distanceTo(scratchA.set(coral.plate.x, coral.plate.y, coral.plate.z))
-      const lod = distance < kit.hiDetailDistance ? 'hi' : distance < kit.loDetailDistance ? 'lo' : 'far'
-      const source = meshes[`${kit.models[coral.model].name}_${lod}`]
-      const geometry = new THREE.BufferGeometry()
-      for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, source.attributes[attribute].clone())
-      geometry.setIndex(source.index.clone())
-      geometry.applyMatrix4(coral.matrix)
-      const key = `${coral.model}:${Math.floor(coral.plate.x / kit.chunkWU)}:${Math.floor(coral.plate.z / kit.chunkWU)}`
-      if (!parts.has(key)) parts.set(key, { model: coral.model, list: [] })
-      parts.get(key).list.push(geometry)
-    }
-    return {
-      merged: [...parts].map(([key, { model, list }]) => {
-        const geometry = mergeGeometries(list)
-        list.forEach(part => part.dispose())
+// A copy of a kit mesh, moved into place.
+function kitGeometry(source, matrix) {
+  const geometry = new THREE.BufferGeometry()
+  for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, source.attributes[attribute].clone())
+  geometry.setIndex(source.index.clone())
+  return geometry.applyMatrix4(matrix)
+}
+
+// Placed kit models ({ model, matrix }) merged per kit model and square chunk (culled when off
+// screen), each from its _hi, _lo or _far mesh by its distance (at centreOf) from the resting
+// camera.
+function mergeKitModels(placed, kit, meshes, view, centreOf) {
+  const camera = new THREE.Vector3(view?.x ?? 0, view?.y ?? -3.35, view?.z ?? 10)
+  const parts = new Map()
+  for (const item of placed) {
+    const centre = centreOf(item)
+    const distance = camera.distanceTo(centre)
+    const lod = distance < kit.hiDetailDistance ? 'hi' : distance < kit.loDetailDistance ? 'lo' : 'far'
+    const geometry = kitGeometry(meshes[`${kit.models[item.model].name}_${lod}`], item.matrix)
+    const key = `${item.model}:${Math.floor(centre.x / kit.chunkWU)}:${Math.floor(centre.z / kit.chunkWU)}`
+    if (!parts.has(key)) parts.set(key, { model: item.model, list: [] })
+    parts.get(key).list.push(geometry)
+  }
+  return [...parts].map(([key, { model, list }]) => {
+    const geometry = mergeGeometries(list)
+    list.forEach(part => part.dispose())
+    geometry.computeBoundingSphere()
+    return { key, model, geometry }
+  })
+}
+
+// One THREE.LOD per staghorn thicket, each level its colonies merged per kit model, switched by
+// the live camera's distance to the thicket: the diver and follow cameras come right up to
+// thickets the resting view only sees far off, and the _far meshes read as shards up close.
+// Only thickets within kit.closeUpReach of the resting camera get a _hi level (the _hi meshes
+// for every thicket would hold about 300k triangles); the rest are _lo up close.
+function thicketLods(colonies, kit, meshes, materials, view) {
+  const camera = new THREE.Vector3(view?.x ?? 0, view?.y ?? -3.35, view?.z ?? 10)
+  const bySite = new Map()
+  for (const colony of colonies) {
+    if (!bySite.has(colony.site)) bySite.set(colony.site, [])
+    bySite.get(colony.site).push(colony)
+  }
+  const local = new THREE.Matrix4()
+  return [...bySite].map(([site, list]) => {
+    const centre = new THREE.Vector3()
+    list.forEach(colony => centre.add(colony.base))
+    centre.divideScalar(list.length)
+    const toLocal = new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z)
+    const lod = new THREE.LOD()
+    lod.position.copy(centre)
+    const levels = camera.distanceTo(centre) < kit.closeUpReach
+      ? [['hi', 0], ['lo', kit.hiDetailDistance], ['far', kit.loDetailDistance]]
+      : [['lo', 0], ['far', kit.loDetailDistance]]
+    const geometries = []
+    for (const [level, distance] of levels) {
+      const byModel = new Map()
+      for (const colony of list) {
+        if (!byModel.has(colony.model)) byModel.set(colony.model, [])
+        byModel.get(colony.model).push(kitGeometry(meshes[`${kit.models[colony.model].name}_${level}`], local.multiplyMatrices(toLocal, colony.matrix)))
+      }
+      const group = new THREE.Group()
+      for (const [model, parts] of byModel) {
+        const geometry = mergeGeometries(parts)
+        parts.forEach(part => part.dispose())
         geometry.computeBoundingSphere()
-        return { key, model, geometry }
-      }),
-      obstacles: corals.map(coral => coral.obstacle),
+        geometries.push(geometry)
+        group.add(new THREE.Mesh(geometry, materials[model]))
+      }
+      lod.addLevel(group, distance)
     }
-  }, [kit, meshes, landscape, corals])
+    return { key: site, lod, geometries }
+  })
+}
 
+// Extra rock obstacles (rockObstacles.js) for as long as the component is up.
+function useExtraObstacles(obstacles) {
   useLayoutEffect(() => {
     if (!obstacles.length) return undefined
     const owner = setExtraObstacles(obstacles)
     return () => clearExtraObstacles(owner)
   }, [obstacles])
+}
+
+// Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
+// merged per kit model and square chunk (culled when off screen), each coral from the _hi,
+// _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
+// obstacles. Loads on its own, so the rocks never wait.
+function Corals({ landscape, coralRocks }) {
+  const { kit } = landscape.corals
+  const { meshes, materials } = useCoralKit(kit, landscape.caustics)
+  const corals = useSlicedPlacement(PLACED_CORALS, landscape, () => {
+    const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
+    return placeCorals(landscape, coralClusters(landscape, coralRocks, landscape.view), measures, landscape.view)
+  }, [kit, meshes, coralRocks])
+
+  const { merged, obstacles } = useMemo(() => {
+    if (!corals) return { merged: [], obstacles: [] }
+    return {
+      merged: mergeKitModels(corals, kit, meshes, landscape.view, coral => scratchA.set(coral.plate.x, coral.plate.y, coral.plate.z)),
+      obstacles: corals.map(coral => coral.obstacle),
+    }
+  }, [kit, meshes, landscape, corals])
+
+  useExtraObstacles(obstacles)
   // Reef fish hide under, between and peck at the tables they can reach (reefSites.js).
   const reefCorals = useMemo(() => (corals ? coralReefSurfaces(landscape, corals, meshes, kit) : null), [landscape, corals, meshes, kit])
   useLayoutEffect(() => {
@@ -364,10 +445,35 @@ function Corals({ landscape, coralRocks }) {
     const owner = setCoralSurfaces(reefCorals.geometries, reefCorals.metas)
     return () => clearCoralSurfaces(owner)
   }, [reefCorals])
-  useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
   useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
 
   return merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)
+}
+
+// Staghorn thickets (landscape.staghorn): placed at the foot of a few rocks the table corals
+// leave bare (staghornPlacement.js), each drawn as one LOD (thicketLods). Each colony joins the
+// fish's rock obstacles. Loads on its own, like the tables.
+function StaghornThickets({ landscape, coralRocks }) {
+  const { kit } = landscape.staghorn
+  const { meshes, materials } = useCoralKit(kit, landscape.caustics)
+  const colonies = useSlicedPlacement(PLACED_THICKETS, landscape, () => {
+    const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
+    const tableRoots = new Set(landscape.corals ? coralClusters(landscape, coralRocks, landscape.view).flatMap(cluster => cluster.roots) : [])
+    return placeThickets(landscape, thicketSites(landscape, coralRocks, landscape.view, tableRoots), measures, landscape.view)
+  }, [kit, meshes, coralRocks])
+
+  const { thickets, obstacles } = useMemo(() => {
+    if (!colonies) return { thickets: [], obstacles: [] }
+    return {
+      thickets: thicketLods(colonies, kit, meshes, materials, landscape.view),
+      obstacles: colonies.map(colony => colony.obstacle),
+    }
+  }, [kit, meshes, materials, landscape, colonies])
+
+  useExtraObstacles(obstacles)
+  useEffect(() => () => thickets.forEach(thicket => thicket.geometries.forEach(geometry => geometry.dispose())), [thickets])
+
+  return thickets.map(thicket => <primitive key={thicket.key} object={thicket.lod} />)
 }
 
 // Built rocks per landscape, kept for the session. React renders a tank several times before
@@ -434,17 +540,24 @@ export default function Landscape({ landscape }) {
           <Corals landscape={landscape} coralRocks={coralRocks} />
         </Suspense>
       )}
+      {landscape.staghorn && (
+        <Suspense fallback={null}>
+          <StaghornThickets landscape={landscape} coralRocks={coralRocks} />
+        </Suspense>
+      )}
     </group>
   )
 }
 
 // Fetch the rock kits with the rest of the tank's assets, so the landing gate's progress
 // covers them and the first visit to a landscaped tank does not pop the rocks in late.
-for (const { kit, corals } of Object.values(LANDSCAPES)) {
+for (const { kit, corals, staghorn } of Object.values(LANDSCAPES)) {
   if (!kit) continue
   useGLTF.preload(kit.path)
   useTexture.preload(Object.values(kit.textures))
-  if (!corals) continue
-  useGLTF.preload(corals.kit.path)
-  useTexture.preload(corals.kit.models.flatMap(model => [model.color, model.normal]))
+  for (const coral of [corals, staghorn]) {
+    if (!coral) continue
+    useGLTF.preload(coral.kit.path)
+    useTexture.preload(coral.kit.models.flatMap(model => [model.color, model.normal]))
+  }
 }

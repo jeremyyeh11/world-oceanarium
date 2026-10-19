@@ -36,10 +36,10 @@ function cellKey(cx, cz) {
 
 // Two sources share the field: the tank's rocks (Environment, from the seeded layout, before
 // the first frame) and extra obstacles that only exist once a model has loaded, such as the
-// table corals (Landscape.jsx, placed against the drawn rocks). Either can change or clear
-// without the other; the field is rebuilt from both.
+// table corals and staghorn thickets (Landscape.jsx, placed against the drawn rocks). Any of
+// them can change or clear without the others; the field is rebuilt from all of them.
 let rocks = null
-let extras = null
+const extras = new Set()
 
 function buildField() {
   if (!rocks) {
@@ -47,7 +47,7 @@ function buildField() {
     return
   }
   const { region, floorTop, maxPad } = rocks.options
-  const kept = [...rocks.pieces, ...(extras?.pieces ?? [])].filter(piece => piece.y + piece.height > floorTop
+  const kept = [...rocks.pieces, ...[...extras].flatMap(extra => extra.pieces)].filter(piece => piece.y + piece.height > floorTop
     && piece.x + piece.width > region.xMin && piece.x - piece.width < region.xMax
     && piece.z + piece.depth > region.zMin && piece.z - piece.depth < region.zMax)
   const data = new Float32Array(kept.length * STRIDE)
@@ -90,16 +90,17 @@ export function clearRockObstacles(owner) {
   buildField()
 }
 
-// Extra obstacles in the same piece form, filtered with the rocks' options.
+// Extra obstacles in the same piece form, filtered with the rocks' options. Each call adds a
+// set, cleared on its own by the owner it returns.
 export function setExtraObstacles(pieces) {
-  extras = { pieces }
+  const owner = { pieces }
+  extras.add(owner)
   buildField()
-  return extras
+  return owner
 }
 
 export function clearExtraObstacles(owner) {
-  if (extras !== owner) return
-  extras = null
+  if (!extras.delete(owner)) return
   buildField()
 }
 

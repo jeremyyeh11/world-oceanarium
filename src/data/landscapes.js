@@ -96,6 +96,31 @@ const TABLE_CORAL_KIT = {
   chunkWU: 60,
 }
 
+// Jeremy's staghorn corals (Acropora muricata, `_blender models/acropora muricata.glb`,
+// 2026-10-20), baked by scripts/build-staghorn-kit.py: two colonies per colour, a big one and a
+// small one, each with _hi (1800 to 3500 triangles), _lo and _far meshes sharing its colour and
+// normal maps. In metres, origin at the middle of the base. 0: orange-brown, 1.1 m tall; 1:
+// orange-brown, 0.65 m; 2: cream, a low spreading 1.1 m colony; 3: cream, 0.35 m; 4: blue,
+// 0.55 m; 5: blue, 0.45 m.
+const STAGHORN_KIT = {
+  path: '/models/landscape/staghorn-corals.glb',
+  models: [0, 1, 2, 3, 4, 5].map(i => ({
+    name: `staghorn${i}`,
+    color: `/models/landscape/staghorn${i}-color.jpg`,
+    normal: `/models/landscape/staghorn${i}-normal.jpg`,
+  })),
+  // The kit's models by colour, [big, small].
+  colours: [[0, 1], [2, 3], [4, 5]],
+  // Unlike the tables, each thicket switches level by the live camera's distance to it
+  // (Landscape.jsx thicketLods): _hi within hiDetailDistance, _lo to loDetailDistance, _far
+  // beyond. Only thickets within closeUpReach of the resting camera have a _hi level; the rest
+  // are _lo up close. Picked by the resting camera's distance as the tables are, the thickets
+  // drew 121k triangles from the resting view, 3 times the tables'.
+  hiDetailDistance: 20,
+  loDetailDistance: 45,
+  closeUpReach: 50,
+}
+
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
@@ -322,6 +347,19 @@ export const LANDSCAPES = {
         seed: 6203, clusters: 14, spacing: 20, minHeight: 4, minTop: -21, maxDistance: 95,
         areaPerCoral: 6, count: [10, 26], width: [1.6, 10], wallShare: 0.25, frontBias: 0.7,
       },
+    },
+    // Staghorn thickets (src/components/staghornPlacement.js): Jeremy chose (2026-10-20)
+    // thickets on the sand and low ledges at the foot of a few rocks, between the table
+    // clusters. Up to `thickets` rocks standing minHeight WU (20 cm) out of the sand, within maxDistance of
+    // the resting camera, `spacing` WU apart and tableClear WU clear of every table-crowned rock,
+    // each get one thicket: a band `radius` WU either way along the rock's foot, of `count`
+    // colonies, mainShare of them one colour (a thicket grows from fragments of one colony).
+    // `scale` is WU per kit metre: 4 is the scanned colonies' own size (35 cm to 1.1 m); up to
+    // 1.5 times that, as staghorn colonies commonly grow a metre or two across.
+    staghorn: {
+      kit: STAGHORN_KIT,
+      seed: 7301, thickets: 9, spacing: 12, minHeight: 0.8, maxDistance: 90, tableClear: 4,
+      radius: [4, 7], count: [12, 24], scale: [3.6, 6], mainShare: 0.8,
     },
   },
 }

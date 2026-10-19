@@ -8,6 +8,23 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.31.0 — Staghorn coral
+
+Status: in review as `v0.31.0-dev_1` (2026-10-20, branch `feat/staghorn-coral`). Jeremy supplied a staghorn coral model (*Acropora muricata*) and chose thickets on the sand and low ledges at the foot of a few rocks, between the table clusters.
+
+### Corals
+
+- Staghorn kit (`scripts/build-staghorn-kit.py`, headless Blender 5.2): Jeremy's GLB (13 colonies stacked at the origin, 9 unique meshes in three colours, 242k triangles, 42 MB with six photo textures) becomes two colonies per colour, a big and a small one: `staghornN_hi` (1,800–3,500 triangles), `_lo` (600–1,100) and `_far` (160–300), with the full-detail source baked into a colour and a tangent-space normal map per colony (1024 px for the two biggest, 512 px for the rest). 1.4 MB GLB plus twelve JPEG maps (`public/models/landscape/staghorn-*`). The decimated branches are five- or six-sided tubes, so the unwrap uses an 80° angle limit (the table kit's 66° gave every triangle its own island and a 3.5 MB GLB) and smooth normals.
+- Thickets (`src/components/staghornPlacement.js`): up to 9 rocks standing at least 20 cm out of the sand, within 90 WU of the resting camera and in front of it, 12 WU apart and 4 WU clear of every table-crowned rock, each get one thicket: a band along the rock's foot on the side mostly facing the camera, 4–7 WU either way, of 12–24 colonies. The big colonies go first in the band's middle, then small ones round them; 80% are one colour (a thicket grows from fragments of one colony). A colony stands on the sand or a ledge low on its rock, sunk 6–14% of its height, turned at random and tilted up to 9°, at 0.9–1.5 times the scanned size; it is kept only if at most 3 of 24 branch points touch rock, none dips into the sand, its base is a third of the summed branch spreads from its neighbours' (they interlock) and it stays under `maxTop`. Result: 96 colonies in 6 thickets.
+- Drawn as one `THREE.LOD` per thicket, its levels merged per kit model, switched by the live camera's distance (`_hi` within 20 WU for thickets within 50 WU of the resting camera, `_lo` to 45 WU, `_far` beyond), so the diver and follow cameras never meet the `_far` meshes up close. From the resting view the thickets draw 30.5k triangles (the tables 38k). Placement runs in 6 ms slices like the tables' and is kept for the session.
+- Fish steer round the colonies: each publishes an obstacle box, and rockObstacles.js now holds any number of extra obstacle sets (`setExtraObstacles` returns an owner; it held one before, which the thickets would have replaced).
+- Shared with the tables (Landscape.jsx): `useCoralKit` (meshes and materials), `useSlicedPlacement`, `kitGeometry`, `useExtraObstacles`; the table corals draw as before.
+
+### Atlas
+
+- Staghorn Coral (*Acropora muricata*, Acroporidae), Endangered (IUCN, 27 April 2023, A3ce). Specimen (`scripts/build-staghorn-atlas.py`): 12 colonies of all three colours in a thicket round a low rock on the table coral's faint sand patch, 2.97 × 2.15 m, framed like the table coral (30° down). GLB 4.9 MB. Tile: an in-tank close-up of a brown and blue thicket. Checked on desktop and a 375 px phone (no overflow).
+- The landing card counts 14 species (`landscapeSpecies` adds `acropora-muricata`).
+
 ## v0.30.1 — Fish at the corals
 
 Status: accepted and promoted as clean `v0.30.1` from `v0.30.1-dev_1` on Jeremy's go-ahead (2026-10-19, branch `feat/table-corals`, #136; "Looks good on my phone"). `package.json` and `package-lock.json` move to `0.30.1`. Jeremy (2026-10-19): "build fish behavior to interact with the corals, hide underneath, within, peck at it"; "add the radial sand highlight gradient thing back to the atlas, but make it more subtle than the previous iteration"; "does number of species include the corals? on the landing modal at the start".

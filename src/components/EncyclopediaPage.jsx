@@ -81,6 +81,18 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.1, 0],
     lookAt: [0, -0.1, 0],
   },
+  // The staghorn thicket round its low rock, framed like the table coral cluster: front on,
+  // turned a little, looking 30° down.
+  'acropora-muricata': {
+    yawOffset: -0.25,
+    pitchDegrees: 30,
+    maxLengthDisplayUnits: 2.7,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.12,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.1, 0],
+    lookAt: [0, -0.1, 0],
+  },
   'amblygaster-sirm': {
     maxLengthDisplayUnits: 1.35,
     portraitPhoneDistanceScale: 0.68,
@@ -188,6 +200,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'rhincodon-typus': 99.8702,
   // The table coral cluster, widest across (scripts/build-coral-atlas.py prints its bounds).
   'acropora-hyacinthus': 5.013,
+  // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).
+  'acropora-muricata': 2.965,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

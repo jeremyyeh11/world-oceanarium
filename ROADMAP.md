@@ -13,6 +13,25 @@ Status labels:
 
 ## Current work
 
+### Staghorn coral
+
+Status: shipped in clean `v0.31.0` (2026-10-20, from `v0.31.0-dev_3`, branch `feat/staghorn-coral`, #139): Jeremy's staghorn model (*Acropora muricata*) in one-colour patches on the table corals' bommies (his ask after `dev_1`'s separate thickets looked "sad and separate"), an Atlas entry with a three-patch specimen and an in-tank tile.
+
+Subtasks:
+- [x] Staghorn kit bake (`scripts/build-staghorn-kit.py`): 42 MB GLB to 1.4 MB plus twelve maps; two colonies per colour.
+- [x] `dev_1`: thickets at the foot of 6 bare rocks (96 colonies). Jeremy: "so sad and separate".
+- [x] `dev_2`: staghorn on the table bommies, one colour per patch (`src/components/staghornPlacement.js`): 371 colonies on 9 bommies, clear of the plates.
+- [x] Live-camera detail levels per bommie (`THREE.LOD`).
+- [x] Atlas entry (Endangered, 2023), specimen (`scripts/build-staghorn-atlas.py`) and tile.
+- [x] `dev_3`: no pointed blades (higher `_lo`/`_far` budgets, a `_min` level, `_hi` built near the camera on every bommie) and two-sided drawing.
+- [x] Close-up texture: shared per-colour maps at about the source's texel density (was a third to a half of it).
+- [ ] Sharper than the source photos up close: better source textures from Jeremy, or a tiling corallite detail layer in the shader. `Backlog`
+- [x] Jeremy's go-ahead on `v0.31.0-dev_3` (2026-10-20: "push and merge to main").
+- [ ] Phone frame rate at The Reefs: the staghorn draws 134k triangles from the resting view, 3.5 times the tables. Trim colonies or the back bommies' detail if it stutters. `Backlog`
+- [ ] Texture provenance: the source GLB's images are named `311551-enhanced`, `1052_C02_05-enhanced` and `StaghornAcroporaCoral5-enhanced`; no source found. Credit in `src/data/sources.js` if any is a Commons/CC photo. `Next`
+- [ ] Small reef fish sheltering among the branches (staghorn is a classic damselfish home; the tank's reef fish are all larger). `Backlog`
+- [ ] The Atlas specimen GLB is 4.9 MB (the table coral's 3.3 MB): it embeds every colony's maps; `_lo` meshes or shared maps would cut it. `Backlog`
+
 ### Table corals
 
 Status: shipped in clean `v0.30.1` (2026-10-19, from `v0.30.1-dev_1`, branch `feat/table-corals`, #136): fish hide under and between the tables, nibble their rims and hang by them; a fainter Atlas sand patch; the coral in the landing species count. Design in `docs/reef-behavior.md` (Corals). The open items below carry over.
@@ -34,7 +53,7 @@ Subtasks:
 - [x] Atlas sand patch back, fainter (`v0.30.1-dev_1`): RGB(40, 70, 104) on the stage, was RGB(125, 147, 160).
 - [x] Landing species count includes the coral (`landscapeSpecies` on The Reefs): 13.
 - [x] Jeremy's phone review of `v0.30.1-dev_1` (2026-10-19: "Looks good on my phone").
-- [ ] More coral forms for the photo look (staghorn, massive mounds, encrusting growth). `Backlog`
+- [ ] More coral forms for the photo look (massive mounds, encrusting growth; staghorn in progress above). `Backlog`
 - [ ] Switching to The Reefs still renders the tank five times while models load (only the rock build is cached); the first-visit stall is now ~230 ms. `Backlog`
 
 ### Reef behaviour

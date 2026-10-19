@@ -1,11 +1,13 @@
-import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
 import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
+import { measureColony, placeStaghorn } from './staghornPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
@@ -229,6 +231,8 @@ function makeLandscapeChunks(landscape, rocks) {
 const PLACEMENT_SLICE_MS = 6
 // Placed corals per landscape, for the session.
 const PLACED_CORALS = new WeakMap()
+// Placed staghorn colonies per landscape, for the session.
+const PLACED_STAGHORN = new WeakMap()
 // The tables reef fish can reach, as raycast surfaces (reefSites.js setCoralSurfaces), per placement.
 const CORAL_REEF_SURFACES = new WeakMap()
 
@@ -266,12 +270,9 @@ function coralReefSurfaces(landscape, corals, meshes, kit) {
   return result
 }
 
-// Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
-// merged per kit model and square chunk (culled when off screen), each coral from the _hi,
-// _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
-// obstacles. Loads on its own, so the rocks never wait.
-function Corals({ landscape, coralRocks }) {
-  const { kit } = landscape.corals
+// A coral kit's meshes by name and one material per kit model (its baked colour and normal
+// maps), shaded like the rock; two-sided when the kit says so (`doubleSided`).
+function useCoralKit(kit, caustics) {
   const gltf = useGLTF(kit.path)
   const maps = useTexture(kit.models.flatMap(model => [model.color, model.normal]))
   const meshes = useMemo(() => {
@@ -279,7 +280,6 @@ function Corals({ landscape, coralRocks }) {
     gltf.scene.traverse(object => { if (object.isMesh) byName[object.name] = object.geometry })
     return byName
   }, [gltf])
-
   const materials = useMemo(() => kit.models.map((model, i) => {
     const [color, normal] = [maps[i * 2], maps[i * 2 + 1]]
     for (const texture of [color, normal]) {
@@ -291,31 +291,37 @@ function Corals({ landscape, coralRocks }) {
     color.colorSpace = THREE.SRGBColorSpace
     const coralMaterial = new THREE.MeshStandardMaterial({
       map: color, normalMap: normal, roughness: 0.95, metalness: 0, envMapIntensity: 0.35,
+      side: kit.doubleSided ? THREE.DoubleSide : THREE.FrontSide,
     })
-    applyRockShade(coralMaterial, null, landscape.caustics)
+    applyRockShade(coralMaterial, null, caustics)
     return coralMaterial
-  }), [kit, maps, landscape.caustics])
+  }), [kit, maps, caustics])
+  useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
+  return { meshes, materials }
+}
 
-  // Placement runs in slices of about PLACEMENT_SLICE_MS per frame (a few hundred ms in all on a
-  // phone would otherwise freeze the tank), and is kept for the session: the same landscape
-  // always places the same corals, so a return visit draws them at once.
-  const [corals, setCorals] = useState(() => PLACED_CORALS.get(landscape) ?? null)
+// Runs a placement generator (coralPlacement.js, staghornPlacement.js) in slices of about
+// PLACEMENT_SLICE_MS per frame (a few hundred ms in all on a phone would otherwise freeze the
+// tank) and keeps its result for the session in `cache`, by landscape: the same landscape always
+// places the same corals, so a return visit draws them at once. start() makes the generator;
+// it is rerun when `inputs` change.
+function useSlicedPlacement(cache, landscape, start, inputs) {
+  const [placed, setPlaced] = useState(() => cache.get(landscape) ?? null)
   useEffect(() => {
-    const cached = PLACED_CORALS.get(landscape)
+    const cached = cache.get(landscape)
     if (cached) {
-      setCorals(cached)
+      setPlaced(cached)
       return undefined
     }
-    const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
-    const steps = placeCorals(landscape, coralClusters(landscape, coralRocks, landscape.view), measures, landscape.view)
+    const steps = start()
     let timer = null
     const step = () => {
       const until = performance.now() + PLACEMENT_SLICE_MS
       while (performance.now() < until) {
         const { done, value } = steps.next()
         if (done) {
-          PLACED_CORALS.set(landscape, value)
-          setCorals(value)
+          cache.set(landscape, value)
+          setPlaced(value)
           return
         }
       }
@@ -323,40 +329,153 @@ function Corals({ landscape, coralRocks }) {
     }
     step()
     return () => clearTimeout(timer)
-  }, [kit, meshes, landscape, coralRocks])
+  // start() is a fresh closure every render; `inputs` are what it reads.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cache, landscape, ...inputs])
+  return placed
+}
 
-  const { merged, obstacles } = useMemo(() => {
-    if (!corals) return { merged: [], obstacles: [] }
-    const camera = new THREE.Vector3(landscape.view?.x ?? 0, landscape.view?.y ?? -3.35, landscape.view?.z ?? 10)
-    const parts = new Map()
-    for (const coral of corals) {
-      const distance = camera.distanceTo(scratchA.set(coral.plate.x, coral.plate.y, coral.plate.z))
-      const lod = distance < kit.hiDetailDistance ? 'hi' : distance < kit.loDetailDistance ? 'lo' : 'far'
-      const source = meshes[`${kit.models[coral.model].name}_${lod}`]
-      const geometry = new THREE.BufferGeometry()
-      for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, source.attributes[attribute].clone())
-      geometry.setIndex(source.index.clone())
-      geometry.applyMatrix4(coral.matrix)
-      const key = `${coral.model}:${Math.floor(coral.plate.x / kit.chunkWU)}:${Math.floor(coral.plate.z / kit.chunkWU)}`
-      if (!parts.has(key)) parts.set(key, { model: coral.model, list: [] })
-      parts.get(key).list.push(geometry)
-    }
-    return {
-      merged: [...parts].map(([key, { model, list }]) => {
-        const geometry = mergeGeometries(list)
-        list.forEach(part => part.dispose())
-        geometry.computeBoundingSphere()
-        return { key, model, geometry }
-      }),
-      obstacles: corals.map(coral => coral.obstacle),
-    }
-  }, [kit, meshes, landscape, corals])
+// A copy of a kit mesh, moved into place.
+function kitGeometry(source, matrix) {
+  const geometry = new THREE.BufferGeometry()
+  for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, source.attributes[attribute].clone())
+  geometry.setIndex(source.index.clone())
+  return geometry.applyMatrix4(matrix)
+}
 
+// Placed kit models ({ model, matrix }) merged per kit model and square chunk (culled when off
+// screen), each from its _hi, _lo or _far mesh by its distance (at centreOf) from the resting
+// camera.
+function mergeKitModels(placed, kit, meshes, view, centreOf) {
+  const camera = new THREE.Vector3(view?.x ?? 0, view?.y ?? -3.35, view?.z ?? 10)
+  const parts = new Map()
+  for (const item of placed) {
+    const centre = centreOf(item)
+    const distance = camera.distanceTo(centre)
+    const lod = distance < kit.hiDetailDistance ? 'hi' : distance < kit.loDetailDistance ? 'lo' : 'far'
+    const geometry = kitGeometry(meshes[`${kit.models[item.model].name}_${lod}`], item.matrix)
+    const key = `${item.model}:${Math.floor(centre.x / kit.chunkWU)}:${Math.floor(centre.z / kit.chunkWU)}`
+    if (!parts.has(key)) parts.set(key, { model: item.model, list: [] })
+    parts.get(key).list.push(geometry)
+  }
+  return [...parts].map(([key, { model, list }]) => {
+    const geometry = mergeGeometries(list)
+    list.forEach(part => part.dispose())
+    geometry.computeBoundingSphere()
+    return { key, model, geometry }
+  })
+}
+
+// One THREE.LOD per bommie's staghorn, each level its colonies merged per kit model, switched by
+// the live camera's distance to them: the diver and follow cameras come right up to bommies the
+// resting view only sees far off. The close-up level starts as the _lo meshes and gets the _hi
+// ones only while the camera is near (StaghornBommie): _hi for every bommie would hold about a
+// million triangles, and _lo up close showed flattened, pointed branches (Jeremy, 2026-10-20).
+function staghornLods(colonies, kit, meshes, materials) {
+  const bySite = new Map()
+  for (const colony of colonies) {
+    if (!bySite.has(colony.site)) bySite.set(colony.site, [])
+    bySite.get(colony.site).push(colony)
+  }
+  return [...bySite].map(([site, list]) => {
+    const centre = new THREE.Vector3()
+    list.forEach(colony => centre.add(colony.base))
+    centre.divideScalar(list.length)
+    const toLocal = new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z)
+    const byModel = new Map()
+    for (const colony of list) {
+      if (!byModel.has(colony.model)) byModel.set(colony.model, [])
+      byModel.get(colony.model).push(colony)
+    }
+    const models = [...byModel]
+    // This bommie's colonies of one kit model at one level, merged, in the LOD's frame.
+    const local = new THREE.Matrix4()
+    const merge = (level, model, group) => {
+      const parts = group.map(colony => kitGeometry(meshes[`${kit.models[model].name}_${level}`], local.multiplyMatrices(toLocal, colony.matrix)))
+      const geometry = mergeGeometries(parts)
+      parts.forEach(part => part.dispose())
+      geometry.computeBoundingSphere()
+      return geometry
+    }
+    const lod = new THREE.LOD()
+    lod.position.copy(centre)
+    const lo = models.map(([model, group]) => merge('lo', model, group))
+    const far = models.map(([model, group]) => merge('far', model, group))
+    const least = models.map(([model, group]) => merge('min', model, group))
+    const near = new THREE.Group()
+    const mid = new THREE.Group()
+    const distant = new THREE.Group()
+    const back = new THREE.Group()
+    models.forEach(([model], i) => {
+      near.add(new THREE.Mesh(lo[i], materials[model]))
+      mid.add(new THREE.Mesh(lo[i], materials[model]))
+      distant.add(new THREE.Mesh(far[i], materials[model]))
+      back.add(new THREE.Mesh(least[i], materials[model]))
+    })
+    lod.addLevel(near, 0)
+    lod.addLevel(mid, kit.hiDetailDistance)
+    lod.addLevel(distant, kit.loDetailDistance)
+    lod.addLevel(back, kit.farDetailDistance)
+    return { key: site, lod, near, lo, models, merge, geometries: [...lo, ...far, ...least] }
+  })
+}
+
+// Swaps a bommie's close-up level to the _hi meshes while the live camera is within
+// kit.hiBuildDistance of it, one kit model a frame (each merge is a few ms), and back to _lo
+// (freeing the _hi meshes) beyond kit.hiDropDistance.
+function StaghornBommie({ bommie, kit }) {
+  const hi = useRef([])
+  useFrame(({ camera }) => {
+    const built = hi.current
+    const distance = camera.position.distanceTo(bommie.lod.position)
+    if (distance < kit.hiBuildDistance && built.length < bommie.models.length) {
+      const i = built.length
+      const [model, group] = bommie.models[i]
+      const geometry = bommie.merge('hi', model, group)
+      built.push(geometry)
+      bommie.near.children[i].geometry = geometry
+    } else if (distance > kit.hiDropDistance && built.length) {
+      bommie.near.children.forEach((mesh, i) => { mesh.geometry = bommie.lo[i] })
+      built.forEach(geometry => geometry.dispose())
+      hi.current = []
+    }
+  })
+  useEffect(() => () => hi.current.forEach(geometry => geometry.dispose()), [])
+  return <primitive object={bommie.lod} />
+}
+
+// Extra rock obstacles (rockObstacles.js) for as long as the component is up.
+function useExtraObstacles(obstacles) {
   useLayoutEffect(() => {
     if (!obstacles.length) return undefined
     const owner = setExtraObstacles(obstacles)
     return () => clearExtraObstacles(owner)
   }, [obstacles])
+}
+
+// Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
+// merged per kit model and square chunk (culled when off screen), each coral from the _hi,
+// _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
+// obstacles. Loads on its own, so the rocks never wait. The staghorn (landscape.staghorn)
+// grows on the same bommies once the tables are placed.
+function Corals({ landscape, coralRocks }) {
+  const { kit } = landscape.corals
+  const { meshes, materials } = useCoralKit(kit, landscape.caustics)
+  const clusters = useMemo(() => coralClusters(landscape, coralRocks, landscape.view), [landscape, coralRocks])
+  const corals = useSlicedPlacement(PLACED_CORALS, landscape, () => {
+    const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
+    return placeCorals(landscape, clusters, measures, landscape.view)
+  }, [kit, meshes, clusters])
+
+  const { merged, obstacles } = useMemo(() => {
+    if (!corals) return { merged: [], obstacles: [] }
+    return {
+      merged: mergeKitModels(corals, kit, meshes, landscape.view, coral => scratchA.set(coral.plate.x, coral.plate.y, coral.plate.z)),
+      obstacles: corals.map(coral => coral.obstacle),
+    }
+  }, [kit, meshes, landscape, corals])
+
+  useExtraObstacles(obstacles)
   // Reef fish hide under, between and peck at the tables they can reach (reefSites.js).
   const reefCorals = useMemo(() => (corals ? coralReefSurfaces(landscape, corals, meshes, kit) : null), [landscape, corals, meshes, kit])
   useLayoutEffect(() => {
@@ -364,10 +483,43 @@ function Corals({ landscape, coralRocks }) {
     const owner = setCoralSurfaces(reefCorals.geometries, reefCorals.metas)
     return () => clearCoralSurfaces(owner)
   }, [reefCorals])
-  useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
   useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
 
-  return merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)
+  return (
+    <>
+      {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
+      {corals && landscape.staghorn && (
+        <Suspense fallback={null}>
+          <Staghorn landscape={landscape} clusters={clusters} tables={corals} />
+        </Suspense>
+      )}
+    </>
+  )
+}
+
+// Staghorn (landscape.staghorn): patches of one colour each on the table corals' bommies,
+// clear of their plates (staghornPlacement.js), each bommie's drawn as one LOD (staghornLods).
+// Each colony joins the fish's rock obstacles.
+function Staghorn({ landscape, clusters, tables }) {
+  const { kit } = landscape.staghorn
+  const { meshes, materials } = useCoralKit(kit, landscape.caustics)
+  const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
+    const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
+    return placeStaghorn(landscape, clusters, tables, measures, landscape.view)
+  }, [kit, meshes, clusters, tables])
+
+  const { bommies, obstacles } = useMemo(() => {
+    if (!colonies) return { bommies: [], obstacles: [] }
+    return {
+      bommies: staghornLods(colonies, kit, meshes, materials),
+      obstacles: colonies.map(colony => colony.obstacle),
+    }
+  }, [kit, meshes, materials, colonies])
+
+  useExtraObstacles(obstacles)
+  useEffect(() => () => bommies.forEach(bommie => bommie.geometries.forEach(geometry => geometry.dispose())), [bommies])
+
+  return bommies.map(bommie => <StaghornBommie key={bommie.key} bommie={bommie} kit={kit} />)
 }
 
 // Built rocks per landscape, kept for the session. React renders a tank several times before
@@ -440,11 +592,13 @@ export default function Landscape({ landscape }) {
 
 // Fetch the rock kits with the rest of the tank's assets, so the landing gate's progress
 // covers them and the first visit to a landscaped tank does not pop the rocks in late.
-for (const { kit, corals } of Object.values(LANDSCAPES)) {
+for (const { kit, corals, staghorn } of Object.values(LANDSCAPES)) {
   if (!kit) continue
   useGLTF.preload(kit.path)
   useTexture.preload(Object.values(kit.textures))
-  if (!corals) continue
-  useGLTF.preload(corals.kit.path)
-  useTexture.preload(corals.kit.models.flatMap(model => [model.color, model.normal]))
+  for (const coral of [corals, staghorn]) {
+    if (!coral) continue
+    useGLTF.preload(coral.kit.path)
+    useTexture.preload(coral.kit.models.flatMap(model => [model.color, model.normal]))
+  }
 }

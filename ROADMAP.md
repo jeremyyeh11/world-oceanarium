@@ -15,9 +15,9 @@ Status labels:
 
 ### Table corals
 
-Status: `Current in development` — `v0.30.1-dev_1` (branch `feat/table-corals`): fish hide under and between the tables, nibble their rims and hang by them; a fainter Atlas sand patch; the coral in the landing species count. Design in `docs/reef-behavior.md` (Corals).
+Status: shipped in clean `v0.30.1` (2026-10-19, from `v0.30.1-dev_1`, branch `feat/table-corals`, #136): fish hide under and between the tables, nibble their rims and hang by them; a fainter Atlas sand patch; the coral in the landing species count. Design in `docs/reef-behavior.md` (Corals). The branch stays open for `v0.30.x`; the open items below carry over.
 
-Shipped in clean `v0.30.0` (2026-10-19, branch `feat/table-corals`, kept open for `v0.30.x`). Jeremy's table coral (*Acropora hyacinthus*) model, baked into a three-model kit with three detail levels, placed as dense clusters crowning a few reef rocks after his photo of a bommie, and in the Atlas as a cluster on a small rock. The open items below carry over.
+Before that, clean `v0.30.0` (2026-10-19, #135): Jeremy's table coral (*Acropora hyacinthus*) model, baked into a three-model kit with three detail levels, placed as dense clusters crowning a few reef rocks after his photo of a bommie, and in the Atlas as a cluster on a small rock.
 
 Subtasks:
 - [x] Coral kit bake (`scripts/build-coral-kit.py`): 39 MB GLB to 0.8 MB plus 1024 px colour and normal maps; `_hi` / `_lo` / `_far` meshes.
@@ -33,7 +33,7 @@ Subtasks:
 - [x] Reef fish at the corals (`v0.30.1-dev_1`): the tables join the reef site raycasts (`setCoralSurfaces`); shelters under a plate or between tiers, pecks and hovers at the rim, shares per species (`reef.coral`). Entry points must be reachable (outside the padded steering shapes).
 - [x] Atlas sand patch back, fainter (`v0.30.1-dev_1`): RGB(40, 70, 104) on the stage, was RGB(125, 147, 160).
 - [x] Landing species count includes the coral (`landscapeSpecies` on The Reefs): 13.
-- [ ] Jeremy review of `v0.30.1-dev_1` on phone: fish under and at the tables from the resting view, and the Atlas sand.
+- [x] Jeremy's phone review of `v0.30.1-dev_1` (2026-10-19: "Looks good on my phone").
 - [ ] More coral forms for the photo look (staghorn, massive mounds, encrusting growth). `Backlog`
 - [ ] Switching to The Reefs still renders the tank five times while models load (only the rock build is cached); the first-visit stall is now ~230 ms. `Backlog`
 

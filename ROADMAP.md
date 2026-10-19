@@ -13,6 +13,17 @@ Status labels:
 
 ## Current work
 
+### Lossless performance cleanup
+
+Status: `Current in development` — `v0.31.2-dev_1`, branch `feat/lossless-performance-cleanup`, #141. Jeremy selected cached fish material targets and lossless asset cleanup from the performance audit. Preserve identical display, interaction and full-rate motion; no water/boids/LOD/texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
+
+- [x] Cache mesh targets with live material references; preserve every-frame writes and fades; invalidate for nested model/LOD/debug child swaps and release listeners on unmount.
+- [x] Equivalence tests against the original pass, including material replacement, opacity boundaries and cleanup.
+- [x] Recompress embedded PNG scanlines without changing pixels, colour metadata, texture sampling or geometry/animation semantics.
+- [x] Final baseline asset comparison (15 GLBs / 18 PNGs, 3.66 MB saved), build/lint/tests and desktop/mobile-emulation browser smoke. Physical-phone performance still unverified.
+- [ ] Review PR and deployed preview; Jeremy/YK approval and physical-phone performance check before clean promotion. `Blocked / waiting review`
+- [ ] Clean release only after explicit approval; public and dev DB rows untouched.
+
 ### Staghorn coral
 
 Status: shipped in clean `v0.31.0` (2026-10-20, from `v0.31.0-dev_3`, branch `feat/staghorn-coral`, #139): Jeremy's staghorn model (*Acropora muricata*) in one-colour patches on the table corals' bommies (his ask after `dev_1`'s separate thickets looked "sad and separate"), an Atlas entry with a three-patch specimen and an in-tank tile.

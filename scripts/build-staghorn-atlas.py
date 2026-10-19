@@ -1,6 +1,6 @@
-# Builds the staghorn coral's Atlas specimen: a thicket on the sand round a low rock, as the
-# tank grows them (src/components/staghornPlacement.js, Jeremy's pick 2026-10-20: thickets at the
-# foot of rocks). Headless, without touching an open Blender scene:
+# Builds the staghorn coral's Atlas specimen: a thicket on the sand round a low rock, in patches
+# of one colour each, as the tank grows them (src/components/staghornPlacement.js; Jeremy,
+# 2026-10-20: "same colour ones should cluster together, not a random scatter"). Headless, without touching an open Blender scene:
 #
 #   "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
 #     --python scripts/build-staghorn-atlas.py -- public/models/landscape \
@@ -12,8 +12,9 @@
 # stand on the sand in a band along the rock's front, the big ones in its middle and small ones
 # toward its ends, each sunk a little into the sand and kept only where its branches stay out
 # of the rock and clear of the colonies already placed (they may interlock, as in a thicket).
-# Unlike the tank's thickets, which are mostly one clone and one colour, the specimen mixes the
-# three colours the species comes in (blue, brown and cream; Wikipedia). Under it lies the same
+# The specimen shows the three colours the species comes in (blue, brown and cream; Wikipedia)
+# as three patches side by side: brown on the left, blue in the middle, cream on the right.
+# Under it lies the same
 # faint sand patch as the table coral's. Everything is in metres, centred on the rock and
 # colonies. With a preview folder it also renders the specimen from the Atlas's angle.
 
@@ -178,11 +179,12 @@ def colony(model, scale, x, y):
 
 # The band: along the rock's front and round its ends, the big colonies first in its middle.
 # Model pairs [big, small] per colour: brown 0/1, cream 2/3, blue 4/5.
-# (model, scale, place along the rock in m, row: 0 hugging the rock, 1 in front of it)
-plan = [(0, 1.15, 0.0, 0), (4, 1.3, -0.6, 0), (2, 1.0, 0.65, 0), (0, 0.9, -0.3, 1), (4, 1.1, 0.35, 1),
-        (1, 1.1, 0.25, 0), (5, 1.3, -0.25, 0), (3, 1.4, -0.95, 0), (1, 1.0, 1.0, 0), (5, 1.2, -0.75, 1),
-        (3, 1.2, 0.8, 1), (1, 0.9, 0.0, 1), (5, 1.0, 1.05, 1), (3, 1.0, -1.05, 1), (1, 0.8, -0.5, 1),
-        (5, 0.9, 0.55, 1)]
+# (model, scale, place along the rock in m, row: 0 hugging the rock, 1 in front of it), one
+# colour per patch: brown (0/1) left, blue (4/5) middle, cream (2/3) right.
+plan = [(0, 1.15, -0.75, 0), (4, 1.3, 0.0, 0), (2, 1.0, 0.8, 0),
+        (1, 1.1, -1.15, 0), (1, 1.0, -0.6, 1), (1, 0.9, -1.0, 1), (1, 0.8, -0.35, 0),
+        (5, 1.3, -0.15, 1), (5, 1.2, 0.3, 0), (5, 1.0, 0.25, 1), (5, 0.9, -0.2, 0),
+        (3, 1.4, 1.15, 0), (3, 1.2, 0.6, 1), (3, 1.0, 1.05, 1), (3, 0.9, 0.5, 0)]
 for model, scale, along, row in plan:
     for attempt in range(40):
         x = along + rng.uniform(-0.15, 0.15)

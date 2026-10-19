@@ -6,7 +6,7 @@ import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data
 import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
-import { measureColony, placeThickets, thicketSites } from './staghornPlacement'
+import { measureColony, placeStaghorn } from './staghornPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
@@ -190,7 +190,7 @@ function makeLandscapeChunks(landscape, rocks) {
   // The placed rocks reef fish can reach, kept whole (not merged) for their raycasts.
   const reefSurfaces = []
   // The placed rocks table corals can grow on, grouped by rock (coralRockOf) and kept whole too.
-  const bySeed = landscape.corals || landscape.staghorn ? new Map(pieces.map(piece => [piece.seed, piece])) : null
+  const bySeed = landscape.corals ? new Map(pieces.map(piece => [piece.seed, piece])) : null
   const coralRocks = new Map()
   // How far each placed rock's real top sits below its box top (rocks shrink to fit their
   // box), so a stacked tier can be dropped onto the rock it rests on.
@@ -231,7 +231,7 @@ const PLACEMENT_SLICE_MS = 6
 // Placed corals per landscape, for the session.
 const PLACED_CORALS = new WeakMap()
 // Placed staghorn colonies per landscape, for the session.
-const PLACED_THICKETS = new WeakMap()
+const PLACED_STAGHORN = new WeakMap()
 // The tables reef fish can reach, as raycast surfaces (reefSites.js setCoralSurfaces), per placement.
 const CORAL_REEF_SURFACES = new WeakMap()
 
@@ -364,12 +364,12 @@ function mergeKitModels(placed, kit, meshes, view, centreOf) {
   })
 }
 
-// One THREE.LOD per staghorn thicket, each level its colonies merged per kit model, switched by
-// the live camera's distance to the thicket: the diver and follow cameras come right up to
-// thickets the resting view only sees far off, and the _far meshes read as shards up close.
-// Only thickets within kit.closeUpReach of the resting camera get a _hi level (the _hi meshes
-// for every thicket would hold about 300k triangles); the rest are _lo up close.
-function thicketLods(colonies, kit, meshes, materials, view) {
+// One THREE.LOD per bommie's staghorn, each level its colonies merged per kit model, switched by
+// the live camera's distance to them: the diver and follow cameras come right up to bommies the
+// resting view only sees far off, and the _far meshes read as shards up close. Only bommies
+// within kit.closeUpReach of the resting camera get a _hi level (the _hi meshes for all of them
+// would hold about 300k triangles); the rest are _lo up close.
+function staghornLods(colonies, kit, meshes, materials, view) {
   const camera = new THREE.Vector3(view?.x ?? 0, view?.y ?? -3.35, view?.z ?? 10)
   const bySite = new Map()
   for (const colony of colonies) {
@@ -420,14 +420,16 @@ function useExtraObstacles(obstacles) {
 // Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
 // merged per kit model and square chunk (culled when off screen), each coral from the _hi,
 // _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
-// obstacles. Loads on its own, so the rocks never wait.
+// obstacles. Loads on its own, so the rocks never wait. The staghorn (landscape.staghorn)
+// grows on the same bommies once the tables are placed.
 function Corals({ landscape, coralRocks }) {
   const { kit } = landscape.corals
   const { meshes, materials } = useCoralKit(kit, landscape.caustics)
+  const clusters = useMemo(() => coralClusters(landscape, coralRocks, landscape.view), [landscape, coralRocks])
   const corals = useSlicedPlacement(PLACED_CORALS, landscape, () => {
     const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
-    return placeCorals(landscape, coralClusters(landscape, coralRocks, landscape.view), measures, landscape.view)
-  }, [kit, meshes, coralRocks])
+    return placeCorals(landscape, clusters, measures, landscape.view)
+  }, [kit, meshes, clusters])
 
   const { merged, obstacles } = useMemo(() => {
     if (!corals) return { merged: [], obstacles: [] }
@@ -447,33 +449,41 @@ function Corals({ landscape, coralRocks }) {
   }, [reefCorals])
   useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
 
-  return merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)
+  return (
+    <>
+      {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
+      {corals && landscape.staghorn && (
+        <Suspense fallback={null}>
+          <Staghorn landscape={landscape} clusters={clusters} tables={corals} />
+        </Suspense>
+      )}
+    </>
+  )
 }
 
-// Staghorn thickets (landscape.staghorn): placed at the foot of a few rocks the table corals
-// leave bare (staghornPlacement.js), each drawn as one LOD (thicketLods). Each colony joins the
-// fish's rock obstacles. Loads on its own, like the tables.
-function StaghornThickets({ landscape, coralRocks }) {
+// Staghorn (landscape.staghorn): patches of one colour each on the table corals' bommies,
+// clear of their plates (staghornPlacement.js), each bommie's drawn as one LOD (staghornLods).
+// Each colony joins the fish's rock obstacles.
+function Staghorn({ landscape, clusters, tables }) {
   const { kit } = landscape.staghorn
   const { meshes, materials } = useCoralKit(kit, landscape.caustics)
-  const colonies = useSlicedPlacement(PLACED_THICKETS, landscape, () => {
+  const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
     const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
-    const tableRoots = new Set(landscape.corals ? coralClusters(landscape, coralRocks, landscape.view).flatMap(cluster => cluster.roots) : [])
-    return placeThickets(landscape, thicketSites(landscape, coralRocks, landscape.view, tableRoots), measures, landscape.view)
-  }, [kit, meshes, coralRocks])
+    return placeStaghorn(landscape, clusters, tables, measures, landscape.view)
+  }, [kit, meshes, clusters, tables])
 
-  const { thickets, obstacles } = useMemo(() => {
-    if (!colonies) return { thickets: [], obstacles: [] }
+  const { bommies, obstacles } = useMemo(() => {
+    if (!colonies) return { bommies: [], obstacles: [] }
     return {
-      thickets: thicketLods(colonies, kit, meshes, materials, landscape.view),
+      bommies: staghornLods(colonies, kit, meshes, materials, landscape.view),
       obstacles: colonies.map(colony => colony.obstacle),
     }
   }, [kit, meshes, materials, landscape, colonies])
 
   useExtraObstacles(obstacles)
-  useEffect(() => () => thickets.forEach(thicket => thicket.geometries.forEach(geometry => geometry.dispose())), [thickets])
+  useEffect(() => () => bommies.forEach(bommie => bommie.geometries.forEach(geometry => geometry.dispose())), [bommies])
 
-  return thickets.map(thicket => <primitive key={thicket.key} object={thicket.lod} />)
+  return bommies.map(bommie => <primitive key={bommie.key} object={bommie.lod} />)
 }
 
 // Built rocks per landscape, kept for the session. React renders a tank several times before
@@ -538,11 +548,6 @@ export default function Landscape({ landscape }) {
       {landscape.corals && (
         <Suspense fallback={null}>
           <Corals landscape={landscape} coralRocks={coralRocks} />
-        </Suspense>
-      )}
-      {landscape.staghorn && (
-        <Suspense fallback={null}>
-          <StaghornThickets landscape={landscape} coralRocks={coralRocks} />
         </Suspense>
       )}
     </group>

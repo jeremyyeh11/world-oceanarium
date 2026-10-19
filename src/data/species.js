@@ -2796,9 +2796,10 @@ export const SPECIES = [
     },
   },
   // The second coral for The Reefs' landscape (Jeremy's staghorn model, 2026-10-20). Like the
-  // table coral, a landscape species: no `swim`, no roster slot, no creature rows. Its thickets
-  // grow at the foot of a few rocks (landscapes.js `staghorn`, src/components/staghornPlacement.js);
-  // the Atlas shows a thicket round a low rock (scripts/build-staghorn-atlas.py).
+  // table coral, a landscape species: no `swim`, no roster slot, no creature rows. It grows in
+  // one-colour patches on the table corals' bommies (landscapes.js `staghorn`,
+  // src/components/staghornPlacement.js); the Atlas shows a thicket round a low rock in three
+  // colour patches (scripts/build-staghorn-atlas.py).
   // Facts: SeaLifeBase (IUCN EN, 27 April 2023, A3ce; hermaphrodite; thickets dominating
   // lagoons), Wikipedia (range, 5-30 m, thickets up to 10 m across, blue, brown or cream with
   // pale tips; formerly Acropora formosa), spawning from Oliver 1987 (JCU thesis, A. formosa:
@@ -2808,8 +2809,9 @@ export const SPECIES = [
     name: 'Staghorn Coral',
     scientificName: 'Acropora muricata',
     family: 'Acroporidae',
-    // Tile (2026-10-20): an in-tank close-up of a brown and blue thicket at a rock's foot, rendered
-    // square at 940 px with the tank's own renderer and scaled to 470 px.
+    // Tile (2026-10-20): an in-tank close-up of a bommie crowned with brown staghorn, blue on its
+    // shoulder and tables at its foot, rendered square at 940 px with the tank's own renderer
+    // and scaled to 470 px.
     atlasThumbnail: '/atlas/acropora-muricata-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -2861,7 +2863,7 @@ export const SPECIES = [
     maxBodyLengthMeters: 3,
     model: {
       path: '/models/fish/acropora-muricata/acropora-muricata.glb',
-      // Twelve of the tank's colonies in a thicket round a low rock, on a faint patch of sand,
+      // Fourteen of the tank's colonies round a low rock in brown, blue and cream patches, on a faint patch of sand,
       // centred on the rock and colonies (scripts/build-staghorn-atlas.py). 1 raw = 1 m -> 4 WU.
       scale: 4,
       // The sand's soft edge is alpha-blended; the rock and colonies are opaque.

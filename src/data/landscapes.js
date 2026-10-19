@@ -111,11 +111,11 @@ const STAGHORN_KIT = {
   })),
   // The kit's models by colour, [big, small].
   colours: [[0, 1], [2, 3], [4, 5]],
-  // Unlike the tables, each thicket switches level by the live camera's distance to it
-  // (Landscape.jsx thicketLods): _hi within hiDetailDistance, _lo to loDetailDistance, _far
-  // beyond. Only thickets within closeUpReach of the resting camera have a _hi level; the rest
-  // are _lo up close. Picked by the resting camera's distance as the tables are, the thickets
-  // drew 121k triangles from the resting view, 3 times the tables'.
+  // Unlike the tables, each bommie's staghorn switches level by the live camera's distance to it
+  // (Landscape.jsx staghornLods): _hi within hiDetailDistance, _lo to loDetailDistance, _far
+  // beyond. Only bommies within closeUpReach of the resting camera have a _hi level; the rest
+  // are _lo up close. Picked by the resting camera's distance as the tables are, the first
+  // staghorn thickets (dev_1) drew 121k triangles from the resting view, 3 times the tables'.
   hiDetailDistance: 20,
   loDetailDistance: 45,
   closeUpReach: 50,
@@ -348,18 +348,18 @@ export const LANDSCAPES = {
         areaPerCoral: 6, count: [10, 26], width: [1.6, 10], wallShare: 0.25, frontBias: 0.7,
       },
     },
-    // Staghorn thickets (src/components/staghornPlacement.js): Jeremy chose (2026-10-20)
-    // thickets on the sand and low ledges at the foot of a few rocks, between the table
-    // clusters. Up to `thickets` rocks standing minHeight WU (20 cm) out of the sand, within maxDistance of
-    // the resting camera, `spacing` WU apart and tableClear WU clear of every table-crowned rock,
-    // each get one thicket: a band `radius` WU either way along the rock's foot, of `count`
-    // colonies, mainShare of them one colour (a thicket grows from fragments of one colony).
-    // `scale` is WU per kit metre: 4 is the scanned colonies' own size (35 cm to 1.1 m); up to
-    // 1.5 times that, as staghorn colonies commonly grow a metre or two across.
+    // Staghorn (src/components/staghornPlacement.js) on the same bommies as the tables, so each
+    // cluster reads as one: Jeremy (2026-10-20) found thickets on their own "so sad and
+    // separate", and wants "same colour ones" to "cluster together". Each table cluster gets a
+    // patch for about every `tablesPerPatch` tables, within `patches`, each one colour; about
+    // footShare of them at the rock's foot, the rest on its top and shoulders among the tables.
+    // A patch is `patchRadius` WU across either way and holds `perPatch` colonies. `scale` is WU
+    // per kit metre: 4 is the scanned colonies' own size (35 cm to 1.1 m); up to 1.5 times that,
+    // as staghorn colonies commonly grow a metre or two across.
     staghorn: {
       kit: STAGHORN_KIT,
-      seed: 7301, thickets: 9, spacing: 12, minHeight: 0.8, maxDistance: 90, tableClear: 4,
-      radius: [4, 7], count: [12, 24], scale: [3.6, 6], mainShare: 0.8,
+      seed: 7301, tablesPerPatch: 4, patches: [3, 6], footShare: 0.35,
+      patchRadius: [2, 3.2], perPatch: [12, 18], scale: [3.6, 6],
     },
   },
 }

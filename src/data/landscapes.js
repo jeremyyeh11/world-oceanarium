@@ -132,11 +132,14 @@ const STAGHORN_KIT = {
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
 // the viewer instead of being looked across. Since v0.29.0-dev_10 it is the pose Jeremy framed
 // in the diver camera ("ok yea do it"): back and to the right of the foreground rocks, at
-// x 12, y -9.8, z 25.2, turned 9.5° left and pitched 5.4° up (looking at x 7.8, y -7.4 on the
-// z 0 plane). The foreground rocks frame the bottom, the outcrop and its fish sit mid-frame
-// (the turn centres even a 375 px phone on it, at x 2.9), and the canyon columns stand behind.
+// x 12, y -9.8, z 25.2, turned 9.5° left. Since v0.31.1-dev_1 it is pitched 1.6° down (looking
+// at x 7.8, y -10.5 on the z 0 plane; was 5.4° up, y -7.4, which left the outcrop about 70% of
+// the way down the frame): Jeremy asked for the central outcrop "around the center/slightly
+// below the center of the screen", and it now sits about 53% down on desktop and a 375 px phone.
+// The foreground rocks frame the bottom (the turn centres even a phone on the outcrop, at
+// x 2.9), and the canyon columns stand behind. The pitch does not change which rocks get corals.
 // The nearest rock is a scatter boulder 3.6 WU behind and below the camera.
-export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY: -7.4 }
+export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY: -10.5 }
 
 export const LANDSCAPES = {
   reefs: {

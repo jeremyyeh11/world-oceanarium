@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.31.1 — Reef camera tilt
+
+Status: in development (`v0.31.1-dev_1`, branch `reef-camera-tilt`). Jeremy (2026-10-20): "angle camera slightly down for the reef so the central outcrop bommie sits around the center/slightly below the center of the screen".
+
+### Camera
+
+- The Reefs' resting camera (`REEFS_VIEW`) pitches 1.6° down instead of 5.4° up (look target y -10.5, was -7.4); position, turn and 42° field of view are unchanged. The central outcrop moves from about 70% to about 53% of the way down the frame on desktop (1280×720) and a 375 px phone. Coral placement reads the view's direction but picks the same rocks at either pitch (checked side by side).
+
 ## v0.31.0 — Staghorn coral
 
 Status: accepted and promoted as clean `v0.31.0` from `v0.31.0-dev_3` on Jeremy's go-ahead (2026-10-20, branch `feat/staghorn-coral`, #139: "push and merge to main"). `package.json` and `package-lock.json` move to `0.31.0`. Jeremy supplied a staghorn coral model (*Acropora muricata*). In `dev_1` it grew as thickets on their own at the foot of a few rocks (his first pick); seeing them he asked to "place the staghorns together with the table corals so they look like a cluster? a bommie? now they just look so sad and separate", with "same colour ones" clustered together, "not a random scatter", after his photos of staghorn fields with tables among them and a staghorn thicket crowning a rock. On `dev_2` he found the low detail levels "really bad" ("i shouldnt be able to see sharp pointy edges") and saw backface problems.

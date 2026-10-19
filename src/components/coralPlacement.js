@@ -75,7 +75,7 @@ export function coralRockOf(piece, bySeed) {
   return HOST_KINDS.has(root.kind) ? root.seed : null
 }
 
-function boundsOf(geometries) {
+export function boundsOf(geometries) {
   const bounds = new THREE.Box3()
   for (const geometry of geometries) {
     geometry.computeBoundingBox()
@@ -89,7 +89,8 @@ function boundsOf(geometries) {
 // and wide for its height, whose top reaches `minTop`, within `maxDistance` of the resting camera
 // and at least `spacing` WU from every other cluster, in front of the resting camera, nearer
 // rocks and rocks in its view likelier. rocks: Map of bottom-piece seed →
-// the drawn world-space geometries of that rock. view: the resting camera.
+// the drawn world-space geometries of that rock. view: the resting camera. Each cluster carries
+// the `roots` of the rocks it crowns, which staghorn thickets keep clear of.
 export function coralClusters(landscape, rocks, view) {
   const { clusters = [], scatter } = landscape.corals
   const camera = new THREE.Vector3(view?.x ?? 0, view?.y ?? 0, view?.z ?? 0)
@@ -105,7 +106,7 @@ export function coralClusters(landscape, rocks, view) {
     const geometries = roots.flatMap(root => rocks.get(root))
     if (!geometries.length) continue
     centres.push(boundsOf(geometries).getCenter(new THREE.Vector3()))
-    resolved.push({ ...cluster, geometries })
+    resolved.push({ ...cluster, roots, geometries })
   }
   if (!scatter) return resolved
   const rand = seededRandom(scatter.seed)
@@ -136,7 +137,7 @@ export function coralClusters(landscape, rocks, view) {
     added++
     // More tables on a bigger rock.
     const count = THREE.MathUtils.clamp(Math.round(size.x * size.z / scatter.areaPerCoral), scatter.count[0], scatter.count[1])
-    resolved.push({ ...scatter, count, seed: scatter.seed * 7919 + root, geometries: rocks.get(root) })
+    resolved.push({ ...scatter, count, seed: scatter.seed * 7919 + root, roots: [root], geometries: rocks.get(root) })
   }
   return resolved
 }
@@ -173,7 +174,7 @@ export function measureCoral(geometry) {
 }
 
 // Ray casts against one cluster's rocks, both faces, with the hit face's outward normal.
-function rockCaster(geometries) {
+export function rockCaster(geometries) {
   const meshes = geometries.map(geometry => {
     if (!geometry.boundsTree) geometry.boundsTree = new MeshBVH(geometry)
     const mesh = new THREE.Mesh(geometry, BOTH_SIDES)

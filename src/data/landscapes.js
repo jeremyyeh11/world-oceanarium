@@ -96,6 +96,37 @@ const TABLE_CORAL_KIT = {
   chunkWU: 60,
 }
 
+// Jeremy's staghorn corals (Acropora muricata, `_blender models/acropora muricata.glb`,
+// 2026-10-20), baked by scripts/build-staghorn-kit.py: two colonies per colour, a big one and a
+// small one, each with _hi (2200 to 4000 triangles), _lo (1000-1800), _far (350-600) and _min
+// (160-300) meshes sharing its colour's maps. In metres, origin at the middle of the base. 0: orange-brown, 1.1 m tall; 1:
+// orange-brown, 0.65 m; 2: cream, a low spreading 1.1 m colony; 3: cream, 0.35 m; 4: blue,
+// 0.55 m; 5: blue, 0.45 m.
+const STAGHORN_KIT = {
+  path: '/models/landscape/staghorn-corals.glb',
+  // The two colonies of a colour share one colour and one normal map (2048 px for orange and
+  // cream, 1536 for blue; normals 1024), about the source photos' 7-11 texels per cm.
+  models: ['orange', 'orange', 'cream', 'cream', 'blue', 'blue'].map((colour, i) => ({
+    name: `staghorn${i}`,
+    color: `/models/landscape/staghorn-${colour}-color.jpg`,
+    normal: `/models/landscape/staghorn-${colour}-normal.jpg`,
+  })),
+  // The kit's models by colour, [big, small].
+  colours: [[0, 1], [2, 3], [4, 5]],
+  // Unlike the tables, each bommie's staghorn switches level by the live camera's distance to it
+  // (Landscape.jsx staghornLods): _hi within hiDetailDistance, _lo to loDetailDistance, _far to
+  // farDetailDistance and _min beyond. A bommie's _hi meshes are only built while the camera is
+  // within hiBuildDistance of it and freed beyond hiDropDistance (StaghornBommie); until then its
+  // close-up level is _lo.
+  hiDetailDistance: 22,
+  loDetailDistance: 50,
+  farDetailDistance: 75,
+  hiBuildDistance: 28,
+  hiDropDistance: 45,
+  // Two-sided: a thin branch seen edge-on at _lo or _far can show its inside.
+  doubleSided: true,
+}
+
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
@@ -322,6 +353,19 @@ export const LANDSCAPES = {
         seed: 6203, clusters: 14, spacing: 20, minHeight: 4, minTop: -21, maxDistance: 95,
         areaPerCoral: 6, count: [10, 26], width: [1.6, 10], wallShare: 0.25, frontBias: 0.7,
       },
+    },
+    // Staghorn (src/components/staghornPlacement.js) on the same bommies as the tables, so each
+    // cluster reads as one: Jeremy (2026-10-20) found thickets on their own "so sad and
+    // separate", and wants "same colour ones" to "cluster together". Each table cluster gets a
+    // patch for about every `tablesPerPatch` tables, within `patches`, each one colour; about
+    // footShare of them at the rock's foot, the rest on its top and shoulders among the tables.
+    // A patch is `patchRadius` WU across either way and holds `perPatch` colonies. `scale` is WU
+    // per kit metre: 4 is the scanned colonies' own size (35 cm to 1.1 m); up to 1.5 times that,
+    // as staghorn colonies commonly grow a metre or two across.
+    staghorn: {
+      kit: STAGHORN_KIT,
+      seed: 7301, tablesPerPatch: 4, patches: [3, 6], footShare: 0.35,
+      patchRadius: [2, 3.2], perPatch: [12, 18], scale: [3.6, 6],
     },
   },
 }

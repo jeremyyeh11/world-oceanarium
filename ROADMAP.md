@@ -15,7 +15,7 @@ Status labels:
 
 ### Table corals
 
-Status: shipped in clean `v0.30.1` (2026-10-19, from `v0.30.1-dev_1`, branch `feat/table-corals`, #136): fish hide under and between the tables, nibble their rims and hang by them; a fainter Atlas sand patch; the coral in the landing species count. Design in `docs/reef-behavior.md` (Corals). The branch stays open for `v0.30.x`; the open items below carry over.
+Status: shipped in clean `v0.30.1` (2026-10-19, from `v0.30.1-dev_1`, branch `feat/table-corals`, #136): fish hide under and between the tables, nibble their rims and hang by them; a fainter Atlas sand patch; the coral in the landing species count. Design in `docs/reef-behavior.md` (Corals). The open items below carry over.
 
 Before that, clean `v0.30.0` (2026-10-19, #135): Jeremy's table coral (*Acropora hyacinthus*) model, baked into a three-model kit with three detail levels, placed as dense clusters crowning a few reef rocks after his photo of a bommie, and in the Atlas as a cluster on a small rock.
 

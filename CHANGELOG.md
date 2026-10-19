@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.30.1 — Fish at the corals
 
-Status: accepted and promoted as clean `v0.30.1` from `v0.30.1-dev_1` on Jeremy's go-ahead (2026-10-19, branch `feat/table-corals`, #136; "Looks good on my phone"). `package.json` and `package-lock.json` move to `0.30.1`. The branch stays open for `v0.30.x` iterations. Jeremy (2026-10-19): "build fish behavior to interact with the corals, hide underneath, within, peck at it"; "add the radial sand highlight gradient thing back to the atlas, but make it more subtle than the previous iteration"; "does number of species include the corals? on the landing modal at the start".
+Status: accepted and promoted as clean `v0.30.1` from `v0.30.1-dev_1` on Jeremy's go-ahead (2026-10-19, branch `feat/table-corals`, #136; "Looks good on my phone"). `package.json` and `package-lock.json` move to `0.30.1`. Jeremy (2026-10-19): "build fish behavior to interact with the corals, hide underneath, within, peck at it"; "add the radial sand highlight gradient thing back to the atlas, but make it more subtle than the previous iteration"; "does number of species include the corals? on the landing modal at the start".
 
 ### Behaviour
 

@@ -6,6 +6,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.30.3',
+    date: '2026-10-19',
+    title: 'Reef fish no longer wedge between rocks',
+    changes: [
+      ['fix', 'A reef fish nosing into a gap between two rocks too narrow for it no longer wedges there, shivering nose-down for minutes: it slips along the rocks or turns back and goes another way.'],
+      ['fix', 'Fish gliding along the sea floor beside a rock no longer nod up and down.'],
+    ],
+  },
+  {
     version: 'v0.30.1',
     date: '2026-10-19',
     title: 'Fish at the corals',

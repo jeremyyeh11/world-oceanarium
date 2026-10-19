@@ -2954,6 +2954,17 @@ export function advancePairFollow(ride, rider, leaderId, side, bond, riderBodyLe
   return ride
 }
 
+/**
+ * A pair follower that cannot get to its station (held at a pinch between two rocks, Fish.jsx)
+ * spends a spell apart from its mate, as pairs now and then do anyway, instead of waiting there
+ * until she moves off.
+ */
+export function separatePair(ride, bond, now, rand) {
+  ride.pairApart = true
+  ride.pairUntil = now + randomRangeFromPair(rand, bond.apartSeconds)
+  if (ride.stage === 'pair') resetRideState(ride)
+}
+
 // `SCHOOL_STATES`, `FISH_REGISTRY` and `THREAT_ENTRIES` stay private to this module. `Fish.jsx`
 // and the diver camera only ever clean up or read, so they get these accessors instead of the Maps.
 

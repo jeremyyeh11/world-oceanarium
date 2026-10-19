@@ -22,7 +22,7 @@ import {
 } from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
-import { liftAboveSeabed, nudgeOutOfRocks, pushOutOfRocks, seabedHeightAt, steerAroundRocks } from './rockObstacles'
+import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, seabedHeightAt, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
   beginReefSettle,
@@ -101,10 +101,12 @@ import {
   schoolFormationOffset,
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
+  separatePair,
   setForwardWithPitch,
   shapeDirectionForBoundaryContacts,
   shapeSoloAgentSteeringDesired,
   soloAgentReachedDistance,
+  swimBoundaryContactMask,
   swimBounds,
   swimXRangeAtZ,
   threatLevelAt,
@@ -299,6 +301,23 @@ const MOLA_BEHAVIOR_LOOK_AT_TRANSITION_DURATION = 1.5
 const MOLA_SUN_BASK_DRIFT_XZ_AMPLITUDE = 0.09
 const MOLA_SUN_BASK_DRIFT_Y_AMPLITUDE = 0.035
 const AGENT_BEHAVIOR_RETRY_COOLDOWN = 1.2
+// A reef fish gives up a swim into open water, as it gives up a trip to a rock (reefBehavior.js,
+// TRAVEL_PROGRESS_*), when it has not closed this much on the destination in this long: among
+// the rocks a destination can lie past a gap too narrow for its body.
+const STEER_PROGRESS_SECONDS = 3
+const STEER_PROGRESS_BODY_LENGTHS = 0.5
+// Held this long at a pinch between two rocks (pushOutOfRocks), a fish gives up where it was
+// going, a swim or a trip to a rock, and decides again at once, picking its next swim behind
+// it; it then has this long to come round before it would give up again.
+const ROCK_PINCH_GIVE_UP_SECONDS = 0.3
+const ROCK_PINCH_TURN_SECONDS = 1.5
+// Given up this many times at pinches without getting clear of them for ROCK_PINCH_CLEAR_SECONDS,
+// it squeezes through: for ROCK_PINCH_SQUEEZE_SECONDS the rock clamp only pushes it out of the
+// deeper rock, as it did before pinches were handled (a bannerfish was once held 85 s between
+// two tiers of the foreground stacks, turning back 51 times).
+const ROCK_PINCH_GIVE_UPS = 3
+const ROCK_PINCH_CLEAR_SECONDS = 2
+const ROCK_PINCH_SQUEEZE_SECONDS = 2
 // Ride hosts (the mako, the Mola) run their frame ahead of everyone else so the remoras
 // clamped to them read this frame's pose. Negative, because r3f hands rendering over to any
 // positive-priority subscriber.
@@ -346,12 +365,15 @@ const agentRuntimeClamp = new THREE.Vector3()
 const agentBaskExitTarget = new THREE.Vector3()
 const rockAvoidBase = new THREE.Vector3()
 const rockAvoidDelta = new THREE.Vector3()
+const pinchForward = new THREE.Vector3()
 // Rock avoidance smoothing (per second): it reaches ~63% of a new bend in 0.1 s and lets go of
 // it over ~0.4 s.
 const ROCK_AVOID_RISE = 10
 const ROCK_AVOID_FALL = 2.5
 // After the rock clamp pushes a fish off a face, its steering keeps off that face this long.
 const ROCK_CONTACT_MEMORY_SECONDS = 0.35
+// How near the swim floor a fish counts as on it for the rock bend (WU).
+const FLOOR_BAND = 0.02
 const ridePoseQuaternion = new THREE.Quaternion()
 const shadowCasterQuaternion = new THREE.Quaternion()
 const shadowCasterForward = new THREE.Vector3()
@@ -2030,6 +2052,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const agentBehavior = useRef(null)
   const agentBehaviorStartedAt = useRef(0)
   const agentBehaviorDistance = useRef(0)
+  // Open-water swim progress (see STEER_PROGRESS_SECONDS): the next check and the distance left
+  // at the last one.
+  const agentProgressCheckAt = useRef(0)
+  const agentProgressDistance = useRef(Infinity)
   const agentDepthMode = useRef('deep')
   const agentDepthTargetsRemaining = useRef(0)
   const lastSunBaskAt = useRef(-Infinity)
@@ -2045,6 +2071,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // The last rock face the clamp pushed this fish off, and when (simulation time).
   const rockContactNormal = useRef(new THREE.Vector3())
   const rockContactAt = useRef(-Infinity)
+  // Whether the rock clamp met a pinch last frame, since when it has held this fish there, and
+  // whether it has just given up where it was going there (its next swim turns back).
+  const rockPinched = useRef(false)
+  const rockHeldSince = useRef(Infinity)
+  const pinchTurnBack = useRef(false)
+  // After giving up at a pinch, not again before this (time to come round); the give-ups since
+  // it was last clear of pinches, when that was, and until when it squeezes through.
+  const pinchRetryAt = useRef(0)
+  const pinchGiveUps = useRef(0)
+  const pinchClearSince = useRef(0)
+  const pinchSqueezeUntil = useRef(-Infinity)
   // Boid decisions are committed and held for ~one animation cycle, then re-decided.
   // Between ticks the committed vector is eased in, so heading changes are smooth and
   // infrequent instead of recomputed every frame.
@@ -2600,6 +2637,47 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
       }
 
+      // A reef fish's swim into open water that has stopped closing on its destination (held at a
+      // gap between two rocks too narrow for its body) is given up, and it decides again.
+      if (reefConfig && agentBehavior.current?.type === 'steer' && now >= agentProgressCheckAt.current) {
+        if (targetDistance > agentProgressDistance.current - STEER_PROGRESS_BODY_LENGTHS * bodyLength) {
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          agentBehaviorDistance.current = 0
+          nextAgentRetargetAt.current = now + randomRange(agentRand.current, 0.15, 0.55)
+        } else {
+          agentProgressDistance.current = targetDistance
+          agentProgressCheckAt.current = now + STEER_PROGRESS_SECONDS
+        }
+      }
+      // Held at a pinch between two rocks (rockHeldSince, from the rock clamp below), it gives up
+      // a swim or a trip to a rock at once, rather than nose into the gap until a progress check;
+      // a pair follower whose station is past the gap goes its own way for a while.
+      if (now - rockHeldSince.current >= ROCK_PINCH_GIVE_UP_SECONDS && now >= pinchRetryAt.current) {
+        if (agentBehavior.current?.type === 'steer' || (agentBehavior.current?.type === 'reef' && reefRef.current.stage === 'travel')) {
+          if (agentBehavior.current.type === 'reef') resetReefState(reefRef.current)
+          agentBehavior.current = null
+          agentHasTarget.current = false
+          agentBehaviorDistance.current = 0
+          nextAgentRetargetAt.current = now
+          // Time to come round before it gives up again: about a U-turn at the pinch's raised turn
+          // rate (the push off the rocks it touches doubles it), and at least ROCK_PINCH_TURN_SECONDS.
+          const turnRate = 2 * maxTurnRadiansForSpeed(swim, bodyLength, motion.idleSpeed * organicMotion.speedScale, 1)
+          pinchRetryAt.current = now + Math.max(ROCK_PINCH_TURN_SECONDS, Math.PI / Math.max(turnRate, 0.1))
+          rockHeldSince.current = Infinity
+          pinchTurnBack.current = true
+          reefPendingRetry.current = false
+          pinchGiveUps.current += 1
+          if (pinchGiveUps.current >= ROCK_PINCH_GIVE_UPS) {
+            pinchSqueezeUntil.current = now + ROCK_PINCH_SQUEEZE_SECONDS
+            pinchGiveUps.current = 0
+          }
+        } else if (pairBond && ride.stage === 'pair') {
+          separatePair(ride, pairBond, now, rideRand.current)
+          rockHeldSince.current = Infinity
+        }
+      }
+
       // Reef travel: once the way in from here is clear, settle in to the rock; a patrol that has
       // passed its face, or a site it cannot get to, frees the slot.
       if (agentBehavior.current?.type === 'reef' && reefRef.current.stage === 'travel') {
@@ -2619,7 +2697,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         agentHasTarget.current = false
       }
 
-      if (!agentBehavior.current && now >= nextAgentRetargetAt.current && reefConfig
+      if (!agentBehavior.current && now >= nextAgentRetargetAt.current && reefConfig && !pinchTurnBack.current
         && (reefPendingRetry.current || agentRand.current() < reefConfig.affinity)) {
         // To the reef: by its mate if it has one, else round its own home.
         const leader = pairFollow ? getFishEntry(pairFollow.leaderId) : null
@@ -2679,18 +2757,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               (nextMode === 'front' ? MOLA_FRONT_TARGET_COUNT[1] : MOLA_DEEP_TARGET_COUNT[1]) + 1,
             ))
           }
+          // Just turned away from a pinch: the next swim is picked in the half behind it, back the
+          // way it came, rather than ahead, which mostly lay past the same gap again.
           const destination = pickSoloAgentSteeringDestination(
             agentCandidateTarget,
             creature,
             swim,
             agentRand.current,
             position,
-            currentForward,
+            pinchTurnBack.current ? pinchForward.copy(currentForward).negate() : currentForward,
             usesDepthResidency ? agentDepthMode.current : 'any',
           )
-          if (destination && reefConfig && reefRef.current.hasHome && !pairFollow) {
+          if (destination && reefConfig && reefRef.current.hasHome && !pairFollow && !pinchTurnBack.current) {
             // A reef fish's swims into open water stay within its home range ("rarely more than a
-            // few metres off the reef"), rather than crossing the whole tank.
+            // few metres off the reef"), rather than crossing the whole tank. Not one turning back
+            // from a pinch: pulled toward a home past the gap, it led straight back in.
             const home = reefRef.current.home
             const range = reefConfig.homeRadiusBodyLengths * bodyLength
             destination.sub(home)
@@ -2708,12 +2789,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             agentBehaviorDistance.current = 0
             agentTarget.current.copy(destination)
             agentHasTarget.current = true
+            // The first progress check also allows for the turn toward the destination (its angle
+            // off the heading over the turn rate at cruise): one picked behind, turning back from a
+            // pinch, takes a grouper several seconds to come round to.
+            pinchForward.subVectors(destination, position)
+            const turnAngle = pinchForward.lengthSq() > 1e-6 ? currentForward.angleTo(pinchForward) : 0
+            const turnRate = maxTurnRadiansForSpeed(swim, bodyLength, motion.idleSpeed * organicMotion.speedScale, 1)
+            agentProgressDistance.current = position.distanceTo(destination)
+            agentProgressCheckAt.current = now + STEER_PROGRESS_SECONDS + turnAngle / Math.max(turnRate, 0.1)
           } else {
             agentBehavior.current = null
             agentHasTarget.current = false
             nextAgentRetargetAt.current = now + AGENT_BEHAVIOR_RETRY_COOLDOWN
           }
         }
+        pinchTurnBack.current = false
       }
 
       if (agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'exit') {
@@ -2989,17 +3079,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
         if (targetDesiredDirection.lengthSq() > 0.0001) targetDesiredDirection.normalize()
         else targetDesiredDirection.copy(agentMoveDirection)
-        if (isSoloAgent && boundaryContacts.current) {
-          // The prior clamp feeds its exact active planes back into steering. Boids and authored
-          // targets may still point through a wall after the base solo shaping; clip only those
-          // outward components and leave an already-inward route untouched.
-          shapeDirectionForBoundaryContacts(
-            targetDesiredDirection,
-            fish.position,
-            bounds,
-            boundaryContacts.current,
-          )
-        }
 
         // Just pressed against a rock: steer along its face, not back into it. Otherwise the turn
         // step aimed the heading into the rock every frame and the clamp slid it back along the
@@ -3022,16 +3101,36 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // probe cleared, the heading swung back into the rock, the probe hit again, and a small
         // fast-turning fish (a juvenile angelfish turns ~180°/s) vibrated, its heading flipping
         // every frame.
+        // At a pinch it steers by where it is going and the push off the rocks it touches, not by
+        // the probe ahead, which in the gap would bend it on along the gap.
         rockAvoidBase.copy(targetDesiredDirection)
-        const rawRockUrgency = steerAroundRocks(targetDesiredDirection, fish.position, desiredDirection.current, bodyLength, velocity.current)
+        const rawRockUrgency = steerAroundRocks(targetDesiredDirection, fish.position, desiredDirection.current, bodyLength, velocity.current, !rockPinched.current)
         rockAvoidDelta.subVectors(targetDesiredDirection, rockAvoidBase)
         const rockAvoidAlpha = 1 - Math.exp(-delta * (rawRockUrgency >= rockUrgencySmoothed.current ? ROCK_AVOID_RISE : ROCK_AVOID_FALL))
         rockAvoidSmoothed.current.lerp(rockAvoidDelta, rockAvoidAlpha)
         rockUrgencySmoothed.current += (rawRockUrgency - rockUrgencySmoothed.current) * rockAvoidAlpha
         targetDesiredDirection.copy(rockAvoidBase).add(rockAvoidSmoothed.current)
+        // On the swim floor the bend loses its downward part (below a rock's middle its push-off
+        // points down): the floor holds the fish up, and pressed into it the fish's heading
+        // flicked on and off the floor contact every other frame.
+        if (fish.position.y <= bounds.yMin + FLOOR_BAND && rockAvoidSmoothed.current.y < 0) targetDesiredDirection.y -= rockAvoidSmoothed.current.y
         if (targetDesiredDirection.lengthSq() > 1e-6) targetDesiredDirection.normalize()
         else targetDesiredDirection.copy(rockAvoidBase)
         const rockUrgency = rockUrgencySmoothed.current
+
+        if (isSoloAgent && boundaryContacts.current) {
+          // The prior clamp feeds its exact active planes back into steering. Boids, authored
+          // targets and the rock bend may still point through a wall after the base solo shaping;
+          // clip only those outward components and leave an already-inward route untouched. Last,
+          // after the rocks: a rock's push-off points down where the fish is below the rock's
+          // middle, and taken after this clip it held a fish at the swim floor nose-down into it.
+          shapeDirectionForBoundaryContacts(
+            targetDesiredDirection,
+            fish.position,
+            bounds,
+            boundaryContacts.current,
+          )
+        }
 
         // Spine bend intent: signed yaw between current and desired heading.
         const turnIntentScale = Number.isFinite(model?.curveDeform?.turnIntentScale)
@@ -3097,6 +3196,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         fish.position.addScaledVector(agentMoveDirection, movementScale)
 
         // Species-shaped clamps on the shared swim bounds.
+        let soloWallContacts = false
         if (isMolaCreature(creature)) {
           boundaryContacts.current = 0
           // The mola's authored targets (front excursions, sun-bask approach) extend past the
@@ -3122,6 +3222,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         } else {
           if (isSoloAgent) {
             boundaryContacts.current = clampToSwimBoundsWithContacts(fish.position, bounds)
+            soloWallContacts = true
           } else {
             clampToSwimBounds(fish.position, bounds)
           }
@@ -3143,8 +3244,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // over REEF_CLAMP_RECOVERY_SECONDS, so it eases away from the face instead of jumping.
         const rockClampBlend = reefConfig ? reefRef.current.clampBlend : 1
         if (rockClampBlend < 1) agentRuntimeClamp.copy(fish.position)
-        const rockNormal = pushOutOfRocks(fish.position, bodyLength)
-        if (rockNormal && rockClampBlend < 1) fish.position.lerpVectors(agentRuntimeClamp, fish.position, rockClampBlend)
+        // Squeezing through (see ROCK_PINCH_GIVE_UPS), it is only pushed out of the deeper rock.
+        const squeezing = now < pinchSqueezeUntil.current
+        const lastRockNormal = !squeezing && now - rockContactAt.current < ROCK_CONTACT_MEMORY_SECONDS ? rockContactNormal.current : null
+        const rockNormal = pushOutOfRocks(fish.position, bodyLength, squeezing ? null : previousPosition.current, bounds.yMin, lastRockNormal)
+        if (rockClampBlend < 1) fish.position.lerpVectors(agentRuntimeClamp, fish.position, rockClampBlend)
         if (rockNormal) {
           const into = desiredDirection.current.dot(rockNormal)
           if (into < 0) desiredDirection.current.addScaledVector(rockNormal, -into)
@@ -3153,6 +3257,21 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // Remembered for the next frames' steering (see ROCK_CONTACT_MEMORY_SECONDS).
           rockContactNormal.current.copy(rockNormal)
           rockContactAt.current = now
+        }
+        // At a pinch between two rocks its step went into both faces (pushOutOfRocks): it slid on
+        // along them, or, by less than a tenth of the step, it is held.
+        rockPinched.current = pinchedLastPush()
+        if (rockPinched.current) pinchClearSince.current = now
+        else if (now - pinchClearSince.current >= ROCK_PINCH_CLEAR_SECONDS) pinchGiveUps.current = 0
+        const rockHeld = rockPinched.current && fish.position.distanceToSquared(previousPosition.current) < (movementScale * 0.1) ** 2
+        if (!rockHeld) rockHeldSince.current = Infinity
+        else if (rockHeldSince.current === Infinity) rockHeldSince.current = now
+        if (rockPinched.current) {
+          // The face it was last pushed off stays remembered meanwhile, for the wedge test.
+          if (lastRockNormal) rockContactAt.current = now
+          // Its contacts are where it ended up: held on the swim floor, say, it is still on it
+          // although the step it did not take had lifted it off, and its steering flickered.
+          if (soloWallContacts) boundaryContacts.current = swimBoundaryContactMask(fish.position, bounds)
         }
         // The sand: never below it (a landscape's dunes rise above the swim floor at The Reefs'
         // front); a fish meeting it levels off and skims along it.

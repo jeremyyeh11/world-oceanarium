@@ -546,9 +546,10 @@ export function pitchToward(current, target, maxAngle) {
 }
 
 // Ordinary cruising keeps the long-established normalized-lerp turn feel. Only an active
-// boundary recovery takes the true-angle path when the target is mostly behind the fish; this
-// avoids the lerp singularity that can hold an exactly astern target at zero visible turn until
-// it flips. `side` is deterministic per fish and matters only at the exact 180-degree tie.
+// boundary recovery (or a reef fish setting off for a site behind it, Fish.jsx) takes the
+// true-angle path when the target is mostly behind the fish; this avoids the lerp singularity
+// that can hold an exactly astern target at zero visible turn until it flips. `side` is
+// deterministic per fish and matters only at the exact 180-degree tie.
 export function turnDirectionTowardWithBoundaryRecovery(current, target, maxAngle, recovering, side = 1) {
   if (recovering && current.dot(target) < SOLO_AGENT_BOUNDARY_TRUE_ARC_ALIGNMENT) {
     yawToward(current, target, maxAngle, side)

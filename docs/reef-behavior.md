@@ -35,9 +35,13 @@ shelter search that finds no nook falls back to a hover.
 
 1. `travel`: the unified pipeline steers to the site's entry point, a level line-up
    `max(1.5 WU, 2.2 BL)` out from the rest point, slowing to 60% of cruise over the last three
-   body lengths. Within 1.6 entry distances of the rest point, once a ray shows the way in is
-   clear, it settles. It gives up after the travel timeout, or if it fails to close half a body
-   length on the entry in 3 s.
+   body lengths. A fish that sets off with the entry more than about 105° behind it comes round
+   on its own turning circle at its full turn rate (`yawToward`, the true arc that escapes and
+   wall recoveries use), not the ordinary lerp turn. Within 1.6 entry distances of the rest
+   point, once a ray shows the way in is clear, it settles. It gives up if it fails to close half
+   a body length on the entry in 3 s, counted from when it has had time to turn toward the entry
+   (its angle off the entry over its turn rate at cruise), or when the travel time runs out:
+   twice the straight swim at cruise plus 8 s, within 10 to 120 s, plus that turn.
 2. `settle`: a Hermite curve from the fish's pose to the rest point, arriving facing the face.
 3. `hold` (hover, shelter) or `peck`.
 4. `leave`: turn on the spot toward a direction out from the face and 25° to 70° to one side
@@ -108,6 +112,23 @@ the fish beyond its own swim step, in the 2.5 s after it left a reef pose (or it
   angelfish, 9 bannerfish, 17 triggerfish (10 to 14 without the changes), 0.5 groupers.
 - On `v0.31.5` (with #144's probe), 11.9 minutes: 409 hand-backs and 430 cleaner host changes,
   none over 0.05 WU.
+
+Trips given up on the way, measured on desktop (2026-10-19, The Reefs, patrols left out; the
+`v0.34.1-dev_1` travel changes switched off and on in alternating blocks of one session, about
+7 minutes each way):
+
+- Before: 62% of trips settled (rock 64%, coral 61%) and 25% were given up on the way. A third set
+  off with the entry 120° or more behind the fish, and the lerp turn barely brought them round (2°
+  to 15° in the first 3 s from 160° to 180° off), so the fish swam on away from the rock and the
+  progress check gave up about half of them (3% to 5% of the rest). The median trip given up there
+  set off 163° off the entry; the median trip that settled, 84°. Young angelfish moving home 28 to
+  54 WU away needed 50 to 100 s against a 45 s cap.
+- After: 84% settled (rock 83%, coral 85%) and 5% were given up on the way, mostly at the progress
+  check while steering round a rock to a site on its far side; 11% were called off by a mate, the
+  sunfish or a startle. Patrols reached their face 84% of the time (54% before).
+- At the rock: no pops (a frame's step over four times the last) either way, and no more trips
+  shivering while steering round a rock (10 or more quick heading flips, over 2° a frame each way:
+  20 of 486 before, 20 of 414 after).
 
 ## Sites
 
@@ -480,6 +501,9 @@ import of an edited module loads a second, empty copy).
 - The landscape has no caves. Shelters are concave spots between and under ledge tiers, which
   small fish find often and fish over about 1.5 BL rarely (a 2 BL fish found one in 0 of 40
   searches).
+- Half of all site searches come at a rock from the camera's side (`viewBias`), wherever the fish
+  is, so some sites are round the far side of a rock from it. The fish steers round, now and then
+  shivering along the face, and 4% of trips still stall there (`v0.34.1-dev_1`).
 - The resting view (dev_10, Jeremy's diver-camera pose at x 12, z 25.2, turned 9.5° left) sees
   the foreground rocks, the mid-ground outcrop (seeds 81 and 82 in landscapes.js) and the canyon.
   Measured after the fish settle (in frame, not behind rock, within 60 WU): desktop sees 38% of

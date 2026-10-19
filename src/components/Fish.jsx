@@ -2745,6 +2745,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // To the reef: by its mate if it has one, else round its own home.
         const leader = pairFollow ? getFishEntry(pairFollow.leaderId) : null
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        const cruiseSpeed = motion.idleSpeed * organicMotion.speedScale
         const result = startReefBehavior(reefRef.current, reefConfig, {
           bodyLength,
           region: bounds,
@@ -2752,8 +2753,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           position,
           rand: agentRand.current,
           now,
-          cruiseSpeed: motion.idleSpeed * organicMotion.speedScale,
+          cruiseSpeed,
           home: leader?.position ?? null,
+          // To time the turn toward the site: its heading, and how fast it turns at cruise (rad/s).
+          forward: currentForward,
+          turnRate: maxTurnRadiansForSpeed(swim, bodyLength, cruiseSpeed, 1),
         })
         // Another fish searched the rocks this frame: try again next frame.
         reefPendingRetry.current = result === 'busy'
@@ -3216,6 +3220,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (rockUrgency > 0) turnStep = Math.max(turnStep, openWaterTurnStep * (1 + 2 * rockUrgency))
         const boundaryRecoveryActive = isSoloAgent
           && (boundaryContacts.current !== 0 || turnStep > openWaterTurnStep + 1e-9)
+        // A reef fish setting off for a site behind it also comes round on its turning circle. The
+        // ordinary lerp turn slows toward zero as the target goes astern (at 170° it turns at 6% of
+        // the rate), so it swam on away from the rock and the first progress check gave the site up
+        // (measured 2026-10-19: 41% to 55% of the trips that set off with the entry 120° or more
+        // behind, against 3% to 5% of the rest).
+        const reefTurningBack = agentBehavior.current?.type === 'reef' && reefRef.current.stage === 'travel'
         if (escapeActive) {
           // Escape arc: carve round on the startle turning circle at a true angular rate, so even a
           // U-turn sweeps round instead of stalling and flipping. Heading and pitch are stepped
@@ -3228,7 +3238,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             desiredDirection.current,
             targetDesiredDirection,
             turnStep,
-            boundaryRecoveryActive,
+            boundaryRecoveryActive || reefTurningBack,
             boundaryTurnSide.current,
           )
         }

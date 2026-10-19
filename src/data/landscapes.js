@@ -99,15 +99,17 @@ const TABLE_CORAL_KIT = {
 // Jeremy's staghorn corals (Acropora muricata, `_blender models/acropora muricata.glb`,
 // 2026-10-20), baked by scripts/build-staghorn-kit.py: two colonies per colour, a big one and a
 // small one, each with _hi (2200 to 4000 triangles), _lo (1000-1800), _far (350-600) and _min
-// (160-300) meshes sharing its colour and normal maps. In metres, origin at the middle of the base. 0: orange-brown, 1.1 m tall; 1:
+// (160-300) meshes sharing its colour's maps. In metres, origin at the middle of the base. 0: orange-brown, 1.1 m tall; 1:
 // orange-brown, 0.65 m; 2: cream, a low spreading 1.1 m colony; 3: cream, 0.35 m; 4: blue,
 // 0.55 m; 5: blue, 0.45 m.
 const STAGHORN_KIT = {
   path: '/models/landscape/staghorn-corals.glb',
-  models: [0, 1, 2, 3, 4, 5].map(i => ({
+  // The two colonies of a colour share one colour and one normal map (2048 px for orange and
+  // cream, 1536 for blue; normals 1024), about the source photos' 7-11 texels per cm.
+  models: ['orange', 'orange', 'cream', 'cream', 'blue', 'blue'].map((colour, i) => ({
     name: `staghorn${i}`,
-    color: `/models/landscape/staghorn${i}-color.jpg`,
-    normal: `/models/landscape/staghorn${i}-normal.jpg`,
+    color: `/models/landscape/staghorn-${colour}-color.jpg`,
+    normal: `/models/landscape/staghorn-${colour}-normal.jpg`,
   })),
   // The kit's models by colour, [big, small].
   colours: [[0, 1], [2, 3], [4, 5]],

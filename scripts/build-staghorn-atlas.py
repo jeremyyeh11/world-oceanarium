@@ -117,6 +117,17 @@ def inside(point):
     return hit[0] is not None and hit[1].z > 0
 
 # --- Colonies -----------------------------------------------------------------------------
+# The kit's maps are shared per colour (scripts/build-staghorn-kit.py). The Atlas shows the whole
+# thicket at once, so it embeds them at half size (the full ones made an 8 MB GLB).
+COLOUR_OF = {0: 'orange', 1: 'orange', 2: 'cream', 3: 'cream', 4: 'blue', 5: 'blue'}
+HALVED = set()
+
+def halved(img):
+    if img.name not in HALVED:
+        img.scale(img.size[0] // 2, img.size[1] // 2)
+        HALVED.add(img.name)
+    return img
+
 def colony_material(i):
     mat = bpy.data.materials.new(f'staghorn{i}')
     mat.use_nodes = True
@@ -124,9 +135,9 @@ def colony_material(i):
     b = nt.nodes['Principled BSDF']
     b.inputs['Roughness'].default_value = 0.95
     c = nt.nodes.new('ShaderNodeTexImage')
-    c.image = bpy.data.images.load(os.path.join(kit_dir, f'staghorn{i}-color.jpg'))
+    c.image = halved(bpy.data.images.load(os.path.join(kit_dir, f'staghorn-{COLOUR_OF[i]}-color.jpg'), check_existing=True))
     n = nt.nodes.new('ShaderNodeTexImage')
-    n.image = bpy.data.images.load(os.path.join(kit_dir, f'staghorn{i}-normal.jpg'))
+    n.image = halved(bpy.data.images.load(os.path.join(kit_dir, f'staghorn-{COLOUR_OF[i]}-normal.jpg'), check_existing=True))
     n.image.colorspace_settings.name = 'Non-Color'
     m = nt.nodes.new('ShaderNodeNormalMap')
     nt.links.new(c.outputs['Color'], b.inputs['Base Color'])

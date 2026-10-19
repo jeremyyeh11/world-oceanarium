@@ -24,6 +24,8 @@ Subtasks:
 - [x] Live-camera detail levels per bommie (`THREE.LOD`).
 - [x] Atlas entry (Endangered, 2023), specimen (`scripts/build-staghorn-atlas.py`) and tile.
 - [x] `dev_3`: no pointed blades (higher `_lo`/`_far` budgets, a `_min` level, `_hi` built near the camera on every bommie) and two-sided drawing.
+- [x] Close-up texture: shared per-colour maps at about the source's texel density (was a third to a half of it).
+- [ ] Sharper than the source photos up close: better source textures from Jeremy, or a tiling corallite detail layer in the shader. `Backlog`
 - [x] Jeremy's go-ahead on `v0.31.0-dev_3` (2026-10-20: "push and merge to main").
 - [ ] Phone frame rate at The Reefs: the staghorn draws 134k triangles from the resting view, 3.5 times the tables. Trim colonies or the back bommies' detail if it stutters. `Backlog`
 - [ ] Texture provenance: the source GLB's images are named `311551-enhanced`, `1052_C02_05-enhanced` and `StaghornAcroporaCoral5-enhanced`; no source found. Credit in `src/data/sources.js` if any is a Commons/CC photo. `Next`

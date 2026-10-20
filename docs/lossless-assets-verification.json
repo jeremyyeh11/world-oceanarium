@@ -1,0 +1,127 @@
+{
+  "files": [
+    {
+      "path": "public/models/fish/acropora-hyacinthus/acropora-hyacinthus.glb",
+      "before": 3279756,
+      "after": 3266360,
+      "saved": 13396,
+      "pngs_verified": 1,
+      "sha256": "c2a7e9643a11d96ff3f5f55fe43fabaf9d22ed31b9fef25a91540557d7560582"
+    },
+    {
+      "path": "public/models/fish/acropora-muricata/acropora-muricata.glb",
+      "before": 4554256,
+      "after": 4540980,
+      "saved": 13276,
+      "pngs_verified": 1,
+      "sha256": "3522b3dcb1f0f17a44602a666c4d42974b63c603595d83b088d9fa363d8346e4"
+    },
+    {
+      "path": "public/models/fish/balistoides-conspicillum/balistoides-conspicillum.glb",
+      "before": 965832,
+      "after": 800740,
+      "saved": 165092,
+      "pngs_verified": 1,
+      "sha256": "da6fb03450f1a0d9881b4854fdd5f5a02b1f7c34a980c93992065827c80ad0e0"
+    },
+    {
+      "path": "public/models/fish/echeneis-naucrates/echeneis-naucrates.glb",
+      "before": 2214312,
+      "after": 1973420,
+      "saved": 240892,
+      "pngs_verified": 2,
+      "sha256": "bfafca1ea58ff1276858c0eef7972e9c075c333d4a761ce6eaa15b298404e8f8"
+    },
+    {
+      "path": "public/models/fish/echeneis-neucratoides/echeneis-neucratoides.glb",
+      "before": 4457084,
+      "after": 4355732,
+      "saved": 101352,
+      "pngs_verified": 2,
+      "sha256": "adca52b7dc3eb372ea34ee00f6173a6ff5d3a8df085638d6b40e65d11410f778"
+    },
+    {
+      "path": "public/models/fish/heniochus-acuminatus/heniochus-acuminatus.glb",
+      "before": 1866976,
+      "after": 1630076,
+      "saved": 236900,
+      "pngs_verified": 1,
+      "sha256": "50545cf277d70bd1ed304eab829c4e51c3f6ccfa08e4944a2a5cb728598823e3"
+    },
+    {
+      "path": "public/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb",
+      "before": 3255236,
+      "after": 3153860,
+      "saved": 101376,
+      "pngs_verified": 2,
+      "sha256": "b8caca4b68d5992beeefe5889705a0b65d3549f2336e8dd1174987ff61702cc2"
+    },
+    {
+      "path": "public/models/fish/mahi-mahi/mahi-mahi_female_static_parts.glb",
+      "before": 4543512,
+      "after": 3484340,
+      "saved": 1059172,
+      "pngs_verified": 1,
+      "sha256": "2f39595377c5a5924839240ea699d55d97fd890e1f008000c3fc4fbcf03d2299"
+    },
+    {
+      "path": "public/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb",
+      "before": 4472820,
+      "after": 3413648,
+      "saved": 1059172,
+      "pngs_verified": 1,
+      "sha256": "4b5834ad213e3ba9f0863237851227a9effd8d6434ea4e1d14304c1d3dd21d14"
+    },
+    {
+      "path": "public/models/fish/mola-alexandrini/mola-alexandrini.glb",
+      "before": 2363564,
+      "after": 2207084,
+      "saved": 156480,
+      "pngs_verified": 1,
+      "sha256": "327e1856e06fb62d98ef46cb81938bd924577f2098e1ba9863c378c7e5751ee8"
+    },
+    {
+      "path": "public/models/fish/naucrates-ductor/naucrates-ductor.glb",
+      "before": 554388,
+      "after": 424004,
+      "saved": 130384,
+      "pngs_verified": 1,
+      "sha256": "4063691dadae407555623ca23d06b0d167f5dc36727dda8f4b8110ea0d064a5f"
+    },
+    {
+      "path": "public/models/fish/pomacanthus-imperator/pomacanthus-imperator.glb",
+      "before": 2019332,
+      "after": 1747708,
+      "saved": 271624,
+      "pngs_verified": 1,
+      "sha256": "933d5ce345d3f58529591cefe467c04ef230697339f27c47db1ee68ac0db2a19"
+    },
+    {
+      "path": "public/models/fish/sardine/sardine_LOD1.glb",
+      "before": 94488,
+      "after": 92612,
+      "saved": 1876,
+      "pngs_verified": 1,
+      "sha256": "3353d8c4524486e323f6c435b713e1312268de2f3cf08cde91d4253e333b3183"
+    },
+    {
+      "path": "public/models/fish/sardine/sardine_LOD2.glb",
+      "before": 22404,
+      "after": 21876,
+      "saved": 528,
+      "pngs_verified": 1,
+      "sha256": "3c9c6a96267fb273d0f5cb4ca016a598feebdc29c8b93424d290212669c43330"
+    },
+    {
+      "path": "public/models/fish/sardine/sardine_static.glb",
+      "before": 970860,
+      "after": 858036,
+      "saved": 112824,
+      "pngs_verified": 1,
+      "sha256": "b4fa34c7b4eb38aa25420b2b475f4b534fc57ebbe6e9e27b1a57a584457474d3"
+    }
+  ],
+  "count": 15,
+  "saved_bytes": 3664344,
+  "verification": "identical filtered PNG rows, decoded pixels, format/metadata; identical non-PNG bufferViews and GLB semantics"
+}

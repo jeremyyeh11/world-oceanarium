@@ -506,6 +506,9 @@
   font-size: calc(var(--crt-read-scale) * 0.86rem);
   font-family: var(--crt-font-read);
   font-weight: 400;
+  /* A long first word ("Nudibranchs,") in a landscape phone's narrow column broke out into the
+     next one. */
+  overflow-wrap: anywhere;
 }
 
 .atlas-table-section {

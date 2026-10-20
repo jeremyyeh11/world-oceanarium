@@ -15,7 +15,7 @@ Status labels:
 
 ### Raccoon Butterflyfish
 
-Status: `Current in development` (branch `feat/chaetodon-lunula`, started 2026-10-20). Next reef fish for The Reefs. Species data is in, hidden from the Atlas, with no model and no tank slot yet. Waiting on Jeremy's GLB.
+Status: `Current in development` (branch `feat/chaetodon-lunula`, started 2026-10-20). In review as `v0.32.0-dev_1` (2026-10-21): Jeremy's model, one group of 20 at The Reefs, Atlas entry and tile.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Chaetodon lunula`): 20 cm TL = 0.8 WU, nocturnal, pairs or small groups, LC (2009), up to 9 years, length–weight a 0.02291 / b 3.00.
@@ -24,9 +24,10 @@ Subtasks:
 - [x] Size: 0.8 WU is under the 1.08 WU floor (AGENTS.md). Jeremy (2026-10-21): "size ok".
 - [x] One group of 20 (Jeremy, 2026-10-21). Reef group mode (`group` in species.js, `groupFollowersForCreatures` in Biome, group stations in `advancePairFollow`): a leader and 19 followers that work one patch of reef together; not the sardinella school, which turns reef behaviour off. See `docs/reef-behavior.md` (Home and mates).
 - [x] 20 rows in `creatures_dev` (ids 418–437, 10 F / 10 M, size 0.10–0.95). Prod `creatures` needs Jeremy's go-ahead after the clean release.
-- [ ] Jeremy: model to the bannerfish's contract (one body mesh with dorsal, anal and tail joined in; pectorals as separate `pectoral_l` / `pectoral_r` objects, pelvics too if modelled; nose −Z, +Y up; dense rings from mid-body back).
-- [ ] Model intake: texture size and image names, alpha check, `caudal-vertex` verifier target, source length, `finRootFrom`.
-- [ ] The Reefs roster, Atlas pose/framing (desktop, 375 px portrait, landscape), Atlas tile in the same build.
+- [x] Jeremy's model (2026-10-21): 433 KB, 447 px opaque photo texture, separate pectorals and pelvics; verifier target added and passing.
+- [x] The Reefs roster, Atlas pose with two of the group (desktop, 375 px portrait, landscape checked), rendered Atlas tile.
+- [ ] Jeremy: review `v0.32.0-dev_1` on the phone (motion, group, Atlas). `Blocked / waiting review`
+- [ ] Production `creatures` rows (20), on Jeremy's go-ahead once the clean version is live.
 - [ ] Phone frame rate with 20 more fish at The Reefs. `Next`
 
 ### Fish at the staghorn (coral forms)

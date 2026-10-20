@@ -153,6 +153,15 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.45, -0.12, 0],
     lookAt: [0.15, 0.22, 0],
   },
+  // Raccoon butterflyfish: 0.2 m, deep-bodied, shown with two of its group (see
+  // ATLAS_COMPANIONS_BY_SPECIES); the camera looks between them.
+  'chaetodon-lunula': {
+    maxLengthDisplayUnits: 0.95,
+    portraitPhoneDistanceScale: 0.9,
+    cameraDistance: 5.6,
+    position: [-0.45, -0.1, 0],
+    lookAt: [0.15, 0.2, 0],
+  },
   // Emperor angelfish: 0.4 m, between the bannerfish and the pilot fish, and deep-bodied.
   // Shown as a pair (see ATLAS_COMPANIONS_BY_SPECIES): the main fish sits left of centre and the
   // camera looks between the two. On a phone the camera stays back far enough for both.
@@ -194,6 +203,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).
   'heniochus-acuminatus': 0.3199,
+  // Supplied raccoon butterflyfish model, nose to tail tip along Z.
+  'chaetodon-lunula': 0.2003,
   // Supplied emperor angelfish model, nose to tail tip along Z.
   'pomacanthus-imperator': 0.4002,
   // Supplied whale shark model, nose to tail tip along Z.
@@ -226,6 +237,11 @@ const ATLAS_COMPANIONS_BY_SPECIES = {
   // step with it.
   'heniochus-acuminatus': [
     { position: [0.5, 0.62, -0.9], scale: 0.9, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
+  ],
+  // A group-living species shows two of its group, behind and to either side.
+  'chaetodon-lunula': [
+    { position: [0.55, 0.6, -0.9], scale: 0.92, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
+    { position: [0.85, -0.5, -1.4], scale: 0.85, yaw: 0.14, animationOffset: 3.3, animationSpeed: 1.07, burstDelay: 6.1 },
   ],
   // The angelfish pair, plus two juveniles (`lifeStage`, their own model) at true size against
   // a 40 cm adult: `scale` is the juvenile's length as a share of the species' 40 cm.

@@ -157,7 +157,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus'],
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
@@ -1995,15 +1995,15 @@ export const SPECIES = [
   // Facts from FishBase. A nocturnal reef butterflyfish in pairs or small groups that picks
   // nudibranchs, tubeworm tentacles, other bottom invertebrates and some coral polyps off the
   // reef. The tank has no night, so it plays its daytime self: close to the reef, picking and
-  // resting under cover more than the plankton-picking bannerfish. Prep entry: hidden from the
-  // Atlas, no model, no tank slot yet (ROADMAP: Raccoon Butterflyfish).
+  // resting under cover more than the plankton-picking bannerfish. Jeremy's model.
   {
     id: 'chaetodon-lunula',
     name: 'Raccoon Butterflyfish',
     scientificName: 'Chaetodon lunula',
     family: 'Chaetodontidae',
     alternateNames: ['Raccoon Fish', 'Halfmoon Butterflyfish'],
-    hiddenInAtlas: true,
+    // Rendered from the tank (2026-10-21): fish 422 alone, a three-quarter head view facing left.
+    atlasThumbnail: '/atlas/chaetodon-lunula-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // "Usually in pairs or small groups" (FishBase); groups of up to about 20. The tank holds
@@ -2104,6 +2104,46 @@ export const SPECIES = [
         table: { peck: 0.4, shelter: 0.4, hover: 0.3 },
         thicket: { peck: 0.3, shelter: 0.25, hover: 0.25 },
       },
+    },
+    model: {
+      path: '/models/fish/chaetodon-lunula/chaetodon-lunula.glb',
+      // Source length 0.2003 (nose to tail tip) -> 0.8 WU; the root is recentred mid-length on
+      // the line from the snout (y 0.0028) to the tail tip (y 0.0151). The texture is opaque
+      // (no alpha channel), so no alphaBlend/alphaTest despite the GLB's BLEND material.
+      scale: 3.994,
+      position: [0, -0.0359, -0.1286],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['chaetodon_lunula'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // The bannerfish's labriform tuning (a stiff, deep body that cruises on its pectorals and
+        // saves its tail for a dart), in this model's units: 0.03 body lengths of 0.2003.
+        amplitude: 0.006,
+        waveSpeed: 3.6,
+        waveTravel: 2.5,
+        flexStart: 0.5,
+        flexFull: 0.9,
+        turnStrength: 0.006,
+        burstAmplitude: 1.2,
+        response: 9,
+        speedFrequencyBoost: 0.4,
+        burstFrequencyBoost: 0.35,
+        pectoralFinFlutter: 0.45,
+        finRootFrom: 'body-surface',
+        pelvicFinFlutter: 0.1,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
     },
   },
   // --- Emperor angelfish (Pomacanthidae) -----------------------------------------------------

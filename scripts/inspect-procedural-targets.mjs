@@ -112,6 +112,16 @@ const targets = [
     minVertices: 1000,
   },
   {
+    name: 'Raccoon Butterflyfish static parts',
+    path: 'public/models/fish/chaetodon-lunula/chaetodon-lunula.glb',
+    staticMesh: true,
+    bodyMeshNames: ['chaetodon_lunula'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.19,
+    minVertices: 1000,
+  },
+  {
     name: 'Emperor Angelfish static parts',
     path: 'public/models/fish/pomacanthus-imperator/pomacanthus-imperator.glb',
     staticMesh: true,

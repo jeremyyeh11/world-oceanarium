@@ -44,8 +44,11 @@ const SIDE_FLOOR = 0.5
 const TOUCH_ONSET = 0.1
 
 let field = null
-// Set by pushOutOfRocks, read back with pinchedLastPush.
+// Set by pushOutOfRocks, read back with pinchedLastPush and startedInsideLastPush.
 let pinched = false
+let startedInside = false
+// Set by summedHit: how far the pads' normals agree (1 for one pad, 0 where they cancel).
+let summedAgreement = 0
 
 const local = new THREE.Vector3()
 const probe = new THREE.Vector3()
@@ -244,6 +247,7 @@ function summedHit(point, pad, outNormal) {
   if (!indices) return 0
   const { data } = field
   let best = 0
+  let total = 0
   outNormal.set(0, 0, 0)
   for (const i of indices) {
     const o = i * STRIDE
@@ -265,7 +269,9 @@ function summedHit(point, pad, outNormal) {
     gradient.set(c * local.x + s * local.z, local.y, -s * local.x + c * local.z)
     const length = gradient.length()
     if (length > 1e-9) outNormal.addScaledVector(gradient, depth / length)
+    total += depth
   }
+  summedAgreement = total > 0 ? outNormal.length() / total : 0
   if (best > 0) {
     if (outNormal.lengthSq() < 1e-9) outNormal.set(0, 1, 0)
     outNormal.normalize()
@@ -317,6 +323,63 @@ function feltHit(point, pad, band, from, outNormal) {
     if (length > 1e-9) outNormal.addScaledVector(gradient, ramp / length)
   }
   return strongest
+}
+
+// How far along unit `direction` from `point` the ray leaves every pad containing it (0 if none).
+function exitDistance(point, direction, pad) {
+  const indices = field.grid.get(cellKey(Math.floor(point.x / GRID_CELL), Math.floor(point.z / GRID_CELL)))
+  if (!indices) return 0
+  const { data } = field
+  let far = 0
+  for (const i of indices) {
+    const o = i * STRIDE
+    const rx = data[o + 3] + pad
+    const ry = data[o + 4] + pad
+    const rz = data[o + 5] + pad
+    const dx = point.x - data[o]
+    const dy = point.y - data[o + 1]
+    const dz = point.z - data[o + 2]
+    const c = data[o + 6]
+    const s = data[o + 7]
+    // Point and direction in the pad's frame, scaled to the unit sphere.
+    const qx = (c * dx - s * dz) / rx
+    const qy = dy / ry
+    const qz = (s * dx + c * dz) / rz
+    const k = qx * qx + qy * qy + qz * qz - 1
+    if (k >= 0) continue
+    const vx = (c * direction.x - s * direction.z) / rx
+    const vy = direction.y / ry
+    const vz = (s * direction.x + c * direction.z) / rz
+    const a = vx * vx + vy * vy + vz * vz
+    const b = qx * vx + qy * vy + qz * vz
+    const t = (-b + Math.sqrt(b * b - a * k)) / a
+    if (t > far) far = t
+  }
+  return far
+}
+
+// Out of overlapping pads a step at a time: along the depth-weighted sum of the normals of every
+// pad containing `position` (summedHit, left in `normal`), by at most `maxStep`, stopping where it
+// is clear; level at the swim floor. Pushed out of the deepest pad instead, a fish inside two
+// overlapping pads (back from a reef site in a nook) landed inside the other and was pushed back
+// the next frame, 0.1 to 0.2 WU each way for half a second. The summed normal turns smoothly as
+// the fish moves, down the pads' summed depth and out along the crease between them.
+function easeOutAlongSummedNormal(position, pad, floorY, maxStep) {
+  summedHit(position, pad, normal)
+  let agreement = summedAgreement
+  if (position.y <= floorY + 0.02 && normal.y < 0) {
+    agreement *= Math.hypot(normal.x, normal.z)
+    normal.y = 0
+    if (normal.lengthSq() < 1e-6) return false
+    normal.normalize()
+  }
+  // Where the pads' pulls cancel (the middle of the gap, level at the floor) the push fades out,
+  // or a full step overshot the balance and the next pulled it back: 2 cm a frame each way. The
+  // fish leaves along the crease under its own steering there.
+  const exit = exitDistance(position, normal, pad)
+  position.addScaledVector(normal, Math.min(maxStep * agreement, exit + OVERLAP_CLEAR))
+  if (position.y < floorY) position.y = floorY
+  return true
 }
 
 export function rockPad(bodyLength) {
@@ -379,13 +442,16 @@ export function steerAroundRocks(desired, position, forward, bodyLength, speed, 
 //
 // `from` is where the fish started the frame, `floorY` the bottom of its swim volume and
 // `lastNormal` the face it was last pushed off (null when that was a while ago): at a pinch the
-// fish slides on from `from`, or is held there (see below).
-export function pushOutOfRocks(position, bodyLength, from = null, floorY = -Infinity, lastNormal = null) {
+// fish slides on from `from`, or is held there (see below). `maxStep` caps the way out of
+// overlapping pads for a fish that started inside them (easeOutAlongSummedNormal).
+export function pushOutOfRocks(position, bodyLength, from = null, floorY = -Infinity, lastNormal = null, maxStep = Infinity) {
   pinched = false
+  startedInside = false
   if (!hasRockObstacles()) return null
   const pad = rockPad(bodyLength)
   const depth = deepestHit(position, pad, normal, probe, floorY)
   if (depth <= 0) return null
+  startedInside = from !== null && deepestHit(from, pad, null, null) > OVERLAP_CLEAR
   // A wedge: pushed off a face turned more than about 105° from the one it was pushed off last.
   const wedged = lastNormal !== null && normal.dot(lastNormal) < WEDGE_DOT
   if (!wedged && deepestHit(probe, pad, null, null) <= OVERLAP_CLEAR) {
@@ -400,9 +466,9 @@ export function pushOutOfRocks(position, bodyLength, from = null, floorY = -Infi
   // face (along the crease between them, where it goes into both), so it slides along a gap or
   // out of one where it can, and stays where it started the frame where it cannot; its heading
   // is left to its own steering. A fish that started inside (just off a reef site in a nook) is
-  // still pushed out of the deeper pad a frame at a time, its heading sliding along that face,
-  // as before: left alone, it pressed on into the padding and came out in bigger jumps.
-  if (from && deepestHit(from, pad, null, null) <= OVERLAP_CLEAR) {
+  // eased out instead (easeOutAlongSummedNormal below): left alone, it pressed on into the
+  // padding and came out in bigger jumps.
+  if (from && !startedInside) {
     pinched = true
     // The other face: the second pad's at the pushed point, or in a wedge the last one.
     if (wedged) other.copy(lastNormal)
@@ -421,8 +487,16 @@ export function pushOutOfRocks(position, bodyLength, from = null, floorY = -Infi
     position.copy(deepestHit(probe, pad, null, null) <= OVERLAP_CLEAR ? probe : from)
     return null
   }
+  // Started inside, where pads overlap: out of them all a step at a time (easeOutAlongSummedNormal).
+  if (from && easeOutAlongSummedNormal(position, pad, floorY, maxStep)) return normal
   position.copy(probe)
   return normal
+}
+
+// Whether the last pushOutOfRocks call found the fish inside a pad where it began the frame
+// (back from a reef site, say): its way out is eased, not a stop at the face (Fish.jsx).
+export function startedInsideLastPush() {
+  return startedInside
 }
 
 // Whether the last pushOutOfRocks call met a pinch (and slid the fish on from `from`, or held it

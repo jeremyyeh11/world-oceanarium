@@ -51,7 +51,61 @@ Boid forces fade while it is at the rock. The body may tilt up to 35° (the swim
 
 After leaving, the rock clamp (`pushOutOfRocks`) comes back over 1.5 s
 (`REEF_CLAMP_RECOVERY_SECONDS`), so a fish still inside a proxy's padding eases away instead of
-jumping out of it. The same ramp runs when a fish remounts (tank switch).
+jumping out of it. The same ramp runs when a fish remounts (tank switch). See Back on the
+pipeline for how the clamps treat a fish that a pose has left inside the padding, outside its
+swim volume or under the sand.
+
+## Back on the pipeline
+
+The first frames after a reef pose (and after a cleaner leaves its host, see `docs/ride-hosts.md`)
+start the fish somewhere the pipeline's clamps would not have let it go: inside a rock's padding
+(a rest point a nose off the face always is), sometimes inside two pads at once in a nook, now and
+then outside the swim volume or under the sand pad. Until `v0.31.6-dev_1` the clamps put it back
+in a frame. A per-frame trace of the pipeline stages (desktop, 2026-10-20) found:
+
+- The rock clamp, easing in, flicked a fish between two overlapping pads for up to half a second
+  in the first second back: from inside, `pushOutOfRocks` took it to the deepest pad's surface,
+  which lay inside the other pad, and the next frame the other pad was the deepest. 0.1 to 0.27 WU
+  a frame each way (a grouper back from a hover at the outcrop, x 3.9, y -16; angelfish and a
+  bannerfish at the foreground bommies). This was most of the hand-back jumps.
+- The swim clamp and the sand lift snapped in a fish a hover or shelter had left beyond the back
+  wall or under the sand pad (0.1 to 0.8 WU, seen 2026-10-19; in 50 minutes of tracing on
+  2026-10-20 they moved a fish 0.03 WU at most).
+
+Since `v0.31.6-dev_1`:
+
+- The swim clamp, the sand lift and a host's clearance never take a fish further from where it
+  began the frame than its own step plus a return speed (Fish.jsx `limitClampCorrection`:
+  `CLAMP_RETURN_SPEED` 1.2 WU/s; the host clearance 2.4 WU/s). A fish that began the frame inside
+  is stopped at a wall, or pushed back along its own step, exactly as before; one that began it
+  outside comes back in at most that much faster than it swims, instead of being snapped in. The
+  rock clamp does the same for a fish that began the frame inside the padding while it eases in
+  after a reef pose (`clampBlend` below 1, `startedInsideLastPush`). Not elsewhere: capped
+  everywhere, a fish pressing on into a rock stayed just inside it frame after frame, and clown
+  triggerfish flicked their heading about twice as often.
+- From inside overlapping pads, the rock clamp moves the fish along the depth-weighted sum of the
+  pads' normals (`easeOutAlongSummedNormal`, the same sum as the rock bend's `summedHit`), at
+  most a capped step a frame and scaled by how far the normals agree. The sum turns smoothly as the
+  fish moves, down the pads' summed depth and out along the crease between them; where the pulls
+  cancel (the middle of a gap, level at the floor) the push fades and the fish leaves along the
+  crease on its own steering, as a full step there overshot the balance and the next pulled it
+  back (2 cm a frame each way). A fish squeezing through a pinch (`ROCK_PINCH_GIVE_UPS`) is pushed
+  out of the deeper rock as before.
+
+Measured on desktop (2026-10-20, The Reefs, `creatures_dev`: 24 emperor angelfish, 12 bannerfish,
+3 clown triggerfish, 3 groupers, 18 pilot fish, the sunfish). A jump here is how far a frame moved
+the fish beyond its own swim step, in the 2.5 s after it left a reef pose (or its host changed,
+`docs/ride-hosts.md`):
+
+- The changes switched off and on in alternating 3.5-minute blocks of one session after a
+  2.5-minute warm-up, 13.2 minutes off and 10.5 on (the rock cap then still applied everywhere):
+  hand-backs over 0.1 WU in 13 of 435 off (the largest 0.20), 0 of 387 on (the largest 0.038).
+  Pops (a frame's step over four times the last) 1.13 a minute off, 0.29 on. Reef trips settled
+  59% of 708 off and 66% of 557 on (59 to 69% across three sessions either way).
+- The code as shipped, before #144's probe change (`v0.31.5`; the clamps are the same), 13.8
+  minutes on a fresh load: 481 hand-backs, none over 0.05 WU (the largest
+  0.038); 0.43 pops a minute; trips settled 62%; heading flicks a fish-minute 15 for the
+  angelfish, 9 bannerfish, 17 triggerfish (10 to 14 without the changes), 0.5 groupers.
 
 ## Sites
 
@@ -329,8 +383,8 @@ blocks of one session, two sessions of about 11 and 12 minutes each way:
   241 off, 31 and 31 on.
 - Trips to a rock settled as often either way: 69% of 1,213 off, 69% of 1,226 on.
 - Pops (a frame's step over four times the last): 15 off and 9 on in the second session; the
-  only one over 0.1 WU with the changes on was a grouper's hand-back from a reef pose (see Known
-  limits).
+  only one over 0.1 WU with the changes on was a grouper's hand-back from a reef pose (see Back
+  on the pipeline).
 
 Staged, the reported case: a grouper or triggerfish put at the foot of the bommies nose into the
 gap, its destination through it. Before, it stayed for minutes at 60 flips a second; now each was
@@ -406,9 +460,10 @@ import of an edited module loads a second, empty copy).
 - Heading straight at a rock's middle, the side a fish turns to is still a choice (see Steering
   past rocks). Shivering on the move past a rock, the last kind of stuck episode in the pinch
   measurements, is gone since `v0.31.5`.
-- Jumps on the way back from a reef pose: a hover or shelter can leave a fish outside its swim
-  volume or under the sand, and the first frame back on the pipeline snaps it in (0.1 to 0.8 WU,
-  seen with and without the pinch changes).
+- A fish a pose leaves outside its volume or under the sand pad stays there for a few frames while
+  it eases back in (see Back on the pipeline); the poses themselves are not yet kept inside.
+- A grouper settling in moves up to 0.13 WU a frame along the settle curve (an arrival at speed,
+  within the pose, not a jump).
 
 - The landscape has no caves. Shelters are concave spots between and under ledge tiers, which
   small fish find often and fish over about 1.5 BL rarely (a 2 BL fish found one in 0 of 40

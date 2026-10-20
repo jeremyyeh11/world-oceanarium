@@ -72,6 +72,43 @@ const bommies = setRockObstacles([
   assert.ok(Math.abs(free.x - (3.2 - 2.25 - pad)) < 1e-6, 'at mid-height it goes straight out to the padded surface')
 }
 
+// Back from a reef site between the bommies: a fish that starts inside both pads swims slowly out
+// of the gap while the clamp eases in (1.5 s at 60 fps), its correction capped at its step plus
+// the return speed, as Fish.jsx does. Pushed out of the deeper pad, it landed inside the other and
+// flicked between them 0.1 to 0.2 WU a frame; out along the pads' summed normal it does not.
+{
+  const bodyLength = 1.976
+  const returnStep = 1.2 / 60
+  for (const start of [[0.35, -18.2, 0.9], [0.1, -17.5, 1.3], [0.6, -18.9, 0.5]]) {
+    for (const dz of [-0.02, 0.02]) {
+      const position = new THREE.Vector3(...start)
+      const from = new THREE.Vector3()
+      const unclamped = new THREE.Vector3()
+      const lastMove = new THREE.Vector3()
+      let blend = 0
+      let flicks = 0
+      for (let frame = 0; frame < 240; frame++) {
+        from.copy(position)
+        position.z += dz
+        unclamped.copy(position)
+        const maxStep = unclamped.distanceTo(from) + returnStep
+        pushOutOfRocks(position, bodyLength, from, FLOOR_Y, null, maxStep)
+        position.lerpVectors(unclamped, position, blend)
+        const correction = position.distanceTo(unclamped)
+        if (correction > maxStep) position.lerpVectors(unclamped, position, maxStep / correction)
+        blend = Math.min(1, blend + 1 / 90)
+        const move = position.clone().sub(unclamped)
+        if (move.length() > 0.005 && lastMove.length() > 0.005 && move.dot(lastMove) < -0.5 * move.length() * lastMove.length()) flicks += 1
+        lastMove.copy(move)
+        assert.ok(position.distanceTo(from) <= 0.02 + maxStep + 1e-6, `frame ${frame}: no jump out of the pads (${position.distanceTo(from).toFixed(3)} WU)`)
+        assert.ok(position.y >= FLOOR_Y - 1e-9, `frame ${frame}: never through the swim floor`)
+      }
+      assert.ok(flicks <= 2, `it does not flick between the two rocks on the way out (${flicks} flicks)`)
+      assert.equal(pushOutOfRocks(position.clone(), bodyLength, null, FLOOR_Y, null), null, 'it is out of both pads within 4 s')
+    }
+  }
+}
+
 clearRockObstacles(bommies)
 
 // The probe: a rock ahead bends the heading, unless the fish is at a pinch (lookAhead false),

@@ -89,4 +89,97 @@ clearRockObstacles(bommies)
   clearRockObstacles(rock)
 }
 
+// The probe feels a rock gradually: swinging the heading across a rock's outline a twentieth of a
+// degree at a time never changes the urgency or the bend by more than a sliver. Before, the bend
+// came on in full the frame the probe touched the padding (urgency 0 to 0.2 or more).
+{
+  const rock = setRockObstacles([{ x: 0, y: -5, z: -6, width: 4, height: 10, depth: 4, yaw: 0.3 }], OPTIONS)
+  const position = new THREE.Vector3(0, 0, -0.5)
+  let last = null
+  let lastBend = null
+  let felt = false
+  let largestJump = 0
+  let largestBend = 0
+  for (let deg = 5; deg <= 40; deg += 0.05) {
+    const angle = THREE.MathUtils.degToRad(deg)
+    const forward = new THREE.Vector3(Math.sin(angle), 0, -Math.cos(angle))
+    const desired = forward.clone()
+    const urgency = steerAroundRocks(desired, position, forward, 0.4, 1.2)
+    if (urgency > 0) felt = true
+    if (last !== null) {
+      largestJump = Math.max(largestJump, Math.abs(urgency - last))
+      largestBend = Math.max(largestBend, desired.distanceTo(lastBend))
+    }
+    last = urgency
+    lastBend = desired.clone()
+  }
+  assert.ok(felt, 'the rock is felt somewhere in the sweep')
+  assert.ok(largestJump < 0.02, `urgency changes smoothly with the heading (largest step ${largestJump.toFixed(3)})`)
+  assert.ok(largestBend < 0.05, `and so does the bent heading (largest step ${largestBend.toFixed(3)})`)
+  clearRockObstacles(rock)
+}
+
+// A young angelfish swimming past a rock with a smaller one beside it, a frame at a time, with
+// Fish.jsx's bend smoothing (ROCK_AVOID_RISE / FALL) and turn cap. Before, its probe tip sat on
+// the edge of both pads and landed in one, then the other, every frame: the bend's normal flipped
+// up and down and the heading shivered (95 flips over these 17 runs). Now it does not.
+{
+  const pieces = [
+    { x: 0, y: -5, z: -6, width: 4, height: 10, depth: 4, yaw: 0.3 },
+    { x: 2.6, y: -2.2, z: -6, width: 1.2, height: 1, depth: 1.2, yaw: 0 },
+  ]
+  const rocks = setRockObstacles(pieces, OPTIONS)
+  const bodyLength = 0.4
+  const speed = 1.2
+  const delta = 1 / 60
+  let flips = 0
+  for (let i = -8; i <= 8; i++) {
+    const position = new THREE.Vector3(i * 0.25 + 1, -1, 2)
+    const goal = new THREE.Vector3(3.5, -1.5, -14)
+    const heading = goal.clone().sub(position).normalize()
+    const smoothed = new THREE.Vector3()
+    let smoothedUrgency = 0
+    let lastAxis = null
+    for (let frame = 0; frame < 600; frame++) {
+      const base = goal.clone().sub(position).normalize()
+      const desired = base.clone()
+      const raw = steerAroundRocks(desired, position, heading, bodyLength, speed)
+      const alpha = 1 - Math.exp(-delta * (raw >= smoothedUrgency ? 10 : 2.5))
+      smoothed.lerp(desired.sub(base), alpha)
+      smoothedUrgency += (raw - smoothedUrgency) * alpha
+      const target = base.add(smoothed).normalize()
+      const cap = speed / bodyLength * delta * (1 + 2 * smoothedUrgency)
+      const before = heading.clone()
+      const angle = heading.angleTo(target)
+      if (angle <= cap) heading.copy(target)
+      else heading.lerp(target, cap / angle).normalize()
+      const axis = before.cross(heading)
+      if (axis.length() > Math.sin(THREE.MathUtils.degToRad(2))) {
+        if (lastAxis && lastAxis.dot(axis) < 0) flips += 1
+        lastAxis = axis
+      } else lastAxis = null
+      position.addScaledVector(heading, speed * delta)
+    }
+  }
+  assert.ok(flips <= 2, `no shiver past the two rocks (${flips} heading flips)`)
+  clearRockObstacles(rocks)
+}
+
+// A thin coral table: the probe's push off it goes to the fish's side of the table's middle, not
+// the probe's. A fish above it, heading down through it, pulls up; one below, heading up, dips.
+{
+  const table = setRockObstacles([{ x: 0, y: -0.15, z: -3, width: 3, height: 0.3, depth: 3, yaw: 0 }], OPTIONS)
+  const above = new THREE.Vector3(0, 0.5, 1)
+  const down = new THREE.Vector3(0, -0.35, -1).normalize()
+  const fromAbove = down.clone()
+  assert.ok(steerAroundRocks(fromAbove, above, down, 0.4, 1) > 0, 'the table is felt from above')
+  assert.ok(fromAbove.y > down.y + 0.05, `from above it bends up (${down.y.toFixed(2)} to ${fromAbove.y.toFixed(2)})`)
+  const below = new THREE.Vector3(0, -0.8, 1)
+  const up = new THREE.Vector3(0, 0.35, -1).normalize()
+  const fromBelow = up.clone()
+  assert.ok(steerAroundRocks(fromBelow, below, up, 0.4, 1) > 0, 'and from below')
+  assert.ok(fromBelow.y < up.y - 0.05, `from below it bends down (${up.y.toFixed(2)} to ${fromBelow.y.toFixed(2)})`)
+  clearRockObstacles(table)
+}
+
 console.log('rock obstacle tests passed')

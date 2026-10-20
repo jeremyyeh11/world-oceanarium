@@ -7,7 +7,7 @@ import * as THREE from 'three'
 //
 // Fish use it at three points of the unified pipeline (Fish.jsx):
 //   steer  — steerAroundRocks probes ahead along the heading and bends the desired heading
-//            along the rock's surface and away from it, returning an urgency that raises the
+//            along the rocks' surfaces and away from them, returning an urgency that raises the
 //            turn rate (the same idea as boundaryAvoidanceTurnStep for the swim walls)
 //   clamp  — pushOutOfRocks moves a fish that still ended up inside a rock (plus a body pad)
 //            back to the surface and returns the surface normal so its heading can slide; at
@@ -29,6 +29,19 @@ const WEDGE_DOT = -0.25
 // steerAroundRocks: where along its reach the probe looks for a rock ahead.
 const PROBE_STEPS = [0.2, 0.45, 0.7, 1]
 const NO_PROBE_STEPS = []
+// The probe feels a rock across a band about this wide (radians, as seen from the fish) around
+// its padded outline: from nothing just outside to full strength just inside.
+const PROBE_FEEL_ANGLE = 0.15
+// Within this share of a pad's padded half-height of its middle, the fish counts as on neither
+// side of it, and the probe's push off it is level (see feltHit).
+const SIDE_BAND = 0.25
+// The probe's push off a pad has at least this much of its padded half-height in its vertical
+// part (toward the fish's side): in a thin table's middle the gradient is level, and the bend
+// slid the fish along its own heading, up or down through the table. A tall rock's push stays
+// nearly level there.
+const SIDE_FLOOR = 0.5
+// The push off a rock the fish is brushing comes on over this much depth (as summedHit measures it).
+const TOUCH_ONSET = 0.1
 
 let field = null
 // Set by pushOutOfRocks, read back with pinchedLastPush.
@@ -260,13 +273,63 @@ function summedHit(point, pad, outNormal) {
   return best
 }
 
+// Like summedHit, for the probe ahead, but continuous: a pad counts from `band` WU outside its
+// padded surface, ramping to full strength `band` inside, so the bend fades to nothing at a
+// rock's outline instead of switching on the frame the probe crosses it. Each pad's normal is
+// weighted by its ramp, and its vertical part points to the fish's side of the pad's middle
+// (`from`), not the probe's: across a thin coral table's middle the probe's own side flips
+// between up and down every frame it crosses. Returns the strongest ramp (0 clear, up to 1) and
+// writes the summed direction (not normalized) to `outNormal`; `feltDepth` is how far inside the
+// deepest pad the point is (as deepestHit measures it, 0 when outside all).
+let feltDepth = 0
+function feltHit(point, pad, band, from, outNormal) {
+  outNormal.set(0, 0, 0)
+  feltDepth = 0
+  const indices = field.grid.get(cellKey(Math.floor(point.x / GRID_CELL), Math.floor(point.z / GRID_CELL)))
+  if (!indices) return 0
+  const { data } = field
+  let strongest = 0
+  for (const i of indices) {
+    const o = i * STRIDE
+    const rx = data[o + 3] + pad
+    const ry = data[o + 4] + pad
+    const rz = data[o + 5] + pad
+    const dx = point.x - data[o]
+    const dy = point.y - data[o + 1]
+    const dz = point.z - data[o + 2]
+    const c = data[o + 6]
+    const s = data[o + 7]
+    const lx = c * dx - s * dz
+    const lz = s * dx + c * dz
+    const f = Math.sqrt((lx / rx) ** 2 + (dy / ry) ** 2 + (lz / rz) ** 2)
+    // How far outside the padded surface (negative inside), along the line from its middle.
+    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+    const outside = f > 1e-6 ? distance - distance / f : -Math.min(rx, ry, rz)
+    if (outside >= band) continue
+    const ramp = Math.min(1, (band - outside) / (2 * band))
+    if (ramp > strongest) strongest = ramp
+    if (1 - f > feltDepth) feltDepth = 1 - f
+    const side = THREE.MathUtils.clamp((from.y - data[o + 1]) / (SIDE_BAND * ry), -1, 1)
+    local.set(lx / (rx * rx), Math.max(Math.abs(dy), SIDE_FLOOR * ry) / (ry * ry) * side, lz / (rz * rz))
+    gradient.set(c * local.x + s * local.z, local.y, -s * local.x + c * local.z)
+    if (gradient.lengthSq() < 1e-12) gradient.set(from.x - data[o], 0, from.z - data[o + 2])
+    const length = gradient.length()
+    if (length > 1e-9) outNormal.addScaledVector(gradient, ramp / length)
+  }
+  return strongest
+}
+
 export function rockPad(bodyLength) {
   return bodyLength * 0.35 + 0.3
 }
 
-// Bends `desired` (unit, edited in place) around the first rock ahead along `forward`. Probes
-// out to a few body lengths or about a second and a half of travel; the nearer the hit, the
-// stronger the turn. Returns the urgency (0 clear, up to 1) for the turn-rate boost.
+// Bends `desired` (unit, edited in place) around the rocks ahead along `forward`. Probes out to
+// a few body lengths or about a second and a half of travel; the nearer and deeper the probe
+// meets a rock, the stronger the turn. The probe feels each rock gradually across its outline
+// (feltHit): a bend that switched on in full as the probe touched the padding and off as it
+// left made a fish skimming a rock flick its heading 2° to 5° every frame, the probe tip landing
+// in and out of the padding on alternate frames. Returns the urgency (0 clear, up to 1) for the
+// turn-rate boost.
 //
 // `lookAhead` false skips the probe and keeps only the push off rocks it is brushing: for a fish
 // held at a pinch (pushOutOfRocks), which is not going anywhere, and whose probe, ahead into the
@@ -276,10 +339,13 @@ export function steerAroundRocks(desired, position, forward, bodyLength, speed, 
   const pad = rockPad(bodyLength)
   const reach = Math.max(bodyLength * 3, speed * 1.5, 3) + pad
   let urgency = 0
+  let weight = 0
+  avoid.set(0, 0, 0)
   for (const t of lookAhead ? PROBE_STEPS : NO_PROBE_STEPS) {
     probe.copy(position).addScaledVector(forward, reach * t)
-    const depth = summedHit(probe, pad, normal)
-    if (depth <= 0) continue
+    const strength = feltHit(probe, pad, PROBE_FEEL_ANGLE * reach * t / 2, position, normal)
+    if (strength <= 0 || normal.lengthSq() < 1e-12) continue
+    normal.normalize()
     // Slide along the surface: drop the into-rock part of the heading. Head-on, pick the
     // side the desired heading already leans to, or turn right by default.
     tangent.copy(forward).addScaledVector(normal, -forward.dot(normal))
@@ -288,16 +354,21 @@ export function steerAroundRocks(desired, position, forward, bodyLength, speed, 
       if (tangent.dot(desired) < 0) tangent.negate()
     }
     tangent.normalize()
-    urgency = Math.min(1, (1 - t) * 0.8 + depth * 0.6 + 0.2)
-    avoid.copy(tangent).addScaledVector(normal, 0.6).multiplyScalar(2.5 * urgency)
-    desired.add(avoid)
-    break
+    const stepUrgency = Math.min(1, strength * ((1 - t) * 0.8 + 0.2) + feltDepth * 0.6)
+    // Every point that feels a rock bends the heading, weighted so the most urgent leads: taking
+    // only the nearest, the bend jumped as the nearest hit moved from one point to the next.
+    const w = stepUrgency * stepUrgency
+    avoid.addScaledVector(tangent, w).addScaledVector(normal, 0.6 * w)
+    weight += w
+    urgency = Math.max(urgency, stepUrgency)
   }
-  // Already brushing a rock: push straight off it as well.
+  if (weight > 0) desired.addScaledVector(avoid, 2.5 * urgency / weight)
+  // Already brushing a rock: push straight off it as well, coming on over the first of the padding.
   const touching = summedHit(position, pad * 1.25, normal)
   if (touching > 0) {
-    desired.addScaledVector(normal, 1.5 * touching + 0.5)
-    urgency = Math.max(urgency, 0.6)
+    const onset = Math.min(1, touching / TOUCH_ONSET)
+    desired.addScaledVector(normal, 1.5 * touching + 0.5 * onset)
+    urgency = Math.max(urgency, 0.6 * onset)
   }
   if (desired.lengthSq() > 1e-6) desired.normalize()
   return urgency

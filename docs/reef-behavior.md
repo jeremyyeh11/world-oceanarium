@@ -252,6 +252,49 @@ gap, its destination through it. Before, it stayed for minutes at 60 flips a sec
 out in 1.7 to 3.6 s (held a moment, gave up, turned round, or slid up the crease and over), with
 0 to 20 heading flips (once 59). Two young angelfish put in the coral cage slid out in 4 s.
 
+## Steering past rocks
+
+`steerAroundRocks` (rockObstacles.js) probes ahead along the heading at four points (0.2, 0.45,
+0.7 and 1 of its reach, 3 BL or 1.5 s of travel, at least 3 WU, plus the pad) and bends the
+desired heading along the rock it meets and away from it. Fish.jsx smooths the bend per fish
+(`ROCK_AVOID_RISE` 10/s, `ROCK_AVOID_FALL` 2.5/s).
+
+Up to `v0.30.3-dev_1` the probe either hit a pad or missed it, and a hit bent the heading in
+full at once (urgency at least 0.2, more for the nearer probe points). A fish skimming a rock
+held its heading where the probe tip sat on the pad's outline, and a per-frame trace (desktop,
+The Reefs) showed the tip landing in and out of the pad on alternate frames: 65% of a young
+angelfish's flips came with the probe switching between hit and miss, the rest with it switching
+between two pads whose pushes pointed opposite ways, a rock above and a small obstacle below.
+The smoothing's quick rise and slow fall turned each in-out pair into a 2° to 5° flick of the
+heading, frame after frame, for seconds. A thin coral table did the same on its own: in its
+middle the probe's side flips between above and below, and so did the bend's vertical part.
+The clamp, pinches and the push off a rock the fish is brushing played no part.
+
+Since `v0.31.4-dev_1` the probe feels a rock gradually (`feltHit`):
+
+- Each pad counts from a band outside its padded surface to the same depth inside, ramping from
+  nothing to full strength (`PROBE_FEEL_ANGLE`: the band is 0.15 rad wide as seen from the fish,
+  so about 0.05 WU at the nearest probe point and 0.26 WU at the farthest for a young angelfish).
+  The bend fades to nothing at a rock's outline instead of switching on there, and a fish
+  skimming a rock settles on a steady small bend.
+- Overlapping pads add up by their ramps, so the push from one rock fades out as the probe
+  leaves it rather than handing over to the other's in full.
+- Every probe point that feels a rock bends the heading, weighted by the square of its urgency,
+  so the strongest leads; before, only the nearest hit counted, and the urgency jumped when the
+  nearest hit moved from one point to the next.
+- A pad's vertical push points to the fish's side of its middle, not the probe's
+  (`SIDE_BAND`: within a quarter of the padded half-height of the middle it fades to level), and
+  is at least half the padded half-height strong (`SIDE_FLOOR`). A fish above a coral table pulls
+  up over it and one below dips under it; before, a fish above heading down through a table was
+  bent further down once its probe passed the table's middle. A tall rock's push stays nearly level.
+- The push off a rock the fish is brushing comes on over the first tenth of the padding
+  (`TOUCH_ONSET`) instead of at half strength at once.
+
+Heading straight at a rock's middle, the side to turn to is still a choice (the side the
+desired heading leans to).
+
+TBD-MEASURED
+
 ## Tuning
 
 Every `reef` key overrides `REEF_DEFAULTS` in `reefBehavior.js` (`modes` and `coral` merge key by

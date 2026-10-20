@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.31.4 — Fish at the staghorn
+
+Status: in review as `v0.31.4-dev_1` (2026-10-20, branch `feat/staghorn-fish`). Jeremy (2026-10-20): "do fish now interact with the new staghorn corals? if not, establish behavior. there should be some sort of universal behavior to govern all fish interaction with various coral types". They did not: the staghorn was only a steering obstacle, and the reef-site rays passed through it, so a fish could settle at a rock face or a table's rim with branches through its body.
+
+### Fish behaviour
+
+- Coral forms (`docs/reef-behavior.md`, Coral forms): coral behaviour is split by growth form, not species. `CORAL_FORMS` in `reefBehavior.js` says how each reef mode plays at each form: a `table` (under the plate, at the rim) and now a `thicket` (over the crown, at the flank, in among the branches); `mound`, `fan` and `host` are written down as proposed. Five rules hold for every fish at every coral: corals are solid to the site rays, a fish goes in only where it has room to turn, every coral is a steering obstacle, each decision picks rock or a form by the species' share for that mode, and a coral search that finds nothing tries rock.
+- Staghorn thickets join the reef-site surfaces: one per patch (37 inside the reef reach), its colonies' `_far` meshes merged with a BVH tree, built one patch per slice after the placement (119k triangles, 56 ms in all, 3.6 ms worst per patch). `setCoralSurfaces` now takes any number of sets, each tagged with its form.
+- At a thicket: hovers hang 0.7–1.2 body lengths over a colony's crown, level and 12° nose-down (60% of thicket hovers) or beside its flank, facing the colony's outline; patrols pass right over the crown; pecks pick at the outer branches; fish up to 0.8 WU (the juvenile angelfish) shelter in among the branches. Searches aim at a colony, not the patch's middle (mostly bare rock), and check room in 26 directions, cast only at nearby surfaces: thin tips slipped between the eight level rays and came within 0.09 body lengths of a fish.
+- Shares (`reef.corals.<form>`, was `reef.coral`): the bannerfish hangs over the crowns most (0.4; table hover 0.6 → 0.45), the juvenile angelfish hides among the branches (0.3; table shelter 0.7 → 0.55), the adult angelfish, grouper and triggerfish hang by or cruise past them less. Over 5 minutes on desktop, thickets took 25 of 235 visits, 60% of thicket trips succeeded (rock 69%, tables 63%), no fish came within 0.26 body lengths of a branch, and thicket searches took 1.1–1.7 ms median, 6 ms worst (a rock shelter 2.9 and 8.4 ms in the same session).
+
 ## v0.31.3 — Reef camera tilt
 
 Status: accepted and promoted as clean `v0.31.3` from `v0.31.1-dev_1` on Jeremy's go-ahead (2026-10-20, branch `reef-camera-tilt`, #140: "Looks good on my phone, merge and promote"). Built as `v0.31.1-dev_1` on clean `v0.31.0`; `v0.31.2` merged in the meantime, so the clean number is `v0.31.3`. `package.json` and `package-lock.json` move to `0.31.3`. Jeremy (2026-10-20): "angle camera slightly down for the reef so the central outcrop bommie sits around the center/slightly below the center of the screen".

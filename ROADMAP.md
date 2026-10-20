@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Fish at the staghorn (coral forms)
+
+Status: `Current in development` as `v0.31.4-dev_1` (branch `feat/staghorn-fish`). Jeremy (2026-10-20): "do fish now interact with the new staghorn corals? if not, establish behavior. there should be some sort of universal behavior to govern all fish interaction with various coral types". They did not: the staghorn was only a steering obstacle, and the reef-site rays passed through it. Design: coral behaviour split by growth form (`table`, `thicket`; `mound`, `fan` and `host` proposed), one table of how each reef mode plays per form, and per-species shares per form. See `docs/reef-behavior.md` (Coral forms).
+
+Subtasks:
+- [x] Staghorn solid to the reef-site rays: one surface per patch from the `_far` meshes, trees built in slices.
+- [x] Coral forms layer: `CORAL_FORMS` in `reefBehavior.js`, `reef.corals.<form>` shares in `species.js`, `kind` a form in `reefSites.js`.
+- [x] Thicket aims: crown hover and pass-over, flank hover and peck, inside shelter for fish up to 0.8 WU (the juvenile angelfish).
+- [x] Measured on desktop (shares, trip success, search ms, branch clearance, tree build ms).
+- [ ] Jeremy's phone review of `v0.31.4-dev_1`. `Blocked / waiting review`
+- [ ] Thicket flank searches find a spot about a third of the time (rock or a table is often in the way); a search that finds none goes to rock. Raise it if the thickets still read as unused. `Backlog`
+- [ ] Mound (massive, brain, encrusting), fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. `Backlog`
+
 ### Staghorn coral
 
 Status: shipped in clean `v0.31.0` (2026-10-20, from `v0.31.0-dev_3`, branch `feat/staghorn-coral`, #139): Jeremy's staghorn model (*Acropora muricata*) in one-colour patches on the table corals' bommies (his ask after `dev_1`'s separate thickets looked "sad and separate"), an Atlas entry with a three-patch specimen and an in-tank tile.

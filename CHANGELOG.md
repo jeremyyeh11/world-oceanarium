@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.31.6 — No jumps on the way back from a rock or a host
 
-Status: in development as `v0.31.6-dev_1` (branch `fix/reef-handback-jumps`), from `main` at `v0.31.5` (which carries #138's pinch handling and #144's probe). The ROADMAP item from 2026-10-19: reef fish jumped in a single frame when they came back onto the swim pipeline from a reef pose (0.1 to 0.8 WU), and a cleaner by the sunfish was moved up to 2.3 WU by the host clearance. Measured on a build of #138 with `main` at `v0.31.3`, before #144's probe change; the clamps it changes are the same.
+Status: accepted and promoted as clean `v0.31.6` from `v0.31.6-dev_1` on Jeremy's go-ahead (2026-10-21, branch `fix/reef-handback-jumps`, #145: "its good", then "promote to clean v0.31.6 and merge"). `package.json` and `package-lock.json` move to `0.31.6`. From `main` at `v0.31.5` (which carries #138's pinch handling and #144's probe). The ROADMAP item from 2026-10-19: reef fish jumped in a single frame when they came back onto the swim pipeline from a reef pose (0.1 to 0.8 WU), and a cleaner by the sunfish was moved up to 2.3 WU by the host clearance.
 
 ### Behaviour
 

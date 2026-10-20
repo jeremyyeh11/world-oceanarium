@@ -75,11 +75,11 @@ Status: shipped in clean `v0.29.0` (2026-10-19, from `v0.29.0-dev_13`, branch `f
 
 Subtasks:
 - [x] Reef fish wedged between two rocks (pinches, #138) and shivering on the move past a rock (continuous probe, #144): shipped together in clean `v0.31.5` (2026-10-20). Measured: pinned fish 3 → 0; stuck episodes 1.6 → 0.8 a minute with the pinch fix, then 0.66 → 0 at rocks with the probe fix; reef trips settled unchanged. See `docs/reef-behavior.md` (Pinches between rocks, Steering past rocks).
-- [ ] Jumps on the hand-back from a reef pose or a host: a fish coming back onto the pipeline was snapped in by the clamps (0.1 to 0.8 WU); a cleaner by the sunfish was shoved by the host clearance. `Current in development` as `v0.31.6-dev_1` (branch `fix/reef-handback-jumps`), waiting for Jeremy's phone review. See `docs/reef-behavior.md` (Back on the pipeline).
+- [x] Jumps on the hand-back from a reef pose or a host: a fish coming back onto the pipeline was snapped in by the clamps (0.1 to 0.8 WU); a cleaner by the sunfish was shoved by the host clearance. Shipped in clean `v0.31.6` (2026-10-21, branch `fix/reef-handback-jumps`, #145). See `docs/reef-behavior.md` (Back on the pipeline).
   - [x] Cause (per-frame trace of the pipeline stages): mostly the rock clamp easing in from inside two overlapping pads, flipping between them (0.1 to 0.27 WU a frame); the swim clamp / sand lift on a fish a pose left outside; the host clearance coming round a fish already inside it (0.12 to 0.2 WU).
   - [x] Fix: the swim clamp, sand lift and host clearance never move a fish further from where it began the frame than its own step plus a return speed (1.2 WU/s, host 2.4); the rock clamp the same while it eases in after a reef pose; out of overlapping pads along their summed normal.
   - [x] Measured (desktop, off/on alternating, 13.2 / 10.5 minutes): hand-back moves over 0.1 WU 13 of 435 → 0 of 387 (largest 0.20 → 0.038); cleaners none over 0.05 either way; shipped code 13.8 minutes: 481 hand-backs, none over 0.05 WU.
-  - [ ] Jeremy's phone review of `v0.31.6-dev_1`.
+  - [x] Jeremy's go-ahead on `v0.31.6-dev_1` (2026-10-21: "its good").
   - [ ] Keep reef poses inside the swim volume and above the sand in the first place (leave direction into the volume); they now ease back in instead. `Backlog`
 - [x] `reef` profiles and the patrol / hover / peck / shelter state machine (`reefBehavior.js`); sites raycast from the drawn rocks with BVH trees (`reefSites.js`).
 - [x] Reef swim volumes (`REEF_BOUNDS`): down to y -19, back to z -52.

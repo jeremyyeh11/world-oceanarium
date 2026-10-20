@@ -1,6 +1,6 @@
 # Lossless performance cleanup — review evidence
 
-Review build: `v0.31.2-dev_3`, branch `feat/lossless-performance-cleanup`, PR #142.
+Release: `v0.31.2`, approved by YK on 2026-10-20 from `v0.31.2-dev_3`, branch `feat/lossless-performance-cleanup`, PR #142.
 Baseline: main `9e7cc1f` (`v0.31.0`). Tracking: #141.
 
 ## Intended experience
@@ -57,8 +57,10 @@ Independent first-round review: runtime review found no additional actionable re
 
 Third independent review of implementation head `b9d54d1111d11c159eb27b24aa4e07a9944b2656`: **no actionable findings**. It independently rechecked asset bytes/manifest, rejected 33 additional mutations normally and under `-O`, and compared 2,124,134 material writes over 5,000 differential frames with exact value/order/frequency matches and zero remaining cache listeners after cleanup. It ran the eight in-memory Python tests and mocked CLI edge cases rather than the temporary-Git integration test; parent ran all nine tests, including that integration test, normally/optimized and on isolated Python 3.12/Pillow 12.3.0/Zopfli 0.4.1. Node tests, lint (zero errors/eight existing warnings), build, procedural checks and baseline comparison passed. [GitHub CI on this implementation head](https://github.com/jeremyyeh11/world-oceanarium/actions/runs/39354014149) and Vercel deployment succeeded. Review loop has no remaining confirmed actionable finding; this is not a universal bug-free guarantee. Preview authentication and human visual/physical-phone review remain separate gates; no merge/release approval is implied.
 
-The default microbenchmark reproduces shipped GLB node/primitive hierarchies without rendering or texture decoding: 200 fish, evenly cycling through 22 fish GLBs, three runtime groups per fish (1,231 nodes / 594 meshes). Seven alternating 500-frame rounds after warmup: **25.17 ms baseline vs 5.45 ms cached** median for the entire round. Optional `--synthetic` stresses a 60-node hierarchy. Neither is real tank FPS, actual population weighting or a prediction for physical phones. Physical-phone feel/performance review remains separate.
+YK subsequently approved merging/promoting this candidate as clean `v0.31.2`. This supersedes the earlier no-merge hold and waiting-for-approval status, not the measurement caveats: physical-phone performance/touch-scroll improvement was not measured. Clean promotion changes the visible version and returns creature loading to the existing production-table route; no DB rows are copied or modified.
+
+The default microbenchmark reproduces shipped GLB node/primitive hierarchies without rendering or texture decoding: 200 fish, evenly cycling through 22 fish GLBs, three runtime groups per fish (1,231 nodes / 594 meshes). Seven alternating 500-frame rounds after warmup: **25.17 ms baseline vs 5.45 ms cached** median for the entire round. Optional `--synthetic` stresses a 60-node hierarchy. Neither is real tank FPS, actual population weighting or a prediction for physical phones. Physical-phone performance remains an optional follow-up, not a claimed release improvement.
 
 ## Rollback
 
-Revert this branch's implementation commit (or the eventual squash PR) to restore the original material traversal and GLBs. No DB/schema changes; `creatures` and `creatures_dev` untouched. No changes to water, simulation/steering/cadence, LOD thresholds or user input.
+Revert PR #142 to restore the original material traversal and GLBs. No DB/schema changes; `creatures` and `creatures_dev` untouched. No changes to water, simulation/steering/cadence, LOD thresholds or user input.

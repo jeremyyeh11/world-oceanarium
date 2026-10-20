@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.31.2 — Lossless performance cleanup (in review)
+## v0.31.2 — Lossless performance cleanup
 
-Status: `v0.31.2-dev_3`, branch `feat/lossless-performance-cleanup`, #141 / PR #142. Not accepted or released. Review-only cleanup requested by Jeremy; baseline clean `v0.31.0`. Other open review branches keep their own release buckets.
+Status: accepted for clean `v0.31.2` from `v0.31.2-dev_3` on YK's explicit merge approval (2026-10-20, PR #142 / #141, branch `feat/lossless-performance-cleanup`). Baseline clean `v0.31.0`; other open review branches keep their own release buckets. No database changes. Physical-phone performance improvement remains unmeasured; release approval is not a claim that mobile lag is solved.
 
 ### Performance / assets
 

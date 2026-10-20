@@ -13,18 +13,6 @@ Status labels:
 
 ## Current work
 
-### Lossless performance cleanup
-
-Status: `Current in development` — `v0.31.2-dev_3`, branch `feat/lossless-performance-cleanup`, #141 / PR #142. Jeremy selected cached fish material targets and lossless asset cleanup from the performance audit. YK requested review/fix loops without merging. Preserve identical display, interaction and full-rate motion; no water/boids/LOD/texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
-
-- [x] Cache mesh targets with live material references; preserve every-frame writes and fades; invalidate for nested model/LOD/debug child swaps and release listeners on unmount.
-- [x] Equivalence tests against the original pass, including material replacement, opacity boundaries and cleanup.
-- [x] Recompress embedded PNG scanlines without changing pixels, colour metadata, texture sampling or geometry/animation semantics.
-- [x] Final baseline asset comparison (15 GLBs / 18 PNGs, 3.66 MB saved), build/lint/tests and desktop/mobile-emulation browser smoke. Physical-phone performance still unverified.
-- [x] Review/fix loop: confirmed tooling findings fixed with regressions; third independent review at `b9d54d1` reports no actionable findings. Node/Python tests, build, procedural checks, GitHub CI and Vercel pass. No merge; human/device gates below remain open.
-- [ ] Review PR and deployed preview; Jeremy/YK approval and physical-phone performance check before clean promotion. `Blocked / waiting review`
-- [ ] Clean release only after explicit approval; public and dev DB rows untouched.
-
 ### Staghorn coral
 
 Status: shipped in clean `v0.31.0` (2026-10-20, from `v0.31.0-dev_3`, branch `feat/staghorn-coral`, #139): Jeremy's staghorn model (*Acropora muricata*) in one-colour patches on the table corals' bommies (his ask after `dev_1`'s separate thickets looked "sad and separate"), an Atlas entry with a three-patch specimen and an in-tank tile.
@@ -670,6 +658,16 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 ## Released / archived
 
 Newest first. Each entry shipped as a clean public release and was drained here per the roadmap-hygiene rule.
+
+### v0.31.2 — Lossless performance cleanup
+
+Status: clean promotion approved by YK on 2026-10-20 from `v0.31.2-dev_3` (PR #142 / #141, `feat/lossless-performance-cleanup`). Jeremy selected cached fish material targets and lossless PNG cleanup; no water/boids/LOD/input or texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
+
+- [x] Cache mesh targets with live materials, unchanged frame writes/fades, nested hierarchy invalidation and listener cleanup.
+- [x] Equivalence/lifecycle tests and exact lossless comparison: 15 GLBs / 18 PNGs; 3.66 MB saved.
+- [x] Three review/fix rounds; all confirmed findings fixed; final independent review has no actionable findings. Node/Python tests, build, procedural checks and review CI/Vercel passed.
+- [x] YK explicitly approved merge/clean release after the review summary. Public and dev DB rows untouched.
+- [ ] Physical-phone CPU/GPU/touch-scroll A/B measurement remains an optional performance follow-up, not a measured shipping gain or unresolved approval gate. `Backlog`
 
 ### v0.12.2 — Persistent tank sessions
 

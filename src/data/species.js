@@ -2141,10 +2141,10 @@ export const SPECIES = [
         pectoralFinFlutter: 0.45,
         finRootFrom: 'body-surface',
         pelvicFinFlutter: 0.1,
-        // The front dorsal spines and the anal spines, painted red in COLOR_1 from base (0) to
-        // tip (1), fold back flat while it swims and stand up in alarm (Fish.jsx, the spine
-        // driver). Modelled raised. axis: the body-axis height that splits dorsal from anal.
-        spineFold: { axis: 0.009, foldDegrees: 80 },
+        // Jeremy's shape keys: "open spines" (the basis) and "folded spines" (a morph target). The
+        // front dorsal and the anal spines fold while it swims and stand up in alarm (Fish.jsx,
+        // the spine driver). Mirror baked into the keys by scripts/bake-mirror-shape-keys.py.
+        spineFold: { morphTarget: 'folded spines' },
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,

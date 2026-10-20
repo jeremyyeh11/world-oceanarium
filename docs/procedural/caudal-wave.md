@@ -154,32 +154,31 @@ In `model.proceduralAnimation`, `src/data/species.js`.
 | `pectoralFinFlutter` | `0.12` | CPU flutter for independent pectorals |
 | `pelvicFinFlutter` | `0.07` | CPU flutter for independent pelvics |
 | `finRootFrom` | `'axis'` | How each independent fin's root (its pivot) is found: the tenth of its vertices nearest the body's long axis, or `'body-surface'`, nearest the body's surface |
-| `spineFold` | — | Optional folding spines: `{ axis, foldDegrees, squash }`. See **Folding spines** below |
+| `spineFold` | — | Optional folding spines: `{ morphTarget }`, the shape key's name. See **Folding spines** below |
 
 ### Folding spines
 
 An optional layer for fin spines joined into the body (Raccoon Butterflyfish, `v0.32.0`).
 Decoration, not thrust: the wave and the pectorals still swim the fish.
 
-- **Paint:** `COLOR_1` red on the body mesh, `0` at each spine's base to `1` at its tip,
-  black everywhere else (green and blue unused). Model the spines raised.
-- **Reach:** on load, `spineFoldReach()` (Fish.jsx) gives every painted vertex its height
-  above its own spine's base, a `spineReach` attribute: per bin along the body, the base is
-  the painted vertex nearest the body, smoothed over neighbouring bins (a stepped base left
-  ridges). Any paint ramp works; Jeremy's second paint starts at 0.4 at the base. Dorsal or
-  anal by which side of `axis` (the body axis height, source units) the vertex is on.
-- **Fold:** each painted vertex turns back toward the tail and in onto the body about its
-  base, by `uSpineFold × foldDegrees` (default 80°), in the plane of the source and vertical
-  axes, eased in over the first 0.3 of the paint so the spiny fin blends into the soft one.
-  The wave then runs on the folded position. Normals are left alone (a thin fin's face sideways).
-  `squash` (default 0) also shortens the reach as it folds, sinking the spines rather than
-  laying them back. Compared on 2026-10-21 (80° / 0, 45° / 0.6, 20° / 0.85): laying them back
-  flat kept the cleanest top line; the others left small nubs. Any fold of a few large spine
-  triangles shows facets in an extreme close-up.
-- **Driver** (Fish.jsx, after the startle whip): `spineFold` 1 folded on the move and in a
-  shelter; 0.5 while hovering, settling or pecking at a rock (`SPINE_RAISE_AT_ROCK`); 0 for
-  `SPINE_ALERT_SECONDS` (4 s) after a startle, a butterflyfish's threat display. Raises fast
-  (damp 12/s), folds slowly (2.5/s). The Atlas shows it folded.
+- **Blender:** two shape keys on the body mesh: the basis with the spines open (as modelled)
+  and one with them folded, named in `morphTarget` (`'folded spines'`). The modeller has full
+  control of both poses. Export with Data → Shape Keys on.
+- **Mirror:** the glTF exporter drops shape keys from a mesh with live modifiers, and Blender
+  will not apply a Mirror to a mesh with shape keys. Save the `.blend` and bake a copy with
+  `scripts/bake-mirror-shape-keys.py` (headless; it applies the Mirror into every key and welds
+  the seam as the Mirror does), or apply the Mirror before adding the keys.
+- **Runtime:** the key is a glTF morph target. `collectSpineMorphs()` (Fish.jsx) finds it on
+  each fish's own mesh (its own influences) and starts it folded; the Atlas keeps it folded.
+  The wave and turn bend run after three.js's morph chunks (`morphtarget_vertex`,
+  `morphnormal_vertex`), so the folded spines bend with the body.
+- **Driver** (Fish.jsx, after the startle whip): the key's weight is 1 (folded) on the move and
+  in a shelter; 0.5 while hovering, settling or pecking at a rock (`SPINE_RAISE_AT_ROCK`); 0 for
+  `SPINE_ALERT_SECONDS` (4 s) after a startle, a butterflyfish's threat display. Opens fast
+  (damp 12/s), folds slowly (2.5/s).
+- **History:** `dev_2`/`dev_3` folded painted (`COLOR_1`) spines in the shader, each vertex
+  turned about its own spine's base. It worked, but a fold computed from a few large spine
+  triangles crumpled into a faceted ridge; Jeremy's own folded pose replaced it in `dev_4`.
 - **Not this layer:** a whole fin that rows or ripples is [mask-fin-row](mask-fin-row.md).
 
 ## Shipped tuning

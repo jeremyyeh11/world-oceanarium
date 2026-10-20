@@ -15,7 +15,7 @@ Status labels:
 
 ### Raccoon Butterflyfish
 
-Status: `Current in development` (branch `feat/chaetodon-lunula`, started 2026-10-20). In review as `v0.32.0-dev_3` (2026-10-21, #146): Jeremy's model with folding spines, one group of 20 at The Reefs, Atlas entry (six fish) and tile.
+Status: `Current in development` (branch `feat/chaetodon-lunula`, started 2026-10-20). In review as `v0.32.0-dev_4` (2026-10-21, #146): Jeremy's model with folding spines, one group of 20 at The Reefs, Atlas entry (six fish) and tile.
 
 Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Chaetodon lunula`): 20 cm TL = 0.8 WU, nocturnal, pairs or small groups, LC (2009), up to 9 years, length–weight a 0.02291 / b 3.00.
@@ -26,9 +26,9 @@ Subtasks:
 - [x] 20 rows in `creatures_dev` (ids 418–437, 10 F / 10 M, size 0.10–0.95). Prod `creatures` needs Jeremy's go-ahead after the clean release.
 - [x] Jeremy's model (2026-10-21): 433 KB, 447 px opaque photo texture, separate pectorals and pelvics; verifier target added and passing.
 - [x] The Reefs roster, Atlas pose with two of the group (desktop, 375 px portrait, landscape checked), rendered Atlas tile.
-- [x] Folding spines (`dev_2`): `spineFold` on `caudal-vertex`, Jeremy's `COLOR_1` paint.
+- [x] Folding spines: Jeremy's shape keys as a morph target (`dev_4`; `dev_2`/`dev_3` folded painted spines in the shader). Bake: `scripts/bake-mirror-shape-keys.py`.
 - [ ] The full raise after a startle is not yet seen live (no startle in the sampled 20 s); check it on the phone. `Next`
-- [ ] Jeremy: review `v0.32.0-dev_3` on the phone (motion, spines, group, Atlas). `Blocked / waiting review`
+- [ ] Jeremy: review `v0.32.0-dev_4` on the phone (motion, spines, group, Atlas). `Blocked / waiting review`
 - [ ] Production `creatures` rows (20), on Jeremy's go-ahead once the clean version is live.
 - [ ] Phone frame rate with 20 more fish at The Reefs. `Next`
 

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.31.4 — Fish at the staghorn
 
-Status: in review as `v0.31.4-dev_1` (2026-10-20, branch `feat/staghorn-fish`). Jeremy (2026-10-20): "do fish now interact with the new staghorn corals? if not, establish behavior. there should be some sort of universal behavior to govern all fish interaction with various coral types". They did not: the staghorn was only a steering obstacle, and the reef-site rays passed through it, so a fish could settle at a rock face or a table's rim with branches through its body.
+Status: accepted and promoted as clean `v0.31.4` from `v0.31.4-dev_1` on Jeremy's go-ahead (2026-10-20, branch `feat/staghorn-fish`, #143: "merge"). `package.json` and `package-lock.json` move to `0.31.4`. Jeremy (2026-10-20): "do fish now interact with the new staghorn corals? if not, establish behavior. there should be some sort of universal behavior to govern all fish interaction with various coral types". They did not: the staghorn was only a steering obstacle, and the reef-site rays passed through it, so a fish could settle at a rock face or a table's rim with branches through its body.
 
 ### Fish behaviour
 

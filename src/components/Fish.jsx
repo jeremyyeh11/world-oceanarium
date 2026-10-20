@@ -595,14 +595,13 @@ function molaFinBases(geometry, frame) {
 
 const spineReachCache = new WeakSet()
 const SPINE_ROOT_BINS = 24
-// The paint below which a spine vertex counts as its base.
-const SPINE_ROOT_PAINT = 0.15
 
 // Folding spines: how far each spine vertex stands out from its spine's base, as a `spineReach`
 // attribute (source units, along the vertical axis). The base line is the paint's own: per bin
-// along the body, the lowest-painted vertices nearest the body (the top of the back for the
-// dorsal spines, the belly for the anal), so a tall spine folds as far as its own height. A
-// single spine height for the whole fin left the tall front spines standing half up.
+// along the body, the painted vertex nearest the body (the top of the back for the dorsal
+// spines, the belly for the anal), so a tall spine folds as far as its own height. A single
+// spine height for the whole fin left the tall front spines standing half up, and a base taken
+// from low paint alone missed a paint that starts at 0.4.
 function spineFoldReach(geometry, sourceAxis, verticalAxis, axisHeight) {
   if (!geometry || spineReachCache.has(geometry)) return
   spineReachCache.add(geometry)
@@ -625,11 +624,10 @@ function spineFoldReach(geometry, sourceAxis, verticalAxis, axisHeight) {
   if (Number.isFinite(minAlong)) {
     const span = Math.max(0.00001, maxAlong - minAlong)
     const binOf = value => THREE.MathUtils.clamp(Math.floor((value - minAlong) / span * SPINE_ROOT_BINS), 0, SPINE_ROOT_BINS - 1)
-    // Per side (+1 dorsal, -1 anal) and bin, the base: the painted-base vertex nearest the body.
+    // Per side (+1 dorsal, -1 anal) and bin, the base: the painted vertex nearest the body.
     const roots = { 1: new Array(SPINE_ROOT_BINS).fill(null), [-1]: new Array(SPINE_ROOT_BINS).fill(null) }
     for (let index = 0; index < count; index += 1) {
-      const paint = color.getX(index)
-      if (paint <= 0.001 || paint > SPINE_ROOT_PAINT) continue
+      if (color.getX(index) <= 0.001) continue
       const side = height[index] >= axisHeight ? 1 : -1
       const bin = binOf(along[index])
       const out = side * height[index]
@@ -643,7 +641,13 @@ function spineFoldReach(geometry, sourceAxis, verticalAxis, axisHeight) {
       }
       return null
     })
-    const filled = { 1: fill(roots[1]), [-1]: fill(roots[-1]) }
+    // Smoothed over neighbouring bins: a base that steps from bin to bin leaves ridges in the fold.
+    const smooth = values => values.map((value, bin) => {
+      if (value === null) return null
+      const near = [values[bin - 1], value, values[bin + 1]].filter(v => v != null)
+      return near.reduce((sum, v) => sum + v, 0) / near.length
+    })
+    const filled = { 1: smooth(fill(roots[1])), [-1]: smooth(fill(roots[-1])) }
     for (let index = 0; index < count; index += 1) {
       if (color.getX(index) <= 0.001) continue
       const side = height[index] >= axisHeight ? 1 : -1
@@ -692,6 +696,7 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
         spineFold: { value: 1 },
         spineAxis: { value: proceduralVertex.spineFold.axis ?? 0 },
         spineAngle: { value: THREE.MathUtils.degToRad(proceduralVertex.spineFold.foldDegrees ?? 80) },
+        spineSquash: { value: proceduralVertex.spineFold.squash ?? 0 },
       }
     })() : {}),
   } : null
@@ -756,6 +761,7 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
         shader.uniforms.uSpineFold = caudalUniforms.spineFold
         shader.uniforms.uSpineAxis = caudalUniforms.spineAxis
         shader.uniforms.uSpineAngle = caudalUniforms.spineAngle
+        shader.uniforms.uSpineSquash = caudalUniforms.spineSquash
       }
     }
     if (molaMaskUniforms) {
@@ -869,14 +875,18 @@ attribute float spineReach;
 uniform float uSpineFold;
 uniform float uSpineAxis;
 uniform float uSpineAngle;
+uniform float uSpineSquash;
 vec3 proceduralSpineFold(vec3 value) {
   float reach = spineReach;
   if (reach <= 0.0) return value;
+  // Shortened as it folds (a spine lowered into its groove), so the reach that turns back is
+  // shorter and the sawtooth edge does not lie over the spines behind it.
+  float folded = reach * (1.0 - uSpineFold * uSpineSquash);
   float angle = uSpineFold * uSpineAngle * smoothstep(0.0, 0.3, color_1.r);
   float outward = proceduralAxisValue(value, proceduralVerticalAxis()) >= uSpineAxis ? 1.0 : -1.0;
   float back = mix(-1.0, 1.0, uProceduralTailAtMaxZ);
-  proceduralAddAxis(value, proceduralVerticalAxis(), -outward * reach * (1.0 - cos(angle)));
-  proceduralAddAxis(value, uProceduralSourceAxis, back * reach * sin(angle));
+  proceduralAddAxis(value, proceduralVerticalAxis(), -outward * (reach - folded * cos(angle)));
+  proceduralAddAxis(value, uProceduralSourceAxis, back * folded * sin(angle));
   return value;
 }` : `
 vec3 proceduralSpineFold(vec3 value) {

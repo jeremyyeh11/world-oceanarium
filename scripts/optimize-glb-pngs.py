@@ -116,7 +116,8 @@ def parse_glb(data):
         raise ValueError('GLB buffer length does not match BIN data (apart from padding)')
     for view in document.get('bufferViews', []):
         start, length = view.get('byteOffset', 0), view['byteLength']
-        if (view.get('buffer', 0) != 0 or type(start) is not int or type(length) is not int
+        buffer_index = view.get('buffer', 0)
+        if (type(buffer_index) is not int or buffer_index != 0 or type(start) is not int or type(length) is not int
                 or start < 0 or start % 4 or length <= 0 or start + length > buffer_length):
             raise ValueError('GLB bufferView has an invalid buffer/range/alignment')
     return document, data[offset + 8:offset + 8 + size]
@@ -188,7 +189,9 @@ def verify(before, after):
                 require(ia.tobytes() == ib.tobytes(), 'Decoded pixels changed')
         else:
             require(a == b, f'Non-PNG bufferView {index} changed')
-    require(old_semantics == new_semantics, 'GLB semantics changed')
+    # Python container equality conflates JSON booleans with numbers (False == 0,
+    # True == 1). Compare canonical JSON so corrupted typed references cannot pass.
+    require(json.dumps(old_semantics, sort_keys=True) == json.dumps(new_semantics, sort_keys=True), 'GLB semantics changed')
     return len(png_views)
 
 

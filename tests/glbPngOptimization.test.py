@@ -59,6 +59,14 @@ class OptimizationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'semantics'):
             glb_png.verify(self.before, glb_png.encode_glb(changed, binary))
 
+    def test_rejects_boolean_number_semantic_substitution(self):
+        document, binary = glb_png.parse_glb(self.after)
+        for collection, key, value in [('textures', 'source', False), ('materials', 'doubleSided', 1)]:
+            changed = copy.deepcopy(document)
+            changed[collection][0][key] = value
+            with self.subTest(collection=collection), self.assertRaisesRegex(ValueError, 'semantics'):
+                glb_png.verify(self.after, glb_png.encode_glb(changed, binary))
+
     def test_rejects_format_metadata_or_pixels_change(self):
         document, binary = glb_png.parse_glb(self.after)
         png = glb_png.view_bytes(document, binary, 1)
@@ -101,11 +109,11 @@ class OptimizationTest(unittest.TestCase):
     def test_rejects_invalid_view_ranges(self):
         document, binary = glb_png.parse_glb(self.before)
         for key, value in [('byteOffset', 1), ('byteOffset', -4),
-                           ('byteLength', len(binary) + 1), ('buffer', 1)]:
+                           ('byteLength', len(binary) + 1), ('buffer', 1), ('buffer', False), ('buffer', 0.0)]:
             changed = copy.deepcopy(document)
             changed['bufferViews'][0][key] = value
             with self.subTest(key=key, value=value), self.assertRaisesRegex(ValueError, 'range'):
-                glb_png.parse_glb(glb_png.encode_glb(changed, binary))
+                glb_png.verify(self.before, glb_png.encode_glb(changed, binary))
 
     def test_rejects_invalid_declared_buffer_length(self):
         document, binary = glb_png.parse_glb(self.after)
@@ -120,6 +128,8 @@ class OptimizationTest(unittest.TestCase):
             sys.executable, '-O', __file__,
             'OptimizationTest.test_rejects_geometry_or_sampler_change',
             'OptimizationTest.test_rejects_format_metadata_or_pixels_change',
+            'OptimizationTest.test_rejects_boolean_number_semantic_substitution',
+            'OptimizationTest.test_rejects_invalid_view_ranges',
         ], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

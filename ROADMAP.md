@@ -15,7 +15,7 @@ Status labels:
 
 ### Lossless performance cleanup
 
-Status: `Current in development` — `v0.31.2-dev_2`, branch `feat/lossless-performance-cleanup`, #141 / PR #142. Jeremy selected cached fish material targets and lossless asset cleanup from the performance audit. YK requested review/fix loops without merging. Preserve identical display, interaction and full-rate motion; no water/boids/LOD/texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
+Status: `Current in development` — `v0.31.2-dev_3`, branch `feat/lossless-performance-cleanup`, #141 / PR #142. Jeremy selected cached fish material targets and lossless asset cleanup from the performance audit. YK requested review/fix loops without merging. Preserve identical display, interaction and full-rate motion; no water/boids/LOD/texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
 
 - [x] Cache mesh targets with live material references; preserve every-frame writes and fades; invalidate for nested model/LOD/debug child swaps and release listeners on unmount.
 - [x] Equivalence tests against the original pass, including material replacement, opacity boundaries and cleanup.

@@ -239,7 +239,8 @@ blocks of one session, two sessions of about 11 and 12 minutes each way:
   session with it (8 minutes, changes on) had none over 7 s, and the squeeze-through fired once.
 - Stuck episodes (a fish with over 100 heading flips, more than 2° a frame each way, in 10 s):
   35 in 22 minutes off (1.6 a minute, the longest 132 s), 19 in 23 minutes on (0.8 a minute, the
-  longest 17 s). All of those left are fish shivering on the move past a rock (see Known limits).
+  longest 17 s). All of those left were fish shivering on the move past a rock (see Steering past
+  rocks).
 - Heading flips per fish-minute: 37 and 81 off (pins included), 14 and 14 on; near rocks 103 and
   241 off, 31 and 31 on.
 - Trips to a rock settled as often either way: 69% of 1,213 off, 69% of 1,226 on.
@@ -262,9 +263,10 @@ desired heading along the rock it meets and away from it. Fish.jsx smooths the b
 Up to `v0.30.3-dev_1` the probe either hit a pad or missed it, and a hit bent the heading in
 full at once (urgency at least 0.2, more for the nearer probe points). A fish skimming a rock
 held its heading where the probe tip sat on the pad's outline, and a per-frame trace (desktop,
-The Reefs) showed the tip landing in and out of the pad on alternate frames: 65% of a young
-angelfish's flips came with the probe switching between hit and miss, the rest with it switching
-between two pads whose pushes pointed opposite ways, a rock above and a small obstacle below.
+The Reefs) showed the tip landing in and out of the pad on alternate frames: of a young
+angelfish's 116 flips in one episode, 75 came with the probe switching between hit and miss and
+41 with it switching between two pads whose pushes pointed opposite ways, a rock above and a
+small obstacle below.
 The smoothing's quick rise and slow fall turned each in-out pair into a 2° to 5° flick of the
 heading, frame after frame, for seconds. A thin coral table did the same on its own: in its
 middle the probe's side flips between above and below, and so did the bend's vertical part.
@@ -274,7 +276,8 @@ Since `v0.31.4-dev_1` the probe feels a rock gradually (`feltHit`):
 
 - Each pad counts from a band outside its padded surface to the same depth inside, ramping from
   nothing to full strength (`PROBE_FEEL_ANGLE`: the band is 0.15 rad wide as seen from the fish,
-  so about 0.05 WU at the nearest probe point and 0.26 WU at the farthest for a young angelfish).
+  so for a young angelfish it reaches 0.05 WU either side of the padding at the nearest probe
+  point and 0.26 WU at the farthest).
   The bend fades to nothing at a rock's outline instead of switching on there, and a fish
   skimming a rock settles on a steady small bend.
 - Overlapping pads add up by their ramps, so the push from one rock fades out as the probe
@@ -293,7 +296,16 @@ Since `v0.31.4-dev_1` the probe feels a rock gradually (`feltHit`):
 Heading straight at a rock's middle, the side to turn to is still a choice (the side the
 desired heading leans to).
 
-TBD-MEASURED
+Measured on desktop (2026-10-20, The Reefs, `creatures_dev`: 24 emperor angelfish, 12
+bannerfish, 3 clown triggerfish, 3 groupers, 18 pilot fish), the change switched off and on in
+alternating 3-minute blocks of one session after a dropped warm-up, 15 minutes each way:
+
+- Stuck episodes at rocks (over 100 heading flips, more than 2° a frame each way, in 10 s): 10
+  off (0.66 a minute, the longest 28.6 s), none on.
+- Heading flips per fish-minute: 30.4 off, 7.0 on (reef fish 38.0 and 6.2).
+- Trips to a rock settled as often: 67.9% of 744 off, 67.6% of 753 on (patrols left out).
+- Pops (a moving fish's frame step over four times the last, frame hitches left out): 24 off,
+  23 on; over 0.1 WU 4 and 5, all fish just back from a reef pose (see Known limits).
 
 ## Tuning
 
@@ -306,11 +318,9 @@ import of an edited module loads a second, empty copy).
 
 ## Known limits
 
-- Shivering on the move: a fish brushing past a rock still flicks its heading 2° to 5° a frame
-  for a few seconds now and then, mostly young emperor angelfish round the foreground stacks.
-  The probe ahead hits the rock one frame and misses it the next, and a thin coral table's
-  normal flips between up and down as the probe crosses its middle. All the stuck episodes left
-  in the measurements above are of this kind.
+- Heading straight at a rock's middle, the side a fish turns to is still a choice (see Steering
+  past rocks). Shivering on the move past a rock, the last kind of stuck episode in the pinch
+  measurements, is gone since `v0.31.4-dev_1`.
 - Jumps on the way back from a reef pose: a hover or shelter can leave a fish outside its swim
   volume or under the sand, and the first frame back on the pipeline snaps it in (0.1 to 0.8 WU,
   seen with and without the pinch changes).

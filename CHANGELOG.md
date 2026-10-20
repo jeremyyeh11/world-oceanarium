@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.31.2 — Lossless performance cleanup
+
+Status: accepted for clean `v0.31.2` from `v0.31.2-dev_3` on YK's explicit merge approval (2026-10-20, PR #142 / #141, branch `feat/lossless-performance-cleanup`). Baseline clean `v0.31.0`; other open review branches keep their own release buckets. No database changes. Physical-phone performance improvement remains unmeasured; release approval is not a claim that mobile lag is solved.
+
+### Performance / assets
+
+- Cache each fish's material-pass mesh targets instead of rediscovering the full object/bone tree every frame. Keep current material references, every-frame writes, depth light, fades, alpha blending and proxy exclusions; refresh when nested model/LOD/debug children change and remove listeners on cleanup.
+- Losslessly recompress embedded PNG IDAT data. Preserve filtered rows, decoded pixels, all PNG format/colour/provenance metadata, texture dimensions/sampling and GLB geometry/animation semantics. No downscaling, lossy compression, water/boids/cadence or visual simplification.
+- Add equivalence/lifecycle tests, an asset verifier with mutation-rejection tests and an isolated material-pass microbenchmark. Detailed evidence and rollback in `docs/lossless-performance-cleanup.md`. Smaller download size is not a claim of lower decoded/GPU memory or a complete fix for mobile lag.
+- Review hardening: run Python/Pillow regression tests in CI; refuse unsupported GLB extensions and invalid BIN/view ranges; keep validation active under Python optimized mode; report new models separately and reject removals rather than aborting comparison or implying baseline equivalence. Runtime material logic and the optimized GLB bytes are unchanged by these tooling fixes.
+- Preserve JSON types in equivalence checks: reject boolean/float buffer indices and distinguish booleans from numeric values in normalized semantics, rather than relying on Python's `False == 0` / `True == 1` equality.
+
 ## v0.31.0 — Staghorn coral
 
 Status: accepted and promoted as clean `v0.31.0` from `v0.31.0-dev_3` on Jeremy's go-ahead (2026-10-20, branch `feat/staghorn-coral`, #139: "push and merge to main"). `package.json` and `package-lock.json` move to `0.31.0`. Jeremy supplied a staghorn coral model (*Acropora muricata*). In `dev_1` it grew as thickets on their own at the foot of a few rocks (his first pick); seeing them he asked to "place the staghorns together with the table corals so they look like a cluster? a bommie? now they just look so sad and separate", with "same colour ones" clustered together, "not a random scatter", after his photos of staghorn fields with tables among them and a staghorn thicket crowning a rock. On `dev_2` he found the low detail levels "really bad" ("i shouldnt be able to see sharp pointy edges") and saw backface problems.

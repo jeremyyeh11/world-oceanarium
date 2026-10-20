@@ -659,6 +659,16 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 
 Newest first. Each entry shipped as a clean public release and was drained here per the roadmap-hygiene rule.
 
+### v0.31.2 — Lossless performance cleanup
+
+Status: clean promotion approved by YK on 2026-10-20 from `v0.31.2-dev_3` (PR #142 / #141, `feat/lossless-performance-cleanup`). Jeremy selected cached fish material targets and lossless PNG cleanup; no water/boids/LOD/input or texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
+
+- [x] Cache mesh targets with live materials, unchanged frame writes/fades, nested hierarchy invalidation and listener cleanup.
+- [x] Equivalence/lifecycle tests and exact lossless comparison: 15 GLBs / 18 PNGs; 3.66 MB saved.
+- [x] Three review/fix rounds; all confirmed findings fixed; final independent review has no actionable findings. Node/Python tests, build, procedural checks and review CI/Vercel passed.
+- [x] YK explicitly approved merge/clean release after the review summary. Public and dev DB rows untouched.
+- [ ] Physical-phone CPU/GPU/touch-scroll A/B measurement remains an optional performance follow-up, not a measured shipping gain or unresolved approval gate. `Backlog`
+
 ### v0.12.2 — Persistent tank sessions
 
 Status: accepted and promoted as clean `v0.12.2`; Jeremy cleared the visual pass and requested no further changes.

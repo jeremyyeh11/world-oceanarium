@@ -22,6 +22,7 @@ import {
 } from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
+import { createFishMaterialPass } from './fishMaterialPass'
 import { liftAboveSeabed, nudgeOutOfRocks, pushOutOfRocks, seabedHeightAt, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
@@ -411,32 +412,6 @@ function pointInSwimBounds(point, bounds, bodyLength = 0) {
 function depthFadeFromScreenZ(z) {
   const normalized = THREE.MathUtils.clamp((z + SWIM_BOX.z) / (SWIM_BOX.z * 2), 0, 1)
   return THREE.MathUtils.lerp(0.22, 1.0, normalized ** 1.65)
-}
-
-// Per-frame material pass (recovery fade opacity + depth-graded env light). Its inputs are set
-// just before each fish's traversal and the callback is one module-level function, so the pass
-// allocates nothing — it used to build a closure, a wrapper array, and a filtered array per
-// mesh, for every fish, every frame.
-let materialPassOpacity = 1
-let materialPassEnvMapIntensity = 1
-
-function applyMaterialPass(material) {
-  if (!material) return
-  // A `model.alphaBlend` material (see applyModelMaterialSettings) always blends.
-  const alphaBlend = material.userData.alphaBlend === true
-  material.transparent = alphaBlend || materialPassOpacity < 0.999
-  material.opacity = materialPassOpacity
-  if ('depthWrite' in material) material.depthWrite = !alphaBlend && materialPassOpacity >= 0.999
-  if ('envMapIntensity' in material) material.envMapIntensity = materialPassEnvMapIntensity
-}
-
-function applyMaterialPassToChild(child) {
-  if (!child.isMesh || child.userData?.interactionProxy) return
-  if (Array.isArray(child.material)) {
-    for (let i = 0; i < child.material.length; i += 1) applyMaterialPass(child.material[i])
-  } else {
-    applyMaterialPass(child.material)
-  }
 }
 
 // Sardine LOD with hysteresis: which instanced level (or null for the detailed model) a sardine
@@ -1955,6 +1930,8 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
 
 export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
+  const materialPass = useMemo(() => createFishMaterialPass(), [])
+  useEffect(() => () => materialPass.dispose(), [materialPass])
   // Persistent kinematic snapshot for this creature. Survives unmount/remount so switching tanks
   // resumes movement instead of re-seeding. Object-valued fields below are shared by reference
   // (the sim writes through to the store); scalar fields are hydrated here and mirrored back at
@@ -3248,9 +3225,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (riding) runtimeRecoveryOpacity = Math.min(runtimeRecoveryOpacity, ride.opacity)
 
     const fade = depthFadeFromScreenZ(fish.position.z)
-    materialPassOpacity = runtimeRecoveryOpacity
-    materialPassEnvMapIntensity = THREE.MathUtils.lerp(model ? 0.45 : 0.25, 0.95, fade)
-    fish.traverse(applyMaterialPassToChild)
+    materialPass.update(fish, runtimeRecoveryOpacity, THREE.MathUtils.lerp(model ? 0.45 : 0.25, 0.95, fade))
 
     const pitchLimit = maxVisualPitch(creature, swim)
     if (isSoloAgent && desiredDirection.current.lengthSq() > 0.0001) {

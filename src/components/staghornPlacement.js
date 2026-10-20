@@ -80,8 +80,10 @@ function inPlate(plates, point) {
   return false
 }
 
-// Placed staghorn colonies: [{ model, matrix, site, centre, obstacle }], with `site` the index
-// of the cluster it grows in and `obstacle` a piece box for rockObstacles.js. A generator, like
+// Placed staghorn colonies: [{ model, matrix, site, patch, centre, obstacle }], with `site` the
+// index of the cluster it grows in, `patch` the index of its patch over the whole landscape (a
+// patch is one thicket to the reef fish, Landscape.jsx thicketReefSurfaces) and `obstacle` a
+// piece box for rockObstacles.js. A generator, like
 // placeCorals: it yields every few candidate spots and returns the colonies when done.
 // clusters are coralClusters' (the bommies the tables crown); tables the placed tables;
 // measures are measureColony per kit model; view is the resting camera.
@@ -90,6 +92,7 @@ export function* placeStaghorn(landscape, clusters, tables, measures, view) {
   const { kit } = config
   const plates = tables.map(table => table.plate)
   const placed = []
+  let patchIds = 0
   const origin = new THREE.Vector3()
   const point = new THREE.Vector3()
   const inward = new THREE.Vector3()
@@ -132,7 +135,7 @@ export function* placeStaghorn(landscape, clusters, tables, measures, view) {
       }
       const at = new THREE.Vector3(origin.x, y, origin.z)
       if (patches.some(other => Math.hypot(other.at.x - at.x, other.at.z - at.z) < (other.radius + radius) * 0.8 && Math.abs(other.at.y - y) < PATCH_RISE)) continue
-      patches.push({ at, radius, colour: order[patches.length % order.length] })
+      patches.push({ at, radius, colour: order[patches.length % order.length], id: patchIds++ })
     }
 
     for (const patch of patches) {
@@ -189,6 +192,7 @@ export function* placeStaghorn(landscape, clusters, tables, measures, view) {
           model,
           matrix,
           site,
+          patch: patch.id,
           base,
           reach,
           centre: new THREE.Vector3(base.x, base.y + height / 2, base.z),

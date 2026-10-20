@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.31.4 — Reef fish swim past rocks without shivering
+## v0.31.5 — Reef fish swim past rocks without shivering
 
-Status: in development as `v0.31.4-dev_1` (branch `fix/reef-rock-shiver`), from `main` at `v0.31.3` with `v0.30.3-dev_1` (#138, reef pinches, still in review) merged in, since this builds on its rock bend. For Jeremy's phone review. The ROADMAP item from 2026-10-19: a reef fish swimming past a rock, mostly a young emperor angelfish round the foreground stacks, flicked its heading 2° to 5° every frame for a few seconds; after `v0.30.3-dev_1` these were all of the stuck episodes left (about 0.8 a minute on desktop).
+Status: accepted and promoted as clean `v0.31.5` from `v0.31.4-dev_1` on Jeremy's go-ahead (2026-10-20, branch `fix/reef-rock-shiver`, #144: "merge"). `package.json` and `package-lock.json` move to `0.31.5`. The same release ships #138's pinch fix (`v0.30.3-dev_1`, next section), which this builds on and carried. The ROADMAP item from 2026-10-19: a reef fish swimming past a rock, mostly a young emperor angelfish round the foreground stacks, flicked its heading 2° to 5° every frame for a few seconds; after `v0.30.3-dev_1` these were all of the stuck episodes left (about 0.8 a minute on desktop).
 
 ### Behaviour
 
@@ -31,11 +31,11 @@ Status: in development as `v0.31.4-dev_1` (branch `fix/reef-rock-shiver`), from 
 ### Known issues
 
 - Heading straight at a rock's middle, the side to turn to is still a choice, as before.
-- Jumps on the way back from a reef pose (see `v0.30.3`): unchanged.
+- Jumps on the way back from a reef pose (next section): unchanged.
 
-## v0.30.3 — Reef fish no longer wedge between rocks
+## v0.31.5 — Reef fish no longer wedge between rocks
 
-Status: in development as `v0.30.3-dev_1` (branch `fix/reef-floor-pinch`), from `main` at `v0.30.1`; independent of `v0.30.2` (#137, reef trips, still in review). The ROADMAP item from 2026-10-19: a reef fish could wedge nose-down between two rocks at the bottom of its swim volume and shiver there for minutes (a clown triggerfish at x 0.4, y -19, z 0.4 for over 3 minutes, about 58 heading flips a second; a bannerfish for 47 s), with or without the `v0.30.2` changes.
+Status: shipped in clean `v0.31.5` with the shiver fix above (#144 carried it; #138 closed as included). Built as `v0.30.3-dev_1` (branch `fix/reef-floor-pinch`), from `main` at `v0.30.1`; independent of `v0.30.2` (#137, reef trips, still in review). The ROADMAP item from 2026-10-19: a reef fish could wedge nose-down between two rocks at the bottom of its swim volume and shiver there for minutes (a clown triggerfish at x 0.4, y -19, z 0.4 for over 3 minutes, about 58 heading flips a second; a bannerfish for 47 s), with or without the `v0.30.2` changes.
 
 ### Behaviour
 
@@ -59,8 +59,19 @@ Status: in development as `v0.30.3-dev_1` (branch `fix/reef-floor-pinch`), from 
 
 ### Known issues
 
-- Shivering on the move (fixed in `v0.31.4`): a fish brushing past a rock still flicks its heading 2° to 5° a frame for a few seconds now and then, mostly young emperor angelfish round the foreground stacks. The probe ahead hits the rock one frame and misses it the next, and a thin coral table's normal flips between up and down as the probe crosses its middle.
+- Shivering on the move (fixed in the same release, above): a fish brushing past a rock still flicks its heading 2° to 5° a frame for a few seconds now and then, mostly young emperor angelfish round the foreground stacks. The probe ahead hits the rock one frame and misses it the next, and a thin coral table's normal flips between up and down as the probe crosses its middle.
 - Jumps on the way back from a reef pose: a hover or shelter can leave a fish outside its swim volume or under the sand, and the first frame back on the pipeline snaps it in (0.1 to 0.8 WU), with or without these changes.
+
+## v0.31.4 — Fish at the staghorn
+
+Status: accepted and promoted as clean `v0.31.4` from `v0.31.4-dev_1` on Jeremy's go-ahead (2026-10-20, branch `feat/staghorn-fish`, #143: "merge"). `package.json` and `package-lock.json` move to `0.31.4`. Jeremy (2026-10-20): "do fish now interact with the new staghorn corals? if not, establish behavior. there should be some sort of universal behavior to govern all fish interaction with various coral types". They did not: the staghorn was only a steering obstacle, and the reef-site rays passed through it, so a fish could settle at a rock face or a table's rim with branches through its body.
+
+### Fish behaviour
+
+- Coral forms (`docs/reef-behavior.md`, Coral forms): coral behaviour is split by growth form, not species. `CORAL_FORMS` in `reefBehavior.js` says how each reef mode plays at each form: a `table` (under the plate, at the rim) and now a `thicket` (over the crown, at the flank, in among the branches); `mound`, `fan` and `host` are written down as proposed. Five rules hold for every fish at every coral: corals are solid to the site rays, a fish goes in only where it has room to turn, every coral is a steering obstacle, each decision picks rock or a form by the species' share for that mode, and a coral search that finds nothing tries rock.
+- Staghorn thickets join the reef-site surfaces: one per patch (37 inside the reef reach), its colonies' `_far` meshes merged with a BVH tree, built one patch per slice after the placement (119k triangles, 56 ms in all, 3.6 ms worst per patch). `setCoralSurfaces` now takes any number of sets, each tagged with its form.
+- At a thicket: hovers hang 0.7–1.2 body lengths over a colony's crown, level and 12° nose-down (60% of thicket hovers) or beside its flank, facing the colony's outline; patrols pass right over the crown; pecks pick at the outer branches; fish up to 0.8 WU (the juvenile angelfish) shelter in among the branches. Searches aim at a colony, not the patch's middle (mostly bare rock), and check room in 26 directions, cast only at nearby surfaces: thin tips slipped between the eight level rays and came within 0.09 body lengths of a fish.
+- Shares (`reef.corals.<form>`, was `reef.coral`): the bannerfish hangs over the crowns most (0.4; table hover 0.6 → 0.45), the juvenile angelfish hides among the branches (0.3; table shelter 0.7 → 0.55), the adult angelfish, grouper and triggerfish hang by or cruise past them less. Over 5 minutes on desktop, thickets took 25 of 235 visits, 60% of thicket trips succeeded (rock 69%, tables 63%), no fish came within 0.26 body lengths of a branch, and thicket searches took 1.1–1.7 ms median, 6 ms worst (a rock shelter 2.9 and 8.4 ms in the same session).
 
 ## v0.31.3 — Reef camera tilt
 

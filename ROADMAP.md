@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Fish at the staghorn (coral forms)
+
+Status: shipped in clean `v0.31.4` (2026-10-20, from `v0.31.4-dev_1`, branch `feat/staghorn-fish`, #143). The open items below carry over. Jeremy (2026-10-20): "do fish now interact with the new staghorn corals? if not, establish behavior. there should be some sort of universal behavior to govern all fish interaction with various coral types". They did not: the staghorn was only a steering obstacle, and the reef-site rays passed through it. Design: coral behaviour split by growth form (`table`, `thicket`; `mound`, `fan` and `host` proposed), one table of how each reef mode plays per form, and per-species shares per form. See `docs/reef-behavior.md` (Coral forms).
+
+Subtasks:
+- [x] Staghorn solid to the reef-site rays: one surface per patch from the `_far` meshes, trees built in slices.
+- [x] Coral forms layer: `CORAL_FORMS` in `reefBehavior.js`, `reef.corals.<form>` shares in `species.js`, `kind` a form in `reefSites.js`.
+- [x] Thicket aims: crown hover and pass-over, flank hover and peck, inside shelter for fish up to 0.8 WU (the juvenile angelfish).
+- [x] Measured on desktop (shares, trip success, search ms, branch clearance, tree build ms).
+- [x] Jeremy's go-ahead on `v0.31.4-dev_1` (2026-10-20: "merge").
+- [ ] Thicket flank searches find a spot about a third of the time (rock or a table is often in the way); a search that finds none goes to rock. Raise it if the thickets still read as unused. `Backlog`
+- [ ] Mound (massive, brain, encrusting), fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. `Backlog`
+
 ### Staghorn coral
 
 Status: shipped in clean `v0.31.0` (2026-10-20, from `v0.31.0-dev_3`, branch `feat/staghorn-coral`, #139): Jeremy's staghorn model (*Acropora muricata*) in one-colour patches on the table corals' bommies (his ask after `dev_1`'s separate thickets looked "sad and separate"), an Atlas entry with a three-patch specimen and an in-tank tile.
@@ -61,16 +74,7 @@ Subtasks:
 Status: shipped in clean `v0.29.0` (2026-10-19, from `v0.29.0-dev_13`, branch `feat/reef-behavior`, #134), with The Reefs' new look (height-graded water, painted rock shade, caustics, the resting camera from Jeremy's diver shot). See `docs/reef-behavior.md`. The open items below carry over.
 
 Subtasks:
-- [ ] Reef fish wedged between two rocks, shivering for minutes (seen 2026-10-19: a clown triggerfish nose-down at the foot of the two foreground bommies, x 0.4, z 0.4, y -19, for over 3 minutes, about 58 heading flips a second). `Current in development` as `v0.30.3-dev_1` (branch `fix/reef-floor-pinch`), waiting for Jeremy's phone review. See `docs/reef-behavior.md` (Pinches between rocks).
-  - [x] Cause (per-frame trace): where two rocks' padded steering shapes overlap, the rock clamp pushed the fish out of one into the other and back every frame, and below the swim floor; each push slid the heading along that face, which held it nose-down; the rock bend came after the floor clip; open-water swims never gave up. Also seen between two stacked coral tiers (a pair follower, 56 s).
-  - [x] Fix: level push at the floor; at a pinch (overlapping pads, or a wedge) the fish slides along the faces or is held, heading left to the steering; summed normals for the rock bend, no probe ahead at a pinch; wall clip after the rock bend and no downward bend on the floor; held 0.3 s, it gives up and turns back (a pair follower goes its own way for a while), squeezing through after three give-ups; a 3 s stall check on reef fish's open-water swims.
-  - [x] Measured (desktop, off and on in alternating blocks, ~22 minutes each way): pinned fish (2 to 4.3 minutes) 3 → 0; stuck episodes 1.6 → 0.8 a minute, longest 132 s → 17 s; heading flips near rocks 103/241 → 31/31 per fish-minute; reef trips settled 69% → 69%.
-  - [ ] Jeremy's phone review of `v0.30.3-dev_1`.
-- [ ] Reef fish shiver on the move past a rock (2° to 5° heading flicks a frame for a few seconds, mostly young emperor angelfish round the foreground stacks). All the stuck episodes left after `v0.30.3-dev_1` are of this kind (about 0.8 a minute on desktop). `Current in development` as `v0.31.4-dev_1` (branch `fix/reef-rock-shiver`, with #138 merged in), waiting for Jeremy's phone review. See `docs/reef-behavior.md` (Steering past rocks).
-  - [x] Cause (per-frame trace): the probe ahead hit or missed a pad and bent the heading in full on a hit; skimming a rock, its tip landed in and out of the padding (or in one pad, then a neighbour pushing the other way) on alternate frames. A thin coral table's push flipped up and down as the probe crossed its middle.
-  - [x] Fix: the probe feels each pad gradually across a 0.15 rad band round its outline, overlapping pads add up, every probe point bends weighted by urgency, a pad's vertical push goes to the fish's side of its middle, and the push off a rock the fish is brushing comes on gradually.
-  - [x] Measured (desktop, off and on in alternating blocks, 15 minutes each way): stuck episodes at rocks 10 → 0; heading flips 30.4 → 7.0 per fish-minute; trips settled 67.9% → 67.6%; pops 24 → 23 (over 0.1 WU 4 → 5, all reef-pose hand-backs).
-  - [ ] Jeremy's phone review of `v0.31.4-dev_1`.
+- [x] Reef fish wedged between two rocks (pinches, #138) and shivering on the move past a rock (continuous probe, #144): shipped together in clean `v0.31.5` (2026-10-20). Measured: pinned fish 3 → 0; stuck episodes 1.6 → 0.8 a minute with the pinch fix, then 0.66 → 0 at rocks with the probe fix; reef trips settled unchanged. See `docs/reef-behavior.md` (Pinches between rocks, Steering past rocks).
 - [ ] Jumps on the hand-back from a reef pose: a hover or shelter can leave a fish outside its swim volume or under the sand, and the first pipeline frame snaps it in (0.1 to 0.8 WU); a cleaner leaving the sunfish was once moved 2.3 WU by the host clearance. Ease these back in like the rock clamp (`REEF_CLAMP_RECOVERY_SECONDS`). `Backlog`
 - [x] `reef` profiles and the patrol / hover / peck / shelter state machine (`reefBehavior.js`); sites raycast from the drawn rocks with BVH trees (`reefSites.js`).
 - [x] Reef swim volumes (`REEF_BOUNDS`): down to y -19, back to z -52.

@@ -6,20 +6,22 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
-    version: 'v0.31.4',
+    version: 'v0.31.5',
     date: '2026-10-20',
-    title: 'Reef fish swim past rocks without shivering',
+    title: 'Reef fish swim freely among the rocks',
     changes: [
       ['fix', 'A reef fish swimming close past a rock or a coral table no longer shivers its head from side to side or up and down for a few seconds: it curves smoothly round, and over or under a table.'],
+      ['fix', 'A reef fish nosing into a gap between two rocks too narrow for it no longer wedges there, shivering nose-down for minutes: it slips along the rocks or turns back and goes another way.'],
+      ['fix', 'Fish gliding along the sea floor beside a rock no longer nod up and down.'],
     ],
   },
   {
-    version: 'v0.30.3',
-    date: '2026-10-19',
-    title: 'Reef fish no longer wedge between rocks',
+    version: 'v0.31.4',
+    date: '2026-10-20',
+    title: 'Fish at the staghorn',
     changes: [
-      ['fix', 'A reef fish nosing into a gap between two rocks too narrow for it no longer wedges there, shivering nose-down for minutes: it slips along the rocks or turns back and goes another way.'],
-      ['fix', 'Fish gliding along the sea floor beside a rock no longer nod up and down.'],
+      ['new', 'Reef fish now use the staghorn coral: bannerfish hang over the branch tips where plankton drifts, young angelfish slip in among the branches, and the others pass over or wait beside them.'],
+      ['fix', 'Fish resting at the rocks and table corals no longer end up with staghorn branches through them.'],
     ],
   },
   {

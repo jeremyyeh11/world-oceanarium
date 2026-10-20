@@ -51,18 +51,61 @@ const REEF_DEFAULTS = {
   turnDegreesPerSecond: 150,
   // After a startle, the chance its next move is to shelter.
   startleShelterChance: 0.5,
-  // Where there are table corals (landscapes.js `corals`), the share of each mode's visits that
-  // go to one instead of to rock (Jeremy, 2026-10-19: "build fish behavior to interact with the
-  // corals, hide underneath, within, peck at it"). A coral shelter hides under a table's plate, or
-  // between two stacked plates; a peck or hover is at a plate's rim. A coral search that finds
-  // nothing falls back to rock, which a thin, ragged rim often makes happen: measured over 90 s
-  // (138 visits), these shares gave 62% of shelters at coral but only 12–19% of hovers, patrols
-  // and pecks, hence the higher shares for those.
-  coral: { patrol: 0.35, hover: 0.5, peck: 0.6, shelter: 0.6 },
+  // Where a tank has corals, the share of each mode's visits that go to each coral form instead
+  // of to rock (CORAL_FORMS below); what is left goes to rock. A coral search that finds nothing
+  // falls back to rock.
+  corals: {
+    // Table corals (landscapes.js `corals`; Jeremy, 2026-10-19: "build fish behavior to interact
+    // with the corals, hide underneath, within, peck at it"). A thin, ragged rim often sends a
+    // search back to rock: measured over 90 s (138 visits), shares of 0.6 gave 62% of shelters at
+    // a table but only 12–19% of hovers, patrols and pecks, hence the higher shares for those.
+    table: { patrol: 0.35, hover: 0.5, peck: 0.6, shelter: 0.6 },
+    // Staghorn thickets (landscapes.js `staghorn`). Low by default: large reef fishes use tables
+    // at least three times as much as branching coral (Kerry & Bellwood 2012, at the grouper in
+    // species.js), and none of the tank's fish live in one.
+    thicket: { patrol: 0.1, hover: 0.1, peck: 0.05, shelter: 0 },
+  },
 }
-// A shelter under a coral table counts as enclosed with less around it than a rock nook: the
-// plate overhead is what hides the fish (the search keeps only spots with cover straight above).
-const CORAL_SHELTER_MIN_ENCLOSURE = 0.25
+
+// Coral forms: how each reef mode plays at each form of coral (docs/reef-behavior.md, Coral
+// forms). Behaviour is split by the coral's growth form, not its species: a second table coral is
+// a `table`, a second branching coral a `thicket`. Per mode, `aim` says where the site search
+// aims (reefSites.js findReefSite), and the rest overrides the rock's settings:
+//   requireCover     keep only spots with coral straight overhead
+//   minEnclosure     shelter: the least share of rays meeting a surface round the spot
+//   maxBodyLengthWU  only fish up to this long try it (the gaps decide in the end: every spot
+//                    needs room to turn on the spot)
+//   crown            { share, standoffBodyLengths }: this share of the visits hang over the top
+//                    instead, this far above the branch tips
+//   passOver         a patrol passes right over the site instead of lining up beside it
+const CORAL_FORMS = {
+  // A plate on a stalk: cover overhead, a rim, tiers.
+  table: {
+    // The plate overhead is what hides the fish, so less round it than a rock nook needs.
+    shelter: { aim: 'under', requireCover: true, minEnclosure: 0.25 },
+    peck: { aim: 'rim' },
+    hover: { aim: 'rim' },
+    patrol: { aim: 'rim' },
+  },
+  // A patch of branching colonies: a crown of branch tips, flanks, narrow gaps inside.
+  thicket: {
+    // In among the branches, which only a small fish fits: the juvenile angelfish (8–14 cm), not
+    // the adults. Branches round most of it: at 0.5, 4 in 100 juvenile searches found a spot; at
+    // 0.4, 12 (2026-10-20). A search that finds none tries rock.
+    shelter: { aim: 'inside', minEnclosure: 0.4, maxBodyLengthWU: 0.8 },
+    // Picking at the outer branches.
+    peck: { aim: 'flank' },
+    // Hanging over the crown (plankton pickers) or beside the flank (lying in wait).
+    hover: { aim: 'flank', crown: { share: 0.6, standoffBodyLengths: [0.7, 1.2] } },
+    // Skimming over the crown.
+    patrol: { aim: 'crown', passOver: true },
+  },
+}
+const CORAL_FORM_NAMES = Object.keys(CORAL_FORMS)
+// A crown site's face points straight up.
+const CROWN_NORMAL_Y = [0.9, 1.01]
+// Tries per thicket search: [hover, peck or patrol; shelter].
+const THICKET_ATTEMPTS = [20, 16]
 
 // Snout clearance from the face once tucked into a shelter, before it turns to face out.
 const SHELTER_GAP_BODY_LENGTHS = 0.15
@@ -116,8 +159,24 @@ export function reefProfile(species) {
   const modes = { ...REEF_DEFAULTS.modes, ...(settings.modes ?? {}) }
   const total = Object.values(modes).reduce((sum, weight) => sum + Math.max(0, weight), 0) || 1
   for (const key of Object.keys(modes)) modes[key] = Math.max(0, modes[key]) / total
-  const coral = { ...REEF_DEFAULTS.coral, ...(settings.coral ?? {}) }
-  return { ...REEF_DEFAULTS, ...settings, modes, coral }
+  const corals = {}
+  for (const form of CORAL_FORM_NAMES) corals[form] = { ...REEF_DEFAULTS.corals[form], ...(settings.corals?.[form] ?? {}) }
+  return { ...REEF_DEFAULTS, ...settings, modes, corals }
+}
+
+// Rock, or the coral form this decision goes to: each form the tank has takes its share of the
+// mode's visits (profile.corals), unless the fish is too big for what the form offers there.
+function pickSiteKind(profile, mode, bodyLength, rand) {
+  let roll = rand()
+  for (const form of CORAL_FORM_NAMES) {
+    if (!hasCoralSurfaces(form)) continue
+    const limit = CORAL_FORMS[form][mode].maxBodyLengthWU
+    if (limit !== undefined && bodyLength > limit) continue
+    const share = profile.corals[form][mode] ?? 0
+    if (roll < share) return form
+    roll -= share
+  }
+  return 'rock'
 }
 
 export function createReefState() {
@@ -126,7 +185,15 @@ export function createReefState() {
     mode: null,
     // 'idle' | 'travel' | 'settle' | 'hold' | 'peck' | 'leave' | 'done'
     stage: 'idle',
-    site: { point: new THREE.Vector3(), normal: new THREE.Vector3(), rest: new THREE.Vector3(), entry: new THREE.Vector3(), enclosure: 0 },
+    site: {
+      point: new THREE.Vector3(),
+      normal: new THREE.Vector3(),
+      rest: new THREE.Vector3(),
+      entry: new THREE.Vector3(),
+      outward: new THREE.Vector3(),
+      faceIn: new THREE.Vector3(),
+      enclosure: 0,
+    },
     home: new THREE.Vector3(),
     hasHome: false,
     facing: new THREE.Vector3(0, 0, -1),
@@ -171,9 +238,10 @@ export function createReefState() {
     // and how many searches in a row have come up empty.
     retryMode: null,
     failedSearches: 0,
-    // 'rock' or 'coral': what the current site is on, and what the retried search must ask for
-    // (null = choose again).
+    // 'rock' or a coral form ('table', 'thicket'): what the current site is on, and what the
+    // retried search must ask for (null = choose again); and where on it (the search's `aim`).
     siteKind: 'rock',
+    siteAim: null,
     retryKind: null,
   }
 }
@@ -243,17 +311,21 @@ export function startReefBehavior(reef, profile, ctx) {
   const { bodyLength, rand } = ctx
   const mode = reef.retryMode ?? (reef.shelterQueued ? 'shelter' : pickMode(profile, rand))
   reef.retryMode = null
-  // On rock or on a table coral (`profile.coral`, the share of this mode's visits).
-  const kind = reef.retryKind ?? (hasCoralSurfaces() && rand() < (profile.coral[mode] ?? 0) ? 'coral' : 'rock')
+  // On rock or on a coral form (`profile.corals`, each form's share of this mode's visits), and
+  // how the mode plays there (CORAL_FORMS).
+  const kind = reef.retryKind ?? pickSiteKind(profile, mode, bodyLength, rand)
   reef.retryKind = null
-  const onCoral = kind === 'coral'
+  const onCoral = kind !== 'rock'
+  let play = onCoral ? CORAL_FORMS[kind][mode] : null
+  const crown = play?.crown && rand() < play.crown.share
+  if (crown) play = { ...play, aim: 'crown' }
   const nose = profile.noseBodyLengths * bodyLength
   const standoff = mode === 'peck'
     ? nose + profile.peckGapBodyLengths * bodyLength
     : mode === 'shelter'
       ? nose + SHELTER_GAP_BODY_LENGTHS * bodyLength
       : mode === 'hover'
-        ? randomIn(rand, profile.hoverStandoffBodyLengths) * bodyLength
+        ? randomIn(rand, crown ? play.crown.standoffBodyLengths : profile.hoverStandoffBodyLengths) * bodyLength
         : randomIn(rand, profile.patrolStandoffBodyLengths) * bodyLength
   const entryDistance = Math.max(ENTRY_MIN, ENTRY_BODY_LENGTHS * bodyLength)
   // Near home, or anywhere (round where it is now) when it has none yet or moves house.
@@ -276,16 +348,17 @@ export function startReefBehavior(reef, profile, ctx) {
     standoff,
     clearance: CLEARANCE_BODY_LENGTHS * bodyLength,
     entryDistance,
-    normalY: FACE_NORMAL_Y[mode],
-    minEnclosure: mode === 'shelter' ? (onCoral ? CORAL_SHELTER_MIN_ENCLOSURE : SHELTER_MIN_ENCLOSURE) : 0,
+    normalY: play?.aim === 'crown' ? CROWN_NORMAL_Y : FACE_NORMAL_Y[mode],
+    minEnclosure: mode === 'shelter' ? (play?.minEnclosure ?? SHELTER_MIN_ENCLOSURE) : 0,
     enclosureReach: Math.max(1.5, 2.5 * bodyLength),
-    // A coral's rim is a narrow target: more tries before falling back to rock.
-    attempts: mode === 'shelter' ? 10 : onCoral ? 12 : 8,
+    // A coral's rim is a narrow target: more tries before falling back to rock. A thicket more
+    // still: rock or a table is often in front of it, and its spots need room all round.
+    attempts: kind === 'thicket' ? THICKET_ATTEMPTS[mode === 'shelter' ? 1 : 0] : mode === 'shelter' ? 10 : onCoral ? 12 : 8,
     viewBias: VIEW_SITE_BIAS,
     kind,
-    // Under a coral's plate to hide (or between two tiers), at its rim otherwise.
-    aim: onCoral ? (mode === 'shelter' ? 'under' : 'rim') : undefined,
-    requireCover: onCoral && mode === 'shelter',
+    aim: play?.aim,
+    passOver: mode === 'patrol' && Boolean(play?.passOver),
+    requireCover: Boolean(play?.requireCover),
   })
   if (found === false) {
     reef.retryMode = mode
@@ -323,11 +396,12 @@ export function startReefBehavior(reef, profile, ctx) {
   }
   reef.mode = mode
   reef.siteKind = kind
+  reef.siteAim = play?.aim ?? null
   reef.stage = 'travel'
   reef.entryDistance = entryDistance
-  reef.faceIn.copy(reef.site.normal).negate()
+  reef.faceIn.copy(reef.site.faceIn)
   clampPitch(reef.faceIn, MAX_REEF_PITCH).normalize()
-  reef.outward.set(reef.site.normal.x, 0, reef.site.normal.z).normalize()
+  reef.outward.copy(reef.site.outward)
   reef.stageStartedAt = ctx.now
   const distance = ctx.position.distanceTo(reef.site.entry)
   reef.travelUntil = ctx.now + THREE.MathUtils.clamp(distance / Math.max(0.05, ctx.cruiseSpeed) * 2 + 8, 10, 45)

@@ -106,6 +106,8 @@ the fish beyond its own swim step, in the 2.5 s after it left a reef pose (or it
   minutes on a fresh load: 481 hand-backs, none over 0.05 WU (the largest
   0.038); 0.43 pops a minute; trips settled 62%; heading flicks a fish-minute 15 for the
   angelfish, 9 bannerfish, 17 triggerfish (10 to 14 without the changes), 0.5 groupers.
+- On `v0.31.5` (with #144's probe), 11.9 minutes: 409 hand-backs and 430 cleaner host changes,
+  none over 0.05 WU.
 
 ## Sites
 

@@ -26,7 +26,8 @@ somewhere fish live rather than set dressing.
   face out, and wait (`shelterSeconds`). A sheltered fish does not startle.
 
 Each decision a free reef fish makes goes to the reef with probability `affinity`, split by
-`modes` (weights, normalised); the rest are ordinary open-water swims, kept within its home range.
+`modes` (weights, normalised); the rest are ordinary open-water swims, kept within its home range
+and given up when they stop closing on the destination (see Pinches between rocks).
 After a startle, the next decision is a shelter with probability `startleShelterChance`. A
 shelter search that finds no nook falls back to a hover.
 
@@ -242,6 +243,154 @@ so every fish is kept above the sand (rockObstacles.js `liftAboveSeabed`), open-
 are lifted out of it, and reef sites must clear it. Rocks a fish cannot reach from its volume
 are never picked.
 
+## Pinches between rocks
+
+Fish steer by each rock's ellipsoid padded for the body (rockObstacles.js, `rockPad`: 0.35 BL +
+0.3 WU). Where two rocks stand closer together than that, their pads overlap. At the foot of the
+two foreground bommies (x -3 and 3.2, z 1 to 1.5), a clown triggerfish's pads (0.95 WU) overlap
+by about 0.27 WU at the swim floor: a small lens whose nearest way out is below the floor.
+
+Up to `v0.31.4`, a fish that nosed in there could stay for minutes, its heading flicking about 60
+times a second and its body jumping 3.5 cm between two spots every frame (a clown triggerfish for
+over 3 minutes and a bannerfish for 47 s on 2026-10-19; a grouper for 4.5 minutes in the
+measurement run). A per-frame trace showed four things holding it there:
+
+- The rock clamp pushed the fish out of the deeper pad onto that pad's surface, which lay inside
+  the other pad. The next frame it pushed the fish back out of the other one. The push went out
+  from the rock's centre, which is above the floor, so it also took the fish 2.7 cm below the
+  floor, and the swim clamp lifted it back.
+- Each push slid the heading along that rock's face (its into-rock part removed). The two faces
+  took back every two frames what the turn toward the destination had gained. A grouper whose
+  destination was up and to the right stayed pointing 72° down.
+- The rock bend in the steering came after the swim-wall clip, so it could still point the heading
+  into the floor.
+- An open-water swim ended only on arrival.
+
+Since `v0.31.5` (built as `v0.30.3-dev_1`):
+
+- Pushed out level at the floor: `pushOutOfRocks` takes the swim floor and never pushes a fish
+  through it. Where the push from the centre would, the fish goes out level instead, across the
+  rock's section at its own height, and its heading slides along that section's face.
+- No step into a pinch: `pushOutOfRocks` also takes where the fish started the frame and the face
+  it was last pushed off (within `ROCK_CONTACT_MEMORY_SECONDS`). A pinch is a push whose point
+  is still inside another pad, or a push off a face turned more than about 105° from the last
+  one (`WEDGE_DOT`: the two pads meet in a wedge, and out of one face is into the other the next
+  frame). There the fish takes only the part of its step that goes into neither face (along the
+  crease between them where it goes into both), so it slides along a gap, or up and out of it,
+  where it can; where nothing is left it stays where it started the frame, held. Either way the
+  clamp leaves its heading to the steering. A fish that started inside two pads (just off a reef
+  site in a nook) is still pushed out of the deeper one a frame at a time, its heading sliding
+  along that face, as before (left alone, it pressed on into the padding and came out of a nook
+  in twice as many jumps of 0.1 WU). A plain hold was tried first: a juvenile angelfish caged between a coral table on
+  one side and the outcrop and another table on the other could not get out of it in any
+  direction it turned, and stayed for 112 s.
+- One bend for overlapping pads: the rock bend steers by the depth-weighted sum of the normals of
+  every pad the probe is in (`summedHit`), so in an overlap it points out of the gap instead of at
+  one rock and then the other. With one pad it is that pad's normal, as before. A fish at a pinch
+  skips the probe ahead (`steerAroundRocks`, `lookAhead`) and steers by where it is going and
+  the push off the rocks it touches: probing on into the gap, the bend slid it along the gap and
+  outweighed a destination behind it two to one, so a grouper stayed held for a minute.
+- The floor: the swim-wall clip (`shapeDirectionForBoundaryContacts`) runs after the rock bend,
+  a fish at a pinch keeps the wall contacts of where it ended up (held on the floor, it is still
+  on it), and on the floor (within `FLOOR_BAND`) the rock bend loses its downward part: below a
+  rock's middle its push-off points down, and pressed into the floor a fish's heading flicked on
+  and off the floor contact every other frame.
+- Giving up: held at a pinch (sliding on by less than a tenth of its step, `pinchedLastPush`)
+  for 0.3 s (`ROCK_PINCH_GIVE_UP_SECONDS`, Fish.jsx), a fish gives up its swim or its trip to a
+  rock and decides again at once. The next swim is picked in the half behind it, back the way it
+  came (a destination ahead mostly lay past the same gap), and is not pulled into its home range
+  (a home past the gap led it straight back in); it has 1.5 s to come round before it would give
+  up again (`ROCK_PINCH_TURN_SECONDS`). A pair follower whose station is past the gap spends a
+  spell apart from its mate instead (fishSwim.js `separatePair`), as pairs now and then do anyway.
+- Stall check: a reef fish's open-water swim that has not closed half a body length on its
+  destination in 3 s is given up as well (`STEER_PROGRESS_*`), as its trips to a rock already
+  were. The first check also allows for the turn toward the destination (its angle off the
+  heading over the turn rate at cruise).
+- After a give-up it has time to come round before it gives up again: a U-turn at the pinch's
+  raised turn rate, at least `ROCK_PINCH_TURN_SECONDS`. And if it has given up three times
+  without getting clear of pinches for 2 s (`ROCK_PINCH_GIVE_UPS`), it squeezes through: for
+  2 s the clamp only pushes it out of the deeper rock, as before pinches were handled. A
+  bannerfish was once held 85 s between two tiers of the foreground stacks, turning back 51 times.
+
+Measured on desktop (2026-10-19, The Reefs, `creatures_dev`: 24 emperor angelfish, 12
+bannerfish, 3 clown triggerfish, 3 groupers), the changes switched off and on in alternating
+blocks of one session, two sessions of about 11 and 12 minutes each way:
+
+- Pinned: with the changes off, three fish stayed for 2 to 4.3 minutes, two triggerfish at the
+  foot of the bommies and a bannerfish among the outcrop's coral tables; each was out within
+  seconds of the changes coming on. With them on, no fish stayed in one place off a reef site for
+  more than 13 s, but for the bannerfish held 85 s that led to the squeeze-through; a third
+  session with it (8 minutes, changes on) had none over 7 s, and the squeeze-through fired once.
+- Stuck episodes (a fish with over 100 heading flips, more than 2° a frame each way, in 10 s):
+  35 in 22 minutes off (1.6 a minute, the longest 132 s), 19 in 23 minutes on (0.8 a minute, the
+  longest 17 s). All of those left were fish shivering on the move past a rock (see Steering past
+  rocks).
+- Heading flips per fish-minute: 37 and 81 off (pins included), 14 and 14 on; near rocks 103 and
+  241 off, 31 and 31 on.
+- Trips to a rock settled as often either way: 69% of 1,213 off, 69% of 1,226 on.
+- Pops (a frame's step over four times the last): 15 off and 9 on in the second session; the
+  only one over 0.1 WU with the changes on was a grouper's hand-back from a reef pose (see Known
+  limits).
+
+Staged, the reported case: a grouper or triggerfish put at the foot of the bommies nose into the
+gap, its destination through it. Before, it stayed for minutes at 60 flips a second; now each was
+out in 1.7 to 3.6 s (held a moment, gave up, turned round, or slid up the crease and over), with
+0 to 20 heading flips (once 59). Two young angelfish put in the coral cage slid out in 4 s.
+
+## Steering past rocks
+
+`steerAroundRocks` (rockObstacles.js) probes ahead along the heading at four points (0.2, 0.45,
+0.7 and 1 of its reach, 3 BL or 1.5 s of travel, at least 3 WU, plus the pad) and bends the
+desired heading along the rock it meets and away from it. Fish.jsx smooths the bend per fish
+(`ROCK_AVOID_RISE` 10/s, `ROCK_AVOID_FALL` 2.5/s).
+
+Up to `v0.31.4` the probe either hit a pad or missed it, and a hit bent the heading in
+full at once (urgency at least 0.2, more for the nearer probe points). A fish skimming a rock
+held its heading where the probe tip sat on the pad's outline, and a per-frame trace (desktop,
+The Reefs) showed the tip landing in and out of the pad on alternate frames: of a young
+angelfish's 116 flips in one episode, 75 came with the probe switching between hit and miss and
+41 with it switching between two pads whose pushes pointed opposite ways, a rock above and a
+small obstacle below.
+The smoothing's quick rise and slow fall turned each in-out pair into a 2° to 5° flick of the
+heading, frame after frame, for seconds. A thin coral table did the same on its own: in its
+middle the probe's side flips between above and below, and so did the bend's vertical part.
+The clamp, pinches and the push off a rock the fish is brushing played no part.
+
+Since `v0.31.5` (built as `v0.31.4-dev_1` on `fix/reef-rock-shiver`) the probe feels a rock gradually (`feltHit`):
+
+- Each pad counts from a band outside its padded surface to the same depth inside, ramping from
+  nothing to full strength (`PROBE_FEEL_ANGLE`: the band is 0.15 rad wide as seen from the fish,
+  so for a young angelfish it reaches 0.05 WU either side of the padding at the nearest probe
+  point and 0.26 WU at the farthest).
+  The bend fades to nothing at a rock's outline instead of switching on there, and a fish
+  skimming a rock settles on a steady small bend.
+- Overlapping pads add up by their ramps, so the push from one rock fades out as the probe
+  leaves it rather than handing over to the other's in full.
+- Every probe point that feels a rock bends the heading, weighted by the square of its urgency,
+  so the strongest leads; before, only the nearest hit counted, and the urgency jumped when the
+  nearest hit moved from one point to the next.
+- A pad's vertical push points to the fish's side of its middle, not the probe's
+  (`SIDE_BAND`: within a quarter of the padded half-height of the middle it fades to level), and
+  is at least half the padded half-height strong (`SIDE_FLOOR`). A fish above a coral table pulls
+  up over it and one below dips under it; before, a fish above heading down through a table was
+  bent further down once its probe passed the table's middle. A tall rock's push stays nearly level.
+- The push off a rock the fish is brushing comes on over the first tenth of the padding
+  (`TOUCH_ONSET`) instead of at half strength at once.
+
+Heading straight at a rock's middle, the side to turn to is still a choice (the side the
+desired heading leans to).
+
+Measured on desktop (2026-10-20, The Reefs, `creatures_dev`: 24 emperor angelfish, 12
+bannerfish, 3 clown triggerfish, 3 groupers, 18 pilot fish), the change switched off and on in
+alternating 3-minute blocks of one session after a dropped warm-up, 15 minutes each way:
+
+- Stuck episodes at rocks (over 100 heading flips, more than 2° a frame each way, in 10 s): 10
+  off (0.66 a minute, the longest 28.6 s), none on.
+- Heading flips per fish-minute: 30.4 off, 7.0 on (reef fish 38.0 and 6.2).
+- Trips to a rock settled as often: 67.9% of 744 off, 67.6% of 753 on (patrols left out).
+- Pops (a moving fish's frame step over four times the last, frame hitches left out): 24 off,
+  23 on; over 0.1 WU 4 and 5, all fish just back from a reef pose (see Known limits).
+
 ## Tuning
 
 Every `reef` key overrides `REEF_DEFAULTS` in `reefBehavior.js` (`modes` and each form's shares in
@@ -253,6 +402,13 @@ module through the app's own `?t=` URL, from `performance.getEntriesByType('reso
 import of an edited module loads a second, empty copy).
 
 ## Known limits
+
+- Heading straight at a rock's middle, the side a fish turns to is still a choice (see Steering
+  past rocks). Shivering on the move past a rock, the last kind of stuck episode in the pinch
+  measurements, is gone since `v0.31.5`.
+- Jumps on the way back from a reef pose: a hover or shelter can leave a fish outside its swim
+  volume or under the sand, and the first frame back on the pipeline snaps it in (0.1 to 0.8 WU,
+  seen with and without the pinch changes).
 
 - The landscape has no caves. Shelters are concave spots between and under ledge tiers, which
   small fish find often and fish over about 1.5 BL rarely (a 2 BL fish found one in 0 of 40

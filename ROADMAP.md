@@ -74,6 +74,8 @@ Subtasks:
 Status: shipped in clean `v0.29.0` (2026-10-19, from `v0.29.0-dev_13`, branch `feat/reef-behavior`, #134), with The Reefs' new look (height-graded water, painted rock shade, caustics, the resting camera from Jeremy's diver shot). See `docs/reef-behavior.md`. The open items below carry over.
 
 Subtasks:
+- [x] Reef fish wedged between two rocks (pinches, #138) and shivering on the move past a rock (continuous probe, #144): shipped together in clean `v0.31.5` (2026-10-20). Measured: pinned fish 3 → 0; stuck episodes 1.6 → 0.8 a minute with the pinch fix, then 0.66 → 0 at rocks with the probe fix; reef trips settled unchanged. See `docs/reef-behavior.md` (Pinches between rocks, Steering past rocks).
+- [ ] Jumps on the hand-back from a reef pose: a hover or shelter can leave a fish outside its swim volume or under the sand, and the first pipeline frame snaps it in (0.1 to 0.8 WU); a cleaner leaving the sunfish was once moved 2.3 WU by the host clearance. Ease these back in like the rock clamp (`REEF_CLAMP_RECOVERY_SECONDS`). `Backlog`
 - [x] `reef` profiles and the patrol / hover / peck / shelter state machine (`reefBehavior.js`); sites raycast from the drawn rocks with BVH trees (`reefSites.js`).
 - [x] Reef swim volumes (`REEF_BOUNDS`): down to y -19, back to z -52.
 - [x] The reef was mostly off-screen (phone saw 1.5% of the fish at a rock). Jeremy chose a mid-ground outcrop near the centre: two horizontal stacks stepping up to the right, top y -10.7. The phone now sees 15%. Needs his eyes on the composition, at 375 px and on desktop.

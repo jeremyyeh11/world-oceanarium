@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.32.0 — Raccoon Butterflyfish
 
-Status: in review as `v0.32.0-dev_4` (2026-10-21, branch `feat/chaetodon-lunula`, #146; `dev_1` to `dev_3` the same day). Jeremy's next reef fish for The Reefs, in one group of 20 (his call: "1 group of 20 is good").
+Status: accepted and promoted as clean `v0.32.0` from `v0.32.0-dev_4` on Jeremy's go-ahead (2026-10-21, branch `feat/chaetodon-lunula`, #146: "merge"). `package.json` and `package-lock.json` move to `0.32.0`. Jeremy's next reef fish for The Reefs, in one group of 20 (his call: "1 group of 20 is good").
 
 ### Species
 

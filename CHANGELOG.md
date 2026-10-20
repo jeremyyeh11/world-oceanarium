@@ -8,6 +8,32 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.32.0 — Raccoon Butterflyfish
+
+Status: accepted and promoted as clean `v0.32.0` from `v0.32.0-dev_4` on Jeremy's go-ahead (2026-10-21, branch `feat/chaetodon-lunula`, #146: "merge"). `package.json` and `package-lock.json` move to `0.32.0`. Jeremy's next reef fish for The Reefs, in one group of 20 (his call: "1 group of 20 is good").
+
+### Species
+
+- Raccoon Butterflyfish (*Chaetodon lunula*, Chaetodontidae, Least Concern): facts from FishBase. 20 cm maximum total length = 0.8 WU, under the 1.08 WU sardinella floor (Jeremy: "size ok"); individuals 14 to 20 cm; length–weight a 0.02291 / b 3.00; up to 9 years. Nocturnal, in pairs or small groups; eats nudibranchs, tubeworm tentacles and other bottom invertebrates, some algae and coral polyps.
+- Jeremy's model (`public/models/fish/chaetodon-lunula/`, 433 KB): one body with the dorsal, anal and tail fins, separate pectoral and pelvic fins, nose at −Z, a 447 px photo texture with no alpha (so no `alphaBlend`). Scale 3.994 from a 0.2003 source length; root recentred on the snout-to-tail line.
+- Motion: the bannerfish's labriform `caudal-vertex` tuning (a stiff deep body that cruises on its pectorals, a wave from halfway back) in this model's units. No new motion type.
+- Folding spines (Jeremy: "is it possible to make the spines retract?"): Jeremy's two shape keys, "open spines" and "folded spines", as a glTF morph target weighted per fish (`spineFold` on `caudal-vertex`). Folded on the move and in a shelter, half open while it hovers or picks at a rock, fully open for 4 s after a startle (a butterflyfish's threat display). The swim wave runs after the morph, so folded spines bend with the body. His Mirror modifier is baked into both keys by `scripts/bake-mirror-shape-keys.py` (headless, on a copy of the `.blend`); the open shape matches his own export triangle for triangle. `dev_2` and `dev_3` folded painted spines in the shader instead; a computed fold of a few large spine triangles crumpled into a faceted ridge ("doesnt look v good"), and he asked for shape keys for control of both poses. Contract in `docs/procedural/caudal-wave.md` (Folding spines).
+- Atlas: shown with five of its group; a rendered three-quarter head tile with the spines folded (`public/atlas/chaetodon-lunula-thumbnail.png`). School size reads "Small groups" (Jeremy: the 20 is a guess).
+
+### Behaviour
+
+- Reef groups (`group` on a species): Biome makes the first fish of each group of up to `group.maxSize` the leader and the rest followers on the pair-follow path, each at its own station on a golden-angle spiral round her (1.2 to 4.5 body lengths out, spread up and down; `groupFollowersForCreatures`, `groupBondProfile`, `advancePairFollow`). While she is at a rock they do their own reef behaviour round her, so the group works one patch of reef, then gathers and moves on. Not the sardinella school, which has a shared heading and turns reef behaviour off. Design in `docs/reef-behavior.md` (Home and mates).
+- Its reef profile: a bottom picker resting by day, so more peck and shelter than the bannerfish (affinity 0.85; patrol 0.2, hover 0.25, peck 0.35, shelter 0.2), and it picks polyps at both coral forms; at 0.8 WU it shelters among the staghorn.
+- Measured on desktop with 20: median 3.6 WU from the group's centre, about 17 of 20 within 6 WU, about 12 of the 20 at a rock at once. Bannerfish pairs unchanged (followers with their mates in 100 of 120 samples).
+
+### Atlas
+
+- The quick-card values (diet, biome, location) wrap inside their column: "Nudibranchs," broke out into the next column on a landscape phone.
+
+### Data
+
+- 20 rows in `creatures_dev` (ids 418–437, 10 F / 10 M, each with a description). None in production `creatures` yet.
+
 ## v0.31.6 — No jumps on the way back from a rock or a host
 
 Status: accepted and promoted as clean `v0.31.6` from `v0.31.6-dev_1` on Jeremy's go-ahead (2026-10-21, branch `fix/reef-handback-jumps`, #145: "its good", then "promote to clean v0.31.6 and merge"). `package.json` and `package-lock.json` move to `0.31.6`. From `main` at `v0.31.5` (which carries #138's pinch handling and #144's probe). The ROADMAP item from 2026-10-19: reef fish jumped in a single frame when they came back onto the swim pipeline from a reef pose (0.1 to 0.8 WU), and a cleaner by the sunfish was moved up to 2.3 WU by the host clearance.

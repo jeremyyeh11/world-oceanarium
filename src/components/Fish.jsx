@@ -81,6 +81,7 @@ import {
   molaSunBaskSurfaceCenterYMax,
   mulberry32,
   pairBondProfile,
+  groupBondProfile,
   pickMolaSunBaskExitTarget,
   pickMolaSunBaskTarget,
   pickSoloAgentContinuationTarget,
@@ -172,6 +173,12 @@ const SCHOOL_ALARM_FLINCH_LEVEL = 0.35
 // actual turn and idle bursts and turns look exactly as before. For a sardine the dash peaks at
 // ~3.5× its cruise stroke (an idle burst is ~1.9×) at ~2× the beat rate.
 const CAUDAL_WHIP_BEND_GAIN = 1.5
+// Folding spines: raised for this long after a startle, half raised at a rock; how fast they
+// flick up and settle back down (damp rates, per second).
+const SPINE_ALERT_SECONDS = 4
+const SPINE_RAISE_AT_ROCK = 0.5
+const SPINE_RAISE_RATE = 12
+const SPINE_FOLD_RATE = 2.5
 const CAUDAL_WHIP_EXTRA_BURST = 1.8
 const CAUDAL_WHIP_FREQUENCY_BOOST = 1.0
 const DEFAULT_MOVESET = {
@@ -586,6 +593,22 @@ function molaFinBases(geometry, frame) {
   return result
 }
 
+// Folding spines (`spineFold`): the model's own shape key for the folded spines, a glTF morph
+// target, weighted per fish (1 folded, 0 open as modelled). Every mesh carrying the target, with
+// its index; each starts folded (the Atlas keeps it so).
+function collectSpineMorphs(root, proceduralAnimation) {
+  const name = proceduralAnimation?.spineFold?.morphTarget
+  if (!root || !name) return []
+  const morphs = []
+  root.traverse(child => {
+    const index = child.isMesh ? child.morphTargetDictionary?.[name] : undefined
+    if (index === undefined || !child.morphTargetInfluences) return
+    child.morphTargetInfluences[index] = 1
+    morphs.push({ mesh: child, index })
+  })
+  return morphs
+}
+
 function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
   const situationalLight = supportsFishSituationalLight(material)
   if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex) return
@@ -899,9 +922,10 @@ void proceduralMolaMotion(inout vec3 value) {
 }` : ''}`
       )
     if (caudalUniforms) {
+      // After the morph chunks, so the wave bends a morphed shape (folded spines) with the body.
       shader.vertexShader = shader.vertexShader.replace(
-        '#include <beginnormal_vertex>',
-        `#include <beginnormal_vertex>
+        '#include <morphnormal_vertex>',
+        `#include <morphnormal_vertex>
 float proceduralNormalOffset;
 float proceduralNormalSlope;
 proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralNormalOffset, proceduralNormalSlope);
@@ -912,15 +936,15 @@ proceduralHugCurve(proceduralAxisValue(position, uProceduralSourceAxis), procedu
 proceduralAdjustNormal(objectNormal, uProceduralSourceAxis, proceduralVerticalAxis(), proceduralHugNormalSlope);`
       )
       .replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
+        '#include <morphtarget_vertex>',
+        `#include <morphtarget_vertex>
 float proceduralLateralOffset;
 float proceduralLateralSlope;
-proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralLateralOffset, proceduralLateralSlope);
+proceduralFishCurve(proceduralAxisValue(transformed, uProceduralSourceAxis), proceduralLateralOffset, proceduralLateralSlope);
 proceduralAddAxis(transformed, uProceduralLateralAxis, proceduralLateralOffset);
 float proceduralHugOffset;
 float proceduralHugSlope;
-proceduralHugCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralHugOffset, proceduralHugSlope);
+proceduralHugCurve(proceduralAxisValue(transformed, uProceduralSourceAxis), proceduralHugOffset, proceduralHugSlope);
 proceduralAddAxis(transformed, proceduralVerticalAxis(), proceduralHugOffset);`
       )
     }
@@ -1067,6 +1091,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
 // eslint-disable-next-line react-refresh/only-export-components -- shared renderer helper, never a React value
 export function prepareProceduralVertexMaterials(root, proceduralAnimation) {
   if (!root || !proceduralAnimation) return []
+  collectSpineMorphs(root, proceduralAnimation)
   const materials = []
   root.traverse(child => {
     if (!child.isMesh || !shouldProcedurallyDeformMesh(child, proceduralAnimation)) return
@@ -1757,6 +1782,7 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
+  const spineMorphs = useMemo(() => collectSpineMorphs(object, model?.proceduralAnimation), [object, model])
   const curveDeformTurnRef = useRef(0)
   const proceduralWaveClockRef = useRef(0)
   const curveDeformQuatRef = useRef(new THREE.Quaternion())
@@ -1936,6 +1962,9 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         if (proceduralUniforms.hug) proceduralUniforms.hug.value = proceduralInput.hug ?? 0
       }
     }
+    for (let i = 0; i < spineMorphs.length; i += 1) {
+      spineMorphs[i].mesh.morphTargetInfluences[spineMorphs[i].index] = proceduralInput.spineFold ?? 1
+    }
     if (curveConfig?.type === 'caudal-vertex') {
       // The values the shader just received: independent fins follow the body under their
       // roots with them, and a ride host's riders read them through waveOutRef.
@@ -2033,9 +2062,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // Remoras ride hosts (see the ride section of fishSwim.js). Only a solo agent rides; hosts
   // publish their rendered pose each frame for the riders to read.
   const hitchhiker = useMemo(() => (isSoloAgent ? hitchhikerProfile(species) : null), [isSoloAgent, species])
-  // A pair-bonded follower (see Biome) steers by its partner the way an escort steers by a host.
+  // A pair-bonded follower (see Biome) steers by its partner the way an escort steers by a host;
+  // a group follower (a `slot` in its group) by the group's leader.
   const pairFollow = isSoloAgent && pair?.leaderId != null ? pair : null
-  const pairBond = useMemo(() => (pairFollow ? pairBondProfile(species) : null), [pairFollow, species])
+  const isGroupFollower = pairFollow?.slot != null
+  const pairBond = useMemo(() => {
+    if (!pairFollow) return null
+    return isGroupFollower ? groupBondProfile(species) : pairBondProfile(species)
+  }, [pairFollow, isGroupFollower, species])
   const steersByRide = Boolean(hitchhiker || pairFollow)
   // Reef-associated species hang around the rocks: hover, peck and shelter (reefBehavior.js).
   const reefConfig = useMemo(() => (isSoloAgent && !isMolaCreature(creature) ? reefProfile(species) : null), [isSoloAgent, species, creature])
@@ -2147,6 +2181,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // How far this member's slot lies ahead of it along the school's travel, from the last frame.
   const stationError = useRef(0)
   const startleUntil = useRef(0)
+  // Folding spines (proceduralAnimation.spineFold): 0 folded, 1 raised; raised until this time after a startle.
+  const spineRaise = useRef(0)
+  const spineAlertUntil = useRef(0)
   const startleEscape = useRef(new THREE.Vector3())
   const nextDriftAt = useRef(runtime.nextDriftAt)
   const driftUntil = useRef(runtime.driftUntil)
@@ -2417,7 +2454,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (steersByRide && hasFollowPosition.current) {
       const rideSpeeds = { idle: motion.idleSpeed * organicMotion.speedScale, burst: motion.burstSpeed * organicMotion.speedScale }
       if (pairFollow && pairBond && !reefAtRock) {
-        advancePairFollow(ride, creature, pairFollow.leaderId, pairFollow.side, pairBond, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds, rideRand.current)
+        advancePairFollow(ride, creature, pairFollow, pairBond, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds, rideRand.current)
       }
       if (hitchhiker && ride.stage !== 'pair' && !(reefAtRock && ride.stage === 'free')) {
         ridePoseQuaternion.copy(fish.quaternion)
@@ -2503,6 +2540,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const escape = startleEscape.current
       startleTurnSide.current = Math.sign(desiredDirection.current.z * escape.x - desiredDirection.current.x * escape.z) || 1
       startleUntil.current = now + motion.burstActionDuration
+      spineAlertUntil.current = now + SPINE_ALERT_SECONDS
       boidDecisionNextAt.current = now
     }
 
@@ -3941,6 +3979,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       // A clamped remora bends its rear body onto the host's skin (the fit's bend, WU), in the
       // model's source units: WU over the model scale and the creature's size.
       curveDeformInputRef.current.hug = hitchhiker ? ride.hug / Math.max(1e-6, (model.scale ?? 1) * size) : 0
+      // Spines that fold: flat on the move, up in alarm after a startle (a butterflyfish's threat
+      // display), half up at a rock while it hovers and picks, flat again in a shelter.
+      if (model?.proceduralAnimation?.spineFold) {
+        const reefStage = reefPoseOwned ? reefRef.current.stage : null
+        const raiseTarget = now < spineAlertUntil.current
+          ? 1
+          : reefStage && reefStage !== 'leave' && reefRef.current.mode !== 'shelter' ? SPINE_RAISE_AT_ROCK : 0
+        const rate = raiseTarget > spineRaise.current ? SPINE_RAISE_RATE : SPINE_FOLD_RATE
+        spineRaise.current = THREE.MathUtils.damp(spineRaise.current, raiseTarget, rate, delta)
+        curveDeformInputRef.current.spineFold = 1 - spineRaise.current
+      }
 
       // Nor does a reef fish turning on the spot at a rock bank into the turn.
       const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask' || reefPoseOwned

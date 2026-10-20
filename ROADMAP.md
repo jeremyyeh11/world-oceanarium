@@ -13,6 +13,25 @@ Status labels:
 
 ## Current work
 
+### Raccoon Butterflyfish
+
+Status: shipped in clean `v0.32.0` (2026-10-21, from `v0.32.0-dev_4`, branch `feat/chaetodon-lunula`, #146): Jeremy's model with shape-key spines, one group of 20 at The Reefs (dev data), Atlas entry (six fish) and tile. The open items below carry over.
+
+Subtasks:
+- [x] Species data and Atlas copy from FishBase (`Chaetodon lunula`): 20 cm TL = 0.8 WU, nocturnal, pairs or small groups, LC (2009), up to 9 years, length–weight a 0.02291 / b 3.00.
+- [x] Motion plan: the bannerfish's labriform `caudal-vertex` config (stiff deep body, wave from halfway back, pectorals row). No new motion type.
+- [x] Reef behaviour: a bottom picker that rests by day, so more peck and shelter than the bannerfish, and it picks polyps at both coral forms (small enough for the staghorn shelter).
+- [x] Size: 0.8 WU is under the 1.08 WU floor (AGENTS.md). Jeremy (2026-10-21): "size ok".
+- [x] One group of 20 (Jeremy, 2026-10-21). Reef group mode (`group` in species.js, `groupFollowersForCreatures` in Biome, group stations in `advancePairFollow`): a leader and 19 followers that work one patch of reef together; not the sardinella school, which turns reef behaviour off. See `docs/reef-behavior.md` (Home and mates).
+- [x] 20 rows in `creatures_dev` (ids 418–437, 10 F / 10 M, size 0.10–0.95). Prod `creatures` needs Jeremy's go-ahead after the clean release.
+- [x] Jeremy's model (2026-10-21): 433 KB, 447 px opaque photo texture, separate pectorals and pelvics; verifier target added and passing.
+- [x] The Reefs roster, Atlas pose with two of the group (desktop, 375 px portrait, landscape checked), rendered Atlas tile.
+- [x] Folding spines: Jeremy's shape keys as a morph target (`dev_4`; `dev_2`/`dev_3` folded painted spines in the shader). Bake: `scripts/bake-mirror-shape-keys.py`.
+- [ ] The full raise after a startle is not yet seen live (no startle in the sampled 20 s); check it on the phone. `Next`
+- [x] Jeremy's go-ahead on `v0.32.0-dev_4` (2026-10-21: "merge").
+- [ ] Production `creatures` rows (20): the clean tank shows none until they are written, on Jeremy's go-ahead. `Next`
+- [ ] Phone frame rate with 20 more fish at The Reefs. `Next`
+
 ### Fish at the staghorn (coral forms)
 
 Status: shipped in clean `v0.31.4` (2026-10-20, from `v0.31.4-dev_1`, branch `feat/staghorn-fish`, #143). The open items below carry over. Jeremy (2026-10-20): "do fish now interact with the new staghorn corals? if not, establish behavior. there should be some sort of universal behavior to govern all fish interaction with various coral types". They did not: the staghorn was only a steering obstacle, and the reef-site rays passed through it. Design: coral behaviour split by growth form (`table`, `thicket`; `mound`, `fan` and `host` proposed), one table of how each reef mode plays per form, and per-species shares per form. See `docs/reef-behavior.md` (Coral forms).

@@ -21,7 +21,7 @@ Status: `Current in development` — `v0.31.2-dev_3`, branch `feat/lossless-perf
 - [x] Equivalence tests against the original pass, including material replacement, opacity boundaries and cleanup.
 - [x] Recompress embedded PNG scanlines without changing pixels, colour metadata, texture sampling or geometry/animation semantics.
 - [x] Final baseline asset comparison (15 GLBs / 18 PNGs, 3.66 MB saved), build/lint/tests and desktop/mobile-emulation browser smoke. Physical-phone performance still unverified.
-- [ ] Review/fix loop: reproduce and cover all confirmed tooling findings, independent runtime/assets review, then fresh patched-head review and CI. Explicitly no merge.
+- [x] Review/fix loop: confirmed tooling findings fixed with regressions; third independent review at `b9d54d1` reports no actionable findings. Node/Python tests, build, procedural checks, GitHub CI and Vercel pass. No merge; human/device gates below remain open.
 - [ ] Review PR and deployed preview; Jeremy/YK approval and physical-phone performance check before clean promotion. `Blocked / waiting review`
 - [ ] Clean release only after explicit approval; public and dev DB rows untouched.
 

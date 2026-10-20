@@ -338,6 +338,32 @@ export function steerAroundRocks(desired, position, forward, bodyLength, speed, 
   if (!hasRockObstacles()) return 0
   const pad = rockPad(bodyLength)
   const reach = Math.max(bodyLength * 3, speed * 1.5, 3) + pad
+  // SHIVER-DIAG: the old probe for the A/B
+  if (globalThis.__shiverFix === false) {
+    let u = 0
+    for (const t of lookAhead ? PROBE_STEPS : NO_PROBE_STEPS) {
+      probe.copy(position).addScaledVector(forward, reach * t)
+      const depth = summedHit(probe, pad, normal)
+      if (depth <= 0) continue
+      tangent.copy(forward).addScaledVector(normal, -forward.dot(normal))
+      if (tangent.lengthSq() < 0.04) {
+        tangent.crossVectors(UP, normal)
+        if (tangent.dot(desired) < 0) tangent.negate()
+      }
+      tangent.normalize()
+      u = Math.min(1, (1 - t) * 0.8 + depth * 0.6 + 0.2)
+      avoid.copy(tangent).addScaledVector(normal, 0.6).multiplyScalar(2.5 * u)
+      desired.add(avoid)
+      break
+    }
+    const touchingOld = summedHit(position, pad * 1.25, normal)
+    if (touchingOld > 0) {
+      desired.addScaledVector(normal, 1.5 * touchingOld + 0.5)
+      u = Math.max(u, 0.6)
+    }
+    if (desired.lengthSq() > 1e-6) desired.normalize()
+    return u
+  }
   let urgency = 0
   let weight = 0
   avoid.set(0, 0, 0)

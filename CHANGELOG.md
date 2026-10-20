@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.31.3 — Reef camera tilt
+
+Status: accepted and promoted as clean `v0.31.3` from `v0.31.1-dev_1` on Jeremy's go-ahead (2026-10-20, branch `reef-camera-tilt`, #140: "Looks good on my phone, merge and promote"). Built as `v0.31.1-dev_1` on clean `v0.31.0`; `v0.31.2` merged in the meantime, so the clean number is `v0.31.3`. `package.json` and `package-lock.json` move to `0.31.3`. Jeremy (2026-10-20): "angle camera slightly down for the reef so the central outcrop bommie sits around the center/slightly below the center of the screen".
+
+### Camera
+
+- The Reefs' resting camera (`REEFS_VIEW`) pitches 1.6° down instead of 5.4° up (look target y -10.5, was -7.4); position, turn and 42° field of view are unchanged. The central outcrop moves from about 70% to about 53% of the way down the frame on desktop (1280×720) and a 375 px phone. Coral placement reads the view's direction but picks the same rocks at either pitch (checked side by side).
+
 ## v0.31.2 — Lossless performance cleanup
 
 Status: accepted for clean `v0.31.2` from `v0.31.2-dev_3` on YK's explicit merge approval (2026-10-20, PR #142 / #141, branch `feat/lossless-performance-cleanup`). Baseline clean `v0.31.0`; other open review branches keep their own release buckets. No database changes. Physical-phone performance improvement remains unmeasured; release approval is not a claim that mobile lag is solved.

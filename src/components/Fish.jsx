@@ -23,7 +23,7 @@ import {
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
 import { createFishMaterialPass } from './fishMaterialPass'
-import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, seabedHeightAt, steerAroundRocks } from './rockObstacles'
+import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, seabedHeightAt, startedInsideLastPush, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
   beginReefSettle,
@@ -375,6 +375,17 @@ const ROCK_AVOID_FALL = 2.5
 const ROCK_CONTACT_MEMORY_SECONDS = 0.35
 // How near the swim floor a fish counts as on it for the rock bend (WU).
 const FLOOR_BAND = 0.02
+// The swim clamp and the sand lift move a fish that began the frame inside no further than its
+// own step. One that began it outside (a reef pose, or a host it escorted, had taken it there)
+// comes back at most this much faster than it swims (WU/s), instead of being snapped in.
+const CLAMP_RETURN_SPEED = 1.2
+// The same for a host's clearance (keepRiderClearOfHost), a little faster, so a rider the
+// clearance comes round (its mate starts escorting the sunfish, which it is already beside, or
+// the sunfish rolls to bask) eases out of it instead of being shoved 0.12 to 0.2 WU in a frame.
+const HOST_CLEAR_RETURN_SPEED = 2.4
+const clampStart = new THREE.Vector3()
+const clampCorrection = new THREE.Vector3()
+const clampOffset = new THREE.Vector3()
 const ridePoseQuaternion = new THREE.Quaternion()
 const shadowCasterQuaternion = new THREE.Quaternion()
 const shadowCasterForward = new THREE.Vector3()
@@ -420,6 +431,23 @@ function updateDebugVectorLine(lineRef, start, vector, scale = 1) {
 // How far above the sand a fish's centre stays: about its half-depth, plus a margin.
 function seabedPad(bodyLength) {
   return bodyLength * 0.3 + 0.2
+}
+
+// A clamp's correction (`unclamped` → `position`) never leaves the fish further from where it
+// began the frame (`from`) than its own step plus `returnSpeed`: it is cut short along the way.
+// Stopped at a wall or a rock face, or pushed back along its own step, a fish is clamped exactly
+// as before; only a correction that would carry it on past its step is eased.
+function limitClampCorrection(position, unclamped, from, delta, returnSpeed = CLAMP_RETURN_SPEED) {
+  const limit = unclamped.distanceTo(from) + returnSpeed * delta
+  if (position.distanceToSquared(from) <= limit * limit) return
+  // Along unclamped + t (position - unclamped), the t where the distance from `from` is `limit`.
+  clampCorrection.subVectors(position, unclamped)
+  clampOffset.subVectors(unclamped, from)
+  const a = clampCorrection.lengthSq()
+  const b = clampOffset.dot(clampCorrection)
+  const c = clampOffset.lengthSq() - limit * limit
+  const t = (-b + Math.sqrt(Math.max(0, b * b - a * c))) / a
+  position.copy(unclamped).addScaledVector(clampCorrection, THREE.MathUtils.clamp(t, 0, 1))
 }
 
 // Whether a point lies inside a swim volume (its x range narrows toward the camera unless the
@@ -3198,7 +3226,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           fish.position.lerp(agentRuntimeClamp, 1 - Math.exp(-delta * RIDE_RELEASE_BOUNDS_RESPONSE))
         } else {
           if (isSoloAgent) {
+            clampStart.copy(fish.position)
             boundaryContacts.current = clampToSwimBoundsWithContacts(fish.position, bounds)
+            limitClampCorrection(fish.position, clampStart, previousPosition.current, delta)
             soloWallContacts = true
           } else {
             clampToSwimBounds(fish.position, bounds)
@@ -3214,18 +3244,27 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           }
         }
         // A remora closing on its host never passes through it (see keepRiderClearOfHost).
-        if (steersByRide) keepRiderClearOfHost(fish.position, ride, bodyLength)
+        if (steersByRide) {
+          clampStart.copy(fish.position)
+          if (keepRiderClearOfHost(fish.position, ride, bodyLength)) limitClampCorrection(fish.position, clampStart, previousPosition.current, delta, HOST_CLEAR_RETURN_SPEED)
+        }
         // Landscape rocks: never end a frame inside one (padded for the body). The heading
         // loses its into-rock part, so the fish slides along the face instead of pressing on.
         // Just off a rock, a reef fish is still inside the proxy's padding: the clamp comes back
         // over REEF_CLAMP_RECOVERY_SECONDS, so it eases away from the face instead of jumping.
         const rockClampBlend = reefConfig ? reefRef.current.clampBlend : 1
-        if (rockClampBlend < 1) agentRuntimeClamp.copy(fish.position)
+        agentRuntimeClamp.copy(fish.position)
         // Squeezing through (see ROCK_PINCH_GIVE_UPS), it is only pushed out of the deeper rock.
         const squeezing = now < pinchSqueezeUntil.current
         const lastRockNormal = !squeezing && now - rockContactAt.current < ROCK_CONTACT_MEMORY_SECONDS ? rockContactNormal.current : null
-        const rockNormal = pushOutOfRocks(fish.position, bodyLength, squeezing ? null : previousPosition.current, bounds.yMin, lastRockNormal)
+        const rockMaxStep = fish.position.distanceTo(previousPosition.current) + CLAMP_RETURN_SPEED * delta
+        const rockNormal = pushOutOfRocks(fish.position, bodyLength, squeezing ? null : previousPosition.current, bounds.yMin, lastRockNormal, rockMaxStep)
         if (rockClampBlend < 1) fish.position.lerpVectors(agentRuntimeClamp, fish.position, rockClampBlend)
+        // Back from a reef site, inside the padding, it eases out of it like the swim clamp below.
+        // Elsewhere the rock stops it at the face as before: capped there too, a fish pressing on
+        // into a rock stayed just inside it frame after frame, and clown triggerfish flicked their
+        // heading more (25 flicks a fish-minute against 10 to 14).
+        if (!squeezing && rockClampBlend < 1 && startedInsideLastPush()) limitClampCorrection(fish.position, agentRuntimeClamp, previousPosition.current, delta)
         if (rockNormal) {
           const into = desiredDirection.current.dot(rockNormal)
           if (into < 0) desiredDirection.current.addScaledVector(rockNormal, -into)
@@ -3252,7 +3291,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
         // The sand: never below it (a landscape's dunes rise above the swim floor at The Reefs'
         // front); a fish meeting it levels off and skims along it.
-        if (liftAboveSeabed(fish.position, seabedPad(bodyLength)) && desiredDirection.current.y < 0) {
+        clampStart.copy(fish.position)
+        const lifted = liftAboveSeabed(fish.position, seabedPad(bodyLength))
+        if (lifted) limitClampCorrection(fish.position, clampStart, previousPosition.current, delta)
+        if (lifted && desiredDirection.current.y < 0) {
           desiredDirection.current.y = 0
           if (desiredDirection.current.lengthSq() > 1e-6) desiredDirection.current.normalize()
           else desiredDirection.current.copy(tangent)

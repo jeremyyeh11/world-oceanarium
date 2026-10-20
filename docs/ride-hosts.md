@@ -196,7 +196,15 @@ Stages: `free` → `approach` → `dock` → `latch` → `attached` → `release
 
   It steers like an approach: the host's velocity plus a closing velocity that grows with
   its distance from the station (gain 0.45), so it lags on a turn and drifts back rather
-  than snapping in. The approach's "never inside the host" push applies to it too.
+  than snapping in. The approach's "never inside the host" push applies to it too, eased
+  (since `v0.31.6-dev_1`): the push never moves a rider further from where it began the frame
+  than its own step plus 2.4 WU/s (Fish.jsx `HOST_CLEAR_RETURN_SPEED`, `limitClampCorrection`).
+  Pressed against the clearance it is held there as before; but when the clearance comes round a
+  fish already inside it (a pair follower inherits the host the moment its mate starts escorting
+  the sunfish beside it; the sunfish turns or rolls into an escort) it eases out instead of being
+  shoved 0.12 to 0.2 WU in a frame. Letting go, a cleaner the clearance had pushed past its own
+  swim walls (escorts of a sunfish at the back wall sit up to 0.1 WU beyond z -52) comes back in
+  at the swim clamp's return speed (see `docs/reef-behavior.md`, Back on the pipeline).
   - It holds no spot and no load on the host.
   - Every 4–8 s it looks for a spot and goes for one that has opened.
   - After 25–60 s it swims off, and it leaves at once if the host fades.

@@ -81,6 +81,7 @@ import {
   molaSunBaskSurfaceCenterYMax,
   mulberry32,
   pairBondProfile,
+  groupBondProfile,
   pickMolaSunBaskExitTarget,
   pickMolaSunBaskTarget,
   pickSoloAgentContinuationTarget,
@@ -2033,9 +2034,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // Remoras ride hosts (see the ride section of fishSwim.js). Only a solo agent rides; hosts
   // publish their rendered pose each frame for the riders to read.
   const hitchhiker = useMemo(() => (isSoloAgent ? hitchhikerProfile(species) : null), [isSoloAgent, species])
-  // A pair-bonded follower (see Biome) steers by its partner the way an escort steers by a host.
+  // A pair-bonded follower (see Biome) steers by its partner the way an escort steers by a host;
+  // a group follower (a `slot` in its group) by the group's leader.
   const pairFollow = isSoloAgent && pair?.leaderId != null ? pair : null
-  const pairBond = useMemo(() => (pairFollow ? pairBondProfile(species) : null), [pairFollow, species])
+  const isGroupFollower = pairFollow?.slot != null
+  const pairBond = useMemo(() => {
+    if (!pairFollow) return null
+    return isGroupFollower ? groupBondProfile(species) : pairBondProfile(species)
+  }, [pairFollow, isGroupFollower, species])
   const steersByRide = Boolean(hitchhiker || pairFollow)
   // Reef-associated species hang around the rocks: hover, peck and shelter (reefBehavior.js).
   const reefConfig = useMemo(() => (isSoloAgent && !isMolaCreature(creature) ? reefProfile(species) : null), [isSoloAgent, species, creature])
@@ -2417,7 +2423,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (steersByRide && hasFollowPosition.current) {
       const rideSpeeds = { idle: motion.idleSpeed * organicMotion.speedScale, burst: motion.burstSpeed * organicMotion.speedScale }
       if (pairFollow && pairBond && !reefAtRock) {
-        advancePairFollow(ride, creature, pairFollow.leaderId, pairFollow.side, pairBond, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds, rideRand.current)
+        advancePairFollow(ride, creature, pairFollow, pairBond, creatureBodyLength(creature, swim), now, fish.position, rideSpeeds, rideRand.current)
       }
       if (hitchhiker && ride.stage !== 'pair' && !(reefAtRock && ride.stage === 'free')) {
         ridePoseQuaternion.copy(fish.quaternion)

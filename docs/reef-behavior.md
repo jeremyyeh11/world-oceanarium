@@ -155,6 +155,16 @@ mate's position as home. While the leader is at a rock (`reefHold` on its regist
 follower stops station-keeping and does its own reef behaviour nearby; at a rock, a fish finishes
 before it rejoins its mate or starts following a host.
 
+A reef group (`group` on the species: the raccoon butterflyfish) works the same way with more
+followers. Biome makes the first fish of each group of up to `group.maxSize` the leader; every
+other one follows her on the pair path with its own `slot`, a station on a golden-angle spiral
+round her (1.2 to 4.5 body lengths out, spread up and down). While she is at a rock they each do
+their own reef behaviour round her, so the group works one patch of reef, then gathers and moves
+on when she does. It is not a school: no shared heading or formation, and every fish keeps its
+reef behaviour (sardinella-style `schooling` turns reef behaviour off). Measured with 20 on
+2026-10-21: median 3.6 WU from the group's centre, about 17 of 20 within 6 WU, and on average 12
+of the 20 at a rock at once.
+
 ## Coral forms
 
 Reef fish use the corals as well as the rock. Coral behaviour is split by the coral's growth

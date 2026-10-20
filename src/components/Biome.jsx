@@ -79,6 +79,33 @@ function pairFollowersForCreatures(creatures) {
   return followers
 }
 
+// Group-living species (`group`, the raccoon butterflyfish) keep loose company on the reef: in
+// each group of up to `group.maxSize`, the first fish leads and every other one follows her on
+// the pair path, at its own `slot` round her (advancePairFollow). A fish left on its own roams
+// alone.
+function groupFollowersForCreatures(creatures) {
+  const groups = new Map()
+  creatures.forEach(creature => {
+    const species = resolveSpecies(creature)
+    if (!species?.group) return
+    const key = schoolKeyForCreature(creature)
+    const entry = groups.get(key) ?? { maxSize: Math.max(2, species.group.maxSize ?? 20), creatures: [] }
+    entry.creatures.push(creature)
+    groups.set(key, entry)
+  })
+  const followers = new Map()
+  groups.forEach(({ maxSize, creatures: group }) => {
+    const ordered = [...group].sort((a, b) => deterministicSchoolOrder(a) - deterministicSchoolOrder(b))
+    for (let offset = 0; offset < ordered.length; offset += maxSize) {
+      const members = ordered.slice(offset, offset + maxSize)
+      for (let i = 1; i < members.length; i += 1) {
+        followers.set(members[i].id, { leaderId: members[0].id, side: 1, slot: i - 1, count: members.length - 1 })
+      }
+    }
+  })
+  return followers
+}
+
 export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   const visibleCreatures = useMemo(
     () => (tank ? creaturesForTank(creatures, tank) : creatures.filter(c => c.biome === name && c.alive)),
@@ -118,7 +145,10 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
     return nextSchoolByCreatureId
   }, [visibleCreatures, tankVisitSeed])
 
-  const pairByCreatureId = useMemo(() => pairFollowersForCreatures(visibleCreatures), [visibleCreatures])
+  const pairByCreatureId = useMemo(
+    () => new Map([...pairFollowersForCreatures(visibleCreatures), ...groupFollowersForCreatures(visibleCreatures)]),
+    [visibleCreatures],
+  )
 
   return (
     <group>

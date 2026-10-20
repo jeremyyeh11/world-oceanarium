@@ -2006,10 +2006,12 @@ export const SPECIES = [
     hiddenInAtlas: true,
     biome: 'ocean',
     depthZone: 'epipelagic',
-    // "Distinct pairing" and monogamous mating (FishBase), so it pairs like the bannerfish
-    // and runs the solo-agent path.
+    // "Usually in pairs or small groups" (FishBase); groups of up to about 20. The tank holds
+    // one group: a loose company that works one patch of reef together, each fish on the
+    // solo-agent path with its own reef behaviour, following the group's leader between
+    // patches (`group`, see Biome and advancePairFollow). Not a school: no shared heading.
     schooling: false,
-    pairBonded: true,
+    group: { maxSize: 20 },
     repulser: false,
     aggressive: false,
     predator: false,
@@ -2050,7 +2052,7 @@ export const SPECIES = [
       biome: 'Reef',
       zone: 'Sunlight',
       diet: 'Invertebrates',
-      social: 'Pairs',
+      social: 'Small groups',
     },
     description: 'A yellow butterflyfish, up to 20 cm, with a black mask over its eye like a raccoon\'s, a white band behind it and a dark crescent on the shoulder. It hunts at night for nudibranchs and the tentacles of tubeworms, and spends the day in pairs or small groups close to the reef.',
     adultLengthRangeMeters: [0.14, 0.2],

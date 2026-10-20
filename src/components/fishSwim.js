@@ -2883,13 +2883,41 @@ export function pairBondProfile(species) {
   }
 }
 
+// Reef groups (`group`: the raccoon butterflyfish): a loose company, not a school. Biome makes
+// one fish of each group the leader and the rest followers on the pair path above, each with a
+// `slot`: its own station round the leader, spread all round her (a golden-angle spiral, the
+// later slots further out) and up and down, each wandering on its own cycle. Spells apart are
+// shorter and rarer than a pair's, so the group holds together. While the leader is at a rock
+// the followers do their own reef behaviour round her, so the group works one patch of reef.
+const GROUP_STATION_DISTANCE = [1.2, 4.5]
+const GROUP_STATION_RISE = 0.8
+const GROUP_STATION_WANDER = 0.45
+const GROUP_DEFAULT_TOGETHER_SECONDS = [60, 140]
+const GROUP_DEFAULT_APART_SECONDS = [10, 25]
+const GROUP_DEFAULT_APART_CHANCE = 0.25
+
+/** A group-living species' spacing and together/apart rhythm, defaults filled in. */
+export function groupBondProfile(species) {
+  const config = species?.group
+  if (!config) return null
+  return {
+    togetherSeconds: config.togetherSeconds ?? GROUP_DEFAULT_TOGETHER_SECONDS,
+    apartSeconds: config.apartSeconds ?? GROUP_DEFAULT_APART_SECONDS,
+    apartChance: config.apartChance ?? GROUP_DEFAULT_APART_CHANCE,
+    stationBodyLengths: config.stationBodyLengths ?? GROUP_STATION_DISTANCE,
+  }
+}
+
 /**
- * Step a pair follower. Together, it steers toward its wandering station by `leaderId`: sets
- * `ride.approaching`, `ride.target` and `ride.targetSpeed` like an escort. Apart (or with the
- * leader gone) it leaves the ride free, so the fish roams on its own. `side` is +1 or -1, the
- * flank it favours in open water; `bond` comes from pairBondProfile.
+ * Step a pair or group follower. Together, it steers toward its wandering station by the
+ * leader: sets `ride.approaching`, `ride.target` and `ride.targetSpeed` like an escort. Apart
+ * (or with the leader gone) it leaves the ride free, so the fish roams on its own. `follow` is
+ * Biome's `{ leaderId, side }` (+1 or -1, the flank a mate favours in open water), plus
+ * `slot` and `count` for a group follower; `bond` comes from pairBondProfile or
+ * groupBondProfile.
  */
-export function advancePairFollow(ride, rider, leaderId, side, bond, riderBodyLength, now, position, speeds, rand) {
+export function advancePairFollow(ride, rider, follow, bond, riderBodyLength, now, position, speeds, rand) {
+  const { leaderId, side } = follow
   const leader = FISH_REGISTRY.get(leaderId)
   if (!leader || leader.biome !== rider.biome) {
     if (ride.stage === 'pair') resetRideState(ride)
@@ -2930,9 +2958,22 @@ export function advancePairFollow(ride, rider, leaderId, side, bond, riderBodyLe
   // Each pair's station wanders on its own slow, out-of-step cycles.
   const phase = (Number(rider.id) || 0) * 1.618
   const wave = (rate, offset) => 0.5 + 0.5 * Math.sin(now * rate + phase * offset)
-  const distance = THREE.MathUtils.lerp(bond.stationBodyLengths[0], bond.stationBodyLengths[1], wave(PAIR_STATION_RATES[0], 1)) * riderBodyLength
-  const angle = THREE.MathUtils.lerp(PAIR_STATION_ANGLE[0], PAIR_STATION_ANGLE[1], wave(PAIR_STATION_RATES[1], 2.3))
-  const rise = PAIR_STATION_RISE * (2 * wave(PAIR_STATION_RATES[2], 3.7) - 1) * riderBodyLength
+  let distance
+  let angle
+  let rise
+  if (follow.slot != null) {
+    // A group follower's station: its slot's place on the spiral, wandering round it.
+    const radial = Math.sqrt((follow.slot + 0.5) / Math.max(1, follow.count))
+    const swing = 1 + GROUP_STATION_WANDER * (2 * wave(PAIR_STATION_RATES[0], 1) - 1)
+    distance = THREE.MathUtils.lerp(bond.stationBodyLengths[0], bond.stationBodyLengths[1], radial) * swing * riderBodyLength
+    angle = follow.slot * GOLDEN_ANGLE + GROUP_STATION_WANDER * (2 * wave(PAIR_STATION_RATES[1], 2.3) - 1)
+    const level = 2 * ((follow.slot * 0.618) % 1) - 1
+    rise = GROUP_STATION_RISE * (0.7 * level + 0.3 * (2 * wave(PAIR_STATION_RATES[2], 3.7) - 1)) * riderBodyLength
+  } else {
+    distance = THREE.MathUtils.lerp(bond.stationBodyLengths[0], bond.stationBodyLengths[1], wave(PAIR_STATION_RATES[0], 1)) * riderBodyLength
+    angle = THREE.MathUtils.lerp(PAIR_STATION_ANGLE[0], PAIR_STATION_ANGLE[1], wave(PAIR_STATION_RATES[1], 2.3))
+    rise = PAIR_STATION_RISE * (2 * wave(PAIR_STATION_RATES[2], 3.7) - 1) * riderBodyLength
+  }
   ride.target.copy(leader.position)
     .addScaledVector(pairSide, Math.cos(angle) * distance)
     .addScaledVector(forward, Math.sin(angle) * distance)

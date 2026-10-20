@@ -21,10 +21,13 @@ Subtasks:
 - [x] Species data and Atlas copy from FishBase (`Chaetodon lunula`): 20 cm TL = 0.8 WU, nocturnal, pairs or small groups, LC (2009), up to 9 years, length–weight a 0.02291 / b 3.00.
 - [x] Motion plan: the bannerfish's labriform `caudal-vertex` config (stiff deep body, wave from halfway back, pectorals row). No new motion type.
 - [x] Reef behaviour: a bottom picker that rests by day, so more peck and shelter than the bannerfish, and it picks polyps at both coral forms (small enough for the staghorn shelter).
-- [ ] Size: 0.8 WU is under the 1.08 WU floor (AGENTS.md). Accepted on the juvenile angelfish's precedent (0.32–0.56 WU) since reef fish are seen up close at the rocks; Jeremy to confirm.
+- [x] Size: 0.8 WU is under the 1.08 WU floor (AGENTS.md). Jeremy (2026-10-21): "size ok".
+- [x] One group of 20 (Jeremy, 2026-10-21). Reef group mode (`group` in species.js, `groupFollowersForCreatures` in Biome, group stations in `advancePairFollow`): a leader and 19 followers that work one patch of reef together; not the sardinella school, which turns reef behaviour off. See `docs/reef-behavior.md` (Home and mates).
+- [x] 20 rows in `creatures_dev` (ids 418–437, 10 F / 10 M, size 0.10–0.95). Prod `creatures` needs Jeremy's go-ahead after the clean release.
 - [ ] Jeremy: model to the bannerfish's contract (one body mesh with dorsal, anal and tail joined in; pectorals as separate `pectoral_l` / `pectoral_r` objects, pelvics too if modelled; nose −Z, +Y up; dense rings from mid-body back).
 - [ ] Model intake: texture size and image names, alpha check, `caudal-vertex` verifier target, source length, `finRootFrom`.
-- [ ] The Reefs roster, tank count (pairs; small groups would need a group mode), Atlas pose/framing (desktop, 375 px portrait, landscape), `creatures_dev` rows, Atlas tile in the same build.
+- [ ] The Reefs roster, Atlas pose/framing (desktop, 375 px portrait, landscape), Atlas tile in the same build.
+- [ ] Phone frame rate with 20 more fish at The Reefs. `Next`
 
 ### Fish at the staghorn (coral forms)
 

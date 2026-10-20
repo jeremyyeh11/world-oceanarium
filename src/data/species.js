@@ -1991,6 +1991,119 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
+  // --- Raccoon butterflyfish (Chaetodontidae) ------------------------------------------------
+  // Facts from FishBase. A nocturnal reef butterflyfish in pairs or small groups that picks
+  // nudibranchs, tubeworm tentacles, other bottom invertebrates and some coral polyps off the
+  // reef. The tank has no night, so it plays its daytime self: close to the reef, picking and
+  // resting under cover more than the plankton-picking bannerfish. Prep entry: hidden from the
+  // Atlas, no model, no tank slot yet (ROADMAP: Raccoon Butterflyfish).
+  {
+    id: 'chaetodon-lunula',
+    name: 'Raccoon Butterflyfish',
+    scientificName: 'Chaetodon lunula',
+    family: 'Chaetodontidae',
+    alternateNames: ['Raccoon Fish', 'Halfmoon Butterflyfish'],
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // "Distinct pairing" and monogamous mating (FishBase), so it pairs like the bannerfish
+    // and runs the solo-agent path.
+    schooling: false,
+    pairBonded: true,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      commonDiet: 'Nudibranchs, tubeworm tentacles and other bottom invertebrates; some algae and coral polyps.',
+      foundIn: 'Indo-Pacific reefs, East Africa to Hawaii, the Marquesas and Ducie, southern Japan to Lord Howe and Rapa, 0 to 170 m.',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Up to 9 years',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Pairs or small groups',
+        groupingBehaviour: 'Feeds at night. Usually in pairs or small groups on shallow lagoon and seaward reef flats, down past 30 m. Juveniles live among rocks on inner reef flats and in tide pools.',
+        reproduction: 'Forms distinct, monogamous pairs; eggs drift in open water.',
+      },
+      averages: {
+        // FishBase gives only a maximum (20 cm TL); no common length or sex-specific data.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Invertebrates',
+      social: 'Pairs',
+    },
+    description: 'A yellow butterflyfish, up to 20 cm, with a black mask over its eye like a raccoon\'s, a white band behind it and a dark crescent on the shoulder. It hunts at night for nudibranchs and the tentacles of tubeworms, and spends the day in pairs or small groups close to the reef.',
+    adultLengthRangeMeters: [0.14, 0.2],
+    maxBodyLengthMeters: 0.2,
+    swim: {
+      // The bannerfish's labriform cruise, kept a little closer and slower: a bottom picker,
+      // not a plankton picker in the water over the reef. Tune once the model swims.
+      visualTimeScale: 0.8,
+      driftEnabled: false,
+      idleBLPerSec: [0.6, 1.0],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [1.2, 1.6],
+      burstBLPerSec: [2.6, 3.4],
+      burstInterval: [14.0, 24.0],
+      burstActionDuration: 0.6,
+      turnActionDuration: 0.5,
+      erraticness: 0.18,
+      turnRadiusBodyLengths: 0.8,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      ...REEF_BOUNDS,
+      // 1 WU = 25 cm: 20 cm maximum total length = 0.8 WU, under the bannerfish (1.0) and the
+      // 1.08 WU sardinella floor, at the size of the juvenile angelfish's largest.
+      bodyLengthWU: 0.8,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.5,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        menace: 0.02,
+        wariness: 0.35,
+      },
+    },
+    // 14 to 20 cm. No published common length; this keeps them all near adult size.
+    sizeRange: [0.7, 1.0],
+    // FishBase Bayesian length–weight (TL cm): a 0.02291, b 3.00.
+    mass: { coefficient: 0.02291, exponent: 3 },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It feeds on the reef, not over
+    // it, so it pecks more than the bannerfish and holds close; resting by day, it shelters
+    // more too. Polyps are part of its diet, so it picks at both coral forms; at 0.8 WU it is
+    // small enough to slip in among the staghorn.
+    reef: {
+      affinity: 0.85,
+      modes: { patrol: 0.2, hover: 0.25, peck: 0.35, shelter: 0.2 },
+      pecks: [1, 3],
+      corals: {
+        table: { peck: 0.4, shelter: 0.4, hover: 0.3 },
+        thicket: { peck: 0.3, shelter: 0.25, hover: 0.25 },
+      },
+    },
+  },
   // --- Emperor angelfish (Pomacanthidae) -----------------------------------------------------
   // Facts from FishBase. A reef angelfish that forms pairs, and whose young and adults "may
   // clean much larger fishes, such as sunfish", so it pairs like the bannerfish and follows the

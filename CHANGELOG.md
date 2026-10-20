@@ -37,6 +37,26 @@ Status: in development as `v0.30.3-dev_1` (branch `fix/reef-floor-pinch`), from 
 - Shivering on the move: a fish brushing past a rock still flicks its heading 2° to 5° a frame for a few seconds now and then, mostly young emperor angelfish round the foreground stacks. The probe ahead hits the rock one frame and misses it the next, and a thin coral table's normal flips between up and down as the probe crosses its middle.
 - Jumps on the way back from a reef pose: a hover or shelter can leave a fish outside its swim volume or under the sand, and the first frame back on the pipeline snaps it in (0.1 to 0.8 WU), with or without these changes.
 
+## v0.31.3 — Reef camera tilt
+
+Status: accepted and promoted as clean `v0.31.3` from `v0.31.1-dev_1` on Jeremy's go-ahead (2026-10-20, branch `reef-camera-tilt`, #140: "Looks good on my phone, merge and promote"). Built as `v0.31.1-dev_1` on clean `v0.31.0`; `v0.31.2` merged in the meantime, so the clean number is `v0.31.3`. `package.json` and `package-lock.json` move to `0.31.3`. Jeremy (2026-10-20): "angle camera slightly down for the reef so the central outcrop bommie sits around the center/slightly below the center of the screen".
+
+### Camera
+
+- The Reefs' resting camera (`REEFS_VIEW`) pitches 1.6° down instead of 5.4° up (look target y -10.5, was -7.4); position, turn and 42° field of view are unchanged. The central outcrop moves from about 70% to about 53% of the way down the frame on desktop (1280×720) and a 375 px phone. Coral placement reads the view's direction but picks the same rocks at either pitch (checked side by side).
+
+## v0.31.2 — Lossless performance cleanup
+
+Status: accepted for clean `v0.31.2` from `v0.31.2-dev_3` on YK's explicit merge approval (2026-10-20, PR #142 / #141, branch `feat/lossless-performance-cleanup`). Baseline clean `v0.31.0`; other open review branches keep their own release buckets. No database changes. Physical-phone performance improvement remains unmeasured; release approval is not a claim that mobile lag is solved.
+
+### Performance / assets
+
+- Cache each fish's material-pass mesh targets instead of rediscovering the full object/bone tree every frame. Keep current material references, every-frame writes, depth light, fades, alpha blending and proxy exclusions; refresh when nested model/LOD/debug children change and remove listeners on cleanup.
+- Losslessly recompress embedded PNG IDAT data. Preserve filtered rows, decoded pixels, all PNG format/colour/provenance metadata, texture dimensions/sampling and GLB geometry/animation semantics. No downscaling, lossy compression, water/boids/cadence or visual simplification.
+- Add equivalence/lifecycle tests, an asset verifier with mutation-rejection tests and an isolated material-pass microbenchmark. Detailed evidence and rollback in `docs/lossless-performance-cleanup.md`. Smaller download size is not a claim of lower decoded/GPU memory or a complete fix for mobile lag.
+- Review hardening: run Python/Pillow regression tests in CI; refuse unsupported GLB extensions and invalid BIN/view ranges; keep validation active under Python optimized mode; report new models separately and reject removals rather than aborting comparison or implying baseline equivalence. Runtime material logic and the optimized GLB bytes are unchanged by these tooling fixes.
+- Preserve JSON types in equivalence checks: reject boolean/float buffer indices and distinguish booleans from numeric values in normalized semantics, rather than relying on Python's `False == 0` / `True == 1` equality.
+
 ## v0.31.0 — Staghorn coral
 
 Status: accepted and promoted as clean `v0.31.0` from `v0.31.0-dev_3` on Jeremy's go-ahead (2026-10-20, branch `feat/staghorn-coral`, #139: "push and merge to main"). `package.json` and `package-lock.json` move to `0.31.0`. Jeremy supplied a staghorn coral model (*Acropora muricata*). In `dev_1` it grew as thickets on their own at the foot of a few rocks (his first pick); seeing them he asked to "place the staghorns together with the table corals so they look like a cluster? a bommie? now they just look so sad and separate", with "same colour ones" clustered together, "not a random scatter", after his photos of staghorn fields with tables among them and a staghorn thicket crowning a rock. On `dev_2` he found the low detail levels "really bad" ("i shouldnt be able to see sharp pointy edges") and saw backface problems.

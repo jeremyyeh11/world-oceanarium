@@ -12,7 +12,8 @@ Read [README.md](README.md) first for the rules shared by every type.
 Shipping: Spotted Sardinella (`amblygaster-sirm`), Mahi-mahi (`coryphaena-hippurus`,
 both sex variants), Shortfin Mako (`isurus-oxyrinchus`), the remoras, Pilot Fish
 (`naucrates-ductor`), Longfin Bannerfish (`heniochus-acuminatus`, a labriform swimmer
-tuned stiff: see its tuning row).
+tuned stiff: see its tuning row), Raccoon Butterflyfish (`chaetodon-lunula`, the
+bannerfish's tuning plus folding spines).
 
 Also this type: anguilliform swimmers (eels, sea snakes) as a config variant —
 `flexStart` near `0` and a high `waveTravel` puts the wave through the whole body
@@ -153,6 +154,28 @@ In `model.proceduralAnimation`, `src/data/species.js`.
 | `pectoralFinFlutter` | `0.12` | CPU flutter for independent pectorals |
 | `pelvicFinFlutter` | `0.07` | CPU flutter for independent pelvics |
 | `finRootFrom` | `'axis'` | How each independent fin's root (its pivot) is found: the tenth of its vertices nearest the body's long axis, or `'body-surface'`, nearest the body's surface |
+| `spineFold` | — | Optional folding spines: `{ axis, foldDegrees }`. See **Folding spines** below |
+
+### Folding spines
+
+An optional layer for fin spines joined into the body (Raccoon Butterflyfish, `v0.32.0`).
+Decoration, not thrust: the wave and the pectorals still swim the fish.
+
+- **Paint:** `COLOR_1` red on the body mesh, `0` at each spine's base to `1` at its tip,
+  black everywhere else (green and blue unused). Model the spines raised.
+- **Reach:** on load, `spineFoldReach()` (Fish.jsx) gives every painted vertex its height
+  above its own spine's base, a `spineReach` attribute: per bin along the body, the base is
+  the lowest-painted vertices (paint ≤ 0.15) nearest the body. Dorsal or anal by which side
+  of `axis` (the body axis height, source units) the vertex is on.
+- **Fold:** each painted vertex turns back toward the tail and in onto the body about its
+  base, by `uSpineFold × foldDegrees` (default 80°), in the plane of the source and vertical
+  axes, eased in over the first 0.3 of the paint so the spiny fin blends into the soft one.
+  The wave then runs on the folded position. Normals are left alone (a thin fin's face sideways).
+- **Driver** (Fish.jsx, after the startle whip): `spineFold` 1 folded on the move and in a
+  shelter; 0.5 while hovering, settling or pecking at a rock (`SPINE_RAISE_AT_ROCK`); 0 for
+  `SPINE_ALERT_SECONDS` (4 s) after a startle, a butterflyfish's threat display. Raises fast
+  (damp 12/s), folds slowly (2.5/s). The Atlas shows it folded.
+- **Not this layer:** a whole fin that rows or ripples is [mask-fin-row](mask-fin-row.md).
 
 ## Shipped tuning
 

@@ -153,7 +153,7 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.45, -0.12, 0],
     lookAt: [0.15, 0.22, 0],
   },
-  // Raccoon butterflyfish: 0.2 m, deep-bodied, shown with two of its group (see
+  // Raccoon butterflyfish: 0.2 m, deep-bodied, shown with five of its group (see
   // ATLAS_COMPANIONS_BY_SPECIES); the camera looks between them.
   'chaetodon-lunula': {
     maxLengthDisplayUnits: 0.95,
@@ -238,10 +238,14 @@ const ATLAS_COMPANIONS_BY_SPECIES = {
   'heniochus-acuminatus': [
     { position: [0.5, 0.62, -0.9], scale: 0.9, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
   ],
-  // A group-living species shows two of its group, behind and to either side.
+  // A group-living species shows a few of its group round the main fish, at different depths
+  // and slightly different headings, out of step with each other.
   'chaetodon-lunula': [
     { position: [0.55, 0.6, -0.9], scale: 0.92, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
     { position: [0.85, -0.5, -1.4], scale: 0.85, yaw: 0.14, animationOffset: 3.3, animationSpeed: 1.07, burstDelay: 6.1 },
+    { position: [-0.15, 1.05, -2.2], scale: 0.8, yaw: -0.06, animationOffset: 0.6, animationSpeed: 1.02, burstDelay: 8.2 },
+    { position: [1.45, 0.35, -2.6], scale: 0.88, yaw: 0.2, animationOffset: 4.4, animationSpeed: 0.9, burstDelay: 6.8 },
+    { position: [0.3, -1.05, -2.4], scale: 0.82, yaw: 0.04, animationOffset: 2.6, animationSpeed: 1.1, burstDelay: 7.9 },
   ],
   // The angelfish pair, plus two juveniles (`lifeStage`, their own model) at true size against
   // a 40 cm adult: `scale` is the juvenile's length as a share of the species' 40 cm.

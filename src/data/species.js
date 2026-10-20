@@ -2029,7 +2029,7 @@ export const SPECIES = [
       lifeSpan: 'Up to 9 years',
       maturityAge: 'Unknown',
       social: {
-        schoolSize: 'Pairs or small groups',
+        schoolSize: 'Small groups',
         groupingBehaviour: 'Feeds at night. Usually in pairs or small groups on shallow lagoon and seaward reef flats, down past 30 m. Juveniles live among rocks on inner reef flats and in tide pools.',
         reproduction: 'Forms distinct, monogamous pairs; eggs drift in open water.',
       },
@@ -2141,6 +2141,10 @@ export const SPECIES = [
         pectoralFinFlutter: 0.45,
         finRootFrom: 'body-surface',
         pelvicFinFlutter: 0.1,
+        // The front dorsal spines and the anal spines, painted red in COLOR_1 from base (0) to
+        // tip (1), fold back flat while it swims and stand up in alarm (Fish.jsx, the spine
+        // driver). Modelled raised. axis: the body-axis height that splits dorsal from anal.
+        spineFold: { axis: 0.009, foldDegrees: 80 },
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,

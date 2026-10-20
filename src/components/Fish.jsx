@@ -173,6 +173,12 @@ const SCHOOL_ALARM_FLINCH_LEVEL = 0.35
 // actual turn and idle bursts and turns look exactly as before. For a sardine the dash peaks at
 // ~3.5× its cruise stroke (an idle burst is ~1.9×) at ~2× the beat rate.
 const CAUDAL_WHIP_BEND_GAIN = 1.5
+// Folding spines: raised for this long after a startle, half raised at a rock; how fast they
+// flick up and settle back down (damp rates, per second).
+const SPINE_ALERT_SECONDS = 4
+const SPINE_RAISE_AT_ROCK = 0.5
+const SPINE_RAISE_RATE = 12
+const SPINE_FOLD_RATE = 2.5
 const CAUDAL_WHIP_EXTRA_BURST = 1.8
 const CAUDAL_WHIP_FREQUENCY_BOOST = 1.0
 const DEFAULT_MOVESET = {
@@ -587,6 +593,67 @@ function molaFinBases(geometry, frame) {
   return result
 }
 
+const spineReachCache = new WeakSet()
+const SPINE_ROOT_BINS = 24
+// The paint below which a spine vertex counts as its base.
+const SPINE_ROOT_PAINT = 0.15
+
+// Folding spines: how far each spine vertex stands out from its spine's base, as a `spineReach`
+// attribute (source units, along the vertical axis). The base line is the paint's own: per bin
+// along the body, the lowest-painted vertices nearest the body (the top of the back for the
+// dorsal spines, the belly for the anal), so a tall spine folds as far as its own height. A
+// single spine height for the whole fin left the tall front spines standing half up.
+function spineFoldReach(geometry, sourceAxis, verticalAxis, axisHeight) {
+  if (!geometry || spineReachCache.has(geometry)) return
+  spineReachCache.add(geometry)
+  const color = geometry.getAttribute('color_1')
+  const position = geometry.getAttribute('position')
+  if (!color || !position) return
+  const count = position.count
+  const along = new Float32Array(count)
+  const height = new Float32Array(count)
+  let minAlong = Infinity
+  let maxAlong = -Infinity
+  for (let index = 0; index < count; index += 1) {
+    along[index] = position.getComponent(index, sourceAxis)
+    height[index] = position.getComponent(index, verticalAxis)
+    if (color.getX(index) <= 0.001) continue
+    minAlong = Math.min(minAlong, along[index])
+    maxAlong = Math.max(maxAlong, along[index])
+  }
+  const reach = new Float32Array(count)
+  if (Number.isFinite(minAlong)) {
+    const span = Math.max(0.00001, maxAlong - minAlong)
+    const binOf = value => THREE.MathUtils.clamp(Math.floor((value - minAlong) / span * SPINE_ROOT_BINS), 0, SPINE_ROOT_BINS - 1)
+    // Per side (+1 dorsal, -1 anal) and bin, the base: the painted-base vertex nearest the body.
+    const roots = { 1: new Array(SPINE_ROOT_BINS).fill(null), [-1]: new Array(SPINE_ROOT_BINS).fill(null) }
+    for (let index = 0; index < count; index += 1) {
+      const paint = color.getX(index)
+      if (paint <= 0.001 || paint > SPINE_ROOT_PAINT) continue
+      const side = height[index] >= axisHeight ? 1 : -1
+      const bin = binOf(along[index])
+      const out = side * height[index]
+      roots[side][bin] = roots[side][bin] === null ? out : Math.min(roots[side][bin], out)
+    }
+    const fill = values => values.map((value, bin) => {
+      if (value !== null) return value
+      for (let step = 1; step < SPINE_ROOT_BINS; step += 1) {
+        if (values[bin - step] != null) return values[bin - step]
+        if (values[bin + step] != null) return values[bin + step]
+      }
+      return null
+    })
+    const filled = { 1: fill(roots[1]), [-1]: fill(roots[-1]) }
+    for (let index = 0; index < count; index += 1) {
+      if (color.getX(index) <= 0.001) continue
+      const side = height[index] >= axisHeight ? 1 : -1
+      const root = filled[side][binOf(along[index])]
+      if (root !== null) reach[index] = Math.max(0, side * height[index] - root)
+    }
+  }
+  geometry.setAttribute('spineReach', new THREE.BufferAttribute(reach, 1))
+}
+
 function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
   const situationalLight = supportsFishSituationalLight(material)
   if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex) return
@@ -618,6 +685,15 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     // A clamped remora's bend onto its host (source units at the tail; 0 otherwise).
     hug: { value: 0 },
     hugStart: { value: RIDE_BEND_START },
+    // Folding spines (`spineFold`, the raccoon butterflyfish): 1 folded, 0 raised as modelled.
+    ...(proceduralVertex.spineFold ? (() => {
+      spineFoldReach(geometry, proceduralSourceAxis, 3 - proceduralSourceAxis - proceduralLateralAxis, proceduralVertex.spineFold.axis ?? 0)
+      return {
+        spineFold: { value: 1 },
+        spineAxis: { value: proceduralVertex.spineFold.axis ?? 0 },
+        spineAngle: { value: THREE.MathUtils.degToRad(proceduralVertex.spineFold.foldDegrees ?? 80) },
+      }
+    })() : {}),
   } : null
   const molaMaskUniforms = proceduralVertex?.type === 'mola-mask-vertex' && proceduralBounds ? {
     phase: { value: 0 },
@@ -676,6 +752,11 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uProceduralBurstAmplitude = caudalUniforms.burstAmplitude
       shader.uniforms.uProceduralHug = caudalUniforms.hug
       shader.uniforms.uProceduralHugStart = caudalUniforms.hugStart
+      if (caudalUniforms.spineFold) {
+        shader.uniforms.uSpineFold = caudalUniforms.spineFold
+        shader.uniforms.uSpineAxis = caudalUniforms.spineAxis
+        shader.uniforms.uSpineAngle = caudalUniforms.spineAngle
+      }
     }
     if (molaMaskUniforms) {
       shader.uniforms.uMolaPhase = molaMaskUniforms.phase
@@ -776,7 +857,31 @@ void proceduralHugCurve(float sourceCoord, out float hugOffset, out float hugSlo
   float dTailDz = mix(-1.0, 1.0, uProceduralTailAtMaxZ) / bodyLength;
   hugOffset = uProceduralHug * hugT * hugT;
   hugSlope = uProceduralHug * 2.0 * hugT / hugRange * dTailDz;
-}` : ''}${molaMaskUniforms ? `attribute vec4 color_1;
+}${caudalUniforms.spineFold ? `
+// Folding spines: painted red in color_1, from 0 at a spine's base to 1 at its tip. Each vertex
+// stands spineReach out from its spine's base (spineFoldReach()); folding by angle a turns that
+// reach back toward the tail and down onto the body, in the fin's own plane (source and vertical
+// axes), so every spine lies back about its own base. The paint eases the turn in near the base,
+// where the spiny fin meets the soft one. A thin fin's normals face sideways and are unchanged.
+// Dorsal or anal by which side of uSpineAxis (the body's axis height) it is on.
+attribute vec4 color_1;
+attribute float spineReach;
+uniform float uSpineFold;
+uniform float uSpineAxis;
+uniform float uSpineAngle;
+vec3 proceduralSpineFold(vec3 value) {
+  float reach = spineReach;
+  if (reach <= 0.0) return value;
+  float angle = uSpineFold * uSpineAngle * smoothstep(0.0, 0.3, color_1.r);
+  float outward = proceduralAxisValue(value, proceduralVerticalAxis()) >= uSpineAxis ? 1.0 : -1.0;
+  float back = mix(-1.0, 1.0, uProceduralTailAtMaxZ);
+  proceduralAddAxis(value, proceduralVerticalAxis(), -outward * reach * (1.0 - cos(angle)));
+  proceduralAddAxis(value, uProceduralSourceAxis, back * reach * sin(angle));
+  return value;
+}` : `
+vec3 proceduralSpineFold(vec3 value) {
+  return value;
+}`}` : ''}${molaMaskUniforms ? `attribute vec4 color_1;
 uniform float uMolaPhase;
 uniform float uMolaSpeed;
 uniform float uMolaTurn;
@@ -915,13 +1020,14 @@ proceduralAdjustNormal(objectNormal, uProceduralSourceAxis, proceduralVerticalAx
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
+transformed = proceduralSpineFold(transformed);
 float proceduralLateralOffset;
 float proceduralLateralSlope;
-proceduralFishCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralLateralOffset, proceduralLateralSlope);
+proceduralFishCurve(proceduralAxisValue(transformed, uProceduralSourceAxis), proceduralLateralOffset, proceduralLateralSlope);
 proceduralAddAxis(transformed, uProceduralLateralAxis, proceduralLateralOffset);
 float proceduralHugOffset;
 float proceduralHugSlope;
-proceduralHugCurve(proceduralAxisValue(position, uProceduralSourceAxis), proceduralHugOffset, proceduralHugSlope);
+proceduralHugCurve(proceduralAxisValue(transformed, uProceduralSourceAxis), proceduralHugOffset, proceduralHugSlope);
 proceduralAddAxis(transformed, proceduralVerticalAxis(), proceduralHugOffset);`
       )
     }
@@ -1014,7 +1120,7 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
   const proceduralKey = !proceduralVertex
     ? 'static'
     : proceduralVertex.type === 'caudal-vertex'
-      ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
+      ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}${proceduralVertex.spineFold ? ':spine-fold' : ''}`
       : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
   material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
@@ -1935,6 +2041,7 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         proceduralUniforms.burst.value = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
           + whip01 * CAUDAL_WHIP_EXTRA_BURST
         if (proceduralUniforms.hug) proceduralUniforms.hug.value = proceduralInput.hug ?? 0
+        if (proceduralUniforms.spineFold) proceduralUniforms.spineFold.value = proceduralInput.spineFold ?? 1
       }
     }
     if (curveConfig?.type === 'caudal-vertex') {
@@ -2153,6 +2260,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // How far this member's slot lies ahead of it along the school's travel, from the last frame.
   const stationError = useRef(0)
   const startleUntil = useRef(0)
+  // Folding spines (proceduralAnimation.spineFold): 0 folded, 1 raised; raised until this time after a startle.
+  const spineRaise = useRef(0)
+  const spineAlertUntil = useRef(0)
   const startleEscape = useRef(new THREE.Vector3())
   const nextDriftAt = useRef(runtime.nextDriftAt)
   const driftUntil = useRef(runtime.driftUntil)
@@ -2509,6 +2619,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       const escape = startleEscape.current
       startleTurnSide.current = Math.sign(desiredDirection.current.z * escape.x - desiredDirection.current.x * escape.z) || 1
       startleUntil.current = now + motion.burstActionDuration
+      spineAlertUntil.current = now + SPINE_ALERT_SECONDS
       boidDecisionNextAt.current = now
     }
 
@@ -3947,6 +4058,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       // A clamped remora bends its rear body onto the host's skin (the fit's bend, WU), in the
       // model's source units: WU over the model scale and the creature's size.
       curveDeformInputRef.current.hug = hitchhiker ? ride.hug / Math.max(1e-6, (model.scale ?? 1) * size) : 0
+      // Spines that fold: flat on the move, up in alarm after a startle (a butterflyfish's threat
+      // display), half up at a rock while it hovers and picks, flat again in a shelter.
+      if (model?.proceduralAnimation?.spineFold) {
+        const reefStage = reefPoseOwned ? reefRef.current.stage : null
+        const raiseTarget = now < spineAlertUntil.current
+          ? 1
+          : reefStage && reefStage !== 'leave' && reefRef.current.mode !== 'shelter' ? SPINE_RAISE_AT_ROCK : 0
+        const rate = raiseTarget > spineRaise.current ? SPINE_RAISE_RATE : SPINE_FOLD_RATE
+        spineRaise.current = THREE.MathUtils.damp(spineRaise.current, raiseTarget, rate, delta)
+        curveDeformInputRef.current.spineFold = 1 - spineRaise.current
+      }
 
       // Nor does a reef fish turning on the spot at a rock bank into the turn.
       const suppressProceduralBank = agentBehavior.current?.type === 'sun-bask' || reefPoseOwned

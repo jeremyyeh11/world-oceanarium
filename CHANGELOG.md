@@ -10,14 +10,15 @@ Versioning convention notes:
 
 ## v0.32.0 — Raccoon Butterflyfish
 
-Status: in review as `v0.32.0-dev_1` (2026-10-21, branch `feat/chaetodon-lunula`). Jeremy's next reef fish for The Reefs, in one group of 20 (his call: "1 group of 20 is good").
+Status: in review as `v0.32.0-dev_2` (2026-10-21, branch `feat/chaetodon-lunula`, #146; `dev_1` the same day). Jeremy's next reef fish for The Reefs, in one group of 20 (his call: "1 group of 20 is good").
 
 ### Species
 
 - Raccoon Butterflyfish (*Chaetodon lunula*, Chaetodontidae, Least Concern): facts from FishBase. 20 cm maximum total length = 0.8 WU, under the 1.08 WU sardinella floor (Jeremy: "size ok"); individuals 14 to 20 cm; length–weight a 0.02291 / b 3.00; up to 9 years. Nocturnal, in pairs or small groups; eats nudibranchs, tubeworm tentacles and other bottom invertebrates, some algae and coral polyps.
 - Jeremy's model (`public/models/fish/chaetodon-lunula/`, 433 KB): one body with the dorsal, anal and tail fins, separate pectoral and pelvic fins, nose at −Z, a 447 px photo texture with no alpha (so no `alphaBlend`). Scale 3.994 from a 0.2003 source length; root recentred on the snout-to-tail line.
 - Motion: the bannerfish's labriform `caudal-vertex` tuning (a stiff deep body that cruises on its pectorals, a wave from halfway back) in this model's units. No new motion type.
-- Atlas: shown with two of its group; a rendered three-quarter head tile (`public/atlas/chaetodon-lunula-thumbnail.png`).
+- Folding spines (`dev_2`, Jeremy: "is it possible to make the spines retract?"): an optional `spineFold` layer on `caudal-vertex`. Jeremy painted the front dorsal and the anal spines in `COLOR_1` red, base to tip; each painted vertex turns back and in onto the body about its own spine's base (its height above the base measured from the paint on load, `spineReach`), up to 80°. Folded on the move and in a shelter, half up while it hovers or picks at a rock, fully up for 4 s after a startle (a butterflyfish's threat display). A single spine height for the fin left the tall front spines half up. Contract in `docs/procedural/caudal-wave.md` (Folding spines).
+- Atlas: shown with five of its group; a rendered three-quarter head tile with the spines folded (`public/atlas/chaetodon-lunula-thumbnail.png`). School size reads "Small groups" (Jeremy: the 20 is a guess).
 
 ### Behaviour
 

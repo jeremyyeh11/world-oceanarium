@@ -15,12 +15,13 @@ Status labels:
 
 ### Lossless performance cleanup
 
-Status: `Current in development` — `v0.31.2-dev_1`, branch `feat/lossless-performance-cleanup`, #141. Jeremy selected cached fish material targets and lossless asset cleanup from the performance audit. Preserve identical display, interaction and full-rate motion; no water/boids/LOD/texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
+Status: `Current in development` — `v0.31.2-dev_2`, branch `feat/lossless-performance-cleanup`, #141 / PR #142. Jeremy selected cached fish material targets and lossless asset cleanup from the performance audit. YK requested review/fix loops without merging. Preserve identical display, interaction and full-rate motion; no water/boids/LOD/texture-quality changes. Evidence and rollback: `docs/lossless-performance-cleanup.md`.
 
 - [x] Cache mesh targets with live material references; preserve every-frame writes and fades; invalidate for nested model/LOD/debug child swaps and release listeners on unmount.
 - [x] Equivalence tests against the original pass, including material replacement, opacity boundaries and cleanup.
 - [x] Recompress embedded PNG scanlines without changing pixels, colour metadata, texture sampling or geometry/animation semantics.
 - [x] Final baseline asset comparison (15 GLBs / 18 PNGs, 3.66 MB saved), build/lint/tests and desktop/mobile-emulation browser smoke. Physical-phone performance still unverified.
+- [ ] Review/fix loop: reproduce and cover all confirmed tooling findings, independent runtime/assets review, then fresh patched-head review and CI. Explicitly no merge.
 - [ ] Review PR and deployed preview; Jeremy/YK approval and physical-phone performance check before clean promotion. `Blocked / waiting review`
 - [ ] Clean release only after explicit approval; public and dev DB rows untouched.
 

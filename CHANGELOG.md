@@ -10,13 +10,14 @@ Versioning convention notes:
 
 ## v0.31.2 — Lossless performance cleanup (in review)
 
-Status: `v0.31.2-dev_1`, branch `feat/lossless-performance-cleanup`, #141. Not accepted or released. Review-only cleanup requested by Jeremy; baseline clean `v0.31.0`. Other open review branches keep their own release buckets.
+Status: `v0.31.2-dev_2`, branch `feat/lossless-performance-cleanup`, #141 / PR #142. Not accepted or released. Review-only cleanup requested by Jeremy; baseline clean `v0.31.0`. Other open review branches keep their own release buckets.
 
 ### Performance / assets
 
 - Cache each fish's material-pass mesh targets instead of rediscovering the full object/bone tree every frame. Keep current material references, every-frame writes, depth light, fades, alpha blending and proxy exclusions; refresh when nested model/LOD/debug children change and remove listeners on cleanup.
 - Losslessly recompress embedded PNG IDAT data. Preserve filtered rows, decoded pixels, all PNG format/colour/provenance metadata, texture dimensions/sampling and GLB geometry/animation semantics. No downscaling, lossy compression, water/boids/cadence or visual simplification.
 - Add equivalence/lifecycle tests, an asset verifier with mutation-rejection tests and an isolated material-pass microbenchmark. Detailed evidence and rollback in `docs/lossless-performance-cleanup.md`. Smaller download size is not a claim of lower decoded/GPU memory or a complete fix for mobile lag.
+- Review hardening: run Python/Pillow regression tests in CI; refuse unsupported GLB extensions and invalid BIN/view ranges; keep validation active under Python optimized mode; report new models separately and reject removals rather than aborting comparison or implying baseline equivalence. Runtime material logic and the optimized GLB bytes are unchanged by these tooling fixes.
 
 ## v0.31.0 — Staghorn coral
 

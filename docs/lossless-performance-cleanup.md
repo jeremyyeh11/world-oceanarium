@@ -1,6 +1,6 @@
 # Lossless performance cleanup — review evidence
 
-Review build: `v0.31.2-dev_1`, branch `feat/lossless-performance-cleanup`.
+Review build: `v0.31.2-dev_2`, branch `feat/lossless-performance-cleanup`, PR #142.
 Baseline: main `9e7cc1f` (`v0.31.0`). Tracking: #141.
 
 ## Intended experience
@@ -32,6 +32,7 @@ Final comparison: **15 changed GLBs, 18 embedded PNGs**, 35,634,820 → 31,970,4
 
 ## Local browser/runtime evidence
 
+- Browser evidence below was recorded on `dev_1`; `dev_2` changes tooling/CI plus the version label, not runtime material logic or optimized GLB bytes.
 - Production baseline and branch builds exercised at 1280 × 577, plus 375 × 812 phone emulation. Open Sea and Reefs render; Whitefin Sharksucker Atlas model renders with no page-width overflow on the phone viewport. Fish search/follow and Atlas navigation exercised.
 - Live reef scene: 7 fish roots / 30 non-proxy material meshes, zero alpha/depth-write mismatches. Instrumented fish-root traversals for five rendered seconds: **zero** steady-state traversals.
 - Four rendered tank swaps (Sea → Reefs → Sea → Reefs): old cached-node listeners return to **zero** on every unmount. Sea: 394 listened nodes / 103 roots / 151 frame subscribers; reef: 66 / 7 / 37, stable on revisit. Geometry counts 78 sea / 116 reef; textures 45 in both. These short checks demonstrate cache cleanup, not a universal memory-leak proof.
@@ -49,6 +50,10 @@ Screenshots and tank-cycle JSON are retained in the agent workspace `lossless-qa
 - `npm run build`
 - `python3 scripts/optimize-glb-pngs.py --compare-ref 9e7cc1f`
 - `node scripts/benchmark-fish-material-pass.mjs`
+
+Review hardening: CI now sets up Python 3.12/Pillow and executes the PNG tooling tests as well as the Node suites. The repacker/verifier deliberately rejects all declared or embedded GLB extensions until their independent storage semantics are supported, and checks BIN/view bounds and alignment. No current shipped model uses an extension. Comparison resolves the git baseline first; new files get a separate `no-baseline-not-equivalence-verified` entry, deleted files are listed explicitly and fail the gate, and invalid refs still fail. Validation uses explicit exceptions so `python -O` / `PYTHONOPTIMIZE` cannot silently disable equivalence checks. Regression cases cover declared/undeclared meshopt ranges, malformed views/buffer declarations, additions/removals, invalid refs and optimized-mode mutation rejection.
+
+Independent first-round review: runtime review found no additional actionable regression. Asset review independently confirmed all 15 committed models/18 PNGs and the manifest; it reproduced deleted-file omission and invalid buffer-declaration acceptance, both covered by the review hardening above. Parent also reproduced geometry/PNG corruption acceptance under `python -O` before replacing assertion gates. Eight Python tests pass normally, under `-O`, and with isolated Python 3.12/Pillow 12.3.0/Zopfli 0.4.1; Node tests, lint (zero errors/eight existing warnings), build, procedural asset checks and baseline asset comparison pass. Fresh patched-head review remains the next gate; no merge/release approval is implied.
 
 The default microbenchmark reproduces shipped GLB node/primitive hierarchies without rendering or texture decoding: 200 fish, evenly cycling through 22 fish GLBs, three runtime groups per fish (1,231 nodes / 594 meshes). Seven alternating 500-frame rounds after warmup: **25.17 ms baseline vs 5.45 ms cached** median for the entire round. Optional `--synthetic` stresses a 60-node hierarchy. Neither is real tank FPS, actual population weighting or a prediction for physical phones. Physical-phone feel/performance review remains separate.
 

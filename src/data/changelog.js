@@ -6,6 +6,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.31.4',
+    date: '2026-10-20',
+    title: 'Fish at the staghorn',
+    changes: [
+      ['new', 'Reef fish now use the staghorn coral: bannerfish hang over the branch tips where plankton drifts, young angelfish slip in among the branches, and the others pass over or wait beside them.'],
+      ['fix', 'Fish resting at the rocks and table corals no longer end up with staghorn branches through them.'],
+    ],
+  },
+  {
     version: 'v0.30.1',
     date: '2026-10-19',
     title: 'Fish at the corals',

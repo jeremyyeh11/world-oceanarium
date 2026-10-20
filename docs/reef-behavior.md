@@ -98,42 +98,81 @@ mate's position as home. While the leader is at a rock (`reefHold` on its regist
 follower stops station-keeping and does its own reef behaviour nearby; at a rock, a fish finishes
 before it rejoins its mate or starts following a host.
 
-## Corals
+## Coral forms
 
-Where a landscape has table corals (`corals` in landscapes.js, placed by coralPlacement.js), the
-reef fish use them as well as the rock (Jeremy, 2026-10-19: "build fish behavior to interact with
-the corals, hide underneath, within, peck at it"). The tables join the surfaces the site search
-raycasts (`setCoralSurfaces` in reefSites.js, beside the rocks' `setReefSurfaces`): one surface per
-table inside `reefReach`, built from its `_lo` mesh (700 triangles, 300 for the small table) with a
-BVH tree, and kept for the session with the placement. Every ray meets coral as it meets rock, so
-lines in, room to turn and enclosure all see the plates.
+Reef fish use the corals as well as the rock. Coral behaviour is split by the coral's growth
+form, not its species, the way docs/procedural splits motion by architecture: a second table
+coral is a `table`, a second branching coral a `thicket`. A new coral needs a new form only if its
+shape offers fish something no form covers. Jeremy (2026-10-19): "build fish behavior to interact
+with the corals, hide underneath, within, peck at it"; (2026-10-20) "there should be some sort of
+universal behavior to govern all fish interaction with various coral types".
 
-Each reef decision picks its kind first: a coral with the mode's share in the species' `coral`
-block (`REEF_DEFAULTS.coral`: patrol 0.35, hover 0.5, peck 0.6, shelter 0.6), else rock. A coral
-search asks for that kind only (`query.kind`) and aims by mode (`query.aim`):
+Forms:
+
+- `table` (tabular corals; Hyacinth Table Coral): a plate on a stalk, cover overhead, a rim,
+  tiers. Implemented (`v0.30.1`).
+- `thicket` (branching corals; Staghorn Coral): a patch of colonies, a crown of branch tips,
+  flanks, narrow gaps inside. Implemented (`v0.31.4`).
+- `mound` (massive, brain and encrusting corals): a solid surface like rock, an overhang at the
+  base. Proposed; no model yet.
+- `fan` (gorgonians, sea whips, soft corals): a flat, bendy lattice. Proposed.
+- `host` (anemones): a home for one symbiont, closer to docs/ride-hosts.md. Proposed; needs its
+  own design.
+
+The four modes at each form (`CORAL_FORMS` in reefBehavior.js; `aim` is the site search's
+`query.aim` in reefSites.js):
+
+- shelter: under a table's plate or between two tiers (`under`, with a surface straight overhead,
+  `requireCover`, and enclosure 0.25 against a rock nook's 0.35); in among a thicket's branches
+  (`inside`, fish up to 0.8 WU, enclosure 0.4); a mound's overhang (proposed).
+- peck: along a table's rim (`rim`); a thicket's outer branches (`flank`); a mound's surface
+  (proposed).
+- hover: beside a table's rim (`rim`); over a thicket's crown, 0.7 to 1.2 body lengths above the
+  tips, level and 12° nose-down, looking across it (`crown`, 60% of thicket hovers), or beside its
+  flank (`flank`).
+- patrol: past a table's rim (`rim`); right over a thicket's crown (`crown` with `passOver`: the
+  pass point rises up to 1.5 WU until it clears the colonies' padded steering shapes).
+
+Universal rules, every fish at every form:
+
+1. Solid: every coral blocks the site rays as rock does, so lines in, room to turn and enclosure
+   all see it. Each form publishes its surfaces with `setCoralSurfaces(geometries, metas)` (each
+   meta has its `form`); any number of sets can be up at once.
+2. Fit: a fish goes into a structure only where it has room to turn on the spot (0.55 body
+   lengths); the gaps decide who fits, not a species list. `maxBodyLengthWU` only saves searches
+   that cannot succeed.
+3. Steer: every coral is in the obstacle field (rockObstacles.js `setExtraObstacles`).
+4. Choose: each decision picks its mode, then rock or a form by the species' share for that mode
+   (`reef.corals.<form>.<mode>`, defaults in `REEF_DEFAULTS.corals`); what is left goes to rock.
+   A form the tank lacks takes no share.
+5. Fall back: a coral search that finds nothing tries the same move on rock the next frame.
+
+The site's form and aim are on the reef state (`siteKind`, `siteAim`) and in the debug label
+(`reef hover hold thicket crown`).
+
+### Tables
+
+The tables join the surfaces the site search raycasts: one surface per table inside `reefReach`,
+built from its `_lo` mesh (700 triangles, 300 for the small table) with a BVH tree, and kept for
+the session with the placement.
 
 - shelter, `under`: the level ray aims at the stalk, below the plate's underside. The rest point
-  lands under the plate (hiding underneath) or between two stacked tiers (within), and is kept
-  only with a surface straight overhead (`requireCover`). The plate overhead is what hides the
-  fish, so a coral shelter needs less enclosure than a rock nook (0.25, against 0.35).
+  lands under the plate (hiding underneath) or between two stacked tiers (within).
 - peck, hover, patrol, `rim`: the ray aims at the plate's rim height from outside, so the fish
-  nibbles along a plate's edge or hangs off it. A rim is a narrow target: coral searches get 12
+  nibbles along a plate's edge or hangs off it. A rim is a narrow target: table searches get 12
   tries (8 for rock).
 
-A coral search that finds nothing tries the same move on rock the next frame. The site's kind is
-on the reef state (`siteKind`) and in the debug label (`reef shelter hold coral`).
+By species (species.js `reef.corals.table`): the grouper hides under the tables most (0.8) and
+hangs by them in ambush (0.5), after Kerry & Bellwood (2012): large reef fishes, coral trout among
+them, used table corals at least three times as much as branching or massive ones. The juvenile
+emperor angelfish shelters under them (0.55); the adult nibbles their rims (0.65); the bannerfish
+hangs by them (0.45); the clown triggerfish, whose prey is on the rock, seldom pecks them (0.1)
+but takes cover under them (0.5).
 
-By species (species.js `reef.coral`): the grouper hides under the tables most (0.8) and hangs by
-them in ambush (0.5), after Kerry & Bellwood (2012): large reef fishes, coral trout among them,
-used table corals at least three times as much as branching or massive ones. The juvenile emperor
-angelfish shelters under them (0.7); the adult nibbles their rims (0.65); the bannerfish hangs by
-them (0.6); the clown triggerfish, whose prey is on the rock, seldom pecks them (0.1) but takes
-cover under them (0.5).
-
-A rest point under a plate is inside the plate's padded steering ellipsoid (rockObstacles.js
-`setExtraObstacles`); stages 2 to 4 own the pose there, and on leaving the rock clamp eases back
-in over 1.5 s as it does at a rock. The entry point is not: it must be outside every padded shape
-(see Sites), which the 1.6 entry-distance try gets past a plate over a sheltering fish.
+A rest point under a plate is inside the plate's padded steering ellipsoid; stages 2 to 4 own the
+pose there, and on leaving the rock clamp eases back in over 1.5 s as it does at a rock. The entry
+point is not: it must be outside every padded shape (see Sites), which the 1.6 entry-distance try
+gets past a plate over a sheltering fish.
 
 Measured on desktop (2026-10-19, `v0.30.1-dev_1`):
 
@@ -146,6 +185,51 @@ Measured on desktop (2026-10-19, `v0.30.1-dev_1`):
 - In view: the clusters stand in front of the resting camera, so a fish at a coral is on screen
   and not hidden by rock 66% of the time on desktop (a fish at rock 17%) and 45% on a 375 px
   phone (rock 31%).
+
+### Thickets
+
+Each staghorn patch (one colour, 12 to 18 interlocking colonies, staghornPlacement.js) is one
+thicket to the fish: Landscape.jsx `thicketReefSurfaces` merges its colonies' `_far` meshes (350
+to 600 triangles each: the branches where they are, without the close-up detail) into one surface
+with a BVH tree, built one patch per slice after the placement (37 patches inside `reefReach`,
+119k triangles, 56 ms in all, 1.1 ms median and 3.6 ms worst per patch on desktop). Its meta
+carries the patch's middle, crown height and reach, and each colony's base, crown and reach.
+
+A thicket search aims at one of the patch's colonies, not the patch's middle, which is often bare
+rock between colonies (aiming at the middle, most rays met rock or a table first):
+
+- `crown`: straight down onto the colony's crown from clear water above the patch; the face is
+  taken as pointing straight up, and the fish lines up level from its own (or the camera's) side.
+- `flank`: a nearly level ray at the colony's side; the face is the colony's outline (a dome over
+  it), not the facet of the branch the ray met, which points anywhere.
+- `inside`: a level ray at the colony's heart, kept only where the branch it met is within 0.65 of
+  the colony's reach (it slipped in past the outer branches).
+
+Thin branch tips can slip between roomToTurn's eight level rays: one came within 0.09 body
+lengths of a bannerfish hanging over a crown. So a thicket spot also needs its room clear in 26
+directions over the sphere (`roomAllRound`, a little less above and below, the face skipped except
+over a crown), cast only at the surfaces whose boxes come within reach. Thicket searches get 20
+tries (16 for a shelter).
+
+By species (species.js `reef.corals.thicket`): the bannerfish hangs over the crowns most (hover
+0.4), where a plankton picker feeds, cruises over them (patrol 0.2) and now and then picks at the
+outer branches (peck 0.1); the adult angelfish hangs by and cruises past them (0.25, 0.2); the
+juvenile angelfish hides in among the branches (shelter 0.3, the only fish small enough) and
+hangs by them (0.25); the grouper lies in wait by them far less than by the tables (hover 0.15,
+patrol 0.15), after Kerry & Bellwood (2012); the triggerfish only cruises past (patrol 0.2).
+
+Measured on desktop (2026-10-20, `v0.31.4-dev_1`, 42 reef fish, after a 2-minute warm-up):
+
+- Shares: over 5 minutes, thickets took 25 of 235 visits (16 of 95 hovers, 9 of 61 patrols, none
+  of 53 pecks or 26 shelters) and 6.4% of the time fish spent at a site; tables 86, rock 124.
+  Thicket trips succeed about as often as the others (60%; rock 69%, tables 63%). Pecks and
+  shelters at a thicket are rare: the bannerfish's peck share seldom comes up, and about 1 in 9
+  juvenile shelter searches finds a spot among the branches.
+- Clearance: at a thicket hold, no fish's centre came within 0.26 body lengths of a branch over a
+  crown (341 samples) or 0.83 by a flank; before `roomAllRound` one came within 0.09. No jumps.
+- Searches (80 each, against the real patches): a crown 1.5 to 1.7 ms median and 6 ms worst,
+  finding a spot 58 to 64% of the time; a flank peck 1.1 and 2.6 ms, 39%; a shelter inside 1.3
+  and 5.6 ms, 11%. A rock shelter in the same session took 2.9 and 8.4 ms.
 
 ## Swim volume
 
@@ -160,9 +244,10 @@ are never picked.
 
 ## Tuning
 
-Every `reef` key overrides `REEF_DEFAULTS` in `reefBehavior.js` (`modes` and `coral` merge key by
-key). A life stage can carry its own `reef` block (the juvenile emperor angelfish shelters most).
-The debug label shows `reef <mode> <stage>`, `coral` when the site is on one, and the peck phase
+Every `reef` key overrides `REEF_DEFAULTS` in `reefBehavior.js` (`modes` and each form's shares in
+`corals` merge key by key). A life stage can carry its own `reef` block (the juvenile emperor
+angelfish shelters most). The debug label shows `reef <mode> <stage>`, the coral form when the
+site is on one (`table`, `thicket`, and `crown` over a thicket's crown), and the peck phase
 and pecks left; `getFishEntry(id).reef` exposes the live state for console checks (import the
 module through the app's own `?t=` URL, from `performance.getEntriesByType('resource')`: a bare
 import of an edited module loads a second, empty copy).

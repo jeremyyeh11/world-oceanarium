@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { MeshBVH } from 'three-mesh-bvh'
 import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
 import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
@@ -233,6 +234,8 @@ const PLACEMENT_SLICE_MS = 6
 const PLACED_CORALS = new WeakMap()
 // Placed staghorn colonies per landscape, for the session.
 const PLACED_STAGHORN = new WeakMap()
+// The staghorn thickets reef fish can reach, as raycast surfaces, per landscape.
+const THICKET_REEF_SURFACES = new WeakMap()
 // The tables reef fish can reach, as raycast surfaces (reefSites.js setCoralSurfaces), per placement.
 const CORAL_REEF_SURFACES = new WeakMap()
 
@@ -258,6 +261,7 @@ function coralReefSurfaces(landscape, corals, meshes, kit) {
     geometries.push(geometry)
     // The plate is the top 40% of the model: underside at 60% of its height, top at 100%.
     metas.push({
+      form: 'table',
       centre: new THREE.Vector3(plate.x, plate.y, plate.z),
       underside: plate.y - plate.thickness / 2,
       top: plate.y + plate.thickness / 2,
@@ -268,6 +272,61 @@ function coralReefSurfaces(landscape, corals, meshes, kit) {
   const result = { geometries, metas }
   CORAL_REEF_SURFACES.set(corals, result)
   return result
+}
+
+// The staghorn thickets inside the landscape's reef reach as raycast surfaces (reefSites.js
+// setCoralSurfaces), one per patch: a patch of one colour reads as one thicket, and a fish
+// visits it as one, over its crown, at its flank or in among its branches. Each is its colonies'
+// _far meshes merged (350 to 600 triangles a colony: the branches where they are, without the
+// close-up detail), with the patch's middle, crown, reach and colonies. A generator, run in slices
+// (useSlicedPlacement) since a patch's BVH tree takes a few ms: it yields after each patch.
+function* thicketReefSurfaces(landscape, colonies, meshes, kit) {
+  const reach = landscape.reefReach
+  const byPatch = new Map()
+  for (const colony of colonies) {
+    if (!byPatch.has(colony.patch)) byPatch.set(colony.patch, [])
+    byPatch.get(colony.patch).push(colony)
+  }
+  const geometries = []
+  const metas = []
+  for (const list of byPatch.values()) {
+    const centre = new THREE.Vector3()
+    let baseY = Infinity
+    list.forEach(colony => {
+      centre.add(colony.base)
+      baseY = Math.min(baseY, colony.base.y)
+    })
+    centre.divideScalar(list.length)
+    centre.y = baseY
+    if (reach && (centre.x < reach.xMin || centre.x > reach.xMax || centre.z < reach.zMin || centre.z > reach.zMax
+      || centre.y < reach.yMin - 4 || centre.y > reach.yMax)) continue
+    const parts = list.map(colony => {
+      const source = meshes[`${kit.models[colony.model].name}_far`]
+      const part = new THREE.BufferGeometry()
+      part.setAttribute('position', source.attributes.position.clone())
+      part.setIndex(source.index.clone())
+      return part.applyMatrix4(colony.matrix)
+    })
+    const geometry = mergeGeometries(parts)
+    parts.forEach(part => part.dispose())
+    geometry.computeBoundingBox()
+    geometry.boundsTree = new MeshBVH(geometry)
+    const box = geometry.boundingBox
+    // The branches' reach from the middle: the farthest box corner level with it, a little in.
+    const radius = Math.max(
+      Math.hypot(Math.max(box.max.x - centre.x, centre.x - box.min.x), Math.max(box.max.z - centre.z, centre.z - box.min.z)) * 0.8,
+      0.5,
+    )
+    geometries.push(geometry)
+    // Its colonies, for the site search to aim at: the middle of the base, the crown's height
+    // and the branches' reach.
+    const aims = list.map(colony => ({
+      x: colony.base.x, y: colony.base.y, z: colony.base.z, top: colony.centre.y * 2 - colony.base.y, reach: colony.reach,
+    }))
+    metas.push({ form: 'thicket', centre, top: box.max.y, radius, colonies: aims })
+    yield
+  }
+  return { geometries, metas }
 }
 
 // A coral kit's meshes by name and one material per kit model (its baked colour and normal
@@ -519,7 +578,24 @@ function Staghorn({ landscape, clusters, tables }) {
   useExtraObstacles(obstacles)
   useEffect(() => () => bommies.forEach(bommie => bommie.geometries.forEach(geometry => geometry.dispose())), [bommies])
 
-  return bommies.map(bommie => <StaghornBommie key={bommie.key} bommie={bommie} kit={kit} />)
+  return (
+    <>
+      {bommies.map(bommie => <StaghornBommie key={bommie.key} bommie={bommie} kit={kit} />)}
+      {colonies && <ThicketReefSurfaces landscape={landscape} colonies={colonies} meshes={meshes} kit={kit} />}
+    </>
+  )
+}
+
+// Reef fish hover over, pick at and hide among the staghorn thickets they can reach
+// (reefSites.js), once the patches' surfaces are built (thicketReefSurfaces, kept for the session).
+function ThicketReefSurfaces({ landscape, colonies, meshes, kit }) {
+  const surfaces = useSlicedPlacement(THICKET_REEF_SURFACES, landscape, () => thicketReefSurfaces(landscape, colonies, meshes, kit), [colonies, meshes, kit])
+  useLayoutEffect(() => {
+    if (!surfaces?.geometries.length) return undefined
+    const owner = setCoralSurfaces(surfaces.geometries, surfaces.metas)
+    return () => clearCoralSurfaces(owner)
+  }, [surfaces])
+  return null
 }
 
 // Built rocks per landscape, kept for the session. React renders a tank several times before

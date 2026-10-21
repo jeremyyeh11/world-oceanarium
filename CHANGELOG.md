@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.32.1 — Atlas scrolls on iPad
+
+Status: accepted and promoted as clean `v0.32.1` from `v0.32.1-dev_1` on Jeremy's go-ahead (2026-10-22, branch `fix/atlas-scroll-while-following`, #147: "works. merge to main clean version"). `package.json` and `package-lock.json` move to `0.32.1`. From `main` at `v0.32.0`. Jeremy: on his iPad the Atlas info section was cut off at the bottom and would not scroll.
+
+### Atlas
+
+- The Atlas scrolls while a fish is followed. Opening it from a fish's info card keeps that fish selected underneath, and follow mode's window-level `touchmove` block (capture, non-passive) cancelled every touch-scroll outside the info card, the Atlas included. Phones never showed it: the portrait Atlas (≤ 880 px) scrolls itself by hand from `touchmove`, which still runs after the block. An iPad is wider than 880 px, gets the three-column Atlas and relies on native scrolling, so the info panel was stuck. The block, and the mobile wheel block beside it, now let through touches that start in the info card, the Atlas (`.encyclopedia-page`) or the sources/changelog modal (`.sources-modal`). Measured at 1180×820: a touchmove on the Atlas info panel was cancelled before and is not now; one on the tank canvas is still cancelled.
+
 ## v0.32.0 — Raccoon Butterflyfish
 
 Status: accepted and promoted as clean `v0.32.0` from `v0.32.0-dev_4` on Jeremy's go-ahead (2026-10-21, branch `feat/chaetodon-lunula`, #146: "merge"). `package.json` and `package-lock.json` move to `0.32.0`. Jeremy's next reef fish for The Reefs, in one group of 20 (his call: "1 group of 20 is good").

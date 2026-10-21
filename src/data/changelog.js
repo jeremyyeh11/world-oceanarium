@@ -6,6 +6,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.32.1',
+    date: '2026-10-22',
+    title: 'The Atlas scrolls on iPad',
+    changes: [
+      ['fix', 'The Atlas entry opened from a fish you are following scrolls again on iPad, so the bottom of the entry is no longer out of reach.'],
+    ],
+  },
+  {
     version: 'v0.31.6',
     date: '2026-10-20',
     title: 'Smooth departures from the rocks',

@@ -13,6 +13,29 @@ Status labels:
 
 ## Current work
 
+### Humphead Wrasse
+
+Status: shipped in clean `v0.33.0` (2026-10-22, from `v0.33.0-dev_6`, branch `feat/crassilabrus-undulatus`, #148). The open items below carry over. Next reef fish for The Reefs, chosen over the bumphead parrotfish so the reef gains a focal animal rather than a herd of 15–20 fish at about 5 WU. Jeremy's terminal male swims at The Reefs (dev data), with an Atlas entry and tile.
+
+Subtasks:
+- [x] Taxonomy: `Crassilabrus undulatus` (Near et al. 2025, resurrected genus; FishBase still says `Cheilinus`). Slug `crassilabrus-undulatus`; no rows used the old slug.
+- [x] Species data and Atlas copy (then `Cheilinus undulatus`) from FishBase, Choat et al. 2006 and the Florida Museum: EN (2024, A2bcd), CITES II; 229 cm SL maximum, 60 cm common; up to 32 years; usually solitary, sometimes pairs; female first, some turn male from about 9 years and 70 cm; length–weight a 0.01445 / b 2.98.
+- [x] Size: 9.16 WU at the record; `sizeRange` 0.5–0.65 keeps the tank's fish at 1.15–1.5 m (4.6–6 WU), larger than the grouper (3.2 WU), smaller than the visiting Mola.
+- [x] Motion plan: the bannerfish's labriform `caudal-vertex` config (stiff body, wave from about halfway back, pectorals row, tail for rare bursts), slower and heavier. No new motion type.
+- [x] Reef behaviour: the most patrol of any resident, short hovers off a face, a bite or two at the rock, little shelter (its ledge is for the night); cruises past and under the tables, rarely at the staghorn.
+- [x] Which fish first (Jeremy, 2026-10-22): a terminal male (blue-green, wavy yellowish head lines, forehead hump, thick lips). One male in the tank to start; females (no hump, under about 1 m) later as a second model.
+- [x] Jeremy's model (2026-10-22): body plus separate pectorals and pelvics, nose −Z, 20.198 raw long (scaled, not 1 raw = 1 m). Three solid photo PNGs (1920 px) re-encoded as JPEGs, fins resized to 1024 px, BLEND dropped: 9.3 MB -> 0.85 MB. Fin textures credited (Mokkie, CC BY-SA 3.0; LuxTonnerre, CC BY 2.0); body photo by Simon Ilett, uncredited per Jeremy's rule for his own photo picks. Verifier target passes; default `finRootFrom` (fin origins sit at the body).
+- [x] Rock clearance: 40 s sampled at 4 Hz, no body vertex inside a rock obstacle (grouper baseline also none). Under 6 WU (5.6 at size 0.75), so no capsule clearance.
+- [x] The Reefs roster (one male; Jeremy, 2026-10-22), `creatures_dev` row 458 (male, size 0.75 = 1.4 m), Atlas pose (desktop, 375 px portrait at 0.95, landscape checked), rendered Atlas tile.
+- [x] Inside-out body (Jeremy, `dev_1`: "the atlas viewport looks wrong, like normals inside out"): 94% of the body's normals and its winding pointed inward. Flipped in the GLB (`dev_2`), tile re-rendered. Before his next export: Mesh > Normals > Recalculate Outside.
+- [ ] Sparse vertex rings at 0.57–0.67 of the length, where the bend starts. Worked out as about 0.1% of body length off the curve at cruise; check on the phone for a kink in a burst. `Next`
+- [x] Faceted head (flat shading): kept. Jeremy (2026-10-22): "keep the facet. its my artstyle".
+- [x] Averages by sex from Choat et al. 2006 (`dev_3`): ♂ 1.0 m / 13 kg / 25 years, ♀ 0.75 m / 5.7 kg / 30 years. Lifecycle (`dev_4`): females mature at 6–7 years, males from 9; sterility none known.
+- [x] Studies credited in the Sources modal (`dev_5`; same Studies section as PR #149, so whichever merges second adds its entries to the other's list): Choat et al. 2006, Sadovy de Mitcheson et al. 2010, Florida Museum, Near et al. 2025.
+- [x] Jeremy's revised model (`dev_6`, 2026-10-22): rear body reshaped from 0.44 to 0.78 of the length (28 vertices, sides drawn in by 0.15–0.3 raw toward the tail), more vertices where the bend starts; length, snout, tail and textures unchanged, so scale and pivot stay. Exported inside out again, flipped in the GLB as before; tile re-rendered.
+- [x] Jeremy's go-ahead on `v0.33.0-dev_6` (2026-10-22: "pls push both and merge to main CLEAN").
+- [ ] Production `creatures` row (one male): the clean tank shows none until it is written, on Jeremy's go-ahead. `Next`
+
 ### Atlas averages and lifecycle for every species
 
 Status: shipped in clean `v0.32.2` (2026-10-22, from `v0.32.2-dev_4`, branch `fix/atlas-averages`, #149). Jeremy: "fill in all the averages for all species ... same thing for lifecycle". Sources are cited in comments beside each value in `species.js` and listed in the Sources modal's Studies section. The open item below carries over.

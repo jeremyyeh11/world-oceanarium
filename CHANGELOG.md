@@ -8,6 +8,30 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.33.0 — Humphead Wrasse
+
+Status: accepted and promoted as clean `v0.33.0` from `v0.33.0-dev_6` on Jeremy's go-ahead (2026-10-22, branch `feat/crassilabrus-undulatus`, #148: "pls push both and merge to main CLEAN"). `package.json` and `package-lock.json` move to `0.33.0`. From `main` at `v0.32.2`. Jeremy's next reef fish for The Reefs, chosen over the bumphead parrotfish so the reef gains one focal animal rather than a herd; one terminal male to start, females later as a second model.
+
+### Species
+
+- Humphead Wrasse (*Crassilabrus undulatus*, Labridae, Endangered 2024, CITES Appendix II). Long *Cheilinus undulatus*; moved to the resurrected genus *Crassilabrus* by Near et al. 2025. Facts from FishBase, Choat et al. 2006, Sadovy de Mitcheson et al. 2010 and the Florida Museum: 229 cm SL maximum, up to 32 years, usually solitary or in pairs, starts female and some turn male from about 9 years.
+- Averages by sex (Choat et al. 2006): males 1.0 m, 13 kg, 25 years; females 0.75 m, 5.7 kg, 30 years. Females mature at 6–7 years, males appear from 9.
+- Tank fish are 1.15–1.5 m (4.6–6 WU), bigger than the grouper and smaller than the visiting sunfish. Reef behaviour: patrols the reef more than any resident, short hovers, a bite or two at the rock, little shelter by day; cruises past and under the table corals.
+
+### Model and motion
+
+- Jeremy's terminal male model (flat-shaded, his style), revised once (rear body reshaped). The bannerfish's labriform `caudal-vertex` config, slower: pectorals row, the tail bends for bursts. Both exports came out inside out; the body's winding and normals are flipped outward in the GLB.
+- Three solid photo textures re-encoded as JPEGs (fins resized to 1024 px) and the BLEND material dropped: 9.3 MB to 0.85 MB. Fin photos credited in Sources (Mokkie, CC BY-SA 3.0; LuxTonnerre, CC BY 2.0).
+
+### Atlas and Sources
+
+- Atlas entry with its own framing (desktop, 375 px portrait, landscape) and a rendered tile.
+- Four studies added to the Sources modal's Studies list: Choat et al. 2006, Sadovy de Mitcheson et al. 2010, the Florida Museum profile, Near et al. 2025.
+
+### Data
+
+- One male in `creatures_dev` (id 458, 1.4 m). Production `creatures` has none yet: it needs Jeremy's go-ahead.
+
 ## v0.32.2 — Atlas averages and lifecycle for every species
 
 Status: accepted and promoted as clean `v0.32.2` from `v0.32.2-dev_4` on Jeremy's go-ahead (2026-10-22, branch `fix/atlas-averages`, #149: "pls push both and merge to main CLEAN"). `package.json` and `package-lock.json` move to `0.32.2`. From `main` at `v0.32.1`. Jeremy: "fill in all the averages for all species ... same thing for lifecycle".

@@ -171,6 +171,12 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.45, -0.1, 0],
     lookAt: [0, 0.2, 0],
   },
+  // Humphead wrasse: deep-bodied and long-finned, framed a touch longer than the grouper's
+  // fallback (3.2) on the default camera.
+  'crassilabrus-undulatus': {
+    maxLengthDisplayUnits: 3.4,
+    portraitPhoneDistanceScale: 0.95,
+  },
   // Whale shark: framed by the mako's camera. Its origin is mid-length and the diagonal yaw brings
   // the broad head toward the camera, so it is shorter on stage than the mako (4.45) and shifted
   // a little right to keep the head in frame.
@@ -209,6 +215,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'pomacanthus-imperator': 0.4002,
   // Supplied whale shark model, nose to tail tip along Z.
   'rhincodon-typus': 99.8702,
+  // Supplied humphead wrasse model, nose to tail tip along Z.
+  'crassilabrus-undulatus': 20.1981,
   // The table coral cluster, widest across (scripts/build-coral-atlas.py prints its bounds).
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).

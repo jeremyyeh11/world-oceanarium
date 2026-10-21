@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { IMAGE_CREDITS, SOURCES } from '../data/sources'
+import { IMAGE_CREDITS, SOURCES, STUDY_CREDITS } from '../data/sources'
 
 function displayHost(url) {
   try {
@@ -88,6 +88,29 @@ export default function SourcesModal({ onClose }) {
               </a>
             </li>
           ))}
+          {STUDY_CREDITS.length > 0 && (
+            <li>
+              <section className="sources-credits" aria-labelledby="sources-studies-title">
+                <h3 id="sources-studies-title" className="sources-credits-title">Studies</h3>
+                <p className="sources-credits-intro">
+                  Papers and species profiles for figures the databases above do not give.
+                </p>
+                <ul className="sources-credits-list">
+                  {STUDY_CREDITS.map(study => (
+                    <li key={study.id} className="sources-credit">
+                      <strong>{study.subject}</strong>
+                      <span>
+                        <a href={study.url} target="_blank" rel="noreferrer noopener">{study.title}</a>
+                        {', '}{study.authors}
+                        {study.year ? ` (${study.year})` : ''}
+                        {', '}{study.venue}.
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </li>
+          )}
           {IMAGE_CREDITS.length > 0 && (
             <li>
               <section className="sources-credits" aria-labelledby="sources-credits-title">

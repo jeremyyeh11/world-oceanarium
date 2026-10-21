@@ -17,6 +17,7 @@ export const SOURCES = [
       'Depth',
       'Diet',
       'Size',
+      'Weight',
       'Lifespan',
       'Maturity',
       'Reproduction',
@@ -60,6 +61,75 @@ export const SOURCES = [
     summary:
       'The oceanarium itself: the implementation, and the shipped species data showing how the references above were applied to each animal.',
     provides: ['Implementation', 'Species data'],
+  },
+]
+
+// Studies and species profiles behind Atlas figures the databases above do not give (sizes,
+// weights, ages, maturity, eggs). The Sources panel lists them in a Studies section after the
+// references, the way it lists the photographs. `subject` says which species and fields each
+// one decided.
+export const STUDY_CREDITS = [
+  {
+    id: 'bachman-2018-sharksucker',
+    subject: 'Live Sharksucker size, weight and eggs',
+    authors: 'Bachman et al.',
+    year: 2018,
+    title: 'Growth and reproduction of Echeneis naucrates from the eastern Gulf of Mexico',
+    venue: 'Journal of Fish Biology',
+    url: 'https://doi.org/10.1111/jfb.13790',
+  },
+  {
+    id: 'battaglia-2016-marlinsucker',
+    subject: 'Marlinsucker size and weight',
+    authors: 'Battaglia et al.',
+    year: 2016,
+    title: 'Age, growth, biological and ecological aspects of Remora osteochir (Echeneidae) in the Mediterranean Sea',
+    venue: 'Journal of the Marine Biological Association of the UK 96: 639–645',
+    url: 'https://www.cambridge.org/core/journals/journal-of-the-marine-biological-association-of-the-united-kingdom/article/age-growth-biological-and-ecological-aspects-of-remora-osteochir-echeneidae-in-the-mediterranean-sea/108E8851B137A2A7B3DEDC6EF59795E2',
+  },
+  {
+    id: 'meekan-2020-whale-shark',
+    subject: 'Whale Shark size and weight by sex',
+    authors: 'Meekan et al.',
+    year: 2020,
+    title: 'Asymptotic growth of whale sharks suggests sex-specific life-history strategies',
+    venue: 'Frontiers in Marine Science',
+    url: 'https://doi.org/10.3389/fmars.2020.575683',
+  },
+  {
+    id: 'khasanah-2019-groupers',
+    subject: 'Squaretail Coral Grouper size and weight',
+    authors: 'Khasanah et al.',
+    year: 2019,
+    title: 'Reproductive biology of three important threatened/near-threatened groupers in Eastern Indonesia and implications for management',
+    venue: 'Animals 9: 643',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6769801/',
+  },
+  {
+    id: 'obota-2016-emperor-angelfish',
+    subject: 'Emperor Angelfish maturity and eggs',
+    authors: 'Obota, Fulanda, Okemwa & Kimani',
+    year: 2016,
+    title: 'Reproductive biology and body condition of exploited populations of Emperor Angelfish along the Kenyan Coast',
+    venue: 'WIO Journal of Marine Science 15(2): 19–30',
+    url: 'https://www.ajol.info/index.php/wiojms/article/view/138710',
+  },
+  {
+    id: 'froese-binohlan-2000',
+    subject: 'Average size where none is measured (Raccoon Butterflyfish, Emperor Angelfish, Clown Triggerfish, White Suckerfish, Whalesucker)',
+    authors: 'Froese & Binohlan',
+    year: 2000,
+    title: 'Empirical relationships to estimate asymptotic length, length at first maturity and length at maximum yield per recruit in fishes',
+    venue: 'Journal of Fish Biology 56: 758–773',
+    url: 'https://doi.org/10.1111/j.1095-8649.2000.tb00870.x',
+  },
+  {
+    id: 'toronto-zoo-clown-triggerfish',
+    subject: 'Clown Triggerfish lifespan and maturity',
+    authors: 'Toronto Zoo',
+    title: 'Clown triggerfish',
+    venue: 'species profile',
+    url: 'https://www.torontozoo.com/animals/Clown%20triggerfish',
   },
 ]
 

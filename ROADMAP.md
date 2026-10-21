@@ -15,13 +15,14 @@ Status labels:
 
 ### Atlas averages and lifecycle for every species
 
-Status: `Blocked / waiting review` as `v0.32.2-dev_2` (branch `fix/atlas-averages`, 2026-10-22). Jeremy: "fill in all the averages for all species ... same thing for lifecycle". Sources are cited in comments beside each value in `species.js`.
+Status: `Blocked / waiting review` as `v0.32.2-dev_3` (branch `fix/atlas-averages`, 2026-10-22). Jeremy: "fill in all the averages for all species ... same thing for lifecycle". Sources are cited in comments beside each value in `species.js`.
 
 Subtasks:
 - [x] Sizes and weights: sex-specific where a study gives them (sharksucker, whale shark), otherwise FishBase's common length or a published catch mean for both sexes; weights from FishBase's length–weight relationship at that length.
 - [x] Life expectancy as each sex's oldest aged fish, as the mako and mahi already did (butterflyfish 9, triggerfish 20, grouper 14).
 - [x] Lifecycle: maturity and eggs from Kenyan angelfish, Mediterranean/Hawaiian marlinsucker, Gulf sharksucker and Coral Trait Database figures; sterility "None known" where nothing is published.
 - [x] Average size and weight for every fish (`dev_2`; Jeremy: "no way we dk whats the average size and weight of something like a raccoon butterflyfish"). With no measured average (butterflyfish, angelfish, triggerfish, white suckerfish, whalesucker), FishBase's Life-history estimate L_opt (Froese & Binohlan 2000) from the maximum length: within 7–15% of the measured common length for the bannerfish and pilot fish, 30–40% over it for the remoras.
+- [x] Credits (`dev_3`; Jeremy: databases go in Sources, many fish-size sources listed like the photo credits): a Studies section in the Sources modal (`STUDY_CREDITS` in sources.js) beside Image credits; Coral Trait Database is a Sources entry.
 - [ ] Still Unknown, no published data found: sunfish lifespan and maturity; remora, pilot fish, bannerfish lifespans; coral colony averages (colonies are both sexes). `Backlog`
 
 ### Raccoon Butterflyfish

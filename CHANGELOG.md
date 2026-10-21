@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.32.1 — Atlas scrolls on iPad
 
-Status: in development as `v0.32.1-dev_1` (branch `fix/atlas-scroll-while-following`), from `main` at `v0.32.0`. Jeremy: on his iPad the Atlas info section was cut off at the bottom and would not scroll.
+Status: accepted and promoted as clean `v0.32.1` from `v0.32.1-dev_1` on Jeremy's go-ahead (2026-10-22, branch `fix/atlas-scroll-while-following`, #147: "works. merge to main clean version"). `package.json` and `package-lock.json` move to `0.32.1`. From `main` at `v0.32.0`. Jeremy: on his iPad the Atlas info section was cut off at the bottom and would not scroll.
 
 ### Atlas
 

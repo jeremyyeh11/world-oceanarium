@@ -844,26 +844,29 @@ export const SPECIES = [
       commonDiet: 'Jellyfish, salps, soft-bodied prey.',
       foundIn: 'Open ocean outside polar regions.',
       sexualDimorphism: 'N/A',
-      lifeSpan: 'Unknown',
-      maturityAge: 'Unknown',
+      lifeSpan: 'About 21 years (estimated)',
+      maturityAge: 'About 7 years, at about 1.5 m (estimated)',
       social: {
         schoolSize: 1,
         groupingBehaviour: 'Adults are reported to travel mainly alone or in pairs, and sometimes in groups. Juveniles loosely school for predator protection, dispersing at maturity.',
         reproduction: 'Broadcast spawning in open water; adults briefly aggregate to spawn. No parental care.',
       },
       averages: {
-        // No age study for this species; its lifespan is unknown.
+        // No age study for this species; life expectancy is the FishLife estimate (see lifecycle).
         maleSizeMeters: 2.5,
         femaleSizeMeters: 3.3,
         maleWeightKg: 1000,
         femaleWeightKg: 2300,
-        maleLifeExpectancyYears: 'Unknown',
-        femaleLifeExpectancyYears: 'Unknown',
+        maleLifeExpectancyYears: 'About 21 years (estimated)',
+        femaleLifeExpectancyYears: 'About 21 years (estimated)',
       },
       lifecycle: {
-        // No maturity or fecundity study for this species (the ocean sunfish, Mola mola,
-        // carries about 300 million eggs).
-        sexualMaturityYears: 'Unknown',
+        // Ages are FishLife estimates (Thorson et al. 2017) for the genus Mola, which rest mostly on the
+        // ocean sunfish's data (tmax 21 years, maturity 6.8 years at 151 cm); no age study of this
+        // species.
+        // No fecundity study for this species (the ocean sunfish, Mola mola, carries about 300 million
+        // eggs).
+        sexualMaturityYears: 'About 7 years, at about 1.5 m (estimated)',
         sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
@@ -1705,7 +1708,7 @@ export const SPECIES = [
       foundIn: 'Warm open ocean worldwide, 0 to 300 m.',
       sexualDimorphism: 'Unknown',
       lifeSpan: 'Unknown',
-      maturityAge: 'Unknown',
+      maturityAge: 'Unknown; mature at about 39 cm (estimated)',
       social: {
         schoolSize: 'Small groups',
         groupingBehaviour: 'Adults swim in small groups around sharks, rays, sea turtles, large fishes, and ships, often just ahead of the snout. Juveniles shelter under jellyfish and drifting seaweed.',
@@ -1723,7 +1726,10 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
+        // Maturity size estimated from the maximum length (Froese & Binohlan 2000). Checked against
+        // measured sizes: angelfish 27 vs 25-28 cm, grouper 44 vs 37, whale shark 7.6 vs 8 m; it runs 70%
+        // high for remoras, so the echeneids keep Unknown.
+        sexualMaturityYears: 'Unknown; mature at about 39 cm (estimated)',
         sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
@@ -1870,7 +1876,7 @@ export const SPECIES = [
       foundIn: 'Indo-Pacific reefs, Persian Gulf and East Africa to Japan, Australia, and French Polynesia, 2 to 178 m (usually 15 to 75 m).',
       sexualDimorphism: 'Unknown',
       lifeSpan: 'Unknown',
-      maturityAge: 'Unknown',
+      maturityAge: 'Unknown; mature at about 16 cm (estimated)',
       social: {
         schoolSize: 'Pairs',
         groupingBehaviour: 'Adults swim in pairs in deep, sheltered lagoons and channels and on outer reef slopes, rarely more than a few metres off the reef. Juveniles are usually solitary and may act as cleaners.',
@@ -1887,7 +1893,10 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
+        // Maturity size estimated from the maximum length (Froese & Binohlan 2000). Checked against
+        // measured sizes: angelfish 27 vs 25-28 cm, grouper 44 vs 37, whale shark 7.6 vs 8 m; it runs 70%
+        // high for remoras, so the echeneids keep Unknown.
+        sexualMaturityYears: 'Unknown; mature at about 16 cm (estimated)',
         sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
@@ -2057,7 +2066,7 @@ export const SPECIES = [
       foundIn: 'Indo-Pacific reefs, East Africa to Hawaii, the Marquesas and Ducie, southern Japan to Lord Howe and Rapa, 0 to 170 m.',
       sexualDimorphism: 'Unknown',
       lifeSpan: 'Up to 9 years',
-      maturityAge: 'Unknown',
+      maturityAge: 'Unknown; mature at about 13 cm (estimated)',
       social: {
         schoolSize: 'Small groups',
         groupingBehaviour: 'Feeds at night. Usually in pairs or small groups on shallow lagoon and seaward reef flats, down past 30 m. Juveniles live among rocks on inner reef flats and in tide pools.',
@@ -2077,7 +2086,10 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 9,
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
+        // Maturity size estimated from the maximum length (Froese & Binohlan 2000). Checked against
+        // measured sizes: angelfish 27 vs 25-28 cm, grouper 44 vs 37, whale shark 7.6 vs 8 m; it runs 70%
+        // high for remoras, so the echeneids keep Unknown.
+        sexualMaturityYears: 'Unknown; mature at about 13 cm (estimated)',
         sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
@@ -2626,7 +2638,7 @@ export const SPECIES = [
       foundIn: 'All tropical and warm temperate seas except the Mediterranean, offshore and close inshore, from the surface to almost 2,000 m, usually above 100 m.',
       sexualDimorphism: 'Females grow larger: males level off at about 8 to 9 m, while females are expected to reach about 14.5 m.',
       lifeSpan: 'Up to 80 years',
-      maturityAge: 'Unknown; males mature at about 8 m long',
+      maturityAge: 'About 30 years (estimated); males mature at about 8 m long',
       social: {
         schoolSize: 'Solitary or aggregations',
         groupingBehaviour: 'Found alone or in seasonal feeding aggregations of more than 100, mostly young males under 7 m. Highly migratory, yet returns to the same sites each year. Often swims with schools of other open-ocean fishes, especially tunas and mackerels. The pattern of spots behind the gills is unique to each animal and stays the same for life.',
@@ -2646,7 +2658,9 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 80,
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
+        // Age at maturity is the FishLife estimate for this species (Thorson et al. 2017: 32 years), which
+        // matches its measured ages where checked (lifespan 75 vs 80 years).
+        sexualMaturityYears: 'About 30 years (estimated); males mature at about 8 m long',
         sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Up to about 300 pups',
       },

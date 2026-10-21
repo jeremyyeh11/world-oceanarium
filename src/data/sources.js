@@ -116,12 +116,21 @@ export const STUDY_CREDITS = [
   },
   {
     id: 'froese-binohlan-2000',
-    subject: 'Average size where none is measured (Raccoon Butterflyfish, Emperor Angelfish, Clown Triggerfish, White Suckerfish, Whalesucker)',
+    subject: 'Estimated average size (Raccoon Butterflyfish, Emperor Angelfish, Clown Triggerfish, White Suckerfish, Whalesucker) and maturity size (Pilot Fish, Longfin Bannerfish, Raccoon Butterflyfish)',
     authors: 'Froese & Binohlan',
     year: 2000,
     title: 'Empirical relationships to estimate asymptotic length, length at first maturity and length at maximum yield per recruit in fishes',
     venue: 'Journal of Fish Biology 56: 758–773',
     url: 'https://doi.org/10.1111/j.1095-8649.2000.tb00870.x',
+  },
+  {
+    id: 'thorson-2017-fishlife',
+    subject: 'Estimated ages: Giant Sunfish lifespan and maturity, Whale Shark maturity',
+    authors: 'Thorson, Munch, Cope & Gao',
+    year: 2017,
+    title: 'Predicting life history parameters for all fishes worldwide (FishLife)',
+    venue: 'Ecological Applications 27: 2262–2276',
+    url: 'https://doi.org/10.1002/eap.1606',
   },
   {
     id: 'toronto-zoo-clown-triggerfish',

@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.33.1 — Visitor changelog caught up
+
+Status: clean `v0.33.1` (2026-10-22, branch `fix/changelog-v0.33.0`). `package.json` and `package-lock.json` move to `0.33.1`. From `main` at `v0.33.0`. Jeremy: "why chsngelogs not added".
+
+### Changelog
+
+- The in-app changelog (`src/data/changelog.js`, opened from the version label) gains the releases it was missing: v0.33.0 Humphead Wrasse, v0.32.2 fuller Atlas entries, v0.32.0 Raccoon Butterflyfish, v0.31.3 the lower view of The Reefs, v0.31.0 Staghorn coral. Only `CHANGELOG.md` had been written for them. v0.31.2 (lossless asset recompression) stays out as tooling, per the file's rule.
+
 ## v0.33.0 — Humphead Wrasse
 
 Status: accepted and promoted as clean `v0.33.0` from `v0.33.0-dev_6` on Jeremy's go-ahead (2026-10-22, branch `feat/crassilabrus-undulatus`, #148: "pls push both and merge to main CLEAN"). `package.json` and `package-lock.json` move to `0.33.0`. From `main` at `v0.32.2`. Jeremy's next reef fish for The Reefs, chosen over the bumphead parrotfish so the reef gains one focal animal rather than a herd; one terminal male to start, females later as a second model.

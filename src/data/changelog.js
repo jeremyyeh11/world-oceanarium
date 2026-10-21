@@ -6,11 +6,36 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.33.0',
+    date: '2026-10-22',
+    title: 'Humphead Wrasse',
+    changes: [
+      ['new', 'A Humphead Wrasse joins The Reefs and the Atlas: the largest wrasse, a big blue-green male with a hump on his forehead who patrols the reef and stops to bite shellfish off the rocks. It is Endangered, fished for the live reef food trade.'],
+    ],
+  },
+  {
+    version: 'v0.32.2',
+    date: '2026-10-22',
+    title: 'Fuller Atlas entries',
+    changes: [
+      ['new', 'Atlas entries now give average size, weight and life expectancy, and age at maturity and eggs, for far more species, from published studies. Estimates are marked as estimated.'],
+      ['new', 'Sources lists the studies behind those figures, next to the image credits.'],
+    ],
+  },
+  {
     version: 'v0.32.1',
     date: '2026-10-22',
     title: 'The Atlas scrolls on iPad',
     changes: [
       ['fix', 'The Atlas entry opened from a fish you are following scrolls again on iPad, so the bottom of the entry is no longer out of reach.'],
+    ],
+  },
+  {
+    version: 'v0.32.0',
+    date: '2026-10-21',
+    title: 'Raccoon Butterflyfish',
+    changes: [
+      ['new', 'A group of twenty Raccoon Butterflyfish works The Reefs together, picking at the rocks and corals and raising their spines when startled. They join the Atlas too.'],
     ],
   },
   {
@@ -39,6 +64,23 @@ export const VISITOR_CHANGELOG = [
     changes: [
       ['new', 'Reef fish now use the staghorn coral: bannerfish hang over the branch tips where plankton drifts, young angelfish slip in among the branches, and the others pass over or wait beside them.'],
       ['fix', 'Fish resting at the rocks and table corals no longer end up with staghorn branches through them.'],
+    ],
+  },
+  {
+    version: 'v0.31.3',
+    date: '2026-10-20',
+    title: 'A lower view of The Reefs',
+    changes: [
+      ['new', 'The Reefs\' starting view tilts slightly down, so the central coral outcrop sits near the middle of the screen.'],
+    ],
+  },
+  {
+    version: 'v0.31.0',
+    date: '2026-10-20',
+    title: 'Staghorn coral',
+    changes: [
+      ['new', 'Staghorn coral grows on The Reefs in brown, cream and blue patches, branching among the table corals on the same rocks.'],
+      ['new', 'The Staghorn Coral joins the Atlas: an Endangered branching coral.'],
     ],
   },
   {

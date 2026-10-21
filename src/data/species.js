@@ -1321,11 +1321,15 @@ export const SPECIES = [
         reproduction: 'Unknown',
       },
       averages: {
-        // FishBase gives only a maximum length; no common length, weight or age data.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // No measured average, so FishBase's Life-history tool estimate: L_opt, the length at which an
+        // unfished cohort is heaviest (Froese & Binohlan 2000, from the maximum length):
+        // 19.3 cm SL from 30 cm SL = 21.7 cm TL (SL 0.890 TL). It runs about 30% over the measured
+        // common lengths of the other remoras, so real fish may be smaller. Weight from FishBase's
+        // length–weight (a 0.00263, b 3.17). No age data.
+        maleSizeMeters: 0.22,
+        femaleSizeMeters: 0.22,
+        maleWeightKg: 0.05,
+        femaleWeightKg: 0.05,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
@@ -1395,11 +1399,15 @@ export const SPECIES = [
         reproduction: 'Unknown',
       },
       averages: {
-        // FishBase gives only a maximum length; no common length, weight or age data.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // No measured average, so FishBase's Life-history tool estimate: L_opt, the length at which an
+        // unfished cohort is heaviest (Froese & Binohlan 2000, from the maximum length):
+        // 50.2 cm TL from 76 cm. It runs about 30% over the measured common lengths of the other
+        // remoras, so real fish may be smaller. Weight from FishBase's length–weight (a 0.00263,
+        // b 3.17). No age data.
+        maleSizeMeters: 0.5,
+        femaleSizeMeters: 0.5,
+        maleWeightKg: 0.65,
+        femaleWeightKg: 0.65,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
@@ -2056,13 +2064,15 @@ export const SPECIES = [
         reproduction: 'Forms distinct, monogamous pairs; eggs drift in open water.',
       },
       averages: {
-        // FishBase gives only a maximum (20 cm TL); no common length or sex-specific data.
         // FishBase: oldest aged fish 9 years, unsexed (life expectancy is the oldest age, as for the
-        // other species). No common length, so no average size or weight.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // other species).
+        // No measured average, so FishBase's Life-history tool estimate: L_opt, the length at which an
+        // unfished cohort is heaviest (Froese & Binohlan 2000, from the maximum length):
+        // 12.8 cm TL from 20 cm. Weight from FishBase's length–weight (a 0.02291, b 3.00).
+        maleSizeMeters: 0.13,
+        femaleSizeMeters: 0.13,
+        maleWeightKg: 0.05,
+        femaleWeightKg: 0.05,
         maleLifeExpectancyYears: 9,
         femaleLifeExpectancyYears: 9,
       },
@@ -2213,12 +2223,15 @@ export const SPECIES = [
         reproduction: 'Forms pairs. Spawning is poorly documented.',
       },
       averages: {
-        // FishBase gives no common length, weight, or sex-specific sizes; 14 years is its
-        // maximum reported age, used as life expectancy the way the other species do.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // FishBase's 14-year maximum reported age is used as life expectancy, as for the other species.
+        // No measured average, so FishBase's Life-history tool estimate: L_opt, the length at which an
+        // unfished cohort is heaviest (Froese & Binohlan 2000, from the maximum length):
+        // 26 cm SL from 40 cm SL = 29.5 cm TL (adults SL 0.882 TL). Weight from FishBase's length–weight
+        // (a 0.01738, b 2.88). Kenyan fish mature at 25 to 28 cm, just under it.
+        maleSizeMeters: 0.3,
+        femaleSizeMeters: 0.3,
+        maleWeightKg: 0.3,
+        femaleWeightKg: 0.3,
         maleLifeExpectancyYears: 14,
         femaleLifeExpectancyYears: 14,
       },
@@ -2448,12 +2461,14 @@ export const SPECIES = [
         reproduction: 'Forms distinct pairs to spawn, over patches of mixed coral rubble and sand on clear seaward reefs.',
       },
       averages: {
-        // FishBase gives a 50 cm maximum (total length) and no common length, weight, or age.
-        // Toronto Zoo: lives up to 20 years. FishBase has no common length or age data.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // Toronto Zoo: lives up to 20 years.
+        // No measured average, so FishBase's Life-history tool estimate: L_opt, the length at which an
+        // unfished cohort is heaviest (Froese & Binohlan 2000, from the maximum length):
+        // 32.7 cm TL from 50 cm. Weight from FishBase's length–weight (a 0.02692, b 2.91).
+        maleSizeMeters: 0.33,
+        femaleSizeMeters: 0.33,
+        maleWeightKg: 0.69,
+        femaleWeightKg: 0.69,
         maleLifeExpectancyYears: 20,
         femaleLifeExpectancyYears: 20,
       },

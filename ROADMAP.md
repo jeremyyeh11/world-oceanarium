@@ -13,6 +13,16 @@ Status labels:
 
 ## Current work
 
+### Atlas averages and lifecycle for every species
+
+Status: `Blocked / waiting review` as `v0.32.2-dev_1` (branch `fix/atlas-averages`, 2026-10-22). Jeremy: "fill in all the averages for all species ... same thing for lifecycle". Sources are cited in comments beside each value in `species.js`.
+
+Subtasks:
+- [x] Sizes and weights: sex-specific where a study gives them (sharksucker, whale shark), otherwise FishBase's common length or a published catch mean for both sexes; weights from FishBase's length–weight relationship at that length.
+- [x] Life expectancy as each sex's oldest aged fish, as the mako and mahi already did (butterflyfish 9, triggerfish 20, grouper 14).
+- [x] Lifecycle: maturity and eggs from Kenyan angelfish, Mediterranean/Hawaiian marlinsucker, Gulf sharksucker and Coral Trait Database figures; sterility "None known" where nothing is published.
+- [ ] Still Unknown, no published data found: sunfish lifespan and maturity; remora, pilot fish, bannerfish lifespans; whitefin sharksucker, white suckerfish and whalesucker most fields; angelfish, butterflyfish and triggerfish average size and weight; coral colony averages. `Backlog`
+
 ### Raccoon Butterflyfish
 
 Status: shipped in clean `v0.32.0` (2026-10-21, from `v0.32.0-dev_4`, branch `feat/chaetodon-lunula`, #146): Jeremy's model with shape-key spines, one group of 20 at The Reefs (dev data), Atlas entry (six fish) and tile. The open items below carry over.

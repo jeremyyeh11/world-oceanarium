@@ -43,6 +43,15 @@ export const SOURCES = [
     provides: ['Status framework', 'Species assessments'],
   },
   {
+    id: 'coral-trait-database',
+    name: 'Coral Trait Database',
+    kicker: 'Coral biology',
+    url: 'https://www.coraltraits.org/',
+    summary:
+      'Published measurements of reef-building corals, read for the corals the way FishBase is for the fish.',
+    provides: ['Colony size', 'Growth', 'Eggs per polyp'],
+  },
+  {
     id: 'world-oceanarium',
     name: 'world-oceanarium',
     fullName: 'GitHub repository',

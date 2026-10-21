@@ -327,7 +327,7 @@ export const SPECIES = [
       },
       lifecycle: {
         sexualMaturityYears: '1 year (estimated)',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: '11,600 to 43,200 eggs',
       },
     },
@@ -682,7 +682,7 @@ export const SPECIES = [
       },
       lifecycle: {
         sexualMaturityYears: 'Males 7 to 9 years; females 18 to 21 years',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: '4 to 25 pups',
       },
     },
@@ -852,6 +852,7 @@ export const SPECIES = [
         reproduction: 'Broadcast spawning in open water; adults briefly aggregate to spawn. No parental care.',
       },
       averages: {
+        // No age study for this species; its lifespan is unknown.
         maleSizeMeters: 2.5,
         femaleSizeMeters: 3.3,
         maleWeightKg: 1000,
@@ -860,8 +861,10 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
+        // No maturity or fecundity study for this species (the ocean sunfish, Mola mola,
+        // carries about 300 million eggs).
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1029,18 +1032,22 @@ export const SPECIES = [
         reproduction: 'Unknown',
       },
       averages: {
-        // FishBase common length (standard length); no sex-specific data.
-        maleSizeMeters: 0.66,
-        femaleSizeMeters: 0.66,
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // Bachman et al. 2018 (J. Fish Biol., eastern Gulf of Mexico): mean asymptotic standard length
+        // 47.7 cm for males and 60.3 cm for females. Weights from FishBase's length–weight (a 0.00263,
+        // b 3.17, total length; SL about 0.87 TL). No maximum age published.
+        maleSizeMeters: 0.48,
+        femaleSizeMeters: 0.6,
+        maleWeightKg: 0.86,
+        femaleWeightKg: 1.8,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
+        // Bachman et al. 2018: a batch spawner, 39.5 eggs per gram of body weight per batch, so about
+        // 70,000 for a 1.8 kg female; spawns in late summer.
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'About 70,000 eggs per batch',
       },
     },
     atlasSummary: {
@@ -1137,16 +1144,17 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
+        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age data.
         maleSizeMeters: 0.5,
         femaleSizeMeters: 0.5,
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        maleWeightKg: 0.64,
+        femaleWeightKg: 0.64,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1240,16 +1248,17 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
+        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age data.
         maleSizeMeters: 0.4,
         femaleSizeMeters: 0.4,
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        maleWeightKg: 0.32,
+        femaleWeightKg: 0.32,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1312,6 +1321,7 @@ export const SPECIES = [
         reproduction: 'Unknown',
       },
       averages: {
+        // FishBase gives only a maximum length; no common length, weight or age data.
         maleSizeMeters: 'Unknown',
         femaleSizeMeters: 'Unknown',
         maleWeightKg: 'Unknown',
@@ -1321,7 +1331,7 @@ export const SPECIES = [
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1385,6 +1395,7 @@ export const SPECIES = [
         reproduction: 'Unknown',
       },
       averages: {
+        // FishBase gives only a maximum length; no common length, weight or age data.
         maleSizeMeters: 'Unknown',
         femaleSizeMeters: 'Unknown',
         maleWeightKg: 'Unknown',
@@ -1394,7 +1405,7 @@ export const SPECIES = [
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1458,16 +1469,17 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
+        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age data.
         maleSizeMeters: 0.25,
         femaleSizeMeters: 0.25,
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        maleWeightKg: 0.07,
+        femaleWeightKg: 0.07,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1527,24 +1539,29 @@ export const SPECIES = [
       maxLengthLabel: 'Standard length',
       sexualDimorphism: 'Unknown',
       lifeSpan: 'Unknown',
-      maturityAge: 'Unknown',
+      maturityAge: 'Unknown; females mature at about 14 cm',
       social: {
         schoolSize: 'N/A',
         groupingBehaviour: 'Strongly prefers marlins and sailfish, riding on the body or inside the gill chamber; occasionally clings to other large fishes.',
         reproduction: 'Egg-laying, with distinct pairing during breeding. Mature pairs are often found together on a single host.',
       },
       averages: {
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // Battaglia et al. 2016 (J. Mar. Biol. Assoc. UK 96:639, Mediterranean, 236 fish): both sexes
+        // grow alike to a mean asymptotic 27.4 cm TL. Weight from FishBase's length–weight (a 0.00263,
+        // b 3.17). No maximum age published.
+        maleSizeMeters: 0.27,
+        femaleSizeMeters: 0.27,
+        maleWeightKg: 0.09,
+        femaleWeightKg: 0.09,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: 'Unknown',
+        // FishBase: females mature at 13.9 cm SL (Ligurian Sea, 1996–2001); 8,100 to 30,000 eggs
+        // (Hawaii, May–June 1979).
+        sexualMaturityYears: 'Unknown; females mature at about 14 cm',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: '8,100 to 30,000 eggs',
       },
     },
     atlasSummary: {
@@ -1605,16 +1622,18 @@ export const SPECIES = [
       },
       averages: {
         // Usual total length (Wikipedia, after FishBase); no sex-specific data.
+        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the usual length; this slender
+        // species may weigh less. No age data.
         maleSizeMeters: 0.34,
         femaleSizeMeters: 0.34,
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        maleWeightKg: 0.19,
+        femaleWeightKg: 0.19,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1686,16 +1705,18 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
+        // Weight from FishBase's length–weight (a 0.01413, b 2.93) at the common length. The only age
+        // study (Reñones et al. 1999, Mallorca) aged fish under a year old, so no lifespan.
         maleSizeMeters: 0.35,
         femaleSizeMeters: 0.35,
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        maleWeightKg: 0.7,
+        femaleWeightKg: 0.7,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -1849,16 +1870,17 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
+        // Weight from FishBase's length–weight (a 0.02291, b 3.04) at the common length. No age data.
         maleSizeMeters: 0.15,
         femaleSizeMeters: 0.15,
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        maleWeightKg: 0.09,
+        femaleWeightKg: 0.09,
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -2035,16 +2057,18 @@ export const SPECIES = [
       },
       averages: {
         // FishBase gives only a maximum (20 cm TL); no common length or sex-specific data.
+        // FishBase: oldest aged fish 9 years, unsexed (life expectancy is the oldest age, as for the
+        // other species). No common length, so no average size or weight.
         maleSizeMeters: 'Unknown',
         femaleSizeMeters: 'Unknown',
         maleWeightKg: 'Unknown',
         femaleWeightKg: 'Unknown',
-        maleLifeExpectancyYears: 'Unknown',
-        femaleLifeExpectancyYears: 'Unknown',
+        maleLifeExpectancyYears: 9,
+        femaleLifeExpectancyYears: 9,
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -2182,7 +2206,7 @@ export const SPECIES = [
       foundIn: 'Indo-Pacific reefs, Red Sea and East Africa to the Line and Tuamotu islands, north to southern Japan and south to the Great Barrier Reef, New Caledonia, and the Austral Islands, 1 to 100 m.',
       sexualDimorphism: 'Unknown',
       lifeSpan: 'Up to 14 years',
-      maturityAge: 'Unknown',
+      maturityAge: 'Unknown; females mature at about 25 cm, males at 28 cm',
       social: {
         schoolSize: 'Pairs',
         groupingBehaviour: 'Adults form pairs and keep to ledges and caves in rich coral on lagoon, channel, and seaward reefs. Juveniles hide under ledges and in holes on sheltered reefs, dark blue ringed in white until the adult stripes come in at about 12 to 14 cm. Young and adults may clean much larger fishes, such as sunfish.',
@@ -2199,9 +2223,11 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 14,
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: 'Unknown',
+        // Obota et al. 2016 (W. Indian Ocean J. Mar. Sci., Kenya, 384 fish): females mature at 25 cm TL,
+        // males at 28 cm; a ripe ovary holds 17,790 to 266,472 eggs (mean 79,353).
+        sexualMaturityYears: 'Unknown; females mature at about 25 cm, males at 28 cm',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'About 18,000 to 266,000 eggs (79,000 on average)',
       },
     },
     atlasSummary: {
@@ -2414,8 +2440,8 @@ export const SPECIES = [
       commonDiet: 'Sea urchins, crabs and other crustaceans, molluscs, and tunicates.',
       foundIn: 'Indo-Pacific reefs, East Africa through northern Australia to Samoa, north to southern Japan, 1 to 75 m.',
       sexualDimorphism: 'Unknown',
-      lifeSpan: 'Unknown',
-      maturityAge: 'Unknown',
+      lifeSpan: 'Up to 20 years',
+      maturityAge: 'About 1 year',
       social: {
         schoolSize: 'Solitary',
         groupingBehaviour: 'Adults swim alone and in the open along deep drop-offs on clear seaward reefs, retreating into caves when approached. Juveniles are secretive, keeping to small caves rich in invertebrate growth.',
@@ -2423,16 +2449,18 @@ export const SPECIES = [
       },
       averages: {
         // FishBase gives a 50 cm maximum (total length) and no common length, weight, or age.
+        // Toronto Zoo: lives up to 20 years. FishBase has no common length or age data.
         maleSizeMeters: 'Unknown',
         femaleSizeMeters: 'Unknown',
         maleWeightKg: 'Unknown',
         femaleWeightKg: 'Unknown',
-        maleLifeExpectancyYears: 'Unknown',
-        femaleLifeExpectancyYears: 'Unknown',
+        maleLifeExpectancyYears: 20,
+        femaleLifeExpectancyYears: 20,
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        // Toronto Zoo: mature at about a year.
+        sexualMaturityYears: 'About 1 year',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -2592,16 +2620,19 @@ export const SPECIES = [
       averages: {
         // FishBase gives a common length of 10 m (males and unsexed) but no sex-specific sizes or
         // weights; 80 years is its maximum reported age, used as life expectancy as elsewhere.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // Mean asymptotic lengths from Ningaloo photo-identification growth (Meekan et al. 2020, Front.
+        // Mar. Sci.): males level off at about 8 to 9 m, females are predicted to reach about 14.5 m.
+        // Weights from FishBase's length–weight (a 0.00389, b 3.12) at those lengths.
+        maleSizeMeters: 8.5,
+        femaleSizeMeters: 14.5,
+        maleWeightKg: 5400,
+        femaleWeightKg: 28000,
         maleLifeExpectancyYears: 80,
         femaleLifeExpectancyYears: 80,
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Up to about 300 pups',
       },
     },
@@ -2772,16 +2803,19 @@ export const SPECIES = [
       },
       averages: {
         // FishBase gives an 80 cm maximum (total length) and no common length or weight.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
-        maleLifeExpectancyYears: 'Unknown',
-        femaleLifeExpectancyYears: 'Unknown',
+        // Khasanah et al. 2019 (Animals 9:643, Indonesia): the commercial catch averaged 1.05–1.08 kg
+        // (n > 1,000 a year, sexes not split), about 42 cm by FishBase's length–weight (a 0.01096,
+        // b 3.07). Life expectancy is the oldest aged fish, 14 years (unsexed).
+        maleSizeMeters: 0.42,
+        femaleSizeMeters: 0.42,
+        maleWeightKg: 1.1,
+        femaleWeightKg: 1.1,
+        maleLifeExpectancyYears: 14,
+        femaleLifeExpectancyYears: 14,
       },
       lifecycle: {
         sexualMaturityYears: 'Females about 2 years; males about 3 years',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },
@@ -2931,6 +2965,8 @@ export const SPECIES = [
         reproduction: 'Each colony makes both eggs and sperm, once a year. A night or two after a full moon it releases them into the water to meet those of other colonies. The season shifts with latitude, from March in the Philippines to July and August in southern Japan.',
       },
       averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published (the largest
+        // recorded tables are about 3 m across, Coral Trait Database).
         maleSizeMeters: 'Unknown',
         femaleSizeMeters: 'Unknown',
         maleWeightKg: 'Unknown',
@@ -2939,9 +2975,11 @@ export const SPECIES = [
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
+        // Coral Trait Database: 5.6 eggs per polyp on average (Great Barrier Reef colonies range 1 to
+        // 17); colonies spawn once a year.
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'About 6 eggs per polyp',
       },
     },
     atlasSummary: {
@@ -3008,6 +3046,8 @@ export const SPECIES = [
         reproduction: 'Each colony makes both eggs and sperm and releases them once a year, in the mass spawning a few nights after a full moon, when many reef corals spawn together. It also spreads by fragments, which grow into new colonies.',
       },
       averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published (recorded
+        // thickets reach 2.5 to 10 m across, Coral Trait Database).
         maleSizeMeters: 'Unknown',
         femaleSizeMeters: 'Unknown',
         maleWeightKg: 'Unknown',
@@ -3017,7 +3057,7 @@ export const SPECIES = [
       },
       lifecycle: {
         sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
     },

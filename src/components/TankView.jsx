@@ -145,8 +145,12 @@ function defaultFollowDistanceForCreature(creature) {
   return clampFollowDistance(Math.max(DEFAULT_FOLLOW_DISTANCE, bodyLength * LARGE_CREATURE_FOLLOW_BODY_LENGTHS), creature)
 }
 
-function eventStartedInInfoCard(event) {
-  return event.target instanceof Element && Boolean(event.target.closest('.info-card'))
+// The Atlas and the sources/changelog modals open over a followed fish without
+// releasing it, so the follow-mode scroll block has to let their own scrollers through.
+const SCROLLABLE_PANEL_SELECTOR = '.info-card, .encyclopedia-page, .sources-modal'
+
+function eventStartedInScrollablePanel(event) {
+  return event.target instanceof Element && Boolean(event.target.closest(SCROLLABLE_PANEL_SELECTOR))
 }
 
 function isMobileInputSurface() {
@@ -258,12 +262,12 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
     if (!selectedCreature) return undefined
 
     const blockViewportScroll = (event) => {
-      if (eventStartedInInfoCard(event)) return
+      if (eventStartedInScrollablePanel(event)) return
       event.preventDefault()
     }
 
     const blockMobileWheelZoom = (event) => {
-      if (!isMobileInputSurface() || eventStartedInInfoCard(event)) return
+      if (!isMobileInputSurface() || eventStartedInScrollablePanel(event)) return
       event.preventDefault()
       event.stopPropagation()
     }

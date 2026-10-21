@@ -15,7 +15,7 @@ Status labels:
 
 ### Atlas averages and lifecycle for every species
 
-Status: `Blocked / waiting review` as `v0.32.2-dev_4` (branch `fix/atlas-averages`, 2026-10-22). Jeremy: "fill in all the averages for all species ... same thing for lifecycle". Sources are cited in comments beside each value in `species.js`.
+Status: shipped in clean `v0.32.2` (2026-10-22, from `v0.32.2-dev_4`, branch `fix/atlas-averages`, #149). Jeremy: "fill in all the averages for all species ... same thing for lifecycle". Sources are cited in comments beside each value in `species.js` and listed in the Sources modal's Studies section. The open item below carries over.
 
 Subtasks:
 - [x] Sizes and weights: sex-specific where a study gives them (sharksucker, whale shark), otherwise FishBase's common length or a published catch mean for both sexes; weights from FishBase's length–weight relationship at that length.

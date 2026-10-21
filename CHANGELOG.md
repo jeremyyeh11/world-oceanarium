@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.32.2 — Atlas averages and lifecycle for every species
+
+Status: accepted and promoted as clean `v0.32.2` from `v0.32.2-dev_4` on Jeremy's go-ahead (2026-10-22, branch `fix/atlas-averages`, #149: "pls push both and merge to main CLEAN"). `package.json` and `package-lock.json` move to `0.32.2`. From `main` at `v0.32.1`. Jeremy: "fill in all the averages for all species ... same thing for lifecycle".
+
+### Atlas
+
+- Averages (size, weight, life expectancy) and Lifecycle (maturity, sterility, eggs) filled for every species where a source exists, each value cited in a comment beside it in `species.js`.
+  - Sizes by sex from studies where they exist: Live Sharksucker (Bachman et al. 2018), Whale Shark (Meekan et al. 2020), Marlinsucker (Battaglia et al. 2016), Squaretail Coral Grouper catch mean (Khasanah et al. 2019). Otherwise FishBase's common length.
+  - Where no average size is measured (Raccoon Butterflyfish, Emperor Angelfish, Clown Triggerfish, White Suckerfish, Whalesucker): FishBase's Life-history estimate L_opt from the maximum length (Froese & Binohlan 2000).
+  - Weights from FishBase's length–weight relationship at that size. Life expectancy is each sex's oldest aged fish, as the mako and mahi already were.
+  - Lifecycle: Emperor Angelfish maturity sizes and eggs (Obota et al. 2016), Marlinsucker maturity size and eggs, Live Sharksucker eggs per batch, Table Coral eggs per polyp (Coral Trait Database), Clown Triggerfish lifespan and maturity (Toronto Zoo). Sterility reads "None known" where nothing is published.
+- Checked model estimates, labelled "(estimated)": Giant Sunfish lifespan 21 years and maturity 7 years at 1.5 m, Whale Shark maturity 30 years (FishLife, Thorson et al. 2017); maturity sizes for the Pilot Fish, Longfin Bannerfish and Raccoon Butterflyfish (Froese & Binohlan). Estimates that missed measured values in the check stay out: genus-level FishLife ages (45–90% off) and any length formula for the remora family (70% high), so the sharksuckers and remoras keep Unknown.
+
+### Sources
+
+- A Studies section in the Sources modal (`STUDY_CREDITS`), listed like the Image credits: each study or species profile with the species and fields it decided.
+- Coral Trait Database added as a source; FishBase now also lists Weight.
+
 ## v0.32.1 — Atlas scrolls on iPad
 
 Status: accepted and promoted as clean `v0.32.1` from `v0.32.1-dev_1` on Jeremy's go-ahead (2026-10-22, branch `fix/atlas-scroll-while-following`, #147: "works. merge to main clean version"). `package.json` and `package-lock.json` move to `0.32.1`. From `main` at `v0.32.0`. Jeremy: on his iPad the Atlas info section was cut off at the bottom and would not scroll.

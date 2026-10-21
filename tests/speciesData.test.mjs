@@ -28,8 +28,9 @@ assert.equal(shortfinMako.model.scale, 0.443)
 
 const giantSunfish = speciesById.get('mola-alexandrini')
 assert.ok(giantSunfish)
-assert.equal(giantSunfish.atlasDetails.averages.maleLifeExpectancyYears, 'Unknown')
-assert.equal(giantSunfish.atlasDetails.averages.femaleLifeExpectancyYears, 'Unknown')
+// No age study of this species: life expectancy is a FishLife estimate and must say so.
+assert.equal(giantSunfish.atlasDetails.averages.maleLifeExpectancyYears, 'About 21 years (estimated)')
+assert.equal(giantSunfish.atlasDetails.averages.femaleLifeExpectancyYears, 'About 21 years (estimated)')
 assert.equal(giantSunfish.atlasDetails.lifecycle.offspringPerMatingEvent, 'Unknown')
 
 // Remoras (v0.16.0). FishBase maxima, IUCN status, and the rendered size derived from them:

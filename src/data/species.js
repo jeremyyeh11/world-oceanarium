@@ -157,7 +157,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula'],
+    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
@@ -2947,6 +2947,189 @@ export const SPECIES = [
         burstFrequencyBoost: 0.24,
         // Groupers hold station on their pectorals, so these work harder than a jack's.
         pectoralFinFlutter: 0.14,
+        pelvicFinFlutter: 0.06,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // --- Humphead wrasse (Labridae) ------------------------------------------------------------
+  // Facts from FishBase, Choat et al. 2006 (MEPS 318:237, age and growth, NE Australia) and the
+  // Florida Museum profile. The largest wrasse: a roving reef predator, usually alone, sometimes
+  // in pairs, that crushes shellfish and urchins off the reef by day and sleeps under ledges at
+  // night. Chosen over the bumphead parrotfish so The Reefs gains a focal animal, not a herd
+  // (Jeremy, 2026-10-21). Long Cheilinus undulatus (FishBase still uses it): moved to the
+  // resurrected genus Crassilabrus by Near et al. 2025 (Bull. Peabody Mus. Nat. Hist., the
+  // phylogenetic taxonomy of Labridae), being closer to the slingjaw wrasses (Epibulus) than to
+  // Cheilinus. Jeremy's terminal male model.
+  {
+    id: 'crassilabrus-undulatus',
+    name: 'Humphead Wrasse',
+    scientificName: 'Crassilabrus undulatus',
+    family: 'Labridae',
+    alternateNames: ['Napoleon Wrasse', 'Maori Wrasse'],
+    // Rendered tile (2026-10-22): fish 458 alone in open water, three-quarter head facing left.
+    atlasThumbnail: '/atlas/crassilabrus-undulatus-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // "Usually solitary but may occur in pairs" (FishBase); sometimes one male with smaller adults
+    // and juveniles (Florida Museum). Each fish roams as a solo agent. The tank starts with one
+    // terminal male (Jeremy, 2026-10-22); females come later as a second model.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Mollusks, fishes, sea urchins and crustaceans (FishBase).
+    predator: true,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 17 July 2024 (A2bcd); CITES Appendix II. Fished for the live reef food fish trade.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      commonDiet: 'Mollusks, fishes, sea urchins and crustaceans; one of the few predators of sea hares, boxfishes and crown-of-thorns starfish.',
+      foundIn: 'Indo-Pacific reefs, Red Sea to South Africa and the Tuamotu Islands, north to the Ryukyu Islands, south to New Caledonia, 0 to 100 m.',
+      // Choat et al. 2006: males grow faster and reach 140 cm FL. Florida Museum: females rarely
+      // pass about 1 m; males blue to green, the hump larger in larger males.
+      sexualDimorphism: 'Males grow faster and larger, blue to green, the forehead hump growing with size. Females rarely pass about 1 m.',
+      // FishBase: 32 years. Choat et al. 2006: 25 for males, 30 for females.
+      lifeSpan: 'Up to 32 years',
+      // Choat et al. 2006 (FishBase's unsexed Great Barrier Reef record says 5–7 years).
+      maturityAge: 'Females about 6 to 7 years; males from about 9 years',
+      social: {
+        schoolSize: 'Solitary',
+        groupingBehaviour: 'Usually alone, sometimes in pairs, or one male with smaller adults and young. Adults rove steep outer reef slopes, channels and lagoon reefs by day and rest in caves and under coral ledges at night. Juveniles settle among staghorn and other branching corals, and in seagrass.',
+        // Choat et al. 2006: male recruitment from 9 years at about 70 cm; not all females change.
+        // Florida Museum: aggregations at the down-current end of the reef, daily after high tide
+        // off Palau, in most months; pairs spawn within groups of up to 100.
+        reproduction: 'Starts life female; some females turn male from about 9 years and 70 cm, but not all do. Adults gather at the down-current end of a reef, off Palau daily after high tide in most months, and pairs spawn within groups of up to 100.',
+      },
+      averages: {
+        // Choat et al. 2006 (NE Australia, 164 aged fish; the tail is rounded, so fork length is
+        // total length). Females level off at a mean asymptotic 75.5 cm (VBGF). Males grow on a
+        // line (44.6 mm a year) from 70 cm at 9 years to 142 cm: 1.0 m is the middle of that
+        // range, reached at about 16 years. Weights from FishBase's length–weight (a 0.01445,
+        // b 2.98). Life expectancy is each sex's oldest aged fish, as for the other species
+        // (FishBase gives 32 years unsexed).
+        maleSizeMeters: 1.0,
+        femaleSizeMeters: 0.75,
+        maleWeightKg: 13,
+        femaleWeightKg: 5.7,
+        maleLifeExpectancyYears: 25,
+        femaleLifeExpectancyYears: 30,
+      },
+      lifecycle: {
+        // Choat et al. 2006: ovaries ripen first at about 55 cm FL and 6 to 7 years; the youngest male
+        // was 9 years. No egg count published (the paper gives ovary weights only).
+        sexualMaturityYears: 'Females about 6 to 7 years; males from about 9 years',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Shellfish + urchins',
+      social: 'Solitary',
+    },
+    description: 'The largest wrasse, past 2 m and 190 kg, with thick lips and a hump on the forehead that grows with age. The body is olive to green with a dark bar on each scale; the head is blue-green, covered in wavy yellowish lines, with two black lines running back from the eye. It roves the outer reef alone or in pairs by day, crushing shellfish, urchins and even crown-of-thorns starfish, and sleeps under a ledge at night. Fishing for the live reef food fish trade has made it Endangered. Long known as Cheilinus undulatus, it was moved to Crassilabrus in 2025, when genes showed it nearer the slingjaw wrasse.',
+    // Sadovy de Mitcheson, Liu & Suharti 2010 (Indonesia, histology of 178 fish): smallest mature
+    // female 65 cm TL. FishBase maximum 229 cm SL.
+    adultLengthRangeMeters: [0.65, 2.29],
+    maxBodyLengthMeters: 2.29,
+    swim: {
+      // Starting values until the model lands: a labriform cruiser that rows on its pectorals,
+      // slow and heavy, keeping its tail for rare bursts.
+      visualTimeScale: 0.75,
+      driftEnabled: false,
+      idleBLPerSec: [0.2, 0.4],
+      idleDriftBLPerSec: [0.04, 0.08],
+      snapBLPerSec: [0.6, 0.9],
+      burstBLPerSec: [2.0, 3.0],
+      burstInterval: [20.0, 40.0],
+      burstActionDuration: 0.6,
+      turnActionDuration: 0.8,
+      erraticness: 0.08,
+      // Pectoral rowing turns a wrasse tightly for its length.
+      turnRadiusBodyLengths: 1.0,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      ...REEF_BOUNDS,
+      // 1 WU = 25 cm: 229 cm maximum = 9.16 WU. sizeRange keeps the tank's fish at 1.15–1.5 m.
+      bodyLengthWU: 9.16,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.0,
+        separationWeight: 0.3,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.3,
+        // Big and a fish-eater, so smaller fish give it room; calm and curious, so it yields little.
+        menace: 0.3,
+        wariness: 0.1,
+      },
+    },
+    // 0.5–0.65 of 229 cm = 1.15–1.5 m: large adults without the 2 m record holders, about 4.6–6
+    // WU, so it reads as a resident rather than a wall on the phone's crop (2026-10-21).
+    sizeRange: [0.5, 0.65],
+    // FishBase Bayesian length–weight (TL cm): a 0.01445, b 2.98; about 13 kg at 1 m, 44 kg at 1.5 m.
+    mass: { coefficient: 0.01445, exponent: 2.98 },
+    // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It roves the reef by day, so it
+    // patrols more than any other resident, pausing off a face and biting shellfish and urchins
+    // off the rock. Its ledge is for the night, so it shelters little. At the corals it cruises
+    // past and under the tables; the staghorn is a juvenile's home, too tight for an adult.
+    reef: {
+      affinity: 0.75,
+      modes: { patrol: 0.45, hover: 0.25, peck: 0.2, shelter: 0.1 },
+      pecks: [1, 2],
+      hoverSeconds: [4, 10],
+      hoverStandoffBodyLengths: [0.6, 0.9],
+      turnDegreesPerSecond: 60,
+      startleShelterChance: 0.2,
+      corals: { table: { patrol: 0.3, hover: 0.25, shelter: 0.15 }, thicket: { patrol: 0.2, peck: 0.1 } },
+    },
+    model: {
+      path: '/models/fish/crassilabrus-undulatus/crassilabrus-undulatus.glb',
+      // Jeremy's terminal male (2026-10-22): source length 20.198 raw, snout to tail tip -> 9.16
+      // WU; the root is recentred mid-length on the line from the snout (y -0.99) to the tail
+      // tip's middle (y -0.49). The tail fin starts about 0.8 back. The three photo textures were
+      // solid PNGs, so they ship as JPEGs (fins resized to 1024 px) with the GLB's BLEND dropped:
+      // 9.3 MB -> 0.85 MB. The body came out inside out (normals and winding inward; the
+      // double-sided material hid it in the tank, the Atlas lit it from within), so its winding
+      // and normals are flipped in the GLB, as Recalculate Outside would (dev_2). His revised model
+      // (dev_6, rear body reshaped) came out inside out too and is flipped the same way.
+      scale: 0.45351,
+      position: [0, 0.3347, -0.8858],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['humphead_wrasse'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // The bannerfish's labriform tuning (a stiff body that cruises on its pectorals and
+        // keeps its tail for bursts), slower for a 1.5 m fish: 0.03 body lengths of 20.198.
+        amplitude: 0.6,
+        waveSpeed: 2.0,
+        waveTravel: 3.0,
+        flexStart: 0.5,
+        flexFull: 0.9,
+        turnStrength: 0.6,
+        burstAmplitude: 1.1,
+        response: 6,
+        speedFrequencyBoost: 0.3,
+        burstFrequencyBoost: 0.3,
+        // Its pectorals are the engine at cruise, so they row harder than the grouper's.
+        pectoralFinFlutter: 0.4,
         pelvicFinFlutter: 0.06,
       },
       debugForwardOrigin: 'head',

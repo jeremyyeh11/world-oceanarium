@@ -18,7 +18,7 @@ Status: clean `v0.33.1` (2026-10-22, branch `fix/changelog-v0.33.0`). `package.j
 
 ## v0.34.0 — Humphead Wrasse females
 
-Status: in development as `v0.34.0-dev_1` (2026-10-22, branch `feat/humphead-wrasse-female`). From `main` at `v0.33.1`. Jeremy's female humphead wrasse model, the second model promised when the male shipped.
+Status: accepted and promoted as clean `v0.34.0` from `v0.34.0-dev_1` on Jeremy's go-ahead (2026-10-22, branch `feat/humphead-wrasse-female`, #151: "promote to clean v0.34.0, merge, then add the two females to prod once it's live"). `package.json` and `package-lock.json` move to `0.34.0`. From `main` at `v0.33.1`. Jeremy's female humphead wrasse model, the second model promised when the male shipped.
 
 ### Species
 
@@ -36,7 +36,7 @@ Status: in development as `v0.34.0-dev_1` (2026-10-22, branch `feat/humphead-wra
 
 ### Data
 
-- Two females in `creatures_dev` (ids 460 and 461, sizes 0.6 and 0.25 = 92.5 and 85 cm); dev is 277 alive. Production `creatures` has none yet: it needs Jeremy's go-ahead.
+- Two females in `creatures_dev` (ids 460 and 461, sizes 0.6 and 0.25 = 92.5 and 85 cm); dev is 277 alive. The same two in production `creatures` (ids 462 and 463), written once the live bundle served `v0.34.0`, since older builds draw them as males.
 
 ## v0.33.0 — Humphead Wrasse
 

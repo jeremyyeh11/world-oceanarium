@@ -15,15 +15,15 @@ Status labels:
 
 ### Humphead Wrasse females
 
-Status: `Current in development` as `v0.34.0-dev_1` (2026-10-22, branch `feat/humphead-wrasse-female`). Jeremy's female model, the second model planned when the male shipped.
+Status: shipped in clean `v0.34.0` (2026-10-22, from `v0.34.0-dev_1`, branch `feat/humphead-wrasse-female`, #151). `Archive candidate`. Jeremy's female model, the second model planned when the male shipped.
 
 Subtasks:
 - [x] Model intake: 10.008 raw, nose −Z, normals outward; texture PNG -> JPEG, `BLEND` dropped (3.2 MB -> 0.58 MB); Diego Delso photo (CC BY-SA 4.0) credited in Sources.
 - [x] Female `sexVariant` with the male's swim; `sizeRangeBySex` keeps females at 0.8–1.0 m.
 - [x] Atlas: the male shown with a female (`sex` companions); desktop, 375 px portrait and phone landscape checked.
 - [x] Two females in `creatures_dev` (460, 461).
-- [ ] Jeremy's review on the phone. `Blocked / waiting review`
-- [ ] Production `creatures` rows: the male (459) is live; females on Jeremy's go-ahead. `Next`
+- [x] Jeremy's go-ahead (2026-10-22): "promote to clean v0.34.0, merge, then add the two females to prod once it's live".
+- [x] Production `creatures` rows 462 and 463, written once the live bundle served `v0.34.0`.
 
 ### Humphead Wrasse
 

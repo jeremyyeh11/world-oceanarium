@@ -228,6 +228,15 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model and resized.',
   },
   {
+    id: 'delso-humphead-wrasse-female',
+    subject: 'Female Humphead Wrasse texture',
+    author: 'Diego Delso',
+    work: 'Humphead wrasse (Cheilinus undulatus), Red Sea, Egypt (cropped by Bloopityboop)',
+    url: 'https://commons.wikimedia.org/wiki/File:Pez_Napole%C3%B3n_(Cheilinus_undulatus),_mar_Rojo,_Egipto,_2023-04-18,_DD_13_(cropped).jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model; the adapted texture is shared under the same licence.',
+  },
+  {
     id: 'mcminds-table-coral',
     subject: 'Table coral texture (cream tables)',
     author: 'Ryan McMinds',

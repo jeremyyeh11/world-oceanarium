@@ -212,6 +212,27 @@ const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZ
 // kept above it (rockObstacles.js liftAboveSeabed), so the floor follows the dunes there. A
 // superset of the Mola's volume, so a cleaner following it still reaches every station.
 const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
+// The humphead wrasse's labriform swim, shared by Jeremy's male and female models: the
+// bannerfish's tuning (a stiff body that cruises on its pectorals and keeps its tail for bursts),
+// slower for a 1 to 1.5 m fish. `amplitude` is in source units, so each model sets its own.
+const HUMPHEAD_WRASSE_SWIM = {
+  type: 'caudal-vertex',
+  sourceAxis: 'z',
+  lateralAxis: 'x',
+  tailAtMaxZ: true,
+  waveSpeed: 2.0,
+  waveTravel: 3.0,
+  flexStart: 0.5,
+  flexFull: 0.9,
+  turnStrength: 0.6,
+  burstAmplitude: 1.1,
+  response: 6,
+  speedFrequencyBoost: 0.3,
+  burstFrequencyBoost: 0.3,
+  // Its pectorals are the engine at cruise, so they row harder than the grouper's.
+  pectoralFinFlutter: 0.4,
+  pelvicFinFlutter: 0.06,
+}
 // Length–weight for the slender echeneid body, fitted to the two published maxima:
 // Echeneis naucrates 2.3 kg at 110 cm and Remora remora 1.1 kg at 86.4 cm (both ≈0.0017).
 const REMORA_MASS = { coefficient: 0.0017, exponent: 3 }
@@ -2961,7 +2982,7 @@ export const SPECIES = [
   // (Jeremy, 2026-10-21). Long Cheilinus undulatus (FishBase still uses it): moved to the
   // resurrected genus Crassilabrus by Near et al. 2025 (Bull. Peabody Mus. Nat. Hist., the
   // phylogenetic taxonomy of Labridae), being closer to the slingjaw wrasses (Epibulus) than to
-  // Cheilinus. Jeremy's terminal male model.
+  // Cheilinus. Jeremy's terminal male and female models (`model.sexVariants`).
   {
     id: 'crassilabrus-undulatus',
     name: 'Humphead Wrasse',
@@ -2973,8 +2994,8 @@ export const SPECIES = [
     biome: 'ocean',
     depthZone: 'epipelagic',
     // "Usually solitary but may occur in pairs" (FishBase); sometimes one male with smaller adults
-    // and juveniles (Florida Museum). Each fish roams as a solo agent. The tank starts with one
-    // terminal male (Jeremy, 2026-10-22); females come later as a second model.
+    // and juveniles (Florida Museum). Each fish roams as a solo agent. The tank has one
+    // terminal male (Jeremy, 2026-10-22) and, since the female model, two smaller females.
     schooling: false,
     repulser: false,
     aggressive: false,
@@ -3074,6 +3095,9 @@ export const SPECIES = [
     // 0.5–0.65 of 229 cm = 1.15–1.5 m: large adults without the 2 m record holders, about 4.6–6
     // WU, so it reads as a resident rather than a wall on the phone's crop (2026-10-21).
     sizeRange: [0.5, 0.65],
+    // Females level off near 75 cm and rarely pass about 1 m (Choat et al. 2006, Florida Museum):
+    // 0.35–0.44 of 229 cm = 0.8–1.0 m, about 3.2–4 WU, the grouper's length and a little more.
+    sizeRangeBySex: { female: [0.35, 0.44] },
     // FishBase Bayesian length–weight (TL cm): a 0.01445, b 2.98; about 13 kg at 1 m, 44 kg at 1.5 m.
     mass: { coefficient: 0.01445, exponent: 2.98 },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It roves the reef by day, so it
@@ -3102,6 +3126,27 @@ export const SPECIES = [
       // (dev_6, rear body reshaped) came out inside out too and is flipped the same way.
       scale: 0.45351,
       position: [0, 0.3347, -0.8858],
+      sexVariants: {
+        male: {
+          path: '/models/fish/crassilabrus-undulatus/crassilabrus-undulatus.glb',
+        },
+        // Jeremy's female (2026-10-22): no hump, grey with a yellow-edged tail. Source length
+        // 10.008 raw, snout to tail tip -> 9.16 WU; recentred mid-length on the line from the
+        // snout (y -0.09) to the tail tip's middle (y 0.39). One body texture, a Diego Delso
+        // photo (CC BY-SA 4.0, credited in Sources): a solid 1920 px PNG shipped as a JPEG with
+        // the BLEND dropped, 3.2 MB -> 0.58 MB. Exported the right way out (99% of normals).
+        female: {
+          path: '/models/fish/crassilabrus-undulatus/crassilabrus-undulatus-female.glb',
+          scale: 0.9153,
+          position: [0, -0.1355, -1.675],
+          proceduralAnimation: {
+            ...HUMPHEAD_WRASSE_SWIM,
+            bodyMeshNames: ['humphead_wrasse_female'],
+            // 0.03 body lengths of 10.008, as the male's.
+            amplitude: 0.3,
+          },
+        },
+      },
       followAim: 'root',
       moveset: {
         cruise: 'procedural_cruise',
@@ -3111,26 +3156,10 @@ export const SPECIES = [
         burst: 'procedural_burst',
       },
       proceduralAnimation: {
-        type: 'caudal-vertex',
+        ...HUMPHEAD_WRASSE_SWIM,
         bodyMeshNames: ['humphead_wrasse'],
-        sourceAxis: 'z',
-        lateralAxis: 'x',
-        tailAtMaxZ: true,
-        // The bannerfish's labriform tuning (a stiff body that cruises on its pectorals and
-        // keeps its tail for bursts), slower for a 1.5 m fish: 0.03 body lengths of 20.198.
+        // 0.03 body lengths of 20.198.
         amplitude: 0.6,
-        waveSpeed: 2.0,
-        waveTravel: 3.0,
-        flexStart: 0.5,
-        flexFull: 0.9,
-        turnStrength: 0.6,
-        burstAmplitude: 1.1,
-        response: 6,
-        speedFrequencyBoost: 0.3,
-        burstFrequencyBoost: 0.3,
-        // Its pectorals are the engine at cruise, so they row harder than the grouper's.
-        pectoralFinFlutter: 0.4,
-        pelvicFinFlutter: 0.06,
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,

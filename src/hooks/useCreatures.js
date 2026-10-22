@@ -20,7 +20,8 @@ function persistentUnitRandom(seed) {
 
 function speciesSizeRange(creature) {
   const species = speciesForLifeStage(SPECIES_BY_NAME.get(creature.species), creature.lifeStage)
-  return species?.sizeRange ?? DEFAULT_SIZE_RANGE
+  // A species whose sexes grow to different lengths (the humphead wrasse) can give one its own range.
+  return species?.sizeRangeBySex?.[creature.sex] ?? species?.sizeRange ?? DEFAULT_SIZE_RANGE
 }
 
 function deterministicSizeParameter(creature) {

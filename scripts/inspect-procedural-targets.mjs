@@ -164,6 +164,17 @@ const targets = [
     minBodyLength: 20,
     minVertices: 3000,
   },
+  {
+    name: 'Humphead Wrasse female static parts',
+    path: 'public/models/fish/crassilabrus-undulatus/crassilabrus-undulatus-female.glb',
+    staticMesh: true,
+    bodyMeshNames: ['humphead_wrasse_female'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    // Modelled at 10.008 raw (snout to tail tip).
+    minBodyLength: 10,
+    minVertices: 2000,
+  },
   // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
   // the real models replace them: unit length, single body mesh, same contract.
   ...SPECIES

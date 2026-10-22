@@ -74,6 +74,7 @@ export const SPECIES_NAME_BY_ALIAS = new Map(
 // replace the species' own, except `swim`, which merges. Cached so every fish of a stage shares
 // one object, as fish of a species do.
 const SPECIES_BY_LIFE_STAGE = new Map()
+const SPECIES_BY_SEX = new Map()
 
 export function speciesForLifeStage(species, lifeStage) {
   const stage = lifeStage ? species?.lifeStages?.[lifeStage] : null
@@ -85,6 +86,20 @@ export function speciesForLifeStage(species, lifeStage) {
     SPECIES_BY_LIFE_STAGE.set(key, staged)
   }
   return staged
+}
+
+// The species as drawn for one sex: its `model.sexVariants` entry laid over the base model, as the
+// tank resolves it (fishSwim.js resolveModel). The Atlas uses it to show the other sex's model.
+export function speciesForSex(species, sex) {
+  const variant = sex ? species?.model?.sexVariants?.[sex] : null
+  if (!variant) return species
+  const key = `${species.id}:${species.lifeStage ?? 'adult'}:${sex}`
+  let sexed = SPECIES_BY_SEX.get(key)
+  if (!sexed) {
+    sexed = { ...species, model: { ...species.model, ...variant } }
+    SPECIES_BY_SEX.set(key, sexed)
+  }
+  return sexed
 }
 
 export function resolveSpecies(creature) {

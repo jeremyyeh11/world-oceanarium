@@ -6,6 +6,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.34.0',
+    date: '2026-10-22',
+    title: 'Humphead Wrasse females',
+    changes: [
+      ['new', 'Two female Humphead Wrasses join the male at The Reefs: smaller, grey and without his hump, with a yellow rim on the tail. The Atlas now shows them as a pair.'],
+    ],
+  },
+  {
     version: 'v0.33.0',
     date: '2026-10-22',
     title: 'Humphead Wrasse',

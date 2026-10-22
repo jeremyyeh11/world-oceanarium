@@ -13,6 +13,18 @@ Status labels:
 
 ## Current work
 
+### Humphead Wrasse females
+
+Status: `Current in development` as `v0.34.0-dev_1` (2026-10-22, branch `feat/humphead-wrasse-female`). Jeremy's female model, the second model planned when the male shipped.
+
+Subtasks:
+- [x] Model intake: 10.008 raw, nose −Z, normals outward; texture PNG -> JPEG, `BLEND` dropped (3.2 MB -> 0.58 MB); Diego Delso photo (CC BY-SA 4.0) credited in Sources.
+- [x] Female `sexVariant` with the male's swim; `sizeRangeBySex` keeps females at 0.8–1.0 m.
+- [x] Atlas: the male shown with a female (`sex` companions); desktop, 375 px portrait and phone landscape checked.
+- [x] Two females in `creatures_dev` (460, 461).
+- [ ] Jeremy's review on the phone. `Blocked / waiting review`
+- [ ] Production `creatures` rows: the male (459) is live; females on Jeremy's go-ahead. `Next`
+
 ### Humphead Wrasse
 
 Status: shipped in clean `v0.33.0` (2026-10-22, from `v0.33.0-dev_6`, branch `feat/crassilabrus-undulatus`, #148). The open items below carry over. Next reef fish for The Reefs, chosen over the bumphead parrotfish so the reef gains a focal animal rather than a herd of 15–20 fish at about 5 WU. Jeremy's terminal male swims at The Reefs (dev data), with an Atlas entry and tile.

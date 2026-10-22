@@ -16,6 +16,28 @@ Status: clean `v0.33.1` (2026-10-22, branch `fix/changelog-v0.33.0`). `package.j
 
 - The in-app changelog (`src/data/changelog.js`, opened from the version label) gains the releases it was missing: v0.33.0 Humphead Wrasse, v0.32.2 fuller Atlas entries, v0.32.0 Raccoon Butterflyfish, v0.31.3 the lower view of The Reefs, v0.31.0 Staghorn coral. Only `CHANGELOG.md` had been written for them. v0.31.2 (lossless asset recompression) stays out as tooling, per the file's rule.
 
+## v0.34.0 — Humphead Wrasse females
+
+Status: in development as `v0.34.0-dev_1` (2026-10-22, branch `feat/humphead-wrasse-female`). From `main` at `v0.33.1`. Jeremy's female humphead wrasse model, the second model promised when the male shipped.
+
+### Species
+
+- Female humphead wrasse model as a sex variant (`model.sexVariants`, as the mahi-mahi): no hump, grey with a yellow-rimmed tail. Same labriform `caudal-vertex` swim as the male (the shared settings moved to `HUMPHEAD_WRASSE_SWIM` in species.js), amplitude 0.3 for her 10.008-raw source.
+- Females get their own size range: `sizeRangeBySex: { female: [0.35, 0.44] }` = 0.8–1.0 m (3.2–4 WU), since females level off near 75 cm and rarely pass about 1 m (Choat et al. 2006, Florida Museum). `useCreatures` reads `sizeRangeBySex[sex]` before `sizeRange`; the male keeps 1.15–1.5 m.
+
+### Model
+
+- Source 10.008 raw long, nose −Z, scale 0.9153 (9.16 WU at size 1), recentred mid-length on the snout-to-tail-tip line: `position [0, -0.1355, -1.675]`. Exported the right way out (99% of normals outward), so no flip this time.
+- One body texture, a solid 1920 × 1014 PNG, shipped as a JPEG with the `BLEND` alpha mode dropped: 3.2 MB to 0.58 MB. The photo is Diego Delso's (CC BY-SA 4.0, cropped by Bloopityboop), credited in Sources.
+
+### Atlas
+
+- The Atlas shows the male with a female below and behind him, at 0.75 of his length (the sexes' average lengths). Companions take a `sex` key, resolved by the new `speciesForSex` (speciesLookup.js) as `lifeStage` is. Framing checked on desktop, 375 px portrait and phone landscape.
+
+### Data
+
+- Two females in `creatures_dev` (ids 460 and 461, sizes 0.6 and 0.25 = 92.5 and 85 cm); dev is 277 alive. Production `creatures` has none yet: it needs Jeremy's go-ahead.
+
 ## v0.33.0 — Humphead Wrasse
 
 Status: accepted and promoted as clean `v0.33.0` from `v0.33.0-dev_6` on Jeremy's go-ahead (2026-10-22, branch `feat/crassilabrus-undulatus`, #148: "pls push both and merge to main CLEAN"). `package.json` and `package-lock.json` move to `0.33.0`. From `main` at `v0.32.2`. Jeremy's next reef fish for The Reefs, chosen over the bumphead parrotfish so the reef gains one focal animal rather than a herd; one terminal male to start, females later as a second model.

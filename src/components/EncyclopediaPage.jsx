@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
-import { speciesForLifeStage } from '../utils/speciesLookup'
+import { speciesForLifeStage, speciesForSex } from '../utils/speciesLookup'
 import Environment from './Environment'
 import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
@@ -172,10 +172,13 @@ const VIEW_POSES_BY_SPECIES = {
     lookAt: [0, 0.2, 0],
   },
   // Humphead wrasse: deep-bodied and long-finned, framed a touch longer than the grouper's
-  // fallback (3.2) on the default camera.
+  // fallback (3.2) on the default camera. Shown with a female (see ATLAS_COMPANIONS_BY_SPECIES):
+  // the male sits a little left and up, and the camera looks between the two.
   'crassilabrus-undulatus': {
-    maxLengthDisplayUnits: 3.4,
+    maxLengthDisplayUnits: 3.1,
     portraitPhoneDistanceScale: 0.95,
+    position: [-0.2, 0.35, 0],
+    lookAt: [-0.35, -0.2, 0],
   },
   // Whale shark: framed by the mako's camera. Its origin is mid-length and the diagonal yaw brings
   // the broad head toward the camera, so it is shorter on stage than the mako (4.45) and shifted
@@ -261,6 +264,11 @@ const ATLAS_COMPANIONS_BY_SPECIES = {
     { position: [0.5, 0.55, -1.0], scale: 0.9, yaw: 0.08, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
     { lifeStage: 'juvenile', position: [0.35, -0.55, 0.45], scale: 0.32, yaw: -0.12, animationOffset: 0.7, animationSpeed: 1.12 },
     { lifeStage: 'juvenile', position: [1.05, -0.2, -0.35], scale: 0.27, yaw: 0.18, animationOffset: 2.6, animationSpeed: 1.06 },
+  ],
+  // The male with a female (`sex`, her own model), below and behind him: `scale` is the ratio of
+  // the sexes' average lengths (0.75 m to 1.0 m, Choat et al. 2006).
+  'crassilabrus-undulatus': [
+    { sex: 'female', position: [0.7, -1.05, -1.5], scale: 0.75, yaw: 0.1, animationOffset: 1.9, animationSpeed: 0.94, burstDelay: 7.4 },
   ],
 }
 
@@ -710,7 +718,7 @@ function SpeciesModel({ species }) {
             {companions.map((companion, index) => (
               <ModelAsset
                 key={`${species.id}-atlas-companion-${index}`}
-                species={speciesForLifeStage(species, companion.lifeStage)}
+                species={speciesForSex(speciesForLifeStage(species, companion.lifeStage), companion.sex)}
                 adultSpecies={species}
                 pose={pose}
                 companion={companion}

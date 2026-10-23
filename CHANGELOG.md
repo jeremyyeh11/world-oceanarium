@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.35.0 — Tank selector and loading screen (in development)
+## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_4` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_5` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -18,6 +18,13 @@ Status: `v0.35.0-dev_4` (2026-10-23, branch `claude/environment-loader-ui-ux-v28
 - Selector (`EnvironmentSelector.jsx`): one card per tank with index, depth zone and range, name, tagline, description and live species count; each card's swatch is the tank's own water palette. Arrow keys move between cards; focus returns to the last tank mounted. The chosen card flares for 420 ms.
 - Loading screen (`EnvironmentLoader.jsx`), driven by #153's `useEnvironmentLoading()`: files `loaded / total` (85% of the bar), then "Building the tank…" while the scene assembles and shaders compile, clearing on `phase === 'ready'` for that tank (held at least 1.3 s, 700 ms sink). On `error`: the message, Retry and Tanks.
 - The landing gate waits only on the creature fetch (`useSceneReady.js` removed). Search, screenshot and diver show only inside a tank; the Atlas and the menu stay available on the selector.
+
+### Reserves and the descent (dev_5)
+
+- Public name for an environment is now **reserve** (Jeremy: open and free range, like a wildlife reserve, not a tank). UI copy only: "Choose a reserve", "N reserves", the bottom-left **Reserves** button, the loading screen, the landing readout, six Atlas species descriptions ("in the reserve") and one Sources line. Code keeps `tank` (`TANKS`, `TankView`, `tankId`). Past visitor-changelog entries are left as written.
+- The landing gate is fully opaque (the old translucent wash composited over the void); the selector under it no longer shows through.
+- The descent (`DiveDescent.jsx`, `descent.css`): the vertical progress bar, a pixel-art freediver (15 × 24 cells, 3 px per cell, 4 px on tall screens, 2 px on short ones) going head first down a guideline. The line above the diver is lit (`scaleY`), depth ticks light as they are passed, the current depth rides beside the diver, fins flutter in two stepped frames, breath bubbles rise, marine snow drifts up, and the floor marker flares on arrival. Progress moves by transform only; the diver never climbs back. Depth scale is the reserve's zone (0–200 m for the sunlight zone).
+- After **Dive in** the card sinks, then the descent follows the first reserve warming underneath (held at least 1.6 s, opens anyway after 15 s), then the gate clears onto the selector. Audio starts on the Dive in click. Each reserve's loading screen is the same descent with the reserve's name. Progress: files are 85% of the line, the build the rest (`utils/environmentProgress.js`).
 
 ### Loading
 

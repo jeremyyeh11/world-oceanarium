@@ -358,7 +358,7 @@ export const SPECIES = [
       diet: 'Copepods + larvae',
       social: 'Schooling',
     },
-    description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the tank as a quick flicker of many bodies rather than a lone specimen.',
+    description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the reserve as a quick flicker of many bodies rather than a lone specimen.',
     atlasThumbnail: '/atlas/amblygaster-sirm-thumbnail.png',
     adultLengthRangeMeters: [0.15, 0.27],
     maxBodyLengthMeters: 0.27,
@@ -1292,7 +1292,7 @@ export const SPECIES = [
       diet: 'Copepods + scraps',
       social: 'Hitchhiker',
     },
-    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free — so in the tank it should spend long stretches clamped to the mako and short ones on its own.',
+    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free — so in the reserve it should spend long stretches clamped to the mako and short ones on its own.',
     adultLengthRangeMeters: [0.4, 0.864],
     maxBodyLengthMeters: 0.864,
     swim: {
@@ -1761,7 +1761,7 @@ export const SPECIES = [
       diet: 'Scraps + small prey',
       social: 'Follower',
     },
-    description: 'A small jack, up to 70 cm, banded with five to seven dark bars on a blue-silver body. It never attaches to anything: it keeps pace beside a large animal, riding the water it pushes aside and picking up scraps and parasites, so in the tank it holds loose stations round the giant sunfish\'s head and flanks, now and then darting off on its own before slowing back to the sunfish\'s pace.',
+    description: 'A small jack, up to 70 cm, banded with five to seven dark bars on a blue-silver body. It never attaches to anything: it keeps pace beside a large animal, riding the water it pushes aside and picking up scraps and parasites, so in the reserve it holds loose stations round the giant sunfish\'s head and flanks, now and then darting off on its own before slowing back to the sunfish\'s pace.',
     adultLengthRangeMeters: [0.35, 0.7],
     maxBodyLengthMeters: 0.7,
     swim: {
@@ -1928,7 +1928,7 @@ export const SPECIES = [
       diet: 'Zooplankton',
       social: 'Pairs',
     },
-    description: 'A deep-bodied butterflyfish, up to 25 cm, banded black and white with a yellow tail, and named for the white pennant that streams back from its dorsal fin, longer than the fish itself. It cruises on its pectoral fins with its body held stiff, saving its tail for a quick dart. Its relative the schooling bannerfish cleans parasites off ocean sunfish, so in the tank it now and then joins the giant sunfish to hover close along its flanks before drifting off again.',
+    description: 'A deep-bodied butterflyfish, up to 25 cm, banded black and white with a yellow tail, and named for the white pennant that streams back from its dorsal fin, longer than the fish itself. It cruises on its pectoral fins with its body held stiff, saving its tail for a quick dart. Its relative the schooling bannerfish cleans parasites off ocean sunfish, so in the reserve it now and then joins the giant sunfish to hover close along its flanks before drifting off again.',
     adultLengthRangeMeters: [0.15, 0.25],
     maxBodyLengthMeters: 0.25,
     swim: {
@@ -2282,7 +2282,7 @@ export const SPECIES = [
       diet: 'Sponges',
       social: 'Pairs',
     },
-    description: 'A reef angelfish up to 40 cm, striped electric blue and yellow, with a dark mask across its eyes and a yellow tail. Pairs keep to ledges and caves in rich coral, grazing sponges and other encrusting animals. Young and adults will also clean much larger fishes, sunfish among them, so in the tank it now and then joins the giant sunfish before drifting off again.',
+    description: 'A reef angelfish up to 40 cm, striped electric blue and yellow, with a dark mask across its eyes and a yellow tail. Pairs keep to ledges and caves in rich coral, grazing sponges and other encrusting animals. Young and adults will also clean much larger fishes, sunfish among them, so in the reserve it now and then joins the giant sunfish before drifting off again.',
     // FishBase: 40 cm maximum (standard length), maturing at 25 cm.
     adultLengthRangeMeters: [0.25, 0.4],
     maxBodyLengthMeters: 0.4,
@@ -2692,7 +2692,7 @@ export const SPECIES = [
       diet: 'Plankton',
       social: 'Solitary',
     },
-    description: 'The largest fish in the sea, up to 20 m: a filter-feeding shark, dark blue-grey above with a checkerboard of white spots and pale stripes, white below. It cruises slowly near the surface, straining plankton, fish eggs, and small fishes through its wide mouth, and the spots behind its gills are as unique as a fingerprint. The whale shark in the tank is a 6 m juvenile, the size most often seen at feeding sites.',
+    description: 'The largest fish in the sea, up to 20 m: a filter-feeding shark, dark blue-grey above with a checkerboard of white spots and pale stripes, white below. It cruises slowly near the surface, straining plankton, fish eggs, and small fishes through its wide mouth, and the spots behind its gills are as unique as a fingerprint. The whale shark in the reserve is a 6 m juvenile, the size most often seen at feeding sites.',
     // FishBase: 20 m maximum (female, total length); males mature at about 8 m.
     adultLengthRangeMeters: [8, 20],
     maxBodyLengthMeters: 20,

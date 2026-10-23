@@ -254,22 +254,18 @@
 
 /* --- loader --------------------------------------------------------------- */
 
-/* Under the landing gate (2100) and the tube film (2200), over every tank
-   control: nothing in the tank is usable until it has finished warming up. */
+/* Under the landing gate (2100) and the tube film (2200), over every reserve
+   control: nothing in the reserve is usable until it has finished warming up.
+   The descent (descent.css) fills it. */
 .environment-loader {
   position: fixed;
   inset: 0;
   z-index: 2050;
-  display: grid;
-  place-items: center;
-  padding: 1.25rem;
-  background:
-    radial-gradient(ellipse at 50% 30%, rgba(13, 48, 80, 0.85), rgba(2, 6, 13, 0.98) 70%),
-    var(--crt-void);
+  background: var(--crt-void);
   pointer-events: auto;
 }
 
-/* Same clear as the landing dive: the backdrop lifts while the card sinks away. */
+/* The water clears to reveal the reserve, as the landing dive clears. */
 .environment-loader.is-clearing {
   animation: environment-loader-clear 700ms cubic-bezier(0.5, 0, 0.9, 0.35) forwards;
   pointer-events: none;
@@ -280,77 +276,12 @@
   100% { opacity: 0; visibility: hidden; }
 }
 
-.environment-loader-card {
-  width: min(24rem, 100%);
-  text-align: center;
-  animation: environment-loader-boot 520ms steps(6, end) both;
-}
-
-.environment-loader.is-clearing .environment-loader-card {
-  animation: environment-loader-sink 700ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards;
-}
-
-@keyframes environment-loader-boot {
-  0% { opacity: 0; transform: translateY(10px); filter: brightness(2.4); }
-  100% { opacity: 1; transform: none; filter: brightness(1); }
-}
-
-@keyframes environment-loader-sink {
-  0% { transform: none; filter: blur(0); }
-  100% { transform: translateY(40vh) scale(0.8); filter: blur(6px) brightness(0.4); }
-}
-
-.environment-loader-eyebrow {
-  margin: 0 0 0.6rem;
-  color: var(--crt-lumen);
-  font-family: var(--crt-font);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  text-shadow: 0 0 8px rgba(127, 220, 242, 0.3);
-  animation: crt-charting-pulse 3s ease-in-out infinite;
-}
-
-.environment-loader-title {
-  margin: 0;
-  color: var(--crt-foam);
-  font-family: var(--crt-font);
-  font-size: clamp(2rem, 8.5vw, 3rem);
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  text-shadow:
-    -1px 1px 1px rgba(240, 127, 164, 0.5),
-    1px -1px 1px rgba(127, 220, 242, 0.5),
-    0 0 22px rgba(127, 220, 242, 0.25);
-}
-
-.environment-loader-tagline {
-  margin: 0.55rem 0 0;
-  color: var(--crt-lumen);
-  font-family: var(--crt-font);
-  font-size: 0.9rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.environment-loader-readout {
-  margin: 0;
-  color: var(--crt-drift);
-  font-family: var(--crt-font-read);
-  font-size: calc(var(--crt-read-scale) * 0.8rem);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
-
-/* Retry / back, shown only when the tank failed to load. */
+/* Retry / back, shown only when the reserve failed to load. */
 .environment-loader-actions {
   display: flex;
   justify-content: center;
   gap: 0.6rem;
-  margin-top: 1rem;
+  position: relative;
 }
 
 .environment-loader-actions .crt-button {
@@ -420,8 +351,6 @@ body:has(.tank-viewport.has-debug-panel) .environment-back {
   .environment-selector,
   .environment-card,
   .environment-card.is-picked,
-  .environment-loader-card,
-  .environment-loader-eyebrow,
   .environment-back {
     animation: none;
   }
@@ -433,9 +362,5 @@ body:has(.tank-viewport.has-debug-panel) .environment-back {
 
   .environment-loader.is-clearing {
     animation: environment-loader-clear 200ms linear forwards;
-  }
-
-  .environment-loader.is-clearing .environment-loader-card {
-    animation: none;
   }
 }

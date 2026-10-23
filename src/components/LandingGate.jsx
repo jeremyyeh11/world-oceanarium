@@ -1,10 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { APP_VERSION } from '../version'
+import DiveDescent from './DiveDescent'
 
-// Must match the landing-card-dive / landing-gate-clear durations in crt.css so the
-// gate unmounts on the frame the animation lands, not before it.
+// Must match the landing-card-dive duration in crt.css: the descent takes over on the
+// frame the card has sunk, not before it.
 const DIVE_MS = 1150
 const DIVE_REDUCED_MS = 260
+// The descent holds at least this long, so a warm first reserve still reads as a dive.
+const MIN_DESCENT_MS = 1600
+// The diver reaches the bottom and the floor flares before the gate clears.
+const ARRIVE_MS = 650
+// Must match landing-gate-clear in crt.css.
+const CLEAR_MS = 700
+const CLEAR_REDUCED_MS = 200
+// Never strand anyone on the descent: past this the gate opens onto the selector
+// whatever the first reserve is doing (it keeps loading underneath).
+const DESCENT_SAFETY_MS = 15000
 
 // Read on the way down, not on the way in — these only become visible once the
 // card starts sinking, so they double as the depth cue for the dive.
@@ -19,27 +30,54 @@ function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 }
 
-export default function LandingGate({ speciesCount, progress = 0, ready = false, onEnter }) {
-  const [diving, setDiving] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
-  const diveTimer = useRef(null)
+// The gate is fully opaque: nothing behind it shows until it clears. Dive in sinks the
+// card, then the descent (DiveDescent) runs while the first reserve warms underneath
+// (`descent`: its { progress, stage, loaded, total }, utils/environmentProgress.js), and
+// the gate clears onto the reserve selector once that reserve has rendered.
+//
+// Phases: idle → diving (card sinks) → descending → clearing → gone.
+export default function LandingGate({ speciesCount, progress = 0, ready = false, descent = null, zone = null, onDive, onEnter }) {
+  const [phase, setPhase] = useState('idle')
+  const [held, setHeld] = useState(false)
+  const [forced, setForced] = useState(false)
+  const timers = useRef([])
   const enterRef = useRef(null)
+  const diving = phase !== 'idle'
+
+  const later = (fn, ms) => { timers.current.push(window.setTimeout(fn, ms)) }
 
   useEffect(() => {
     enterRef.current?.focus()
-    return () => {
-      if (diveTimer.current) window.clearTimeout(diveTimer.current)
-    }
+    const pending = timers.current
+    return () => pending.forEach(timer => window.clearTimeout(timer))
   }, [])
 
   const startDive = () => {
     if (diving || !ready) return
-    setDiving(true)
-    diveTimer.current = window.setTimeout(() => {
-      setDismissed(true)
-      onEnter?.()
+    // The click is the user gesture; audio has to start here, not when the gate clears.
+    onDive?.()
+    setPhase('diving')
+    later(() => {
+      setPhase('descending')
+      later(() => setHeld(true), MIN_DESCENT_MS)
+      later(() => setForced(true), DESCENT_SAFETY_MS)
     }, prefersReducedMotion() ? DIVE_REDUCED_MS : DIVE_MS)
   }
+
+  const descentDone = descent?.stage === 'ready' || descent?.stage === 'error'
+  const arrived = phase !== 'idle' && phase !== 'diving' && held && (descentDone || forced)
+
+  useEffect(() => {
+    if (phase !== 'descending' || !arrived) return
+    const reduced = prefersReducedMotion()
+    later(() => {
+      setPhase('clearing')
+      later(() => {
+        setPhase('gone')
+        onEnter?.()
+      }, reduced ? CLEAR_REDUCED_MS : CLEAR_MS)
+    }, reduced ? 0 : ARRIVE_MS)
+  }, [phase, arrived, onEnter])
 
   // Enter/Space already fire the button; this catches the impatient-keypress case
   // where focus has drifted off it. It bypasses the button entirely, so the `ready`
@@ -56,7 +94,28 @@ export default function LandingGate({ speciesCount, progress = 0, ready = false,
     return () => window.removeEventListener('keydown', enterOnKey)
   })
 
-  if (dismissed) return null
+  if (phase === 'gone') return null
+
+  if (phase === 'descending' || phase === 'clearing') {
+    let readout = `Charting the reserves · ${descent?.loaded ?? 0} / ${descent?.total ?? 0} files`
+    if (descent?.stage === 'building') readout = 'Lighting the water…'
+    if (arrived) readout = 'Arrived'
+    const [top, bottom] = zone?.depthRangeMeters ?? [0, 200]
+    return (
+      <div className={`landing-gate is-descending${phase === 'clearing' ? ' is-clearing' : ''}`} role="status" aria-live="polite">
+        <DiveDescent
+          eyebrow="Live feed · descending"
+          title="Into the blue"
+          tagline={zone ? `${zone.shortLabel} · ${top}–${bottom} m` : null}
+          progress={descent?.progress ?? 0}
+          readout={readout}
+          maxDepthMeters={bottom}
+          arrived={arrived}
+          label="Descending to the reserves"
+        />
+      </div>
+    )
+  }
 
   return (
     <div
@@ -100,11 +159,11 @@ export default function LandingGate({ speciesCount, progress = 0, ready = false,
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress)}
-          aria-label="Loading the tank"
+          aria-label="Charting the reserves"
         />
 
         <div className="landing-readout">
-          <span>{ready ? <><b>{speciesCount}</b> species</> : 'Filling the tank…'}</span>
+          <span>{ready ? <><b>{speciesCount}</b> species</> : 'Charting the reserves…'}</span>
           <span>Tap a creature to follow it</span>
         </div>
 
@@ -115,7 +174,7 @@ export default function LandingGate({ speciesCount, progress = 0, ready = false,
           onClick={startDive}
           disabled={!ready || diving}
         >
-          {ready ? '▼ Dive in ▼' : 'Filling…'}
+          {ready ? '▼ Dive in ▼' : 'Charting…'}
         </button>
 
         {/* Only occupies space during the dive — there is nothing worth saying

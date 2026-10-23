@@ -90,8 +90,8 @@ export default function EnvironmentSelector({ tanks, biomesById, speciesCountByT
     <div className={`environment-selector${pickedId ? ' is-picking' : ''}`} role="region" aria-labelledby="environment-selector-title">
       <div className="environment-selector-inner">
         <header className="environment-selector-header">
-          <p className="environment-selector-eyebrow">Live feed · {tanks.length} tanks</p>
-          <h1 id="environment-selector-title" className="environment-selector-title">Choose a tank</h1>
+          <p className="environment-selector-eyebrow">Live feed · {tanks.length} reserves</p>
+          <h1 id="environment-selector-title" className="environment-selector-title">Choose a reserve</h1>
         </header>
 
         <div className="environment-list" ref={listRef} onKeyDown={moveFocus}>

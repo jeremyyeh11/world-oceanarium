@@ -8,7 +8,8 @@ import EnvironmentLoader from './components/EnvironmentLoader'
 import SourcesModal from './components/SourcesModal'
 import ChangelogModal from './components/ChangelogModal'
 import { BIOMES, TANKS } from './data/species'
-import { creaturesForTank } from './utils/speciesLookup'
+import { creaturesForTank, DEPTH_ZONE_BY_ID } from './utils/speciesLookup'
+import { environmentProgress } from './utils/environmentProgress'
 import { useCreatures } from './hooks/useCreatures'
 import { useEnvironmentNavigation } from './hooks/useEnvironmentLoading'
 import { useMediaQuery } from './hooks/useMediaQuery'
@@ -460,10 +461,11 @@ export default function App() {
 
   // Dismissing the gate is a guaranteed user gesture, which is also the most
   // reliable moment to satisfy the Web Audio autoplay gate.
-  const leaveLandingGate = () => {
-    setLandingOpen(false)
+  const startLandingDive = () => {
     if (!audioMuted && !audioStarted) startAudio()
   }
+
+  const leaveLandingGate = useCallback(() => setLandingOpen(false), [])
 
   const viewingTank = TANKS.find(t => t.id === viewingTankId) ?? null
   const mountedTank = TANKS.find(t => t.id === mountedId) ?? null
@@ -476,6 +478,10 @@ export default function App() {
   // files arrive. Warming (a first frame still owed) keeps rendering, hidden.
   const mountedHidden = !inTank || mountedId !== viewingTankId
   const mountedPaused = mountedHidden && mountedWarm
+  // The landing descent follows the first reserve warming under the gate: the one the
+  // selector ranked first, which rankTanks requested.
+  const bootTank = TANKS.find(t => t.id === (environmentLoading.requestedId ?? tankRanking?.[0])) ?? null
+  const bootDescent = environmentProgress(environmentLoading, bootTank?.id)
   // Every species in the tanks: those with creature rows, and those that live in a tank's
   // landscape (`landscapeSpecies`, the corals), which have no rows.
   const tankSpeciesCount = new Set([
@@ -556,7 +562,15 @@ export default function App() {
         />
       )}
       {landingOpen && !screenshotMode && (
-        <LandingGate speciesCount={tankSpeciesCount} progress={landingReady ? 100 : 0} ready={landingReady} onEnter={leaveLandingGate} />
+        <LandingGate
+          speciesCount={tankSpeciesCount}
+          progress={landingReady ? 100 : 0}
+          ready={landingReady}
+          descent={bootDescent}
+          zone={DEPTH_ZONE_BY_ID.get(bootTank?.depthZone) ?? null}
+          onDive={startLandingDive}
+          onEnter={leaveLandingGate}
+        />
       )}
       {/* Screenshot mode is the one place the tube effect has to go: captures are
           meant to show the scene, not the interface it is framed by. */}
@@ -566,7 +580,7 @@ export default function App() {
           <svg className="environment-back-icon" aria-hidden="true" viewBox="0 0 24 24">
             <path d="M15 5 8 12l7 7" />
           </svg>
-          <span className="environment-back-label">Tanks</span>
+          <span className="environment-back-label">Reserves</span>
           <span className="environment-back-current">{viewingTank.name}</span>
         </button>
       )}
@@ -603,7 +617,7 @@ export default function App() {
               <path d="M5 17h14" />
             </svg>
           </button>
-          <div className="top-controls-menu" role="menu" aria-label="Tank controls" aria-hidden={!topMenuOpen}>
+          <div className="top-controls-menu" role="menu" aria-label="Controls" aria-hidden={!topMenuOpen}>
             <button
               className={`sources-toggle${sourcesOpen ? ' is-active' : ''}`}
               type="button"

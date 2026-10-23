@@ -31,7 +31,7 @@ export const SOURCES = [
     kicker: 'Taxonomy',
     url: 'https://www.marinespecies.org/',
     summary:
-      'The register scientific names are checked against, so a species reads the same on a tank label, a debug tag, and an Atlas entry.',
+      'The register scientific names are checked against, so a species reads the same on a label in a reserve, a debug tag, and an Atlas entry.',
     provides: ['Accepted taxonomy', 'Family classification'],
   },
   {

@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.35.1 — Atlas joins the landing preload (in development)
+## v0.35.1 — Atlas joins the landing preload (2026-10-23)
 
-Status: `v0.35.1-dev_1`, branch `feat/preload-atlas-species`. Jeremy: the Atlas and each species loaded only on first open; include it in the landing preload, and drop the placeholder model.
+Status: clean `v0.35.1` (2026-10-23, from `v0.35.1-dev_1`, branch `feat/preload-atlas-species`, #156). Jeremy: "ship this and merge to main". Jeremy: the Atlas and each species loaded only on first open; include it in the landing preload, and drop the placeholder model.
 
 ### Loading
 

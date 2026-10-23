@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_15` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_16` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -35,6 +35,7 @@ Status: `v0.35.0-dev_15` (2026-10-23, branch `claude/environment-loader-ui-ux-v2
 - dev_13 (Jeremy: "remove the sprites for the main landing. keep for loading pages. open sea should have some also"): the landing has no scenery again (`landingScenery.js` and the ray sprites removed). The Open Sea's descent gets a spotted sardinella school balled up on the left at 40 m (new `sardine` sprite, nine fish, the edges set back) and the whale shark deeper on the right at 120 m; no seabed pieces in open water. The first dive after the landing shows it, since that descent warms The Open Sea. `dx`/`dy` are now in sprite cells, so a group keeps its shape at every sprite size.
 - dev_14 (Jeremy: "why doesn't the open sea have a loading page?"): it was the reserve warmed under the landing dive, so entering it skipped the loader. Every entry now shows the reserve's descent, a warm one included (nothing to load, so it lands after the 1.3 s hold, about 2.5 s in all). The Open Sea's descent zigzags: a mahi-mahi pair near the surface at 20 m right (new `mahi-mahi-male` and `mahi-mahi-female` sprites: blue dorsal, green back, gold flank, the bull's square forehead), the sardinella school at 55 m left, the whale shark at 125 m right. The landing dive has its own hand-curated montage of every reserve (`GENERAL_DESCENT`, `src/data/descentScenery.js`): sunfish, mahi pair, sardines and the whale shark up top; bannerfish, emperor angelfish and butterflyfish lower; a coral garden at the floor.
 - dev_15 (Jeremy: "landing page dive is too cluttered"): the landing dive's montage drops from 16 pieces to 8: the sunfish at 22 m, three sardinella at 65 m, the whale shark at 112 m, the bannerfish at 158 m, alternating sides, and a table coral and a staghorn at the floor.
+- dev_16 (Jeremy: "the order of the sprites should match their depths, at least relatively"): the landing dive is a reef drop-off over 0–200 m, consistent with both reserves. A reef crest at the top (table coral at 6 m, staghorn at 5 m, the bannerfish at 8 m, The Reefs' own depths), then down the wall by typical depth: sardinella at 35 m, the sunfish at 90 m, the whale shark at 150 m; no seabed, ending in open blue.
 - `tests/scenery.test.mjs`: every piece names a drawn sprite and real species, descent pieces sit inside the reserve's depth range, and signature species are on that reserve's roster.
 
 ### Docs

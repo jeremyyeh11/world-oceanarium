@@ -323,6 +323,9 @@ checks every piece. The landing has no scenery (Jeremy, dev_13).
   cardboard standee display without the cardboard outline: same 2 px cell style and CRT
   palette as the diver, the diver loading bar still going down the centre. The scenery
   **does not scroll** or parallax; it stays put while the diver moves past it.
+- **Real depth order.** Pieces go where their animal typically lives, so their order
+  down the line matches reality at least relatively, and a species shown on two descents
+  sits at depths that agree with each other (a coral is never deeper than its reserve).
 - **Placed by depth.** Each piece sits at a depth in metres within the reserve's
   `depthMeters`, on the left or right of the line, so the scenery matches the tick
   marks. Pieces stay dark until the diver reaches their depth, then light up, the way
@@ -342,9 +345,11 @@ checks every piece. The landing has no scenery (Jeremy, dev_13).
   Open water has no seabed: The Open Sea's descent zigzags from a mahi-mahi pair near
   the surface, to a sardinella school, to the whale shark deeper down.
 - **The landing dive** (after Dive in, before any reserve is chosen) has its own
-  montage of every reserve, `GENERAL_DESCENT` in `src/data/descentScenery.js`: kept
-  sparse (a few moments with open water between them, not a catalogue): the sunfish, a
-  few sardinella, the whale shark, the bannerfish, two corals at the floor. Curated by
+  montage of every reserve, `GENERAL_DESCENT` in `src/data/descentScenery.js`: a reef
+  drop-off over 0–200 m. A shallow reef crest at the top (corals and the bannerfish at
+  The Reefs' own 0–10 m), then open water down the wall in order of where each animal
+  typically lives: sardinella, the sunfish, the whale shark deepest; no seabed. Kept
+  sparse, ordered by real depth, and consistent with each piece's own reserve. Curated by
   hand; its species must be on some reserve's roster.
 - **Data.** A `descent` block on the tank (The Reefs' is in species.js):
 

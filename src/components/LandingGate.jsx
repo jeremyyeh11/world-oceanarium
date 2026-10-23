@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { APP_VERSION } from '../version'
 import DiveDescent from './DiveDescent'
 import { reserveDepthLabel, reserveDepthRange } from '../utils/reserveDepth'
+import { GENERAL_DESCENT } from '../data/descentScenery'
 
 // The descent holds at least this long, so a warm first reserve still reads as a dive.
 const MIN_DESCENT_MS = 1600
@@ -21,11 +22,12 @@ function prefersReducedMotion() {
 // The gate is fully opaque: nothing behind it shows until it clears. Dive in swaps the
 // card straight for the descent (DiveDescent), which runs while the first reserve warms
 // underneath (`descent`: its { progress, stage, loaded, total },
-// utils/environmentProgress.js; `reserve`: that reserve, for its depth range); the gate clears onto the reserve selector once that
+// utils/environmentProgress.js). Its scenery is the general montage of every reserve
+// (src/data/descentScenery.js), not the warming reserve's own; the gate clears onto the reserve selector once that
 // reserve has rendered.
 //
 // Phases: idle → descending → clearing → gone.
-export default function LandingGate({ speciesCount, descent = null, reserve = null, onDive, onEnter }) {
+export default function LandingGate({ speciesCount, descent = null, onDive, onEnter }) {
   const [phase, setPhase] = useState('idle')
   const [held, setHeld] = useState(false)
   const [forced, setForced] = useState(false)
@@ -91,11 +93,11 @@ export default function LandingGate({ speciesCount, descent = null, reserve = nu
         <DiveDescent
           eyebrow="Live feed · descending"
           title="Into the blue"
-          tagline={reserve ? reserveDepthLabel(reserve) : null}
+          tagline={reserveDepthLabel(GENERAL_DESCENT)}
           progress={descent?.progress ?? 0}
           readout={readout}
-          depthRange={reserveDepthRange(reserve)}
-          scenery={reserve?.descent ?? null}
+          depthRange={reserveDepthRange(GENERAL_DESCENT)}
+          scenery={GENERAL_DESCENT.descent}
           arrived={arrived}
           label="Descending to the reserves"
         />

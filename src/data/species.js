@@ -74,20 +74,23 @@ export const TANKS = [
     // Open water: the whole sunlight zone.
     depthMeters: [0, 200],
     // The loading descent's standees (docs/tank-design.md, Descent scenery). Open water has
-    // no seabed, so nothing stands on the floor: a sardinella school balled up on the left
-    // in the upper water, and the whale shark deeper on the right, heading for the line.
+    // no seabed, so nothing stands on the floor. Zigzag down the line: a mahi-mahi pair near
+    // the surface on the right (they keep to the top 85 m), a sardinella school balled up on
+    // the left below them, and the whale shark deeper on the right, heading for the line.
     descent: {
       signature: [
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 12, dy: -5 },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 6, dy: 4 },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 19, dy: 1, distance: 0.2 },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 15, dy: 9, distance: 0.3 },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 25, dy: -7, distance: 0.4 },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 2, dy: -10, distance: 0.35 },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 27, dy: 6, distance: 0.5 },
-        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 21, dy: 14, distance: 0.55 },
-        { sprite: 'whale-shark', species: 'rhincodon-typus', depth: 120, side: 'right' },
+        { sprite: 'mahi-mahi-male', species: 'coryphaena-hippurus', depth: 20, side: 'right' },
+        { sprite: 'mahi-mahi-female', species: 'coryphaena-hippurus', depth: 20, side: 'right', dx: 6, dy: 11, distance: 0.25 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 12, dy: -5 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 6, dy: 4 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 19, dy: 1, distance: 0.2 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 15, dy: 9, distance: 0.3 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 25, dy: -7, distance: 0.4 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 2, dy: -10, distance: 0.35 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 27, dy: 6, distance: 0.5 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 21, dy: 14, distance: 0.55 },
+        { sprite: 'whale-shark', species: 'rhincodon-typus', depth: 125, side: 'right' },
       ],
     },
     // seed varies the surface caustics + background mottle so each tank has a

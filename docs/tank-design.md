@@ -304,7 +304,9 @@ around them.
 4. **Descent scenery** (see below). Decide which signature species (and, for a reserve
    with a seabed, which corals) appear on its loading descent, draw any missing sprites in
    `src/data/pixelSprites.js`, and add a `descent` block. Scenery is for the loading
-   descents only; the landing stays just the card.
+   descents only; the landing stays just the card. If the new reserve has a signature
+   animal, consider adding it to the landing dive's montage too
+   (`src/data/descentScenery.js`, `GENERAL_DESCENT`).
 5. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
    and preloading (`docs/environment-loading.md`) pick the new entry up from `TANKS`.
    Check the card's swatch (from `lighting.backgroundStops`, else the biome colour) and
@@ -337,8 +339,12 @@ checks every piece. The landing has no scenery (Jeremy, dev_13).
   so the eye zigzags with the diver, group small species into a school rather than
   spreading them, let the seabed form a garden around the landing spot with the larger
   mass on one side, and set back secondary pieces with `distance` (dimmer, greyer).
-  Open water has no seabed: The Open Sea's descent is a sardinella school up in the
-  water on one side and the whale shark deeper on the other.
+  Open water has no seabed: The Open Sea's descent zigzags from a mahi-mahi pair near
+  the surface, to a sardinella school, to the whale shark deeper down.
+- **The landing dive** (after Dive in, before any reserve is chosen) has its own
+  montage of every reserve, `GENERAL_DESCENT` in `src/data/descentScenery.js`: open-water
+  animals up top, reef fish lower down, a coral garden at the floor. Curated by hand;
+  its species must be on some reserve's roster.
 - **Data.** A `descent` block on the tank (The Reefs' is in species.js):
 
   ```js

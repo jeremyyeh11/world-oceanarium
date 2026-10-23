@@ -23,6 +23,9 @@ export const SPRITE_PALETTE = {
   g: '#5c7f98', // whale shark grey-blue
   G: '#3f5d75', // whale shark back
   s: '#cfe2ee', // whale shark spots, belly
+  h: '#d8b44e', // mahi-mahi gold flank
+  H: '#4f9a72', // mahi-mahi green back
+  v: '#3f7fc4', // mahi-mahi blue dorsal and fins
   m: '#9db2c2', // sunfish silver
   M: '#6f8798', // sunfish fins and clavus
   // Corals (living reef animals; no rock or landscape pieces in the scenery)
@@ -58,6 +61,28 @@ const SPRITES = {
     '.kGyGyGyGGGG',
     'ssssssssssG.',
     '..sssssss..s',
+  ],
+  // Coryphaena hippurus, mahi-mahi: green-gold with a blue dorsal fin running the length
+  // of the back and a deeply forked tail. The bull has the tall, square forehead; the
+  // female's head slopes.
+  'mahi-mahi-male': [
+    'vvvvvvvvvvvvvvvv......',
+    'HHHHHHHHHHHHHHHHv...vv',
+    'HkHHHHHHHHHHHHHHHH.vv.',
+    'hhhhhhhhhhhhhhhhhhHv..',
+    'hhhhhhhhhhhhhhhhhhhv..',
+    'hhhhhhhhhhhhhhhh..vv..',
+    '.hhhhhhhhhhhhh.....vv.',
+    '..vvvvvvvvvv........vv',
+  ],
+  'mahi-mahi-female': [
+    '...vvvvvvvvvvvv......',
+    '..HHHHHHHHHHHHHv...vv',
+    '.kHHHHHHHHHHHHHHH.vv.',
+    'hhhhhhhhhhhhhhhhhHv..',
+    'hhhhhhhhhhhhhhh..vv..',
+    '.hhhhhhhhhhhh.....vv.',
+    '...vvvvvvvvv.......vv',
   ],
   // Mola alexandrini, the giant sunfish: a tall disc with a tall dorsal and anal fin at
   // the back and a scalloped clavus instead of a tail.

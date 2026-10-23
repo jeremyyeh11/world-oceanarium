@@ -500,14 +500,16 @@ export default function App() {
     if (!environmentLoading.requestedId && ranked[0]) requestEnvironment(ranked[0])
   }, [environmentLoading.requestedId, requestEnvironment])
 
-  // Back into the warm, paused tank is a resume: nothing to load. Anything else goes
-  // through the loader screen; the loader keeps the old tank mounted until the new
-  // one's files are in, then swaps it inside the same canvas.
+  // Every entry goes through the reserve's loading descent, even into the warm, paused
+  // tank: the dive is part of arriving (Jeremy, dev_14), and a warm one is just short
+  // (nothing to load, so it lands after the loader's minimum hold). Otherwise the loader
+  // keeps the old tank mounted until the new one's files are in, then swaps it inside the
+  // same canvas.
   const enterTank = (tankId) => {
     setViewingTankId(tankId)
     const env = environmentLoading
-    if (tankId === mountedId && env.requestedId === tankId && env.phase === 'ready' && env.activeId === tankId) return
-    if (env.requestedId !== tankId || env.phase === 'error') requestEnvironment(tankId)
+    const warm = tankId === mountedId && env.requestedId === tankId && env.phase === 'ready' && env.activeId === tankId
+    if (!warm && (env.requestedId !== tankId || env.phase === 'error')) requestEnvironment(tankId)
     setTankVisit(visit => visit + 1)
     setLoaderOpen(true)
   }
@@ -562,7 +564,6 @@ export default function App() {
         <LandingGate
           speciesCount={tankSpeciesCount}
           descent={bootDescent}
-          reserve={bootTank}
           onDive={startLandingDive}
           onEnter={leaveLandingGate}
         />

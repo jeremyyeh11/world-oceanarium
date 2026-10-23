@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { useEnvironmentGLTF as useGLTF } from '../hooks/useEnvironmentLoading'
 import * as THREE from 'three'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
 import { hashString } from '../utils/hash'
@@ -357,5 +357,4 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
   )
 }
 
-useGLTF.preload(SARDINE_LOD1_MODEL_PATH)
-useGLTF.preload(SARDINE_LOD2_MODEL_PATH)
+// Preload policy belongs to loading/environmentManifest.js and the budgeted scheduler.

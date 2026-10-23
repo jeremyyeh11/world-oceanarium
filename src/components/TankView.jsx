@@ -1,4 +1,4 @@
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Camera from './Camera'
 import DiverCamera from './DiverCamera'
@@ -13,6 +13,9 @@ import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/s
 import { landscapeForTank } from '../data/landscapes'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
+import { useEnvironmentLoading } from '../hooks/useEnvironmentLoading'
+import { environmentLoader, reportEnvironmentFrame } from '../loading/environmentRuntime'
+import { compileEnvironmentScene } from '../loading/compileEnvironmentScene'
 
 // Full turn-around: yaw can swing all the way behind the creature (±180°) — this is the
 // "flexibility" the follow cam gains. Pitch stays modest (±30°): at large follow distances
@@ -59,8 +62,8 @@ const DEBUG_LAYER_BUTTONS = [
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
 
-// Forces shader compilation and texture upload for everything currently in the
-// scene, so the cost lands here rather than on the frame a fish is first drawn.
+// Prepares shader variants for the mounted scene. Uploads/first draw can still cost
+// time; only the subsequent submitted frame acknowledges readiness.
 //
 // This replaces drei's <Preload all>, which does the same compile but then also
 // renders the scene six times through a CubeCamera to warm environment
@@ -71,22 +74,38 @@ const FPS_SAMPLE_MS = 1000
 // Temporarily unhiding is kept from drei's approach — gl.compile only walks what
 // is visible, and the sardine LOD system hides culled fish, which are exactly the
 // ones that would otherwise stutter on first appearance.
-function WarmScene() {
+function WarmScene({ environmentId, assetsReady }) {
   const gl = useThree(state => state.gl)
   const scene = useThree(state => state.scene)
   const camera = useThree(state => state.camera)
+  const compiled = useRef(false)
+  const frame = useRef(null)
+  const pressureElapsed = useRef(0)
 
   useLayoutEffect(() => {
-    const hidden = []
-    scene.traverse(object => {
-      if (object.visible === false) {
-        hidden.push(object)
-        object.visible = true
-      }
-    })
-    gl.compile(scene, camera)
-    for (const object of hidden) object.visible = false
-  }, [gl, scene, camera])
+    if (!assetsReady) return undefined
+    compiled.current = false
+    try {
+      compileEnvironmentScene(gl, scene, camera)
+      compiled.current = true
+    } catch (error) {
+      environmentLoader.failActivation(environmentId, error)
+    }
+    return () => { compiled.current = false; if (frame.current !== null) cancelAnimationFrame(frame.current) }
+  }, [gl, scene, camera, environmentId, assetsReady])
+
+  useFrame((_, delta) => {
+    pressureElapsed.current += delta
+    if (delta > 0.04 || pressureElapsed.current > 0.25) {
+      reportEnvironmentFrame(delta)
+      pressureElapsed.current = 0
+    }
+    if (!compiled.current) return
+    compiled.current = false
+    // This callback runs before R3F draws. Wait until the following RAF to acknowledge
+    // an actual submitted frame, not merely a completed download/React render.
+    frame.current = requestAnimationFrame(() => environmentLoader.markRendered(environmentId))
+  })
 
   return null
 }
@@ -157,7 +176,8 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, diverMode = false, onExitDiverMode = null, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataLoading = false, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, diverMode = false, onExitDiverMode = null, onBack, onOpenEncyclopedia }) {
+  const environmentLoading = useEnvironmentLoading()
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -743,7 +763,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             fov={Number.isFinite(tank?.camera?.fov) ? tank.camera.fov : DIVER_DEFAULT_FOV}
             onExit={onExitDiverMode}
           />
-          <Biome
+          {/* Do not mount source consumers until the selected manifest has succeeded.
+              This also keeps a failed initial fetch out of the Canvas error boundary;
+              the UI can retry through requestEnvironment without losing the app root. */}
+          {environmentLoading.environments[tank?.id]?.assetsReady && <Biome
             key={tank?.id ?? biome.id}
             name={biome.id}
             tank={tank}
@@ -763,7 +786,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             onCreatureClick={selectCreatureFromPointer}
             onCreatureReady={registerCreatureRef}
             onRuntimeRecoveryNeeded={releaseFocusForRuntimeRecovery}
-          />
+          />}
           <WaterSurface
             biome={biome.id}
             seed={tank?.seed ?? 0}
@@ -772,23 +795,15 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
           />
           {/* A tank can turn the light shafts off (`lighting.godRays: false`, The Reefs). */}
           <UnderwaterFX biome={biome.id} showGodRays={!zoomActive && defaultCameraSettled && tank?.lighting?.godRays !== false} />
-          {/* Compiles shaders and uploads every texture up front. three.js otherwise
-              defers a texture's GPU upload until the frame it is first drawn, which
-              is why a species used to stutter the moment it swam into view — and at
-              a different moment each visit, since fish are seeded to new positions.
-
-              Mounted last and gated on creatures existing: the warm-up runs once per
-              mount, and fish only mount once the Supabase fetch resolves, so running
-              it any earlier would miss all of them — precisely the work worth doing
-              ahead of time. Keyed by tank because each tank draws different species.
-
-              The `warm-` prefix is load-bearing. <Biome> above is a sibling keyed on
-              the same tank id, and React reconciles children through a map keyed by
-              `key`, so two siblings sharing one collide: it "may cause children to be
-              duplicated and/or omitted", which is exactly what happened — switching
-              tanks left the previous tank's fish mounted and drew some of them twice.
-              Any key added here must stay distinct from Biome's. */}
-          {creatures.length > 0 && <WarmScene key={`warm-${tank?.id ?? biome.id}`} />}
+          {/* Shader preparation belongs to this mounted renderer; decoded assets alone
+              are not first-frame readiness. Hidden objects are included. Fish/coral
+              construction and texture uploads may still hitch on a cold mobile GPU.
+              Keep `warm-` distinct from Biome's key to avoid sibling-key collisions. */}
+          <WarmScene key={`warm-${tank?.id ?? biome.id}`} environmentId={tank?.id ?? biome.id}
+            assetsReady={Boolean(environmentLoading.environments[tank?.id]?.assetsReady)
+              && environmentLoading.requestedId === tank?.id
+              && ['assets-ready', 'activating'].includes(environmentLoading.phase)
+              && environmentLoading.environments[tank?.id]?.sceneTasks === 0 && !creatureDataLoading} />
         </Canvas>
       </div>
 

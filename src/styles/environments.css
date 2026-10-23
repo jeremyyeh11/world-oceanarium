@@ -1,0 +1,367 @@
+/* ============================================================================
+   Environment flow: landing → tank selector → loader → tank → back to selector.
+
+   The selector and loader are the same dive-station monitor as the landing gate:
+   same void-to-hull backdrop, same pixel type and phosphor glow. Nothing here
+   draws over a live scene except the bottom-left back button.
+   ========================================================================== */
+
+/* --- selector ------------------------------------------------------------- */
+
+/* Below the top controls (1000) so the Atlas and menu stay reachable from here,
+   above everything a tank would draw. No canvas is mounted behind it. */
+.environment-selector {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -10%, rgba(42, 120, 184, 0.32), transparent 65%),
+    radial-gradient(ellipse at 50% 30%, rgba(13, 48, 80, 0.72), rgba(2, 6, 13, 0.96) 72%),
+    var(--crt-void);
+  animation: environment-selector-in 520ms ease-out both;
+}
+
+@keyframes environment-selector-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.environment-selector-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.6rem;
+  width: min(60rem, 100%);
+  min-height: 100%;
+  margin: 0 auto;
+  padding:
+    max(4.5rem, calc(env(safe-area-inset-top) + 4rem))
+    max(1rem, env(safe-area-inset-right))
+    max(3rem, calc(env(safe-area-inset-bottom) + 2.5rem))
+    max(1rem, env(safe-area-inset-left));
+  box-sizing: border-box;
+}
+
+.environment-selector-header {
+  text-align: center;
+}
+
+.environment-selector-eyebrow {
+  margin: 0 0 0.45rem;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.3);
+}
+
+.environment-selector-title {
+  margin: 0;
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+  font-size: clamp(1.8rem, 7vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow:
+    -1px 1px 1px rgba(240, 127, 164, 0.5),
+    1px -1px 1px rgba(127, 220, 242, 0.5),
+    0 0 22px rgba(127, 220, 242, 0.25);
+}
+
+.environment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1rem;
+}
+
+.environment-card {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  clip-path: var(--crt-chamfer);
+  color: var(--crt-foam);
+  text-align: left;
+  cursor: pointer;
+  animation: environment-card-boot 560ms steps(6, end) both;
+  transition: transform 220ms ease, filter 220ms ease, opacity 260ms ease;
+}
+
+.environment-card:nth-child(2) { animation-delay: 80ms; }
+.environment-card:nth-child(3) { animation-delay: 160ms; }
+.environment-card:nth-child(n + 4) { animation-delay: 240ms; }
+
+@keyframes environment-card-boot {
+  0% { opacity: 0; transform: translateY(10px); filter: brightness(2.2); }
+  100% { opacity: 1; transform: none; filter: brightness(1); }
+}
+
+.environment-card:hover,
+.environment-card:focus-visible {
+  outline: none;
+  transform: translateY(-3px);
+  filter: drop-shadow(0 0 1px var(--crt-lumen)) drop-shadow(0 0 14px rgba(127, 220, 242, 0.28));
+}
+
+.environment-card:disabled {
+  cursor: default;
+}
+
+/* The chosen card flares; the rest step back so the choice reads before the cut. */
+.environment-selector.is-picking .environment-card:not(.is-picked) {
+  opacity: 0.3;
+  filter: saturate(0.4);
+  transform: none;
+}
+
+.environment-card.is-picked {
+  animation: environment-card-pick 420ms ease-out forwards;
+}
+
+@keyframes environment-card-pick {
+  0% { filter: brightness(1); transform: translateY(-3px); }
+  35% { filter: brightness(1.7) drop-shadow(0 0 18px rgba(127, 220, 242, 0.5)); }
+  100% { filter: brightness(1.15) drop-shadow(0 0 18px rgba(127, 220, 242, 0.4)); transform: translateY(6px) scale(0.985); }
+}
+
+/* A window onto the tank's water, drawn from its own palette. Scanlines and a
+   fade into the panel keep it on the monitor rather than pasted on top. */
+.environment-card-swatch {
+  position: relative;
+  display: block;
+  /* The preview stills are cropped to this ratio (docs/tank-design.md). */
+  aspect-ratio: 16 / 7;
+  background: var(--environment-preview, none) center / cover no-repeat, var(--environment-swatch);
+  transition: filter 220ms ease;
+}
+
+.environment-card-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    var(--crt-scanlines-soft),
+    linear-gradient(180deg, transparent 65%, var(--crt-hull) 100%);
+}
+
+.environment-card:hover .environment-card-swatch,
+.environment-card:focus-visible .environment-card-swatch {
+  filter: brightness(1.15) saturate(1.1);
+}
+
+.environment-card-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.35rem 1.1rem 1rem;
+}
+
+.environment-card-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.environment-card-index {
+  color: var(--crt-lumen);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.environment-card-depth {
+  color: var(--crt-drift-dim);
+  font-family: var(--crt-font-read);
+  font-size: calc(var(--crt-read-scale) * 0.75rem);
+  letter-spacing: 0.02em;
+}
+
+.environment-card-name {
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+  font-size: clamp(1.2rem, 4.5vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.environment-card-tagline {
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.environment-card-description {
+  color: var(--crt-drift);
+  font-family: var(--crt-font-read);
+  font-size: calc(var(--crt-read-scale) * 0.8rem);
+  line-height: 1.5;
+}
+
+.environment-card-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(23, 70, 107, 0.9);
+  color: var(--crt-drift);
+  font-family: var(--crt-font);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.environment-card-footer b {
+  color: var(--crt-foam);
+  font-weight: 600;
+}
+
+.environment-card-cta {
+  color: var(--crt-lumen);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: text-shadow 220ms ease;
+}
+
+.environment-card:hover .environment-card-cta,
+.environment-card:focus-visible .environment-card-cta {
+  text-shadow: 0 0 10px rgba(127, 220, 242, 0.55);
+}
+
+/* The last tank stays mounted under the selector and the loader (TankView `hidden`),
+   paused once warm (`paused`). Hidden rather than unmounted so the canvas keeps its
+   size and WebGL context; visibility also takes it and its overlays out of
+   hit-testing and the tab order. */
+.tank-viewport.is-hidden {
+  visibility: hidden;
+}
+
+/* --- loader --------------------------------------------------------------- */
+
+/* Under the landing gate (2100) and the tube film (2200), over every reserve
+   control: nothing in the reserve is usable until it has finished warming up.
+   The descent (descent.css) fills it. */
+.environment-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2050;
+  background: var(--crt-void);
+  pointer-events: auto;
+}
+
+/* The water clears to reveal the reserve, as the landing dive clears. */
+.environment-loader.is-clearing {
+  animation: environment-loader-clear 700ms cubic-bezier(0.5, 0, 0.9, 0.35) forwards;
+  pointer-events: none;
+}
+
+@keyframes environment-loader-clear {
+  0% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+/* Retry / back, shown only when the reserve failed to load. */
+.environment-loader-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  position: relative;
+}
+
+.environment-loader-actions .crt-button {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+}
+
+/* --- back to the selector -------------------------------------------------- */
+
+/* Bottom-left, where the tank list used to sit, balancing the focus card on the
+   right. Names where you are as well as where it goes. */
+.environment-back {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: max(1.4rem, env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: min(18rem, 60vw);
+  padding: 0.55rem 0.85rem 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  animation: environment-back-in 360ms ease-out both;
+}
+
+@keyframes environment-back-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Debug mode docks a full-width stats bar at the very bottom; sit above it. */
+body:has(.tank-viewport.has-debug-panel) .environment-back {
+  bottom: calc(var(--floating-debug-panel-height, 4rem) + 1.4rem);
+}
+
+.environment-back-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--crt-lumen);
+  stroke-width: 2.4;
+  stroke-linecap: square;
+}
+
+.environment-back-label {
+  color: var(--crt-foam);
+  font-weight: 600;
+}
+
+.environment-back-current {
+  overflow: hidden;
+  padding-left: 0.5rem;
+  border-left: 1px solid rgba(127, 220, 242, 0.25);
+  color: var(--crt-drift);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .environment-back-current {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .environment-selector,
+  .environment-card,
+  .environment-card.is-picked,
+  .environment-back {
+    animation: none;
+  }
+
+  .environment-card:hover,
+  .environment-card:focus-visible {
+    transform: none;
+  }
+
+  .environment-loader.is-clearing {
+    animation: environment-loader-clear 200ms linear forwards;
+  }
+}

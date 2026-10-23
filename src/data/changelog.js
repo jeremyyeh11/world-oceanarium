@@ -6,6 +6,17 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.35.0',
+    date: '2026-10-23',
+    title: 'Reserves',
+    changes: [
+      ['new', 'Choose where to dive: after Dive in, every reserve has its own card with a preview, its depth range and how many species live there. The Reserves button in the bottom-left corner brings you back to them.'],
+      ['new', 'Every trip in is a dive: a pixel freediver heads down a guideline from the surface while the reserve loads, past the animals that live at each depth.'],
+      ['new', 'The next reserve starts loading in the background while you look around, so switching is quicker.'],
+      ['fix', 'Much smoother on phones, The Reefs above all: only the part of the scene on screen is drawn.'],
+    ],
+  },
+  {
     version: 'v0.34.1',
     date: '2026-10-23',
     title: 'Reef fish reach their rocks',

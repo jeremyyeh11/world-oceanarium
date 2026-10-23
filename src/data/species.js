@@ -69,6 +69,33 @@ export const TANKS = [
     description: 'Fast open-ocean hunters and their bait, from flickering sardinella to the cruising mako, with a young whale shark gliding through.',
     biome: 'ocean',
     depthZone: 'epipelagic',
+    // The reserve's depth range in metres: the scale of its loading descent and the depth
+    // on its selector card (utils/reserveDepth.js). Without it the zone's range is used.
+    // Open water: the whole sunlight zone.
+    depthMeters: [0, 200],
+    // The selector card's preview: a 16:7 still of the reserve, framed on its hero animal
+    // (docs/tank-design.md, New reserve checklist). The whale shark with its remoras.
+    cardImage: '/reserves/open-sea.webp',
+    // The loading descent's standees (docs/tank-design.md, Descent scenery). Open water has
+    // no seabed, so nothing stands on the floor. Zigzag down the line: a mahi-mahi pair near
+    // the surface on the right (they keep to the top 85 m), a sardinella school balled up on
+    // the left below them, and the whale shark deeper on the right, heading for the line.
+    descent: {
+      signature: [
+        { sprite: 'mahi-mahi-male', species: 'coryphaena-hippurus', depth: 20, side: 'right' },
+        { sprite: 'mahi-mahi-female', species: 'coryphaena-hippurus', depth: 20, side: 'right', dx: 6, dy: 11, distance: 0.25 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 12, dy: -5 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 6, dy: 4 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 19, dy: 1, distance: 0.2 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 15, dy: 9, distance: 0.3 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 25, dy: -7, distance: 0.4 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 2, dy: -10, distance: 0.35 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 27, dy: 6, distance: 0.5 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 55, side: 'left', flip: true, dx: 21, dy: 14, distance: 0.55 },
+        { sprite: 'whale-shark', species: 'rhincodon-typus', depth: 125, side: 'right' },
+      ],
+    },
     // seed varies the surface caustics + background mottle so each tank has a
     // distinct-but-stable sky/surface signature (see SceneLighting / WaterSurface).
     seed: 137,
@@ -98,6 +125,33 @@ export const TANKS = [
     description: 'A sheltered reef where angelfish, bannerfish and triggerfish keep house, and a giant sunfish comes in from the blue to be cleaned.',
     biome: 'ocean',
     depthZone: 'epipelagic',
+    // A shallow sunlit reef, rounded to 10 m (Jeremy, 2026-10-23). The scene as drawn agrees:
+    // sand at y -24 under the surface at y 4.6 is 28.6 WU, about 7 m (8 m in the troughs).
+    depthMeters: [0, 10],
+    // The selector card's preview: the giant sunfish over the reef with the pilot fish.
+    cardImage: '/reserves/the-reefs.webp',
+    // The loading descent's standees (docs/tank-design.md, Descent scenery): pixel cut-outs
+    // around the guideline, placed by depth (m, or 'floor'), lit as the diver passes.
+    // Composed, not scattered: the signature species zigzag down the line (bannerfish left,
+    // angelfish right, a few butterflyfish left again), and the line ends in a coral garden
+    // on both sides of where the diver lands, the larger mass on the left. Sprites face
+    // left; `flip` turns one to face the line from the left.
+    descent: {
+      signature: [
+        { sprite: 'bannerfish', species: 'heniochus-acuminatus', depth: 3, side: 'left', flip: true },
+        { sprite: 'emperor-angelfish', species: 'pomacanthus-imperator', depth: 5.5, side: 'right' },
+        // A loose trio, set back a little.
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, distance: 0.3 },
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 13, dy: -6, distance: 0.4 },
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 7, dy: 6, distance: 0.45 },
+      ],
+      scenery: [
+        { sprite: 'table-coral', depth: 'floor', side: 'left' },
+        { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -3, distance: 0.25 },
+        { sprite: 'staghorn-orange', depth: 'floor', side: 'right' },
+        { sprite: 'table-coral', depth: 'floor', side: 'right', dx: -2, distance: 0.35 },
+      ],
+    },
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.
@@ -358,7 +412,7 @@ export const SPECIES = [
       diet: 'Copepods + larvae',
       social: 'Schooling',
     },
-    description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the tank as a quick flicker of many bodies rather than a lone specimen.',
+    description: 'A small, fast-schooling Indo-West Pacific sardinella with a slender silver body and a row of gold-to-dark flank spots. It lives in coastal waters and lagoons, feeding mostly on plankton, and reads in the reserve as a quick flicker of many bodies rather than a lone specimen.',
     atlasThumbnail: '/atlas/amblygaster-sirm-thumbnail.png',
     adultLengthRangeMeters: [0.15, 0.27],
     maxBodyLengthMeters: 0.27,
@@ -1292,7 +1346,7 @@ export const SPECIES = [
       diet: 'Copepods + scraps',
       social: 'Hitchhiker',
     },
-    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free — so in the tank it should spend long stretches clamped to the mako and short ones on its own.',
+    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free — so in the reserve it should spend long stretches clamped to the mako and short ones on its own.',
     adultLengthRangeMeters: [0.4, 0.864],
     maxBodyLengthMeters: 0.864,
     swim: {
@@ -1761,7 +1815,7 @@ export const SPECIES = [
       diet: 'Scraps + small prey',
       social: 'Follower',
     },
-    description: 'A small jack, up to 70 cm, banded with five to seven dark bars on a blue-silver body. It never attaches to anything: it keeps pace beside a large animal, riding the water it pushes aside and picking up scraps and parasites, so in the tank it holds loose stations round the giant sunfish\'s head and flanks, now and then darting off on its own before slowing back to the sunfish\'s pace.',
+    description: 'A small jack, up to 70 cm, banded with five to seven dark bars on a blue-silver body. It never attaches to anything: it keeps pace beside a large animal, riding the water it pushes aside and picking up scraps and parasites, so in the reserve it holds loose stations round the giant sunfish\'s head and flanks, now and then darting off on its own before slowing back to the sunfish\'s pace.',
     adultLengthRangeMeters: [0.35, 0.7],
     maxBodyLengthMeters: 0.7,
     swim: {
@@ -1928,7 +1982,7 @@ export const SPECIES = [
       diet: 'Zooplankton',
       social: 'Pairs',
     },
-    description: 'A deep-bodied butterflyfish, up to 25 cm, banded black and white with a yellow tail, and named for the white pennant that streams back from its dorsal fin, longer than the fish itself. It cruises on its pectoral fins with its body held stiff, saving its tail for a quick dart. Its relative the schooling bannerfish cleans parasites off ocean sunfish, so in the tank it now and then joins the giant sunfish to hover close along its flanks before drifting off again.',
+    description: 'A deep-bodied butterflyfish, up to 25 cm, banded black and white with a yellow tail, and named for the white pennant that streams back from its dorsal fin, longer than the fish itself. It cruises on its pectoral fins with its body held stiff, saving its tail for a quick dart. Its relative the schooling bannerfish cleans parasites off ocean sunfish, so in the reserve it now and then joins the giant sunfish to hover close along its flanks before drifting off again.',
     adultLengthRangeMeters: [0.15, 0.25],
     maxBodyLengthMeters: 0.25,
     swim: {
@@ -2282,7 +2336,7 @@ export const SPECIES = [
       diet: 'Sponges',
       social: 'Pairs',
     },
-    description: 'A reef angelfish up to 40 cm, striped electric blue and yellow, with a dark mask across its eyes and a yellow tail. Pairs keep to ledges and caves in rich coral, grazing sponges and other encrusting animals. Young and adults will also clean much larger fishes, sunfish among them, so in the tank it now and then joins the giant sunfish before drifting off again.',
+    description: 'A reef angelfish up to 40 cm, striped electric blue and yellow, with a dark mask across its eyes and a yellow tail. Pairs keep to ledges and caves in rich coral, grazing sponges and other encrusting animals. Young and adults will also clean much larger fishes, sunfish among them, so in the reserve it now and then joins the giant sunfish before drifting off again.',
     // FishBase: 40 cm maximum (standard length), maturing at 25 cm.
     adultLengthRangeMeters: [0.25, 0.4],
     maxBodyLengthMeters: 0.4,
@@ -2692,7 +2746,7 @@ export const SPECIES = [
       diet: 'Plankton',
       social: 'Solitary',
     },
-    description: 'The largest fish in the sea, up to 20 m: a filter-feeding shark, dark blue-grey above with a checkerboard of white spots and pale stripes, white below. It cruises slowly near the surface, straining plankton, fish eggs, and small fishes through its wide mouth, and the spots behind its gills are as unique as a fingerprint. The whale shark in the tank is a 6 m juvenile, the size most often seen at feeding sites.',
+    description: 'The largest fish in the sea, up to 20 m: a filter-feeding shark, dark blue-grey above with a checkerboard of white spots and pale stripes, white below. It cruises slowly near the surface, straining plankton, fish eggs, and small fishes through its wide mouth, and the spots behind its gills are as unique as a fingerprint. The whale shark in the reserve is a 6 m juvenile, the size most often seen at feeding sites.',
     // FishBase: 20 m maximum (female, total length); males mature at about 8 m.
     adultLengthRangeMeters: [8, 20],
     maxBodyLengthMeters: 20,

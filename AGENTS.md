@@ -33,11 +33,11 @@ Important paths:
 - `src/components/Biome.jsx` — renders a tank's curated creature assemblage (see `docs/tank-design.md`)
 - `src/components/TankView.jsx` — tank UI, debug mode, follow selection, controls
 - `src/hooks/useCreatures.js` — Supabase/local creature source routing
-- `src/loading/`, `src/hooks/useEnvironmentLoading.js` — budgeted environment/source lifecycle and future loading-UI contract; read `docs/environment-loading.md` before adding preload/cache owners
+- `src/loading/`, `src/hooks/useEnvironmentLoading.js` — budgeted environment/source lifecycle and the loading-UI contract (selector, loading screen: `EnvironmentSelector.jsx`, `EnvironmentLoader.jsx`); read `docs/environment-loading.md` before adding preload/cache owners
 - `src/hooks/useOceanAudio.js` — Web Audio graph and SFX
 - `src/data/species.js` — species templates (incl. `tempo`), `TANKS` curation layer, biological facts
 - `src/utils/speciesLookup.js` — species/tank lookups, `creaturesForTank`, dev coherence guard
-- `docs/tank-design.md` — the tank/assemblage model: how species map to tanks and how to edit by hand
+- `docs/tank-design.md` — the tank/assemblage model: how species map to tanks and how to edit by hand; the **new reserve checklist** (copy says *reserve*, `depthMeters`, descent scenery and signature species). Public copy calls a tank a reserve; code keeps `tank`
 - `docs/procedural/README.md` — procedural animation hub: shared asset contract, runtime drivers, motion primitives, and the creature/type index. Read before touching any rig-free animation path
 - `docs/procedural/<type>.md` — per-motion-type contract (Blender setup, vertex-paint channels, config keys, review gates). Types: `caudal-wave`, `mask-fin-row`, `bell-pulse`, `foil-flap`, `disc-wave`, `limb-step`, `pleopod-beat`
 - `docs/new-species-checklist.md` — required species feature path: biological contract, asset/scale, motion feel, Atlas, responsive QA, and release evidence
@@ -139,7 +139,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 
 ## Tank-session continuity
 
-- Only the active tank is mounted/rendered. Hidden tanks do not simulate in the background.
+- One tank is mounted at a time: the one being viewed or, while the tank selector or loading screen covers it, the last one viewed, hidden (TankView `hidden`: window listeners off, follow released, viewport hidden) and paused once its first frame has rendered (`paused`: canvas `frameloop="never"`). A paused tank renders and simulates nothing; it stays mounted only so the WebGL context, compiled shaders and uploaded textures survive. Tanks that are not mounted do not simulate. Never mount a second tank alongside it.
 - `fishRuntimeStore.js` persists continuity-critical state by creature id so switching tanks freezes/resumes fish instead of reseeding them.
 - Preserve the page reload boundary: module state intentionally clears on reload; do not add durable browser/server persistence without a separate design decision.
 - Prune snapshots against the current live creature ids after data refreshes.

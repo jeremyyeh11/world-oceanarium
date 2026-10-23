@@ -1,0 +1,467 @@
+/* ============================================================================
+   Descent: a freediver on a guideline (DiveDescent.jsx), the vertical progress
+   bar for the landing dive and every reserve's loading screen.
+
+   Same dive-station monitor as the rest of the UI: void-to-hull water, phosphor
+   cyan, pixel type, the pink/cyan convergence split. The water darkens with depth
+   like the reference: surface light at the top, black at the bottom of the line.
+   Everything that moves with progress moves by transform, so it stays smooth while
+   the main thread is busy parsing models and compiling shaders.
+   ========================================================================== */
+
+.descent {
+  /* Shaft height drives everything: the diver travels it, the lit line fills it. */
+  --descent-shaft: clamp(9rem, 46vh, 26rem);
+  --descent-px: 2px;
+  --descent-diver-w: calc(15 * var(--descent-px));
+  --descent-diver-h: calc(24 * var(--descent-px));
+  --descent-travel: calc(var(--descent-shaft) - var(--descent-diver-h));
+  --descent-ease: cubic-bezier(0.32, 0.72, 0.35, 1);
+
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.15rem;
+  padding:
+    max(1.5rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1.5rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #0b2c49 0%, #071d33 30%, #040f1d 62%, var(--crt-void) 92%);
+  color: var(--crt-foam);
+  text-align: center;
+  animation: descent-in 520ms ease-out both;
+}
+
+@keyframes descent-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Surface light from straight above, with faint shafts, fading out by mid-depth. */
+.descent-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 26% 62% at 50% -6%, rgba(127, 220, 242, 0.2), transparent 70%),
+    repeating-linear-gradient(97deg, transparent 0 70px, rgba(127, 220, 242, 0.03) 70px 92px, transparent 92px 170px),
+    repeating-linear-gradient(83deg, transparent 0 110px, rgba(127, 220, 242, 0.025) 110px 126px, transparent 126px 230px);
+  /* The shafts come from the light overhead and die off with depth and distance. */
+  -webkit-mask-image: radial-gradient(ellipse 48% 78% at 50% -4%, #000 0%, rgba(0, 0, 0, 0.45) 45%, transparent 78%);
+  mask-image: radial-gradient(ellipse 48% 78% at 50% -4%, #000 0%, rgba(0, 0, 0, 0.45) 45%, transparent 78%);
+}
+
+.descent-snow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.descent-snow i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(200, 236, 255, 0.55);
+  animation: descent-snow 13s linear infinite;
+}
+
+.descent-snow i:nth-child(3n) { width: 3px; height: 3px; background: rgba(200, 236, 255, 0.3); }
+
+@keyframes descent-snow {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-55vh); }
+}
+
+/* --- header and readout --------------------------------------------------- */
+
+.descent-header {
+  position: relative;
+  max-width: 24rem;
+}
+
+.descent-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.3);
+}
+
+.descent-title {
+  margin: 0;
+  color: var(--crt-foam);
+  font-family: var(--crt-font);
+  font-size: clamp(1.7rem, 7vw, 2.6rem);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-shadow:
+    -1px 1px 1px rgba(240, 127, 164, 0.5),
+    1px -1px 1px rgba(127, 220, 242, 0.5),
+    0 0 22px rgba(127, 220, 242, 0.25);
+}
+
+.descent-tagline {
+  margin: 0.5rem 0 0;
+  color: var(--crt-lumen);
+  font-family: var(--crt-font);
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.descent-readout {
+  position: relative;
+  margin: 0;
+  color: var(--crt-drift);
+  font-family: var(--crt-font-read);
+  font-size: calc(var(--crt-read-scale) * 0.85rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  animation: crt-charting-pulse 3s ease-in-out infinite;
+}
+
+.descent.is-arrived .descent-readout,
+.descent.is-failed .descent-readout {
+  animation: none;
+}
+
+.descent.is-failed .descent-readout {
+  color: var(--crt-bio);
+}
+
+/* --- the shaft: guideline, depth scale, diver ----------------------------- */
+
+.descent-shaft {
+  position: relative;
+  width: min(16rem, 70vw);
+  height: var(--descent-shaft);
+  flex: 0 0 auto;
+}
+
+/* The surface: where the line starts, a hairline of light. */
+.descent-surface {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4.5rem;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(168, 236, 255, 0.75), transparent);
+  box-shadow: 0 0 10px rgba(127, 220, 242, 0.45);
+}
+
+/* The whole line, dark water below the diver: lit near the surface, gone by the end. */
+.descent-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(127, 220, 242, 0.4), rgba(23, 70, 107, 0.75) 55%, rgba(23, 70, 107, 0.15));
+}
+
+/* The line already descended, lit like the rope in the reference. Scaled, never
+   resized, so the fill is composited off the main thread. It stops at the fins. */
+.descent-line-lit {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 0.5px);
+  width: 2px;
+  height: var(--descent-travel);
+  transform: scaleY(var(--descent, 0));
+  transform-origin: top center;
+  background: linear-gradient(180deg, var(--crt-lumen-hot), var(--crt-lumen));
+  box-shadow: 0 0 6px rgba(127, 220, 242, 0.7), 0 0 16px rgba(127, 220, 242, 0.25);
+  transition: transform 1200ms var(--descent-ease);
+}
+
+/* Depth marks on the right of the line, lined up with the diver's body. */
+.descent-ticks {
+  position: absolute;
+  top: 0;
+  left: calc(50% + 0.85rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.descent-ticks li {
+  position: absolute;
+  top: calc(var(--at) * var(--descent-travel) + var(--descent-diver-h) / 2);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transform: translateY(-50%);
+  color: var(--crt-drift-dim);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  transition: color 300ms ease;
+}
+
+.descent-ticks li::before {
+  content: '';
+  width: 0.45rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.descent-ticks li.is-passed {
+  color: var(--crt-lumen);
+}
+
+.descent-diver {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--descent-diver-w);
+  height: var(--descent-diver-h);
+  transform: translate(-50%, calc(var(--descent, 0) * var(--descent-travel)));
+  transition: transform 1200ms var(--descent-ease);
+  will-change: transform;
+}
+
+/* Current depth, riding to the left of the diver. */
+.descent-depth {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.6rem);
+  transform: translateY(-50%);
+  color: var(--crt-lumen);
+  font-family: var(--crt-font-tiny);
+  font-synthesis-weight: none;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(127, 220, 242, 0.45);
+}
+
+.descent-sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: var(--crt-foam);
+  filter:
+    drop-shadow(-1px 0 0 rgba(240, 127, 164, 0.5))
+    drop-shadow(1px 0 0 rgba(127, 220, 242, 0.55))
+    drop-shadow(0 0 7px rgba(127, 220, 242, 0.4));
+  animation: descent-sway 3.4s ease-in-out infinite;
+}
+
+.descent-sprite-mask {
+  fill: var(--crt-lumen-hot);
+}
+
+/* Gentle drift off the line, as a body does in water. */
+@keyframes descent-sway {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  50% { transform: translateX(1px) rotate(0.8deg); }
+}
+
+/* Fin kicks: two frames swapped in steps, a kick every second or so. */
+.descent-fin--kick { opacity: 0; }
+.descent-fin--glide { animation: descent-fin-glide 1.1s steps(1, end) infinite; }
+.descent-fin--kick { animation: descent-fin-kick 1.1s steps(1, end) infinite; }
+
+@keyframes descent-fin-glide {
+  0%, 62% { opacity: 1; }
+  63%, 100% { opacity: 0; }
+}
+
+@keyframes descent-fin-kick {
+  0%, 62% { opacity: 0; }
+  63%, 100% { opacity: 1; }
+}
+
+/* Breath escaping from the head (the bottom of the sprite) and rising past the body. */
+.descent-bubbles {
+  position: absolute;
+  bottom: calc(2 * var(--descent-px));
+  left: 50%;
+}
+
+.descent-bubbles i {
+  position: absolute;
+  width: var(--descent-px);
+  height: var(--descent-px);
+  background: rgba(168, 236, 255, 0.8);
+  box-shadow: 0 0 4px rgba(127, 220, 242, 0.6);
+  opacity: 0;
+  animation: descent-bubble 2.6s ease-in infinite;
+}
+
+.descent-bubbles i:nth-child(1) { --drift: -7px; animation-delay: 0s; }
+.descent-bubbles i:nth-child(2) { --drift: 5px; animation-delay: 0.9s; }
+.descent-bubbles i:nth-child(3) { --drift: -2px; animation-delay: 1.7s; width: calc(var(--descent-px) * 0.67); height: calc(var(--descent-px) * 0.67); }
+
+@keyframes descent-bubble {
+  0% { opacity: 0; transform: translate(0, 0); }
+  12% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--drift), calc(-1 * var(--descent-diver-h) - 1.6rem)); }
+}
+
+/* --- standee scenery ------------------------------------------------------ */
+
+/* Pixel cut-outs around the line (DiveDescent `scenery`, a reserve's `descent` block):
+   placed by depth, never moving down the screen, dark until the diver reaches them.
+   They keep clear of the depth labels that ride beside the line. */
+.descent-standees {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --sprite-px: var(--descent-px);
+}
+
+.descent-standee {
+  position: absolute;
+  top: calc(var(--at) * var(--descent-travel) + var(--descent-diver-h) / 2 + var(--dy, 0) * var(--descent-px));
+  transform: translateY(-50%);
+  opacity: 0.5;
+  filter: brightness(0.32) saturate(0.35);
+  transition: opacity 700ms ease, filter 700ms ease;
+}
+
+.descent-standee.is-left { right: calc(50% + 3.6rem + var(--dx, 0) * var(--descent-px)); }
+.descent-standee.is-right { left: calc(50% + 4rem + var(--dx, 0) * var(--descent-px)); }
+
+/* Seabed pieces stand on the floor line, lined up outward from the centre. */
+.descent-standee.is-floor {
+  top: auto;
+  transform: none;
+}
+
+.descent-standee.is-floor {
+  bottom: 0;
+}
+
+.descent-standee.is-floor.is-left { right: calc(50% + 3.6rem + var(--slot) * 2.2rem + var(--dx, 0) * var(--descent-px)); }
+.descent-standee.is-floor.is-right { left: calc(50% + 4rem + var(--slot) * 2.2rem + var(--dx, 0) * var(--descent-px)); }
+
+/* Lit, a piece set back (`--far`, 0 near to 1 far) stays dimmer and greyer: depth by
+   atmosphere, the way water swallows colour with distance. */
+.descent-standee.is-lit {
+  opacity: calc(1 - var(--far, 0) * 0.45);
+  filter:
+    brightness(calc(1 - var(--far, 0) * 0.4))
+    saturate(calc(1 - var(--far, 0) * 0.5))
+    drop-shadow(0 0 6px rgba(127, 220, 242, 0.18));
+}
+
+/* Signature species idle in place: a one-pixel bob, nothing that travels. */
+.descent-standee.is-species.is-lit .pixel-sprite {
+  animation: standee-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes standee-bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 calc(-1 * var(--sprite-px, 2px)); }
+}
+
+/* The bottom of the line: a dim marker that flares once when the diver arrives. */
+.descent-floor {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 3.5rem;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(127, 220, 242, 0.45), transparent);
+}
+
+.descent.is-arrived .descent-floor {
+  animation: descent-floor-flare 900ms ease-out both;
+}
+
+@keyframes descent-floor-flare {
+  0% { width: 3.5rem; box-shadow: none; }
+  35% { width: 9rem; box-shadow: 0 0 14px rgba(127, 220, 242, 0.8); }
+  100% { width: 6rem; box-shadow: 0 0 8px rgba(127, 220, 242, 0.4); }
+}
+
+/* A failed load stops the diver where it is, and the line goes the error colour. */
+.descent.is-failed .descent-sprite,
+.descent.is-failed .descent-fin,
+.descent.is-failed .descent-bubbles i {
+  animation-play-state: paused;
+}
+
+.descent.is-failed .descent-line-lit {
+  background: var(--crt-bio);
+  box-shadow: 0 0 6px rgba(240, 127, 164, 0.6);
+}
+
+/* Large screens get a slightly bigger diver. */
+@media (min-height: 820px) and (min-width: 700px) {
+  .descent {
+    --descent-px: 3px;
+  }
+}
+
+/* Short screens (phone landscape): a shorter line and a smaller diver; the tagline goes. */
+@media (max-height: 560px) {
+  .descent {
+    --descent-shaft: clamp(7rem, 48vh, 14rem);
+    gap: 0.6rem;
+  }
+
+  .descent-tagline {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .descent,
+  .descent-sprite,
+  .descent-fin--glide,
+  .descent-readout,
+  .descent.is-arrived .descent-floor {
+    animation: none;
+  }
+
+  .descent-standee.is-species.is-lit .pixel-sprite {
+    animation: none;
+  }
+
+  .descent-fin--kick,
+  .descent-bubbles,
+  .descent-snow {
+    display: none;
+  }
+
+  .descent-line-lit,
+  .descent-diver {
+    transition: none;
+  }
+}
+
+/* --- pixel sprites (PixelSprite.jsx), shared by every standee ------------ */
+
+.pixel-sprite {
+  display: block;
+  width: calc(var(--sprite-w) * var(--sprite-px, 2px));
+  height: calc(var(--sprite-h) * var(--sprite-px, 2px));
+  overflow: visible;
+}
+
+/* `scale` rather than `transform`, so the idle bob (`translate`) never cancels a flip. */
+.pixel-sprite.is-flipped {
+  scale: -1 1;
+}

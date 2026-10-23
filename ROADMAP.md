@@ -13,16 +13,39 @@ Status labels:
 
 ## Current work
 
+### Reserve follow-ups (after `v0.35.0`)
+
+- [ ] Refine the descent sprites with Jeremy. `Next`
+- [ ] Refine the descent with Jeremy (diver sprite, copy: "Into the blue"). `Next`
+- [ ] Device check: phone landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll. `Next`
+- [ ] Physical-phone cold/warm/rapid-switch and memory review of #153's loader. `Backlog`
+- [ ] Decide whether the speculative budget should cover a whole second reserve (today about four files per visit); Open Sea's fish models are evicted and re-fetched after The Reefs under the 192 MiB target. `Backlog`
+
+### Reserve selector and the descent
+
+Status: shipped in clean `v0.35.0` (2026-10-23, from `v0.35.0-dev_18`, branch `claude/environment-loader-ui-ux-v28m0g`, #155). `Archive candidate`. Landing → selector → loading screen → reserve, with a bottom-left button back to the selector. Open items moved to Reserve follow-ups.
+
+Subtasks:
+- [x] Selector, loading screen (files / building / error + retry), bottom-left Tanks button; old tank list removed.
+- [x] Attention-ranked boot request and prefetch through #153's loader (`prefetchOrder`).
+- [x] Hidden/paused tank under the selector and loader; one canvas per session.
+- [x] Public copy says reserves (UI only); opaque landing gate; the descent (diver on a guideline) for the landing dive and each reserve's loading screen.
+- [x] Per-reserve depth range (`depthMeters`) for the descent scale and selector card; new reserve checklist in docs/tank-design.md.
+- [x] Descent scenery, composed: The Reefs (bannerfish, emperor angelfish, butterflyfish trio, coral garden) and The Open Sea (sardinella school, whale shark). Landing has none (dev_13).
+- [x] The Reefs' depth: 0–10 m (dev_9), matching the drawn scene's ~7 m.
+- [x] Render only the on-screen window of the 16:9 stage (dev_17): about 4× fewer fragments on a portrait phone, same picture.
+- [x] Card preview stills (dev_18), screenshots chosen over sprite scenes after an A/B.
+- [x] Phone frame rate after dev_17 (Jeremy, 2026-10-23: "much smoother now, reef is fine").
+
 ### Budgeted environment-loading infrastructure
 
-Status: `Current in development`, `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #152. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.
+Status: shipped in clean `v0.35.0` (2026-10-23, from `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #153, closes #152). `Archive candidate`. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.
 
 - [x] Manifest-driven shared-source loading, selected-first queue, latest-wins cancellation and source leases shared with Atlas.
 - [x] Idle/pressure-aware speculative admission, byte/count accounting and retirement of unneeded sources/derived landscape caches.
 - [x] Loading-state/navigation hooks and comments; API, budgets, adding environments, caveats and rollback in `docs/environment-loading.md`.
 - [x] Review/regression fixes and local Node/lint/build/asset/browser gates. CI and deployed-preview evidence tracked on [PR #153](https://github.com/jeremyyeh11/world-oceanarium/pull/153); no merge approval.
-- [ ] Physical-phone cold/warm/rapid-switch and memory/appearance review; no claimed phone speedup.
-- [ ] Jeremy/YK approval before clean promotion or merge.
+- [x] Jeremy's go-ahead (2026-10-23): "merge 153 then 155, clean version". Physical-phone review moved to Reserve follow-ups.
 
 Separate follow-ups: loading UI (Jeremy), mount-time geometry preparation/worker decoding, and steady rendering/Atlas performance. These are not silently included in this infrastructure patch.
 
@@ -120,7 +143,7 @@ Subtasks:
 - [x] Close-up texture: shared per-colour maps at about the source's texel density (was a third to a half of it).
 - [ ] Sharper than the source photos up close: better source textures from Jeremy, or a tiling corallite detail layer in the shader. `Backlog`
 - [x] Jeremy's go-ahead on `v0.31.0-dev_3` (2026-10-20: "push and merge to main").
-- [ ] Phone frame rate at The Reefs: the staghorn draws 134k triangles from the resting view, 3.5 times the tables. Trim colonies or the back bommies' detail if it stutters. `Backlog`
+- [ ] Phone frame rate at The Reefs: the staghorn draws 134k triangles from the resting view, 3.5 times the tables. Trim colonies or the back bommies' detail if it still stutters after the on-screen-window render (v0.35.0-dev_17). `Backlog`
 - [ ] Texture provenance: the source GLB's images are named `311551-enhanced`, `1052_C02_05-enhanced` and `StaghornAcroporaCoral5-enhanced`; no source found. Credit in `src/data/sources.js` if any is a Commons/CC photo. `Next`
 - [ ] Small reef fish sheltering among the branches (staghorn is a classic damselfish home; the tank's reef fish are all larger). `Backlog`
 - [ ] The Atlas specimen GLB is 4.9 MB (the table coral's 3.3 MB): it embeds every colony's maps; `_lo` meshes or shared maps would cut it. `Backlog`

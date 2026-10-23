@@ -1,7 +1,8 @@
 # Tank design & the assemblage model
 
 How the app decides **which creatures appear in which tank**, and how to change it
-by hand. Written to be self-contained: you should be able to add a species, build a
+by hand. In public copy a tank is a **reserve** (open and free range, like a wildlife
+reserve); the code and these docs keep `tank`. Written to be self-contained: you should be able to add a species, build a
 new tank, or debug a "wrong fish in the tank" problem from this file alone.
 
 ## The problem this solves
@@ -172,8 +173,17 @@ old `c.biome === name` filter, so nothing breaks if a tank is ever missing.
 
 ## Tank switching and session continuity
 
-Only the active tank is mounted and rendered. Switching tanks therefore unmounts every
-`Fish` in the tank being left; hidden tanks consume no background simulation time.
+One tank is mounted at a time. Switching tanks unmounts every `Fish` in the tank being
+left; tanks that are not mounted consume no background simulation time.
+
+While the tank selector or the loading screen covers it, the last tank viewed stays
+mounted underneath, hidden (`TankView` `hidden`: window listeners off, follow released,
+viewport invisible) and, once its first frame has rendered, paused (`paused`: canvas
+`frameloop="never"`). Nothing renders or simulates, so its fish do not move; picking it
+again resumes it with no loader. It stays mounted only so the WebGL context survives:
+unmounting the canvas recompiled every shader and re-uploaded every texture on each
+visit. Picking a different tank swaps the scene inside that same canvas once the new
+tank's files are in (docs/environment-loading.md).
 
 Since `v0.12.2`, each fish writes its continuity-critical state through a module-level
 store keyed by `creature.id` (`src/components/fishRuntimeStore.js`). When the creature
@@ -184,6 +194,7 @@ the old respawn and a one-frame flash at the model origin.
 Lifecycle rules:
 
 - **Tank switch:** freeze the departing tank; resume inhabitants when it is revisited.
+- **Selector open:** pause the tank in place (no unmount, no snapshot needed); resume on return.
 - **Creature-data refresh:** `App.jsx` prunes snapshots whose creature ids are no longer live.
 - **Page reload:** intentionally clears the module store and starts a fresh session.
 - **School remount:** members keep their individual position/heading, but the shared school
@@ -261,14 +272,118 @@ Append an entry to `TANKS`:
   description: '...',       // shown above the switcher
   biome: 'ocean',           // must be an existing biome id (see BIOMES)
   depthZone: 'mesopelagic', // must be an existing depth-zone id (see DEPTH_ZONES)
+  depthMeters: [200, 600],  // the reserve's own depth range, in metres (see checklist)
   seed: 421,                // any number; give each tank a unique one
   species: ['some-species-id'],
 }
 ```
 
-The switcher renders one button per tank automatically (it only shows when
-`TANKS.length > 1`). Keep every species in the tank on a compatible tempo, or the dev
-guard will warn.
+The reserve selector renders one card per tank automatically. Keep every species in the
+tank on a compatible tempo, or the dev guard will warn.
+
+### New reserve checklist
+
+Everything a new tank needs before it ships as a reserve. Species-level work (models,
+motion, Atlas) has its own list in `docs/new-species-checklist.md`; this is the reserve
+around them.
+
+1. **Roster and tempo.** Species ids in `species`, one coherent tempo (above). Landscape,
+   if any, in `src/data/landscapes.js` via `landscape`.
+2. **Copy.** `name`, `tagline` and `description` say *reserve*, never *tank*, and
+   describe a wild place, not an enclosure.
+3. **Depth range: `depthMeters: [top, bottom]`.** The real depth the reserve represents,
+   in metres, inside its `depthZone`'s range. It is the scale of the reserve's loading
+   descent (the depth beside the diver and the tick marks) and the depth on its selector
+   card (`utils/reserveDepth.js`). Without it the zone's whole range is used, which is
+   wrong for most places (a reef is not 200 m deep), so always set it. Ticks are picked
+   automatically as round steps (0–30 m → every 10 m, 0–200 m → every 50 m); nothing to
+   configure. Ground it in fact: where the reserve's species actually live, and, where
+   the scene has a seabed, the drawn depth (surface `SURFACE_PLANE_Y` 4.6 to the sand,
+   `1 WU = 25 cm`). Note in a comment if the two disagree. `tests/reserveDepth.test.mjs`
+   fails on a reserve without a sane range.
+4. **Descent scenery** (see below). Decide which signature species (and, for a reserve
+   with a seabed, which corals) appear on its loading descent, draw any missing sprites in
+   `src/data/pixelSprites.js`, and add a `descent` block. Scenery is for the loading
+   descents only; the landing stays just the card. If the new reserve has a signature
+   animal, consider adding it to the landing dive's montage too
+   (`src/data/descentScenery.js`, `GENERAL_DESCENT`).
+5. **Card preview: `cardImage`.** A still of the reserve for its selector card, in
+   `public/reserves/<id>.webp`: cropped to 16:7, 1120 × 490, WebP around quality 80
+   (10–30 KB). Frame it on the reserve's hero animal, close, not the resting view: open
+   water from the resting camera reads as empty blue. Hide the UI (screenshot mode) and
+   leave the CRT film off; the card adds its own scanlines and fades the bottom third
+   into the card. Retake it when the reserve's look changes. `tests/scenery.test.mjs`
+   fails on a reserve without one.
+6. **Selector and loading.** Nothing else to wire: the selector card, the attention
+   ranking and preloading (`docs/environment-loading.md`) pick the new entry up from
+   `TANKS`. The card's swatch (from `lighting.backgroundStops`, else the biome colour)
+   shows under the still while it loads. Check the card and the descent on a phone,
+   portrait and landscape.
+
+### Descent scenery and signature species
+
+Each reserve's loading descent (the freediver going down the guideline,
+`DiveDescent.jsx`) can carry scenery that says where you are going. Built in
+`v0.35.0-dev_10` for The Reefs and `dev_13` for The Open Sea; `tests/scenery.test.mjs`
+checks every piece. The landing has no scenery (Jeremy, dev_13).
+
+- **Standees, no cardboard.** Flat pixel-art cut-outs set around the guideline, like a
+  cardboard standee display without the cardboard outline: same 2 px cell style and CRT
+  palette as the diver, the diver loading bar still going down the centre. The scenery
+  **does not scroll** or parallax; it stays put while the diver moves past it.
+- **Real depth order.** Pieces go where their animal typically lives, so their order
+  down the line matches reality at least relatively, and a species shown on two descents
+  sits at depths that agree with each other (a coral is never deeper than its reserve).
+- **Placed by depth.** Each piece sits at a depth in metres within the reserve's
+  `depthMeters`, on the left or right of the line, so the scenery matches the tick
+  marks. Pieces stay dark until the diver reaches their depth, then light up, the way
+  the passed ticks do, so the place assembles as you descend and arrival lands in it.
+- **Signature species.** One or a few recognisable species of the reserve's own roster,
+  drawn as pixel sprites at a fixed depth (e.g. The Reefs: the longfin bannerfish and the
+  emperor angelfish, distinctive at pixel scale). They may idle in place (a fin flick
+  on stepped frames) but do not travel across the screen. Real colours, muted to the
+  phosphor palette.
+- **Corals, no landscape.** Scenery is living things only: species and corals. No rocks,
+  ledges, boulders or sand pieces (Jeremy, dev_12). For The Reefs: table coral and
+  staghorn on the seabed where the diver arrives, in the reef's coral colours.
+- **Composed, not scattered.** Lay pieces out as a picture: alternate sides down the line
+  so the eye zigzags with the diver, group small species into a school rather than
+  spreading them, let the seabed form a garden around the landing spot with the larger
+  mass on one side, and set back secondary pieces with `distance` (dimmer, greyer).
+  Open water has no seabed: The Open Sea's descent zigzags from a mahi-mahi pair near
+  the surface, to a sardinella school, to the whale shark deeper down.
+- **The landing dive** (after Dive in, before any reserve is chosen) has its own
+  montage of every reserve, `GENERAL_DESCENT` in `src/data/descentScenery.js`: a reef
+  drop-off over 0–200 m. A shallow reef crest at the top (corals and the bannerfish at
+  The Reefs' own 0–10 m), then open water down the wall in order of where each animal
+  typically lives: sardinella, the sunfish, the whale shark deepest; no seabed. Kept
+  sparse, ordered by real depth, and consistent with each piece's own reserve. Curated by
+  hand; its species must be on some reserve's roster.
+- **Data.** A `descent` block on the tank (The Reefs' is in species.js):
+
+  ```js
+  descent: {
+    signature: [
+      { sprite: 'bannerfish', species: 'heniochus-acuminatus', depth: 3.5, side: 'left', flip: true },
+    ],
+    scenery: [
+      { sprite: 'table-coral', depth: 'floor', side: 'left' },
+      { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -3, distance: 0.25 },
+    ],
+  }
+  ```
+
+  `depth` is metres inside `depthMeters`, or `'floor'` to stand on the seabed (floor
+  pieces line up outward from the line, in list order). `dx` (sprite cells, away from the
+  line) and `dy` (sprite cells, down; not for floor pieces) offset a piece to compose
+  groups, so a group scales with its sprites, and
+  `distance` (0 near to 1 far) sets it back. `species` must be on the
+  reserve's own roster. Sprites face left; `flip` turns one to face the line from the
+  left. Pieces keep clear of the depth labels beside the line.
+- **Sprites** live in `src/data/pixelSprites.js` as character grids over one shared
+  palette (`SPRITE_PALETTE`), rendered by `PixelSprite.jsx`. Every sprite faces left.
+  Check a new one at large scale before shipping: the silhouette and one or two field
+  marks are what make it read at 2 px per cell.
 
 ### Change the default tank
 

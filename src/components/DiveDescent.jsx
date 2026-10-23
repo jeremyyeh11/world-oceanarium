@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // A freediver going head-first down a guideline: the vertical progress bar for every
 // descent (the landing dive and each reserve's loading screen). The line above the
@@ -38,6 +38,33 @@ const SNOW = [
 ]
 
 const TICKS = [0, 0.25, 0.5, 0.75, 1]
+// Matches the diver's 1200 ms transform transition in descent.css, so the depth label
+// and the passed ticks count down with the diver instead of jumping ahead of it.
+const TRAVEL_MS = 1200
+const easeOut = t => 1 - (1 - t) ** 3
+
+// The depth the diver is drawn at right now, tweened toward `target` over TRAVEL_MS.
+// rAF pauses in a hidden tab; the label then catches up on return, which is fine for
+// a readout (the diver itself moves by CSS transition either way).
+function useTravelledDepth(target) {
+  const [shown, setShown] = useState(0)
+  const shownRef = useRef(0)
+  useEffect(() => {
+    const from = shownRef.current
+    if (from === target) return undefined
+    const start = performance.now()
+    let frame = 0
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / TRAVEL_MS)
+      shownRef.current = from + (target - from) * easeOut(t)
+      setShown(shownRef.current)
+      if (t < 1) frame = window.requestAnimationFrame(step)
+    }
+    frame = window.requestAnimationFrame(step)
+    return () => window.cancelAnimationFrame(frame)
+  }, [target])
+  return shown
+}
 
 function cells(rows) {
   return rows.flatMap(([y, ...runs]) => runs.map(([x0, x1]) => (
@@ -50,8 +77,17 @@ export default function DiveDescent({ eyebrow, title, tagline, progress = 0, rea
   // superseded or retried, and a rising diver reads as something going wrong.
   const deepest = useRef(0)
   deepest.current = Math.max(deepest.current, Math.min(1, Math.max(0, progress)))
-  const depth = arrived ? 1 : deepest.current
-  const meters = Math.round(depth * maxDepthMeters)
+  // Every dive starts at the surface: the first frame draws the diver at 0 m and the
+  // next one hands it the real depth, so the transition carries it down from the top
+  // even when most of the load was done before Dive in.
+  const [entered, setEntered] = useState(false)
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setEntered(true))
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+  const depth = !entered ? 0 : arrived ? 1 : deepest.current
+  const travelled = useTravelledDepth(depth)
+  const meters = Math.round(travelled * maxDepthMeters)
 
   return (
     <div className={`descent${arrived ? ' is-arrived' : ''}${failed ? ' is-failed' : ''}`}>
@@ -83,7 +119,7 @@ export default function DiveDescent({ eyebrow, title, tagline, progress = 0, rea
         <span className="descent-line-lit" aria-hidden="true" />
         <ol className="descent-ticks" aria-hidden="true">
           {TICKS.map(at => (
-            <li key={at} className={depth >= at ? 'is-passed' : undefined} style={{ '--at': at }}>
+            <li key={at} className={travelled >= at - 0.001 ? 'is-passed' : undefined} style={{ '--at': at }}>
               {Math.round(at * maxDepthMeters)} m
             </li>
           ))}

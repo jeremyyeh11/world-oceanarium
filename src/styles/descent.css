@@ -185,7 +185,7 @@
   transform-origin: top center;
   background: linear-gradient(180deg, var(--crt-lumen-hot), var(--crt-lumen));
   box-shadow: 0 0 6px rgba(127, 220, 242, 0.7), 0 0 16px rgba(127, 220, 242, 0.25);
-  transition: transform 900ms var(--descent-ease);
+  transition: transform 1200ms var(--descent-ease);
 }
 
 /* Depth marks on the right of the line, lined up with the diver's body. */
@@ -233,7 +233,7 @@
   width: var(--descent-diver-w);
   height: var(--descent-diver-h);
   transform: translate(-50%, calc(var(--descent, 0) * var(--descent-travel)));
-  transition: transform 900ms var(--descent-ease);
+  transition: transform 1200ms var(--descent-ease);
   will-change: transform;
 }
 

@@ -92,9 +92,6 @@ export default function App() {
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
-  // The landing gate leads to the selector, which needs only the creature fetch (for its
-  // species counts). Tank loading is the environment loader's, shown by the loader screen.
-  const landingReady = !creatureData.loading
 
   // Persisted swim state (fishRuntimeStore) is keyed by creature id and only ever grows as tanks
   // are visited. When the live data set changes, drop snapshots for creatures that no longer
@@ -564,8 +561,6 @@ export default function App() {
       {landingOpen && !screenshotMode && (
         <LandingGate
           speciesCount={tankSpeciesCount}
-          progress={landingReady ? 100 : 0}
-          ready={landingReady}
           descent={bootDescent}
           zone={DEPTH_ZONE_BY_ID.get(bootTank?.depthZone) ?? null}
           onDive={startLandingDive}

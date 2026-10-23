@@ -30,9 +30,13 @@ export const environmentLoader = createEnvironmentLoader({
 })
 
 let quietAfter = 0
+let renderingPaused = false
 // Cheap pressure hint, not an FPS governor. Stop NEW speculative tasks on slow frames.
 // Already-running fetch/decode cannot always be interrupted without wasting shared work.
 export function reportEnvironmentFrame(delta) {
+  // The frame already in flight when a pause lands still reports; it must not switch
+  // speculation back off for the rest of the pause.
+  if (renderingPaused) return
   const time = performance.now()
   if (delta > 0.04) quietAfter = time + 1500
   environmentLoader.setBackgroundEnabled(!document.hidden && time > quietAfter && !navigator.connection?.saveData)
@@ -43,8 +47,14 @@ export function reportEnvironmentFrame(delta) {
 // under the selector leave speculation switched off for as long as it stays paused,
 // which is exactly when there is spare time to prefetch the next tank.
 export function reportRenderingPaused() {
+  renderingPaused = true
   quietAfter = 0
   environmentLoader.setBackgroundEnabled(!document.hidden && !navigator.connection?.saveData)
+}
+
+// Frames resume reporting pressure as before.
+export function reportRenderingResumed() {
+  renderingPaused = false
 }
 
 // HMR must not leave duplicate loading queues or source resources behind.

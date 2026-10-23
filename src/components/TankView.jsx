@@ -14,7 +14,7 @@ import { landscapeForTank } from '../data/landscapes'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { useEnvironmentLoading } from '../hooks/useEnvironmentLoading'
-import { environmentLoader, reportEnvironmentFrame, reportRenderingPaused } from '../loading/environmentRuntime'
+import { environmentLoader, reportEnvironmentFrame, reportRenderingPaused, reportRenderingResumed } from '../loading/environmentRuntime'
 import { compileEnvironmentScene } from '../loading/compileEnvironmentScene'
 
 // Full turn-around: yaw can swing all the way behind the creature (±180°) — this is the
@@ -572,7 +572,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
     if (!paused) return undefined
     reportRenderingPaused()
     document.addEventListener('visibilitychange', reportRenderingPaused)
-    return () => document.removeEventListener('visibilitychange', reportRenderingPaused)
+    return () => {
+      document.removeEventListener('visibilitychange', reportRenderingPaused)
+      reportRenderingResumed()
+    }
   }, [paused])
 
   // A hidden tank is behind the selector or the loader. Following a fish there would keep

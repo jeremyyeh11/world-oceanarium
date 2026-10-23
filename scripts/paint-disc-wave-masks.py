@@ -1,7 +1,7 @@
 """Paint a ray's disc-wave masks from its shape, and export it to the disc-wave contract.
 
     "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
-        --python scripts/paint-disc-wave-masks.py -- <in.glb> <out.glb> [--span 1.3] [--name munks_devil_ray]
+        --python scripts/paint-disc-wave-masks.py -- <in.glb> <out.glb> [--span 1.3] [--name munks_devil_ray] [--images AUTO]
 
 Jeremy models the ray; this computes the three COLOR_1 masks (docs/procedural/disc-wave.md)
 rather than hand-painting them, since vertex paint can't paint one channel alone and the
@@ -131,6 +131,9 @@ bpy.ops.export_scene.gltf(
     export_vertex_color_name='Col',
     export_all_vertex_colors=True,
     export_yup=True,
+    # JPEG by default: photo textures with solid alpha shrink several times over PNG (check the
+    # alpha first; fish render opaque unless the species sets model.alphaBlend).
+    export_image_format=option('--images', 'JPEG'),
 )
 print(f'half span {half:.3f} -> {SPAN / 2:.3f} (scale {scale:.4f}); tail root z {tail_root:.3f}, '
       f'centre z {centre.z:.3f}; {len(points)} vertices, '

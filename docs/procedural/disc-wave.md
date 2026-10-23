@@ -1,6 +1,6 @@
 # disc-wave
 
-Shader type: `disc-wave-vertex` · Status: **Proposed — runtime on a stand-in, not yet validated against a supplied asset**
+Shader type: `disc-wave-vertex` · Status: **Implemented** (mobuliform; rajiform still a proposal)
 
 A travelling wave along a continuous lateral margin. The body is a disc or a mantle;
 thrust ripples down its edge from front to back.
@@ -8,9 +8,10 @@ thrust ripples down its edge from front to back.
 Read [README.md](README.md) first for the rules shared by every type.
 
 > The mobuliform sub-mode below runs in `src/components/Fish.jsx` (`applyFishLightMask`,
-> `discWingLift`) on a generated stand-in, `scripts/build-devil-ray-placeholder.mjs`
-> (2026-10-23). The rajiform sections further down are still a starting convention.
-> Promote to Implemented once Jeremy's model has been checked against it.
+> `discWingLift`), first on a generated stand-in (`scripts/build-devil-ray-placeholder.mjs`,
+> 2026-10-23), then on Jeremy's Munk's devil ray (`v0.36.0-dev_2`, 2026-10-24), its masks
+> computed by `scripts/paint-disc-wave-masks.py`. The rajiform sections further down are
+> still a starting convention.
 
 ## First animal: Munk's devil ray (approved by Jeremy 2026-10-23)
 

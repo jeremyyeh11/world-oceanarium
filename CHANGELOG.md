@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.35.0 — Reserve selector and the descent (in development)
+## v0.35.0 — Reserve selector and the descent (2026-10-23)
 
-Status: `v0.35.0-dev_18` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: clean `v0.35.0` (2026-10-23, from `v0.35.0-dev_18`, branch `claude/environment-loader-ui-ux-v28m0g`, #155), merged after #153's loading infrastructure (`v0.34.2-dev_5`, never released on its own; it ships in this release). Jeremy: "merge 153 then 155, clean version". Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -56,9 +56,9 @@ Status: `v0.35.0-dev_18` (2026-10-23, branch `claude/environment-loader-ui-ux-v2
 - No tank on boot (`useEnvironmentNavigation(null, prefetchOrder)`). The selector ranks tanks by where viewers look first (`utils/attentionOrder.js`: inverted L, `max(0.85^c · 0.55^r, 0.8^r · 0.55^c)`; 5×5 ranks A1, B1, A2, C1, A3, D1, E1 … E5; one column is top to bottom) over its live column count. App requests the top-ranked tank, which warms hidden under the gate and selector; once it has rendered, the loader prefetches the next-ranked tank instead of the catalog neighbour. #153's speculative budget (16 MiB estimate per file, 64 MiB per visit) admits about four of that tank's files; the budget is unchanged. A paused tank re-enables speculation (`reportRenderingPaused` in environmentRuntime.js): #153 enables it from frame-pressure reports, and the slow warm-up frames just before a pause left it off for as long as the tank stayed paused, so nothing was prefetched from the selector. While paused, frame reports are ignored (the frame already in flight when the pause lands used to switch it off again). Checked in Chromium: with Open Sea warm and paused, The Reefs goes from 2 to 6 of 31 files, where #153's speculative budget stops it.
 - One canvas for the session. A tank off screen is `hidden` (listeners off, follow released, `.tank-viewport.is-hidden`) and, once its first frame has rendered, `paused` (`frameloop="never"`; `ResumeClock` restarts the r3f clock on resume). Picking the warm tank resumes it with no loading screen; another tank swaps in the same canvas. AGENTS.md, docs/tank-design.md and docs/environment-loading.md state the one-mounted-tank rule with this case.
 
-## v0.34.2 — Budgeted environment-loading infrastructure (unreleased)
+## v0.34.2 — Budgeted environment-loading infrastructure (shipped in v0.35.0)
 
-Status: review build `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #152. Not a clean release; no merge/promotion approval. `v0.34.1` remains reserved for the separate reef-motion PR.
+Status: review build `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #153 (closes #152). Merged to `main` on Jeremy's go-ahead (2026-10-23) just before #155 and released as part of clean `v0.35.0`; no clean `v0.34.2` of its own. `v0.34.1` remains reserved for the separate reef-motion PR.
 
 ### Loading infrastructure
 

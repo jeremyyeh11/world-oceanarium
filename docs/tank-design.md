@@ -307,10 +307,18 @@ around them.
    descents only; the landing stays just the card. If the new reserve has a signature
    animal, consider adding it to the landing dive's montage too
    (`src/data/descentScenery.js`, `GENERAL_DESCENT`).
-5. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
-   and preloading (`docs/environment-loading.md`) pick the new entry up from `TANKS`.
-   Check the card's swatch (from `lighting.backgroundStops`, else the biome colour) and
-   the descent on a phone, portrait and landscape.
+5. **Card preview: `cardImage`.** A still of the reserve for its selector card, in
+   `public/reserves/<id>.webp`: cropped to 16:7, 1120 × 490, WebP around quality 80
+   (10–30 KB). Frame it on the reserve's hero animal, close, not the resting view: open
+   water from the resting camera reads as empty blue. Hide the UI (screenshot mode) and
+   leave the CRT film off; the card adds its own scanlines and fades the bottom third
+   into the card. Retake it when the reserve's look changes. `tests/scenery.test.mjs`
+   fails on a reserve without one.
+6. **Selector and loading.** Nothing else to wire: the selector card, the attention
+   ranking and preloading (`docs/environment-loading.md`) pick the new entry up from
+   `TANKS`. The card's swatch (from `lighting.backgroundStops`, else the biome colour)
+   shows under the still while it loads. Check the card and the descent on a phone,
+   portrait and landscape.
 
 ### Descent scenery and signature species
 

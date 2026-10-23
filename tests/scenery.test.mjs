@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
 import { SPECIES, TANKS } from '../src/data/species.js'
 import { PIXEL_SPRITES, SPRITE_PALETTE } from '../src/data/pixelSprites.js'
 import { GENERAL_DESCENT } from '../src/data/descentScenery.js'
@@ -42,6 +43,12 @@ checkDescent('landing dive', GENERAL_DESCENT)
 const rostered = new Set(TANKS.flatMap(tank => tank.species))
 for (const item of GENERAL_DESCENT.descent.signature) {
   assert.ok(rostered.has(item.species), `landing dive: ${item.species} is in no reserve`)
+}
+
+// Every reserve has a selector preview still, and the file is there.
+for (const tank of TANKS) {
+  assert.ok(tank.cardImage, `${tank.id}: no cardImage`)
+  assert.ok(existsSync(new URL(`../public${tank.cardImage}`, import.meta.url)), `${tank.id}: ${tank.cardImage} is not in public/`)
 }
 
 console.log('scenery tests passed')

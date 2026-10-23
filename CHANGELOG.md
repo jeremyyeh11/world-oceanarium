@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_17` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_18` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -37,6 +37,10 @@ Status: `v0.35.0-dev_17` (2026-10-23, branch `claude/environment-loader-ui-ux-v2
 - dev_15 (Jeremy: "landing page dive is too cluttered"): the landing dive's montage drops from 16 pieces to 8: the sunfish at 22 m, three sardinella at 65 m, the whale shark at 112 m, the bannerfish at 158 m, alternating sides, and a table coral and a staghorn at the floor.
 - dev_16 (Jeremy: "the order of the sprites should match their depths, at least relatively"): the landing dive is a reef drop-off over 0–200 m, consistent with both reserves. A reef crest at the top (table coral at 6 m, staghorn at 5 m, the bannerfish at 8 m, The Reefs' own depths), then down the wall by typical depth: sardinella at 35 m, the sunfish at 90 m, the whale shark at 150 m; no seabed, ending in open blue.
 - `tests/scenery.test.mjs`: every piece names a drawn sprite and real species, descent pieces sit inside the reserve's depth range, and signature species are on that reserve's roster.
+
+### Card previews (dev_18)
+
+- Each selector card shows a still of its reserve where the gradient was (Jeremy picked screenshots over a sprite mock scene after an A/B on desktop and phone): The Open Sea's whale shark with its remoras, The Reefs' giant sunfish over the reef with the pilot fish, both from Jeremy's captures. `cardImage` on each tank, files in `public/reserves/` (16:7, 1120 × 490 WebP, 10 KB and 30 KB). The preview band is now 16:7 and the fade into the card starts lower (65%); the water swatch shows underneath while a still loads. `tests/scenery.test.mjs` requires a still on disk for every reserve; docs/tank-design.md's checklist gains the step (frame the hero animal, not the resting view).
 
 ### Performance (dev_17)
 

@@ -15,7 +15,7 @@ Status labels:
 
 ### Reserve selector and the descent
 
-Status: `Current in development` in `v0.35.0-dev_17` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on #153. Landing → selector → loading screen → tank, with a bottom-left button back to the selector.
+Status: `Current in development` in `v0.35.0-dev_18` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on #153. Landing → selector → loading screen → tank, with a bottom-left button back to the selector.
 
 Subtasks:
 - [x] Selector, loading screen (files / building / error + retry), bottom-left Tanks button; old tank list removed.
@@ -30,7 +30,8 @@ Subtasks:
 - [ ] Device check: phone portrait/landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll.
 - [ ] Decide whether the speculative budget should cover a whole second tank (today about four files per visit).
 - [x] Render only the on-screen window of the 16:9 stage (dev_17): about 4× fewer fragments on a portrait phone, same picture.
-- [ ] Phone frame rate at The Reefs and The Open Sea after dev_17 (Jeremy measured under 24 fps before it). `Next`
+- [x] Card preview stills (dev_18), screenshots chosen over sprite scenes after an A/B.
+- [x] Phone frame rate after dev_17 (Jeremy, 2026-10-23: "much smoother now, reef is fine").
 
 ### Budgeted environment-loading infrastructure
 

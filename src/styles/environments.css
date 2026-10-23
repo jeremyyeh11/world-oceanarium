@@ -138,8 +138,9 @@
 .environment-card-swatch {
   position: relative;
   display: block;
-  height: clamp(5.5rem, 18vw, 8rem);
-  background: var(--environment-swatch);
+  /* The preview stills are cropped to this ratio (docs/tank-design.md). */
+  aspect-ratio: 16 / 7;
+  background: var(--environment-preview, none) center / cover no-repeat, var(--environment-swatch);
   transition: filter 220ms ease;
 }
 
@@ -149,7 +150,7 @@
   inset: 0;
   background:
     var(--crt-scanlines-soft),
-    linear-gradient(180deg, transparent 40%, var(--crt-hull) 100%);
+    linear-gradient(180deg, transparent 65%, var(--crt-hull) 100%);
 }
 
 .environment-card:hover .environment-card-swatch,

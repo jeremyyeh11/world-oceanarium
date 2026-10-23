@@ -12,8 +12,8 @@ function prefersReducedMotion() {
 }
 
 // The tank's own water, as a swatch: its art-directed background stops when it has
-// them, else the biome colour fading to the void. Gives each card a sense of the
-// place without loading a single asset.
+// them, else the biome colour fading to the void. Sits under the card's preview still
+// (`cardImage`) while it loads, and stands in for one a reserve does not have yet.
 function swatchFor(tank, biome) {
   const stops = tank.lighting?.backgroundStops
   if (stops?.length) {
@@ -95,7 +95,10 @@ export default function EnvironmentSelector({ tanks, biomesById, speciesCountByT
                 type="button"
                 data-tank-id={tank.id}
                 className={`environment-card crt-panel${pickedId === tank.id ? ' is-picked' : ''}`}
-                style={{ '--environment-swatch': swatchFor(tank, biomesById.get(tank.biome)) }}
+                style={{
+                  '--environment-swatch': swatchFor(tank, biomesById.get(tank.biome)),
+                  '--environment-preview': tank.cardImage ? `url(${tank.cardImage})` : 'none',
+                }}
                 disabled={Boolean(pickedId)}
                 onClick={() => pick(tank.id)}
               >

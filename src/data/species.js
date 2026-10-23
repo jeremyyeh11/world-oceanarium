@@ -73,6 +73,9 @@ export const TANKS = [
     // on its selector card (utils/reserveDepth.js). Without it the zone's range is used.
     // Open water: the whole sunlight zone.
     depthMeters: [0, 200],
+    // The selector card's preview: a 16:7 still of the reserve, framed on its hero animal
+    // (docs/tank-design.md, New reserve checklist). The whale shark with its remoras.
+    cardImage: '/reserves/open-sea.webp',
     // The loading descent's standees (docs/tank-design.md, Descent scenery). Open water has
     // no seabed, so nothing stands on the floor. Zigzag down the line: a mahi-mahi pair near
     // the surface on the right (they keep to the top 85 m), a sardinella school balled up on
@@ -125,6 +128,8 @@ export const TANKS = [
     // A shallow sunlit reef, rounded to 10 m (Jeremy, 2026-10-23). The scene as drawn agrees:
     // sand at y -24 under the surface at y 4.6 is 28.6 WU, about 7 m (8 m in the troughs).
     depthMeters: [0, 10],
+    // The selector card's preview: the giant sunfish over the reef with the pilot fish.
+    cardImage: '/reserves/the-reefs.webp',
     // The loading descent's standees (docs/tank-design.md, Descent scenery): pixel cut-outs
     // around the guideline, placed by depth (m, or 'floor'), lit as the diver passes.
     // Composed, not scattered: the signature species zigzag down the line (bannerfish left,

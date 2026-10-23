@@ -50,11 +50,14 @@ Blender contract for Jeremy's model (proposed):
 - `COLOR_0` white. `COLOR_1`: `R` 0 along the body's flat centre (about the width of the
   head) rising to 1 at the wingtips; `G` 0 at the wing's leading edge to 1 at its
   trailing edge; `B` 0 at the tail root to 1 at its tip.
-- Painting: Blender's vertex paint can't paint one channel of an attribute on its own, so
-  Jeremy paints three colour attributes, `red`, `green` and `blue`, each black to white
-  (2026-10-24). Intake packs their brightness into `COLOR_1`'s R, G and B, adds a white
-  `COLOR_0`, and exports the GLB. Send the `.blend`, or a GLB exported with all colour
-  attributes (the exporter's default keeps only one).
+- Painting: the masks are pure geometry, so intake computes them instead of Jeremy painting
+  them: `scripts/paint-disc-wave-masks.py` (headless Blender) paints R as a linear ramp from
+  the head's width to the wingtip, G from each station's leading to trailing edge, and B
+  along the tail. It also scales the disc to 1.3 m, centres the origin, writes a white
+  `COLOR_0` with the masks as `COLOR_1`, and exports. Check the result with the local paint
+  viewer. (Blender's vertex paint can't paint one channel alone; hand-painted layers would
+  need packing, and his first paint ramped the wing to 1 by mid-span, which moves the outer
+  wing as a rigid plate instead of bending it.)
 - Purplish-grey to brown above with dark bands across the top of the mouth; white below,
   often with dusky wingtips. Opaque texture, 2048 px or less.
 

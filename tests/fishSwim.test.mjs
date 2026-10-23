@@ -30,6 +30,7 @@ import {
   schoolFormationOffset,
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
+  schoolPositionCorrection,
   soloAgentReachedDistance,
   shapeDirectionForBoundaryContacts,
   shapeSoloAgentSteeringDesired,
@@ -889,7 +890,7 @@ console.log('fish swim tests passed')
 const ray = { id: '464', species: 'mobula-munkiana', depthZone: 'epipelagic', size: 0.85 }
 const raySwim = resolveSwimProfile(ray)
 const rayBounds = swimBounds(ray.depthZone, raySwim, ray.size)
-const rayWidth = raySwim.bodyLengthWU * ray.size
+const rayWidth = raySwim.bodyLengthWU * ray.size * raySwim.schoolFormation.spacingScale
 assert.equal(raySwim.burstEnabled, false)
 assert.equal(raySwim.turnSpeedupEnabled, false)
 for (let visit = 0; visit < 40; visit += 1) {
@@ -923,3 +924,10 @@ for (let visit = 0; visit < 40; visit += 1) {
   releaseSchoolState(school.id, state)
 }
 console.log('ray school spawn: 40 visits, 60 slots each; bounds and pairwise wing clearance passed')
+
+// Comfortable position band: no continual station tug, then an eased return.
+assert.equal(schoolPositionCorrection(0.7, 4, raySwim.schoolFormation), 0)
+assert.equal(schoolPositionCorrection(0.8, 4, raySwim.schoolFormation), 0)
+const bandCorrection = schoolPositionCorrection(1.3, 4, raySwim.schoolFormation)
+assert.ok(bandCorrection > 0 && bandCorrection < schoolPositionCorrection(1.8, 4, raySwim.schoolFormation))
+assert.equal(schoolPositionCorrection(1, 4, {}), 1, 'legacy profiles retain their correction')

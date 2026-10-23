@@ -3355,26 +3355,31 @@ export const SPECIES = [
     adultLengthRangeMeters: [1.0, 1.3],
     maxBodyLengthMeters: 1.3,
     swim: {
-      // Starting values until the model and the disc-wave motion land: a steady cruiser that
-      // flies in a school, never hovers, and turns in broad banked arcs.
+      // A steady cruiser that flies in a school, never hovers, and turns in broad arcs.
       visualTimeScale: 0.6,
       driftEnabled: false,
       // A calm cruising school: no scheduled surge, nor acceleration on a turn.
       burstEnabled: false,
       turnSpeedupEnabled: false,
       schoolSoftWallBodyLengths: 0.5,
-      schoolFormationWeight: 0.22,
-      schoolStationGain: 0.1,
-      schoolStationSpeedRange: [0.9, 1.1],
-      schoolMigrationSmoothing: 0.45,
-      // An organic 3D cloud, sampled once with clearance for full-size wings and
-      // opposite beat phases. No rows or layers; same slots at spawn and in flight.
+      schoolFormationWeight: 0.75,
+      schoolGoalReachedBodyLengths: 1,
+      schoolStationGain: 0.2,
+      schoolStationSpeedRange: [0.8, 1.2],
+      schoolTurnRateScale: 0.4,
+      // Seeded continuous 3D references, with 15% closer spacing after review. Fish
+      // drift freely within 0.2 disc widths, easing back across the 0.2-0.45 band.
+      // Neighbour separation has its own comfortable range, not an exact distance.
       schoolFormation: {
-        radiusBodyLengths: 2.45,
-        heightBodyLengths: 1.15,
-        lateralBodyLengths: 1.12,
-        longitudinalBodyLengths: 0.9,
-        verticalBodyLengths: 0.5,
+        spacingScale: 0.85,
+        positionToleranceBodyLengths: [0.2, 0.45],
+        separationStart: 1.2,
+        driftStrength: 0.75,
+        radiusBodyLengths: 3.2,
+        heightBodyLengths: 1.4,
+        lateralBodyLengths: 1.35,
+        longitudinalBodyLengths: 1.05,
+        verticalBodyLengths: 0.6,
       },
       idleBLPerSec: [0.5, 0.9],
       idleDriftBLPerSec: [0.12, 0.25],
@@ -3382,32 +3387,30 @@ export const SPECIES = [
       burstBLPerSec: [2.5, 3.5],
       burstInterval: [14.0, 28.0],
       erraticness: 0.08,
-      turnRadiusBodyLengths: 2.5,
+      turnRadiusBodyLengths: 1.2,
       // 1 WU = 25 cm: 130 cm disc width = 5.2 WU.
       bodyLengthWU: 5.2,
-      // The Shallows' swim volume (landscapes.js shallows, SHALLOWS_VIEW): the upper half of the
-      // bay, from 12 WU over the sand (y -28) to under a metre below the surface (y 4.6), so the
-      // school flies above the camera (y -24), and 22–69 WU in front of it (z 24). The Z bounds
-      // are offset by -15 in fishSwim.js, so -30/17 is z -45 to 2. A box ±15 WU wide, so the
-      // school keeps crossing the middle strip a 375 px phone sees. 40 s samples of 10+ rays in
-      // that strip: ±26 62%, ±20 100% then 60% on a second run (the school's path varies); desktop
-      // kept all 60 in frame throughout.
+      // Room for the full school plus its broad turning circle, above the sand and
+      // the low camera. Z is offset by -15 in fishSwim.js: -44/31 becomes -59/16.
+      // Goals reserve the cloud extent, free-drift band and turning radius so the
+      // outer animals do not compress against walls. Portrait framing needs review.
       boundsUseSpeciesSize: false,
-      boundsHalfX: 15,
+      boundsHalfX: 40,
       boundsYMin: -16,
       boundsYMax: 1,
-      boundsZMin: -30,
-      boundsZMax: 17,
+      boundsZMin: -44,
+      boundsZMax: 31,
       // The school's slots are spaced for sardinella (about 1 WU); a 4 WU ray needs about 3.5
       // times the room, or 60 of them pack into a ball of overlapping wings.
       schoolSpacingScale: 3.5,
       boids: {
-        neighborCap: 6,
+        neighborCap: 16,
+        perceptionMax: 12,
         perceptionBodyLengths: 3.0,
-        separationWeight: 0.35,
-        alignmentWeight: 0.4,
-        cohesionWeight: 0.2,
-        maxWeight: 0.45,
+        separationWeight: 3.0,
+        alignmentWeight: 0.2,
+        cohesionWeight: 0,
+        maxWeight: 0.9,
         menace: 0,
         wariness: 0.4,
       },

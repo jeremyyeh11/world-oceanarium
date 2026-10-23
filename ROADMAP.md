@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: `Current in development` (`v0.36.0-dev_5`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
+Status: `Current in development` (`v0.36.0-dev_6`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
@@ -29,12 +29,13 @@ Subtasks:
 - [x] `dev_4` review fixes (Jeremy, 2026-10-24): stronger surface variation (noise 0.65; brightness 0.65-1.3, saturation 0.6-1.25, warmth +/-0.08), stable per-ray wingbeat rate 0.78-1.22 from its own stream, and bursts plus turn-triggered speed boosts disabled. Formation correction is gentler (weight 0.22, speed 0.9-1.1, migration response 0.45).
 - [x] Body-clearance startup: a deterministic continuous 3D cloud, one set of slots per school, inset before spawning and aligned to the first migration heading; no per-member wall collapse or crossing to mirrored slots. 40 visit seeds with 60 maximum-size rays pass finite/bounds/pairwise ellipsoid-clearance checks and have no shared height layers or lateral columns. Other species retain their existing school formation.
 - [x] `dev_5`: replace the embedded `top` material texture with Jeremy's supplied darker dorsal photo (`mexican-fish (3).jpg`), full resolution as quality-94 JPEG; all other asset buffers and material/scene definitions verified unchanged.
-- [ ] Jeremy: review `dev_5` dorsal texture plus dev_4 individual beat rates, organic fresh spawn and calm cruising; physical-phone FPS still unmeasured.
+- [x] `dev_6`: sustained spacing and organic drift. Centred cloud references keep their initial frame through turns, common goals reserve the full cloud plus turning room, and anisotropic neighbour separation keeps wings apart. Spacing reduced 15% after review; correction is quiet inside 0.2 disc widths and eases in over 0.2-0.45 widths, with slow personal drift and pace variation. Five ten-minute runs of the actual Fish.jsx movement frame retain 3D spread without tight-pair clusters or boundary contact; 40 maximum-size spawn seeds pass. Renderless checks omit landscape obstacles/GPU animation.
+- [ ] Jeremy: review `dev_6` spacing tolerance, irregular positions and sustained turns, plus dorsal texture and individual beat rates; physical-phone FPS still unmeasured.
 - [ ] Belly colour: from below (the resting camera's view) the rays read dark blue-grey; Munk's devil ray is white underneath. Jeremy's `bottom` texture.
 - [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
 - [x] Reserve The Shallows (`v0.36.0-dev_1`): `the-shallows` in `TANKS`, landscape `shallows`, 0–10 m, low camera tilted about 22° up (`SHALLOWS_VIEW`), greener water, light shafts, a dark boulder cluster on the left, card still, descent with a new `devil-ray` sprite. Leaping out of the water deferred.
-- [x] Phone framing: swim box ±15 WU (dev_2); two 42 s samples kept 10+ rays in a 375 px phone's middle strip 100% and 90% of the time. Steering the school's goal toward the centre would close the remaining gaps.
+- [ ] Recheck portrait framing after `dev_6`: the full formation and broad turns now use x +/-40, y -16 to 1, z -59 to 16 WU. The old dev_2 phone samples used a narrower volume and no longer validate this composition.
 - [x] 60 rays in `creatures_dev` (ids 464–523; prod max was 463, so next free id is 524). Atlas tile and card retaken with Jeremy's model (dev_2).
 - [ ] Jeremy: review dev_2 on a phone (card, descent, the school, the wingbeat).
 - [ ] Composition on a portrait phone: the school sits in the lower half and the top half is plain bright water.

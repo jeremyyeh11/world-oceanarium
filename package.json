@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test": "node tests/speciesData.test.mjs && node tests/creatureMoments.test.mjs && node tests/fishSwim.test.mjs && node tests/fishRide.test.mjs && node tests/fishMaterialPass.test.mjs && node tests/rockObstacles.test.mjs && node tests/environmentLoader.test.mjs && node tests/attentionOrder.test.mjs && node tests/reserveDepth.test.mjs && node tests/scenery.test.mjs",
+    "test": "node tests/speciesData.test.mjs && node tests/creatureMoments.test.mjs && node tests/fishSwim.test.mjs && node tests/fishRide.test.mjs && node tests/fishMaterialPass.test.mjs && node tests/rockObstacles.test.mjs && node tests/environmentLoader.test.mjs && node tests/attentionOrder.test.mjs && node tests/reserveDepth.test.mjs && node tests/scenery.test.mjs && node scripts/inspect-ray-school.mjs 180 2 --verify",
+    "verify:ray-school": "node scripts/inspect-ray-school.mjs 600 2 --verify",
     "verify:procedural-fish-assets": "node scripts/verify-procedural-docs.mjs && node scripts/inspect-procedural-targets.mjs",
     "backup:creatures": "node scripts/backup-supabase-creatures.mjs"
   },

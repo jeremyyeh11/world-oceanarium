@@ -102,6 +102,7 @@ import {
   schoolAlarmAt,
   setFishReefHold,
   schoolFormationOffset,
+  schoolPositionCorrection,
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   separatePair,
@@ -2746,7 +2747,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
     // An alarmed fish does not settle into a slow glide.
     const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current && schoolAlarm < SCHOOL_ALARM_FLINCH_LEVEL
-    let targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
+    const individualPace = swim.schoolFormation
+      ? 1 + organicNoise.current.longitudinal * (swim.schoolFormation.driftStrength ?? 0)
+      : 1
+    let targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity * individualPace)
     const escaping = now < startleUntil.current
     let velocityResponse = isActionMoveActive ? (escaping ? THREAT_STARTLE_VELOCITY_RESPONSE : 8) : (isDrifting ? 1.2 : 2.4)
     if (riding) {
@@ -3234,12 +3238,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // goal once the group's centroid reaches it.
           if (isSchoolLeader) {
             advanceSchoolAlarms(schoolState, delta)
-            let cx = 0, cy = 0, cz = 0, cn = 0
+            let cx = 0, cy = 0, cz = 0, cn = 0, fx = 0, fz = 0
             forEachFish(entry => {
-              if (entry.schoolId === school.id) { cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1 }
+              if (entry.schoolId === school.id) {
+                cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1
+                fx += entry.forward.x; fz += entry.forward.z
+              }
             })
             if (cn > 0) schoolState.centroid.set(cx / cn, cy / cn, cz / cn)
-            const reached = Math.max(bodyLength * SCHOOL_GOAL_REACHED_BODY_LENGTHS, SCHOOL_GOAL_REACHED_MIN)
+            if (swim.schoolFormation && fx * fx + fz * fz > 1e-6) {
+              nextPoint.set(fx, 0, fz).normalize()
+              schoolState.travelDir.copy(nextPoint)
+            }
+            const reached = Math.max(bodyLength * (swim.schoolGoalReachedBodyLengths ?? SCHOOL_GOAL_REACHED_BODY_LENGTHS), SCHOOL_GOAL_REACHED_MIN)
             if (schoolState.centroid.distanceTo(schoolState.goal) <= reached) {
               const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
               pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
@@ -3262,19 +3273,27 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               // extra band kept the school out of the front of the tank (8.7 WU of its 23 WU depth
               // to roam, against 14.4 before).
               const horizontalFit = schoolFormationHorizontalHalfExtent(school, creature)
-              const gz = Math.min(Math.max(gm, horizontalFit), (bounds.zMax - bounds.zMin) * 0.5)
+              const turnRoom = swim.schoolFormation
+                ? (species.swim.bodyLengthWU * species.sizeRange[1] * swim.turnRadiusBodyLengths / swim.schoolTurnRateScale) + schoolSoftWall
+                : 0
+              const gz = Math.min(Math.max(gm, horizontalFit + turnRoom), (bounds.zMax - bounds.zMin) * 0.5)
               schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, bounds.zMin + gz, bounds.zMax - gz)
               const goalHalfX = swimXRangeAtZ(bounds, schoolState.goal.z).xMax
-              const gx = Math.min(Math.max(gm, horizontalFit), goalHalfX)
+              const gx = Math.min(Math.max(gm, horizontalFit + turnRoom), goalHalfX)
               schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, -goalHalfX + gx, goalHalfX - gx)
             }
-            // Shared direction (goal - centroid), identical for every member, low-pass filtered so
-            // frame-to-frame goal jitter doesn't accumulate into a constant turn.
+            // Shared direction, identical for every member. The ray's goal turns more
+            // slowly than its members can follow; other schools retain their smoothing.
             nextPoint.subVectors(schoolState.goal, schoolState.centroid)
+            if (swim.schoolFormation) nextPoint.y = 0
             if (nextPoint.lengthSq() > 1e-6) {
               nextPoint.normalize()
               if (schoolState.migrationDir.lengthSq() < 1e-6) schoolState.migrationDir.copy(nextPoint)
-              else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * (swim.schoolMigrationSmoothing ?? SCHOOL_MIGRATION_SMOOTH)))
+              else if (swim.schoolFormation) {
+                const referenceLength = species.swim.bodyLengthWU * species.sizeRange[1]
+                const turn = maxTurnRadiansForSpeed(swim, referenceLength, velocity.current, delta) * swim.schoolTurnRateScale
+                yawToward(schoolState.migrationDir, nextPoint, turn, schoolState.seed & 1 ? 1 : -1)
+              } else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * SCHOOL_MIGRATION_SMOOTH))
               if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
               else schoolState.migrationDir.copy(nextPoint)
             } else if (schoolState.migrationDir.lengthSq() < 1e-6) {
@@ -3289,10 +3308,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             if (schoolFollowDirection.lengthSq() > 1e-6) schoolFollowDirection.normalize()
             else schoolFollowDirection.set(0, 0, -1)
           }
-          // This member's formation slot, placed in the travel frame around the school centroid
-          // (right = perpendicular to heading in XZ, up = world Y). Anchoring the shape here means
-          // a single-file line is no longer an equilibrium, so the ball keeps its width.
-          const hx = schoolFollowDirection.x, hz = schoolFollowDirection.z
+          // Cloud references keep their initial ground-plane frame: rotating them ahead
+          // of a turn makes members cross each other's positions. Legacy schools keep
+          // their travel frame. Both are centred on the live school centroid.
+          const formationHeading = swim.schoolFormation ? schoolState.formationDir : schoolFollowDirection
+          const hx = formationHeading.x, hz = formationHeading.z
           // An alarmed school packs tighter around its centre.
           const packing = 1 - SCHOOL_ALARM_COMPACTION * schoolAlarm
           schoolBasePosition.copy(schoolState.centroid)
@@ -3309,8 +3329,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const roomZ = slotZ > 0
             ? bounds.zMax - schoolSoftWall - schoolState.centroid.z
             : schoolState.centroid.z - (bounds.zMin + schoolSoftWall)
-          schoolBasePosition.x += slotX * THREE.MathUtils.clamp(roomX / horizontalReach, 0, 1)
-          schoolBasePosition.z += slotZ * THREE.MathUtils.clamp(roomZ / horizontalReach, 0, 1)
+          if (swim.schoolFormation) {
+            // Retain the cloud's full size. Move its anchor inside the bounds instead of
+            // compressing each animal's slot into a row near a wall.
+            const mx = Math.min(horizontalReach + schoolSoftWall, centroidHalfX)
+            const mz = Math.min(horizontalReach + schoolSoftWall, (bounds.zMax - bounds.zMin) * 0.5)
+            schoolBasePosition.x = THREE.MathUtils.clamp(schoolBasePosition.x, -centroidHalfX + mx, centroidHalfX - mx) + slotX
+            schoolBasePosition.z = THREE.MathUtils.clamp(schoolBasePosition.z, bounds.zMin + mz, bounds.zMax - mz) + slotZ
+          } else {
+            schoolBasePosition.x += slotX * THREE.MathUtils.clamp(roomX / horizontalReach, 0, 1)
+            schoolBasePosition.z += slotZ * THREE.MathUtils.clamp(roomZ / horizontalReach, 0, 1)
+          }
           // Vertically the formation compresses to keep out of the soft-wall band, in proportion to
           // the room left, rather than clamping slots against the bound: the school squashes toward
           // a bound but its layers never collapse into one.
@@ -3319,10 +3348,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             ? bounds.yMax - schoolSoftWall - schoolState.centroid.y
             : schoolState.centroid.y - (bounds.yMin + schoolSoftWall)
           const verticalReach = Math.max(0.001, schoolFormationVerticalHalfExtent(school, creature) * packing)
-          schoolBasePosition.y += verticalOffset * THREE.MathUtils.clamp(verticalRoom / verticalReach, 0, 1)
+          if (swim.schoolFormation) schoolBasePosition.y = schoolState.center.y + verticalOffset
+          else schoolBasePosition.y += verticalOffset * THREE.MathUtils.clamp(verticalRoom / verticalReach, 0, 1)
           // Front-back error to the slot along the travel direction; next frame's cruise speed
           // closes it (see SCHOOL_STATION_GAIN).
-          stationError.current = (schoolBasePosition.x - fish.position.x) * hx + (schoolBasePosition.z - fish.position.z) * hz
+          const stationHx = swim.schoolFormation ? schoolState.travelDir.x : hx
+          const stationHz = swim.schoolFormation ? schoolState.travelDir.z : hz
+          stationError.current = (schoolBasePosition.x - fish.position.x) * stationHx + (schoolBasePosition.z - fish.position.z) * stationHz
+          if (swim.schoolFormation) {
+            stationError.current *= schoolPositionCorrection(Math.abs(stationError.current), bodyLength, swim.schoolFormation)
+          }
           // Desired heading = migration urge + pull toward the formation slot. The slot pull is
           // scaled down for tiny schools: with only a couple of members the slots sit right beside
           // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
@@ -3333,7 +3368,25 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
           targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
           if (targetDesiredDirection.lengthSq() > 1e-6) {
-            agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), formationWeight)
+            if (swim.schoolFormation) {
+              // Front/back station errors are closed by speed, not a backwards turn.
+              // Lateral/height correction eases to zero on arrival instead of seeking
+              // at full strength on either side of a slot.
+              const along = targetDesiredDirection.x * stationHx + targetDesiredDirection.z * stationHz
+              targetDesiredDirection.x -= stationHx * along
+              targetDesiredDirection.z -= stationHz * along
+              const correction = schoolPositionCorrection(targetDesiredDirection.length(), bodyLength, swim.schoolFormation)
+              targetDesiredDirection.multiplyScalar(correction / Math.max(0.001, bodyLength)).clampLength(0, 1)
+              agentMoveDirection.addScaledVector(targetDesiredDirection, formationWeight)
+            } else agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), formationWeight)
+          }
+          if (swim.schoolFormation) {
+            // Existing continuously damped personal noise supplies small independent
+            // changes inside the tolerance, rather than animating a target or a grid.
+            const drift = swim.schoolFormation.driftStrength ?? 0
+            agentMoveDirection.x += organicNoise.current.lateral * stationHz * drift
+            agentMoveDirection.y += organicNoise.current.vertical * drift
+            agentMoveDirection.z -= organicNoise.current.lateral * stationHx * drift
           }
           if (agentMoveDirection.lengthSq() < 1e-6) agentMoveDirection.copy(schoolFollowDirection)
           agentMoveDirection.normalize()
@@ -3474,7 +3527,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
 
         // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
-        const forwardSpeed = velocity.current * authoredSpeedScale * organicMotion.speedScale
+        // Cloud members vary pace smoothly above; a permanent personal speed bias
+        // would continually fight their spacing correction.
+        const forwardSpeed = velocity.current * authoredSpeedScale * (swim.schoolFormation ? 1 : organicMotion.speedScale)
         registrySpeed = forwardSpeed
         const openWaterTurnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
         let turnStep = openWaterTurnStep

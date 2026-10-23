@@ -102,9 +102,9 @@ export const TANKS = [
     description: 'A sheltered reef where angelfish, bannerfish and triggerfish keep house, and a giant sunfish comes in from the blue to be cleaned.',
     biome: 'ocean',
     depthZone: 'epipelagic',
-    // A sunlit reef (Jeremy, 2026-10-23: 0–30 m). The scene as drawn is shallower: sand at
-    // y -24 under the surface at y 4.6 is 28.6 WU, about 7 m (8 m in the troughs).
-    depthMeters: [0, 30],
+    // A shallow sunlit reef, rounded to 10 m (Jeremy, 2026-10-23). The scene as drawn agrees:
+    // sand at y -24 under the surface at y 4.6 is 28.6 WU, about 7 m (8 m in the troughs).
+    depthMeters: [0, 10],
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.

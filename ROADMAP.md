@@ -24,7 +24,7 @@ Subtasks:
 - [x] Public copy says reserves (UI only); opaque landing gate; the descent (diver on a guideline) for the landing dive and each reserve's loading screen.
 - [x] Per-reserve depth range (`depthMeters`) for the descent scale and selector card; new reserve checklist in docs/tank-design.md.
 - [ ] Descent scenery (spec in docs/tank-design.md): The Reefs' signature species (bannerfish, emperor angelfish) and habitat standees (ledges, table coral, staghorn), placed by depth, lit as the diver passes; Open Sea stays bare. Sprites reviewed at 12× before wiring.
-- [ ] Decide The Reefs' depth: 0–30 m (set) against the drawn scene's ~7 m.
+- [x] The Reefs' depth: 0–10 m (dev_9), matching the drawn scene's ~7 m.
 - [ ] Refine the descent with Jeremy (sprite, copy: "Into the blue").
 - [ ] Device check: phone portrait/landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll.
 - [ ] Decide whether the speculative budget should cover a whole second tank (today about four files per visit).

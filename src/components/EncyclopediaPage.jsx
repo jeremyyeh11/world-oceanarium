@@ -889,7 +889,7 @@ export default function EncyclopediaPage({ initialSpeciesId, mobileListFirst = f
           <AtlasTableSection
             title="Averages"
             rows={[
-              { label: atlasDetails.averages?.sizeLabel ?? 'Size', value: <SexPair male={atlasDetails.averages?.maleSizeMeters} female={atlasDetails.averages?.femaleSizeMeters} formatter={formatSexLength} /> },
+              { label: 'Size', value: <SexPair male={atlasDetails.averages?.maleSizeMeters} female={atlasDetails.averages?.femaleSizeMeters} formatter={formatSexLength} /> },
               { label: 'Weight', value: <SexPair male={atlasDetails.averages?.maleWeightKg} female={atlasDetails.averages?.femaleWeightKg} formatter={formatWeight} /> },
               { label: 'Life expectancy', value: <SexPair male={atlasDetails.averages?.maleLifeExpectancyYears} female={atlasDetails.averages?.femaleLifeExpectancyYears} formatter={formatYears} /> },
             ]}
@@ -898,11 +898,8 @@ export default function EncyclopediaPage({ initialSpeciesId, mobileListFirst = f
             title="Lifecycle"
             rows={[
               { label: 'Age of sexual maturity', value: formatYears(atlasDetails.lifecycle?.sexualMaturityYears) },
-              ...(atlasDetails.lifecycle?.sexualMaturitySize ? [{ label: 'Size at sexual maturity', value: atlasDetails.lifecycle.sexualMaturitySize }] : []),
               { label: 'Age of sexual sterility', value: formatYears(atlasDetails.lifecycle?.sexualSterilityYears) },
               { label: 'No. of offspring/eggs per mating event', value: formatOffspring(atlasDetails.lifecycle?.offspringPerMatingEvent) },
-              ...(atlasDetails.lifecycle?.gestation ? [{ label: 'Gestation', value: atlasDetails.lifecycle.gestation }] : []),
-              ...(atlasDetails.lifecycle?.birthSize ? [{ label: 'Size at birth', value: atlasDetails.lifecycle.birthSize }] : []),
             ]}
           />
         </div>

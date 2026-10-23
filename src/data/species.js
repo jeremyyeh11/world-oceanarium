@@ -3323,13 +3323,12 @@ export const SPECIES = [
         groupingBehaviour: 'Alone, in small groups or in schools of many thousands, common in the southern Gulf of California and around the tip of Baja. Rays leap clear of the water one after another, which earned them the name "popcorn rays"; the leaps may be courtship. Juveniles have been seen feeding in the breaking waves of the surf zone.',
         // Palacios et al. 2021: gestation is inferred from a similar pygmy devil ray,
         // not measured for this species. April–June mating/pupping in La Paz Bay.
-        reproduction: 'Bears one live pup per litter. Mating and pupping occur from April to June in La Paz Bay, in the southern Gulf of California. Gestation is thought to last 10–12 months, inferred from a related pygmy devil ray. Young use sheltered shallow bays as nurseries.',
+        reproduction: 'Males mature at about 95 cm disc width, females at 95–105 cm; age at maturity is unknown. Bears one live pup per litter, estimated at 35–42 cm across at birth. Mating and pupping occur from April to June in La Paz Bay, in the southern Gulf of California. Gestation is thought to last 10–12 months, inferred from a related pygmy devil ray. Young use sheltered shallow bays as nurseries.',
       },
       averages: {
         // Serrano-López et al. 2021, section 3.2: Gulf of California catch,
         // 86 males / 60 females, mixed maturity stages. These are sample means,
         // not adult asymptotes or a claim that females grow smaller.
-        sizeLabel: 'Disc width (sample mean)',
         maleSizeMeters: 0.93,
         femaleSizeMeters: 0.90,
         maleWeightKg: 'Average not established',
@@ -3341,12 +3340,8 @@ export const SPECIES = [
         // Serrano-López et al. 2021: male L50 95.24 cm; females 95–105 cm.
         // No species-specific age data; do not substitute M. mobular's ages.
         sexualMaturityYears: 'Not established',
-        sexualMaturitySize: 'Males about 95 cm; females 95–105 cm disc width',
         sexualSterilityYears: 'Not documented',
         offspringPerMatingEvent: '1 pup per litter',
-        // Palacios et al. 2021: both figures inferred, explicitly labelled.
-        gestation: 'About 10–12 months (inferred from a related species)',
-        birthSize: 'About 35–42 cm disc width (estimated)',
       },
     },
     atlasSummary: {

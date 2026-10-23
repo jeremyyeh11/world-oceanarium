@@ -13,6 +13,8 @@ import {
   creatureBodyLength,
   forEachFish,
   getFishEntry,
+  getSchoolState,
+  releaseSchoolState,
   glideAlongCeiling,
   glideAlongWalls,
   horizontalBoundRepulsion,
@@ -28,6 +30,7 @@ import {
   schoolFormationOffset,
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
+  schoolPositionCorrection,
   soloAgentReachedDistance,
   shapeDirectionForBoundaryContacts,
   shapeSoloAgentSteeringDesired,
@@ -881,3 +884,50 @@ withRegistry([], () => {
 assert.equal(SWIM_BOX.z, 7.4, 'the swim box depth is unchanged by the extraction')
 
 console.log('fish swim tests passed')
+
+// Wide-winged school startup: every animal must fit without collapsing rows against a wall.
+// Exercise many visit seeds and every pair at the maximum tank size, in the shared travel frame.
+const ray = { id: '464', species: 'mobula-munkiana', depthZone: 'epipelagic', size: 0.85 }
+const raySwim = resolveSwimProfile(ray)
+const rayBounds = swimBounds(ray.depthZone, raySwim, ray.size)
+const rayWidth = raySwim.bodyLengthWU * ray.size * raySwim.schoolFormation.spacingScale
+assert.equal(raySwim.burstEnabled, false)
+assert.equal(raySwim.turnSpeedupEnabled, false)
+for (let visit = 0; visit < 40; visit += 1) {
+  const school = { id: `ray-spawn-${visit}`, count: 60, index: 0 }
+  const state = getSchoolState(school, ray, raySwim)
+  const slots = []
+  for (let index = 0; index < school.count; index += 1) {
+    const slot = schoolFormationOffset({ ...school, index }, { ...ray, id: String(464 + index) })
+    const heading = state.migrationDir
+    const position = state.center.clone().add(new THREE.Vector3(
+      heading.z * slot.lateral + heading.x * slot.longitudinal,
+      slot.vertical,
+      -heading.x * slot.lateral + heading.z * slot.longitudinal,
+    ))
+    assert.ok(position.toArray().every(Number.isFinite), 'spawn coordinates are finite')
+    assert.ok(position.distanceTo(clampToSwimBounds(position.clone(), rayBounds)) < 1e-9, 'no slot needs a boundary clamp')
+    assert.ok(Math.hypot(slot.lateral, slot.longitudinal) <= schoolFormationHorizontalHalfExtent(school, ray) + 1e-9)
+    assert.ok(Math.abs(slot.vertical) <= schoolFormationVerticalHalfExtent(school, ray) + 1e-9)
+    for (const other of slots) {
+      assert.ok(
+        ((slot.lateral - other.lateral) / (rayWidth * raySwim.schoolFormation.lateralBodyLengths)) ** 2 +
+        ((slot.longitudinal - other.longitudinal) / (rayWidth * raySwim.schoolFormation.longitudinalBodyLengths)) ** 2 +
+        ((slot.vertical - other.vertical) / (rayWidth * raySwim.schoolFormation.verticalBodyLengths)) ** 2 >= 1 - 1e-9,
+        'the anisotropic wing-clearance envelopes do not overlap',
+      )
+    }
+    slots.push(slot)
+  }
+  assert.equal(new Set(slots.map(slot => slot.vertical.toFixed(5))).size, 60, 'no shared height layers')
+  assert.equal(new Set(slots.map(slot => slot.lateral.toFixed(5))).size, 60, 'no shared lateral columns')
+  releaseSchoolState(school.id, state)
+}
+console.log('ray school spawn: 40 visits, 60 slots each; bounds and pairwise wing clearance passed')
+
+// Comfortable position band: no continual station tug, then an eased return.
+assert.equal(schoolPositionCorrection(0.7, 4, raySwim.schoolFormation), 0)
+assert.equal(schoolPositionCorrection(0.8, 4, raySwim.schoolFormation), 0)
+const bandCorrection = schoolPositionCorrection(1.3, 4, raySwim.schoolFormation)
+assert.ok(bandCorrection > 0 && bandCorrection < schoolPositionCorrection(1.8, 4, raySwim.schoolFormation))
+assert.equal(schoolPositionCorrection(1, 4, {}), 1, 'legacy profiles retain their correction')

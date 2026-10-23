@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { REEFS_VIEW } from './landscapes.js'
+import { REEFS_VIEW, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -216,6 +216,66 @@ export const TANKS = [
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
     landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata'],
+  },
+  {
+    // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
+    // keep their own casts. No species repeats from another reserve.
+    id: 'the-shallows',
+    name: 'The Shallows',
+    tagline: 'Devil rays over a sunlit bay',
+    description: "A bright sand bay in the Sea of Cortez where Munk's devil rays gather in their hundreds, flying together just under the surface.",
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // A shallow bay: the sand is drawn at y -28 under the surface at y 4.6, 32.6 WU or about 8 m
+    // (9 m in the troughs), rounded to 10 m. The rays live at 0–15 m (FishBase).
+    depthMeters: [0, 10],
+    // The selector card's preview: the devil ray school against the surface.
+    cardImage: '/reserves/the-shallows.webp',
+    // The loading descent's standees (docs/tank-design.md, Descent scenery): the devil rays as
+    // one school just under the surface on the left, a straggler pair lower on the right. No
+    // seabed pieces: scenery is living things only, and the bay has no coral.
+    descent: {
+      signature: [
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true, dx: 16, dy: -6, distance: 0.25 },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true, dx: 10, dy: 9, distance: 0.35 },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true, dx: 28, dy: 2, distance: 0.5 },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 6, side: 'right' },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 6, side: 'right', dx: 14, dy: 6, distance: 0.3 },
+      ],
+    },
+    seed: 517,
+    // Bright, shallow, greener water than The Reefs (Jeremy approved the direction, 2026-10-23):
+    // the Sea of Cortez is plankton-rich, so the blue leans to green-turquoise, pale near the
+    // surface and deepening only toward the sand. Light shafts stay on.
+    lighting: {
+      envTop: '#c6ece4',
+      envHorizon: '#3c9c98',
+      envDeep: '#14525a',
+      fog: '#4a9e98',
+      hemiSky: '#cdeee6',
+      hemiGround: '#6a8a76',
+      key: '#fff3dc',
+      fill: '#3f8f94',
+      density: 0.013,
+      exposure: 1.1,
+      backgroundStops: [
+        [0, '#d2f1ea'],
+        [0.25, '#8fd6cb'],
+        [0.4, '#5bb8b0'],
+        [0.5, '#3c9c98'],
+        [0.65, '#2b7f80'],
+        [0.8, '#1f666c'],
+        [1, '#174f58'],
+      ],
+      heightFog: { low: '#4a9a94', high: '#9ee0d4', yLow: -28, yHigh: 4.6, strength: 0.8, seabedLight: 1 },
+      backgroundBeamAlpha: 0.18,
+      surfaceColor: '#b2e8dd',
+      surfaceAttenuationColor: '#7ccfc2',
+    },
+    landscape: 'shallows',
+    camera: SHALLOWS_VIEW,
+    species: ['mobula-munkiana'],
   },
 ]
 
@@ -3217,6 +3277,211 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // --- Munk's devil ray (Mobulidae) ----------------------------------------------------------
+  // Facts from FishBase, the Sharks and Rays profile, Serrano-López et al. 2021
+  // (Aquatic Conservation, Gulf of California maturity) and Palacios et al. 2021
+  // (Scientific Reports, nursery and reproductive season). A small devil ray that schools in the thousands in
+  // the southern Gulf of California and leaps clear of the water in groups. The hero school of a
+  // planned third reserve, a shallow Sea of Cortez sand bay (Jeremy, 2026-10-23; ROADMAP: Munk's
+  // Devil Ray and The Shallows). Swims in The Shallows as Jeremy's model (dev_2).
+  {
+    id: 'mobula-munkiana',
+    name: "Munk's Devil Ray",
+    scientificName: 'Mobula munkiana',
+    family: 'Mobulidae',
+    alternateNames: ["Munk's Pygmy Devil Ray", 'Popcorn Ray'],
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // "Found singly, in small groups, or in schools" (FishBase); aggregations of many thousands
+    // in the southern Gulf of California and around the tip of Baja (Sharks and Rays).
+    schooling: true,
+    repulser: false,
+    aggressive: false,
+    // Mainly planktonic crustaceans, also small schooling fishes (FishBase): a filter feeder.
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 9 November 2018 (A2d+3d); CITES Appendix II, CMS Appendices I and II. Taken in
+      // targeted fisheries in Mexico and Peru and for the gill plate trade, and easy to catch
+      // because it schools.
+      code: 'VU',
+      label: 'Vulnerable',
+    },
+    atlasDetails: {
+      biome: 'Coastal Open Water',
+      commonDiet: 'Planktonic crustaceans, above all mysid shrimps; sometimes small schooling fishes.',
+      foundIn: 'Eastern Pacific, from the Gulf of California to Peru and the Galápagos Islands, at the surface down to about 30 m.',
+      maxLengthLabel: 'Disc width',
+      sexualDimorphism: 'None described beyond the claspers of males.',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Thousands',
+        groupingBehaviour: 'Alone, in small groups or in schools of many thousands, common in the southern Gulf of California and around the tip of Baja. Rays leap clear of the water one after another, which earned them the name "popcorn rays"; the leaps may be courtship. Juveniles have been seen feeding in the breaking waves of the surf zone.',
+        // Palacios et al. 2021: gestation is inferred from a similar pygmy devil ray,
+        // not measured for this species. April–June mating/pupping in La Paz Bay.
+        reproduction: 'Bears one live pup, estimated at 35 to 42 cm across at birth. Gestation is estimated at 10 to 12 months by comparison with a related species. Mating and pupping take place from April to June in La Paz Bay, in the southern Gulf of California. Males mature at about 95 cm disc width, females at 95 to 105 cm. Young use sheltered shallow bays as nurseries.',
+      },
+      averages: {
+        // Jeremy's requested specimen-size reference, matching the 1.3 m scale
+        // (Manta Trust maximum disc width), rather than the regional catch means.
+        maleSizeMeters: '1.3 m (disc width)',
+        femaleSizeMeters: '1.3 m (disc width)',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        // Serrano-López et al. 2021: male L50 95.24 cm; females 95–105 cm.
+        // No species-specific age data; do not substitute M. mobular's ages.
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: '1 pup',
+      },
+    },
+    atlasSummary: {
+      biome: 'Coastal',
+      zone: 'Sunlight',
+      diet: 'Mysid shrimp',
+      social: 'Schooling',
+    },
+    // Rendered in The Shallows with Jeremy's model, alone in frame (dev_2, 2026-10-24).
+    atlasThumbnail: '/atlas/mobula-munkiana-thumbnail.png',
+    description: "One of the smallest devil rays, about a metre across, purplish-grey to brown above and white below, with short horn-like head fins, a small dorsal fin and a long whip of a tail with no sting. It sieves mysid shrimps and other plankton from the water in schools that can number many thousands, and groups leap clear of the surface one after another. It has a single pup at a time, and fishing for its gill plates has left it Vulnerable.",
+    // Sizes are disc width (wingtip to wingtip), the measure rays are given in. FishBase lists a
+    // 220 cm maximum from an older reference; recent papers give about 130 cm (Stewart et al.
+    // 2018, as cited in Marine Biology 2023, doi 10.1007/s00227-023-04314-0) and the Sharks and
+    // Rays profile 110 cm. The rendered adult range starts at FishBase's common
+    // width; measured maturity sizes are recorded in atlasDetails.lifecycle.
+    adultLengthRangeMeters: [1.0, 1.3],
+    maxBodyLengthMeters: 1.3,
+    swim: {
+      // A steady cruiser that flies in a school, never hovers, and turns in broad arcs.
+      visualTimeScale: 0.6,
+      driftEnabled: false,
+      // A calm cruising school: no scheduled surge, nor acceleration on a turn.
+      burstEnabled: false,
+      turnSpeedupEnabled: false,
+      schoolSoftWallBodyLengths: 0.5,
+      schoolMaxSize: 218,
+      schoolFormationWeight: 0.75,
+      schoolGoalReachedBodyLengths: 1,
+      schoolStationGain: 0.2,
+      schoolStationSpeedRange: [0.8, 1.2],
+      schoolTurnRateScale: 0.4,
+      // Seeded continuous 3D references, with 15% closer spacing after review. Fish
+      // drift freely within 0.2 disc widths, easing back across the 0.2-0.45 band.
+      // Neighbour separation has its own comfortable range, not an exact distance.
+      schoolFormation: {
+        spacingScale: 0.85,
+        referenceCount: 60,
+        radiusCountPadding: 0.14,
+        heightCountPadding: 0.03,
+        positionToleranceBodyLengths: [0.2, 0.45],
+        separationStart: 1.2,
+        driftStrength: 0.75,
+        radiusBodyLengths: 3.2,
+        heightBodyLengths: 1.4,
+        lateralBodyLengths: 1.35,
+        longitudinalBodyLengths: 1.05,
+        verticalBodyLengths: 0.6,
+      },
+      idleBLPerSec: [0.5, 0.9],
+      idleDriftBLPerSec: [0.12, 0.25],
+      snapBLPerSec: [1.4, 2.0],
+      burstBLPerSec: [2.5, 3.5],
+      burstInterval: [14.0, 28.0],
+      erraticness: 0.08,
+      turnRadiusBodyLengths: 1.2,
+      // 1 WU = 25 cm: 130 cm disc width = 5.2 WU.
+      bodyLengthWU: 5.2,
+      // Room for the full school plus its broad turning circle, above the sand and
+      // the low camera. Z is offset by -15 in fishSwim.js: -44/31 becomes -59/16.
+      // Goals reserve the cloud extent, free-drift band and turning radius so the
+      // outer animals do not compress against walls. Portrait framing needs review.
+      boundsUseSpeciesSize: false,
+      boundsHalfX: 50,
+      boundsYMin: -25,
+      boundsYMax: 3,
+      boundsZMin: -55,
+      boundsZMax: 42,
+      // The school's slots are spaced for sardinella (about 1 WU); a 4 WU ray needs about 3.5
+      // times the room, or 60 of them pack into a ball of overlapping wings.
+      schoolSpacingScale: 3.5,
+      boids: {
+        neighborCap: 16,
+        perceptionMax: 12,
+        perceptionBodyLengths: 3.0,
+        separationWeight: 3.0,
+        alignmentWeight: 0.2,
+        cohesionWeight: 0,
+        maxWeight: 0.9,
+        menace: 0,
+        wariness: 0.4,
+      },
+    },
+    // 0.65–0.85 of 130 cm = 0.85–1.1 m across (3.4–4.4 WU): the common adult, about a metre.
+    sizeRange: [0.65, 0.85],
+    // Jeremy's model (`_blender models/mobula munkiana.glb`, 2026-10-24), run through
+    // scripts/paint-disc-wave-masks.py: scaled to a 1.3 m disc (1 unit = 1 m), origin mid-disc,
+    // nose -Z, the COLOR_1 masks computed from its shape, textures as JPEG (solid alpha, so it
+    // renders opaque). One mesh in three material parts: top, bottom and the head fins' sides.
+    model: {
+      path: '/models/fish/mobula-munkiana/mobula-munkiana.glb',
+      // Individual albedo variation; noiseScale is in the model's source metres. A single
+      // seed covers all three material parts and survives tank switches/debug remounts.
+      surfaceVariation: {
+        noise: 0.65,
+        noiseScale: 3,
+        brightness: [0.65, 1.3],
+        saturation: [0.6, 1.25],
+        warmth: [-0.08, 0.08],
+      },
+      // 1 m = 4 WU, so the 1.3 m disc is the 5.2 WU body length.
+      scale: 4,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      // Mobuliform disc-wave (docs/procedural/disc-wave.md, approved 2026-10-23): the wings beat
+      // together, under one wavelength across the chord, the tips lagging the root. Lengths in
+      // source metres.
+      proceduralAnimation: {
+        type: 'disc-wave-vertex',
+        bodyMeshNames: ['munks_devil_ray_1', 'munks_devil_ray_2', 'munks_devil_ray_3'],
+        // Wingtip lift at full cruise, either side of level: 0.26 of the 0.55 m wing, about 25°.
+        amplitude: 0.26,
+        // About one beat every 1.4 s at cruise (a small ray beats faster than a manta).
+        waveSpeed: 3.6,
+        // Stable individual cadence, integrated into the clock (never elapsed * rate).
+        beatRateRange: [0.78, 1.22],
+        // Radians of wave across the chord: well under a wavelength, so it flaps, not ripples.
+        waveTravel: 0.6,
+        // Radians the tip trails the root, so the wing curls after each stroke.
+        spanLag: 0.9,
+        // The downstroke takes 42% of the beat, the recovery the rest.
+        downFraction: 0.42,
+        marginRampPower: 1.6,
+        // A resting ray still beats, at half the cruise stroke.
+        idleAmplitudeFloor: 0.5,
+        burstAmplitude: 0.4,
+        turnStrength: 0.35,
+        heave: 0.06,
+        tailAmplitude: 0.05,
+        response: 3,
+        speedFrequencyBoost: 0.3,
+        burstFrequencyBoost: 0.35,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.2,
     },
   },
   // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since

@@ -8,6 +8,40 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.36.0 — The Shallows and Munk's Devil Ray
+
+Status: clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, #157). The Shallows keeps this school apart from the open sea and reef casts.
+
+### Reserves
+
+- **The Shallows** (`the-shallows`): a third reserve, a bright Sea of Cortez sand bay, 0–10 m (sand drawn at y -28, about 8 m). Landscape `shallows` in `landscapes.js`: pale rippled sand, strong caustics, a low cluster of dark boulders on the left (the limestone kit shaded dark), pebbles. Greener, brighter water than The Reefs, light shafts on. Resting camera low over the sand and tilted about 22° up (`SHALLOWS_VIEW`), so the school flies overhead against the surface; at eye level the rays read edge-on.
+- Selector card still (`public/reserves/the-shallows.webp`, 1120 × 490) and a loading descent with a new `devil-ray` sprite (seen from above): a school at 2.5 m on the left, a pair at 6 m on the right.
+
+### Species
+
+- **Munk's Devil Ray** (`mobula-munkiana`), VU: species data from FishBase, the Sharks and Rays profile and Palacios et al. 2021; 0.85–1.1 m across in the reserve. 218 rays in production `creatures` (60 authored dev rays plus 158 new individuals), one school. A body-clearance cloud spaces the wide discs; its larger cruising volume is described under Motion.
+- dev_2: Jeremy's model. `scripts/paint-disc-wave-masks.py` (headless Blender) computes the masks from its shape (vertex paint can't paint one channel alone, and his first paint ramped the wing to full by mid-span, which would move the outer wing as a rigid plate), scales the 11 unit model to a 1.3 m disc, centres the origin, and exports JPEG textures (934 KB; alpha measured solid, so it renders opaque). Three material parts (`munks_devil_ray_1`–`_3`). The dev_1 stand-in GLB is removed. Atlas tile and card retaken with it.
+
+### Atlas
+
+- The ray's existing Size row and specimen scale both show `1.3 m (disc width)`, the maximum-width specimen reference requested by Jeremy. The scale retains the Specimen label. The existing reproduction field includes maturity size (males about 95 cm, females 95–105 cm), one pup per litter, inferred 10–12 month gestation and estimated 35–42 cm birth width. Age at maturity, lifespan and average weight remain Unknown; no ages borrowed from larger devil rays. The Sources panel credits Serrano-López et al. 2021, Palacios et al. 2021 and Manta Trust.
+- Keeps the existing Atlas template and row labels; no additional rows for the ray.
+
+### Appearance
+
+- Replaces the ray's embedded `top` base-colour image with Jeremy's darker dorsal photograph (`mexican-fish (3).jpg`, dev_5), at its full 1433 x 1098 resolution as quality-94 JPEG. The same silhouette/framing fits the existing UVs. Bottom/side images, geometry, motion masks and material definitions retain their original data.
+- Individual surface variation for the devil-ray school, strengthened in `dev_4` after review found the first pass barely visible, so the same top texture reads less like repeated copies: three-octave soft noise fixed to the undeformed body, multiplied into textured linear albedo before lighting; noise strength 0.65, source scale 3. Each ray also gets brightness 0.65-1.3, saturation 0.6-1.25 and a warm/cool tint (+/-0.08). All three material parts use the same individual values.
+- `model.surfaceVariation` opts in; other species and the Atlas specimen stay as authored. A separate `id:surface-variation` seed keeps the values stable across remounts without changing movement or animation draws. Shader cache keys distinguish opt-in from opt-out; individual values are uniforms, so rays share a program. No per-frame variation writes or new textures.
+
+### Motion
+
+- Ray wingbeat cadence varies independently per individual (0.78-1.22 of the configured rate, separate `id:beat-rate` stream) while retaining the integrated clock and speed coupling. Phase offsets alone had left the school flapping at the same rate.
+- Random bursts and turn-triggered speed boosts are disabled for the rays. Shared goals turn on a broad, capped arc; individual speed differences change slowly instead of imposing permanent pace differences that fight spacing. Other species keep their existing schooling defaults.
+- Rays start in a centred, seeded continuous 3D cloud with wing clearance, 15% closer than the first spacious review pass. Position correction is quiet within 0.2 disc widths and eases in over 0.2-0.45 widths; slow personal drift changes their positions inside that band, with close-neighbour separation preserving room for wings.
+- Keeps the full cloud during turns: references retain their initial ground-plane frame, station speed uses actual travel direction, and goals reserve space for the whole school and its turning circle. The ray swim bounds are now x +/-50, y -25 to 3, z -70 to 27 WU. The formation grows across all three axes for 218 rays, retaining the 60-ray spacing at the reference count; five seeded movement runs, including a ten-minute run, found no close pairs or boundary contacts. Portrait composition and phone FPS need device review.
+- Regression checks cover 40 spawn seeds x 60 maximum-size rays, plus five ten-minute runs of Fish.jsx's actual movement frame with 60 mixed-size rays. The school retains its 3D spread with bounded personal drift, no close-pair clusters and no boundary contact. `npm run verify:ray-school` repeats the ten-minute turn regression; the shorter run joins `npm test`. The renderless check omits landscape obstacles and GPU animation.
+- `disc-wave-vertex`, the mobuliform disc-wave Jeremy approved: both wings beat together, a quick downstroke and slow recovery (`downFraction` 0.42), a short chordwise wave (`waveTravel` 0.6), the tip trailing the root (`spanLag` 0.9), an idle floor so a resting ray still beats, a slight body heave and a trailing tail. Normals follow the span slope. Checked on Jeremy's model in dev_2 (front view: both wings press down and lift together, bending smoothly to the tip), and `docs/procedural/disc-wave.md` promoted to Implemented for the mobuliform sub-mode.
+
 ## v0.35.1 — Atlas joins the landing preload (2026-10-23)
 
 Status: clean `v0.35.1` (2026-10-23, from `v0.35.1-dev_1`, branch `feat/preload-atlas-species`, #156). Jeremy: "ship this and merge to main". Jeremy: the Atlas and each species loaded only on first open; include it in the landing preload, and drop the placeholder model.

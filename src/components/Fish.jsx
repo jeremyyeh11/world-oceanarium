@@ -102,6 +102,7 @@ import {
   schoolAlarmAt,
   setFishReefHold,
   schoolFormationOffset,
+  schoolPositionCorrection,
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   separatePair,
@@ -597,6 +598,30 @@ function molaFinBases(geometry, frame) {
   return result
 }
 
+const discWaveSpanCache = new WeakMap()
+
+// disc-wave-vertex's wing span, read once per model from its paint: from where the span weight
+// (COLOR_1 R) starts rising off the body to the wingtip, in |x|. The shader's normals take the
+// weight's slope across the span from it.
+function discWaveSpan(geometry) {
+  const cached = discWaveSpanCache.get(geometry)
+  if (cached) return cached
+  const color = geometry.getAttribute('color_1')
+  const position = geometry.getAttribute('position')
+  let start = Infinity
+  let end = 0
+  if (color && position) {
+    for (let index = 0; index < position.count; index += 1) {
+      const x = Math.abs(position.getX(index))
+      end = Math.max(end, x)
+      if (color.getX(index) > 0.02) start = Math.min(start, x)
+    }
+  }
+  const span = new THREE.Vector2(Number.isFinite(start) ? start : 0, Math.max(end, 0.0001))
+  discWaveSpanCache.set(geometry, span)
+  return span
+}
+
 // Folding spines (`spineFold`): the model's own shape key for the folded spines, a glTF morph
 // target, weighted per fish (1 folded, 0 open as modelled). Every mesh carrying the target, with
 // its index; each starts folded (the Atlas keeps it so).
@@ -613,15 +638,26 @@ function collectSpineMorphs(root, proceduralAnimation) {
   return morphs
 }
 
-function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
+function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null, surfaceVariation = null) {
   const situationalLight = supportsFishSituationalLight(material)
-  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex) return
+  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex && !surfaceVariation) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
   const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
   // uShadowSelf: -2 takes no caster shadows (the Atlas); FishModel sets -1 or its own slot.
   const maskUniforms = { uTime: { value: 0 }, uShadowSelf: { value: -2 } }
+  // Per-fish surface variation (`model.surfaceVariation`), so a tight school of one texture
+  // doesn't read as copies: a soft noise multiplied over the texture, fixed to the body (object
+  // space, offset per fish), and a per-fish brightness, saturation and warm/cool tint. Neutral
+  // until FishModel writes this fish's values (applySurfaceVariation).
+  const surfaceUniforms = surfaceVariation ? {
+    noiseStrength: { value: surfaceVariation.noise ?? 0.2 },
+    noiseScale: { value: surfaceVariation.noiseScale ?? 3 },
+    noiseOffset: { value: new THREE.Vector3() },
+    // x brightness, y saturation, z warmth (+ warmer, - cooler).
+    adjust: { value: new THREE.Vector3(1, 1, 0) },
+  } : null
   const proceduralBounds = geometry?.boundingBox
   const proceduralSourceAxis = proceduralAxisIndex(proceduralVertex?.sourceAxis, 2)
   const proceduralLateralAxis = proceduralAxisIndex(proceduralVertex?.lateralAxis, proceduralSourceAxis === 0 ? 2 : 0)
@@ -676,7 +712,27 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       }
     })(),
   } : null
-  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms
+  // disc-wave-vertex (docs/procedural/disc-wave.md): a ray's wings beat up and down together,
+  // the wave travelling front to back across the chord and the tips lagging the root. Lengths
+  // are in the model's source units (1 = 1 m by the contract).
+  const discWaveUniforms = proceduralVertex?.type === 'disc-wave-vertex' && proceduralBounds ? {
+    phase: { value: 0 },
+    speed: { value: 0 },
+    turn: { value: 0 },
+    burst: { value: 0 },
+    amplitude: { value: proceduralVertex.amplitude ?? 0.2 },
+    waveTravel: { value: proceduralVertex.waveTravel ?? 0.6 },
+    spanLag: { value: proceduralVertex.spanLag ?? 0.9 },
+    downFraction: { value: proceduralVertex.downFraction ?? 0.42 },
+    marginRampPower: { value: proceduralVertex.marginRampPower ?? 1.6 },
+    idleAmplitudeFloor: { value: proceduralVertex.idleAmplitudeFloor ?? 0.5 },
+    burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.4 },
+    turnStrength: { value: proceduralVertex.turnStrength ?? 0.35 },
+    heave: { value: proceduralVertex.heave ?? 0.06 },
+    tailAmplitude: { value: proceduralVertex.tailAmplitude ?? 0.05 },
+    span: { value: discWaveSpan(geometry) },
+  } : null
+  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms ?? discWaveUniforms
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
@@ -684,6 +740,12 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     shader.uniforms.uRimColor = { value: rimColor }
     shader.uniforms.uRimIntensity = { value: rimIntensity }
     shader.uniforms.uRimPower = { value: rimPower }
+    if (surfaceUniforms) {
+      shader.uniforms.uSurfaceNoiseStrength = surfaceUniforms.noiseStrength
+      shader.uniforms.uSurfaceNoiseScale = surfaceUniforms.noiseScale
+      shader.uniforms.uSurfaceNoiseOffset = surfaceUniforms.noiseOffset
+      shader.uniforms.uSurfaceAdjust = surfaceUniforms.adjust
+    }
     if (caudalUniforms) {
       shader.uniforms.uProceduralPhase = caudalUniforms.phase
       shader.uniforms.uProceduralSpeed = caudalUniforms.speed
@@ -727,11 +789,29 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaCaudalBurstAmplitude = molaMaskUniforms.caudalBurstAmplitude
       shader.uniforms.uMolaCaudalBeatRate = molaMaskUniforms.caudalBeatRate
     }
+    if (discWaveUniforms) {
+      shader.uniforms.uDiscPhase = discWaveUniforms.phase
+      shader.uniforms.uDiscSpeed = discWaveUniforms.speed
+      shader.uniforms.uDiscTurn = discWaveUniforms.turn
+      shader.uniforms.uDiscBurst = discWaveUniforms.burst
+      shader.uniforms.uDiscAmplitude = discWaveUniforms.amplitude
+      shader.uniforms.uDiscWaveTravel = discWaveUniforms.waveTravel
+      shader.uniforms.uDiscSpanLag = discWaveUniforms.spanLag
+      shader.uniforms.uDiscDownFraction = discWaveUniforms.downFraction
+      shader.uniforms.uDiscRampPower = discWaveUniforms.marginRampPower
+      shader.uniforms.uDiscIdleFloor = discWaveUniforms.idleAmplitudeFloor
+      shader.uniforms.uDiscBurstAmplitude = discWaveUniforms.burstAmplitude
+      shader.uniforms.uDiscTurnStrength = discWaveUniforms.turnStrength
+      shader.uniforms.uDiscHeave = discWaveUniforms.heave
+      shader.uniforms.uDiscTailAmplitude = discWaveUniforms.tailAmplitude
+      shader.uniforms.uDiscSpan = discWaveUniforms.span
+    }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
 varying vec3 vFishWorldPosition;
+${surfaceUniforms ? 'varying vec3 vFishBodyPosition;' : ''}
 ${caudalUniforms ? `uniform float uProceduralPhase;
 uniform float uProceduralSpeed;
 uniform float uProceduralTurn;
@@ -923,6 +1003,82 @@ void proceduralMolaMotion(inout vec3 value) {
     value.z += clavus * uMolaTurn * uMolaTurnStrength;
   }
   value = uMolaFrameInverse * value;
+}` : ''}${discWaveUniforms ? `attribute vec4 color_1;
+uniform float uDiscPhase;
+uniform float uDiscSpeed;
+uniform float uDiscTurn;
+uniform float uDiscBurst;
+uniform float uDiscAmplitude;
+uniform float uDiscWaveTravel;
+uniform float uDiscSpanLag;
+uniform float uDiscDownFraction;
+uniform float uDiscRampPower;
+uniform float uDiscIdleFloor;
+uniform float uDiscBurstAmplitude;
+uniform float uDiscTurnStrength;
+uniform float uDiscHeave;
+uniform float uDiscTailAmplitude;
+uniform vec2 uDiscSpan;
+// The wingbeat: 1 at the top of the stroke, -1 at the bottom. The downstroke (the power
+// stroke) takes uDiscDownFraction of the cycle and the recovery the rest, each eased, so the
+// wings press down quickly and lift back slowly. slope is d(beat)/d(angle).
+float discBeat(float angle, out float slope) {
+  float down = clamp(uDiscDownFraction, 0.05, 0.95);
+  float p = fract(angle / 6.2831853);
+  float t = p < down ? p / down : (p - down) / (1.0 - down);
+  float eased = t * t * (3.0 - 2.0 * t);
+  float easedSlope = 6.0 * t * (1.0 - t) / (p < down ? down : 1.0 - down);
+  slope = (p < down ? -2.0 : 2.0) * easedSlope / 6.2831853;
+  return p < down ? 1.0 - 2.0 * eased : -1.0 + 2.0 * eased;
+}
+float discStroke() {
+  return uDiscAmplitude * mix(uDiscIdleFloor, 1.0, uDiscSpeed) * (1.0 + uDiscBurst * uDiscBurstAmplitude);
+}
+// A wing vertex's lift and its slope across the span (dy/dx). R ramps from the body to the
+// wingtip; G runs leading edge to trailing edge, so the chord carries a short wave; the tip
+// lags the root by uDiscSpanLag, so the wing curls after the stroke. A turn beats the outer
+// wing harder.
+void discWingLift(vec3 p, vec4 mask, out float lift, out float liftSlope) {
+  float r = clamp(mask.r, 0.0, 1.0);
+  float g = clamp(mask.g, 0.0, 1.0);
+  float side = p.x < 0.0 ? -1.0 : 1.0;
+  float ramp = pow(r, uDiscRampPower);
+  float rampSlope = r > 0.0 ? uDiscRampPower * pow(r, uDiscRampPower - 1.0) : 0.0;
+  float stroke = discStroke() * (1.0 + side * uDiscTurn * uDiscTurnStrength);
+  float beatSlope;
+  float beat = discBeat(uDiscPhase - g * uDiscWaveTravel - r * uDiscSpanLag, beatSlope);
+  lift = stroke * ramp * beat;
+  float rPerX = side / max(0.0001, uDiscSpan.y - uDiscSpan.x);
+  liftSlope = stroke * (rampSlope * beat - ramp * beatSlope * uDiscSpanLag) * rPerX;
+}
+// Lighting follows the beat: the normal tips with the wing's slope across the span.
+void proceduralDiscNormal(inout vec3 normalValue) {
+  float lift;
+  float liftSlope;
+  discWingLift(position, color_1, lift, liftSlope);
+  normalValue.x -= liftSlope * normalValue.y;
+  normalValue = normalize(normalValue);
+}
+void proceduralDiscMotion(inout vec3 value) {
+  vec4 mask = color_1;
+  float lift;
+  float liftSlope;
+  discWingLift(value, mask, lift, liftSlope);
+  // The wing bends rather than stretches: draw the vertex in toward the body by about the
+  // length its lift adds to the span.
+  float reach = max(0.05 * uDiscSpan.y, abs(value.x) - uDiscSpan.x);
+  float side = value.x < 0.0 ? -1.0 : 1.0;
+  value.x -= side * min(lift * lift / (2.0 * reach), 0.5 * reach);
+  value.y += lift;
+  // The body heaves a little against the wings: it rises as they press down.
+  float rootSlope;
+  float rootBeat = discBeat(uDiscPhase - clamp(mask.g, 0.0, 1.0) * uDiscWaveTravel, rootSlope);
+  value.y -= uDiscHeave * discStroke() * rootBeat;
+  // The tail trails the heave, its tip later than its root, and leans into turns.
+  float tail = clamp(mask.b, 0.0, 1.0);
+  float tailWeight = tail * tail;
+  value.y += tailWeight * uDiscTailAmplitude * mix(uDiscIdleFloor, 1.0, uDiscSpeed) * sin(uDiscPhase - 1.2 - tail * 2.4);
+  value.x += tailWeight * uDiscTurn * uDiscTailAmplitude * 2.0;
 }` : ''}`
       )
     if (caudalUniforms) {
@@ -965,6 +1121,27 @@ proceduralMolaNormal(objectNormal);`
 #include <project_vertex>`
         )
     }
+    if (discWaveUniforms) {
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          '#include <beginnormal_vertex>',
+          `#include <beginnormal_vertex>
+proceduralDiscNormal(objectNormal);`
+        )
+        .replace(
+          '#include <project_vertex>',
+          `proceduralDiscMotion(transformed);
+#include <project_vertex>`
+        )
+    }
+    if (surfaceUniforms) {
+      // Undeformed source position: the pattern travels and bends with the skin.
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+vFishBodyPosition = position;`,
+      )
+    }
     shader.vertexShader = shader.vertexShader.replace(
         '#include <worldpos_vertex>',
         `#include <worldpos_vertex>
@@ -984,6 +1161,11 @@ uniform vec3 uRimColor;
 uniform float uRimIntensity;
 uniform float uRimPower;
 varying vec3 vFishWorldPosition;
+${surfaceUniforms ? `varying vec3 vFishBodyPosition;
+uniform float uSurfaceNoiseStrength;
+uniform float uSurfaceNoiseScale;
+uniform vec3 uSurfaceNoiseOffset;
+uniform vec3 uSurfaceAdjust;` : ''}
 float fishMaskHash(vec3 p) {
   p = fract(p * 0.3183099 + vec3(0.17, 0.31, 0.47));
   p *= 17.0;
@@ -1014,6 +1196,17 @@ float fishMaskFbm(vec3 p) {
 ${situationalLight ? FISH_SITUATIONAL_LIGHT_PARS : ''}`
       )
       .replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+${surfaceUniforms ? `// Apply to linear albedo, before lighting, shadows, fog and tone mapping.
+float surfaceNoise = fishMaskFbm(vFishBodyPosition * uSurfaceNoiseScale + uSurfaceNoiseOffset);
+// The three octave weights sum to 0.875: keep the multiplier centred on 1.
+diffuseColor.rgb *= 1.0 + (surfaceNoise * (2.0 / 0.875) - 1.0) * uSurfaceNoiseStrength;
+float surfaceLuma = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+diffuseColor.rgb = max(vec3(0.0), mix(vec3(surfaceLuma), diffuseColor.rgb, uSurfaceAdjust.y));
+diffuseColor.rgb *= uSurfaceAdjust.x * vec3(1.0 + uSurfaceAdjust.z, 1.0, 1.0 - uSurfaceAdjust.z);` : ''}`,
+      )
+      .replace(
         '#include <opaque_fragment>',
         situationalLight ? fishSituationalLightCall('vFishWorldPosition', 'uFishLightMaskTime') : '#include <opaque_fragment>'
       )
@@ -1042,14 +1235,17 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
     ? 'static'
     : proceduralVertex.type === 'caudal-vertex'
       ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
-      : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}`
+      : proceduralVertex.type === 'disc-wave-vertex'
+        ? 'disc-wave-vertex'
+        : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}:${surfaceUniforms ? 'surface-v1' : 'surface-off'}`
   material.userData.fishLightMaskUniforms = maskUniforms
+  if (surfaceUniforms) material.userData.fishSurfaceUniforms = surfaceUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null, alphaBlend = false) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null, alphaBlend = false, surfaceVariation = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -1081,6 +1277,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
         rim,
         proceduralMeshConfig,
         proceduralMeshConfig ? proceduralBoundsGeometry(root, child, proceduralAnimation) : child.geometry,
+        surfaceVariation,
       )
       materials.push(nextMaterial)
       return nextMaterial
@@ -1134,6 +1331,25 @@ export function updateProceduralFinFollow(finFollow, proceduralAnimation, { phas
   applyProceduralFinFollow(finFollow, proceduralAnimation, phase, THREE.MathUtils.clamp(speed01, 0, 1), turn, burst01)
 }
 
+// One stream per individual, shared by all of its material parts. Never draw from movement
+// or animation streams: adding colour variation must not change their established sequences.
+function applySurfaceVariation(materials, config, seed) {
+  if (!config) return
+  const rand = mulberry32(seed)
+  const offset = new THREE.Vector3(rand() * 100, rand() * 100, rand() * 100)
+  const adjust = new THREE.Vector3(
+    randomRangeFromPair(rand, config.brightness, [1, 1]),
+    randomRangeFromPair(rand, config.saturation, [1, 1]),
+    randomRangeFromPair(rand, config.warmth, [0, 0]),
+  )
+  materials.forEach(material => {
+    const uniforms = material.userData.fishSurfaceUniforms
+    if (!uniforms) return
+    uniforms.noiseOffset.value.copy(offset)
+    uniforms.adjust.value.copy(adjust)
+  })
+}
+
 function animationVariationForCreature(creature) {
   const rand = mulberry32(hashString(`${creature.id ?? creature.species}:animation-variation`))
   const baseSpeed = randomRange(rand, 0.9, 1.1)
@@ -1143,6 +1359,9 @@ function animationVariationForCreature(creature) {
     // Where this fish falls in its species' `meshLengthVariation` range (the bannerfish's
     // banner). Its own stream, so adding it left the draws above unchanged.
     meshLength01: mulberry32(hashString(`${creature.id ?? creature.species}:mesh-length`))(),
+    surfaceSeed: hashString(`${creature.id ?? creature.species}:surface-variation`),
+    // Separate stream: a procedural beat's individual rate, without consuming old draws.
+    beatRate01: mulberry32(hashString(`${creature.id ?? creature.species}:beat-rate`))(),
     speeds: {
       idle: baseSpeed,
       slow_cruise: baseSpeed,
@@ -1411,7 +1630,7 @@ function proceduralAxisMax(bounds, axisIndex) {
 }
 
 function shouldProcedurallyDeformMesh(mesh, proceduralAnimation) {
-  if (!['caudal-vertex', 'mola-mask-vertex'].includes(proceduralAnimation?.type)) return false
+  if (!['caudal-vertex', 'mola-mask-vertex', 'disc-wave-vertex'].includes(proceduralAnimation?.type)) return false
   const name = mesh.name?.toLowerCase() ?? ''
   if (isProceduralBodyFollower(mesh, proceduralAnimation)) return true
   if (proceduralAnimation.bodyMeshNames?.some(bodyName => name === bodyName.toLowerCase())) return true
@@ -1798,8 +2017,9 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   })
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null, model?.alphaBlend === true)
-  }, [object, rim, lodDebugColor, model])
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null, model?.alphaBlend === true, model?.surfaceVariation)
+    applySurfaceVariation(materialsRef.current, model?.surfaceVariation, animationVariation?.surfaceSeed)
+  }, [object, rim, lodDebugColor, model, animationVariation?.surfaceSeed])
 
   useFrame(({ clock }, rawDelta) => {
     const elapsed = clock.getElapsedTime()
@@ -1857,6 +2077,28 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
       // The Mola paints its pectorals; an asset with separate pectoral objects (the triggerfish)
       // flutters them like a caudal fish's.
       flutterProceduralFins(proceduralFinMeshes, curveConfig, proceduralWaveClockRef.current, proceduralInput.phase ?? 0, speed01, burst01, curveDeformQuatRef.current)
+    } else if (curveConfig?.type === 'disc-wave-vertex') {
+      // A ray's wingbeat never stops: the clock runs at rest too, and the shader keeps an idle
+      // floor of amplitude (docs/procedural/disc-wave.md).
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 3
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        THREE.MathUtils.clamp(proceduralInput.turn ?? 0, -1, 1),
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 1.6
+      const beatRate = curveConfig.beatRateRange
+        ? THREE.MathUtils.lerp(curveConfig.beatRateRange[0], curveConfig.beatRateRange[1], animationVariation?.beatRate01 ?? 0.5)
+        : 1
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * beatRate * (
+        1
+        + speed01 * (curveConfig.speedFrequencyBoost ?? 0.3)
+        + burst01 * (curveConfig.burstFrequencyBoost ?? 0.35)
+        + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
+      )
     }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current
@@ -2447,9 +2689,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     const stationSpeedScale = isSchooling
       ? THREE.MathUtils.clamp(
-        1 + SCHOOL_STATION_GAIN * stationError.current / Math.max(0.001, creatureBodyLength(creature, swim)),
-        SCHOOL_STATION_RANGE[0],
-        SCHOOL_STATION_RANGE[1],
+        1 + (swim.schoolStationGain ?? SCHOOL_STATION_GAIN) * stationError.current / Math.max(0.001, creatureBodyLength(creature, swim)),
+        swim.schoolStationSpeedRange?.[0] ?? SCHOOL_STATION_RANGE[0],
+        swim.schoolStationSpeedRange?.[1] ?? SCHOOL_STATION_RANGE[1],
       )
       : 1
 
@@ -2505,7 +2747,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const isActionMoveActive = now >= actionSpeedStartAt.current && now < actionSpeedUntil.current
     // An alarmed fish does not settle into a slow glide.
     const isDrifting = hasDriftMove && !isActionMoveActive && now < driftUntil.current && schoolAlarm < SCHOOL_ALARM_FLINCH_LEVEL
-    let targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity)
+    const individualPace = swim.schoolFormation
+      ? 1 + organicNoise.current.longitudinal * (swim.schoolFormation.driftStrength ?? 0)
+      : 1
+    let targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity * individualPace)
     const escaping = now < startleUntil.current
     let velocityResponse = isActionMoveActive ? (escaping ? THREAT_STARTLE_VELOCITY_RESPONSE : 8) : (isDrifting ? 1.2 : 2.4)
     if (riding) {
@@ -2560,9 +2805,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         position = fish.position
       } else {
         position = schoolBasePosition.copy(schoolState.center)
-        position.x += schoolOffset.lateral
-        position.y += schoolOffset.vertical
-        position.z += schoolOffset.longitudinal
+        if (swim.schoolFormation) {
+          // Start on the same travel-frame slots used while cruising, already heading
+          // toward the first goal; no crossing the school to find a mirrored slot.
+          const heading = schoolState.migrationDir
+          position.x += heading.z * schoolOffset.lateral + heading.x * schoolOffset.longitudinal
+          position.y += schoolOffset.vertical
+          position.z += -heading.x * schoolOffset.lateral + heading.z * schoolOffset.longitudinal
+          desiredDirection.current.copy(heading)
+        } else {
+          position.x += schoolOffset.lateral
+          position.y += schoolOffset.vertical
+          position.z += schoolOffset.longitudinal
+        }
         clampToSwimBounds(position, swimBounds(creature.depthZone, swim, creature.size ?? 1))
       }
       // Heading estimate for steering/boids until the movement step recomputes the tangent.
@@ -2916,7 +3171,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       tangent.normalize()
 
       const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-      const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * SCHOOL_SOFT_WALL_BODY_LENGTHS)
+      const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * (swim.schoolSoftWallBodyLengths ?? SCHOOL_SOFT_WALL_BODY_LENGTHS))
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
         boundaryContacts.current = 0
@@ -2983,12 +3238,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // goal once the group's centroid reaches it.
           if (isSchoolLeader) {
             advanceSchoolAlarms(schoolState, delta)
-            let cx = 0, cy = 0, cz = 0, cn = 0
+            let cx = 0, cy = 0, cz = 0, cn = 0, fx = 0, fz = 0
             forEachFish(entry => {
-              if (entry.schoolId === school.id) { cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1 }
+              if (entry.schoolId === school.id) {
+                cx += entry.position.x; cy += entry.position.y; cz += entry.position.z; cn += 1
+                fx += entry.forward.x; fz += entry.forward.z
+              }
             })
             if (cn > 0) schoolState.centroid.set(cx / cn, cy / cn, cz / cn)
-            const reached = Math.max(bodyLength * SCHOOL_GOAL_REACHED_BODY_LENGTHS, SCHOOL_GOAL_REACHED_MIN)
+            if (swim.schoolFormation && fx * fx + fz * fz > 1e-6) {
+              nextPoint.set(fx, 0, fz).normalize()
+              schoolState.travelDir.copy(nextPoint)
+            }
+            const reached = Math.max(bodyLength * (swim.schoolGoalReachedBodyLengths ?? SCHOOL_GOAL_REACHED_BODY_LENGTHS), SCHOOL_GOAL_REACHED_MIN)
             if (schoolState.centroid.distanceTo(schoolState.goal) <= reached) {
               const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
               pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
@@ -3011,19 +3273,27 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               // extra band kept the school out of the front of the tank (8.7 WU of its 23 WU depth
               // to roam, against 14.4 before).
               const horizontalFit = schoolFormationHorizontalHalfExtent(school, creature)
-              const gz = Math.min(Math.max(gm, horizontalFit), (bounds.zMax - bounds.zMin) * 0.5)
+              const turnRoom = swim.schoolFormation
+                ? (species.swim.bodyLengthWU * species.sizeRange[1] * swim.turnRadiusBodyLengths / swim.schoolTurnRateScale) + schoolSoftWall
+                : 0
+              const gz = Math.min(Math.max(gm, horizontalFit + turnRoom), (bounds.zMax - bounds.zMin) * 0.5)
               schoolState.goal.z = THREE.MathUtils.clamp(schoolState.goal.z, bounds.zMin + gz, bounds.zMax - gz)
               const goalHalfX = swimXRangeAtZ(bounds, schoolState.goal.z).xMax
-              const gx = Math.min(Math.max(gm, horizontalFit), goalHalfX)
+              const gx = Math.min(Math.max(gm, horizontalFit + turnRoom), goalHalfX)
               schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, -goalHalfX + gx, goalHalfX - gx)
             }
-            // Shared direction (goal - centroid), identical for every member, low-pass filtered so
-            // frame-to-frame goal jitter doesn't accumulate into a constant turn.
+            // Shared direction, identical for every member. The ray's goal turns more
+            // slowly than its members can follow; other schools retain their smoothing.
             nextPoint.subVectors(schoolState.goal, schoolState.centroid)
+            if (swim.schoolFormation) nextPoint.y = 0
             if (nextPoint.lengthSq() > 1e-6) {
               nextPoint.normalize()
               if (schoolState.migrationDir.lengthSq() < 1e-6) schoolState.migrationDir.copy(nextPoint)
-              else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * SCHOOL_MIGRATION_SMOOTH))
+              else if (swim.schoolFormation) {
+                const referenceLength = species.swim.bodyLengthWU * species.sizeRange[1]
+                const turn = maxTurnRadiansForSpeed(swim, referenceLength, velocity.current, delta) * swim.schoolTurnRateScale
+                yawToward(schoolState.migrationDir, nextPoint, turn, schoolState.seed & 1 ? 1 : -1)
+              } else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * SCHOOL_MIGRATION_SMOOTH))
               if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
               else schoolState.migrationDir.copy(nextPoint)
             } else if (schoolState.migrationDir.lengthSq() < 1e-6) {
@@ -3038,10 +3308,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             if (schoolFollowDirection.lengthSq() > 1e-6) schoolFollowDirection.normalize()
             else schoolFollowDirection.set(0, 0, -1)
           }
-          // This member's formation slot, placed in the travel frame around the school centroid
-          // (right = perpendicular to heading in XZ, up = world Y). Anchoring the shape here means
-          // a single-file line is no longer an equilibrium, so the ball keeps its width.
-          const hx = schoolFollowDirection.x, hz = schoolFollowDirection.z
+          // Cloud references keep their initial ground-plane frame: rotating them ahead
+          // of a turn makes members cross each other's positions. Legacy schools keep
+          // their travel frame. Both are centred on the live school centroid.
+          const formationHeading = swim.schoolFormation ? schoolState.formationDir : schoolFollowDirection
+          const hx = formationHeading.x, hz = formationHeading.z
           // An alarmed school packs tighter around its centre.
           const packing = 1 - SCHOOL_ALARM_COMPACTION * schoolAlarm
           schoolBasePosition.copy(schoolState.centroid)
@@ -3058,8 +3329,17 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const roomZ = slotZ > 0
             ? bounds.zMax - schoolSoftWall - schoolState.centroid.z
             : schoolState.centroid.z - (bounds.zMin + schoolSoftWall)
-          schoolBasePosition.x += slotX * THREE.MathUtils.clamp(roomX / horizontalReach, 0, 1)
-          schoolBasePosition.z += slotZ * THREE.MathUtils.clamp(roomZ / horizontalReach, 0, 1)
+          if (swim.schoolFormation) {
+            // Retain the cloud's full size. Move its anchor inside the bounds instead of
+            // compressing each animal's slot into a row near a wall.
+            const mx = Math.min(horizontalReach + schoolSoftWall, centroidHalfX)
+            const mz = Math.min(horizontalReach + schoolSoftWall, (bounds.zMax - bounds.zMin) * 0.5)
+            schoolBasePosition.x = THREE.MathUtils.clamp(schoolBasePosition.x, -centroidHalfX + mx, centroidHalfX - mx) + slotX
+            schoolBasePosition.z = THREE.MathUtils.clamp(schoolBasePosition.z, bounds.zMin + mz, bounds.zMax - mz) + slotZ
+          } else {
+            schoolBasePosition.x += slotX * THREE.MathUtils.clamp(roomX / horizontalReach, 0, 1)
+            schoolBasePosition.z += slotZ * THREE.MathUtils.clamp(roomZ / horizontalReach, 0, 1)
+          }
           // Vertically the formation compresses to keep out of the soft-wall band, in proportion to
           // the room left, rather than clamping slots against the bound: the school squashes toward
           // a bound but its layers never collapse into one.
@@ -3068,21 +3348,45 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             ? bounds.yMax - schoolSoftWall - schoolState.centroid.y
             : schoolState.centroid.y - (bounds.yMin + schoolSoftWall)
           const verticalReach = Math.max(0.001, schoolFormationVerticalHalfExtent(school, creature) * packing)
-          schoolBasePosition.y += verticalOffset * THREE.MathUtils.clamp(verticalRoom / verticalReach, 0, 1)
+          if (swim.schoolFormation) schoolBasePosition.y = schoolState.center.y + verticalOffset
+          else schoolBasePosition.y += verticalOffset * THREE.MathUtils.clamp(verticalRoom / verticalReach, 0, 1)
           // Front-back error to the slot along the travel direction; next frame's cruise speed
           // closes it (see SCHOOL_STATION_GAIN).
-          stationError.current = (schoolBasePosition.x - fish.position.x) * hx + (schoolBasePosition.z - fish.position.z) * hz
+          const stationHx = swim.schoolFormation ? schoolState.travelDir.x : hx
+          const stationHz = swim.schoolFormation ? schoolState.travelDir.z : hz
+          stationError.current = (schoolBasePosition.x - fish.position.x) * stationHx + (schoolBasePosition.z - fish.position.z) * stationHz
+          if (swim.schoolFormation) {
+            stationError.current *= schoolPositionCorrection(Math.abs(stationError.current), bodyLength, swim.schoolFormation)
+          }
           // Desired heading = migration urge + pull toward the formation slot. The slot pull is
           // scaled down for tiny schools: with only a couple of members the slots sit right beside
           // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
           // cocks the tail). A pair instead just travels parallel on the shared migration + boid
           // separation; big schools get the full formation shaping.
-          const formationWeight = SCHOOL_FORMATION_WEIGHT * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
+          const formationWeight = (swim.schoolFormationWeight ?? SCHOOL_FORMATION_WEIGHT) * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
             * (1 + SCHOOL_ALARM_FORMATION_BOOST * schoolAlarm)
           agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
           targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
           if (targetDesiredDirection.lengthSq() > 1e-6) {
-            agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), formationWeight)
+            if (swim.schoolFormation) {
+              // Front/back station errors are closed by speed, not a backwards turn.
+              // Lateral/height correction eases to zero on arrival instead of seeking
+              // at full strength on either side of a slot.
+              const along = targetDesiredDirection.x * stationHx + targetDesiredDirection.z * stationHz
+              targetDesiredDirection.x -= stationHx * along
+              targetDesiredDirection.z -= stationHz * along
+              const correction = schoolPositionCorrection(targetDesiredDirection.length(), bodyLength, swim.schoolFormation)
+              targetDesiredDirection.multiplyScalar(correction / Math.max(0.001, bodyLength)).clampLength(0, 1)
+              agentMoveDirection.addScaledVector(targetDesiredDirection, formationWeight)
+            } else agentMoveDirection.addScaledVector(targetDesiredDirection.normalize(), formationWeight)
+          }
+          if (swim.schoolFormation) {
+            // Existing continuously damped personal noise supplies small independent
+            // changes inside the tolerance, rather than animating a target or a grid.
+            const drift = swim.schoolFormation.driftStrength ?? 0
+            agentMoveDirection.x += organicNoise.current.lateral * stationHz * drift
+            agentMoveDirection.y += organicNoise.current.vertical * drift
+            agentMoveDirection.z -= organicNoise.current.lateral * stationHx * drift
           }
           if (agentMoveDirection.lengthSq() < 1e-6) agentMoveDirection.copy(schoolFollowDirection)
           agentMoveDirection.normalize()
@@ -3223,7 +3527,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         }
 
         // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
-        const forwardSpeed = velocity.current * authoredSpeedScale * organicMotion.speedScale
+        // Cloud members vary pace smoothly above; a permanent personal speed bias
+        // would continually fight their spacing correction.
+        const forwardSpeed = velocity.current * authoredSpeedScale * (swim.schoolFormation ? 1 : organicMotion.speedScale)
         registrySpeed = forwardSpeed
         const openWaterTurnStep = maxTurnRadiansForSpeed(swim, bodyLength, forwardSpeed, delta)
         let turnStep = openWaterTurnStep
@@ -3889,7 +4195,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         playAnimation(resolveMoveAnimation(model, ride.stage === 'dock' ? 'cruise' : 'drift'))
       } else if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
-        if (!reflex && turn > motion.turnTriggerThreshold) {
+        if (swim.turnSpeedupEnabled !== false && !reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnLeft')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -3902,7 +4208,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (!reflex && turn < -motion.turnTriggerThreshold) {
+        } else if (swim.turnSpeedupEnabled !== false && !reflex && turn < -motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnRight')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -3915,7 +4221,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (reflex || (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current)) {
+        } else if (swim.burstEnabled !== false && (reflex || (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current))) {
           const burstDuration = motion.burstActionDuration
           const burstAnimation = resolveMoveAnimation(model, 'burst')
           const burstAnimationDuration = modelActionAnimationDuration(model, burstAnimation, burstDuration)

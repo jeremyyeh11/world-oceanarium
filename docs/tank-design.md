@@ -418,6 +418,7 @@ grouping keys the later phases need. Only the navigation UI changes.
 | Live Sharksucker, Whitefin Sharksucker, Common Remora | `cruise` | `open-sea` | ride the mako |
 | White Suckerfish, Marlinsucker, Slender Suckerfish | `cruise` | `open-sea` | ride the mako only occasionally |
 | Whalesucker         | `cruise` | `open-sea`  | swims free until a whale or dolphin arrives |
+| Munk's Devil Ray    | `cruise` | `the-shallows` | the reserve's one school, flying overhead |
 | Spearfish Remora    | `cruise` | `the-drift` | rides the Mola           |
 
 The Open Sea is a self-contained food chain (bait → mid → apex) at one tempo band.

@@ -13,6 +13,39 @@ Status labels:
 
 ## Current work
 
+### Munk's Devil Ray and The Shallows
+
+Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open.
+
+Subtasks:
+- [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
+- [x] Size: 5.2 WU at 130 cm across; `sizeRange` 0.65–0.85 keeps the tank's rays at 0.85–1.1 m (3.4–4.4 WU).
+- [x] Motion proposal: mobuliform `disc-wave` (wings beat together, under one wavelength across the chord, tips lag the root via a new `spanLag`, downstroke faster than the upstroke), with the Blender contract, in `docs/procedural/disc-wave.md`. Not foil-flap: the wing has no shoulder joint.
+- [x] Jeremy approved the motion proposal (2026-10-23).
+- [x] Shader: `disc-wave-vertex` in `src/components/Fish.jsx` with the mobuliform config, on a generated stand-in (`scripts/build-devil-ray-placeholder.mjs`, 3379 vertices, 1.3 m disc), verifier target (2026-10-23). Checked in the Atlas locally: wings beat together, the tip trails the mid-wing, downstroke about 43% of the beat.
+- [ ] Glides: devil rays sometimes glide between beats; the beat is continuous for now. Revisit with the school in the reserve.
+- [x] Jeremy's model swapped in (`v0.36.0-dev_2`): masks computed by `scripts/paint-disc-wave-masks.py`, scaled to a 1.3 m disc, JPEG textures (934 KB), verifier target, stand-in GLB removed; `disc-wave.md` promoted to Implemented (mobuliform). Checked in the local paint viewer (`paint-viewer.html?model=…`, uncommitted) and in the tank.
+- [x] Break up the repeated top texture in the tight school (`dev_3`, Jeremy, 2026-10-24): soft body-fixed noise multiplied into albedo (0.2, source scale 3), per-fish brightness 0.82–1.12, saturation 0.75–1.2, warmth ±0.035. Separate `id:surface-variation` seed; all three material parts agree; uniforms share one shader program, with an opt-in cache key. Build, existing tests and 60-ID material/randomness checks pass. Browser comparison with variation off/on: the authored markings remain, with restrained differences between individuals; no shader errors.
+- [x] `dev_4` review fixes (Jeremy, 2026-10-24): stronger surface variation (noise 0.65; brightness 0.65-1.3, saturation 0.6-1.25, warmth +/-0.08), stable per-ray wingbeat rate 0.78-1.22 from its own stream, and bursts plus turn-triggered speed boosts disabled. Formation correction is gentler (weight 0.22, speed 0.9-1.1, migration response 0.45).
+- [x] Body-clearance startup: a deterministic continuous 3D cloud, one set of slots per school, inset before spawning and aligned to the first migration heading; no per-member wall collapse or crossing to mirrored slots. 40 visit seeds with 60 maximum-size rays pass finite/bounds/pairwise ellipsoid-clearance checks and have no shared height layers or lateral columns. Other species retain their existing school formation.
+- [x] `dev_5`: replace the embedded `top` material texture with Jeremy's supplied darker dorsal photo (`mexican-fish (3).jpg`), full resolution as quality-94 JPEG; all other asset buffers and material/scene definitions verified unchanged.
+- [x] `dev_6`: sustained spacing and organic drift. Centred cloud references keep their initial frame through turns, common goals reserve the full cloud plus turning room, and anisotropic neighbour separation keeps wings apart. Spacing reduced 15% after review; correction is quiet inside 0.2 disc widths and eases in over 0.2-0.45 widths, with slow personal drift and pace variation. Five ten-minute runs of the actual Fish.jsx movement frame retain 3D spread without tight-pair clusters or boundary contact; 40 maximum-size spawn seeds pass. Renderless checks omit landscape obstacles/GPU animation.
+- [ ] Jeremy: review `dev_6` spacing tolerance, irregular positions and sustained turns, plus dorsal texture and individual beat rates; physical-phone FPS still unmeasured.
+- [ ] Belly colour: from below (the resting camera's view) the rays read dark blue-grey; Munk's devil ray is white underneath. Jeremy's `bottom` texture.
+- [x] `dev_7`–`dev_10` Atlas averages and lifecycle (existing template and wording only, per Jeremy): Size and specimen scale both show 1.3 m (disc width), matching the maximum-width specimen; Serrano-López et al. 2021 provides maturity sizes; Palacios et al. 2021 provides nursery/reproductive timing and explicitly inferred gestation/birth-size estimates. Sources credited. Age at maturity, lifespan and mean weight remain unestablished; the Atlas says so.
+- [ ] Species-specific disc-width–weight relation for `mass`: FishBase's shape-derived Bayesian relation uses total length and must not be applied to disc width.
+- [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
+- [x] Reserve The Shallows (`v0.36.0-dev_1`): `the-shallows` in `TANKS`, landscape `shallows`, 0–10 m, low camera tilted about 22° up (`SHALLOWS_VIEW`), greener water, light shafts, a dark boulder cluster on the left, card still, descent with a new `devil-ray` sprite. Leaping out of the water deferred.
+- [ ] Recheck portrait framing with 218 rays: the full formation and broad turns use x +/-50, y -25 to 3, z -70 to 27 WU. Earlier phone samples used a smaller school and volume.
+- [x] 60 rays in `creatures_dev` (ids 464–523; prod max was 463, so next free id is 524). Atlas tile and card retaken with Jeremy's model (dev_2).
+- [ ] Jeremy: review dev_2 on a phone (card, descent, the school, the wingbeat).
+- [ ] Composition on a portrait phone: the school sits in the lower half and the top half is plain bright water.
+- [ ] Phone FPS: 218 rays of about 3k vertices each, no LOD; unmeasured on a device.
+- [ ] Surface: from the resting view the surface reads as bright water rather than a distinct ceiling; revisit with Jeremy.
+- [x] Jeremy requested the clean release and 218 public `creatures` rays (2026-10-24). The larger single cloud passed five seeded movement runs, including ten minutes at 218; public rows are backed up and verified separately.
+- [ ] Optional: add a devil ray to the landing dive's montage (`GENERAL_DESCENT`).
+- [ ] Projected roster, no species repeated from other reserves (Jeremy, 2026-10-23): giant oceanic manta (*Mobula birostris*, one big animal, same motion), golden cownose ray (*Rhinoptera steindachneri*), East Pacific green turtle, round stingray (*Urobatis halleri*); California sea lion later. Check each range on FishBase/IUCN first.
+
 ### Reserve follow-ups (after `v0.35.0`)
 
 - [ ] Refine the descent sprites with Jeremy. `Next`

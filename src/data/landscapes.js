@@ -141,6 +141,12 @@ const STAGHORN_KIT = {
 // The nearest rock is a scatter boulder 3.6 WU behind and below the camera.
 export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY: -10.5 }
 
+// The Shallows' resting camera: low over the sand (4 WU up) and tilted about 22° up, so the
+// devil ray school passes overhead against the bright surface and shows its wings, not its
+// edge, with the sand along the bottom of the frame. At eye level (y -20, 15° up) the rays
+// read edge-on, as lines.
+export const SHALLOWS_VIEW = { fov: 58, x: 0, y: -24, z: 24, lookX: 0, lookY: -14.3 }
+
 export const LANDSCAPES = {
   reefs: {
     view: REEFS_VIEW,
@@ -370,6 +376,48 @@ export const LANDSCAPES = {
       seed: 7301, tablesPerPatch: 4, patches: [3, 6], footShare: 0.35,
       patchRadius: [2, 3.2], perPatch: [12, 18], scale: [3.6, 6],
     },
+  },
+  // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's
+  // devil rays school. Mostly open on purpose, so the school is the subject: pale rippled sand,
+  // strong caustics, and a few dark volcanic boulders kept to the left. The limestone kit,
+  // shaded dark, stands in for basalt.
+  shallows: {
+    view: SHALLOWS_VIEW,
+    kit: LIMESTONE_KIT,
+    // 32.6 WU (8 m) under the surface at y 4.6; about 9 m in the troughs.
+    floorY: -28,
+    floorColor: '#e6dcb2',
+    floorRelief: 1.2,
+    rockShade: {
+      tone: 0.34, top: 0.9, underside: 0.2, low: 0.55, lowY: -28, highY: -18,
+    },
+    // Shallow water throws bright, busy caustics on the sand.
+    caustics: {
+      strength: 1.25,
+      scale: 10,
+      speed: 0.025,
+      color: [1.0, 0.98, 0.9],
+      slant: [0.4, -0.4],
+      depth: [-28, 0, 0.75],
+      fade: [30, 80],
+    },
+    sandMax: -6,
+    maxTop: -14,
+    topJitter: 3,
+    // Nothing here is generated, so the zones only keep the hand-placed rocks honest.
+    clearance: { side: 70, back: -80, front: 12, floorTop: -24, outcropFront: 16 },
+    // [kind, x, z, width, height, depth, yaw (rad), seed]. One low cluster on the left, below the
+    // rays' swim volume (their floor is y -20), and two stragglers further back.
+    rocks: [
+      ['boulder', -24, -14, 7, 4.5, 6, 0.4, 901],
+      ['boulder', -29, -19, 5, 3.2, 4.5, 1.3, 902],
+      ['boulder', -19, -9, 3.5, 2.2, 3, 2.2, 903],
+      ['boulder', -31, -10, 3, 1.8, 2.6, 0.7, 904],
+      ['boulder', -40, -34, 8, 5, 7, -0.3, 905],
+      ['boulder', -12, -46, 4, 2.4, 3.5, 0.9, 906],
+    ],
+    // Pebbles of the same rock around the cluster.
+    rubble: { count: 40, seed: 9131, xMin: -42, xMax: -12, zMin: -30, zMax: 0, sizeMin: 0.4, sizeMax: 1.1 },
   },
 }
 

@@ -25,7 +25,7 @@ that type's doc.
 | [mask-fin-row](mask-fin-row.md) | Rigid body, painted fins rowing from fixed roots | Giant Sunfish; Clown Triggerfish (balistiform variant: rippling fins) | Implemented |
 | [bell-pulse](bell-pulse.md) | Contract-and-glide jet propulsion | Jellyfish, salps | Proposed |
 | [foil-flap](foil-flap.md) | Paired oscillating foils on a rigid body | Sea turtles, penguins, sea lions | Proposed |
-| [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Rays, skates, cuttlefish | Proposed |
+| [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Munk's Devil Ray (mobuliform); skates, stingrays, cuttlefish proposed | Implemented (mobuliform) |
 | [limb-step](limb-step.md) | Limb cycling under a rigid carapace | Crabs, walking lobsters | Proposed |
 | [pleopod-beat](pleopod-beat.md) | Metachronal swimmeret wave | Prawns, shrimp, krill | Proposed |
 
@@ -276,3 +276,19 @@ export mistakes at the cheapest possible moment.
   separate objects needs shared bounds first — see [bell-pulse](bell-pulse.md).
 - **Tempo coherence.** `tempo: 'drift'` species cannot share a tank with `cruise` or
   `sprint` species; a dev-only guard warns at `src/utils/speciesLookup.js:52`.
+
+## Individual surface variation
+
+`model.surfaceVariation` opts a tank species into body-fixed albedo variation (first used by
+Munk's devil ray in `v0.36.0-dev_3`). This is independent of motion type. `noise` is the
+multiply strength (ray 0.65 in dev_4); `noiseScale` is in inverse source units (ray 3 per metre).
+`brightness`, `saturation` and `warmth` are min/max pairs (ray [0.65, 1.3], [0.6, 1.25],
+[-0.08, 0.08]). Neutral defaults are 1, 1, 0. Positive warmth raises red and lowers blue.
+
+The shader carries undeformed `position` to the fragment, so the three-octave noise follows
+the skin through motion. It modifies textured linear albedo before lighting. Values are
+chosen once from `id:surface-variation`, shared across a fish's material parts and reapplied
+on material creation; they never consume animation/movement RNG draws. Enabled/disabled
+variants have different program keys; individual values stay uniforms. The Atlas keeps
+the authored specimen without individual variation. Physical-phone fragment cost still
+needs review; no new textures, per-frame allocations or per-frame uniform writes.

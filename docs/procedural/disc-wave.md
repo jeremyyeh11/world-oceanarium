@@ -50,6 +50,11 @@ Blender contract for Jeremy's model (proposed):
 - `COLOR_0` white. `COLOR_1`: `R` 0 along the body's flat centre (about the width of the
   head) rising to 1 at the wingtips; `G` 0 at the wing's leading edge to 1 at its
   trailing edge; `B` 0 at the tail root to 1 at its tip.
+- Painting: Blender's vertex paint can't paint one channel of an attribute on its own, so
+  Jeremy paints three colour attributes, `red`, `green` and `blue`, each black to white
+  (2026-10-24). Intake packs their brightness into `COLOR_1`'s R, G and B, adds a white
+  `COLOR_0`, and exports the GLB. Send the `.blend`, or a GLB exported with all colour
+  attributes (the exporter's default keeps only one).
 - Purplish-grey to brown above with dark bands across the top of the mouth; white below,
   often with dusky wingtips. Opaque texture, 2048 px or less.
 

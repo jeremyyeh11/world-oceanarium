@@ -56,12 +56,13 @@ const targets = [
     name: "Munk's Devil Ray disc-wave",
     path: 'public/models/fish/mobula-munkiana/mobula-munkiana.glb',
     staticMesh: true,
-    // One mesh in three material parts (top, bottom, the head fins' sides).
-    bodyMeshNames: ['munks_devil_ray_1', 'munks_devil_ray_2', 'munks_devil_ray_3'],
+    // One mesh in three material parts: top (_1), bottom (_2) and the head fins' sides (_3). The
+    // floors below apply per part, so only the two that carry the disc are checked here; the app
+    // deforms all three (species.js bodyMeshNames). 1536 and 1360 vertices: his faceted model,
+    // under the contract's 3000 suggestion in all, and the wings still bend cleanly (dev_2).
+    bodyMeshNames: ['munks_devil_ray_1', 'munks_devil_ray_2'],
     requiredBodyAttributes: ['color_1'],
-    // 2942 across the three parts: his faceted model, below the contract's 3000 suggestion, and
-    // the wings still bend cleanly (checked in the tank, dev_2).
-    minVertices: 2800,
+    minVertices: 1300,
   },
   {
     name: 'Whale Shark static parts',

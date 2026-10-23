@@ -12,7 +12,7 @@
 .descent {
   /* Shaft height drives everything: the diver travels it, the lit line fills it. */
   --descent-shaft: clamp(9rem, 46vh, 26rem);
-  --descent-px: 3px;
+  --descent-px: 2px;
   --descent-diver-w: calc(15 * var(--descent-px));
   --descent-diver-h: calc(24 * var(--descent-px));
   --descent-travel: calc(var(--descent-shaft) - var(--descent-diver-h));
@@ -351,10 +351,10 @@
   box-shadow: 0 0 6px rgba(240, 127, 164, 0.6);
 }
 
-/* Tall screens get a bigger diver. */
+/* Large screens get a slightly bigger diver. */
 @media (min-height: 820px) and (min-width: 700px) {
   .descent {
-    --descent-px: 4px;
+    --descent-px: 3px;
   }
 }
 
@@ -362,7 +362,6 @@
 @media (max-height: 560px) {
   .descent {
     --descent-shaft: clamp(7rem, 48vh, 14rem);
-    --descent-px: 2px;
     gap: 0.6rem;
   }
 

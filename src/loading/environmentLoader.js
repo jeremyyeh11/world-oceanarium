@@ -14,6 +14,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
   const entries = new Map()
   const listeners = new Set()
   const retirementListeners = new Set()
+  const preparationTasks = new Map()
   const environmentKeys = id => new Set(catalog.get(id)?.assets.map(asset => asset.key) ?? [])
   let activeId = null
   let requestedId = null
@@ -46,7 +47,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       const loaded = env.assets.filter(asset => entries.get(asset.key)?.state === 'ready').length
       states[id] = Object.freeze({ id, loaded, total: env.assets.length,
         progress: env.assets.length ? loaded / env.assets.length : 1,
-        assetsReady: loaded === env.assets.length })
+        assetsReady: loaded === env.assets.length, sceneTasks: preparationTasks.get(id)?.size ?? 0 })
     }
     return Object.freeze({ activeId, requestedId, phase, error, prefetchId,
       cachedBytes: residentBytes(), cachedAssets: residentCount(),
@@ -69,6 +70,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
   function remove(entry) {
     if (entry.state === 'loading') return
     entries.delete(entry.asset.key)
+    entry.resolve()
     entry.result?.dispose?.()
   }
   function trim() {
@@ -235,6 +237,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
     },
     markRendered(id) {
       if (id !== requestedId || !['assets-ready', 'activating'].includes(phase)) return false
+      if (preparationTasks.get(id)?.size) return false
       const retired = recentId
       recentId = activeId === id ? recentId : activeId
       activeId = id
@@ -249,6 +252,24 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       phase = 'error'
       error = failure?.message ?? String(failure)
       emit()
+    },
+    // Mount-time sliced preparation registers barriers. Complete after generated meshes
+    // commit, not when their source files finish downloading or a generator merely ends.
+    beginPreparation(id, label) {
+      if (!catalog.has(id)) throw new Error(`Unknown environment: ${id}`)
+      const tasks = preparationTasks.get(id) ?? new Map()
+      const token = Symbol(label)
+      tasks.set(token, label)
+      preparationTasks.set(id, tasks)
+      emit()
+      let completed = false
+      return () => {
+        if (completed) return
+        completed = true
+        tasks.delete(token)
+        if (!tasks.size && preparationTasks.get(id) === tasks) preparationTasks.delete(id)
+        emit()
+      }
     },
     prefetch(id) {
       if (id !== null && !catalog.has(id)) throw new Error(`Unknown environment: ${id}`)
@@ -292,6 +313,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       entries.clear()
       listeners.clear()
       retirementListeners.clear()
+      preparationTasks.clear()
     },
   }
 }

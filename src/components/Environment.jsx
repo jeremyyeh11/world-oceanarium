@@ -138,7 +138,7 @@ const ROCK_OBSTACLE_OPTIONS = {
   maxPad: 8,
 }
 
-export default function Environment({ biome, landscape = null }) {
+export default function Environment({ biome, landscape = null, environmentId = null }) {
   // Publish the tank's rocks to the fish before their first frame (layout effect), from the
   // same seeded layout the Landscape renders, so avoidance never waits for the rock kit.
   const pieces = useMemo(() => (landscape ? landscapePieces(landscape) : null), [landscape])
@@ -167,7 +167,7 @@ export default function Environment({ biome, landscape = null }) {
       {/* The rock kit loads on its own so the seabed and fish never wait for it. */}
       {landscape && (
         <Suspense fallback={null}>
-          <Landscape landscape={landscape} />
+          <Landscape landscape={landscape} environmentId={environmentId} />
         </Suspense>
       )}
       {biome === 'tropical-river' && <RiverVegetation />}

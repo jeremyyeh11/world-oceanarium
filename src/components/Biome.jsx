@@ -152,7 +152,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
 
   return (
     <group>
-      <Environment biome={name} landscape={landscapeForTank(tank)} />
+      <Environment biome={name} landscape={landscapeForTank(tank)} environmentId={tank?.id} />
       {name === 'ocean' && <OceanBubbles />}
       {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} debugStatsEnabled={debugStatsEnabled} />}
       {visibleCreatures.map(creature => {

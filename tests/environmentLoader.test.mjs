@@ -157,6 +157,35 @@ function fixture(options = {}) {
   await f.resolve('b'); await selected
   f.loader.markRendered('b'); f.loader.dispose()
 }
+{
+  const f = fixture()
+  const p = f.loader.select('a'); await flush(); await f.resolve('shared'); await f.resolve('a'); await p
+  f.loader.beginActivation('a')
+  const first = f.loader.beginPreparation('a', 'corals')
+  const second = f.loader.beginPreparation('a', 'staghorn')
+  await flush()
+  assert.equal(f.loader.getSnapshot().environments.a.sceneTasks, 2)
+  assert.equal(f.loader.markRendered('a'), false, 'First frame cannot acknowledge incomplete derived scene work')
+  first(); first(); second()
+  const third = f.loader.beginPreparation('a', 'collision-surfaces')
+  second(); await flush()
+  assert.equal(f.loader.getSnapshot().environments.a.sceneTasks, 1, 'Old completion cannot clear a newer task map')
+  third(); await flush()
+  assert.equal(f.loader.markRendered('a'), true)
+  f.loader.dispose()
+}
+{
+  const f = fixture({ concurrency: 1 })
+  f.loader.select('a'); await flush()
+  let suspended
+  try { f.loader.read(f.c) } catch (promise) { suspended = promise }
+  let settled = false
+  suspended.then(() => { settled = true })
+  f.advance(); await flush()
+  assert.equal(settled, true, 'Evicted queued reads must wake Suspense, not hang forever')
+  assert.equal(f.started.includes('gltf:c'), false)
+  f.loader.dispose()
+}
 // Manifest registration is data-driven, covers sex/life-stage variants, and deduplicates maps.
 assert.equal(ENVIRONMENT_MANIFESTS.length, TANKS.length)
 for (const manifest of ENVIRONMENT_MANIFESTS) assert.equal(new Set(manifest.assets.map(a => a.key)).size, manifest.assets.length)
@@ -164,4 +193,21 @@ const synthetic = createEnvironmentManifests([{ id: 'future', biome: 'lake', spe
   model: { path: '/base', sexVariants: { female: { path: '/female' } } }, lifeStages: { juvenile: { model: { path: '/young' } } } }], () => null)
 assert.deepEqual(synthetic[0].assets.map(a => a.url), ['/base', '/female', '/young'])
 for (const tank of TANKS) for (const id of tank.species) assert.ok(SPECIES.some(species => species.id === id))
-console.log('environment loader: priority, cancellation, errors/retry, shared leases, budgets, retirement, idle pressure, Suspense, disposal and future manifests passed')
+// Many future environments retain only active/recent sources, not the entire visited catalog.
+{
+  const environments = Array.from({ length: 40 }, (_, i) => ({ id: `env-${i}`, assets: [asset(`unique-${i}`)] }))
+  const disposed = []
+  const loader = createEnvironmentLoader({ environments, maxCachedBytes: 30, maxBackgroundBytes: 10,
+    scheduleIdle: () => () => {}, loadAsset: async source => ({ value: source.url, bytes: 10, dispose: () => disposed.push(source.url) }) })
+  for (const env of environments) {
+    const result = await loader.select(env.id)
+    assert.equal(result.status, 'assets-ready')
+    loader.markRendered(env.id)
+    await flush()
+    assert.ok(loader.getSnapshot().cachedAssets <= 2, 'Visited environment count must not grow source retention')
+  }
+  assert.equal(disposed.length, 38)
+  loader.dispose()
+  assert.equal(disposed.length, 40)
+}
+console.log('environment loader: priority, cancellation, errors/retry, shared leases, budgets, retirement, idle/decode pressure, scene barriers, Suspense, disposal and 40-environment retention passed')

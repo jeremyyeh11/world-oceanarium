@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useThree } from '@react-three/fiber'
 import { assetDefinition, ENVIRONMENT_MANIFESTS } from '../loading/environmentManifest.js'
 import { environmentLoader } from '../loading/environmentRuntime.js'
@@ -47,7 +47,12 @@ export function useEnvironmentSourceLease(kind, urls) {
 
 function useSources(kind, urls) {
   const assets = useEnvironmentSourceLease(kind, urls)
-  return assets.map(asset => environmentLoader.read(asset))
+  const previous = useRef(null)
+  const values = assets.map(asset => environmentLoader.read(asset))
+  // Drei returns stable source arrays. Preserve that contract: texture consumers use
+  // array/object identity to memoize materials, merged coral geometry and GPU uploads.
+  if (!previous.current || previous.current.length !== values.length || values.some((value, i) => value !== previous.current[i])) previous.current = values
+  return previous.current
 }
 
 // Owned source cache shared by tanks and Atlas. Consumers lease originals; clones remain local.
@@ -63,5 +68,11 @@ export function useEnvironmentTextures(input) {
   // Match drei's early upload behaviour. Upload happens ONLY in the active renderer.
   const signature = textures.map(texture => texture.uuid).join(':')
   useEffect(() => { for (const texture of textures) gl.initTexture?.(texture) }, [gl, signature]) // eslint-disable-line react-hooks/exhaustive-deps
-  return object ? Object.fromEntries(Object.keys(input).map((key, i) => [key, textures[i]])) : Array.isArray(input) ? textures : textures[0]
+  const inputSignature = JSON.stringify(input)
+  return useMemo(() => {
+    const shape = JSON.parse(inputSignature)
+    return typeof shape === 'object' && !Array.isArray(shape)
+      ? Object.fromEntries(Object.keys(shape).map((key, i) => [key, textures[i]]))
+      : Array.isArray(shape) ? textures : textures[0]
+  }, [inputSignature, textures])
 }

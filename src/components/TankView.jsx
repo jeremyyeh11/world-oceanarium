@@ -814,7 +814,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
               construction and texture uploads may still hitch on a cold mobile GPU.
               Keep `warm-` distinct from Biome's key to avoid sibling-key collisions. */}
           <WarmScene key={`warm-${tank?.id ?? biome.id}`} environmentId={tank?.id ?? biome.id}
-            assetsReady={Boolean(environmentLoading.environments[tank?.id]?.assetsReady) && !creatureDataLoading} />
+            assetsReady={Boolean(environmentLoading.environments[tank?.id]?.assetsReady)
+              && environmentLoading.requestedId === tank?.id
+              && ['assets-ready', 'activating'].includes(environmentLoading.phase)
+              && environmentLoading.environments[tank?.id]?.sceneTasks === 0 && !creatureDataLoading} />
         </Canvas>
       </div>
 

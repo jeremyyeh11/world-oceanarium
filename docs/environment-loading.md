@@ -1,6 +1,6 @@
 # Budgeted environment loading
 
-Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_1` (not a clean release).
+Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_2` (not a clean release).
 
 ## Intention and scope
 
@@ -36,7 +36,7 @@ State fields:
 - `requestedId`: latest requested destination, not necessarily displayed yet.
 - `phase`: `idle` → `loading` → `assets-ready` → `activating` → `ready`; failures produce `error`.
 - `error`: plain message or `null`. A failed switch leaves the previous tank mounted. Repeating `requestEnvironment(id)` retries failed source loads.
-- `environments[id]`: `{ id, loaded, total, progress, assetsReady }`. `progress` is 0–1 by **completed source asset count**, not byte transfer or total loading time. Never label 100% as “scene ready”: construction, uploads and shader compilation can remain.
+- `environments[id]`: `{ id, loaded, total, progress, assetsReady, sceneTasks }`. `progress` is 0–1 by **completed source asset count**, not byte transfer or total loading time. `sceneTasks` counts registered mount-time preparation barriers. Never label 100% as “scene ready”: construction, uploads and shader compilation can remain.
 - `prefetchId`: the one speculative destination, or `null`. It may be only partially prepared.
 - `cachedBytes`, `cachedAssets`, `overBudget`: controller accounting, **not measured process/GPU memory**.
 
@@ -73,7 +73,7 @@ Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It ex
 ## Remaining preparation work
 
 - Network and source parse/decode preparation are integrated now. GLTF parse/image decode can still create an indivisible main-thread task even when admitted at idle. Moving suitable decoding to workers or changing asset packaging is a separate measured change.
-- Existing rock merges and coral/staghorn placement still happen when the target mounts; the existing sliced coral placement hook is retained. This patch does not claim all geometry is background-built. A future preparation adapter can feed those existing caches incrementally without mounting/running another tank.
+- Existing rock merges and coral/staghorn placement still happen when the target mounts; the existing sliced placement hook is retained. Placement/BVH jobs register `beginPreparation(id, label)` barriers and release them after their generated results commit. First-frame readiness waits for those barriers and shader warm-up; it does not prematurely report a rocks-only reef as complete. New asynchronous scene construction must register/release a barrier (including cleanup) the same way. This patch does not claim all geometry is background-built.
 - Shader compilation and uploads remain renderer-specific. `compileAsync` is not equivalent to uploading every texture or guaranteeing a presented frame. Common HDR stays owned by Drei's environment hook.
 - Freezing a tank under a fully covering Atlas, native Atlas scrolling, adaptive resolution, texture compression and water/reef rendering optimization are separate scopes—not implemented here.
 

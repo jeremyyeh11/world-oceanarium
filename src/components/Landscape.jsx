@@ -366,33 +366,44 @@ function useCoralKit(kit, caustics) {
 // tank) and keeps its result for the session in `cache`, by landscape: the same landscape always
 // places the same corals, so a return visit draws them at once. start() makes the generator;
 // it is rerun when `inputs` change.
-function useSlicedPlacement(cache, landscape, start, inputs) {
+function useSlicedPlacement(cache, landscape, start, inputs, environmentId) {
   const [placed, setPlaced] = useState(() => cache.get(landscape) ?? null)
-  useEffect(() => {
+  const finish = useRef(null)
+  useLayoutEffect(() => {
     const cached = cache.get(landscape)
     if (cached) {
       setPlaced(cached)
       return undefined
     }
+    const complete = environmentLoader.beginPreparation(environmentId, 'landscape-placement')
+    finish.current = complete
     const steps = start()
     let timer = null
     const step = () => {
-      const until = performance.now() + PLACEMENT_SLICE_MS
-      while (performance.now() < until) {
-        const { done, value } = steps.next()
-        if (done) {
-          cache.set(landscape, value)
-          setPlaced(value)
-          return
+      try {
+        const until = performance.now() + PLACEMENT_SLICE_MS
+        while (performance.now() < until) {
+          const { done, value } = steps.next()
+          if (done) {
+            cache.set(landscape, value)
+            setPlaced(value)
+            return
+          }
         }
+        timer = setTimeout(step, 0)
+      } catch (error) {
+        complete()
+        environmentLoader.failActivation(environmentId, error)
       }
-      timer = setTimeout(step, 0)
     }
     step()
-    return () => clearTimeout(timer)
+    return () => { clearTimeout(timer); steps.return?.(); complete(); finish.current = null }
   // start() is a fresh closure every render; `inputs` are what it reads.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cache, landscape, ...inputs])
+  }, [cache, landscape, environmentId, ...inputs])
+  useLayoutEffect(() => {
+    if (placed) { finish.current?.(); finish.current = null }
+  }, [placed])
   return placed
 }
 
@@ -519,14 +530,14 @@ function useExtraObstacles(obstacles) {
 // _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
 // obstacles. Loads on its own, so the rocks never wait. The staghorn (landscape.staghorn)
 // grows on the same bommies once the tables are placed.
-function Corals({ landscape, coralRocks }) {
+function Corals({ landscape, coralRocks, environmentId }) {
   const { kit } = landscape.corals
   const { meshes, materials } = useCoralKit(kit, landscape.caustics)
   const clusters = useMemo(() => coralClusters(landscape, coralRocks, landscape.view), [landscape, coralRocks])
   const corals = useSlicedPlacement(PLACED_CORALS, landscape, () => {
     const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
     return placeCorals(landscape, clusters, measures, landscape.view)
-  }, [kit, meshes, clusters])
+  }, [kit, meshes, clusters], environmentId)
 
   const { merged, obstacles } = useMemo(() => {
     if (!corals) return { merged: [], obstacles: [] }
@@ -551,7 +562,7 @@ function Corals({ landscape, coralRocks }) {
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
       {corals && landscape.staghorn && (
         <Suspense fallback={null}>
-          <Staghorn landscape={landscape} clusters={clusters} tables={corals} />
+          <Staghorn landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} />
         </Suspense>
       )}
     </>
@@ -561,13 +572,13 @@ function Corals({ landscape, coralRocks }) {
 // Staghorn (landscape.staghorn): patches of one colour each on the table corals' bommies,
 // clear of their plates (staghornPlacement.js), each bommie's drawn as one LOD (staghornLods).
 // Each colony joins the fish's rock obstacles.
-function Staghorn({ landscape, clusters, tables }) {
+function Staghorn({ landscape, clusters, tables, environmentId }) {
   const { kit } = landscape.staghorn
   const { meshes, materials } = useCoralKit(kit, landscape.caustics)
   const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
     const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
     return placeStaghorn(landscape, clusters, tables, measures, landscape.view)
-  }, [kit, meshes, clusters, tables])
+  }, [kit, meshes, clusters, tables], environmentId)
 
   const { bommies, obstacles } = useMemo(() => {
     if (!colonies) return { bommies: [], obstacles: [] }
@@ -583,15 +594,15 @@ function Staghorn({ landscape, clusters, tables }) {
   return (
     <>
       {bommies.map(bommie => <StaghornBommie key={bommie.key} bommie={bommie} kit={kit} />)}
-      {colonies && <ThicketReefSurfaces landscape={landscape} colonies={colonies} meshes={meshes} kit={kit} />}
+      {colonies && <ThicketReefSurfaces landscape={landscape} colonies={colonies} meshes={meshes} kit={kit} environmentId={environmentId} />}
     </>
   )
 }
 
 // Reef fish hover over, pick at and hide among the staghorn thickets they can reach
 // (reefSites.js), once the patches' surfaces are built (thicketReefSurfaces, kept for the session).
-function ThicketReefSurfaces({ landscape, colonies, meshes, kit }) {
-  const surfaces = useSlicedPlacement(THICKET_REEF_SURFACES, landscape, () => thicketReefSurfaces(landscape, colonies, meshes, kit), [colonies, meshes, kit])
+function ThicketReefSurfaces({ landscape, colonies, meshes, kit, environmentId }) {
+  const surfaces = useSlicedPlacement(THICKET_REEF_SURFACES, landscape, () => thicketReefSurfaces(landscape, colonies, meshes, kit), [colonies, meshes, kit], environmentId)
   useLayoutEffect(() => {
     if (!surfaces?.geometries.length) return undefined
     const owner = setCoralSurfaces(surfaces.geometries, surfaces.metas)
@@ -616,7 +627,7 @@ function builtLandscape(landscape, gltf, rocks) {
   return result
 }
 
-export default function Landscape({ landscape }) {
+export default function Landscape({ landscape, environmentId }) {
   const { kit } = landscape
   const gltf = useGLTF(kit.path)
   const textures = useTexture(kit.textures)
@@ -661,7 +672,7 @@ export default function Landscape({ landscape }) {
       {chunks.map(chunk => <mesh key={chunk.key} geometry={chunk.geometry} material={material} />)}
       {landscape.corals && (
         <Suspense fallback={null}>
-          <Corals landscape={landscape} coralRocks={coralRocks} />
+          <Corals landscape={landscape} coralRocks={coralRocks} environmentId={environmentId} />
         </Suspense>
       )}
     </group>

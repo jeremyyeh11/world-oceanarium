@@ -15,7 +15,7 @@ Status labels:
 
 ### Reserve selector and the descent
 
-Status: `Current in development` in `v0.35.0-dev_13` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on #153. Landing → selector → loading screen → tank, with a bottom-left button back to the selector.
+Status: `Current in development` in `v0.35.0-dev_17` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on #153. Landing → selector → loading screen → tank, with a bottom-left button back to the selector.
 
 Subtasks:
 - [x] Selector, loading screen (files / building / error + retry), bottom-left Tanks button; old tank list removed.
@@ -29,6 +29,8 @@ Subtasks:
 - [ ] Refine the descent with Jeremy (sprite, copy: "Into the blue").
 - [ ] Device check: phone portrait/landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll.
 - [ ] Decide whether the speculative budget should cover a whole second tank (today about four files per visit).
+- [x] Render only the on-screen window of the 16:9 stage (dev_17): about 4× fewer fragments on a portrait phone, same picture.
+- [ ] Phone frame rate at The Reefs and The Open Sea after dev_17 (Jeremy measured under 24 fps before it). `Next`
 
 ### Budgeted environment-loading infrastructure
 
@@ -137,7 +139,7 @@ Subtasks:
 - [x] Close-up texture: shared per-colour maps at about the source's texel density (was a third to a half of it).
 - [ ] Sharper than the source photos up close: better source textures from Jeremy, or a tiling corallite detail layer in the shader. `Backlog`
 - [x] Jeremy's go-ahead on `v0.31.0-dev_3` (2026-10-20: "push and merge to main").
-- [ ] Phone frame rate at The Reefs: the staghorn draws 134k triangles from the resting view, 3.5 times the tables. Trim colonies or the back bommies' detail if it stutters. `Backlog`
+- [ ] Phone frame rate at The Reefs: the staghorn draws 134k triangles from the resting view, 3.5 times the tables. Trim colonies or the back bommies' detail if it still stutters after the on-screen-window render (v0.35.0-dev_17). `Backlog`
 - [ ] Texture provenance: the source GLB's images are named `311551-enhanced`, `1052_C02_05-enhanced` and `StaghornAcroporaCoral5-enhanced`; no source found. Credit in `src/data/sources.js` if any is a Commons/CC photo. `Next`
 - [ ] Small reef fish sheltering among the branches (staghorn is a classic damselfish home; the tank's reef fish are all larger). `Backlog`
 - [ ] The Atlas specimen GLB is 4.9 MB (the table coral's 3.3 MB): it embeds every colony's maps; `_lo` meshes or shared maps would cut it. `Backlog`

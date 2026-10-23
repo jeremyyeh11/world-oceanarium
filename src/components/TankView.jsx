@@ -122,6 +122,35 @@ function ResumeClock({ paused }) {
   return null
 }
 
+// The stage is a 16:9 frame at least as large as the screen (.tank-stage in index.css),
+// panned sideways on a portrait phone. Rendering all of it drew the whole panorama every
+// frame for the quarter of it on screen, so the canvas covers only the screen and the
+// camera renders the matching window of the full frame (`setViewOffset`): the same
+// picture and framing at about a quarter of the fragments on a portrait phone. Runs
+// before everything else in the frame so this frame's projection already has it.
+const STAGE_ASPECT = 16 / 9
+
+function StageWindow({ panRef }) {
+  const camera = useThree(state => state.camera)
+  const size = useThree(state => state.size)
+  useFrame(() => {
+    const { width, height } = size
+    if (!width || !height) return
+    const fullWidth = Math.max(width, height * STAGE_ASPECT)
+    const fullHeight = fullWidth / STAGE_ASPECT
+    const offsetX = (fullWidth - width) / 2 - panRef.current
+    const offsetY = (fullHeight - height) / 2
+    const view = camera.view
+    // r3f resets the aspect to the canvas's own on resize; put the full frame's back.
+    if (camera.aspect === STAGE_ASPECT && view?.enabled && view.fullWidth === fullWidth
+      && view.fullHeight === fullHeight && view.offsetX === offsetX && view.offsetY === offsetY
+      && view.width === width && view.height === height) return
+    camera.aspect = STAGE_ASPECT
+    camera.setViewOffset(fullWidth, fullHeight, offsetX, offsetY, width, height)
+  }, -1)
+  return null
+}
+
 function creatureDisplayName(creature) {
   const customName = creature?.customName?.trim()
   if (customName) return customName
@@ -198,6 +227,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
 
   const [stagePan, setStagePan] = useState(0)
+  // Read by StageWindow in the frame loop; set during render so it changes in the same
+  // commit as the --stage-pan-x the canvas is positioned by.
+  const stagePanRef = useRef(0)
+  stagePanRef.current = stagePan
   const [stagePanning, setStagePanning] = useState(false)
   const [followOrbit, setFollowOrbit] = useState({ yaw: 0, pitch: 0 })
   const [followDistance, setFollowDistance] = useState(DEFAULT_FOLLOW_DISTANCE)
@@ -780,8 +813,12 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             simulates, and the WebGL context with its compiled shaders and uploaded
             textures survives for the next visit. A hidden tank still warming keeps
             rendering until the loader acknowledges its first frame. */}
-        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+        {/* The canvas covers the screen, not the whole stage (StageWindow); .tank-canvas
+            in index.css counters the stage's pan so it stays put. Unset here so r3f's
+            inline position and size give way to that rule. */}
+        <Canvas className="tank-canvas" style={{ position: undefined, width: undefined, height: undefined }} camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <ResumeClock paused={paused} />
+          <StageWindow panRef={stagePanRef} />
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}

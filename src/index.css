@@ -814,6 +814,19 @@ button { font: inherit; }
   cursor: grabbing;
 }
 
+/* Only the screen's share of the stage is rendered (StageWindow in TankView.jsx): the
+   canvas sits over the screen inside the stage, offset by the stage's pan so it stays
+   still while the camera's view offset slides the picture. */
+.tank-canvas {
+  position: absolute;
+  left: calc(50% - 50vw - var(--stage-pan-x, 0px));
+  top: calc(50% - 50vh);
+  top: calc(50% - 50dvh);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+}
+
 .tank-stage canvas {
   display: block;
 }

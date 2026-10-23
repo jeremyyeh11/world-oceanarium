@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_16` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_17` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -37,6 +37,11 @@ Status: `v0.35.0-dev_16` (2026-10-23, branch `claude/environment-loader-ui-ux-v2
 - dev_15 (Jeremy: "landing page dive is too cluttered"): the landing dive's montage drops from 16 pieces to 8: the sunfish at 22 m, three sardinella at 65 m, the whale shark at 112 m, the bannerfish at 158 m, alternating sides, and a table coral and a staghorn at the floor.
 - dev_16 (Jeremy: "the order of the sprites should match their depths, at least relatively"): the landing dive is a reef drop-off over 0–200 m, consistent with both reserves. A reef crest at the top (table coral at 6 m, staghorn at 5 m, the bannerfish at 8 m, The Reefs' own depths), then down the wall by typical depth: sardinella at 35 m, the sunfish at 90 m, the whale shark at 150 m; no seabed, ending in open blue.
 - `tests/scenery.test.mjs`: every piece names a drawn sprite and real species, descent pieces sit inside the reserve's depth range, and signature species are on that reserve's roster.
+
+### Performance (dev_17)
+
+- Jeremy: under 24 fps on iPhone, mostly inside The Reefs. Not from this branch: main, #153 and dev_16 measured the same on The Reefs (Chromium, software GL, same view). The cause is older: the stage is a 16:9 frame at least the screen's size, panned sideways on a portrait phone, and the canvas rendered all of it. On a 390 × 844 iPhone that was 2250 × 1266 pixels at the 1.5 DPR cap for the 26% on screen.
+- The canvas now covers only the screen (`.tank-canvas`, countering the stage's pan) and the camera renders the matching window of the full frame (`StageWindow` in TankView.jsx, `camera.setViewOffset`). Same picture, framing and pan; about a quarter of the fragments on a portrait phone, and three.js now frustum-culls what is off screen. Checked in Chromium: The Reefs at a phone viewport 0.60 → 1.13 frames/s (software GL, so relative), draw calls 89 → 51; screenshots match at pan 0, panned, 1440 × 900 and 2000 × 800; tap rays match the full-frame ray to 0.001°. Not yet checked on a phone.
 
 ### Docs
 

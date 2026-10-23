@@ -15,13 +15,14 @@ Status labels:
 
 ### Tank selector and loader
 
-Status: `Current in development` in `v0.35.0-dev_1` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`). Landing → selector → loader → tank, with a bottom-left button back to the selector.
+Status: `Current in development` in `v0.35.0-dev_2` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`). Landing → selector → loader → tank, with a bottom-left button back to the selector.
 
 Subtasks:
 - [x] Selector cards, per-tank loader, bottom-left back button; old tank list removed.
 - [x] `useSceneReady` measures per visit (baseline + cached grace).
 - [ ] Device check: phone portrait/landscape and iPad, selector scroll and the back button against the follow card.
-- [ ] Decide: preload the last or default tank behind the selector so the first dive is faster.
+- [x] Preload from the selector in attention order (`utils/attentionOrder.js`), top `PRELOAD_TANK_LIMIT` = 2 tanks.
+- [ ] Revisit `PRELOAD_TANK_LIMIT` once there are 3+ tanks (mobile data cost); consider bumping a hovered/focused card to the front of the queue.
 
 ### Humphead Wrasse females
 

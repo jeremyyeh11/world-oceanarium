@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Tank selector and loader (in development)
 
-Status: `v0.35.0-dev_1` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`). From `main` at `v0.34.0`. Jeremy: landing → dive in → environment selector → tank → loading screen → tank, with a bottom-left button back to the selector.
+Status: `v0.35.0-dev_2` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`). From `main` at `v0.34.0`. Jeremy: landing → dive in → environment selector → tank → loading screen → tank, with a bottom-left button back to the selector.
 
 ### Navigation
 
@@ -22,6 +22,9 @@ Status: `v0.35.0-dev_1` (2026-10-23, branch `claude/environment-loader-ui-ux-v28
 
 ### Loading
 
+- Tanks preload from the selector, ranked by where viewers look first in the grid: `utils/attentionOrder.js` scores each cell on an inverted L (top row, then left column; TheLadders and NN/g eye-tracking) as `max(0.85^c · 0.55^r, 0.8^r · 0.55^c)`. A 5×5 grid ranks A1, B1, A2, C1, A3, D1, E1 … E5; one column is top to bottom. The selector reads its live column count, takes the top `PRELOAD_TANK_LIMIT` (2, so both tanks today) and fetches them one at a time (`utils/tankPreload.js`), the next starting when the loader queue drains. Picking a tank stops further tanks from queueing.
+- `tankPreload` walks each species' `model` and `lifeStages` for `/models/*.glb`, plus the tank's landscape kits, replacing the hand-kept module-level preload lists in Fish.jsx and Landscape.jsx. It now also covers the reef fish, whale shark and juvenile emperor angelfish, which loaded lazily before. Checked in Chromium: both tanks fetched in rank order before the first pick, and no extra model requests after it.
+- Known cost: the loader waits for the whole queue, so picking a tank while another is mid-preload waits for that fetch too (one tank's worth at most).
 - `useSceneReady` now measures from mount: loads and errors from an earlier visit are a baseline, not a start, and a fully cached revisit that never touches the loader queue counts as started after 900 ms (`CACHED_GRACE_MS`).
 
 ## v0.33.1 — Visitor changelog caught up

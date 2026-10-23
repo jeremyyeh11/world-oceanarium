@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { MeshBVH } from 'three-mesh-bvh'
-import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
+import { landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
 import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
@@ -666,15 +666,6 @@ export default function Landscape({ landscape }) {
   )
 }
 
-// Fetch the rock kits with the rest of the tank's assets, so the landing gate's progress
-// covers them and the first visit to a landscaped tank does not pop the rocks in late.
-for (const { kit, corals, staghorn } of Object.values(LANDSCAPES)) {
-  if (!kit) continue
-  useGLTF.preload(kit.path)
-  useTexture.preload(Object.values(kit.textures))
-  for (const coral of [corals, staghorn]) {
-    if (!coral) continue
-    useGLTF.preload(coral.kit.path)
-    useTexture.preload(coral.kit.models.flatMap(model => [model.color, model.normal]))
-  }
-}
+// The rock and coral kits are preloaded per tank by utils/tankPreload.js, from the tank
+// selector, so a landscaped tank's first visit does not pop its rocks in late. Its
+// useTexture.preload inputs must stay identical to the useTexture calls here.

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { DEPTH_ZONES } from '../data/species'
+import { attentionOrder } from '../utils/attentionOrder'
+import { PRELOAD_TANK_LIMIT, preloadTanksInOrder } from '../utils/tankPreload'
 
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
@@ -46,6 +48,18 @@ export default function EnvironmentSelector({ tanks, biomesById, speciesCountByT
       if (pickTimer.current) window.clearTimeout(pickTimer.current)
     }
   }, [initialTankId])
+
+  // Fetch ahead the tanks the viewer is most likely to open, ranked by where they look
+  // first in the grid as it is laid out now (one column on a phone, more on desktop).
+  // Leaving for a tank unmounts this and stops queueing the rest.
+  useEffect(() => {
+    const list = listRef.current
+    const columns = list ? getComputedStyle(list).gridTemplateColumns.split(' ').filter(Boolean).length : 1
+    const ranked = attentionOrder(tanks.length, columns)
+      .slice(0, PRELOAD_TANK_LIMIT)
+      .map(index => tanks[index])
+    return preloadTanksInOrder(ranked)
+  }, [tanks])
 
   const pick = (tankId) => {
     if (pickedId) return

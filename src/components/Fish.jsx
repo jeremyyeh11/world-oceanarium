@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Billboard, Text, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { SPECIES, WORLD_UNIT_METERS } from '../data/species'
+import { WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
 import { removeSardineFrustumEntry, removeSardineInstance, removeSardineLod1Instance, removeSardineLod0Entry, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE, updateSardineFrustumEntry, updateSardineInstance, updateSardineLod1Instance, updateSardineLod0Entry } from './sardineInstanceRegistry'
 import { SURFACE_PLANE_Y } from './WaterSurface'
@@ -4219,28 +4219,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   )
 }
 
-// Preload the assets species.js actually resolves to. This list drifted when the
-// static/procedural models landed: it kept naming the superseded rigged GLBs, so
-// every load eagerly fetched sardine.glb and mahi-mahi_female.glb — 5.79 MB that
-// is never drawn — while the _static_parts models that *are* drawn were left to
-// load lazily on first sighting. Exactly backwards.
-//
-// Every model species.js can resolve for the mahi is covered: its base
-// model.path points at the male static mesh too, so the rigged mahi-mahi_male.glb
-// is gone entirely rather than sitting unreferenced.
-//
-// This list is deliberately exhaustive — every model the tank can draw is here.
-// The mako was previously left out on the reasoning that one creature did not
-// justify 3.10 MB up front, but a lazy fetch on first sighting stalls the frame
-// mid-session, and the landing gate now covers the load anyway. Being exhaustive
-// also keeps the gate's progress bar honest: <FishModel>'s useGLTF then resolves
-// from drei's cache instead of opening a second wave of requests after the
-// Supabase fetch settles, which would send the bar to 100% and restart it.
-useGLTF.preload('/models/fish/sardine/sardine_static.glb')
-useGLTF.preload('/models/fish/mola-alexandrini/mola-alexandrini.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_male_static_parts.glb')
-useGLTF.preload('/models/fish/mahi-mahi/mahi-mahi_female_static_parts.glb')
-// Remoras, read from species data so the list follows the placeholder -> real model swap.
-SPECIES.filter(species => species.family === 'Echeneidae' && species.model?.path)
-  .forEach(species => useGLTF.preload(species.model.path))
-useGLTF.preload('/models/fish/isurus-oxyrinchus/isurus-oxyrinchus_static_parts.glb')
+// Models are preloaded per tank by utils/tankPreload.js, from the tank selector, rather
+// than here at import: that list walks each species entry, so it stays exhaustive (a
+// model fetched lazily on first sighting stalls the frame mid-session) without
+// fetching tanks nobody opens.

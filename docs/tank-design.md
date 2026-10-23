@@ -301,18 +301,24 @@ around them.
    the scene has a seabed, the drawn depth (surface `SURFACE_PLANE_Y` 4.6 to the sand,
    `1 WU = 25 cm`). Note in a comment if the two disagree. `tests/reserveDepth.test.mjs`
    fails on a reserve without a sane range.
-4. **Descent scenery** (specified, not yet built; see below). Decide whether the reserve
-   gets standee scenery and which signature species appear on its descent. Open water
-   (The Open Sea) has none: marine snow and the light are its scenery.
-5. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
+4. **Descent scenery** (see below). Decide whether the reserve gets standee scenery and
+   which signature species appear on its descent, draw any missing sprites in
+   `src/data/pixelSprites.js`, and add a `descent` block. Open water (The Open Sea) has
+   none: marine snow and the light are its scenery.
+5. **Landing scenery.** The landing's standees are curated by hand in
+   `src/data/landingScenery.js`, not generated from the roster: decide whether the new
+   reserve or its creatures earn a place on the front page (a signature animal, its
+   habitat along the bottom edge), and add them there.
+6. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
    and preloading (`docs/environment-loading.md`) pick the new entry up from `TANKS`.
    Check the card's swatch (from `lighting.backgroundStops`, else the biome colour) and
    the descent on a phone, portrait and landscape.
 
-### Descent scenery and signature species (spec)
+### Descent scenery and signature species
 
-Planned, not built. Each reserve's loading descent (the freediver going down the
-guideline, `DiveDescent.jsx`) can carry scenery that says where you are going.
+Each reserve's loading descent (the freediver going down the guideline,
+`DiveDescent.jsx`) can carry scenery that says where you are going. Built in
+`v0.35.0-dev_10` for The Reefs; `tests/scenery.test.mjs` checks every piece.
 
 - **Standees, no cardboard.** Flat pixel-art cut-outs set around the guideline, like a
   cardboard standee display without the cardboard outline: same 2 px cell style and CRT
@@ -330,17 +336,28 @@ guideline, `DiveDescent.jsx`) can carry scenery that says where you are going.
 - **Habitat pieces.** For The Reefs: rock ledges from the sides partway down; a table
   coral and staghorn on the seabed where the diver arrives, in the reef's coral colours
   (staghorn orange, blue, cream).
-- **Data.** A `descent` block on the tank, for example:
+- **Data.** A `descent` block on the tank (The Reefs' is in species.js):
 
   ```js
   descent: {
-    signature: [{ species: 'heniochus-acuminatus', depth: 12, side: 'left' }],
-    scenery: [{ sprite: 'ledge', depth: 8, side: 'right' }, { sprite: 'table-coral', depth: 30, side: 'left' }],
+    signature: [
+      { sprite: 'bannerfish', species: 'heniochus-acuminatus', depth: 3.5, side: 'left', flip: true },
+    ],
+    scenery: [
+      { sprite: 'ledge', depth: 8, side: 'left', flip: true },
+      { sprite: 'table-coral', depth: 'floor', side: 'left' },
+    ],
   }
   ```
 
-  Sprites live with the descent as cell runs, like the diver's. Phones get fewer or
-  smaller side pieces so nothing crowds the line.
+  `depth` is metres inside `depthMeters`, or `'floor'` to stand on the seabed (floor
+  pieces line up outward from the line, in list order). `species` must be on the
+  reserve's own roster. Sprites face left; `flip` turns one to face the line from the
+  left. Pieces keep clear of the depth labels beside the line.
+- **Sprites** live in `src/data/pixelSprites.js` as character grids over one shared
+  palette (`SPRITE_PALETTE`), rendered by `PixelSprite.jsx`. Every sprite faces left.
+  Check a new one at large scale before shipping: the silhouette and one or two field
+  marks are what make it read at 2 px per cell.
 
 ### Change the default tank
 

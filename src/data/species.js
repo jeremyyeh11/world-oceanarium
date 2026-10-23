@@ -105,6 +105,24 @@ export const TANKS = [
     // A shallow sunlit reef, rounded to 10 m (Jeremy, 2026-10-23). The scene as drawn agrees:
     // sand at y -24 under the surface at y 4.6 is 28.6 WU, about 7 m (8 m in the troughs).
     depthMeters: [0, 10],
+    // The loading descent's standees (docs/tank-design.md, Descent scenery): pixel cut-outs
+    // around the guideline, placed by depth (m, or 'floor'), lit as the diver passes. The
+    // signature species are two of the reef's own: the longfin bannerfish and the emperor
+    // angelfish. Sprites face left; `flip` turns one to face the line from the left.
+    descent: {
+      signature: [
+        { sprite: 'bannerfish', species: 'heniochus-acuminatus', depth: 3.5, side: 'left', flip: true },
+        { sprite: 'emperor-angelfish', species: 'pomacanthus-imperator', depth: 6.5, side: 'right' },
+      ],
+      scenery: [
+        { sprite: 'ledge', depth: 2, side: 'right' },
+        { sprite: 'ledge', depth: 8, side: 'left', flip: true },
+        { sprite: 'table-coral', depth: 'floor', side: 'left' },
+        { sprite: 'staghorn-orange', depth: 'floor', side: 'right' },
+        { sprite: 'staghorn-blue', depth: 'floor', side: 'left' },
+        { sprite: 'boulder', depth: 'floor', side: 'right' },
+      ],
+    },
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.

@@ -15,7 +15,7 @@ Status labels:
 
 ### Reserve selector and the descent
 
-Status: `Current in development` in `v0.35.0-dev_8` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on #153. Landing → selector → loading screen → tank, with a bottom-left button back to the selector.
+Status: `Current in development` in `v0.35.0-dev_10` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on #153. Landing → selector → loading screen → tank, with a bottom-left button back to the selector.
 
 Subtasks:
 - [x] Selector, loading screen (files / building / error + retry), bottom-left Tanks button; old tank list removed.
@@ -23,7 +23,9 @@ Subtasks:
 - [x] Hidden/paused tank under the selector and loader; one canvas per session.
 - [x] Public copy says reserves (UI only); opaque landing gate; the descent (diver on a guideline) for the landing dive and each reserve's loading screen.
 - [x] Per-reserve depth range (`depthMeters`) for the descent scale and selector card; new reserve checklist in docs/tank-design.md.
-- [ ] Descent scenery (spec in docs/tank-design.md): The Reefs' signature species (bannerfish, emperor angelfish) and habitat standees (ledges, table coral, staghorn), placed by depth, lit as the diver passes; Open Sea stays bare. Sprites reviewed at 12× before wiring.
+- [x] Descent scenery for The Reefs (bannerfish, emperor angelfish, ledges, table coral, staghorn, boulder) and hand-curated landing scenery (whale shark, sunfish, butterflyfish school, corals).
+- [ ] Landing: manta and eagle rays once they join a roster (placeholder in src/data/landingScenery.js).
+- [ ] Refine sprites with Jeremy.
 - [x] The Reefs' depth: 0–10 m (dev_9), matching the drawn scene's ~7 m.
 - [ ] Refine the descent with Jeremy (sprite, copy: "Into the blue").
 - [ ] Device check: phone portrait/landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll.

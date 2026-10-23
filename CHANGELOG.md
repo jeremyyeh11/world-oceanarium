@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_9` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_10` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -25,6 +25,13 @@ Status: `v0.35.0-dev_9` (2026-10-23, branch `claude/environment-loader-ui-ux-v28
 - The landing gate is fully opaque (the old translucent wash composited over the void); the selector under it no longer shows through.
 - The descent (`DiveDescent.jsx`, `descent.css`): the vertical progress bar, a pixel-art freediver (15 × 24 cells, 2 px per cell, 3 px on large screens; dev_6, from 3 / 4 px, Jeremy: "the diver itself is too big") going head first down a guideline. The line above the diver is lit (`scaleY`), depth ticks light as they are passed, the current depth rides beside the diver, fins flutter in two stepped frames, breath bubbles rise, marine snow drifts up, and the floor marker flares on arrival. Progress moves by transform only (1200 ms ease); the diver never climbs back, and every dive starts at 0 m and travels down even when the load was mostly done before Dive in. The depth label and passed ticks tween with the diver (rAF, same duration). Depth scale is the reserve's own range (dev_8): `depthMeters: [top, bottom]` on each tank (The Open Sea 0–200 m; The Reefs 0–10 m in dev_9, rounded from the drawn reef's ~7 m, sand at y -24 under the surface at 4.6; dev_8 had 0–30 m), falling back to the zone's range (`utils/reserveDepth.js`). Ticks are round steps picked from the range (0–10 m → every 2 m, 0–200 m → every 50 m), and the selector card shows the same range. `tests/reserveDepth.test.mjs`.
 - After **Dive in** the card goes straight to the descent (dev_6: the card-sink animation and its drifting depth captions are gone; Jeremy: "the diver should be that loading interface"), which follows the first reserve warming underneath (held at least 1.6 s, opens anyway after 15 s), then the gate clears onto the selector. Audio starts on the Dive in click. Each reserve's loading screen is the same descent with the reserve's name. Progress: files are 85% of the line, the build the rest (`utils/environmentProgress.js`).
+
+### Scenery (dev_10)
+
+- Pixel sprites (`src/data/pixelSprites.js`, `PixelSprite.jsx`): character grids over one muted palette, all facing left: whale shark, sunfish, longfin bannerfish, emperor angelfish (diagonal stripes, dark mask), raccoon butterflyfish, table coral, staghorn (orange, blue), rock ledge, boulder.
+- The Reefs' descent has standees (`descent` in species.js): its signature species, the bannerfish at 3.5 m and the emperor angelfish at 6.5 m, ledges at 2 m and 8 m, and table coral, two staghorns and a boulder on the seabed. Placed by depth, dark until the diver reaches them, then lit; the fish bob a pixel in place and nothing travels or scrolls. The Open Sea stays bare.
+- The landing has hand-curated standees around the card (`src/data/landingScenery.js`): the whale shark and sunfish up top, a school of raccoon butterflyfish lower left, and table coral, staghorn and boulders along the bottom edge, with phone positions of their own. Manta and eagle rays are a commented placeholder until they join a roster.
+- `tests/scenery.test.mjs`: every piece names a drawn sprite and real species, landing pieces sit on screen, descent pieces sit inside the reserve's depth range, and signature species are on that reserve's roster.
 
 ### Docs
 

@@ -318,6 +318,55 @@
   100% { opacity: 0; transform: translate(var(--drift), calc(-1 * var(--descent-diver-h) - 1.6rem)); }
 }
 
+/* --- standee scenery ------------------------------------------------------ */
+
+/* Pixel cut-outs around the line (DiveDescent `scenery`, a reserve's `descent` block):
+   placed by depth, never moving down the screen, dark until the diver reaches them.
+   They keep clear of the depth labels that ride beside the line. */
+.descent-standees {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --sprite-px: var(--descent-px);
+}
+
+.descent-standee {
+  position: absolute;
+  top: calc(var(--at) * var(--descent-travel) + var(--descent-diver-h) / 2);
+  transform: translateY(-50%);
+  opacity: 0.5;
+  filter: brightness(0.32) saturate(0.35);
+  transition: opacity 700ms ease, filter 700ms ease;
+}
+
+.descent-standee.is-left { right: calc(50% + 3.6rem); }
+.descent-standee.is-right { left: calc(50% + 4rem); }
+
+/* Seabed pieces stand on the floor line, lined up outward from the centre. */
+.descent-standee.is-floor {
+  top: auto;
+  bottom: 0;
+  transform: none;
+}
+
+.descent-standee.is-floor.is-left { right: calc(50% + 3.6rem + var(--slot) * 3rem); }
+.descent-standee.is-floor.is-right { left: calc(50% + 4rem + var(--slot) * 3rem); }
+
+.descent-standee.is-lit {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(127, 220, 242, 0.18));
+}
+
+/* Signature species idle in place: a one-pixel bob, nothing that travels. */
+.descent-standee.is-species.is-lit .pixel-sprite {
+  animation: standee-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes standee-bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 calc(-1 * var(--sprite-px, 2px)); }
+}
+
 /* The bottom of the line: a dim marker that flares once when the diver arrives. */
 .descent-floor {
   position: absolute;
@@ -379,6 +428,10 @@
     animation: none;
   }
 
+  .descent-standee.is-species.is-lit .pixel-sprite {
+    animation: none;
+  }
+
   .descent-fin--kick,
   .descent-bubbles,
   .descent-snow {
@@ -388,5 +441,77 @@
   .descent-line-lit,
   .descent-diver {
     transition: none;
+  }
+}
+
+/* --- pixel sprites (PixelSprite.jsx), shared by every standee ------------ */
+
+.pixel-sprite {
+  display: block;
+  width: calc(var(--sprite-w) * var(--sprite-px, 2px));
+  height: calc(var(--sprite-h) * var(--sprite-px, 2px));
+  overflow: visible;
+}
+
+/* `scale` rather than `transform`, so the idle bob (`translate`) never cancels a flip. */
+.pixel-sprite.is-flipped {
+  scale: -1 1;
+}
+
+/* --- landing standees (src/data/landingScenery.js) ------------------------- */
+
+/* Behind the card, over the gate's water. Hand-placed by % of the screen; seabed pieces
+   stand on the bottom edge. A faint band of sand light along the bottom grounds them. */
+.landing-scenery {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 88%, rgba(196, 190, 162, 0.07));
+}
+
+.landing-card {
+  z-index: 1;
+}
+
+.landing-standee {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  --sprite-px: var(--px);
+  opacity: 0.85;
+  filter: drop-shadow(0 0 8px rgba(127, 220, 242, 0.12));
+}
+
+.landing-standee.is-seabed {
+  top: auto;
+  bottom: 0;
+  opacity: 0.8;
+}
+
+.landing-standee.is-species .pixel-sprite {
+  animation: standee-bob 3.6s ease-in-out infinite;
+  animation-delay: var(--bob-delay, 0s);
+}
+
+@media (max-width: 640px) {
+  .landing-standee {
+    left: var(--x-phone, var(--x));
+    top: var(--y-phone, var(--y));
+    --sprite-px: var(--px-phone, var(--px));
+  }
+
+  .landing-standee.is-seabed {
+    top: auto;
+  }
+
+  .landing-standee.is-desktop-only {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-standee.is-species .pixel-sprite {
+    animation: none;
   }
 }

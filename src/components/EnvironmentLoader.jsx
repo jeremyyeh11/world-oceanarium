@@ -71,6 +71,7 @@ export default function EnvironmentLoader({ tank, onDone, onRetry, onBack }) {
         progress={progress}
         readout={readout}
         depthRange={reserveDepthRange(tank)}
+        scenery={tank?.descent ?? null}
         arrived={ready && held}
         failed={failed}
         label={`Loading ${tank?.name ?? 'the reserve'}`}

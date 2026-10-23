@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { depthTicks } from '../utils/reserveDepth'
+import PixelSprite from './PixelSprite'
 
 // A freediver going head-first down a guideline: the vertical progress bar for every
 // descent (the landing dive and each reserve's loading screen). The line above the
@@ -72,7 +73,11 @@ function cells(rows) {
   )))
 }
 
-export default function DiveDescent({ eyebrow, title, tagline, progress = 0, readout, depthRange = [0, 200], arrived = false, failed = false, label = 'Loading', children = null }) {
+// `scenery` is the reserve's `descent` block from TANKS (docs/tank-design.md, Descent
+// scenery): `signature` species and habitat `scenery` pieces, each { sprite, depth, side,
+// flip? }. `depth` is metres within the range, or 'floor' to stand on the seabed. They are
+// standees: placed, never moving down the screen, dark until the diver reaches their depth.
+export default function DiveDescent({ eyebrow, title, tagline, progress = 0, readout, depthRange = [0, 200], scenery = null, arrived = false, failed = false, label = 'Loading', children = null }) {
   // The diver never climbs back up: loader progress can step back when a request is
   // superseded or retried, and a rising diver reads as something going wrong.
   const deepest = useRef(0)
@@ -90,6 +95,20 @@ export default function DiveDescent({ eyebrow, title, tagline, progress = 0, rea
   const [top, bottom] = depthRange
   const meters = Math.round(top + travelled * (bottom - top))
   const ticks = depthTicks(depthRange)
+  const span = Math.max(1, bottom - top)
+  const standees = [
+    ...(scenery?.scenery ?? []).map(item => ({ ...item, kind: 'habitat' })),
+    ...(scenery?.signature ?? []).map(item => ({ ...item, kind: 'species' })),
+  ]
+  // Seabed pieces line up outward from the line on each side, in list order.
+  const floorSlots = { left: 0, right: 0 }
+  const placed = standees.map(item => {
+    const floor = item.depth === 'floor'
+    const side = item.side === 'left' ? 'left' : 'right'
+    const at = floor ? 1 : Math.min(1, Math.max(0, (item.depth - top) / span))
+    const slot = floor ? floorSlots[side]++ : 0
+    return { ...item, side, floor, at, slot }
+  })
 
   return (
     <div className={`descent${arrived ? ' is-arrived' : ''}${failed ? ' is-failed' : ''}`}>
@@ -126,6 +145,19 @@ export default function DiveDescent({ eyebrow, title, tagline, progress = 0, rea
             </li>
           ))}
         </ol>
+        {placed.length > 0 && (
+          <div className="descent-standees" aria-hidden="true">
+            {placed.map(({ sprite, side, flip, floor, at, slot, kind }, index) => (
+              <div
+                key={`${sprite}:${index}`}
+                className={`descent-standee is-${side} is-${kind}${floor ? ' is-floor' : ''}${travelled >= at - 0.02 ? ' is-lit' : ''}`}
+                style={{ '--at': at, '--slot': slot }}
+              >
+                <PixelSprite name={sprite} flip={flip} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="descent-diver" aria-hidden="true">
           <span className="descent-depth">{meters} m</span>
           <svg className="descent-sprite" viewBox="0 0 15 24" shapeRendering="crispEdges">

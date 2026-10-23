@@ -65,7 +65,7 @@ Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It ex
 
 ## Adding an environment
 
-1. Declare its species in `SPECIES`, curate it in `TANKS`, and attach a landscape using the existing data layer. Current GLB/texture dependencies are collected automatically, including sex/life-stage variants.
+1. Follow the new reserve checklist in `docs/tank-design.md` (copy, `depthMeters`, descent scenery). Declare its species in `SPECIES`, curate it in `TANKS`, and attach a landscape using the existing data layer. Current GLB/texture dependencies are collected automatically, including sex/life-stage variants.
 2. If introducing a new dependency type (audio, a new texture role, external GLTF sidecars, a renderer-owned resource), extend the manifest collector and adapter explicitly; do not hide a module-scope `useGLTF.preload` inside a scene component. Current shipped GLBs are embedded/self-contained; sidecar request ownership/accounting is not implemented.
 3. Use `useEnvironmentGLTF` / `useEnvironmentTextures` for source consumers, including future Atlas views. Clone mutable per-instance data as before; do not dispose the controller-owned original from a consumer.
 4. Supply better `estimatedBytes` metadata when tuning admission for large assets. Changing budgets is a measured device-policy choice, not a claim that one setting fits all phones.

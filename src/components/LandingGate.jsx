@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { APP_VERSION } from '../version'
 import DiveDescent from './DiveDescent'
+import { reserveDepthLabel, reserveDepthRange } from '../utils/reserveDepth'
 
 // The descent holds at least this long, so a warm first reserve still reads as a dive.
 const MIN_DESCENT_MS = 1600
@@ -20,11 +21,11 @@ function prefersReducedMotion() {
 // The gate is fully opaque: nothing behind it shows until it clears. Dive in swaps the
 // card straight for the descent (DiveDescent), which runs while the first reserve warms
 // underneath (`descent`: its { progress, stage, loaded, total },
-// utils/environmentProgress.js); the gate clears onto the reserve selector once that
+// utils/environmentProgress.js; `reserve`: that reserve, for its depth range); the gate clears onto the reserve selector once that
 // reserve has rendered.
 //
 // Phases: idle → descending → clearing → gone.
-export default function LandingGate({ speciesCount, descent = null, zone = null, onDive, onEnter }) {
+export default function LandingGate({ speciesCount, descent = null, reserve = null, onDive, onEnter }) {
   const [phase, setPhase] = useState('idle')
   const [held, setHeld] = useState(false)
   const [forced, setForced] = useState(false)
@@ -85,16 +86,15 @@ export default function LandingGate({ speciesCount, descent = null, zone = null,
     let readout = `Charting the reserves · ${descent?.loaded ?? 0} / ${descent?.total ?? 0} files`
     if (descent?.stage === 'building') readout = 'Lighting the water…'
     if (arrived) readout = 'Arrived'
-    const [top, bottom] = zone?.depthRangeMeters ?? [0, 200]
     return (
       <div className={`landing-gate is-descending${phase === 'clearing' ? ' is-clearing' : ''}`} role="status" aria-live="polite">
         <DiveDescent
           eyebrow="Live feed · descending"
           title="Into the blue"
-          tagline={zone ? `${zone.shortLabel} · ${top}–${bottom} m` : null}
+          tagline={reserve ? reserveDepthLabel(reserve) : null}
           progress={descent?.progress ?? 0}
           readout={readout}
-          maxDepthMeters={bottom}
+          depthRange={reserveDepthRange(reserve)}
           arrived={arrived}
           label="Descending to the reserves"
         />

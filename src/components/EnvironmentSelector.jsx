@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { DEPTH_ZONES } from '../data/species'
+import { reserveDepthLabel } from '../utils/reserveDepth'
 import { attentionOrder } from '../utils/attentionOrder'
-
-const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
 
 // Must match the environment-card-pick duration in environments.css, so the chosen
 // card finishes lighting up before the loader takes over.
@@ -23,13 +21,6 @@ function swatchFor(tank, biome) {
   }
   const base = tank.lighting?.envHorizon ?? biome?.color ?? '#0e4a7a'
   return `linear-gradient(180deg, ${base} 0%, #061a2c 70%, #02060d 100%)`
-}
-
-function depthLabel(tank) {
-  const zone = DEPTH_ZONE_BY_ID.get(tank.depthZone)
-  if (!zone) return null
-  const [top, bottom] = zone.depthRangeMeters
-  return `${zone.shortLabel} · ${top}–${bottom} m`
 }
 
 export default function EnvironmentSelector({ tanks, biomesById, speciesCountByTank, initialTankId = null, onRank, onSelect }) {
@@ -97,7 +88,7 @@ export default function EnvironmentSelector({ tanks, biomesById, speciesCountByT
         <div className="environment-list" ref={listRef} onKeyDown={moveFocus}>
           {tanks.map((tank, index) => {
             const count = speciesCountByTank.get(tank.id) ?? 0
-            const depth = depthLabel(tank)
+            const depth = reserveDepthLabel(tank)
             return (
               <button
                 key={tank.id}

@@ -1,7 +1,8 @@
 # Tank design & the assemblage model
 
 How the app decides **which creatures appear in which tank**, and how to change it
-by hand. Written to be self-contained: you should be able to add a species, build a
+by hand. In public copy a tank is a **reserve** (open and free range, like a wildlife
+reserve); the code and these docs keep `tank`. Written to be self-contained: you should be able to add a species, build a
 new tank, or debug a "wrong fish in the tank" problem from this file alone.
 
 ## The problem this solves
@@ -271,14 +272,75 @@ Append an entry to `TANKS`:
   description: '...',       // shown above the switcher
   biome: 'ocean',           // must be an existing biome id (see BIOMES)
   depthZone: 'mesopelagic', // must be an existing depth-zone id (see DEPTH_ZONES)
+  depthMeters: [200, 600],  // the reserve's own depth range, in metres (see checklist)
   seed: 421,                // any number; give each tank a unique one
   species: ['some-species-id'],
 }
 ```
 
-The switcher renders one button per tank automatically (it only shows when
-`TANKS.length > 1`). Keep every species in the tank on a compatible tempo, or the dev
-guard will warn.
+The reserve selector renders one card per tank automatically. Keep every species in the
+tank on a compatible tempo, or the dev guard will warn.
+
+### New reserve checklist
+
+Everything a new tank needs before it ships as a reserve. Species-level work (models,
+motion, Atlas) has its own list in `docs/new-species-checklist.md`; this is the reserve
+around them.
+
+1. **Roster and tempo.** Species ids in `species`, one coherent tempo (above). Landscape,
+   if any, in `src/data/landscapes.js` via `landscape`.
+2. **Copy.** `name`, `tagline` and `description` say *reserve*, never *tank*, and
+   describe a wild place, not an enclosure.
+3. **Depth range: `depthMeters: [top, bottom]`.** The real depth the reserve represents,
+   in metres, inside its `depthZone`'s range. It is the scale of the reserve's loading
+   descent (the depth beside the diver and the tick marks) and the depth on its selector
+   card (`utils/reserveDepth.js`). Without it the zone's whole range is used, which is
+   wrong for most places (a reef is not 200 m deep), so always set it. Ticks are picked
+   automatically as round steps (0–30 m → every 10 m, 0–200 m → every 50 m); nothing to
+   configure. Ground it in fact: where the reserve's species actually live, and, where
+   the scene has a seabed, the drawn depth (surface `SURFACE_PLANE_Y` 4.6 to the sand,
+   `1 WU = 25 cm`). Note in a comment if the two disagree. `tests/reserveDepth.test.mjs`
+   fails on a reserve without a sane range.
+4. **Descent scenery** (specified, not yet built; see below). Decide whether the reserve
+   gets standee scenery and which signature species appear on its descent. Open water
+   (The Open Sea) has none: marine snow and the light are its scenery.
+5. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
+   and preloading (`docs/environment-loading.md`) pick the new entry up from `TANKS`.
+   Check the card's swatch (from `lighting.backgroundStops`, else the biome colour) and
+   the descent on a phone, portrait and landscape.
+
+### Descent scenery and signature species (spec)
+
+Planned, not built. Each reserve's loading descent (the freediver going down the
+guideline, `DiveDescent.jsx`) can carry scenery that says where you are going.
+
+- **Standees, no cardboard.** Flat pixel-art cut-outs set around the guideline, like a
+  cardboard standee display without the cardboard outline: same 2 px cell style and CRT
+  palette as the diver, the diver loading bar still going down the centre. The scenery
+  **does not scroll** or parallax; it stays put while the diver moves past it.
+- **Placed by depth.** Each piece sits at a depth in metres within the reserve's
+  `depthMeters`, on the left or right of the line, so the scenery matches the tick
+  marks. Pieces stay dark until the diver reaches their depth, then light up, the way
+  the passed ticks do, so the place assembles as you descend and arrival lands in it.
+- **Signature species.** One or a few recognisable species of the reserve's own roster,
+  drawn as pixel sprites at a fixed depth (e.g. The Reefs: the longfin bannerfish and the
+  emperor angelfish, distinctive at pixel scale). They may idle in place (a fin flick
+  on stepped frames) but do not travel across the screen. Real colours, muted to the
+  phosphor palette.
+- **Habitat pieces.** For The Reefs: rock ledges from the sides partway down; a table
+  coral and staghorn on the seabed where the diver arrives, in the reef's coral colours
+  (staghorn orange, blue, cream).
+- **Data.** A `descent` block on the tank, for example:
+
+  ```js
+  descent: {
+    signature: [{ species: 'heniochus-acuminatus', depth: 12, side: 'left' }],
+    scenery: [{ sprite: 'ledge', depth: 8, side: 'right' }, { sprite: 'table-coral', depth: 30, side: 'left' }],
+  }
+  ```
+
+  Sprites live with the descent as cell runs, like the diver's. Phones get fewer or
+  smaller side pieces so nothing crowds the line.
 
 ### Change the default tank
 

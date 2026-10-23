@@ -37,7 +37,7 @@ Important paths:
 - `src/hooks/useOceanAudio.js` — Web Audio graph and SFX
 - `src/data/species.js` — species templates (incl. `tempo`), `TANKS` curation layer, biological facts
 - `src/utils/speciesLookup.js` — species/tank lookups, `creaturesForTank`, dev coherence guard
-- `docs/tank-design.md` — the tank/assemblage model: how species map to tanks and how to edit by hand
+- `docs/tank-design.md` — the tank/assemblage model: how species map to tanks and how to edit by hand; the **new reserve checklist** (copy says *reserve*, `depthMeters`, descent scenery and signature species). Public copy calls a tank a reserve; code keeps `tank`
 - `docs/procedural/README.md` — procedural animation hub: shared asset contract, runtime drivers, motion primitives, and the creature/type index. Read before touching any rig-free animation path
 - `docs/procedural/<type>.md` — per-motion-type contract (Blender setup, vertex-paint channels, config keys, review gates). Types: `caudal-wave`, `mask-fin-row`, `bell-pulse`, `foil-flap`, `disc-wave`, `limb-step`, `pleopod-beat`
 - `docs/new-species-checklist.md` — required species feature path: biological contract, asset/scale, motion feel, Atlas, responsive QA, and release evidence

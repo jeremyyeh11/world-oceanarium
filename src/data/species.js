@@ -69,6 +69,10 @@ export const TANKS = [
     description: 'Fast open-ocean hunters and their bait, from flickering sardinella to the cruising mako, with a young whale shark gliding through.',
     biome: 'ocean',
     depthZone: 'epipelagic',
+    // The reserve's depth range in metres: the scale of its loading descent and the depth
+    // on its selector card (utils/reserveDepth.js). Without it the zone's range is used.
+    // Open water: the whole sunlight zone.
+    depthMeters: [0, 200],
     // seed varies the surface caustics + background mottle so each tank has a
     // distinct-but-stable sky/surface signature (see SceneLighting / WaterSurface).
     seed: 137,
@@ -98,6 +102,9 @@ export const TANKS = [
     description: 'A sheltered reef where angelfish, bannerfish and triggerfish keep house, and a giant sunfish comes in from the blue to be cleaned.',
     biome: 'ocean',
     depthZone: 'epipelagic',
+    // A sunlit reef (Jeremy, 2026-10-23: 0–30 m). The scene as drawn is shallower: sand at
+    // y -24 under the surface at y 4.6 is 28.6 WU, about 7 m (8 m in the troughs).
+    depthMeters: [0, 30],
     seed: 953,
     // Optional per-tank lighting overrides merged over the biome palette — a cheap
     // way to art-direct a tank's mood beyond the procedural seed variation.

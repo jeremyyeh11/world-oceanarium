@@ -8,7 +8,7 @@ import EnvironmentLoader from './components/EnvironmentLoader'
 import SourcesModal from './components/SourcesModal'
 import ChangelogModal from './components/ChangelogModal'
 import { BIOMES, TANKS } from './data/species'
-import { creaturesForTank, DEPTH_ZONE_BY_ID } from './utils/speciesLookup'
+import { creaturesForTank } from './utils/speciesLookup'
 import { environmentProgress } from './utils/environmentProgress'
 import { useCreatures } from './hooks/useCreatures'
 import { useEnvironmentNavigation } from './hooks/useEnvironmentLoading'
@@ -562,7 +562,7 @@ export default function App() {
         <LandingGate
           speciesCount={tankSpeciesCount}
           descent={bootDescent}
-          zone={DEPTH_ZONE_BY_ID.get(bootTank?.depthZone) ?? null}
+          reserve={bootTank}
           onDive={startLandingDive}
           onEnter={leaveLandingGate}
         />

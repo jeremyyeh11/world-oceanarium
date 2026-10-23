@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { depthTicks } from '../utils/reserveDepth'
 
 // A freediver going head-first down a guideline: the vertical progress bar for every
 // descent (the landing dive and each reserve's loading screen). The line above the
@@ -37,7 +38,6 @@ const SNOW = [
   [93, 64, 9.1, 13], [12, 99, 10.4, 15], [49, 79, 11.2, 12], [68, 61, 12.6, 16],
 ]
 
-const TICKS = [0, 0.25, 0.5, 0.75, 1]
 // Matches the diver's 1200 ms transform transition in descent.css, so the depth label
 // and the passed ticks count down with the diver instead of jumping ahead of it.
 const TRAVEL_MS = 1200
@@ -72,7 +72,7 @@ function cells(rows) {
   )))
 }
 
-export default function DiveDescent({ eyebrow, title, tagline, progress = 0, readout, maxDepthMeters = 200, arrived = false, failed = false, label = 'Loading', children = null }) {
+export default function DiveDescent({ eyebrow, title, tagline, progress = 0, readout, depthRange = [0, 200], arrived = false, failed = false, label = 'Loading', children = null }) {
   // The diver never climbs back up: loader progress can step back when a request is
   // superseded or retried, and a rising diver reads as something going wrong.
   const deepest = useRef(0)
@@ -87,7 +87,9 @@ export default function DiveDescent({ eyebrow, title, tagline, progress = 0, rea
   }, [])
   const depth = !entered ? 0 : arrived ? 1 : deepest.current
   const travelled = useTravelledDepth(depth)
-  const meters = Math.round(travelled * maxDepthMeters)
+  const [top, bottom] = depthRange
+  const meters = Math.round(top + travelled * (bottom - top))
+  const ticks = depthTicks(depthRange)
 
   return (
     <div className={`descent${arrived ? ' is-arrived' : ''}${failed ? ' is-failed' : ''}`}>
@@ -118,9 +120,9 @@ export default function DiveDescent({ eyebrow, title, tagline, progress = 0, rea
         <span className="descent-line" aria-hidden="true" />
         <span className="descent-line-lit" aria-hidden="true" />
         <ol className="descent-ticks" aria-hidden="true">
-          {TICKS.map(at => (
-            <li key={at} className={travelled >= at - 0.001 ? 'is-passed' : undefined} style={{ '--at': at }}>
-              {Math.round(at * maxDepthMeters)} m
+          {ticks.map(({ meters: mark, at }) => (
+            <li key={mark} className={travelled >= at - 0.001 ? 'is-passed' : undefined} style={{ '--at': at }}>
+              {mark} m
             </li>
           ))}
         </ol>

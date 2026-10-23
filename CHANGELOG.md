@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_7` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_8` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -23,8 +23,12 @@ Status: `v0.35.0-dev_7` (2026-10-23, branch `claude/environment-loader-ui-ux-v28
 
 - Public name for an environment is now **reserve** (Jeremy: open and free range, like a wildlife reserve, not a tank). UI copy only: "Choose a reserve", "N reserves", the bottom-left **Reserves** button, the loading screen, the landing readout, six Atlas species descriptions ("in the reserve") and one Sources line. Code keeps `tank` (`TANKS`, `TankView`, `tankId`). Past visitor-changelog entries are left as written.
 - The landing gate is fully opaque (the old translucent wash composited over the void); the selector under it no longer shows through.
-- The descent (`DiveDescent.jsx`, `descent.css`): the vertical progress bar, a pixel-art freediver (15 × 24 cells, 2 px per cell, 3 px on large screens; dev_6, from 3 / 4 px, Jeremy: "the diver itself is too big") going head first down a guideline. The line above the diver is lit (`scaleY`), depth ticks light as they are passed, the current depth rides beside the diver, fins flutter in two stepped frames, breath bubbles rise, marine snow drifts up, and the floor marker flares on arrival. Progress moves by transform only (1200 ms ease); the diver never climbs back, and every dive starts at 0 m and travels down even when the load was mostly done before Dive in. The depth label and passed ticks tween with the diver (rAF, same duration). Depth scale is the reserve's zone (0–200 m for the sunlight zone).
+- The descent (`DiveDescent.jsx`, `descent.css`): the vertical progress bar, a pixel-art freediver (15 × 24 cells, 2 px per cell, 3 px on large screens; dev_6, from 3 / 4 px, Jeremy: "the diver itself is too big") going head first down a guideline. The line above the diver is lit (`scaleY`), depth ticks light as they are passed, the current depth rides beside the diver, fins flutter in two stepped frames, breath bubbles rise, marine snow drifts up, and the floor marker flares on arrival. Progress moves by transform only (1200 ms ease); the diver never climbs back, and every dive starts at 0 m and travels down even when the load was mostly done before Dive in. The depth label and passed ticks tween with the diver (rAF, same duration). Depth scale is the reserve's own range (dev_8): `depthMeters: [top, bottom]` on each tank (The Open Sea 0–200 m, The Reefs 0–30 m per Jeremy; the reef as drawn is about 7 m, sand at y -24 under the surface at 4.6), falling back to the zone's range (`utils/reserveDepth.js`). Ticks are round steps picked from the range (0–30 m → every 10 m, 0–200 m → every 50 m), and the selector card shows the same range. `tests/reserveDepth.test.mjs`.
 - After **Dive in** the card goes straight to the descent (dev_6: the card-sink animation and its drifting depth captions are gone; Jeremy: "the diver should be that loading interface"), which follows the first reserve warming underneath (held at least 1.6 s, opens anyway after 15 s), then the gate clears onto the selector. Audio starts on the Dive in click. Each reserve's loading screen is the same descent with the reserve's name. Progress: files are 85% of the line, the build the rest (`utils/environmentProgress.js`).
+
+### Docs
+
+- `docs/tank-design.md` gains the **new reserve checklist** (roster and tempo, reserve copy, `depthMeters`, descent scenery, selector/loading check) and the spec for descent scenery: signature species and habitat pieces as non-scrolling pixel standees around the guideline, placed by depth and lit as the diver passes. Not built yet. Linked from AGENTS.md and docs/environment-loading.md.
 
 ### Loading
 

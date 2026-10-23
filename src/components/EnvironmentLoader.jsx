@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { DEPTH_ZONES } from '../data/species'
 import { useEnvironmentLoading } from '../hooks/useEnvironmentLoading'
 import { environmentProgress } from '../utils/environmentProgress'
+import { reserveDepthRange } from '../utils/reserveDepth'
 import DiveDescent from './DiveDescent'
 
 const DEPTH_ZONE_BY_ID = new Map(DEPTH_ZONES.map(zone => [zone.id, zone]))
@@ -69,7 +70,7 @@ export default function EnvironmentLoader({ tank, onDone, onRetry, onBack }) {
         tagline={tank?.tagline}
         progress={progress}
         readout={readout}
-        maxDepthMeters={zone?.depthRangeMeters?.[1] ?? 200}
+        depthRange={reserveDepthRange(tank)}
         arrived={ready && held}
         failed={failed}
         label={`Loading ${tank?.name ?? 'the reserve'}`}

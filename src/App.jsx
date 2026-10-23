@@ -12,6 +12,7 @@ import { creaturesForTank } from './utils/speciesLookup'
 import { environmentProgress } from './utils/environmentProgress'
 import { useCreatures } from './hooks/useCreatures'
 import { useEnvironmentNavigation } from './hooks/useEnvironmentLoading'
+import { atlasWarmupUrls, warmAtlasSources } from './loading/atlasWarmup'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { pruneFishRuntime } from './components/fishRuntimeStore'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
@@ -479,6 +480,16 @@ export default function App() {
   // selector ranked first, which rankTanks requested.
   const bootTank = TANKS.find(t => t.id === (environmentLoading.requestedId ?? tankRanking?.[0])) ?? null
   const bootDescent = environmentProgress(environmentLoading, bootTank?.id)
+  // The Atlas joins the landing preload: once the first reserve's files are in (so it
+  // never slows the descent), its thumbnails and species models download in the
+  // background, once per session (loading/atlasWarmup.js).
+  const bootFilesIn = bootDescent.stage === 'building' || bootDescent.stage === 'ready'
+  const atlasWarmupStarted = useRef(false)
+  useEffect(() => {
+    if (!bootFilesIn || atlasWarmupStarted.current) return
+    atlasWarmupStarted.current = true
+    warmAtlasSources(atlasWarmupUrls())
+  }, [bootFilesIn])
   // Every species in the tanks: those with creature rows, and those that live in a tank's
   // landscape (`landscapeSpecies`, the corals), which have no rows.
   const tankSpeciesCount = new Set([

@@ -8,6 +8,15 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.35.1 — Atlas joins the landing preload (in development)
+
+Status: `v0.35.1-dev_1`, branch `feat/preload-atlas-species`. Jeremy: the Atlas and each species loaded only on first open; include it in the landing preload, and drop the placeholder model.
+
+### Loading
+
+- The Atlas thumbnails and every Atlas species model (sex and life-stage variants included) download in the background once the first reserve's files are in during the landing descent, one file at a time at low priority (`src/loading/atlasWarmup.js`). They warm the browser's HTTP cache, not the environment loader's decoded cache, so the cache budget is unchanged; opening the Atlas or picking a species skips the download and only parses.
+- The Atlas viewport no longer shows the generic placeholder fish while a model loads; it stays empty until the real model is in.
+
 ## v0.35.0 — Reserve selector and the descent (2026-10-23)
 
 Status: clean `v0.35.0` (2026-10-23, from `v0.35.0-dev_18`, branch `claude/environment-loader-ui-ux-v28m0g`, #155), merged after #153's loading infrastructure (`v0.34.2-dev_5`, never released on its own; it ships in this release). Jeremy: "merge 153 then 155, clean version". Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.

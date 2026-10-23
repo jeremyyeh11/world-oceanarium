@@ -318,11 +318,6 @@ function AtlasCamera({ species, pose }) {
   return null
 }
 
-function displayedSpeciesLengthUnits(species, pose) {
-  if (!Number.isFinite(pose?.maxLengthDisplayUnits)) return null
-  return pose.maxLengthDisplayUnits
-}
-
 function atlasModelScaleForSpecies(species, pose) {
   const sourceLength = MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES[species?.id]
   if (Number.isFinite(sourceLength) && sourceLength > 0 && Number.isFinite(pose?.maxLengthDisplayUnits)) {
@@ -673,30 +668,6 @@ function ModelAsset({ species, adultSpecies = species, pose, companion = null })
 // Pixelify's 75% — so the accurate figure is back.
 const HUMAN_SCALE_METERS = 1.65
 
-function FallbackFish({ species, pose = DEFAULT_VIEW_POSE }) {
-  const isLarge = species?.swim?.bodyLengthWU > 3
-  const bodyLength = displayedSpeciesLengthUnits(species, pose) ?? (isLarge ? 4.2 : 2.4)
-  const bodyHeight = isLarge ? bodyLength * 0.28 : bodyLength * 0.24
-  const color = species?.predator ? '#9ab7c8' : '#78d4e6'
-
-  return (
-    <group rotation={[0, pose.yawOffset, 0]} position={pose.position}>
-      <mesh scale={[bodyLength, bodyHeight, bodyHeight * 0.58]}>
-        <sphereGeometry args={[0.5, 48, 24]} />
-        <meshStandardMaterial color={color} roughness={0.48} metalness={0.04} />
-      </mesh>
-      <mesh position={[-bodyLength * 0.31, 0, 0]} rotation={[0, 0, Math.PI / 2]} scale={[bodyHeight * 0.85, bodyHeight * 0.5, bodyHeight * 0.06]}>
-        <coneGeometry args={[0.6, 1.0, 3]} />
-        <meshStandardMaterial color="#5ba4ba" roughness={0.6} />
-      </mesh>
-      <mesh position={[bodyLength * 0.17, bodyHeight * 0.28, 0]} rotation={[0.25, 0, 0]} scale={[bodyHeight * 0.28, bodyHeight * 0.7, bodyHeight * 0.06]}>
-        <coneGeometry args={[0.45, 0.9, 3]} />
-        <meshStandardMaterial color="#b1e4ed" roughness={0.5} />
-      </mesh>
-    </group>
-  )
-}
-
 function SpeciesModel({ species }) {
   const pose = viewPoseForSpecies(species)
   const cameraPosition = atlasCameraPosition(pose)
@@ -717,8 +688,9 @@ function SpeciesModel({ species }) {
       <directionalLight position={[-5, 1, -4]} intensity={0.8} color="#7bcfff" />
       <WaterSurface biome="ocean" />
       <UnderwaterFX biome="ocean" />
-      <Suspense fallback={<FallbackFish species={species} pose={pose} />}>
-        {species?.model?.path ? (
+      {/* No stand-in while a model loads: the stage stays empty until the real one is in. */}
+      <Suspense fallback={null}>
+        {species?.model?.path && (
           <>
             {companions.map((companion, index) => (
               <ModelAsset
@@ -731,7 +703,7 @@ function SpeciesModel({ species }) {
             ))}
             <ModelAsset species={species} pose={pose} />
           </>
-        ) : <FallbackFish species={species} pose={pose} />}
+        )}
       </Suspense>
     </Canvas>
   )

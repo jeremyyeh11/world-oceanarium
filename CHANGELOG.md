@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.36.0 — The Shallows and Munk's Devil Ray (in development)
 
-Status: `v0.36.0-dev_8` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
+Status: `v0.36.0-dev_9` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
 
 ### Reserves
 
@@ -24,7 +24,7 @@ Status: `v0.36.0-dev_8` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jerem
 
 ### Atlas
 
-- Adds measured mean disc widths for male (0.93 m) and female (0.90 m) Munk's devil rays from the Gulf of California study, from a mixed-stage sample. The existing reproduction field includes maturity size (males about 95 cm, females 95–105 cm), one pup per litter, inferred 10–12 month gestation and estimated 35–42 cm birth width. Age at maturity, lifespan and average weight remain unestablished; no ages borrowed from larger devil rays. The Sources panel credits Serrano-López et al. 2021, Palacios et al. 2021 and Manta Trust.
+- Adds measured mean disc widths for male (0.93 m) and female (0.90 m) Munk's devil rays from the Gulf of California study, from a mixed-stage sample. The existing reproduction field includes maturity size (males about 95 cm, females 95–105 cm), one pup per litter, inferred 10–12 month gestation and estimated 35–42 cm birth width. Age at maturity, lifespan and average weight remain Unknown; no ages borrowed from larger devil rays. The Sources panel credits Serrano-López et al. 2021, Palacios et al. 2021 and Manta Trust.
 - Keeps the existing Atlas template and row labels; no additional rows for the ray.
 
 ### Appearance

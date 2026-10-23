@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: `Current in development` (`v0.36.0-dev_8`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
+Status: `Current in development` (`v0.36.0-dev_9`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.

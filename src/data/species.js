@@ -3316,14 +3316,14 @@ export const SPECIES = [
       foundIn: 'Eastern Pacific, from the Gulf of California to Peru and the Galápagos Islands, at the surface down to about 30 m.',
       maxLengthLabel: 'Disc width',
       sexualDimorphism: 'None described beyond the claspers of males.',
-      lifeSpan: 'Not established',
-      maturityAge: 'Age unknown; males mature at about 95 cm disc width, females at 95–105 cm',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
       social: {
         schoolSize: 'Thousands',
         groupingBehaviour: 'Alone, in small groups or in schools of many thousands, common in the southern Gulf of California and around the tip of Baja. Rays leap clear of the water one after another, which earned them the name "popcorn rays"; the leaps may be courtship. Juveniles have been seen feeding in the breaking waves of the surf zone.',
         // Palacios et al. 2021: gestation is inferred from a similar pygmy devil ray,
         // not measured for this species. April–June mating/pupping in La Paz Bay.
-        reproduction: 'Males mature at about 95 cm disc width, females at 95–105 cm; age at maturity is unknown. Bears one live pup per litter, estimated at 35–42 cm across at birth. Mating and pupping occur from April to June in La Paz Bay, in the southern Gulf of California. Gestation is thought to last 10–12 months, inferred from a related pygmy devil ray. Young use sheltered shallow bays as nurseries.',
+        reproduction: 'Bears one live pup, estimated at 35 to 42 cm across at birth. Gestation is estimated at 10 to 12 months by comparison with a related species. Mating and pupping take place from April to June in La Paz Bay, in the southern Gulf of California. Males mature at about 95 cm disc width, females at 95 to 105 cm. Young use sheltered shallow bays as nurseries.',
       },
       averages: {
         // Serrano-López et al. 2021, section 3.2: Gulf of California catch,
@@ -3331,17 +3331,17 @@ export const SPECIES = [
         // not adult asymptotes or a claim that females grow smaller.
         maleSizeMeters: 0.93,
         femaleSizeMeters: 0.90,
-        maleWeightKg: 'Average not established',
-        femaleWeightKg: 'Average not established',
-        maleLifeExpectancyYears: 'Not established',
-        femaleLifeExpectancyYears: 'Not established',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
         // Serrano-López et al. 2021: male L50 95.24 cm; females 95–105 cm.
         // No species-specific age data; do not substitute M. mobular's ages.
-        sexualMaturityYears: 'Not established',
-        sexualSterilityYears: 'Not documented',
-        offspringPerMatingEvent: '1 pup per litter',
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: '1 pup',
       },
     },
     atlasSummary: {

@@ -14,7 +14,7 @@ import { landscapeForTank } from '../data/landscapes'
 import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { useEnvironmentLoading } from '../hooks/useEnvironmentLoading'
-import { environmentLoader, reportEnvironmentFrame } from '../loading/environmentRuntime'
+import { environmentLoader, reportEnvironmentFrame, reportRenderingPaused } from '../loading/environmentRuntime'
 import { compileEnvironmentScene } from '../loading/compileEnvironmentScene'
 
 // Full turn-around: yaw can swing all the way behind the creature (±180°) — this is the
@@ -564,6 +564,16 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
     window.addEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
     return () => window.removeEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
   }, [creatures, hidden])
+
+  // While paused nothing renders, so speculation is held back only by a hidden page or
+  // Save-Data (environmentRuntime.reportRenderingPaused), re-checked as the page's
+  // visibility changes.
+  useEffect(() => {
+    if (!paused) return undefined
+    reportRenderingPaused()
+    document.addEventListener('visibilitychange', reportRenderingPaused)
+    return () => document.removeEventListener('visibilitychange', reportRenderingPaused)
+  }, [paused])
 
   // A hidden tank is behind the selector or the loader. Following a fish there would keep
   // its scroll blocking and follow-card layout (body:has(.is-following-fish) rules) active

@@ -129,6 +129,7 @@ export default function LandingGate({ speciesCount, descent = null, reserve = nu
                 '--px-phone': `${piece.phone.px ?? piece.px}px`,
               } : null),
               '--bob-delay': `${-(index % 5) * 0.7}s`,
+              '--far': piece.distance ?? 0,
             }}
           >
             <PixelSprite name={piece.sprite} flip={piece.flip} />

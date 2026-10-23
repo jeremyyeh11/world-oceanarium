@@ -106,20 +106,25 @@ export const TANKS = [
     // sand at y -24 under the surface at y 4.6 is 28.6 WU, about 7 m (8 m in the troughs).
     depthMeters: [0, 10],
     // The loading descent's standees (docs/tank-design.md, Descent scenery): pixel cut-outs
-    // around the guideline, placed by depth (m, or 'floor'), lit as the diver passes. The
-    // signature species are two of the reef's own: the longfin bannerfish and the emperor
-    // angelfish. Sprites face left; `flip` turns one to face the line from the left.
+    // around the guideline, placed by depth (m, or 'floor'), lit as the diver passes.
+    // Composed, not scattered: the signature species zigzag down the line (bannerfish left,
+    // angelfish right, a few butterflyfish left again), and the line ends in a coral garden
+    // on both sides of where the diver lands, the larger mass on the left. Sprites face
+    // left; `flip` turns one to face the line from the left.
     descent: {
       signature: [
-        { sprite: 'bannerfish', species: 'heniochus-acuminatus', depth: 3.5, side: 'left', flip: true },
-        { sprite: 'emperor-angelfish', species: 'pomacanthus-imperator', depth: 6.5, side: 'right' },
+        { sprite: 'bannerfish', species: 'heniochus-acuminatus', depth: 3, side: 'left', flip: true },
+        { sprite: 'emperor-angelfish', species: 'pomacanthus-imperator', depth: 5.5, side: 'right' },
+        // A loose trio, set back a little.
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, distance: 0.3 },
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 1.6, dy: -0.7, distance: 0.4 },
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 0.9, dy: 0.8, distance: 0.45 },
       ],
       scenery: [
-        { sprite: 'ledge', depth: 2, side: 'right' },
-        { sprite: 'ledge', depth: 8, side: 'left', flip: true },
         { sprite: 'table-coral', depth: 'floor', side: 'left' },
+        { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -0.4, distance: 0.25 },
         { sprite: 'staghorn-orange', depth: 'floor', side: 'right' },
-        { sprite: 'staghorn-blue', depth: 'floor', side: 'left' },
+        { sprite: 'table-coral', depth: 'floor', side: 'right', dx: -0.3, distance: 0.35 },
       ],
     },
     seed: 953,

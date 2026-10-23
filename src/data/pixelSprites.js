@@ -25,7 +25,7 @@ export const SPRITE_PALETTE = {
   s: '#cfe2ee', // whale shark spots, belly
   m: '#9db2c2', // sunfish silver
   M: '#6f8798', // sunfish fins and clavus
-  // Reef
+  // Corals (living reef animals; no rock or landscape pieces in the scenery)
   c: '#d9c9a6', // table coral cream
   C: '#efe3c6', // table coral rim highlight
   d: '#8f7f62', // table coral underside
@@ -37,9 +37,6 @@ export const SPRITE_PALETTE = {
   n: '#33475a', // dark back
   N: '#4a6278', // leading edge, lit
   p: '#b9c7d2', // pale shoulder patches, spots
-  r: '#2c4357', // rock
-  t: '#4c6a80', // rock top, lit
-  R: '#1b2c3b', // rock shade
 }
 
 const SPRITES = {
@@ -134,7 +131,6 @@ const SPRITES = {
     '.........dd...........',
     '.........dd...........',
     '........dddd..........',
-    '.......rrrrrr.........',
   ],
   // Acropora muricata, staghorn: branching antler-like stems, in its orange and blue forms.
   'staghorn-orange': [
@@ -147,7 +143,6 @@ const SPRITES = {
     '.....oooo.....',
     '......oo......',
     '......oo......',
-    '.....rrrr.....',
   ],
   'staghorn-blue': [
     '.U...U...U..',
@@ -158,7 +153,6 @@ const SPRITES = {
     '...uuuu.....',
     '....uu......',
     '....uu......',
-    '...rrrr.....',
   ],
   // Rays are drawn from above, head up, wings level: that is how a ray reads. Flip has no
   // meaning for them.
@@ -198,15 +192,6 @@ const SPRITES = {
     '............n............',
     '.............n...........',
     '.............n...........',
-  ],
-  // A rock ledge, reaching in from the side of the shaft.
-  ledge: [
-    'tttttttttttttt......',
-    'rrrrrrrrrrrrrrrtt...',
-    'rrrrrrrrrrrrrrrrrrt.',
-    'RRRRRRRRRRRRRRRRRrr.',
-    '.RRRRRRRRRRRRRRR....',
-    '...RRRRRRRR.........',
   ],
 }
 

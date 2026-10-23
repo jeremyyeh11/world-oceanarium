@@ -332,29 +332,37 @@
 
 .descent-standee {
   position: absolute;
-  top: calc(var(--at) * var(--descent-travel) + var(--descent-diver-h) / 2);
+  top: calc(var(--at) * var(--descent-travel) + var(--descent-diver-h) / 2 + var(--dy, 0rem));
   transform: translateY(-50%);
   opacity: 0.5;
   filter: brightness(0.32) saturate(0.35);
   transition: opacity 700ms ease, filter 700ms ease;
 }
 
-.descent-standee.is-left { right: calc(50% + 3.6rem); }
-.descent-standee.is-right { left: calc(50% + 4rem); }
+.descent-standee.is-left { right: calc(50% + 3.6rem + var(--dx, 0rem)); }
+.descent-standee.is-right { left: calc(50% + 4rem + var(--dx, 0rem)); }
 
 /* Seabed pieces stand on the floor line, lined up outward from the centre. */
 .descent-standee.is-floor {
   top: auto;
-  bottom: 0;
   transform: none;
 }
 
-.descent-standee.is-floor.is-left { right: calc(50% + 3.6rem + var(--slot) * 3rem); }
-.descent-standee.is-floor.is-right { left: calc(50% + 4rem + var(--slot) * 3rem); }
+.descent-standee.is-floor {
+  bottom: 0;
+}
 
+.descent-standee.is-floor.is-left { right: calc(50% + 3.6rem + var(--slot) * 2.2rem + var(--dx, 0rem)); }
+.descent-standee.is-floor.is-right { left: calc(50% + 4rem + var(--slot) * 2.2rem + var(--dx, 0rem)); }
+
+/* Lit, a piece set back (`--far`, 0 near to 1 far) stays dimmer and greyer: depth by
+   atmosphere, the way water swallows colour with distance. */
 .descent-standee.is-lit {
-  opacity: 1;
-  filter: drop-shadow(0 0 6px rgba(127, 220, 242, 0.18));
+  opacity: calc(1 - var(--far, 0) * 0.45);
+  filter:
+    brightness(calc(1 - var(--far, 0) * 0.4))
+    saturate(calc(1 - var(--far, 0) * 0.5))
+    drop-shadow(0 0 6px rgba(127, 220, 242, 0.18));
 }
 
 /* Signature species idle in place: a one-pixel bob, nothing that travels. */
@@ -479,14 +487,17 @@
   left: var(--x);
   top: var(--y);
   --sprite-px: var(--px);
-  opacity: 0.85;
-  filter: drop-shadow(0 0 8px rgba(127, 220, 242, 0.12));
+  /* `--far` (0 near to 1 far): set back by atmosphere, dimmer and greyer. */
+  opacity: calc(0.9 - var(--far, 0) * 0.4);
+  filter:
+    brightness(calc(1 - var(--far, 0) * 0.4))
+    saturate(calc(1 - var(--far, 0) * 0.5))
+    drop-shadow(0 0 8px rgba(127, 220, 242, 0.12));
 }
 
 .landing-standee.is-seabed {
   top: auto;
   bottom: 0;
-  opacity: 0.8;
 }
 
 .landing-standee.is-species .pixel-sprite {

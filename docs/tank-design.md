@@ -308,7 +308,8 @@ around them.
 5. **Landing scenery.** The landing's standees are curated by hand in
    `src/data/landingScenery.js`, not generated from the roster: decide whether the new
    reserve or its creatures earn a place on the front page (a signature animal, its
-   habitat along the bottom edge), and add them there. A creature that is planned but not
+   corals along the bottom edge), and add them there, composed around the card rather
+   than scattered. A creature that is planned but not
    in any roster yet can appear as a `comingSoon` piece (a greyed-out silhouette, with
    `futureSpecies`); when it arrives, drop `comingSoon` and give it `species`.
 6. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
@@ -335,9 +336,14 @@ Each reserve's loading descent (the freediver going down the guideline,
   emperor angelfish, distinctive at pixel scale). They may idle in place (a fin flick
   on stepped frames) but do not travel across the screen. Real colours, muted to the
   phosphor palette.
-- **Habitat pieces.** For The Reefs: rock ledges from the sides partway down; a table
-  coral and staghorn on the seabed where the diver arrives, in the reef's coral colours
-  (staghorn orange, blue, cream).
+- **Corals, no landscape.** Scenery is living things only: species and corals. No rocks,
+  ledges, boulders or sand pieces (Jeremy, dev_12). For The Reefs: table coral and
+  staghorn on the seabed where the diver arrives, in the reef's coral colours.
+- **Composed, not scattered.** Lay pieces out as a picture: alternate sides down the line
+  so the eye zigzags with the diver, group small species into a school rather than
+  spreading them, let the seabed form a garden around the landing spot with the larger
+  mass on one side, and set back secondary pieces with `distance` (dimmer, greyer). The
+  landing follows the same rules around the card (see `src/data/landingScenery.js`).
 - **Data.** A `descent` block on the tank (The Reefs' is in species.js):
 
   ```js
@@ -346,14 +352,16 @@ Each reserve's loading descent (the freediver going down the guideline,
       { sprite: 'bannerfish', species: 'heniochus-acuminatus', depth: 3.5, side: 'left', flip: true },
     ],
     scenery: [
-      { sprite: 'ledge', depth: 8, side: 'left', flip: true },
       { sprite: 'table-coral', depth: 'floor', side: 'left' },
+      { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -0.4, distance: 0.25 },
     ],
   }
   ```
 
   `depth` is metres inside `depthMeters`, or `'floor'` to stand on the seabed (floor
-  pieces line up outward from the line, in list order). `species` must be on the
+  pieces line up outward from the line, in list order). `dx` (rem, away from the line)
+  and `dy` (rem, down; not for floor pieces) offset a piece to compose groups, and
+  `distance` (0 near to 1 far) sets it back. `species` must be on the
   reserve's own roster. Sprites face left; `flip` turns one to face the line from the
   left. Pieces keep clear of the depth labels beside the line.
 - **Sprites** live in `src/data/pixelSprites.js` as character grids over one shared

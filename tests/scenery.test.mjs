@@ -25,7 +25,9 @@ for (const piece of LANDING_SCENERY) {
   }
   assert.ok(piece.x >= 0 && piece.x <= 100, `landing: ${piece.sprite} x out of range`)
   if (!piece.seabed) assert.ok(piece.y >= 0 && piece.y <= 100, `landing: ${piece.sprite} y out of range`)
-  assert.ok(piece.px > 0, `landing: ${piece.sprite} needs px`)
+  assert.ok(Number.isInteger(piece.px) && piece.px > 0, `landing: ${piece.sprite} needs a whole-number px (crisp cells)`)
+  if (piece.phone) assert.ok(piece.phone.px === undefined || Number.isInteger(piece.phone.px), `landing: ${piece.sprite} phone px must be whole`)
+  if (piece.distance !== undefined) assert.ok(piece.distance >= 0 && piece.distance <= 1, `landing: ${piece.sprite} distance must be 0–1`)
 }
 
 // A reserve's descent scenery sits inside its depth range, on a side, with drawn sprites;

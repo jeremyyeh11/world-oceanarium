@@ -28,6 +28,8 @@ export const SPRITE_PALETTE = {
   v: '#3f7fc4', // mahi-mahi blue dorsal and fins
   m: '#9db2c2', // sunfish silver
   M: '#6f8798', // sunfish fins and clavus
+  p: '#6c5e78', // devil ray purplish-grey back
+  P: '#a596b0', // devil ray wing edges and tail
   // Corals (living reef animals; no rock or landscape pieces in the scenery)
   c: '#d9c9a6', // table coral cream
   C: '#efe3c6', // table coral rim highlight
@@ -39,6 +41,23 @@ export const SPRITE_PALETTE = {
 }
 
 const SPRITES = {
+  // Mobula munkiana, Munk's devil ray, seen from above in flight: swept, pointed wings, the
+  // rolled head fins as two horns at the nose, and a long whip tail. Purplish-grey above.
+  'devil-ray': [
+    '.............P..........',
+    '...........ppP..........',
+    '..........pppP..........',
+    '........ppppP...........',
+    '......pppppP............',
+    '..p.ppppppppp...........',
+    '.ppppppppppppppPPPPPPPP.',
+    '..p.ppppppppp...........',
+    '......pppppP............',
+    '........ppppP...........',
+    '..........pppP..........',
+    '...........ppP..........',
+    '.............P..........',
+  ],
   // Rhincodon typus, the whale shark: broad flat head, tall upper tail lobe, pale spots.
   'whale-shark': [
     '................................GG..',

@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.36.0 — The Shallows and Munk's Devil Ray (in development)
+
+Status: `v0.36.0-dev_1` (2026-10-23, branch `feat/mobula-munkiana`). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; "build everything except for the devil ray glb".
+
+### Reserves
+
+- **The Shallows** (`the-shallows`): a third reserve, a bright Sea of Cortez sand bay, 0–10 m (sand drawn at y -28, about 8 m). Landscape `shallows` in `landscapes.js`: pale rippled sand, strong caustics, a low cluster of dark boulders on the left (the limestone kit shaded dark), pebbles. Greener, brighter water than The Reefs, light shafts on. Resting camera low over the sand and tilted about 22° up (`SHALLOWS_VIEW`), so the school flies overhead against the surface; at eye level the rays read edge-on.
+- Selector card still (`public/reserves/the-shallows.webp`, 1120 × 490) and a loading descent with a new `devil-ray` sprite (seen from above): a school at 2.5 m on the left, a pair at 6 m on the right.
+
+### Species
+
+- **Munk's Devil Ray** (`mobula-munkiana`), VU: species data from FishBase, the Sharks and Rays profile and Palacios et al. 2021; 0.85–1.1 m across in the reserve. 60 rays in `creatures_dev` (ids 464–523), one school; `schoolSpacingScale` 3.5 so 4 WU rays do not pack into a ball. Swim box ±20 WU: in a 40 s sample a 375 px phone's middle strip always held 18+ rays, and desktop kept all 60 in frame (±26 left the phone strip empty for 14 s).
+- Runs on a generated stand-in (`scripts/build-devil-ray-placeholder.mjs`) until Jeremy's model lands; the Atlas tile and the card are renders of it, to retake then.
+
+### Motion
+
+- `disc-wave-vertex`, the mobuliform disc-wave Jeremy approved: both wings beat together, a quick downstroke and slow recovery (`downFraction` 0.42), a short chordwise wave (`waveTravel` 0.6), the tip trailing the root (`spanLag` 0.9), an idle floor so a resting ray still beats, a slight body heave and a trailing tail. Normals follow the span slope. `docs/procedural/disc-wave.md` stays Proposed until the real asset is checked.
+
 ## v0.35.1 — Atlas joins the landing preload (2026-10-23)
 
 Status: clean `v0.35.1` (2026-10-23, from `v0.35.1-dev_1`, branch `feat/preload-atlas-species`, #156). Jeremy: "ship this and merge to main". Jeremy: the Atlas and each species loaded only on first open; include it in the landing preload, and drop the placeholder model.

@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { REEFS_VIEW } from './landscapes.js'
+import { REEFS_VIEW, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -216,6 +216,66 @@ export const TANKS = [
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
     landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata'],
+  },
+  {
+    // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
+    // keep their own casts. No species repeats from another reserve.
+    id: 'the-shallows',
+    name: 'The Shallows',
+    tagline: 'Devil rays over a sunlit bay',
+    description: "A bright sand bay in the Sea of Cortez where Munk's devil rays gather in their hundreds, flying together just under the surface.",
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // A shallow bay: the sand is drawn at y -28 under the surface at y 4.6, 32.6 WU or about 8 m
+    // (9 m in the troughs), rounded to 10 m. The rays live at 0–15 m (FishBase).
+    depthMeters: [0, 10],
+    // The selector card's preview: the devil ray school against the surface.
+    cardImage: '/reserves/the-shallows.webp',
+    // The loading descent's standees (docs/tank-design.md, Descent scenery): the devil rays as
+    // one school just under the surface on the left, a straggler pair lower on the right. No
+    // seabed pieces: scenery is living things only, and the bay has no coral.
+    descent: {
+      signature: [
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true, dx: 16, dy: -6, distance: 0.25 },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true, dx: 10, dy: 9, distance: 0.35 },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 2.5, side: 'left', flip: true, dx: 28, dy: 2, distance: 0.5 },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 6, side: 'right' },
+        { sprite: 'devil-ray', species: 'mobula-munkiana', depth: 6, side: 'right', dx: 14, dy: 6, distance: 0.3 },
+      ],
+    },
+    seed: 517,
+    // Bright, shallow, greener water than The Reefs (Jeremy approved the direction, 2026-10-23):
+    // the Sea of Cortez is plankton-rich, so the blue leans to green-turquoise, pale near the
+    // surface and deepening only toward the sand. Light shafts stay on.
+    lighting: {
+      envTop: '#c6ece4',
+      envHorizon: '#3c9c98',
+      envDeep: '#14525a',
+      fog: '#4a9e98',
+      hemiSky: '#cdeee6',
+      hemiGround: '#6a8a76',
+      key: '#fff3dc',
+      fill: '#3f8f94',
+      density: 0.013,
+      exposure: 1.1,
+      backgroundStops: [
+        [0, '#d2f1ea'],
+        [0.25, '#8fd6cb'],
+        [0.4, '#5bb8b0'],
+        [0.5, '#3c9c98'],
+        [0.65, '#2b7f80'],
+        [0.8, '#1f666c'],
+        [1, '#174f58'],
+      ],
+      heightFog: { low: '#4a9a94', high: '#9ee0d4', yLow: -28, yHigh: 4.6, strength: 0.8, seabedLight: 1 },
+      backgroundBeamAlpha: 0.18,
+      surfaceColor: '#b2e8dd',
+      surfaceAttenuationColor: '#7ccfc2',
+    },
+    landscape: 'shallows',
+    camera: SHALLOWS_VIEW,
+    species: ['mobula-munkiana'],
   },
 ]
 
@@ -3224,14 +3284,14 @@ export const SPECIES = [
   // Conservation, Gulf of California maturity). A small devil ray that schools in the thousands in
   // the southern Gulf of California and leaps clear of the water in groups. The hero school of a
   // planned third reserve, a shallow Sea of Cortez sand bay (Jeremy, 2026-10-23; ROADMAP: Munk's
-  // Devil Ray and The Shallows). Prep entry: hidden from the Atlas, no model, no tank slot yet.
+  // Devil Ray and The Shallows). Swims in The Shallows on a generated stand-in until Jeremy's
+  // model lands.
   {
     id: 'mobula-munkiana',
     name: "Munk's Devil Ray",
     scientificName: 'Mobula munkiana',
     family: 'Mobulidae',
     alternateNames: ["Munk's Pygmy Devil Ray", 'Popcorn Ray'],
-    hiddenInAtlas: true,
     biome: 'ocean',
     depthZone: 'epipelagic',
     // "Found singly, in small groups, or in schools" (FishBase); aggregations of many thousands
@@ -3285,6 +3345,8 @@ export const SPECIES = [
       diet: 'Mysid shrimp',
       social: 'Schooling',
     },
+    // Rendered from the stand-in in The Shallows (2026-10-23); retake with Jeremy's model.
+    atlasThumbnail: '/atlas/mobula-munkiana-thumbnail.png',
     description: "One of the smallest devil rays, about a metre across, purplish-grey to brown above and white below, with short horn-like head fins, a small dorsal fin and a long whip of a tail with no sting. It sieves mysid shrimps and other plankton from the water in schools that can number many thousands, and groups leap clear of the surface one after another. It has a single pup at a time, and fishing for its gill plates has left it Vulnerable.",
     // Sizes are disc width (wingtip to wingtip), the measure rays are given in. FishBase lists a
     // 220 cm maximum from an older reference; recent papers give about 130 cm (Stewart et al.
@@ -3305,8 +3367,23 @@ export const SPECIES = [
       burstInterval: [14.0, 28.0],
       erraticness: 0.08,
       turnRadiusBodyLengths: 2.5,
-      // 1 WU = 25 cm: 130 cm disc width = 5.2 WU. Bounds come with the reserve.
+      // 1 WU = 25 cm: 130 cm disc width = 5.2 WU.
       bodyLengthWU: 5.2,
+      // The Shallows' swim volume (landscapes.js shallows, SHALLOWS_VIEW): the upper half of the
+      // bay, from 12 WU over the sand (y -28) to under a metre below the surface (y 4.6), so the
+      // school flies above the camera (y -24), and 22–69 WU in front of it (z 24). The Z bounds
+      // are offset by -15 in fishSwim.js, so -30/17 is z -45 to 2. A box ±20 WU wide, so the
+      // school keeps crossing the middle strip a 375 px phone sees: at ±26 it held 10+ rays there
+      // 62% of a 40 s sample, with a 14 s gap (desktop kept all 60 in frame throughout).
+      boundsUseSpeciesSize: false,
+      boundsHalfX: 20,
+      boundsYMin: -16,
+      boundsYMax: 1,
+      boundsZMin: -30,
+      boundsZMax: 17,
+      // The school's slots are spaced for sardinella (about 1 WU); a 4 WU ray needs about 3.5
+      // times the room, or 60 of them pack into a ball of overlapping wings.
+      schoolSpacingScale: 3.5,
       boids: {
         neighborCap: 6,
         perceptionBodyLengths: 3.0,

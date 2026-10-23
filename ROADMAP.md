@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: `Current in development` (branch `feat/mobula-munkiana`, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). Species data is in, hidden from the Atlas, with no model and no tank yet. Motion approved; waiting on Jeremy's GLB.
+Status: `Current in development` (`v0.36.0-dev_1`, branch `feat/mobula-munkiana`, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 stand-in rays are in (dev data); everything but Jeremy's GLB is built.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
@@ -28,10 +28,16 @@ Subtasks:
 - [ ] Jeremy: model to the contract in `docs/procedural/disc-wave.md` (one mesh, nose −Z, 1 raw = 1 m across the disc, grid quads in the wings, `COLOR_1` R/G/B masks).
 - [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
-- [ ] Reserve "The Shallows" (working name): a bright, shallow Sea of Cortez sand bay, 0–15 m (FishBase depth), low camera angled up so the school passes against the surface, mostly empty, a few dark volcanic boulders to one side, greener water than The Reefs, light shafts allowed. Leaping out of the water deferred (splash rings only in v1). Full `docs/tank-design.md` New reserve checklist: copy, `depthMeters`, descent sprites, `cardImage`. Not in `TANKS` until it has its card and descent (`tests/scenery.test.mjs`).
-- [ ] Phone framing: at 375 px only the middle strip of the 16:9 view shows, so steer the school's path through the centre.
+- [x] Reserve The Shallows (`v0.36.0-dev_1`): `the-shallows` in `TANKS`, landscape `shallows`, 0–10 m, low camera tilted about 22° up (`SHALLOWS_VIEW`), greener water, light shafts, a dark boulder cluster on the left, card still, descent with a new `devil-ray` sprite. Leaping out of the water deferred.
+- [x] Phone framing: swim box ±20 WU; a 375 px phone's middle strip held 18+ rays throughout a 40 s sample, desktop all 60.
+- [x] 60 rays in `creatures_dev` (ids 464–523; prod max was 463, so next free id is 524), Atlas tile rendered from the stand-in.
+- [ ] Jeremy: review dev_1 on a phone (card, descent, the school, the wingbeat).
+- [ ] Phone FPS: 60 rays × about 6.7k triangles is about 400k triangles with no LOD; unmeasured on a device. Add an LOD or cut the count if it drops frames.
+- [ ] Surface: from the resting view the surface reads as bright water rather than a distinct ceiling; revisit with Jeremy.
+- [ ] Retake the card still and the Atlas tile with Jeremy's model.
+- [ ] Prod `creatures` rows for the school: needs Jeremy's go-ahead before the clean release.
+- [ ] Optional: add a devil ray to the landing dive's montage (`GENERAL_DESCENT`).
 - [ ] Projected roster, no species repeated from other reserves (Jeremy, 2026-10-23): giant oceanic manta (*Mobula birostris*, one big animal, same motion), golden cownose ray (*Rhinoptera steindachneri*), East Pacific green turtle, round stingray (*Urobatis halleri*); California sea lion later. Check each range on FishBase/IUCN first.
-- [ ] `creatures_dev` rows for the school (read prod max id first), Atlas pose and tile in the same build.
 
 ### Reserve follow-ups (after `v0.35.0`)
 

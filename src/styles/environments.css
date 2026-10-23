@@ -244,6 +244,13 @@
   text-shadow: 0 0 10px rgba(127, 220, 242, 0.55);
 }
 
+/* The last tank stays mounted under the selector, paused (TankView `paused`). Hidden
+   rather than unmounted so the canvas keeps its size and WebGL context; visibility
+   also takes it and its overlays out of hit-testing and the tab order. */
+.tank-viewport.is-paused {
+  visibility: hidden;
+}
+
 /* --- loader --------------------------------------------------------------- */
 
 /* Under the landing gate (2100) and the tube film (2200), over every tank

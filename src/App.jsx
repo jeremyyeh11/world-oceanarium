@@ -56,9 +56,12 @@ function createTankVisitSeed() {
 }
 
 export default function App() {
-  // null is the environment selector; a tank id mounts that tank behind the loader.
+  // The tank being viewed; null while the selector is open.
   const [activeTankId, setActiveTankId] = useState(null)
-  const [lastTankId, setLastTankId] = useState(null)
+  // The tank mounted in the canvas: the active one, or, behind the selector, the last
+  // one viewed, paused. Keeping it mounted keeps the WebGL context, so a revisit or a
+  // switch does not recompile every shader and re-upload every texture.
+  const [mountedTankId, setMountedTankId] = useState(null)
   // Bumped on every entry so the loader remounts and measures this visit's load.
   const [tankVisit, setTankVisit] = useState(0)
   const [loaderOpen, setLoaderOpen] = useState(false)
@@ -460,8 +463,9 @@ export default function App() {
   }
 
   const activeTank = TANKS.find(t => t.id === activeTankId) ?? null
-  const activeBiome = BIOME_BY_ID.get(activeTank?.biome)
-  const inTank = Boolean(activeTank && activeBiome)
+  const mountedTank = TANKS.find(t => t.id === mountedTankId) ?? null
+  const mountedBiome = BIOME_BY_ID.get(mountedTank?.biome)
+  const inTank = Boolean(activeTank && mountedBiome)
   // Every species in the tanks: those with creature rows, and those that live in a tank's
   // landscape (`landscapeSpecies`, the corals), which have no rows.
   const tankSpeciesCount = new Set([
@@ -474,15 +478,20 @@ export default function App() {
     ...(tank.landscapeSpecies ?? []),
   ]).size]))
 
+  // Back into the paused tank is a resume: everything is still mounted and warm, so
+  // there is nothing to load. Any other tank swaps the scene inside the same canvas,
+  // behind the loader.
   const enterTank = (tankId) => {
     setActiveTankId(tankId)
-    setLastTankId(tankId)
+    if (tankId === mountedTankId) return
+    setMountedTankId(tankId)
     setTankVisit(visit => visit + 1)
     setLoaderOpen(true)
   }
 
-  // Unmounting the tank is the whole exit: fishRuntimeStore keeps every fish where it
-  // was, so coming back resumes the tank rather than reseeding it.
+  // Leaving pauses the tank under the selector rather than unmounting it. A different
+  // tank picked next unmounts this one's fish, and fishRuntimeStore resumes them on
+  // return, as before.
   const returnToSelector = () => {
     setTopMenuOpen(false)
     setDiverMode(false)
@@ -495,8 +504,8 @@ export default function App() {
 
   let page = null
 
-  if (inTank) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onExitDiverMode={exitDiverMode} onOpenEncyclopedia={openEncyclopedia} />
+  if (mountedTank && mountedBiome) {
+    page = <TankView biome={mountedBiome} tank={mountedTank} paused={!inTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onExitDiverMode={exitDiverMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (
@@ -508,7 +517,7 @@ export default function App() {
           tanks={TANKS}
           biomesById={BIOME_BY_ID}
           speciesCountByTank={speciesCountByTank}
-          initialTankId={lastTankId}
+          initialTankId={mountedTankId}
           onSelect={enterTank}
         />
       )}

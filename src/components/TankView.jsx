@@ -91,6 +91,18 @@ function WarmScene() {
   return null
 }
 
+// Paused, the canvas renders nothing (frameloop 'never') but its clock keeps running, so
+// the first frame back would carry the whole pause as its delta. Reading the clock on
+// resume restarts it. Fish clamp their delta anyway; this covers everything else that
+// integrates over it.
+function ResumeClock({ paused }) {
+  const clock = useThree(state => state.clock)
+  useEffect(() => {
+    if (!paused) clock.getDelta()
+  }, [clock, paused])
+  return null
+}
+
 function creatureDisplayName(creature) {
   const customName = creature?.customName?.trim()
   if (customName) return customName
@@ -157,7 +169,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, diverMode = false, onExitDiverMode = null, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, paused = false, screenshotMode = false, diverMode = false, onExitDiverMode = null, onBack, onOpenEncyclopedia }) {
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
@@ -219,6 +231,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   }, [])
 
   useEffect(() => {
+    if (paused) return undefined
     const toggleDebugOnShortcut = (event) => {
       if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.key.toLowerCase() !== 'd') return
       event.preventDefault()
@@ -227,9 +240,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
     window.addEventListener('keydown', toggleDebugOnShortcut)
     return () => window.removeEventListener('keydown', toggleDebugOnShortcut)
-  }, [debugMode])
+  }, [debugMode, paused])
 
   useEffect(() => {
+    if (paused) return undefined
     const queueSunBaskOnShortcut = (event) => {
       const isSunBaskShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && (event.code === 'KeyX' || event.key?.toLowerCase() === 'x')
       if (!isSunBaskShortcut) return
@@ -240,12 +254,13 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
     window.addEventListener('keydown', queueSunBaskOnShortcut)
     return () => window.removeEventListener('keydown', queueSunBaskOnShortcut)
-  }, [debugMode, selectedCreature])
+  }, [debugMode, selectedCreature, paused])
 
   useEffect(() => {
+    if (paused) return undefined
     window.addEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
     return () => window.removeEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
-  }, [debugMode])
+  }, [debugMode, paused])
 
   useEffect(() => {
     if (!selectedCreature) return undefined
@@ -466,7 +481,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
   }
 
   useEffect(() => {
-    if (!visibleDebugVisuals) {
+    if (!visibleDebugVisuals || paused) {
       const resetStats = { fps: null }
       performanceStatsRef.current = resetStats
       setPerformanceStats(resetStats)
@@ -513,9 +528,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
     frameId = window.requestAnimationFrame(sampleFps)
     return () => window.cancelAnimationFrame(frameId)
-  }, [visibleDebugVisuals, selectedCreature])
+  }, [visibleDebugVisuals, selectedCreature, paused])
 
   useEffect(() => {
+    if (paused) return undefined
     const focusFromSearch = (event) => {
       const creatureId = String(event.detail?.creatureId ?? '')
       if (!creatureId) return
@@ -527,7 +543,14 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
     window.addEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
     return () => window.removeEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
-  }, [creatures])
+  }, [creatures, paused])
+
+  // A paused tank is behind the selector. Following a fish there would keep its
+  // scroll blocking and follow-card layout (body:has(.is-following-fish) rules) active
+  // over the selector, so the follow ends on the way out, as Esc would end it.
+  useEffect(() => {
+    if (paused && selectedCreature) releaseFocus()
+  }, [paused, selectedCreature])
 
   const zoomFollowWithWheel = (event) => {
     if (!selectedCreature) return
@@ -702,7 +725,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
 
   return (
     <div
-      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}${diverMode ? ' is-diver-mode' : ''}`}
+      className={`tank-viewport${paused ? ' is-paused' : ''}${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}${diverMode ? ' is-diver-mode' : ''}`}
       style={{ '--stage-pan-x': `${stagePan}px` }}
     >
       <div
@@ -720,7 +743,11 @@ export default function TankView({ biome, tank = null, creatures, creatureDataSo
             DPR-3 phone renders 4x the fragments of 1x for detail that the CRT
             scanline film on top largely eats anyway. 1.5 matches the cap the
             encyclopedia canvas already uses. */}
-        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+        {/* Paused (the tank selector is open over it), nothing renders or simulates, and
+            the WebGL context with its compiled shaders and uploaded textures survives for
+            the next tank. */}
+        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+          <ResumeClock paused={paused} />
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}

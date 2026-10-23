@@ -138,7 +138,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 
 ## Tank-session continuity
 
-- Only the active tank is mounted/rendered. Hidden tanks do not simulate in the background.
+- One tank is mounted at a time: the one being viewed or, while the tank selector is open, the last one viewed, paused (TankView `paused`: canvas `frameloop="never"`, its window listeners off, follow released, viewport hidden). A paused tank renders and simulates nothing; it stays mounted only so the WebGL context, compiled shaders and uploaded textures survive the trip through the selector. Tanks that are not mounted do not simulate. Never mount a second tank alongside it.
 - `fishRuntimeStore.js` persists continuity-critical state by creature id so switching tanks freezes/resumes fish instead of reseeding them.
 - Preserve the page reload boundary: module state intentionally clears on reload; do not add durable browser/server persistence without a separate design decision.
 - Prune snapshots against the current live creature ids after data refreshes.

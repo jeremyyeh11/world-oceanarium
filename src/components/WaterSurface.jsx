@@ -77,6 +77,10 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 `
 
 const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
+// Every tank draws the surface, so its sky is fetched at load rather than on the first
+// tank's mount (the one request utils/tankPreload.js does not cover). Same options as
+// the useEnvironment call below, so it resolves from the cache.
+useEnvironment.preload({ files: SURFACE_ENVIRONMENT })
 const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v7'
 
 // Defined in `../utils/waterSurfaceGeometry` so `.js` modules and the Node test

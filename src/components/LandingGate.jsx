@@ -118,7 +118,7 @@ export default function LandingGate({ speciesCount, descent = null, reserve = nu
         {LANDING_SCENERY.map((piece, index) => (
           <div
             key={`${piece.sprite}:${index}`}
-            className={`landing-standee${piece.seabed ? ' is-seabed' : ''}${piece.species && !piece.seabed ? ' is-species' : ''}${piece.phone === false ? ' is-desktop-only' : ''}`}
+            className={`landing-standee${piece.seabed ? ' is-seabed' : ''}${piece.species && !piece.seabed ? ' is-species' : ''}${piece.comingSoon ? ' is-coming-soon' : ''}${piece.phone === false ? ' is-desktop-only' : ''}`}
             style={{
               '--x': `${piece.x}%`,
               '--y': `${piece.y ?? 0}%`,

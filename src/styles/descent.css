@@ -494,6 +494,13 @@
   animation-delay: var(--bob-delay, 0s);
 }
 
+/* Not in a reserve yet: a dark, greyed-out silhouette, a hint of what is coming. Still,
+   with no glow, so it reads as a shadow in the distance rather than a resident. */
+.landing-standee.is-coming-soon {
+  opacity: 0.5;
+  filter: grayscale(1) brightness(0.7);
+}
+
 @media (max-width: 640px) {
   .landing-standee {
     left: var(--x-phone, var(--x));

@@ -120,7 +120,6 @@ export const TANKS = [
         { sprite: 'table-coral', depth: 'floor', side: 'left' },
         { sprite: 'staghorn-orange', depth: 'floor', side: 'right' },
         { sprite: 'staghorn-blue', depth: 'floor', side: 'left' },
-        { sprite: 'boulder', depth: 'floor', side: 'right' },
       ],
     },
     seed: 953,

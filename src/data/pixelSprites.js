@@ -33,6 +33,10 @@ export const SPRITE_PALETTE = {
   O: '#efb07c', // staghorn tips
   u: '#5d93c4', // staghorn blue
   U: '#93bfe2', // staghorn blue tips
+  // Rays (shown greyed out on the landing until they join a roster)
+  n: '#33475a', // dark back
+  N: '#4a6278', // leading edge, lit
+  p: '#b9c7d2', // pale shoulder patches, spots
   r: '#2c4357', // rock
   t: '#4c6a80', // rock top, lit
   R: '#1b2c3b', // rock shade
@@ -156,6 +160,45 @@ const SPRITES = {
     '....uu......',
     '...rrrr.....',
   ],
+  // Rays are drawn from above, head up, wings level: that is how a ray reads. Flip has no
+  // meaning for them.
+  // Mobula alfredi, the reef manta: broad swept wings, the two cephalic fins at the front,
+  // pale shoulder patches.
+  'manta-ray': [
+    '..............N.N..............',
+    '.............NNNNN.............',
+    '..........NNNnnnnnNNN..........',
+    '.......NNNnnnpnnnpnnnNNN.......',
+    '....NNNnnnnppnnnnnppnnnnNNN....',
+    '.NNNnnnnnnnnnnnnnnnnnnnnnnnnNN.',
+    'NnnnnnnnnnnnnnnnnnnnnnnnnnnnnnN',
+    '..nnnnnnnnnnnnnnnnnnnnnnnnnnn..',
+    '......nnnnnnnnnnnnnnnnnnn......',
+    '..........nnnnnnnnnnn..........',
+    '..............nnn..............',
+    '...............n...............',
+    '...............n...............',
+  ],
+  // Aetobatus narinari, the spotted eagle ray: a pointed head, pointed wings, white spots on
+  // a dark back and a long whip tail.
+  'eagle-ray': [
+    '............N............',
+    '...........NNN...........',
+    '..........NnnnN..........',
+    '........NNnnnnnNN........',
+    '.....NNNnnpnnnpnnNNN.....',
+    '..NNNnnpnnnnpnnnnpnnNNN..',
+    'NNnnnnnnnpnnnnnpnnnnnnnNN',
+    '..nnnpnnnnnnnnnnnnnpnnn..',
+    '.....nnnnnpnnnpnnnnn.....',
+    '........nnnnnnnnn........',
+    '...........nnn...........',
+    '............n............',
+    '............n............',
+    '............n............',
+    '.............n...........',
+    '.............n...........',
+  ],
   // A rock ledge, reaching in from the side of the shaft.
   ledge: [
     'tttttttttttttt......',
@@ -164,14 +207,6 @@ const SPRITES = {
     'RRRRRRRRRRRRRRRRRrr.',
     '.RRRRRRRRRRRRRRR....',
     '...RRRRRRRR.........',
-  ],
-  // A low boulder for the seabed and the landing's foreground.
-  boulder: [
-    '....tttttt....',
-    '..ttrrrrrrtt..',
-    '.trrrrrrrrrrt.',
-    'rrrrrrrrrrrrrr',
-    'RRRRRRRRRRRRRR',
   ],
 }
 

@@ -308,7 +308,9 @@ around them.
 5. **Landing scenery.** The landing's standees are curated by hand in
    `src/data/landingScenery.js`, not generated from the roster: decide whether the new
    reserve or its creatures earn a place on the front page (a signature animal, its
-   habitat along the bottom edge), and add them there.
+   habitat along the bottom edge), and add them there. A creature that is planned but not
+   in any roster yet can appear as a `comingSoon` piece (a greyed-out silhouette, with
+   `futureSpecies`); when it arrives, drop `comingSoon` and give it `species`.
 6. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
    and preloading (`docs/environment-loading.md`) pick the new entry up from `TANKS`.
    Check the card's swatch (from `lighting.backgroundStops`, else the biome colour) and

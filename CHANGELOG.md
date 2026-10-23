@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_10` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_11` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -28,9 +28,9 @@ Status: `v0.35.0-dev_10` (2026-10-23, branch `claude/environment-loader-ui-ux-v2
 
 ### Scenery (dev_10)
 
-- Pixel sprites (`src/data/pixelSprites.js`, `PixelSprite.jsx`): character grids over one muted palette, all facing left: whale shark, sunfish, longfin bannerfish, emperor angelfish (diagonal stripes, dark mask), raccoon butterflyfish, table coral, staghorn (orange, blue), rock ledge, boulder.
-- The Reefs' descent has standees (`descent` in species.js): its signature species, the bannerfish at 3.5 m and the emperor angelfish at 6.5 m, ledges at 2 m and 8 m, and table coral, two staghorns and a boulder on the seabed. Placed by depth, dark until the diver reaches them, then lit; the fish bob a pixel in place and nothing travels or scrolls. The Open Sea stays bare.
-- The landing has hand-curated standees around the card (`src/data/landingScenery.js`): the whale shark and sunfish up top, a school of raccoon butterflyfish lower left, and table coral, staghorn and boulders along the bottom edge, with phone positions of their own. Manta and eagle rays are a commented placeholder until they join a roster.
+- Pixel sprites (`src/data/pixelSprites.js`, `PixelSprite.jsx`): character grids over one muted palette, all facing left: whale shark, sunfish, longfin bannerfish, emperor angelfish (diagonal stripes, dark mask), raccoon butterflyfish, table coral, staghorn (orange, blue), rock ledge; dev_11 adds the reef manta and spotted eagle ray (drawn from above) and drops the boulder.
+- The Reefs' descent has standees (`descent` in species.js): its signature species, the bannerfish at 3.5 m and the emperor angelfish at 6.5 m, ledges at 2 m and 8 m, and table coral and two staghorns on the seabed. Placed by depth, dark until the diver reaches them, then lit; the fish bob a pixel in place and nothing travels or scrolls. The Open Sea stays bare.
+- The landing has hand-curated standees around the card (`src/data/landingScenery.js`): the whale shark and sunfish up top, a school of raccoon butterflyfish lower left, and table coral and staghorn along the bottom edge, with phone positions of their own. The reef manta and spotted eagle ray are there as `comingSoon` pieces (dev_11): dark, greyed-out silhouettes hinting at what is on the way, named by `futureSpecies` until they join a roster (the test then asks for `species`).
 - `tests/scenery.test.mjs`: every piece names a drawn sprite and real species, landing pieces sit on screen, descent pieces sit inside the reserve's depth range, and signature species are on that reserve's roster.
 
 ### Docs

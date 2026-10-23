@@ -24,7 +24,7 @@ Subtasks:
 - [x] Public copy says reserves (UI only); opaque landing gate; the descent (diver on a guideline) for the landing dive and each reserve's loading screen.
 - [x] Per-reserve depth range (`depthMeters`) for the descent scale and selector card; new reserve checklist in docs/tank-design.md.
 - [x] Descent scenery for The Reefs (bannerfish, emperor angelfish, ledges, table coral, staghorn, boulder) and hand-curated landing scenery (whale shark, sunfish, butterflyfish school, corals).
-- [ ] Landing: manta and eagle rays once they join a roster (placeholder in src/data/landingScenery.js).
+- [ ] Landing: when the reef manta and spotted eagle ray join a roster, drop their `comingSoon` (src/data/landingScenery.js).
 - [ ] Refine sprites with Jeremy.
 - [x] The Reefs' depth: 0–10 m (dev_9), matching the drawn scene's ~7 m.
 - [ ] Refine the descent with Jeremy (sprite, copy: "Into the blue").

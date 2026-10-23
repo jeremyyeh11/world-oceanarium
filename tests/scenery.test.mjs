@@ -18,6 +18,11 @@ for (const [name, sprite] of Object.entries(PIXEL_SPRITES)) {
 for (const piece of LANDING_SCENERY) {
   assert.ok(PIXEL_SPRITES[piece.sprite], `landing: no sprite '${piece.sprite}'`)
   if (piece.species) assert.ok(speciesIds.has(piece.species), `landing: unknown species '${piece.species}'`)
+  // A coming-soon piece is one not on any roster yet; once it is, it should say so.
+  if (piece.comingSoon) {
+    assert.ok(piece.futureSpecies && !piece.species, `landing: coming-soon ${piece.sprite} names its futureSpecies, not species`)
+    assert.ok(!speciesIds.has(piece.futureSpecies), `landing: ${piece.futureSpecies} has arrived; drop comingSoon and make it species`)
+  }
   assert.ok(piece.x >= 0 && piece.x <= 100, `landing: ${piece.sprite} x out of range`)
   if (!piece.seabed) assert.ok(piece.y >= 0 && piece.y <= 100, `landing: ${piece.sprite} y out of range`)
   assert.ok(piece.px > 0, `landing: ${piece.sprite} needs px`)

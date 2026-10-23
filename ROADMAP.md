@@ -13,6 +13,23 @@ Status labels:
 
 ## Current work
 
+### Munk's Devil Ray and The Shallows
+
+Status: `Current in development` (branch `feat/mobula-munkiana`, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). Species data is in, hidden from the Atlas, with no model and no tank yet. Waiting on Jeremy: the motion proposal, then his GLB.
+
+Subtasks:
+- [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
+- [x] Size: 5.2 WU at 130 cm across; `sizeRange` 0.65–0.85 keeps the tank's rays at 0.85–1.1 m (3.4–4.4 WU).
+- [x] Motion proposal: mobuliform `disc-wave` (wings beat together, under one wavelength across the chord, tips lag the root via a new `spanLag`, downstroke faster than the upstroke), with the Blender contract, in `docs/procedural/disc-wave.md`. Not foil-flap: the wing has no shoulder joint.
+- [ ] Jeremy: OK the motion proposal before any shader work (AGENTS.md: stop and ask before a new motion architecture).
+- [ ] Jeremy: model to the contract in `docs/procedural/disc-wave.md` (one mesh, nose −Z, 1 raw = 1 m across the disc, grid quads in the wings, `COLOR_1` R/G/B masks).
+- [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
+- [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
+- [ ] Reserve "The Shallows" (working name): a bright, shallow Sea of Cortez sand bay, 0–15 m (FishBase depth), low camera angled up so the school passes against the surface, mostly empty, a few dark volcanic boulders to one side, greener water than The Reefs, light shafts allowed. Leaping out of the water deferred (splash rings only in v1). Full `docs/tank-design.md` New reserve checklist: copy, `depthMeters`, descent sprites, `cardImage`. Not in `TANKS` until it has its card and descent (`tests/scenery.test.mjs`).
+- [ ] Phone framing: at 375 px only the middle strip of the 16:9 view shows, so steer the school's path through the centre.
+- [ ] Projected roster, no species repeated from other reserves (Jeremy, 2026-10-23): giant oceanic manta (*Mobula birostris*, one big animal, same motion), golden cownose ray (*Rhinoptera steindachneri*), East Pacific green turtle, round stingray (*Urobatis halleri*); California sea lion later. Check each range on FishBase/IUCN first.
+- [ ] `creatures_dev` rows for the school (read prod max id first), Atlas pose and tile in the same build.
+
 ### Reserve follow-ups (after `v0.35.0`)
 
 - [ ] Refine the descent sprites with Jeremy. `Next`

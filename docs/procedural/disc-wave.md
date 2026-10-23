@@ -10,6 +10,46 @@ Read [README.md](README.md) first for the rules shared by every type.
 > Starting convention only. No runtime code exists. Expect the first asset to change
 > it.
 
+## First animal: Munk's devil ray (proposed 2026-10-23, needs Jeremy's OK)
+
+The first asset is mobuliform, not rajiform: *Mobula munkiana* (`mobula-munkiana`),
+0.85–1.1 m across in the tank (3.4–4.4 WU), schooling in the hundreds. A devil ray flies:
+the wings beat up and down with under one wavelength across the chord, and the tip
+trails the root, so the wing curls rather than ripples. Proposed changes to this doc for
+that sub-mode, to settle before any shader work:
+
+- **Stay in disc-wave, not foil-flap.** The wing is continuous with the body (no shoulder
+  joint to pivot on), and the trailing tip is a phase lag along the span, which this
+  type's painted phase already expresses. foil-flap's rigid root rotation would hinge the
+  disc at a seam. Mobuliform is a config: `waveTravel` under about 0.8 so the chord
+  holds less than one wavelength, plus a new `spanLag` (phase delay from root to tip, by
+  `R`) so the tips curl after the stroke.
+- **Both wings beat together in straight flight.** The "left and right in sync" warning
+  below is about a rippling ray; a devil ray's wings stroke as a pair, and asymmetry
+  belongs to turns (bias amplitude and timing by `turn`, and bank the root).
+- **Downstroke is the power stroke.** Use the README's asymmetric drive envelope, as
+  foil-flap does, so the stroke is quicker down than up; the body heaves slightly
+  opposite the wings, but never pitches.
+- **Orientation.** The renderer turns local `-Z` to the heading (README, Shared asset
+  contract), so a devil ray is exported nose at `-Z`, not `+Z` as written below.
+- **Tail.** A long whip with no sting: `B` weight, trailing the body's heave with a lag,
+  never driving.
+- **Cephalic fins.** Rolled into horns while cruising; unrolling to feed is a later
+  idea. `A` stays unused for now.
+
+Blender contract for Jeremy's model (proposed):
+
+- One mesh, whole animal: disc, head with rolled cephalic fins, small dorsal fin, tail.
+  Nose at `-Z`, `+Y` up, transforms applied, origin at world `0` at the centre of the
+  disc, `1` raw unit = `1` m, so a 1.3 m disc is 1.3 units wingtip to wingtip.
+- Grid-like quads across each wing: about 20 spanwise rings (root to tip) and 10–14
+  chordwise divisions. 3000–6000 vertices in all, mostly in the wings.
+- `COLOR_0` white. `COLOR_1`: `R` 0 along the body's flat centre (about the width of the
+  head) rising to 1 at the wingtips; `G` 0 at the wing's leading edge to 1 at its
+  trailing edge; `B` 0 at the tail root to 1 at its tip.
+- Purplish-grey to brown above with dark bands across the top of the mouth; white below,
+  often with dusky wingtips. Opaque texture, 2048 px or less.
+
 ## Animals
 
 Proposed: rays and skates (rajiform/mobuliform swimmers), cuttlefish.

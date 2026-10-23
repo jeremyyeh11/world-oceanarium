@@ -3219,6 +3219,108 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
+  // --- Munk's devil ray (Mobulidae) ----------------------------------------------------------
+  // Facts from FishBase, the Sharks and Rays profile and Palacios et al. 2021 (Aquatic
+  // Conservation, Gulf of California maturity). A small devil ray that schools in the thousands in
+  // the southern Gulf of California and leaps clear of the water in groups. The hero school of a
+  // planned third reserve, a shallow Sea of Cortez sand bay (Jeremy, 2026-10-23; ROADMAP: Munk's
+  // Devil Ray and The Shallows). Prep entry: hidden from the Atlas, no model, no tank slot yet.
+  {
+    id: 'mobula-munkiana',
+    name: "Munk's Devil Ray",
+    scientificName: 'Mobula munkiana',
+    family: 'Mobulidae',
+    alternateNames: ["Munk's Pygmy Devil Ray", 'Popcorn Ray'],
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // "Found singly, in small groups, or in schools" (FishBase); aggregations of many thousands
+    // in the southern Gulf of California and around the tip of Baja (Sharks and Rays).
+    schooling: true,
+    repulser: false,
+    aggressive: false,
+    // Mainly planktonic crustaceans, also small schooling fishes (FishBase): a filter feeder.
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 9 November 2018 (A2d+3d); CITES Appendix II, CMS Appendices I and II. Taken in
+      // targeted fisheries in Mexico and Peru and for the gill plate trade, and easy to catch
+      // because it schools.
+      code: 'VU',
+      label: 'Vulnerable',
+    },
+    atlasDetails: {
+      biome: 'Coastal Open Water',
+      commonDiet: 'Planktonic crustaceans, above all mysid shrimps; sometimes small schooling fishes.',
+      foundIn: 'Eastern Pacific, from the Gulf of California to Peru and the Galápagos Islands, at the surface down to about 30 m.',
+      maxLengthLabel: 'Disc width',
+      sexualDimorphism: 'None described beyond the claspers of males.',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Thousands',
+        groupingBehaviour: 'Alone, in small groups or in schools of many thousands, common in the southern Gulf of California and around the tip of Baja. Rays leap clear of the water one after another, which earned them the name "popcorn rays"; the leaps may be courtship. Juveniles have been seen feeding in the breaking waves of the surf zone.',
+        // Palacios et al. 2021: courtship seen and sperm found in males at Espíritu Santo.
+        reproduction: 'Bears live young, a single pup about 35 cm across. Gestation is unknown. Mating is thought to happen in the southern Gulf of California from April to June.',
+      },
+      averages: {
+        // FishBase: common disc width 100 cm, nothing by sex.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: '1 pup',
+      },
+    },
+    atlasSummary: {
+      biome: 'Coastal',
+      zone: 'Sunlight',
+      diet: 'Mysid shrimp',
+      social: 'Schooling',
+    },
+    description: "One of the smallest devil rays, about a metre across, purplish-grey to brown above and white below, with short horn-like head fins, a small dorsal fin and a long whip of a tail with no sting. It sieves mysid shrimps and other plankton from the water in schools that can number many thousands, and groups leap clear of the surface one after another. It has a single pup at a time, and fishing for its gill plates has left it Vulnerable.",
+    // Sizes are disc width (wingtip to wingtip), the measure rays are given in. FishBase lists a
+    // 220 cm maximum from an older reference; recent papers give about 130 cm (Stewart et al.
+    // 2018, as cited in Marine Biology 2023, doi 10.1007/s00227-023-04314-0) and the Sharks and
+    // Rays profile 110 cm. Size at maturity is in Palacios et al. 2021, not yet
+    // read, so the lower bound is FishBase's common width.
+    adultLengthRangeMeters: [1.0, 1.3],
+    maxBodyLengthMeters: 1.3,
+    swim: {
+      // Starting values until the model and the disc-wave motion land: a steady cruiser that
+      // flies in a school, never hovers, and turns in broad banked arcs.
+      visualTimeScale: 0.6,
+      driftEnabled: false,
+      idleBLPerSec: [0.5, 0.9],
+      idleDriftBLPerSec: [0.12, 0.25],
+      snapBLPerSec: [1.4, 2.0],
+      burstBLPerSec: [2.5, 3.5],
+      burstInterval: [14.0, 28.0],
+      erraticness: 0.08,
+      turnRadiusBodyLengths: 2.5,
+      // 1 WU = 25 cm: 130 cm disc width = 5.2 WU. Bounds come with the reserve.
+      bodyLengthWU: 5.2,
+      boids: {
+        neighborCap: 6,
+        perceptionBodyLengths: 3.0,
+        separationWeight: 0.35,
+        alignmentWeight: 0.4,
+        cohesionWeight: 0.2,
+        maxWeight: 0.7,
+        menace: 0,
+        wariness: 0.4,
+      },
+    },
+    // 0.65–0.85 of 130 cm = 0.85–1.1 m across (3.4–4.4 WU): the common adult, about a metre.
+    sizeRange: [0.65, 0.85],
+  },
   // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since
   // corals are animals"). Not a swimming creature: no `swim`, no tank roster slot, no creature
   // rows. Its tables are placed on the rocks by the landscape (landscapes.js `corals`,

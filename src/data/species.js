@@ -3280,8 +3280,9 @@ export const SPECIES = [
     },
   },
   // --- Munk's devil ray (Mobulidae) ----------------------------------------------------------
-  // Facts from FishBase, the Sharks and Rays profile and Palacios et al. 2021 (Aquatic
-  // Conservation, Gulf of California maturity). A small devil ray that schools in the thousands in
+  // Facts from FishBase, the Sharks and Rays profile, Serrano-López et al. 2021
+  // (Aquatic Conservation, Gulf of California maturity) and Palacios et al. 2021
+  // (Scientific Reports, nursery and reproductive season). A small devil ray that schools in the thousands in
   // the southern Gulf of California and leaps clear of the water in groups. The hero school of a
   // planned third reserve, a shallow Sea of Cortez sand bay (Jeremy, 2026-10-23; ROADMAP: Munk's
   // Devil Ray and The Shallows). Swims in The Shallows as Jeremy's model (dev_2).
@@ -3315,27 +3316,37 @@ export const SPECIES = [
       foundIn: 'Eastern Pacific, from the Gulf of California to Peru and the Galápagos Islands, at the surface down to about 30 m.',
       maxLengthLabel: 'Disc width',
       sexualDimorphism: 'None described beyond the claspers of males.',
-      lifeSpan: 'Unknown',
-      maturityAge: 'Unknown',
+      lifeSpan: 'Not established',
+      maturityAge: 'Age unknown; males mature at about 95 cm disc width, females at 95–105 cm',
       social: {
         schoolSize: 'Thousands',
         groupingBehaviour: 'Alone, in small groups or in schools of many thousands, common in the southern Gulf of California and around the tip of Baja. Rays leap clear of the water one after another, which earned them the name "popcorn rays"; the leaps may be courtship. Juveniles have been seen feeding in the breaking waves of the surf zone.',
-        // Palacios et al. 2021: courtship seen and sperm found in males at Espíritu Santo.
-        reproduction: 'Bears live young, a single pup about 35 cm across. Gestation is unknown. Mating is thought to happen in the southern Gulf of California from April to June.',
+        // Palacios et al. 2021: gestation is inferred from a similar pygmy devil ray,
+        // not measured for this species. April–June mating/pupping in La Paz Bay.
+        reproduction: 'Bears one live pup per litter. Mating and pupping occur from April to June in La Paz Bay, in the southern Gulf of California. Gestation is thought to last 10–12 months, inferred from a related pygmy devil ray. Young use sheltered shallow bays as nurseries.',
       },
       averages: {
-        // FishBase: common disc width 100 cm, nothing by sex.
-        maleSizeMeters: 'Unknown',
-        femaleSizeMeters: 'Unknown',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
-        maleLifeExpectancyYears: 'Unknown',
-        femaleLifeExpectancyYears: 'Unknown',
+        // Serrano-López et al. 2021, section 3.2: Gulf of California catch,
+        // 86 males / 60 females, mixed maturity stages. These are sample means,
+        // not adult asymptotes or a claim that females grow smaller.
+        sizeLabel: 'Disc width (sample mean)',
+        maleSizeMeters: 0.93,
+        femaleSizeMeters: 0.90,
+        maleWeightKg: 'Average not established',
+        femaleWeightKg: 'Average not established',
+        maleLifeExpectancyYears: 'Not established',
+        femaleLifeExpectancyYears: 'Not established',
       },
       lifecycle: {
-        sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
-        offspringPerMatingEvent: '1 pup',
+        // Serrano-López et al. 2021: male L50 95.24 cm; females 95–105 cm.
+        // No species-specific age data; do not substitute M. mobular's ages.
+        sexualMaturityYears: 'Not established',
+        sexualMaturitySize: 'Males about 95 cm; females 95–105 cm disc width',
+        sexualSterilityYears: 'Not documented',
+        offspringPerMatingEvent: '1 pup per litter',
+        // Palacios et al. 2021: both figures inferred, explicitly labelled.
+        gestation: 'About 10–12 months (inferred from a related species)',
+        birthSize: 'About 35–42 cm disc width (estimated)',
       },
     },
     atlasSummary: {
@@ -3350,8 +3361,8 @@ export const SPECIES = [
     // Sizes are disc width (wingtip to wingtip), the measure rays are given in. FishBase lists a
     // 220 cm maximum from an older reference; recent papers give about 130 cm (Stewart et al.
     // 2018, as cited in Marine Biology 2023, doi 10.1007/s00227-023-04314-0) and the Sharks and
-    // Rays profile 110 cm. Size at maturity is in Palacios et al. 2021, not yet
-    // read, so the lower bound is FishBase's common width.
+    // Rays profile 110 cm. The rendered adult range starts at FishBase's common
+    // width; measured maturity sizes are recorded in atlasDetails.lifecycle.
     adultLengthRangeMeters: [1.0, 1.3],
     maxBodyLengthMeters: 1.3,
     swim: {

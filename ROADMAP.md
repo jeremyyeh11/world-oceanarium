@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: `Current in development` (`v0.36.0-dev_6`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
+Status: `Current in development` (`v0.36.0-dev_7`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
@@ -32,7 +32,8 @@ Subtasks:
 - [x] `dev_6`: sustained spacing and organic drift. Centred cloud references keep their initial frame through turns, common goals reserve the full cloud plus turning room, and anisotropic neighbour separation keeps wings apart. Spacing reduced 15% after review; correction is quiet inside 0.2 disc widths and eases in over 0.2-0.45 widths, with slow personal drift and pace variation. Five ten-minute runs of the actual Fish.jsx movement frame retain 3D spread without tight-pair clusters or boundary contact; 40 maximum-size spawn seeds pass. Renderless checks omit landscape obstacles/GPU animation.
 - [ ] Jeremy: review `dev_6` spacing tolerance, irregular positions and sustained turns, plus dorsal texture and individual beat rates; physical-phone FPS still unmeasured.
 - [ ] Belly colour: from below (the resting camera's view) the rays read dark blue-grey; Munk's devil ray is white underneath. Jeremy's `bottom` texture.
-- [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
+- [x] `dev_7` Atlas averages and lifecycle: Serrano-López et al. 2021 provides mean disc width by sex and maturity sizes; Palacios et al. 2021 provides nursery/reproductive timing and explicitly inferred gestation/birth-size estimates. Sources credited. Age at maturity, lifespan and mean weight remain unestablished; the Atlas says so.
+- [ ] Species-specific disc-width–weight relation for `mass`: FishBase's shape-derived Bayesian relation uses total length and must not be applied to disc width.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
 - [x] Reserve The Shallows (`v0.36.0-dev_1`): `the-shallows` in `TANKS`, landscape `shallows`, 0–10 m, low camera tilted about 22° up (`SHALLOWS_VIEW`), greener water, light shafts, a dark boulder cluster on the left, card still, descent with a new `devil-ray` sprite. Leaping out of the water deferred.
 - [ ] Recheck portrait framing after `dev_6`: the full formation and broad turns now use x +/-40, y -16 to 1, z -59 to 16 WU. The old dev_2 phone samples used a narrower volume and no longer validate this composition.

@@ -70,6 +70,32 @@ export const SOURCES = [
 // one decided.
 export const STUDY_CREDITS = [
   {
+    id: 'serrano-lopez-2021-devil-rays',
+    subject: "Munk's Devil Ray mean disc width by sex, maturity size and litter size",
+    authors: 'Serrano-López, Soto-López, Ochoa-Báez, O’Sullivan & Galván-Magaña',
+    year: 2021,
+    title: 'Morphometry and histology to assess the maturity stage of three endangered devil ray species (Elasmobranchii: Mobulidae) from the Gulf of California',
+    venue: 'Aquatic Conservation: Marine and Freshwater Ecosystems',
+    url: 'https://doi.org/10.1002/aqc.3548',
+  },
+  {
+    id: 'palacios-2021-munks-nursery',
+    subject: "Munk's Devil Ray nursery, pupping season, inferred gestation and estimated birth size",
+    authors: 'Palacios et al.',
+    year: 2021,
+    title: 'Description of first nursery area for a pygmy devil ray species (Mobula munkiana) in the Gulf of California, Mexico',
+    venue: 'Scientific Reports 11: 132',
+    url: 'https://www.nature.com/articles/s41598-020-80506-8',
+  },
+  {
+    id: 'manta-trust-munks-devil-ray',
+    subject: "Munk's Devil Ray lifespan remains unknown",
+    authors: 'Manta Trust',
+    title: 'Munk’s Pygmy Devil Ray',
+    venue: 'Species guide',
+    url: 'https://www.mantatrust.org/mobula-munkiana',
+  },
+  {
     id: 'bachman-2018-sharksucker',
     subject: 'Live Sharksucker size, weight and eggs',
     authors: 'Bachman et al.',

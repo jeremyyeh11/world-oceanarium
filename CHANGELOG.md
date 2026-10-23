@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.36.0 — The Shallows and Munk's Devil Ray (in development)
 
-Status: `v0.36.0-dev_6` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
+Status: `v0.36.0-dev_7` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
 
 ### Reserves
 
@@ -21,6 +21,11 @@ Status: `v0.36.0-dev_6` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jerem
 
 - **Munk's Devil Ray** (`mobula-munkiana`), VU: species data from FishBase, the Sharks and Rays profile and Palacios et al. 2021; 0.85–1.1 m across in the reserve. 60 rays in `creatures_dev` (ids 464–523), one school. A body-clearance cloud now spaces the wide discs; its wider cruising volume is described under Motion.
 - dev_2: Jeremy's model. `scripts/paint-disc-wave-masks.py` (headless Blender) computes the masks from its shape (vertex paint can't paint one channel alone, and his first paint ramped the wing to full by mid-span, which would move the outer wing as a rigid plate), scales the 11 unit model to a 1.3 m disc, centres the origin, and exports JPEG textures (934 KB; alpha measured solid, so it renders opaque). Three material parts (`munks_devil_ray_1`–`_3`). The dev_1 stand-in GLB is removed. Atlas tile and card retaken with it.
+
+### Atlas
+
+- Adds measured mean disc widths for male (0.93 m) and female (0.90 m) Munk's devil rays from the Gulf of California study, explicitly labelled sample means. Adds maturity size (males about 95 cm, females 95–105 cm), one pup per litter, inferred 10–12 month gestation and estimated 35–42 cm birth width. Age at maturity, lifespan and average weight remain unestablished; no ages borrowed from larger devil rays. The Sources panel credits Serrano-López et al. 2021, Palacios et al. 2021 and Manta Trust.
+- The Atlas can show optional maturity-size, gestation and birth-size rows and a species-specific average-size label. Existing entries retain their current fields.
 
 ### Appearance
 

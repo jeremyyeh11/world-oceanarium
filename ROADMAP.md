@@ -13,6 +13,16 @@ Status labels:
 
 ## Current work
 
+### Tank selector and loader
+
+Status: `Current in development` in `v0.35.0-dev_1` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`). Landing → selector → loader → tank, with a bottom-left button back to the selector.
+
+Subtasks:
+- [x] Selector cards, per-tank loader, bottom-left back button; old tank list removed.
+- [x] `useSceneReady` measures per visit (baseline + cached grace).
+- [ ] Device check: phone portrait/landscape and iPad, selector scroll and the back button against the follow card.
+- [ ] Decide: preload the last or default tank behind the selector so the first dive is faster.
+
 ### Humphead Wrasse females
 
 Status: shipped in clean `v0.34.0` (2026-10-22, from `v0.34.0-dev_1`, branch `feat/humphead-wrasse-female`, #151). `Archive candidate`. Jeremy's female model, the second model planned when the male shipped.

@@ -8,6 +8,22 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.35.0 — Tank selector and loader (in development)
+
+Status: `v0.35.0-dev_1` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`). From `main` at `v0.34.0`. Jeremy: landing → dive in → environment selector → tank → loading screen → tank, with a bottom-left button back to the selector.
+
+### Navigation
+
+- New flow: landing gate → **Choose a tank** selector → per-tank loading screen → tank. A bottom-left **Tanks** button (with the current tank's name) returns to the selector; it replaces the bottom-left tank list.
+- Selector (`EnvironmentSelector.jsx`): one card per tank with index, depth zone and range, name, tagline, description and live species count. Each card's swatch is the tank's own water (`lighting.backgroundStops`, else the biome colour). Arrow keys move between cards; focus returns to the last tank visited. The chosen card flares for 420 ms before the loader takes over.
+- Loader (`EnvironmentLoader.jsx`): tank name, depth zone and the landing gate's hairline progress bar, held at least 1.3 s, clearing with a 700 ms sink. Remounted per visit (keyed) so it measures only that visit's load.
+- Only the chosen tank mounts; leaving unmounts it and `fishRuntimeStore` resumes the fish on return, as tank switching did before. Search, screenshot mode and the diver camera show only inside a tank; the Atlas and the menu (sources, audio, full screen) stay available on the selector.
+- The landing gate no longer preloads a tank behind it; its Dive in button waits only on the creature fetch, which the selector's species counts need.
+
+### Loading
+
+- `useSceneReady` now measures from mount: loads and errors from an earlier visit are a baseline, not a start, and a fully cached revisit that never touches the loader queue counts as started after 900 ms (`CACHED_GRACE_MS`).
+
 ## v0.33.1 — Visitor changelog caught up
 
 Status: clean `v0.33.1` (2026-10-22, branch `fix/changelog-v0.33.0`). `package.json` and `package-lock.json` move to `0.33.1`. From `main` at `v0.33.0`. Jeremy: "why chsngelogs not added".

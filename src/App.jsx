@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import TankView from './components/TankView'
 import SearchControl from './components/SearchControl'
 import EncyclopediaPage from './components/EncyclopediaPage'
 import LandingGate from './components/LandingGate'
+import EnvironmentSelector from './components/EnvironmentSelector'
+import EnvironmentLoader from './components/EnvironmentLoader'
 import SourcesModal from './components/SourcesModal'
 import ChangelogModal from './components/ChangelogModal'
-import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
+import { BIOMES, TANKS } from './data/species'
+import { creaturesForTank } from './utils/speciesLookup'
 import { useCreatures } from './hooks/useCreatures'
-import { useSceneReady } from './hooks/useSceneReady'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { pruneFishRuntime } from './components/fishRuntimeStore'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
@@ -24,12 +26,6 @@ const AUDIO_BOOT_START_DELAYS_MS = [0, 60, 180, 500, 1200, 2500]
 const AUDIO_FOREGROUND_RESUME_DELAYS_MS = [0, 120, 500, 1200]
 const AUDIO_SESSION_RECOVERY_MS = 2500
 const SCREENSHOT_EXIT_HOLD_MS = 900
-// Compact viewports always collapse the tank index behind a toggle. Desktop
-// keeps the list inline until there are more tanks than fit comfortably, then
-// adopts the same menu — the collapsed form is the long-term pattern for both,
-// not a phone-only special case.
-const TANK_MENU_QUERY = '(max-width: 768px), (pointer: coarse)'
-const TANK_INLINE_LIMIT = 6
 const SCREENSHOT_EXIT_MOVE_TOLERANCE = 12
 
 function fullscreenElement() {
@@ -60,8 +56,12 @@ function createTankVisitSeed() {
 }
 
 export default function App() {
-  const [screen] = useState('tank')
-  const [activeTankId, setActiveTankId] = useState(DEFAULT_TANK_ID)
+  // null is the environment selector; a tank id mounts that tank behind the loader.
+  const [activeTankId, setActiveTankId] = useState(null)
+  const [lastTankId, setLastTankId] = useState(null)
+  // Bumped on every entry so the loader remounts and measures this visit's load.
+  const [tankVisit, setTankVisit] = useState(0)
+  const [loaderOpen, setLoaderOpen] = useState(false)
   const [tankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
@@ -70,7 +70,6 @@ export default function App() {
   const [diverMode, setDiverMode] = useState(false)
   const [topMenuOpen, setTopMenuOpen] = useState(false)
   const [landingOpen, setLandingOpen] = useState(true)
-  const [tankMenuOpen, setTankMenuOpen] = useState(false)
   const [encyclopediaOpen, setEncyclopediaOpen] = useState(false)
   const [sourcesOpen, setSourcesOpen] = useState(false)
   const [changelogOpen, setChangelogOpen] = useState(false)
@@ -82,16 +81,13 @@ export default function App() {
   const changelogTapTimer = useRef(null)
   const screenshotExitHold = useRef(null)
   const topControlsRef = useRef(null)
-  const tankListRef = useRef(null)
-  const tankDockRef = useRef(null)
-  const compactTankMenu = useMediaQuery(TANK_MENU_QUERY)
   const mobileAtlasListFirst = useMediaQuery('(max-width: 880px) and (orientation: portrait)')
   const audioResumeTimers = useRef([])
   const audioNeedsGestureResume = useRef(false)
   const creatureData = useCreatures()
-  // The tank <Canvas> mounts behind the landing gate on the first render, so the
-  // scene is already streaming in while the gate is up. This just reports on it.
-  const { progress: loadProgress, ready: sceneReady } = useSceneReady(creatureData.loading)
+  // No tank is chosen yet on the landing gate, so it waits only on the creature fetch
+  // (the selector's species counts need it). Each tank's own load is the loader's job.
+  const landingReady = !creatureData.loading
 
   // Persisted swim state (fishRuntimeStore) is keyed by creature id and only ever grows as tanks
   // are visited. When the live data set changes, drop snapshots for creatures that no longer
@@ -135,46 +131,8 @@ export default function App() {
   }, [topMenuOpen])
 
   useEffect(() => {
-    if (screen !== 'tank' || screenshotMode) setTopMenuOpen(false)
-  }, [screen, screenshotMode])
-
-  // The tank list scrolls once it outgrows its max height, so the active entry
-  // has to be pulled into view — otherwise selecting a tank deep in the list and
-  // returning later leaves the selection invisible. 'nearest' keeps it from
-  // yanking the list when the entry is already on screen. Also runs on open,
-  // since a collapsed list mounts fresh and starts scrolled to the top.
-  useEffect(() => {
-    const activeRow = tankListRef.current?.querySelector('.tank-switch-button.is-active')
-    activeRow?.scrollIntoView({ block: 'nearest' })
-  }, [activeTankId, tankMenuOpen])
-
-  useEffect(() => {
-    if (!tankMenuOpen) return undefined
-
-    const closeOnOutside = (event) => {
-      if (tankDockRef.current?.contains(event.target)) return
-      setTankMenuOpen(false)
-    }
-
-    const closeOnEscape = (event) => {
-      if (event.key !== 'Escape') return
-      setTankMenuOpen(false)
-    }
-
-    window.addEventListener('pointerdown', closeOnOutside, { capture: true })
-    window.addEventListener('keydown', closeOnEscape)
-
-    return () => {
-      window.removeEventListener('pointerdown', closeOnOutside, { capture: true })
-      window.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [tankMenuOpen])
-
-  // Screenshot mode and the landing gate both hide the dock; leaving the menu
-  // open behind them would spring it back open on return.
-  useEffect(() => {
-    if (screenshotMode || diverMode || landingOpen) setTankMenuOpen(false)
-  }, [screenshotMode, diverMode, landingOpen])
+    if (screenshotMode) setTopMenuOpen(false)
+  }, [screenshotMode])
 
   useEffect(() => {
     if (screenshotMode || diverMode) setEncyclopediaOpen(false)
@@ -209,8 +167,6 @@ export default function App() {
   }, [audioMuted, audioStarted, startAudio])
 
   useEffect(() => {
-    if (screen !== 'tank') return undefined
-
     const clearAudioResumeTimers = () => {
       audioResumeTimers.current.forEach(timer => window.clearTimeout(timer))
       audioResumeTimers.current = []
@@ -345,7 +301,7 @@ export default function App() {
       document.removeEventListener('touchcancel', resumeOnNextGesture, { capture: true })
       document.removeEventListener('click', resumeOnNextGesture, { capture: true })
     }
-  }, [audioMuted, audioStarted, pauseAudio, screen, startAudio, stopAudio])
+  }, [audioMuted, audioStarted, pauseAudio, startAudio, stopAudio])
 
   useEffect(() => {
     if (!screenshotMode) return undefined
@@ -503,93 +459,88 @@ export default function App() {
     if (!audioMuted && !audioStarted) startAudio()
   }
 
-  const activeTank = TANKS.find(t => t.id === activeTankId) ?? TANKS[0]
+  const activeTank = TANKS.find(t => t.id === activeTankId) ?? null
   const activeBiome = BIOME_BY_ID.get(activeTank?.biome)
+  const inTank = Boolean(activeTank && activeBiome)
   // Every species in the tanks: those with creature rows, and those that live in a tank's
   // landscape (`landscapeSpecies`, the corals), which have no rows.
   const tankSpeciesCount = new Set([
     ...creatureData.creatures.map(creature => creature.species),
     ...TANKS.flatMap(tank => tank.landscapeSpecies ?? []),
   ]).size
-  const tankMenuCollapsible = compactTankMenu || TANKS.length > TANK_INLINE_LIMIT
-  const tankListVisible = !tankMenuCollapsible || tankMenuOpen
+  // Same union as above, per tank: its live species plus its landscape species.
+  const speciesCountByTank = new Map(TANKS.map(tank => [tank.id, new Set([
+    ...creaturesForTank(creatureData.creatures, tank).map(creature => creature.species),
+    ...(tank.landscapeSpecies ?? []),
+  ]).size]))
 
-  const selectTank = (tankId) => {
-    setTankMenuOpen(false)
-    if (tankId === activeTankId) return
-    triggerUiClickSound()
+  const enterTank = (tankId) => {
     setActiveTankId(tankId)
+    setLastTankId(tankId)
+    setTankVisit(visit => visit + 1)
+    setLoaderOpen(true)
   }
+
+  // Unmounting the tank is the whole exit: fishRuntimeStore keeps every fish where it
+  // was, so coming back resumes the tank rather than reseeding it.
+  const returnToSelector = () => {
+    setTopMenuOpen(false)
+    setDiverMode(false)
+    setEncyclopediaOpen(false)
+    setLoaderOpen(false)
+    setActiveTankId(null)
+  }
+
+  const closeLoader = useCallback(() => setLoaderOpen(false), [])
 
   let page = null
 
-  if (screen === 'tank' && activeBiome) {
+  if (inTank) {
     page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onExitDiverMode={exitDiverMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (
     <>
       {page}
+      {/* Mounted under the landing gate, so the dive clears straight onto it. */}
+      {!inTank && (
+        <EnvironmentSelector
+          tanks={TANKS}
+          biomesById={BIOME_BY_ID}
+          speciesCountByTank={speciesCountByTank}
+          initialTankId={lastTankId}
+          onSelect={enterTank}
+        />
+      )}
+      {inTank && loaderOpen && (
+        <EnvironmentLoader
+          key={tankVisit}
+          tank={activeTank}
+          creaturesLoading={creatureData.loading}
+          onDone={closeLoader}
+        />
+      )}
       {landingOpen && !screenshotMode && (
-        <LandingGate speciesCount={tankSpeciesCount} progress={loadProgress} ready={sceneReady} onEnter={leaveLandingGate} />
+        <LandingGate speciesCount={tankSpeciesCount} progress={landingReady ? 100 : 0} ready={landingReady} onEnter={leaveLandingGate} />
       )}
       {/* Screenshot mode is the one place the tube effect has to go: captures are
           meant to show the scene, not the interface it is framed by. */}
       {!screenshotMode && <div className="crt-screen" aria-hidden="true" />}
-      {screen === 'tank' && !screenshotMode && !diverMode && TANKS.length > 1 && (
-        <div
-          className={`tank-switcher-dock${tankMenuCollapsible ? ' is-collapsible' : ''}${tankMenuOpen ? ' is-open' : ''}`}
-          ref={tankDockRef}
-        >
-          <div className="tank-switcher" role="group" aria-label="Tank selection">
-            {tankMenuCollapsible ? (
-              <button
-                type="button"
-                className="tank-menu-toggle"
-                aria-expanded={tankMenuOpen}
-                aria-controls="tank-switcher-list"
-                onClick={() => setTankMenuOpen(current => !current)}
-              >
-                <svg className="tank-menu-icon" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M4 7h16" />
-                  <path d="M4 12h16" />
-                  <path d="M4 17h16" />
-                </svg>
-                <span className="tank-menu-current">{activeTank?.name}</span>
-              </button>
-            ) : (
-              <p className="tank-switcher-heading">Tanks</p>
-            )}
-            {/* Unmounted rather than hidden while collapsed, so the rows cannot
-                be tabbed into off-screen and the open animation gets a mount. */}
-            {tankListVisible && (
-              <div className="tank-switcher-list" id="tank-switcher-list" ref={tankListRef}>
-                {TANKS.map((tank, index) => (
-                  <button
-                    key={tank.id}
-                    type="button"
-                    className={`tank-switch-button${tank.id === activeTankId ? ' is-active' : ''}`}
-                    aria-pressed={tank.id === activeTankId}
-                    onClick={() => selectTank(tank.id)}
-                  >
-                    <span className="tank-switch-index">{String(index + 1).padStart(2, '0')}</span>
-                    <span className="tank-switch-name">{tank.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {tankListVisible && (activeTank?.description || activeTank?.tagline) && (
-              <p className="tank-switcher-description">{activeTank.description ?? activeTank.tagline}</p>
-            )}
-          </div>
-        </div>
+      {inTank && !loaderOpen && !screenshotMode && !diverMode && (
+        <button type="button" className="environment-back crt-button" onClick={returnToSelector}>
+          <svg className="environment-back-icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M15 5 8 12l7 7" />
+          </svg>
+          <span className="environment-back-label">Tanks</span>
+          <span className="environment-back-current">{activeTank.name}</span>
+        </button>
       )}
       {!screenshotMode && (
         <div className={`top-controls${topMenuOpen ? ' is-open' : ''}`} ref={topControlsRef}>
           {/* Search and the Atlas both lead to a followed fish or a full-screen page; the
               diver keeps only the menu, which is also the way back up on a phone. */}
-          {screen === 'tank' && !diverMode && <SearchControl creatures={creatureData.creatures} active />}
-          {screen === 'tank' && !diverMode && (
+          {inTank && !diverMode && <SearchControl creatures={creatureData.creatures} active />}
+          {!diverMode && (
             <button
               className="encyclopedia-toggle"
               type="button"
@@ -604,116 +555,117 @@ export default function App() {
               </svg>
             </button>
           )}
-          {screen === 'tank' && (
+          <button
+            className="top-menu-toggle"
+            type="button"
+            aria-label={topMenuOpen ? 'Close controls menu' : 'Open controls menu'}
+            aria-expanded={topMenuOpen}
+            onClick={toggleTopMenu}
+          >
+            <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M5 7h14" />
+              <path d="M5 12h14" />
+              <path d="M5 17h14" />
+            </svg>
+          </button>
+          <div className="top-controls-menu" role="menu" aria-label="Tank controls" aria-hidden={!topMenuOpen}>
             <button
-              className="top-menu-toggle"
+              className={`sources-toggle${sourcesOpen ? ' is-active' : ''}`}
               type="button"
-              aria-label={topMenuOpen ? 'Close controls menu' : 'Open controls menu'}
-              aria-expanded={topMenuOpen}
-              onClick={toggleTopMenu}
+              role="menuitem"
+              aria-label="Open sources"
+              aria-pressed={sourcesOpen}
+              onClick={openSources}
             >
               <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M5 7h14" />
-                <path d="M5 12h14" />
-                <path d="M5 17h14" />
+                <path d="M10.6 13.4a3.7 3.7 0 0 0 5.2 0l2.4-2.4a3.7 3.7 0 0 0-5.2-5.2l-1.3 1.3" />
+                <path d="M13.4 10.6a3.7 3.7 0 0 0-5.2 0l-2.4 2.4a3.7 3.7 0 0 0 5.2 5.2l1.3-1.3" />
               </svg>
             </button>
-          )}
-          {screen === 'tank' && (
-            <div className="top-controls-menu" role="menu" aria-label="Tank controls" aria-hidden={!topMenuOpen}>
+            {/* Both act on a live tank; the selector has nothing to shoot or dive into. */}
+            {inTank && (
+              <>
+                <button
+                  className="screenshot-toggle"
+                  type="button"
+                  role="menuitem"
+                  aria-label="Enter screenshot mode"
+                  onClick={enterScreenshotMode}
+                >
+                  <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 8.5h3.2l1.2-2h7.2l1.2 2H20v9.5H4V8.5Z" />
+                    <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
+                  </svg>
+                </button>
+                <button
+                  className={`diver-toggle${diverMode ? ' is-active' : ''}`}
+                  type="button"
+                  role="menuitem"
+                  aria-label={diverMode ? 'Exit diver camera' : 'Enter diver camera'}
+                  aria-pressed={diverMode}
+                  onClick={toggleDiverMode}
+                >
+                  {/* Dive mask with a snorkel. */}
+                  <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 9.6A2.1 2.1 0 0 1 5.1 7.5h10.8A2.1 2.1 0 0 1 18 9.6v2.8a2.1 2.1 0 0 1-2.1 2.1h-2.2a1.6 1.6 0 0 1-1.4-.9l-.4-.8a1 1 0 0 0-1.8 0l-.4.8a1.6 1.6 0 0 1-1.4.9H5.1A2.1 2.1 0 0 1 3 12.4V9.6Z" />
+                    <path d="M21 4v10.5a4 4 0 0 1-4 4h-2" />
+                  </svg>
+                </button>
+              </>
+            )}
+            <button
+              className={`audio-toggle${audioEnabled ? ' is-active' : ''}`}
+              type="button"
+              role="menuitem"
+              aria-label={audioEnabled ? 'Mute audio' : 'Unmute audio'}
+              aria-pressed={audioEnabled}
+              title={audioSupported ? undefined : 'Audio unavailable'}
+              disabled={!audioSupported}
+              onClick={handleAudioToggle}
+            >
+              <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
+                {!audioEnabled ? (
+                  <>
+                    <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                    <path d="m17 9 4 6m0-6-4 6" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
+                    <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6.2a8.2 8.2 0 0 1 0 11.6" />
+                  </>
+                )}
+              </svg>
+            </button>
+            {fullscreenSupported && (
               <button
-                className={`sources-toggle${sourcesOpen ? ' is-active' : ''}`}
+                className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
                 type="button"
                 role="menuitem"
-                aria-label="Open sources"
-                aria-pressed={sourcesOpen}
-                onClick={openSources}
+                aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+                aria-pressed={isFullscreen}
+                onClick={toggleFullscreen}
               >
                 <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M10.6 13.4a3.7 3.7 0 0 0 5.2 0l2.4-2.4a3.7 3.7 0 0 0-5.2-5.2l-1.3 1.3" />
-                  <path d="M13.4 10.6a3.7 3.7 0 0 0-5.2 0l-2.4 2.4a3.7 3.7 0 0 0 5.2 5.2l1.3-1.3" />
-                </svg>
-              </button>
-              <button
-                className="screenshot-toggle"
-                type="button"
-                role="menuitem"
-                aria-label="Enter screenshot mode"
-                onClick={enterScreenshotMode}
-              >
-                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M4 8.5h3.2l1.2-2h7.2l1.2 2H20v9.5H4V8.5Z" />
-                  <path d="M12 11a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
-                </svg>
-              </button>
-              <button
-                className={`diver-toggle${diverMode ? ' is-active' : ''}`}
-                type="button"
-                role="menuitem"
-                aria-label={diverMode ? 'Exit diver camera' : 'Enter diver camera'}
-                aria-pressed={diverMode}
-                onClick={toggleDiverMode}
-              >
-                {/* Dive mask with a snorkel. */}
-                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M3 9.6A2.1 2.1 0 0 1 5.1 7.5h10.8A2.1 2.1 0 0 1 18 9.6v2.8a2.1 2.1 0 0 1-2.1 2.1h-2.2a1.6 1.6 0 0 1-1.4-.9l-.4-.8a1 1 0 0 0-1.8 0l-.4.8a1.6 1.6 0 0 1-1.4.9H5.1A2.1 2.1 0 0 1 3 12.4V9.6Z" />
-                  <path d="M21 4v10.5a4 4 0 0 1-4 4h-2" />
-                </svg>
-              </button>
-              <button
-                className={`audio-toggle${audioEnabled ? ' is-active' : ''}`}
-                type="button"
-                role="menuitem"
-                aria-label={audioEnabled ? 'Mute audio' : 'Unmute audio'}
-                aria-pressed={audioEnabled}
-                title={audioSupported ? undefined : 'Audio unavailable'}
-                disabled={!audioSupported}
-                onClick={handleAudioToggle}
-              >
-                <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                  {!audioEnabled ? (
+                  {isFullscreen ? (
                     <>
-                      <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
-                      <path d="m17 9 4 6m0-6-4 6" />
+                      <path d="M9 4v5H4" />
+                      <path d="m4 9 5-5" />
+                      <path d="M15 20v-5h5" />
+                      <path d="m20 15-5 5" />
                     </>
                   ) : (
                     <>
-                      <path d="M4 10v4h3.5L13 19V5L7.5 10H4Z" />
-                      <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6.2a8.2 8.2 0 0 1 0 11.6" />
+                      <path d="M4 9V4h5" />
+                      <path d="m4 4 6 6" />
+                      <path d="M20 15v5h-5" />
+                      <path d="m20 20-6-6" />
                     </>
                   )}
                 </svg>
               </button>
-              {fullscreenSupported && (
-                <button
-                  className={`fullscreen-toggle${isFullscreen ? ' is-active' : ''}`}
-                  type="button"
-                  role="menuitem"
-                  aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-                  aria-pressed={isFullscreen}
-                  onClick={toggleFullscreen}
-                >
-                  <svg className="top-control-icon" aria-hidden="true" viewBox="0 0 24 24">
-                    {isFullscreen ? (
-                      <>
-                        <path d="M9 4v5H4" />
-                        <path d="m4 9 5-5" />
-                        <path d="M15 20v-5h5" />
-                        <path d="m20 15-5 5" />
-                      </>
-                    ) : (
-                      <>
-                        <path d="M4 9V4h5" />
-                        <path d="m4 4 6 6" />
-                        <path d="M20 15v5h-5" />
-                        <path d="m20 20-6-6" />
-                      </>
-                    )}
-                  </svg>
-                </button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
       {screenshotHelpVisible && (

@@ -3,6 +3,7 @@ import { createEnvironmentLoader } from '../src/loading/environmentLoader.js'
 import { createEnvironmentManifests, ENVIRONMENT_MANIFESTS } from '../src/loading/environmentManifest.js'
 import { SPECIES, TANKS } from '../src/data/species.js'
 import { compileEnvironmentScene } from '../src/loading/compileEnvironmentScene.js'
+import { runSlicedPreparation } from '../src/loading/runSlicedPreparation.js'
 
 const asset = name => ({ key: `gltf:${name}`, url: name, kind: 'gltf', estimatedBytes: 10 })
 const flush = async () => { for (let i = 0; i < 15; i++) await Promise.resolve() }
@@ -298,6 +299,65 @@ for (const tank of TANKS) for (const id of tank.species) assert.ok(SPECIES.some(
   renderer.compile = () => { throw new Error('compile failure') }
   assert.throws(() => compileEnvironmentScene(renderer, scene, camera), /compile failure/)
   assert.equal(hidden.visible, false, 'Visibility restored even when shader preparation fails')
+}
+// A failed speculative source must not poison a later foreground Atlas consumer.
+for (const consumer of ['read', 'lease']) {
+  const f = fixture()
+  const p = f.loader.select('a'); await flush(); await f.resolve('shared'); await f.resolve('a'); await p; f.loader.markRendered('a')
+  f.loader.prefetch('b'); f.loader.setBackgroundEnabled(true); await f.runIdle()
+  f.pending.get('gltf:b').reject(new Error('transient speculative failure')); await flush()
+  let release, suspended
+  if (consumer === 'lease') release = f.loader.retain([f.b])
+  try { f.loader.read(f.b) } catch (value) { suspended = value }
+  assert.ok(suspended instanceof Promise, `${consumer} must retry a failed speculative source, not rethrow its cached error`)
+  await flush()
+  assert.equal(f.started.filter(key => key === 'gltf:b').length, 2)
+  // Persistent foreground failures stay observable instead of an infinite Suspense retry loop.
+  const foregroundFailure = new Error('foreground failure')
+  f.pending.get('gltf:b').reject(foregroundFailure); await suspended; await flush()
+  assert.throws(() => f.loader.read(f.b), error => error === foregroundFailure)
+  release?.()
+  const reopened = f.loader.retain([f.b]); await flush(); await f.resolve('b')
+  assert.equal(f.loader.read(f.b), 'b', 'A fresh outer viewer lease can retry on reopening')
+  reopened(); f.loader.dispose()
+}
+// Setup and iteration failures both release preparation barriers and enter rollback.
+for (const stage of ['setup', 'iteration']) {
+  const f = fixture()
+  const p = f.loader.select('a'); await flush(); await f.resolve('shared'); await f.resolve('a'); await p; f.loader.markRendered('a')
+  const target = f.loader.select('c'); await flush(); await f.resolve('c'); await target; f.loader.beginActivation('c')
+  const complete = f.loader.beginPreparation('c', 'placement')
+  const failure = new Error(`${stage} failed`)
+  let reported = 0
+  const stop = runSlicedPreparation(() => {
+    if (stage === 'setup') throw failure
+    return { next() { throw failure }, return() {} }
+  }, { sliceMs: 4, now: () => 0, onReady() { assert.fail('Failed placement must not publish geometry') },
+    onError(error) { reported++; assert.equal(error, failure); complete(); f.loader.failActivation('c', error) } })
+  await flush()
+  assert.equal(reported, 1)
+  assert.equal(f.loader.getSnapshot().phase, 'error')
+  assert.equal(f.loader.getSnapshot().activeId, 'a')
+  assert.equal(f.loader.getSnapshot().environments.c.sceneTasks, 0)
+  stop(); stop(); f.loader.dispose()
+}
+{
+  const jobs = [], cancelled = [], results = []
+  let time = 0, returned = 0
+  const stop = runSlicedPreparation(() => ({ next: () => ({ done: false }), return() { returned++ } }), {
+    sliceMs: 2, now: () => time++, schedule(work) { jobs.push(work); return jobs.length }, cancel: id => cancelled.push(id),
+    onReady: value => results.push(value), onError: error => { throw error },
+  })
+  assert.equal(jobs.length, 1)
+  stop(); stop(); jobs[0]()
+  assert.equal(returned, 1, 'Generator cleanup is idempotent')
+  assert.equal(jobs.length, 1, 'A late cancelled slice must not reschedule or publish')
+  assert.deepEqual(cancelled, [1]); assert.deepEqual(results, [])
+  let starts = 0, steps = 0
+  const stopReady = runSlicedPreparation(() => { starts++; return { next() { return ++steps === 2 ? { done: true, value: 'corals' } : { done: false } } } }, {
+    sliceMs: 4, now: () => 0, onReady: value => results.push(value), onError: error => { throw error },
+  })
+  assert.equal(starts, 1); assert.deepEqual(results, ['corals']); stopReady()
 }
 // Many future environments retain only active/recent sources, not the entire visited catalog.
 {

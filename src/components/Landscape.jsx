@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useEnvironmentGLTF as useGLTF, useEnvironmentTextures as useTexture } from '../hooks/useEnvironmentLoading'
 import { environmentLoader } from '../loading/environmentRuntime'
+import { runSlicedPreparation } from '../loading/runSlicedPreparation.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { MeshBVH } from 'three-mesh-bvh'
 import { landscapeForTank, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
@@ -377,27 +378,18 @@ function useSlicedPlacement(cache, landscape, start, inputs, environmentId) {
     }
     const complete = environmentLoader.beginPreparation(environmentId, 'landscape-placement')
     finish.current = complete
-    const steps = start()
-    let timer = null
-    const step = () => {
-      try {
-        const until = performance.now() + PLACEMENT_SLICE_MS
-        while (performance.now() < until) {
-          const { done, value } = steps.next()
-          if (done) {
-            cache.set(landscape, value)
-            setPlaced(value)
-            return
-          }
-        }
-        timer = setTimeout(step, 0)
-      } catch (error) {
+    const stop = runSlicedPreparation(start, {
+      sliceMs: PLACEMENT_SLICE_MS,
+      onReady(value) {
+        cache.set(landscape, value)
+        setPlaced(value)
+      },
+      onError(error) {
         complete()
         environmentLoader.failActivation(environmentId, error)
-      }
-    }
-    step()
-    return () => { clearTimeout(timer); steps.return?.(); complete(); finish.current = null }
+      },
+    })
+    return () => { stop(); complete(); if (finish.current === complete) finish.current = null }
   // start() is a fresh closure every render; `inputs` are what it reads.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cache, landscape, environmentId, ...inputs])

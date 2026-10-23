@@ -10,12 +10,13 @@ Versioning convention notes:
 
 ## v0.34.2 — Budgeted environment-loading infrastructure (unreleased)
 
-Status: review build `v0.34.2-dev_4`, branch `feat/budgeted-environment-loader`, #152. Not a clean release; no merge/promotion approval. `v0.34.1` remains reserved for the separate reef-motion PR.
+Status: review build `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #152. Not a clean release; no merge/promotion approval. `v0.34.1` remains reserved for the separate reef-motion PR.
 
 ### Loading infrastructure
 
 - Data-driven environment manifests, shared tank/Atlas source ownership, selected-first queue and latest-selection-wins cancellation. Current tank remains mounted during the next destination's source fetch/decode; only one tank Canvas/simulation runs.
 - Bounded idle/pressure-aware speculation, evictable decoded-source cache and mounted-consumer leases. Active/selected assets may exceed targets rather than breaking a displayed scene; accounting is not GPU/process memory.
+- Foreground consumers recover from failed background prefetches; synchronous placement setup failures release readiness barriers and use activation rollback, just like iteration failures.
 - Documented state/navigation hooks for Jeremy's future loading UI. **No new loading UI**, DB writes, fish-count/motion/quality/resolution changes, or claimed physical-phone speedup. Mount-time geometry and GPU work remain distinct from source readiness; see `docs/environment-loading.md`.
 
 ## v0.33.1 — Visitor changelog caught up

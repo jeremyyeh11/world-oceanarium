@@ -95,9 +95,15 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
     if (environmentKeys(prefetchId).has(entry.asset.key)) return 1
     return 0
   }
-  function ensure(asset, foreground = false) {
+  function ensure(asset, foreground = false, retryError = false) {
     if (closed) throw new Error('Environment loader disposed')
     let entry = entries.get(asset.key)
+    // Retry a speculative failure when a foreground consumer first needs it. Reads
+    // do not retry persistent foreground errors forever; a fresh viewer lease can.
+    if (entry?.state === 'error' && (retryError || (foreground && entry.background))) {
+      remove(entry)
+      entry = null
+    }
     // Every entry point (selection, Atlas lease, Suspense read, repeated intent hint)
     // must bind to the live generation, never a decode already cancelled by another request.
     if (entry?.controller?.signal.aborted || entry?.state === 'cancelled') {
@@ -332,7 +338,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
     },
     // Mounted consumers (including Atlas) lease shared sources. Never dispose a displayed asset.
     retain(assets) {
-      const retained = assets.map(asset => ensure(asset))
+      const retained = assets.map(asset => ensure(asset, false, true))
       for (const entry of retained) { entry.pins += 1; entry.promoteDecode?.() }
       pump()
       let released = false

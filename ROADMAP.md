@@ -15,7 +15,7 @@ Status labels:
 
 ### Budgeted environment-loading infrastructure
 
-Status: `Current in development`, `v0.34.2-dev_4`, branch `feat/budgeted-environment-loader`, #152. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.
+Status: `Current in development`, `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #152. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.
 
 - [x] Manifest-driven shared-source loading, selected-first queue, latest-wins cancellation and source leases shared with Atlas.
 - [x] Idle/pressure-aware speculative admission, byte/count accounting and retirement of unneeded sources/derived landscape caches.

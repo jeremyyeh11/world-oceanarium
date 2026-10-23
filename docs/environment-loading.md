@@ -1,6 +1,6 @@
 # Budgeted environment loading
 
-Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_4` (not a clean release).
+Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_5` (not a clean release).
 
 ## Intention and scope
 
@@ -19,6 +19,7 @@ This is loading infrastructure, not a claim that the reported phone first-entry 
 - `src/hooks/useEnvironmentLoading.js`: navigation, immutable external-store snapshot, source hooks and mounted-consumer leases. Tanks and Atlas must share these hooks instead of creating independent global Drei preload caches.
 - `TankView.WarmScene` / `compileEnvironmentScene.js`: safe synchronous shader preparation on the existing renderer, then first-submitted-frame acknowledgement. Never create a second Canvas/tank for prefetch.
 - `Landscape.jsx`: derived merged-geometry/placement caches retire separately from GLTF sources when an environment drops out of the active/recent pair.
+- `src/loading/runSlicedPreparation.js`: guards synchronous generator setup as well as sliced iteration, routes failures through rollback, and cancels pending slices on unmount.
 
 ## Lifecycle and UI contract
 
@@ -57,7 +58,7 @@ Defaults live in `createEnvironmentLoader` and can be overridden at construction
 - Accounted decoded-source cache target: **192 MiB**, at most **80** resident/in-flight source assets. Per-visit speculative estimated admission: **64 MiB**. Default per-asset estimate: **16 MiB**, deliberately conservative and overridable on a manifest descriptor. Speculation may stop after a partial manifest; there is no promise to fully warm an arbitrarily large environment.
 - Active, selected and mounted-consumer sources are pinned. **An oversized active environment may exceed the target**; the loader reports this instead of breaking a displayed scene. These limits do not make an oversized scene fit a low-memory phone.
 - Prefer one recent environment's sources; older/unneeded unleased sources retire LRU-first, and even recent sources may be evicted under the byte/count target. HTTP browser cache remains browser-managed; this controller bounds its own decoded cache, not browser HTTP storage.
-- Source hooks include a brief read-to-commit grace window for suspended React renders. Mounted consumers take real leases. Atlas can pin a shared fish even after its old tank retires; closing Atlas releases that lease.
+- Source hooks include a brief read-to-commit grace window for suspended React renders. Mounted consumers take real leases. Atlas can pin a shared fish even after its old tank retires; closing Atlas releases that lease. A foreground read or lease retries a cached speculative failure; a fresh viewer lease also retries a previous foreground failure. Repeated reads of a persistent foreground failure keep throwing that error rather than creating an infinite retry loop.
 - A new selection cancels obsolete speculative/queued work, promotes shared pending work, and discards/disposes obsolete results that finish after cancellation. Repeated prefetch hints are idempotent; hints preserve shared sources still needed by the new destination. Foreground Atlas leases/reads also immediately promote a paused decode. Admission is rechecked when idle work actually starts, not only when queued. Fetch is abortable; GLTF/image decode is not assumed abortable. Already-active resources are never evicted just to satisfy a speculative budget.
 
 Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It excludes cloned/per-fish geometry/materials, derived terrain/BVHs, renderer render targets/programs, common HDR, transient response buffers/decoder scratch, browser caches and driver allocations. Resource disposal is a lifecycle operation, not proof of immediate memory return. Derived landscape caches have a separate active/recent retention policy; a superseded target that unmounts before acknowledgement also retires after its final mount lease ends. Lightweight fish snapshots remain in the existing runtime store.

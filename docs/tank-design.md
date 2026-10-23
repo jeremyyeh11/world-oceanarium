@@ -342,9 +342,10 @@ checks every piece. The landing has no scenery (Jeremy, dev_13).
   Open water has no seabed: The Open Sea's descent zigzags from a mahi-mahi pair near
   the surface, to a sardinella school, to the whale shark deeper down.
 - **The landing dive** (after Dive in, before any reserve is chosen) has its own
-  montage of every reserve, `GENERAL_DESCENT` in `src/data/descentScenery.js`: open-water
-  animals up top, reef fish lower down, a coral garden at the floor. Curated by hand;
-  its species must be on some reserve's roster.
+  montage of every reserve, `GENERAL_DESCENT` in `src/data/descentScenery.js`: kept
+  sparse (a few moments with open water between them, not a catalogue): the sunfish, a
+  few sardinella, the whale shark, the bannerfish, two corals at the floor. Curated by
+  hand; its species must be on some reserve's roster.
 - **Data.** A `descent` block on the tank (The Reefs' is in species.js):
 
   ```js

@@ -35,9 +35,13 @@ shelter search that finds no nook falls back to a hover.
 
 1. `travel`: the unified pipeline steers to the site's entry point, a level line-up
    `max(1.5 WU, 2.2 BL)` out from the rest point, slowing to 60% of cruise over the last three
-   body lengths. Within 1.6 entry distances of the rest point, once a ray shows the way in is
-   clear, it settles. It gives up after the travel timeout, or if it fails to close half a body
-   length on the entry in 3 s.
+   body lengths. Whenever the entry is more than about 105° behind it on the way (mostly as it
+   sets off), the fish comes round on its own turning circle at its full turn rate (`yawToward`,
+   the true arc that escapes and wall recoveries use), not the ordinary lerp turn. Within 1.6 entry distances of the rest
+   point, once a ray shows the way in is clear, it settles. It gives up if it fails to close half
+   a body length on the entry in 3 s, counted from when it has had time to turn toward the entry
+   (its angle off the entry over its turn rate at cruise), or when the travel time runs out:
+   twice the straight swim at cruise plus 8 s, within 10 to 120 s, plus that turn.
 2. `settle`: a Hermite curve from the fish's pose to the rest point, arriving facing the face.
 3. `hold` (hover, shelter) or `peck`.
 4. `leave`: turn on the spot toward a direction out from the face and 25° to 70° to one side
@@ -108,6 +112,43 @@ the fish beyond its own swim step, in the 2.5 s after it left a reef pose (or it
   angelfish, 9 bannerfish, 17 triggerfish (10 to 14 without the changes), 0.5 groupers.
 - On `v0.31.5` (with #144's probe), 11.9 minutes: 409 hand-backs and 430 cleaner host changes,
   none over 0.05 WU.
+
+Trips given up on the way (the travel turn and timing, `v0.34.1-dev_1`). The cause was found on
+`v0.30.1` code (2026-10-19, desktop, The Reefs): a third of trips set off with the entry 120° or
+more behind the fish, and the lerp turn barely brought them round (2° to 15° in the first 3 s
+from 160° to 180° off), so the fish swam on away from the rock and the progress check gave up
+about half of them. Young angelfish moving home 28 to 54 WU away needed 50 to 100 s against a
+45 s cap. On that code the changes took trips settled from 62% to 84%.
+
+Measured again after rebasing onto `v0.34.0` (2026-10-23), which brought #138's pinches, #144's
+rock steering, the raccoon butterflyfish and the humphead wrasse. Desktop, The Reefs,
+`creatures_dev`: 24 emperor angelfish, 12 bannerfish, 3 clown triggerfish, 3 groupers, 3 humphead
+wrasse, 20 raccoon butterflyfish, 18 pilot fish, the sunfish. The changes were switched off and on
+in alternating 3-minute blocks of one session (off, on, on, off, off, on, on, off) after a dropped
+2.5-minute warm-up, 12 minutes each way; patrols left out unless stated:
+
+- Off: 64% of 960 trips settled (rock 68%, coral 59%). 24% were given up on the way: 20% at the
+  progress check, 3% timed out, 1% blocked at the entry, 1% at a pinch. A third set off with the
+  entry 120° or more behind; 43% of those were given up at the check and 42% settled. Median
+  start angle: 141° for trips given up at the check, 85° for trips that settled.
+- On: 79% of 834 settled (rock 82%, coral 77%). 9% were given up on the way: 5% at the check, 2%
+  at a pinch, 1% blocked, none timed out. Of the trips that set off 120° or more off the entry,
+  9% were given up at the check and 71% settled.
+- Either way, 12% were called off by a ride (a cleaner going to the sunfish, or a pair follower
+  back to its mate). No startles were seen.
+- Patrols reached their face 59% of 347 times off, 77% of 266 on. Settled by species, off → on:
+  emperor angelfish 67% → 83%, bannerfish 54% → 77%, raccoon butterflyfish 57% → 66%, clown
+  triggerfish 74% → 96%, groupers 67% → 91%, humphead wrasse 69% → 96% (about 65 trips each way
+  from 3 fish).
+- Heading flips (over 2° a frame each way) in a trip, patrols included: 10 or more in 25 of 1307
+  trips off (1.9%) and 36 of 1100 on (3.3%); 30 or more in 2 and 8. 15 of the 36 came in one
+  on-block; without it, 25 off and 21 on. One trip reached #144's stuck level: a clown
+  triggerfish's patrol with 108 flips in 6 s, ended by the pinch give-up (on).
+- Pops (a moving fish's frame step over four times the last and 0.02 WU more; 3 or more fish
+  within 0.1 s dropped as hitches; counted from the second block, 9 minutes off, 12 on): none off,
+  42 on, all in the same one block and all from fish not on a reef trip but one: six raccoon
+  butterflyfish, a humphead wrasse (0.52 WU) and a grouper. The changes act only on reef trips;
+  the cause was not traced.
 
 ## Sites
 
@@ -443,8 +484,17 @@ Since `v0.31.5` (built as `v0.31.4-dev_1` on `fix/reef-rock-shiver`) the probe f
 - The push off a rock the fish is brushing comes on over the first tenth of the padding
   (`TOUCH_ONSET`) instead of at half strength at once.
 
-Heading straight at a rock's middle, the side to turn to is still a choice (the side the
-desired heading leans to).
+Heading straight at a rock's middle, the side to turn to is a choice: the side the desired
+heading leans to. Since `v0.34.1-dev_3` a fish keeps to the side it is already going round
+(`steerAroundRocks`' `side`, read back with `rockBendSide`): within 45° of head-on to a face
+(`HEAD_ON_SIDE_HOLD`), the bend goes its way until the fish has felt no rock ahead for 0.5 s
+(`ROCK_SIDE_MEMORY_SECONDS`, Fish.jsx). Nosing into the crease of a V of two rocks, its
+destination straight past it, a fish had the choice made again every frame: the heading's own
+2° to 3° step tipped it, and the bend swung about 50° from one side to the other each frame (a
+per-frame trace at The Reefs, 2026-10-23). In 84 test runs at a V and at single rocks
+(`tests/rockObstacles.test.mjs` keeps six): 3743 heading flips before, 43 with the hold at 45°
+(169 at 60°, where fish took longer ways round; at 30° the two walls of a V, each about 34° off,
+still sent the fish their own ways in turn).
 
 Measured on desktop (2026-10-20, The Reefs, `creatures_dev`: 24 emperor angelfish, 12
 bannerfish, 3 clown triggerfish, 3 groupers, 18 pilot fish), the change switched off and on in
@@ -456,6 +506,15 @@ alternating 3-minute blocks of one session after a dropped warm-up, 15 minutes e
 - Trips to a rock settled as often: 67.9% of 744 off, 67.6% of 753 on (patrols left out).
 - Pops (a moving fish's frame step over four times the last, frame hitches left out): 24 off,
   23 on; over 0.1 WU 4 and 5, all fish just back from a reef pose (see Known limits).
+
+The side hold, measured on desktop (2026-10-23, The Reefs, the same population as the reef-trip
+measurements in Stages, with the `v0.34.1` travel changes on), switched off and on in alternating
+2.5-minute blocks after a dropped warm-up, 10 minutes each way. Heading flips per fish-minute:
+on reef trips 8.2 off, 6.8 on; on open-water swims 3.2 and 2.6; cleaners riding the sunfish 9.3
+and 6.6. Trips settled 79% either way. Episodes of 30 or more flips in a burst: 4 and 4, and none
+reached 100 in 10 s. What is left: a fish with its destination far behind it (140° to 155°) and
+a rock alongside, whose bend along the face nearly cancels the pull toward the destination, so
+the sum swings from side to side (seen on reef trips and on cleaners riding the sunfish).
 
 ## Tuning
 
@@ -469,9 +528,10 @@ import of an edited module loads a second, empty copy).
 
 ## Known limits
 
-- Heading straight at a rock's middle, the side a fish turns to is still a choice (see Steering
-  past rocks). Shivering on the move past a rock, the last kind of stuck episode in the pinch
-  measurements, is gone since `v0.31.5`.
+- Shivering on the move past a rock, the last kind of stuck episode in the pinch measurements, is
+  gone since `v0.31.5`, and shivering in the crease between two rocks since `v0.34.1-dev_3` (see
+  Steering past rocks). A fish with its destination far behind and a rock alongside still
+  flicks now and then (4 bursts of 30 or more flips in 10 minutes).
 - A fish a pose leaves outside its volume or under the sand pad stays there for a few frames while
   it eases back in (see Back on the pipeline); the poses themselves are not yet kept inside.
 - A grouper settling in moves up to 0.13 WU a frame along the settle curve (an arrival at speed,
@@ -480,6 +540,10 @@ import of an edited module loads a second, empty copy).
 - The landscape has no caves. Shelters are concave spots between and under ledge tiers, which
   small fish find often and fish over about 1.5 BL rarely (a 2 BL fish found one in 0 of 40
   searches).
+- Half of all site searches come at a rock from the camera's side (`viewBias`), wherever the fish
+  is, so some sites are round the far side of a rock from it, and the fish steers round. 5% of
+  trips are still given up at the progress check (`v0.34.1-dev_1`, 2026-10-23). On `v0.30.1` code
+  most of those were steering round to the far side; not checked again since #144.
 - The resting view (dev_10, Jeremy's diver-camera pose at x 12, z 25.2, turned 9.5° left) sees
   the foreground rocks, the mid-ground outcrop (seeds 81 and 82 in landscapes.js) and the canyon.
   Measured after the fish settle (in frame, not behind rock, within 60 WU): desktop sees 38% of

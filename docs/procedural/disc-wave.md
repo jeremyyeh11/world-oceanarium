@@ -10,13 +10,14 @@ Read [README.md](README.md) first for the rules shared by every type.
 > Starting convention only. No runtime code exists. Expect the first asset to change
 > it.
 
-## First animal: Munk's devil ray (proposed 2026-10-23, needs Jeremy's OK)
+## First animal: Munk's devil ray (approved by Jeremy 2026-10-23)
 
 The first asset is mobuliform, not rajiform: *Mobula munkiana* (`mobula-munkiana`),
 0.85–1.1 m across in the tank (3.4–4.4 WU), schooling in the hundreds. A devil ray flies:
 the wings beat up and down with under one wavelength across the chord, and the tip
 trails the root, so the wing curls rather than ripples. Proposed changes to this doc for
-that sub-mode, to settle before any shader work:
+that sub-mode (Jeremy: "Approved: mobuliform disc-wave with wings beating together,
+spanLag and nose -Z"):
 
 - **Stay in disc-wave, not foil-flap.** The wing is continuous with the body (no shoulder
   joint to pivot on), and the trailing tip is a phase lag along the span, which this

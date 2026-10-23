@@ -15,13 +15,14 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: `Current in development` (branch `feat/mobula-munkiana`, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). Species data is in, hidden from the Atlas, with no model and no tank yet. Waiting on Jeremy: the motion proposal, then his GLB.
+Status: `Current in development` (branch `feat/mobula-munkiana`, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). Species data is in, hidden from the Atlas, with no model and no tank yet. Motion approved; waiting on Jeremy's GLB.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
 - [x] Size: 5.2 WU at 130 cm across; `sizeRange` 0.65–0.85 keeps the tank's rays at 0.85–1.1 m (3.4–4.4 WU).
 - [x] Motion proposal: mobuliform `disc-wave` (wings beat together, under one wavelength across the chord, tips lag the root via a new `spanLag`, downstroke faster than the upstroke), with the Blender contract, in `docs/procedural/disc-wave.md`. Not foil-flap: the wing has no shoulder joint.
-- [ ] Jeremy: OK the motion proposal before any shader work (AGENTS.md: stop and ask before a new motion architecture).
+- [x] Jeremy approved the motion proposal (2026-10-23).
+- [ ] Shader: `disc-wave-vertex` in `src/components/Fish.jsx`, mobuliform config, verifier entry, README index status.
 - [ ] Jeremy: model to the contract in `docs/procedural/disc-wave.md` (one mesh, nose −Z, 1 raw = 1 m across the disc, grid quads in the wings, `COLOR_1` R/G/B masks).
 - [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.

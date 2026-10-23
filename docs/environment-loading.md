@@ -1,6 +1,6 @@
 # Budgeted environment loading
 
-Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_3` (not a clean release).
+Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_4` (not a clean release).
 
 ## Intention and scope
 
@@ -60,7 +60,7 @@ Defaults live in `createEnvironmentLoader` and can be overridden at construction
 - Source hooks include a brief read-to-commit grace window for suspended React renders. Mounted consumers take real leases. Atlas can pin a shared fish even after its old tank retires; closing Atlas releases that lease.
 - A new selection cancels obsolete speculative/queued work, promotes shared pending work, and discards/disposes obsolete results that finish after cancellation. Repeated prefetch hints are idempotent; hints preserve shared sources still needed by the new destination. Foreground Atlas leases/reads also immediately promote a paused decode. Admission is rechecked when idle work actually starts, not only when queued. Fetch is abortable; GLTF/image decode is not assumed abortable. Already-active resources are never evicted just to satisfy a speculative budget.
 
-Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It excludes cloned/per-fish geometry/materials, derived terrain/BVHs, renderer render targets/programs, common HDR, transient response buffers/decoder scratch, browser caches and driver allocations. Resource disposal is a lifecycle operation, not proof of immediate memory return. Derived landscape caches have a separate active/recent retention policy; lightweight fish snapshots remain in the existing runtime store.
+Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It excludes cloned/per-fish geometry/materials, derived terrain/BVHs, renderer render targets/programs, common HDR, transient response buffers/decoder scratch, browser caches and driver allocations. Resource disposal is a lifecycle operation, not proof of immediate memory return. Derived landscape caches have a separate active/recent retention policy; a superseded target that unmounts before acknowledgement also retires after its final mount lease ends. Lightweight fish snapshots remain in the existing runtime store.
 
 ## Adding an environment
 

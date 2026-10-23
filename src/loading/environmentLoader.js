@@ -300,7 +300,12 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
         released = true
         const count = (mountedScenes.get(id) ?? 1) - 1
         if (count) mountedScenes.set(id, count)
-        else mountedScenes.delete(id)
+        else {
+          mountedScenes.delete(id)
+          // A superseded target may unmount before ever becoming active/recent.
+          // Its derived caches otherwise have no future markRendered retirement path.
+          if (id !== activeId && id !== requestedId && id !== recentId) retire(id)
+        }
         trim()
       }
     },

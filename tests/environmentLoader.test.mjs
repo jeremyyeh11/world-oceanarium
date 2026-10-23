@@ -270,6 +270,23 @@ for (const tank of TANKS) for (const id of tank.species) assert.ok(SPECIES.some(
   f.loader.dispose()
 }
 {
+  const f = fixture()
+  const p = f.loader.select('a'); await flush(); await f.resolve('shared'); await f.resolve('a'); await p; f.loader.markRendered('a')
+  const target = f.loader.select('c'); await flush(); await f.resolve('c'); await target; f.loader.beginActivation('c')
+  const retired = []
+  f.loader.onRetire(id => retired.push(id))
+  const firstUnmount = f.loader.retainScene('c'), finalUnmount = f.loader.retainScene('c')
+  const activeUnmount = f.loader.retainScene('a')
+  const next = f.loader.select('d'); await flush()
+  activeUnmount(); firstUnmount()
+  assert.deepEqual(retired, [], 'Active scene and still-mounted superseded target must stay protected')
+  finalUnmount(); finalUnmount()
+  assert.deepEqual(retired, ['c'], 'Unmounted superseded target retires even if never active/recent')
+  await f.resolve('d'); await next; f.loader.markRendered('d')
+  assert.deepEqual(retired, ['c'])
+  f.loader.dispose()
+}
+{
   const hidden = { visible: false }, visible = { visible: true }
   const scene = { traverse: fn => [hidden, visible].forEach(fn) }
   const camera = {}

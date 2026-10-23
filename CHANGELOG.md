@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.34.1 — Reef fish reach their rocks
 
-Status: in development as `v0.34.1-dev_3` (branch `fix/reef-trip-abandons`, rebased onto `main` at `v0.34.0` on 2026-10-23; first built as `v0.30.2-dev_1`). The ROADMAP item from `v0.30.1-dev_1`: about 40% of reef fish trips to a site were given up on the way, on rock and coral alike.
+Status: accepted and promoted as clean `v0.34.1` from `v0.34.1-dev_3` on Jeremy's go-ahead (2026-10-23, branch `fix/reef-trip-abandons`, #137: "ok good. lets ship it. merge clean version to main"). `package.json` and `package-lock.json` move to `0.34.1`. From `main` at `v0.34.0` (rebased 2026-10-23; first built as `v0.30.2-dev_1`). The ROADMAP item from `v0.30.1-dev_1`: about 40% of reef fish trips to a site were given up on the way, on rock and coral alike.
 
 ### Behaviour
 

@@ -427,7 +427,9 @@ function formatReferenceLength(meters) {
  */
 function AtlasScaleBar({ species }) {
   const speciesMeters = speciesLengthMeters(species)
-  const speciesLabel = species?.atlasDetails?.maxLengthLabel ?? 'Specimen'
+  const measurementLabel = species?.atlasDetails?.maxLengthLabel
+  const usesDiscWidth = measurementLabel === 'Disc width'
+  const speciesLabel = usesDiscWidth ? 'Specimen' : measurementLabel ?? 'Specimen'
   if (!Number.isFinite(speciesMeters) || speciesMeters <= 0) return null
 
   const longest = Math.max(HUMAN_SCALE_METERS, speciesMeters)
@@ -450,7 +452,7 @@ function AtlasScaleBar({ species }) {
         <span className="atlas-scale-track">
           <span className="atlas-scale-fill is-specimen" style={{ width: widthFor(speciesMeters) }} />
         </span>
-        <b className="atlas-scale-value">{formatStageLength(speciesMeters)}</b>
+        <b className="atlas-scale-value">{formatStageLength(speciesMeters)}{usesDiscWidth ? ' (disc width)' : ''}</b>
       </div>
     </div>
   )

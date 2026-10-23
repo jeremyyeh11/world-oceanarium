@@ -71,7 +71,7 @@ export const SOURCES = [
 export const STUDY_CREDITS = [
   {
     id: 'serrano-lopez-2021-devil-rays',
-    subject: "Munk's Devil Ray mean disc width by sex, maturity size and litter size",
+    subject: "Munk's Devil Ray maturity size and litter size",
     authors: 'Serrano-López, Soto-López, Ochoa-Báez, O’Sullivan & Galván-Magaña',
     year: 2021,
     title: 'Morphometry and histology to assess the maturity stage of three endangered devil ray species (Elasmobranchii: Mobulidae) from the Gulf of California',
@@ -89,7 +89,7 @@ export const STUDY_CREDITS = [
   },
   {
     id: 'manta-trust-munks-devil-ray',
-    subject: "Munk's Devil Ray lifespan remains unknown",
+    subject: "Munk's Devil Ray maximum disc width and unknown lifespan",
     authors: 'Manta Trust',
     title: 'Munk’s Pygmy Devil Ray',
     venue: 'Species guide',

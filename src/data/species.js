@@ -3326,11 +3326,10 @@ export const SPECIES = [
         reproduction: 'Bears one live pup, estimated at 35 to 42 cm across at birth. Gestation is estimated at 10 to 12 months by comparison with a related species. Mating and pupping take place from April to June in La Paz Bay, in the southern Gulf of California. Males mature at about 95 cm disc width, females at 95 to 105 cm. Young use sheltered shallow bays as nurseries.',
       },
       averages: {
-        // Serrano-López et al. 2021, section 3.2: Gulf of California catch,
-        // 86 males / 60 females, mixed maturity stages. These are sample means,
-        // not adult asymptotes or a claim that females grow smaller.
-        maleSizeMeters: 0.93,
-        femaleSizeMeters: 0.90,
+        // Jeremy's requested specimen-size reference, matching the 1.3 m scale
+        // (Manta Trust maximum disc width), rather than the regional catch means.
+        maleSizeMeters: '1.3 m (disc width)',
+        femaleSizeMeters: '1.3 m (disc width)',
         maleWeightKg: 'Unknown',
         femaleWeightKg: 'Unknown',
         maleLifeExpectancyYears: 'Unknown',

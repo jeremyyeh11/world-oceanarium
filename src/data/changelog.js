@@ -6,6 +6,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.35.1',
+    date: '2026-10-23',
+    title: 'A quicker Atlas',
+    changes: [
+      ['fix', 'The Atlas and its animals now download while you dive in, so opening it the first time is quicker.'],
+      ['fix', 'While an animal loads in the Atlas, the stage stays empty instead of showing a stand-in fish.'],
+    ],
+  },
+  {
     version: 'v0.35.0',
     date: '2026-10-23',
     title: 'Reserves',

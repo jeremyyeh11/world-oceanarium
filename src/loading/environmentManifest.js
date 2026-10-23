@@ -6,7 +6,7 @@ export function assetDefinition(kind, url) {
   return { key: `${kind}:${url}`, kind, url, estimatedBytes: 16 * 1024 * 1024 }
 }
 
-function modelAssets(species, add) {
+export function modelAssets(species, add) {
   if (species.model?.path) add('gltf', species.model.path)
   for (const variant of Object.values(species.model?.sexVariants ?? {})) if (variant.path) add('gltf', variant.path)
   for (const stage of Object.values(species.lifeStages ?? {})) modelAssets(stage, add)

@@ -1,6 +1,6 @@
 # Budgeted environment loading
 
-Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_2` (not a clean release).
+Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_3` (not a clean release).
 
 ## Intention and scope
 
@@ -17,7 +17,7 @@ This is loading infrastructure, not a claim that the reported phone first-entry 
 - `src/loading/environmentAssetAdapter.js`: abortable fetch; GLTF parsing with Draco/Meshopt support; texture decode; resource accounting/disposal. GLTF results retain `scene`, `animations`, `nodes`, `materials`, etc.
 - `src/loading/environmentRuntime.js`: one browser controller, idle admission, visibility/save-data/frame-pressure hints, HMR cleanup.
 - `src/hooks/useEnvironmentLoading.js`: navigation, immutable external-store snapshot, source hooks and mounted-consumer leases. Tanks and Atlas must share these hooks instead of creating independent global Drei preload caches.
-- `TankView.WarmScene`: shader compilation on the existing renderer, then first-submitted-frame acknowledgement. Never create a second Canvas/tank for prefetch.
+- `TankView.WarmScene` / `compileEnvironmentScene.js`: safe synchronous shader preparation on the existing renderer, then first-submitted-frame acknowledgement. Never create a second Canvas/tank for prefetch.
 - `Landscape.jsx`: derived merged-geometry/placement caches retire separately from GLTF sources when an environment drops out of the active/recent pair.
 
 ## Lifecycle and UI contract
@@ -35,14 +35,14 @@ State fields:
 - `activeId`: environment whose first frame was last acknowledged. During activation this can differ from `mountedId`.
 - `requestedId`: latest requested destination, not necessarily displayed yet.
 - `phase`: `idle` → `loading` → `assets-ready` → `activating` → `ready`; failures produce `error`.
-- `error`: plain message or `null`. A failed switch leaves the previous tank mounted. Repeating `requestEnvironment(id)` retries failed source loads.
+- `error`: plain message or `null`. Source failure leaves the previous tank mounted; activation failure restores the last acknowledged tank. Failed, unmounted targets lose source/derived-cache protection instead of pinning an unusable destination indefinitely. Repeating `requestEnvironment(id)` retries failed source loads.
 - `environments[id]`: `{ id, loaded, total, progress, assetsReady, sceneTasks }`. `progress` is 0–1 by **completed source asset count**, not byte transfer or total loading time. `sceneTasks` counts registered mount-time preparation barriers. Never label 100% as “scene ready”: construction, uploads and shader compilation can remain.
 - `prefetchId`: the one speculative destination, or `null`. It may be only partially prepared.
 - `cachedBytes`, `cachedAssets`, `overBudget`: controller accounting, **not measured process/GPU memory**.
 
 `requestEnvironment(id)` resolves `{ id, status }`, where status is `assets-ready`, `cancelled`, or `error` (errors also include `error`). Unknown IDs are programmer errors. A superseded selection cannot activate later. `assets-ready` means navigation can mount the target; observe `phase === 'ready'` for first-frame acknowledgement.
 
-The current tank is not replaced during source fetch/decode. After those complete, navigation mounts the target in the **same Canvas** and `WarmScene` compiles its shader variants (async where supported). A following RAF acknowledges that a frame was submitted. This is not a physical display/presentation timestamp. A cold target can still hitch during construction/upload; there is no retained screenshot/crossfade/loading overlay in this patch. Do not interpret `assets-ready` as a promise of a seamless first frame.
+The current tank is not replaced during source fetch/decode. After those complete, navigation mounts the target in the **same Canvas**; registered placement jobs commit, then `WarmScene` prepares shader variants. A following RAF acknowledges that a frame was submitted. This is not a physical display/presentation timestamp. A cold target can still hitch during construction/upload; there is no retained screenshot/crossfade/loading overlay in this patch. Do not interpret `assets-ready` as a promise of a seamless first frame.
 
 The existing landing gate now observes the selected manifest and its first frame, not `THREE.DefaultLoadingManager`: speculative requests must never re-lock the landing gate. The existing 15-second escape remains. Failed initial manifest loads do not mount source-consuming `Biome` components; a future UI can retry without intentionally throwing that fetch error through the Canvas.
 
@@ -58,7 +58,7 @@ Defaults live in `createEnvironmentLoader` and can be overridden at construction
 - Active, selected and mounted-consumer sources are pinned. **An oversized active environment may exceed the target**; the loader reports this instead of breaking a displayed scene. These limits do not make an oversized scene fit a low-memory phone.
 - Prefer one recent environment's sources; older/unneeded unleased sources retire LRU-first, and even recent sources may be evicted under the byte/count target. HTTP browser cache remains browser-managed; this controller bounds its own decoded cache, not browser HTTP storage.
 - Source hooks include a brief read-to-commit grace window for suspended React renders. Mounted consumers take real leases. Atlas can pin a shared fish even after its old tank retires; closing Atlas releases that lease.
-- A new selection cancels obsolete speculative/queued work, promotes shared pending work, and discards/disposes obsolete results that finish after cancellation. Fetch is abortable; GLTF/image decode is not assumed abortable. Already-active resources are never evicted just to satisfy a speculative budget.
+- A new selection cancels obsolete speculative/queued work, promotes shared pending work, and discards/disposes obsolete results that finish after cancellation. Repeated prefetch hints are idempotent; hints preserve shared sources still needed by the new destination. Foreground Atlas leases/reads also immediately promote a paused decode. Admission is rechecked when idle work actually starts, not only when queued. Fetch is abortable; GLTF/image decode is not assumed abortable. Already-active resources are never evicted just to satisfy a speculative budget.
 
 Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It excludes cloned/per-fish geometry/materials, derived terrain/BVHs, renderer render targets/programs, common HDR, transient response buffers/decoder scratch, browser caches and driver allocations. Resource disposal is a lifecycle operation, not proof of immediate memory return. Derived landscape caches have a separate active/recent retention policy; lightweight fish snapshots remain in the existing runtime store.
 
@@ -74,7 +74,7 @@ Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It ex
 
 - Network and source parse/decode preparation are integrated now. GLTF parse/image decode can still create an indivisible main-thread task even when admitted at idle. Moving suitable decoding to workers or changing asset packaging is a separate measured change.
 - Existing rock merges and coral/staghorn placement still happen when the target mounts; the existing sliced placement hook is retained. Placement/BVH jobs register `beginPreparation(id, label)` barriers and release them after their generated results commit. First-frame readiness waits for those barriers and shader warm-up; it does not prematurely report a rocks-only reef as complete. New asynchronous scene construction must register/release a barrier (including cleanup) the same way. This patch does not claim all geometry is background-built.
-- Shader compilation and uploads remain renderer-specific. `compileAsync` is not equivalent to uploading every texture or guaranteeing a presented frame. Common HDR stays owned by Drei's environment hook.
+- Shader compilation and uploads remain renderer-specific. The current Three `compileAsync` polls material state after teardown and can throw outside its Promise on a rapid switch; use synchronous `compile` until asynchronous compilation has explicit material-lifetime ownership. Compilation is not equivalent to uploading every texture or guaranteeing a presented frame. Common HDR stays owned by Drei's environment hook.
 - Freezing a tank under a fully covering Atlas, native Atlas scrolling, adaptive resolution, texture compression and water/reef rendering optimization are separate scopes—not implemented here.
 
 ## Verification and rollback

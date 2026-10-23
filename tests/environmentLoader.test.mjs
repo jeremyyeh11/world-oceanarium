@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createEnvironmentLoader } from '../src/loading/environmentLoader.js'
 import { createEnvironmentManifests, ENVIRONMENT_MANIFESTS } from '../src/loading/environmentManifest.js'
 import { SPECIES, TANKS } from '../src/data/species.js'
+import { compileEnvironmentScene } from '../src/loading/compileEnvironmentScene.js'
 
 const asset = name => ({ key: `gltf:${name}`, url: name, kind: 'gltf', estimatedBytes: 10 })
 const flush = async () => { for (let i = 0; i < 15; i++) await Promise.resolve() }
@@ -83,8 +84,9 @@ function fixture(options = {}) {
   assert.match(f.loader.getSnapshot().error, /offline/)
   await f.resolve('a')
   const retry = f.loader.select('a')
-  await flush(); await f.resolve('shared')
+  await flush(); await f.resolve('shared'); await f.resolve('a')
   assert.equal((await retry).status, 'assets-ready')
+  f.disposed.length = 0
   f.loader.markRendered('a')
   const release = f.loader.retain([f.a])
   const retired = []
@@ -193,6 +195,93 @@ const synthetic = createEnvironmentManifests([{ id: 'future', biome: 'lake', spe
   model: { path: '/base', sexVariants: { female: { path: '/female' } } }, lifeStages: { juvenile: { model: { path: '/young' } } } }], () => null)
 assert.deepEqual(synthetic[0].assets.map(a => a.url), ['/base', '/female', '/young'])
 for (const tank of TANKS) for (const id of tank.species) assert.ok(SPECIES.some(species => species.id === id))
+// Cancellation/intent/Atlas races found by independent review.
+{
+  const f = fixture()
+  const old = f.loader.select('c'); await flush()
+  const selected = f.loader.select('d'); await flush()
+  const release = f.loader.retain([f.c])
+  assert.equal((await old).status, 'cancelled')
+  await f.resolve('c'); await f.resolve('d'); await selected; f.loader.markRendered('d')
+  assert.equal(f.started.filter(key => key === 'gltf:c').length, 2)
+  await f.resolve('c'); f.advance(); await flush()
+  assert.equal(f.disposed.filter(key => key === 'c').length, 1, 'Lease must protect replacement, not aborted generation')
+  release(); f.advance()
+  assert.equal(f.disposed.filter(key => key === 'c').length, 2)
+  f.loader.dispose()
+}
+{
+  const f = fixture()
+  const p = f.loader.select('a'); await flush(); await f.resolve('shared'); await f.resolve('a'); await p
+  f.loader.markRendered('a'); f.loader.prefetch('b'); f.loader.setBackgroundEnabled(true); await f.runIdle()
+  f.loader.prefetch('b')
+  assert.equal(f.pending.get('gltf:b').signal.aborted, false, 'Repeated hint must not abort itself')
+  f.loader.setBackgroundEnabled(false)
+  let promoted = false
+  const gate = f.pending.get('gltf:b').beforeDecode().then(() => { promoted = true })
+  await flush()
+  const release = f.loader.retain([f.b])
+  let suspended
+  try { f.loader.read(f.b) } catch (promise) { suspended = promise }
+  await gate
+  assert.equal(promoted, true, 'Foreground Atlas lease/read promotes paused decode without idle')
+  await f.resolve('b'); await suspended
+  release(); f.loader.dispose()
+}
+{
+  const a = asset('a'), b = asset('b'), c = asset('c')
+  const f = fixture({ environments: [{ id: 'a', assets: [a] }, { id: 'b', assets: [b] }, { id: 'c', assets: [b, c] }] })
+  const p = f.loader.select('a'); await flush(); await f.resolve('a'); await p; f.loader.markRendered('a')
+  f.loader.prefetch('b'); f.loader.setBackgroundEnabled(true); await f.runIdle()
+  f.loader.prefetch('c')
+  assert.equal(f.pending.get('gltf:b').signal.aborted, false, 'Changed hint preserves still-needed shared speculative source')
+  await f.resolve('b'); await f.runIdle(); await f.resolve('c')
+  assert.equal(f.loader.getSnapshot().environments.c.assetsReady, true)
+  f.loader.dispose()
+}
+{
+  const a = asset('a'), b = asset('b'), c = asset('c')
+  const f = fixture({ maxCachedAssets: 2, maxCachedBytes: 20,
+    environments: [{ id: 'a', assets: [a] }, { id: 'b', assets: [b] }, { id: 'c', assets: [c] }] })
+  const p = f.loader.select('a'); await flush(); await f.resolve('a'); await p; f.loader.markRendered('a')
+  f.loader.prefetch('b'); f.loader.setBackgroundEnabled(true)
+  const release = f.loader.retain([c]); await flush(); await f.resolve('c')
+  await f.runIdle()
+  assert.equal(f.started.includes('gltf:b'), false, 'Admission must recheck budgets at actual idle start')
+  release(); await f.runIdle()
+  assert.equal(f.started.includes('gltf:b'), true)
+  await f.resolve('b'); f.loader.dispose()
+}
+{
+  const f = fixture()
+  const p = f.loader.select('a'); await flush(); await f.resolve('shared'); await f.resolve('a'); await p; f.loader.markRendered('a')
+  const target = f.loader.select('c'); await flush(); await f.resolve('c'); await target; f.loader.beginActivation('c')
+  const retired = []
+  f.loader.onRetire((id, state) => retired.push({ id, state }))
+  const unmount = f.loader.retainScene('c')
+  const release = f.loader.retain([f.c])
+  f.loader.failActivation('c', new Error('shader failed')); f.advance()
+  assert.deepEqual(retired, [], 'Failed derived scene must not retire while mounted')
+  unmount(); release(); f.advance()
+  assert.equal(retired.length, 1)
+  assert.equal(retired[0].id, 'c'); assert.equal(retired[0].state.activeId, 'a'); assert.equal(retired[0].state.phase, 'error')
+  assert.equal(f.loader.getSnapshot().activeId, 'a')
+  assert.equal(f.disposed.includes('c'), true, 'Failed target sources become evictable after rollback')
+  f.loader.dispose()
+}
+{
+  const hidden = { visible: false }, visible = { visible: true }
+  const scene = { traverse: fn => [hidden, visible].forEach(fn) }
+  const camera = {}
+  let compiled = 0
+  const renderer = { compile(s, c) { assert.equal(s, scene); assert.equal(c, camera); assert.equal(hidden.visible, true); compiled++ },
+    compileAsync() { throw new Error('Unsafe async material polling must not run') } }
+  compileEnvironmentScene(renderer, scene, camera)
+  assert.equal(compiled, 1); assert.equal(hidden.visible, false); assert.equal(visible.visible, true)
+  renderer.compile = () => { throw new Error('compile failure') }
+  assert.throws(() => compileEnvironmentScene(renderer, scene, camera), /compile failure/)
+  assert.equal(hidden.visible, false, 'Visibility restored even when shader preparation fails')
+}
 // Many future environments retain only active/recent sources, not the entire visited catalog.
 {
   const environments = Array.from({ length: 40 }, (_, i) => ({ id: `env-${i}`, assets: [asset(`unique-${i}`)] }))

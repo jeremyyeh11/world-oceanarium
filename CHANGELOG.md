@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.34.2 — Budgeted environment-loading infrastructure (unreleased)
 
-Status: review build `v0.34.2-dev_2`, branch `feat/budgeted-environment-loader`, #152. Not a clean release; no merge/promotion approval. `v0.34.1` remains reserved for the separate reef-motion PR.
+Status: review build `v0.34.2-dev_3`, branch `feat/budgeted-environment-loader`, #152. Not a clean release; no merge/promotion approval. `v0.34.1` remains reserved for the separate reef-motion PR.
 
 ### Loading infrastructure
 

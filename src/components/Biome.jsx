@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo } from 'react'
+import { environmentLoader } from '../loading/environmentRuntime'
 import Environment from './Environment'
 import { landscapeForTank } from '../data/landscapes'
 import Fish from './Fish'
@@ -107,6 +108,8 @@ function groupFollowersForCreatures(creatures) {
 }
 
 export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
+  // Retire failed target geometry only after this scene has actually unmounted.
+  useLayoutEffect(() => tank?.id ? environmentLoader.retainScene(tank.id) : undefined, [tank?.id])
   const visibleCreatures = useMemo(
     () => (tank ? creaturesForTank(creatures, tank) : creatures.filter(c => c.biome === name && c.alive)),
     [creatures, name, tank],

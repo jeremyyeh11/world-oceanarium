@@ -15,6 +15,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
   const listeners = new Set()
   const retirementListeners = new Set()
   const preparationTasks = new Map()
+  const mountedScenes = new Map()
   const environmentKeys = id => new Set(catalog.get(id)?.assets.map(asset => asset.key) ?? [])
   let activeId = null
   let requestedId = null
@@ -29,11 +30,12 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
   let emitPending = false
   let backgroundEnabled = false
   let backgroundSpent = 0
+  let failedRetiredId = null
   let snapshot
 
   function protectedEntry(entry) {
     return entry.pins > 0 || entry.readUntil > now() || environmentKeys(activeId).has(entry.asset.key)
-      || environmentKeys(requestedId).has(entry.asset.key)
+      || (phase !== 'error' && environmentKeys(requestedId).has(entry.asset.key))
   }
   function residentBytes() {
     return [...entries.values()].reduce((sum, entry) => sum + (entry.result?.bytes ?? 0), 0)
@@ -74,17 +76,21 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
     entry.result?.dispose?.()
   }
   function trim() {
-    const keep = new Set([...environmentKeys(activeId), ...environmentKeys(requestedId),
+    const keep = new Set([...environmentKeys(activeId), ...environmentKeys(phase === 'error' ? null : requestedId),
       ...environmentKeys(recentId), ...environmentKeys(prefetchId)])
     const candidates = [...entries.values()].filter(entry => !protectedEntry(entry) && entry.state !== 'loading')
       .sort((a, b) => a.used - b.used)
     for (const entry of candidates) {
       if (!keep.has(entry.asset.key) || residentBytes() > maxCachedBytes || residentCount() > maxCachedAssets) remove(entry)
     }
+    if (phase === 'error' && requestedId !== activeId && failedRetiredId !== requestedId && !mountedScenes.get(requestedId)) {
+      failedRetiredId = requestedId
+      retire(requestedId)
+    }
     emit()
   }
   function priority(entry) {
-    if (environmentKeys(requestedId).has(entry.asset.key)) return 3
+    if (phase !== 'error' && environmentKeys(requestedId).has(entry.asset.key)) return 3
     if (entry.pins || entry.readUntil > now() || environmentKeys(activeId).has(entry.asset.key)) return 2
     if (environmentKeys(prefetchId).has(entry.asset.key)) return 1
     return 0
@@ -92,6 +98,12 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
   function ensure(asset, foreground = false) {
     if (closed) throw new Error('Environment loader disposed')
     let entry = entries.get(asset.key)
+    // Every entry point (selection, Atlas lease, Suspense read, repeated intent hint)
+    // must bind to the live generation, never a decode already cancelled by another request.
+    if (entry?.controller?.signal.aborted || entry?.state === 'cancelled') {
+      entries.delete(asset.key)
+      entry = null
+    }
     if (!entry) {
       let resolve
       const promise = new Promise(done => { resolve = done })
@@ -99,7 +111,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
         used: now(), promise, resolve }
       entries.set(asset.key, entry)
     }
-    if (foreground) entry.readUntil = now() + readGraceMs
+    if (foreground) { entry.readUntil = now() + readGraceMs; entry.promoteDecode?.() }
     entry.used = now()
     return entry
   }
@@ -112,6 +124,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       error = failed.error?.message ?? String(failed.error)
       request.resolve({ id: requestedId, status: 'error', error })
       request = null
+      cancelObsolete()
     } else if (env.assets.every(asset => entries.get(asset.key)?.state === 'ready')) {
       phase = 'assets-ready'
       request.resolve({ id: requestedId, status: 'assets-ready' })
@@ -177,28 +190,35 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
     if (running || idleCancel || !backgroundEnabled || !prefetchId || phase !== 'ready') return
     const candidate = queued.find(entry => priority(entry) === 1)
     if (!candidate) return
-    const estimate = candidate.asset.estimatedBytes ?? 16 * 1024 * 1024
-    // Conservative admission. Active/selected assets may exceed budgets; speculation may not.
-    if (backgroundSpent + estimate > maxBackgroundBytes || residentBytes() + estimate > maxCachedBytes
-      || residentCount() >= maxCachedAssets) return
+    if (!canAdmitBackground(candidate)) return
     idleCancel = scheduleIdle(() => {
       idleCancel = null
       if (!closed && running === 0 && backgroundEnabled && phase === 'ready'
-        && entries.get(candidate.asset.key) === candidate && candidate.state === 'queued' && priority(candidate) === 1) start(candidate, true)
+        && entries.get(candidate.asset.key) === candidate && candidate.state === 'queued'
+        && priority(candidate) === 1 && canAdmitBackground(candidate)) start(candidate, true)
       else pump()
     })
+  }
+  function canAdmitBackground(entry) {
+    const estimate = entry.asset.estimatedBytes ?? 16 * 1024 * 1024
+    // Recheck at actual idle start: a foreground consumer may fill the cache while
+    // this callback waits. Active/selected resources may exceed targets; speculation may not.
+    return backgroundSpent + estimate <= maxBackgroundBytes && residentBytes() + estimate <= maxCachedBytes
+      && residentCount() < maxCachedAssets
   }
   function cancelObsolete() {
     idleCancel?.()
     idleCancel = null
     for (const entry of [...entries.values()]) {
-      if (priority(entry) > 1) continue
+      if (priority(entry) > 0) continue
       if (entry.state === 'loading') entry.controller.abort()
       else if (entry.state === 'queued') { entries.delete(entry.asset.key); entry.resolve() }
     }
   }
   function retire(id) {
-    if (id && id !== activeId && id !== requestedId) for (const listener of retirementListeners) listener(id)
+    if (id && id !== activeId && (id !== requestedId || phase === 'error')) {
+      for (const listener of retirementListeners) listener(id, { activeId, requestedId, phase })
+    }
   }
 
   snapshot = snapshotOf()
@@ -211,6 +231,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       if (closed) throw new Error('Environment loader disposed')
       request?.resolve({ id: requestedId, status: 'cancelled' })
       requestedId = id
+      failedRetiredId = null
       prefetchId = null
       backgroundEnabled = false
       phase = 'loading'
@@ -222,10 +243,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       for (const asset of catalog.get(id).assets) {
         const previous = entries.get(asset.key)
         if (previous?.state === 'error') { remove(previous) }
-        // An aborted decode may still finish. Replace it; the stale finalizer cannot touch this entry.
-        if (previous?.controller?.signal.aborted) entries.delete(asset.key)
-        previous?.promoteDecode?.()
-        ensure(asset)
+        ensure(asset).promoteDecode?.()
       }
       pump()
       emit()
@@ -251,6 +269,9 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       if (id !== requestedId) return
       phase = 'error'
       error = failure?.message ?? String(failure)
+      request?.resolve({ id: requestedId, status: 'error', error })
+      request = null
+      cancelObsolete()
       emit()
     },
     // Mount-time sliced preparation registers barriers. Complete after generated meshes
@@ -269,6 +290,18 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
         tasks.delete(token)
         if (!tasks.size && preparationTasks.get(id) === tasks) preparationTasks.delete(id)
         emit()
+      }
+    },
+    retainScene(id) {
+      mountedScenes.set(id, (mountedScenes.get(id) ?? 0) + 1)
+      let released = false
+      return () => {
+        if (released) return
+        released = true
+        const count = (mountedScenes.get(id) ?? 1) - 1
+        if (count) mountedScenes.set(id, count)
+        else mountedScenes.delete(id)
+        trim()
       }
     },
     prefetch(id) {
@@ -295,9 +328,15 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
     // Mounted consumers (including Atlas) lease shared sources. Never dispose a displayed asset.
     retain(assets) {
       const retained = assets.map(asset => ensure(asset))
-      for (const entry of retained) entry.pins += 1
+      for (const entry of retained) { entry.pins += 1; entry.promoteDecode?.() }
       pump()
-      return () => { for (const entry of retained) entry.pins -= 1; trim(); pump() }
+      let released = false
+      return () => {
+        if (released) return
+        released = true
+        for (const entry of retained) entry.pins -= 1
+        trim(); pump()
+      }
     },
     maintain() { trim(); pump() },
     dispose() {
@@ -314,6 +353,7 @@ export function createEnvironmentLoader({ environments, loadAsset, scheduleIdle,
       listeners.clear()
       retirementListeners.clear()
       preparationTasks.clear()
+      mountedScenes.clear()
     },
   }
 }

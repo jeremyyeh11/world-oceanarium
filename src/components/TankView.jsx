@@ -15,6 +15,7 @@ import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
 import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { useEnvironmentLoading } from '../hooks/useEnvironmentLoading'
 import { environmentLoader, reportEnvironmentFrame } from '../loading/environmentRuntime'
+import { compileEnvironmentScene } from '../loading/compileEnvironmentScene'
 
 // Full turn-around: yaw can swing all the way behind the creature (±180°) — this is the
 // "flexibility" the follow cam gains. Pitch stays modest (±30°): at large follow distances
@@ -61,8 +62,8 @@ const DEBUG_LAYER_BUTTONS = [
 const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
 const FPS_SAMPLE_MS = 1000
 
-// Forces shader compilation and texture upload for everything currently in the
-// scene, so the cost lands here rather than on the frame a fish is first drawn.
+// Prepares shader variants for the mounted scene. Uploads/first draw can still cost
+// time; only the subsequent submitted frame acknowledges readiness.
 //
 // This replaces drei's <Preload all>, which does the same compile but then also
 // renders the scene six times through a CubeCamera to warm environment
@@ -83,29 +84,14 @@ function WarmScene({ environmentId, assetsReady }) {
 
   useLayoutEffect(() => {
     if (!assetsReady) return undefined
-    let cancelled = false
     compiled.current = false
-    const hidden = []
-    scene.traverse(object => {
-      if (object.visible === false) {
-        hidden.push(object)
-        object.visible = true
-      }
-    })
-    let compilation
     try {
-      // compileAsync uses parallel shader compilation where supported. No second renderer
-      // or hidden live tank is created. Geometry/coral construction remains mount-time work.
-      compilation = gl.compileAsync ? gl.compileAsync(scene, camera) : gl.compile(scene, camera)
+      compileEnvironmentScene(gl, scene, camera)
+      compiled.current = true
     } catch (error) {
       environmentLoader.failActivation(environmentId, error)
-    } finally {
-      for (const object of hidden) object.visible = false
     }
-    Promise.resolve(compilation).then(() => { if (!cancelled) compiled.current = true }, error => {
-      if (!cancelled) environmentLoader.failActivation(environmentId, error)
-    })
-    return () => { cancelled = true; compiled.current = false; if (frame.current !== null) cancelAnimationFrame(frame.current) }
+    return () => { compiled.current = false; if (frame.current !== null) cancelAnimationFrame(frame.current) }
   }, [gl, scene, camera, environmentId, assetsReady])
 
   useFrame((_, delta) => {

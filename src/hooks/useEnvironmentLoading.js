@@ -34,6 +34,11 @@ export function useEnvironmentNavigation(initialId) {
     const next = ENVIRONMENT_MANIFESTS[(index + 1) % ENVIRONMENT_MANIFESTS.length]
     environmentLoader.prefetch(next?.id ?? null)
   }, [state.activeId, state.phase])
+  useEffect(() => {
+    // Source failures never leave the old tank. If shader/placement activation fails
+    // after mounting the target, restore the last acknowledged environment instead.
+    if (state.phase === 'error' && state.activeId && mountedId !== state.activeId) setMountedId(state.activeId)
+  }, [mountedId, state.activeId, state.phase])
   return { mountedId, requestEnvironment, state }
 }
 

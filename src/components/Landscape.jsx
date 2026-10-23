@@ -681,12 +681,13 @@ export default function Landscape({ landscape, environmentId }) {
 
 // Only the active landscape and one recent landscape retain derived placements. Source
 // eviction is separate: matrices/BVH/merged rocks are not GLTF-loader cache resources.
-// Retirement happens after the replacement scene's first frame, never during its teardown.
-environmentLoader.onRetire(id => {
+// Normal retirement follows the replacement scene's first frame. A failed target
+// retires only after its Biome mount lease has ended during rollback.
+const unsubscribeRetirement = environmentLoader.onRetire((id, current) => {
   const landscape = landscapeForTank(TANKS.find(tank => tank.id === id))
   if (!landscape) return
-  const current = environmentLoader.getSnapshot()
-  if ([current.activeId, current.requestedId].some(active => landscapeForTank(TANKS.find(tank => tank.id === active)) === landscape)) return
+  const protectedIds = [current.activeId, ...(current.phase === 'error' ? [] : [current.requestedId])]
+  if (protectedIds.some(active => landscapeForTank(TANKS.find(tank => tank.id === active)) === landscape)) return
   const disposeGeometry = geometry => { geometry.disposeBoundsTree?.(); geometry.dispose() }
   const built = BUILT_LANDSCAPES.get(landscape)
   for (const chunk of built?.result.chunks ?? []) disposeGeometry(chunk.geometry)
@@ -702,3 +703,4 @@ environmentLoader.onRetire(id => {
   PLACED_STAGHORN.delete(landscape)
   THICKET_REEF_SURFACES.delete(landscape)
 })
+if (import.meta.hot) import.meta.hot.dispose(unsubscribeRetirement)

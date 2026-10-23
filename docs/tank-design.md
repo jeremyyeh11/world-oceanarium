@@ -172,8 +172,17 @@ old `c.biome === name` filter, so nothing breaks if a tank is ever missing.
 
 ## Tank switching and session continuity
 
-Only the active tank is mounted and rendered. Switching tanks therefore unmounts every
-`Fish` in the tank being left; hidden tanks consume no background simulation time.
+One tank is mounted at a time. Switching tanks unmounts every `Fish` in the tank being
+left; tanks that are not mounted consume no background simulation time.
+
+While the tank selector or the loading screen covers it, the last tank viewed stays
+mounted underneath, hidden (`TankView` `hidden`: window listeners off, follow released,
+viewport invisible) and, once its first frame has rendered, paused (`paused`: canvas
+`frameloop="never"`). Nothing renders or simulates, so its fish do not move; picking it
+again resumes it with no loader. It stays mounted only so the WebGL context survives:
+unmounting the canvas recompiled every shader and re-uploaded every texture on each
+visit. Picking a different tank swaps the scene inside that same canvas once the new
+tank's files are in (docs/environment-loading.md).
 
 Since `v0.12.2`, each fish writes its continuity-critical state through a module-level
 store keyed by `creature.id` (`src/components/fishRuntimeStore.js`). When the creature
@@ -184,6 +193,7 @@ the old respawn and a one-frame flash at the model origin.
 Lifecycle rules:
 
 - **Tank switch:** freeze the departing tank; resume inhabitants when it is revisited.
+- **Selector open:** pause the tank in place (no unmount, no snapshot needed); resume on return.
 - **Creature-data refresh:** `App.jsx` prunes snapshots whose creature ids are no longer live.
 - **Page reload:** intentionally clears the module store and starts a fresh session.
 - **School remount:** members keep their individual position/heading, but the shared school

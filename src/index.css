@@ -1214,10 +1214,10 @@ body:has(.debug-panel) .app-version-footnote {
     bottom: calc(var(--mobile-follow-card-height, 0px) + 0.7rem);
   }
 
-  /* The mobile info card is a full-width bottom sheet that sits right on top of the
-     centered tank switcher. While following a creature, hide the switcher so the two
-     don't collide — it reappears the moment focus is released. */
-  body:has(.tank-viewport.is-following-fish) .tank-switcher-dock {
+  /* The mobile info card is a full-width bottom sheet over the bottom-left tanks
+     button. While following a creature, hide the button so the two don't collide —
+     it reappears the moment focus is released. */
+  body:has(.tank-viewport.is-following-fish) .environment-back {
     display: none;
   }
 }
@@ -2104,76 +2104,4 @@ body:has(.debug-panel) .app-version-footnote {
   .encyclopedia-stat-grid {
     grid-template-columns: 1fr;
   }
-}
-
-.tank-switcher-dock {
-  position: fixed;
-  bottom: 1.4rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  z-index: 30;
-  pointer-events: none;
-}
-
-/* Debug mode docks a full-width stats bar at the very bottom (.debug-panel--floating).
-   Lift the tank switcher above it, keeping the same 1.4rem gap it normally holds off
-   the bottom edge — now measured above the debug bar instead of the viewport floor. */
-body:has(.tank-viewport.has-debug-panel) .tank-switcher-dock {
-  bottom: calc(var(--floating-debug-panel-height, 4rem) + 1.4rem);
-}
-
-.tank-switcher-description {
-  margin: 0;
-  /* Prefer one line; only wrap when the viewport is too narrow to fit it.
-     width:max-content sizes to the text (decoupled from the narrower pill row),
-     clamped by max-width so it wraps once it would exceed the screen. */
-  width: max-content;
-  max-width: min(92vw, 48rem);
-  text-align: center;
-  color: rgba(205, 228, 248, 0.62);
-  font-family: system-ui, sans-serif;
-  font-size: 0.62rem;
-  line-height: 1.45;
-  letter-spacing: 0.03em;
-  text-shadow: 0 1px 6px rgba(2, 12, 26, 0.6);
-}
-
-.tank-switcher {
-  display: flex;
-  gap: 0.35rem;
-  padding: 0.3rem;
-  border-radius: 999px;
-  background: rgba(6, 22, 38, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(140, 195, 245, 0.16);
-  pointer-events: auto;
-}
-
-.tank-switch-button {
-  appearance: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.42rem 0.95rem;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(205, 228, 248, 0.62);
-  font-family: system-ui, sans-serif;
-  font-size: 0.66rem;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  transition: background 160ms ease, color 160ms ease;
-}
-
-.tank-switch-button:hover {
-  color: rgba(225, 240, 252, 0.9);
-}
-
-.tank-switch-button.is-active {
-  background: rgba(77, 184, 255, 0.9);
-  color: #052033;
 }

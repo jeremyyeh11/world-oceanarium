@@ -10,7 +10,12 @@ export function useEnvironmentLoading() {
   return useSyncExternalStore(environmentLoader.subscribe, environmentLoader.getSnapshot)
 }
 
-export function useEnvironmentNavigation(initialId) {
+// `initialId` may be null: nothing loads until the first requestEnvironment (the tank
+// selector decides which). `prefetchOrder` is an optional ranked list of environment
+// ids (most likely next first, e.g. utils/attentionOrder.js over the selector's
+// layout); the speculative hint takes the first one not already active or loaded,
+// falling back to the catalog neighbour.
+export function useEnvironmentNavigation(initialId, prefetchOrder = null) {
   const [mountedId, setMountedId] = useState(initialId)
   const state = useEnvironmentLoading()
   const requestEnvironment = useCallback(async id => {
@@ -23,17 +28,25 @@ export function useEnvironmentNavigation(initialId) {
     return result
   }, [])
   useEffect(() => {
-    requestEnvironment(initialId)
+    if (initialId) requestEnvironment(initialId)
     const timer = window.setInterval(() => environmentLoader.maintain(), 2000)
     return () => window.clearInterval(timer)
   }, [initialId, requestEnvironment])
+  const prefetchKey = prefetchOrder?.join('|') ?? ''
   useEffect(() => {
     if (state.phase !== 'ready') return
+    // One speculative destination at a time. Ranked order when given, else the neighbour.
+    const ranked = prefetchKey ? prefetchKey.split('|') : []
+    const environments = environmentLoader.getSnapshot().environments
+    const choice = ranked.find(id => id !== state.activeId && !environments[id]?.assetsReady)
+    if (choice) {
+      environmentLoader.prefetch(choice)
+      return
+    }
     const index = ENVIRONMENT_MANIFESTS.findIndex(env => env.id === state.activeId)
-    // One likely neighbour only. Future navigation can supply a better intent hint via prefetch().
     const next = ENVIRONMENT_MANIFESTS[(index + 1) % ENVIRONMENT_MANIFESTS.length]
     environmentLoader.prefetch(next?.id ?? null)
-  }, [state.activeId, state.phase])
+  }, [state.activeId, state.phase, prefetchKey])
   useEffect(() => {
     // Source failures never leave the old tank. If shader/placement activation fails
     // after mounting the target, restore the last acknowledged environment instead.

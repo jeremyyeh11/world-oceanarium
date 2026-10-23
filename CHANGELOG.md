@@ -8,6 +8,22 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.35.0 — Tank selector and loading screen (in development)
+
+Status: `v0.35.0-dev_4` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+
+### Navigation
+
+- New flow: landing gate → **Choose a tank** selector → loading screen → tank. A bottom-left **Tanks** button (with the current tank's name) returns to the selector; it replaces the bottom-left tank list.
+- Selector (`EnvironmentSelector.jsx`): one card per tank with index, depth zone and range, name, tagline, description and live species count; each card's swatch is the tank's own water palette. Arrow keys move between cards; focus returns to the last tank mounted. The chosen card flares for 420 ms.
+- Loading screen (`EnvironmentLoader.jsx`), driven by #153's `useEnvironmentLoading()`: files `loaded / total` (85% of the bar), then "Building the tank…" while the scene assembles and shaders compile, clearing on `phase === 'ready'` for that tank (held at least 1.3 s, 700 ms sink). On `error`: the message, Retry and Tanks.
+- The landing gate waits only on the creature fetch (`useSceneReady.js` removed). Search, screenshot and diver show only inside a tank; the Atlas and the menu stay available on the selector.
+
+### Loading
+
+- No tank on boot (`useEnvironmentNavigation(null, prefetchOrder)`). The selector ranks tanks by where viewers look first (`utils/attentionOrder.js`: inverted L, `max(0.85^c · 0.55^r, 0.8^r · 0.55^c)`; 5×5 ranks A1, B1, A2, C1, A3, D1, E1 … E5; one column is top to bottom) over its live column count. App requests the top-ranked tank, which warms hidden under the gate and selector; once it has rendered, the loader prefetches the next-ranked tank instead of the catalog neighbour. #153's speculative budget (16 MiB estimate per file, 64 MiB per visit) admits about four of that tank's files; the budget is unchanged.
+- One canvas for the session. A tank off screen is `hidden` (listeners off, follow released, `.tank-viewport.is-hidden`) and, once its first frame has rendered, `paused` (`frameloop="never"`; `ResumeClock` restarts the r3f clock on resume). Picking the warm tank resumes it with no loading screen; another tank swaps in the same canvas. AGENTS.md, docs/tank-design.md and docs/environment-loading.md state the one-mounted-tank rule with this case.
+
 ## v0.34.2 — Budgeted environment-loading infrastructure (unreleased)
 
 Status: review build `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #152. Not a clean release; no merge/promotion approval. `v0.34.1` remains reserved for the separate reef-motion PR.

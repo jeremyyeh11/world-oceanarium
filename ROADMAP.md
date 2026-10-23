@@ -13,6 +13,17 @@ Status labels:
 
 ## Current work
 
+### Tank selector and loading screen
+
+Status: `Current in development` in `v0.35.0-dev_4` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on #153. Landing → selector → loading screen → tank, with a bottom-left button back to the selector.
+
+Subtasks:
+- [x] Selector, loading screen (files / building / error + retry), bottom-left Tanks button; old tank list removed.
+- [x] Attention-ranked boot request and prefetch through #153's loader (`prefetchOrder`).
+- [x] Hidden/paused tank under the selector and loader; one canvas per session.
+- [ ] Device check: phone portrait/landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll.
+- [ ] Decide whether the speculative budget should cover a whole second tank (today about four files per visit).
+
 ### Budgeted environment-loading infrastructure
 
 Status: `Current in development`, `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #152. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.

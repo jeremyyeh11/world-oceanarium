@@ -110,6 +110,18 @@ function WarmScene({ environmentId, assetsReady }) {
   return null
 }
 
+// Paused, the canvas renders nothing (frameloop 'never') but its clock keeps running, so
+// the first frame back would carry the whole pause as its delta. Reading the clock on
+// resume restarts it. Fish clamp their delta anyway; this covers everything else that
+// integrates over it.
+function ResumeClock({ paused }) {
+  const clock = useThree(state => state.clock)
+  useEffect(() => {
+    if (!paused) clock.getDelta()
+  }, [clock, paused])
+  return null
+}
+
 function creatureDisplayName(creature) {
   const customName = creature?.customName?.trim()
   if (customName) return customName
@@ -176,7 +188,7 @@ function isMobileInputSurface() {
   return window.matchMedia?.('(hover: none), (pointer: coarse), (max-width: 768px)').matches ?? false
 }
 
-export default function TankView({ biome, tank = null, creatures, creatureDataLoading = false, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, screenshotMode = false, diverMode = false, onExitDiverMode = null, onBack, onOpenEncyclopedia }) {
+export default function TankView({ biome, tank = null, creatures, creatureDataLoading = false, creatureDataSource = 'unknown', creatureDataError = null, tankVisitSeed = 0, hidden = false, paused = false, screenshotMode = false, diverMode = false, onExitDiverMode = null, onBack, onOpenEncyclopedia }) {
   const environmentLoading = useEnvironmentLoading()
   const [selectedCreature, setSelectedCreature] = useState(null)
   const [focusedFishRef, setFocusedFishRef] = useState(null)
@@ -239,6 +251,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   }, [])
 
   useEffect(() => {
+    if (hidden) return undefined
     const toggleDebugOnShortcut = (event) => {
       if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.key.toLowerCase() !== 'd') return
       event.preventDefault()
@@ -247,9 +260,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
 
     window.addEventListener('keydown', toggleDebugOnShortcut)
     return () => window.removeEventListener('keydown', toggleDebugOnShortcut)
-  }, [debugMode])
+  }, [debugMode, hidden])
 
   useEffect(() => {
+    if (hidden) return undefined
     const queueSunBaskOnShortcut = (event) => {
       const isSunBaskShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && (event.code === 'KeyX' || event.key?.toLowerCase() === 'x')
       if (!isSunBaskShortcut) return
@@ -260,12 +274,13 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
 
     window.addEventListener('keydown', queueSunBaskOnShortcut)
     return () => window.removeEventListener('keydown', queueSunBaskOnShortcut)
-  }, [debugMode, selectedCreature])
+  }, [debugMode, selectedCreature, hidden])
 
   useEffect(() => {
+    if (hidden) return undefined
     window.addEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
     return () => window.removeEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
-  }, [debugMode])
+  }, [debugMode, hidden])
 
   useEffect(() => {
     if (!selectedCreature) return undefined
@@ -486,7 +501,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   }
 
   useEffect(() => {
-    if (!visibleDebugVisuals) {
+    if (!visibleDebugVisuals || paused) {
       const resetStats = { fps: null }
       performanceStatsRef.current = resetStats
       setPerformanceStats(resetStats)
@@ -533,9 +548,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
 
     frameId = window.requestAnimationFrame(sampleFps)
     return () => window.cancelAnimationFrame(frameId)
-  }, [visibleDebugVisuals, selectedCreature])
+  }, [visibleDebugVisuals, selectedCreature, paused])
 
   useEffect(() => {
+    if (hidden) return undefined
     const focusFromSearch = (event) => {
       const creatureId = String(event.detail?.creatureId ?? '')
       if (!creatureId) return
@@ -547,7 +563,14 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
 
     window.addEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
     return () => window.removeEventListener(SEARCH_FOCUS_EVENT, focusFromSearch)
-  }, [creatures])
+  }, [creatures, hidden])
+
+  // A hidden tank is behind the selector or the loader. Following a fish there would keep
+  // its scroll blocking and follow-card layout (body:has(.is-following-fish) rules) active
+  // over them, so the follow ends on the way out, as Esc would end it.
+  useEffect(() => {
+    if (hidden && selectedCreature) releaseFocus()
+  }, [hidden, selectedCreature])
 
   const zoomFollowWithWheel = (event) => {
     if (!selectedCreature) return
@@ -722,7 +745,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
 
   return (
     <div
-      className={`tank-viewport${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}${diverMode ? ' is-diver-mode' : ''}`}
+      className={`tank-viewport${hidden ? ' is-hidden' : ''}${panLimits.enabled ? ' can-pan' : ''}${stagePanning ? ' is-panning' : ''}${zoomActive ? ' is-following-fish' : ''}${visibleDebugPanel ? ' has-debug-panel' : ''}${screenshotMode ? ' is-screenshot-mode' : ''}${diverMode ? ' is-diver-mode' : ''}`}
       style={{ '--stage-pan-x': `${stagePan}px` }}
     >
       <div
@@ -740,7 +763,12 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             DPR-3 phone renders 4x the fragments of 1x for detail that the CRT
             scanline film on top largely eats anyway. 1.5 matches the cap the
             encyclopedia canvas already uses. */}
-        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+        {/* Paused (hidden and its first frame already rendered), nothing renders or
+            simulates, and the WebGL context with its compiled shaders and uploaded
+            textures survives for the next visit. A hidden tank still warming keeps
+            rendering until the loader acknowledges its first frame. */}
+        <Canvas camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
+          <ResumeClock paused={paused} />
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}

@@ -3403,6 +3403,15 @@ export const SPECIES = [
     // renders opaque). One mesh in three material parts: top, bottom and the head fins' sides.
     model: {
       path: '/models/fish/mobula-munkiana/mobula-munkiana.glb',
+      // Individual albedo variation; noiseScale is in the model's source metres. A single
+      // seed covers all three material parts and survives tank switches/debug remounts.
+      surfaceVariation: {
+        noise: 0.2,
+        noiseScale: 3,
+        brightness: [0.82, 1.12],
+        saturation: [0.75, 1.2],
+        warmth: [-0.035, 0.035],
+      },
       // 1 m = 4 WU, so the 1.3 m disc is the 5.2 WU body length.
       scale: 4,
       followAim: 'root',

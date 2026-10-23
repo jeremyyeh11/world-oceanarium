@@ -637,15 +637,26 @@ function collectSpineMorphs(root, proceduralAnimation) {
   return morphs
 }
 
-function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null) {
+function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null, surfaceVariation = null) {
   const situationalLight = supportsFishSituationalLight(material)
-  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex) return
+  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex && !surfaceVariation) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
   const rimKey = rim ? `${rimColor.getHexString()}:${rimIntensity}:${rimPower}` : 'none'
   // uShadowSelf: -2 takes no caster shadows (the Atlas); FishModel sets -1 or its own slot.
   const maskUniforms = { uTime: { value: 0 }, uShadowSelf: { value: -2 } }
+  // Per-fish surface variation (`model.surfaceVariation`), so a tight school of one texture
+  // doesn't read as copies: a soft noise multiplied over the texture, fixed to the body (object
+  // space, offset per fish), and a per-fish brightness, saturation and warm/cool tint. Neutral
+  // until FishModel writes this fish's values (applySurfaceVariation).
+  const surfaceUniforms = surfaceVariation ? {
+    noiseStrength: { value: surfaceVariation.noise ?? 0.2 },
+    noiseScale: { value: surfaceVariation.noiseScale ?? 3 },
+    noiseOffset: { value: new THREE.Vector3() },
+    // x brightness, y saturation, z warmth (+ warmer, - cooler).
+    adjust: { value: new THREE.Vector3(1, 1, 0) },
+  } : null
   const proceduralBounds = geometry?.boundingBox
   const proceduralSourceAxis = proceduralAxisIndex(proceduralVertex?.sourceAxis, 2)
   const proceduralLateralAxis = proceduralAxisIndex(proceduralVertex?.lateralAxis, proceduralSourceAxis === 0 ? 2 : 0)
@@ -728,6 +739,12 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     shader.uniforms.uRimColor = { value: rimColor }
     shader.uniforms.uRimIntensity = { value: rimIntensity }
     shader.uniforms.uRimPower = { value: rimPower }
+    if (surfaceUniforms) {
+      shader.uniforms.uSurfaceNoiseStrength = surfaceUniforms.noiseStrength
+      shader.uniforms.uSurfaceNoiseScale = surfaceUniforms.noiseScale
+      shader.uniforms.uSurfaceNoiseOffset = surfaceUniforms.noiseOffset
+      shader.uniforms.uSurfaceAdjust = surfaceUniforms.adjust
+    }
     if (caudalUniforms) {
       shader.uniforms.uProceduralPhase = caudalUniforms.phase
       shader.uniforms.uProceduralSpeed = caudalUniforms.speed
@@ -793,6 +810,7 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
         '#include <common>',
         `#include <common>
 varying vec3 vFishWorldPosition;
+${surfaceUniforms ? 'varying vec3 vFishBodyPosition;' : ''}
 ${caudalUniforms ? `uniform float uProceduralPhase;
 uniform float uProceduralSpeed;
 uniform float uProceduralTurn;
@@ -1115,6 +1133,14 @@ proceduralDiscNormal(objectNormal);`
 #include <project_vertex>`
         )
     }
+    if (surfaceUniforms) {
+      // Undeformed source position: the pattern travels and bends with the skin.
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+vFishBodyPosition = position;`,
+      )
+    }
     shader.vertexShader = shader.vertexShader.replace(
         '#include <worldpos_vertex>',
         `#include <worldpos_vertex>
@@ -1134,6 +1160,11 @@ uniform vec3 uRimColor;
 uniform float uRimIntensity;
 uniform float uRimPower;
 varying vec3 vFishWorldPosition;
+${surfaceUniforms ? `varying vec3 vFishBodyPosition;
+uniform float uSurfaceNoiseStrength;
+uniform float uSurfaceNoiseScale;
+uniform vec3 uSurfaceNoiseOffset;
+uniform vec3 uSurfaceAdjust;` : ''}
 float fishMaskHash(vec3 p) {
   p = fract(p * 0.3183099 + vec3(0.17, 0.31, 0.47));
   p *= 17.0;
@@ -1162,6 +1193,17 @@ float fishMaskFbm(vec3 p) {
   return value;
 }
 ${situationalLight ? FISH_SITUATIONAL_LIGHT_PARS : ''}`
+      )
+      .replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+${surfaceUniforms ? `// Apply to linear albedo, before lighting, shadows, fog and tone mapping.
+float surfaceNoise = fishMaskFbm(vFishBodyPosition * uSurfaceNoiseScale + uSurfaceNoiseOffset);
+// The three octave weights sum to 0.875: keep the multiplier centred on 1.
+diffuseColor.rgb *= 1.0 + (surfaceNoise * (2.0 / 0.875) - 1.0) * uSurfaceNoiseStrength;
+float surfaceLuma = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+diffuseColor.rgb = max(vec3(0.0), mix(vec3(surfaceLuma), diffuseColor.rgb, uSurfaceAdjust.y));
+diffuseColor.rgb *= uSurfaceAdjust.x * vec3(1.0 + uSurfaceAdjust.z, 1.0, 1.0 - uSurfaceAdjust.z);` : ''}`,
       )
       .replace(
         '#include <opaque_fragment>',
@@ -1195,13 +1237,14 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
       : proceduralVertex.type === 'disc-wave-vertex'
         ? 'disc-wave-vertex'
         : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}:${surfaceUniforms ? 'surface-v1' : 'surface-off'}`
   material.userData.fishLightMaskUniforms = maskUniforms
+  if (surfaceUniforms) material.userData.fishSurfaceUniforms = surfaceUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null, alphaBlend = false) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null, alphaBlend = false, surfaceVariation = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -1233,6 +1276,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
         rim,
         proceduralMeshConfig,
         proceduralMeshConfig ? proceduralBoundsGeometry(root, child, proceduralAnimation) : child.geometry,
+        surfaceVariation,
       )
       materials.push(nextMaterial)
       return nextMaterial
@@ -1286,6 +1330,25 @@ export function updateProceduralFinFollow(finFollow, proceduralAnimation, { phas
   applyProceduralFinFollow(finFollow, proceduralAnimation, phase, THREE.MathUtils.clamp(speed01, 0, 1), turn, burst01)
 }
 
+// One stream per individual, shared by all of its material parts. Never draw from movement
+// or animation streams: adding colour variation must not change their established sequences.
+function applySurfaceVariation(materials, config, seed) {
+  if (!config) return
+  const rand = mulberry32(seed)
+  const offset = new THREE.Vector3(rand() * 100, rand() * 100, rand() * 100)
+  const adjust = new THREE.Vector3(
+    randomRangeFromPair(rand, config.brightness, [1, 1]),
+    randomRangeFromPair(rand, config.saturation, [1, 1]),
+    randomRangeFromPair(rand, config.warmth, [0, 0]),
+  )
+  materials.forEach(material => {
+    const uniforms = material.userData.fishSurfaceUniforms
+    if (!uniforms) return
+    uniforms.noiseOffset.value.copy(offset)
+    uniforms.adjust.value.copy(adjust)
+  })
+}
+
 function animationVariationForCreature(creature) {
   const rand = mulberry32(hashString(`${creature.id ?? creature.species}:animation-variation`))
   const baseSpeed = randomRange(rand, 0.9, 1.1)
@@ -1295,6 +1358,7 @@ function animationVariationForCreature(creature) {
     // Where this fish falls in its species' `meshLengthVariation` range (the bannerfish's
     // banner). Its own stream, so adding it left the draws above unchanged.
     meshLength01: mulberry32(hashString(`${creature.id ?? creature.species}:mesh-length`))(),
+    surfaceSeed: hashString(`${creature.id ?? creature.species}:surface-variation`),
     speeds: {
       idle: baseSpeed,
       slow_cruise: baseSpeed,
@@ -1950,8 +2014,9 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   })
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null, model?.alphaBlend === true)
-  }, [object, rim, lodDebugColor, model])
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null, model?.alphaBlend === true, model?.surfaceVariation)
+    applySurfaceVariation(materialsRef.current, model?.surfaceVariation, animationVariation?.surfaceSeed)
+  }, [object, rim, lodDebugColor, model, animationVariation?.surfaceSeed])
 
   useFrame(({ clock }, rawDelta) => {
     const elapsed = clock.getElapsedTime()

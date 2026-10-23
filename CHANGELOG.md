@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.36.0 — The Shallows and Munk's Devil Ray (in development)
 
-Status: `v0.36.0-dev_2` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
+Status: `v0.36.0-dev_3` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
 
 ### Reserves
 
@@ -21,6 +21,11 @@ Status: `v0.36.0-dev_2` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jerem
 
 - **Munk's Devil Ray** (`mobula-munkiana`), VU: species data from FishBase, the Sharks and Rays profile and Palacios et al. 2021; 0.85–1.1 m across in the reserve. 60 rays in `creatures_dev` (ids 464–523), one school; `schoolSpacingScale` 3.5 so 4 WU rays do not pack into a ball. Swim box ±15 WU (dev_2; ±20 in dev_1): two 42 s samples kept 10+ rays in a 375 px phone's middle strip 100% and 90% of the time; desktop kept all or nearly all 60 in frame.
 - dev_2: Jeremy's model. `scripts/paint-disc-wave-masks.py` (headless Blender) computes the masks from its shape (vertex paint can't paint one channel alone, and his first paint ramped the wing to full by mid-span, which would move the outer wing as a rigid plate), scales the 11 unit model to a 1.3 m disc, centres the origin, and exports JPEG textures (934 KB; alpha measured solid, so it renders opaque). Three material parts (`munks_devil_ray_1`–`_3`). The dev_1 stand-in GLB is removed. Atlas tile and card retaken with it.
+
+### Appearance
+
+- Subtle individual surface variation for the devil-ray school (`dev_3`), so the same top texture reads less like repeated copies: three-octave soft noise fixed to the undeformed body, multiplied into textured linear albedo before lighting; noise strength 0.2, source scale 3. Each ray also gets brightness 0.82–1.12, saturation 0.75–1.2 and a slight warm/cool tint (±0.035). All three material parts use the same individual values.
+- `model.surfaceVariation` opts in; other species and the Atlas specimen stay as authored. A separate `id:surface-variation` seed keeps the values stable across remounts without changing movement or animation draws. Shader cache keys distinguish opt-in from opt-out; individual values are uniforms, so rays share a program. No per-frame variation writes or new textures.
 
 ### Motion
 

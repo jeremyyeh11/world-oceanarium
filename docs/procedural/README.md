@@ -276,3 +276,19 @@ export mistakes at the cheapest possible moment.
   separate objects needs shared bounds first — see [bell-pulse](bell-pulse.md).
 - **Tempo coherence.** `tempo: 'drift'` species cannot share a tank with `cruise` or
   `sprint` species; a dev-only guard warns at `src/utils/speciesLookup.js:52`.
+
+## Individual surface variation
+
+`model.surfaceVariation` opts a tank species into body-fixed albedo variation (first used by
+Munk's devil ray in `v0.36.0-dev_3`). This is independent of motion type. `noise` is the
+multiply strength (ray 0.2); `noiseScale` is in inverse source units (ray 3 per metre).
+`brightness`, `saturation` and `warmth` are min/max pairs (ray [0.82, 1.12], [0.75, 1.2],
+[-0.035, 0.035]). Neutral defaults are 1, 1, 0. Positive warmth raises red and lowers blue.
+
+The shader carries undeformed `position` to the fragment, so the three-octave noise follows
+the skin through motion. It modifies textured linear albedo before lighting. Values are
+chosen once from `id:surface-variation`, shared across a fish's material parts and reapplied
+on material creation; they never consume animation/movement RNG draws. Enabled/disabled
+variants have different program keys; individual values stay uniforms. The Atlas keeps
+the authored specimen without individual variation. Physical-phone fragment cost still
+needs review; no new textures, per-frame allocations or per-frame uniform writes.

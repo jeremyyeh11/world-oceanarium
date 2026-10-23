@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.34.2 — Budgeted environment-loading infrastructure (unreleased)
+
+Status: review build `v0.34.2-dev_1`, branch `feat/budgeted-environment-loader`, #152. Not a clean release; no merge/promotion approval. `v0.34.1` remains reserved for the separate reef-motion PR.
+
+### Loading infrastructure
+
+- Data-driven environment manifests, shared tank/Atlas source ownership, selected-first queue and latest-selection-wins cancellation. Current tank remains mounted during the next destination's source fetch/decode; only one tank Canvas/simulation runs.
+- Bounded idle/pressure-aware speculation, evictable decoded-source cache and mounted-consumer leases. Active/selected assets may exceed targets rather than breaking a displayed scene; accounting is not GPU/process memory.
+- Documented state/navigation hooks for Jeremy's future loading UI. **No new loading UI**, DB writes, fish-count/motion/quality/resolution changes, or claimed physical-phone speedup. Mount-time geometry and GPU work remain distinct from source readiness; see `docs/environment-loading.md`.
+
 ## v0.33.1 — Visitor changelog caught up
 
 Status: clean `v0.33.1` (2026-10-22, branch `fix/changelog-v0.33.0`). `package.json` and `package-lock.json` move to `0.33.1`. From `main` at `v0.33.0`. Jeremy: "why chsngelogs not added".

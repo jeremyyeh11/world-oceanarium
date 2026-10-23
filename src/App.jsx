@@ -8,6 +8,7 @@ import ChangelogModal from './components/ChangelogModal'
 import { BIOMES, TANKS, DEFAULT_TANK_ID } from './data/species'
 import { useCreatures } from './hooks/useCreatures'
 import { useSceneReady } from './hooks/useSceneReady'
+import { useEnvironmentNavigation } from './hooks/useEnvironmentLoading'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { pruneFishRuntime } from './components/fishRuntimeStore'
 import { triggerUiClickSound, useOceanAudio } from './hooks/useOceanAudio'
@@ -61,7 +62,7 @@ function createTankVisitSeed() {
 
 export default function App() {
   const [screen] = useState('tank')
-  const [activeTankId, setActiveTankId] = useState(DEFAULT_TANK_ID)
+  const { mountedId: activeTankId, requestEnvironment, state: environmentLoading } = useEnvironmentNavigation(DEFAULT_TANK_ID)
   const [tankVisitSeed] = useState(() => createTankVisitSeed())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenSupported, setFullscreenSupported] = useState(false)
@@ -91,7 +92,7 @@ export default function App() {
   const creatureData = useCreatures()
   // The tank <Canvas> mounts behind the landing gate on the first render, so the
   // scene is already streaming in while the gate is up. This just reports on it.
-  const { progress: loadProgress, ready: sceneReady } = useSceneReady(creatureData.loading)
+  const { progress: loadProgress, ready: sceneReady } = useSceneReady(creatureData.loading, environmentLoading)
 
   // Persisted swim state (fishRuntimeStore) is keyed by creature id and only ever grows as tanks
   // are visited. When the live data set changes, drop snapshots for creatures that no longer
@@ -516,15 +517,17 @@ export default function App() {
 
   const selectTank = (tankId) => {
     setTankMenuOpen(false)
-    if (tankId === activeTankId) return
+    if (tankId === activeTankId && environmentLoading.requestedId === tankId && environmentLoading.phase !== 'error') return
     triggerUiClickSound()
-    setActiveTankId(tankId)
+    // Keep the current tank mounted while sources prepare. UI for requestedId/phase/error
+    // is intentionally left to Jeremy; see docs/environment-loading.md.
+    requestEnvironment(tankId)
   }
 
   let page = null
 
   if (screen === 'tank' && activeBiome) {
-    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onExitDiverMode={exitDiverMode} onOpenEncyclopedia={openEncyclopedia} />
+    page = <TankView biome={activeBiome} tank={activeTank} creatures={creatureData.creatures} creatureDataLoading={creatureData.loading} creatureDataSource={creatureData.source} creatureDataError={creatureData.error} tankVisitSeed={tankVisitSeed} screenshotMode={screenshotMode} diverMode={diverMode} onExitDiverMode={exitDiverMode} onOpenEncyclopedia={openEncyclopedia} />
   }
 
   return (

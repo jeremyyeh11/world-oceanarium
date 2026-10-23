@@ -1,0 +1,67 @@
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useThree } from '@react-three/fiber'
+import { assetDefinition, ENVIRONMENT_MANIFESTS } from '../loading/environmentManifest.js'
+import { environmentLoader } from '../loading/environmentRuntime.js'
+
+/** Future UI entry point: snapshot is immutable; progress is asset-count based, NOT bytes.
+ * Read phase/error/requestedId; select via navigation.requestEnvironment(id). No UI lives here.
+ */
+export function useEnvironmentLoading() {
+  return useSyncExternalStore(environmentLoader.subscribe, environmentLoader.getSnapshot)
+}
+
+export function useEnvironmentNavigation(initialId) {
+  const [mountedId, setMountedId] = useState(initialId)
+  const state = useEnvironmentLoading()
+  const requestEnvironment = useCallback(async id => {
+    const result = await environmentLoader.select(id)
+    // Latest selection wins. A superseded promise may settle after the newer one.
+    if (result.status === 'assets-ready') {
+      if (!environmentLoader.beginActivation(id)) return { id, status: 'cancelled' }
+      setMountedId(id)
+    }
+    return result
+  }, [])
+  useEffect(() => {
+    requestEnvironment(initialId)
+    const timer = window.setInterval(() => environmentLoader.maintain(), 2000)
+    return () => window.clearInterval(timer)
+  }, [initialId, requestEnvironment])
+  useEffect(() => {
+    if (state.phase !== 'ready') return
+    const index = ENVIRONMENT_MANIFESTS.findIndex(env => env.id === state.activeId)
+    // One likely neighbour only. Future navigation can supply a better intent hint via prefetch().
+    const next = ENVIRONMENT_MANIFESTS[(index + 1) % ENVIRONMENT_MANIFESTS.length]
+    environmentLoader.prefetch(next?.id ?? null)
+  }, [state.activeId, state.phase])
+  return { mountedId, requestEnvironment, state }
+}
+
+export function useEnvironmentSourceLease(kind, urls) {
+  // Stable effect identity for callers that construct texture arrays/objects each render.
+  const signature = JSON.stringify(urls)
+  const assets = useMemo(() => JSON.parse(signature).map(url => assetDefinition(kind, url)), [kind, signature])
+  useLayoutEffect(() => environmentLoader.retain(assets), [assets])
+  return assets
+}
+
+function useSources(kind, urls) {
+  const assets = useEnvironmentSourceLease(kind, urls)
+  return assets.map(asset => environmentLoader.read(asset))
+}
+
+// Owned source cache shared by tanks and Atlas. Consumers lease originals; clones remain local.
+export function useEnvironmentGLTF(url) {
+  return useSources('gltf', [url])[0]
+}
+
+export function useEnvironmentTextures(input) {
+  const gl = useThree(state => state.gl)
+  const object = typeof input === 'object' && !Array.isArray(input)
+  const urls = object ? Object.values(input) : Array.isArray(input) ? input : [input]
+  const textures = useSources('texture', urls)
+  // Match drei's early upload behaviour. Upload happens ONLY in the active renderer.
+  const signature = textures.map(texture => texture.uuid).join(':')
+  useEffect(() => { for (const texture of textures) gl.initTexture?.(texture) }, [gl, signature]) // eslint-disable-line react-hooks/exhaustive-deps
+  return object ? Object.fromEntries(Object.keys(input).map((key, i) => [key, textures[i]])) : Array.isArray(input) ? textures : textures[0]
+}

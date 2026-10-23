@@ -1,10 +1,12 @@
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture } from '@react-three/drei'
+import { useEnvironmentGLTF as useGLTF, useEnvironmentTextures as useTexture } from '../hooks/useEnvironmentLoading'
+import { environmentLoader } from '../loading/environmentRuntime'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { MeshBVH } from 'three-mesh-bvh'
-import { LANDSCAPES, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
+import { landscapeForTank, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
+import { TANKS } from '../data/species'
 import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
@@ -666,15 +668,26 @@ export default function Landscape({ landscape }) {
   )
 }
 
-// Fetch the rock kits with the rest of the tank's assets, so the landing gate's progress
-// covers them and the first visit to a landscaped tank does not pop the rocks in late.
-for (const { kit, corals, staghorn } of Object.values(LANDSCAPES)) {
-  if (!kit) continue
-  useGLTF.preload(kit.path)
-  useTexture.preload(Object.values(kit.textures))
-  for (const coral of [corals, staghorn]) {
-    if (!coral) continue
-    useGLTF.preload(coral.kit.path)
-    useTexture.preload(coral.kit.models.flatMap(model => [model.color, model.normal]))
-  }
-}
+// Only the active landscape and one recent landscape retain derived placements. Source
+// eviction is separate: matrices/BVH/merged rocks are not GLTF-loader cache resources.
+// Retirement happens after the replacement scene's first frame, never during its teardown.
+environmentLoader.onRetire(id => {
+  const landscape = landscapeForTank(TANKS.find(tank => tank.id === id))
+  if (!landscape) return
+  const current = environmentLoader.getSnapshot()
+  if ([current.activeId, current.requestedId].some(active => landscapeForTank(TANKS.find(tank => tank.id === active)) === landscape)) return
+  const disposeGeometry = geometry => { geometry.disposeBoundsTree?.(); geometry.dispose() }
+  const built = BUILT_LANDSCAPES.get(landscape)
+  for (const chunk of built?.result.chunks ?? []) disposeGeometry(chunk.geometry)
+  const placed = new Set([...(built?.result.reefSurfaces ?? []), ...[...(built?.result.coralRocks.values() ?? [])].flat()])
+  for (const geometry of placed) disposeGeometry(geometry)
+  const corals = PLACED_CORALS.get(landscape)
+  const surfaces = corals && CORAL_REEF_SURFACES.get(corals)
+  for (const geometry of surfaces?.geometries ?? []) disposeGeometry(geometry)
+  if (corals) CORAL_REEF_SURFACES.delete(corals)
+  for (const geometry of THICKET_REEF_SURFACES.get(landscape)?.geometries ?? []) disposeGeometry(geometry)
+  BUILT_LANDSCAPES.delete(landscape)
+  PLACED_CORALS.delete(landscape)
+  PLACED_STAGHORN.delete(landscape)
+  THICKET_REEF_SURFACES.delete(landscape)
+})

@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { useEnvironmentGLTF as useGLTF, useEnvironmentSourceLease } from '../hooks/useEnvironmentLoading'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
@@ -701,6 +701,11 @@ function SpeciesModel({ species }) {
   const pose = viewPoseForSpecies(species)
   const cameraPosition = atlasCameraPosition(pose)
   const companions = ATLAS_COMPANIONS_BY_SPECIES[species?.id] ?? []
+  // Lease outside the suspending Canvas subtree: a slow/abandoned model render must
+  // not leave source lifetime dependent on the brief read-to-commit grace window.
+  useEnvironmentSourceLease('gltf', [...new Set([species?.model?.path,
+    ...companions.map(companion => speciesForSex(speciesForLifeStage(species, companion.lifeStage), companion.sex)?.model?.path),
+  ].filter(Boolean))])
 
   return (
     <Canvas camera={{ position: cameraPosition, fov: pose.fov }} dpr={[1, 1.5]} gl={{ preserveDrawingBuffer: true }}>

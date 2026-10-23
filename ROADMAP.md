@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Budgeted environment-loading infrastructure
+
+Status: `Current in development`, `v0.34.2-dev_1`, branch `feat/budgeted-environment-loader`, #152. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.
+
+- [x] Manifest-driven shared-source loading, selected-first queue, latest-wins cancellation and source leases shared with Atlas.
+- [x] Idle/pressure-aware speculative admission, byte/count accounting and retirement of unneeded sources/derived landscape caches.
+- [x] Loading-state/navigation hooks and comments; API, budgets, adding environments, caveats and rollback in `docs/environment-loading.md`.
+- [ ] Finish review and CI/deployed preview gates.
+- [ ] Physical-phone cold/warm/rapid-switch and memory/appearance review; no claimed phone speedup.
+- [ ] Jeremy/YK approval before clean promotion or merge.
+
+Separate follow-ups: loading UI (Jeremy), mount-time geometry preparation/worker decoding, and steady rendering/Atlas performance. These are not silently included in this infrastructure patch.
+
 ### Humphead Wrasse females
 
 Status: shipped in clean `v0.34.0` (2026-10-22, from `v0.34.0-dev_1`, branch `feat/humphead-wrasse-female`, #151). `Archive candidate`. Jeremy's female model, the second model planned when the male shipped.

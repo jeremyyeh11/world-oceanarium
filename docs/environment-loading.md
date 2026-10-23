@@ -1,0 +1,84 @@
+# Budgeted environment loading
+
+Review branch: `feat/budgeted-environment-loader`; target `v0.34.2-dev_1` (not a clean release).
+
+## Intention and scope
+
+The current ocean should keep swimming while the next location's source assets prepare. More environments should not mean more simultaneously running tanks, an all-assets startup download, or an unbounded decoded-asset cache.
+
+**No new loading UI is implemented.** Jeremy owns that design. Existing landing/tank buttons remain; the controller exposes state and actions for the future element. No fish-count, movement, material-quality, water, resolution, data-source, or database changes.
+
+This is loading infrastructure, not a claim that the reported phone first-entry delay or steady FPS is solved. GLTF parsing, image decoding and GPU work are different costs.
+
+## Files and responsibilities
+
+- `src/loading/environmentManifest.js`: data-driven catalog from `TANKS`, `SPECIES` model/sex/life-stage variants and landscape kits/maps. Source keys are `kind:url`; shared assets appear once per manifest and once in the cache.
+- `src/loading/environmentLoader.js`: React/Three-independent queue, priority, cancellation, lifecycle, accounting and observable state. Injected adapter/clock/idle scheduler make it deterministic to test.
+- `src/loading/environmentAssetAdapter.js`: abortable fetch; GLTF parsing with Draco/Meshopt support; texture decode; resource accounting/disposal. GLTF results retain `scene`, `animations`, `nodes`, `materials`, etc.
+- `src/loading/environmentRuntime.js`: one browser controller, idle admission, visibility/save-data/frame-pressure hints, HMR cleanup.
+- `src/hooks/useEnvironmentLoading.js`: navigation, immutable external-store snapshot, source hooks and mounted-consumer leases. Tanks and Atlas must share these hooks instead of creating independent global Drei preload caches.
+- `TankView.WarmScene`: shader compilation on the existing renderer, then first-submitted-frame acknowledgement. Never create a second Canvas/tank for prefetch.
+- `Landscape.jsx`: derived merged-geometry/placement caches retire separately from GLTF sources when an environment drops out of the active/recent pair.
+
+## Lifecycle and UI contract
+
+`useEnvironmentNavigation(initialId)` is instantiated once by `App`. It returns:
+
+```js
+const { mountedId, requestEnvironment, state } = useEnvironmentNavigation(initialId)
+```
+
+Pass `requestEnvironment` to the future selector/loading element. Other UI components can read the same state with `useEnvironmentLoading()`; **do not instantiate a second navigation owner** just to show progress.
+
+State fields:
+
+- `activeId`: environment whose first frame was last acknowledged. During activation this can differ from `mountedId`.
+- `requestedId`: latest requested destination, not necessarily displayed yet.
+- `phase`: `idle` → `loading` → `assets-ready` → `activating` → `ready`; failures produce `error`.
+- `error`: plain message or `null`. A failed switch leaves the previous tank mounted. Repeating `requestEnvironment(id)` retries failed source loads.
+- `environments[id]`: `{ id, loaded, total, progress, assetsReady }`. `progress` is 0–1 by **completed source asset count**, not byte transfer or total loading time. Never label 100% as “scene ready”: construction, uploads and shader compilation can remain.
+- `prefetchId`: the one speculative destination, or `null`. It may be only partially prepared.
+- `cachedBytes`, `cachedAssets`, `overBudget`: controller accounting, **not measured process/GPU memory**.
+
+`requestEnvironment(id)` resolves `{ id, status }`, where status is `assets-ready`, `cancelled`, or `error` (errors also include `error`). Unknown IDs are programmer errors. A superseded selection cannot activate later. `assets-ready` means navigation can mount the target; observe `phase === 'ready'` for first-frame acknowledgement.
+
+The current tank is not replaced during source fetch/decode. After those complete, navigation mounts the target in the **same Canvas** and `WarmScene` compiles its shader variants (async where supported). A following RAF acknowledges that a frame was submitted. This is not a physical display/presentation timestamp. A cold target can still hitch during construction/upload; there is no retained screenshot/crossfade/loading overlay in this patch. Do not interpret `assets-ready` as a promise of a seamless first frame.
+
+The existing landing gate now observes the selected manifest and its first frame, not `THREE.DefaultLoadingManager`: speculative requests must never re-lock the landing gate. The existing 15-second escape remains. Failed initial manifest loads do not mount source-consuming `Biome` components; a future UI can retry without intentionally throwing that fetch error through the Canvas.
+
+## Priorities, pressure and limits
+
+Defaults live in `createEnvironmentLoader` and can be overridden at construction:
+
+- Selected destination first, then active/mounted source consumers, then speculative work.
+- At most **3** source tasks concurrently; background tasks start **one at a time** and only after foreground tasks finish.
+- After the active first frame, choose the next catalog neighbour as a simple default hint. No per-Reef eager preload block. A better future intent signal can call `environmentLoader.prefetch(id)`; `prefetch(null)` cancels speculation. The default neighbour is re-applied on a new ready transition, not every progress update.
+- Speculative starts and post-network decode admission both wait for idle. A slow frame (>40 ms) suppresses new background admission for 1.5 seconds; hidden pages and `navigator.connection.saveData` suppress it too. Already-running decode cannot always be interrupted. Browsers without idle callbacks use a conservative delayed fallback; it is not a hard frame-time guarantee.
+- Accounted decoded-source cache target: **192 MiB**, at most **80** resident/in-flight source assets. Per-visit speculative estimated admission: **64 MiB**. Default per-asset estimate: **16 MiB**, deliberately conservative and overridable on a manifest descriptor. Speculation may stop after a partial manifest; there is no promise to fully warm an arbitrarily large environment.
+- Active, selected and mounted-consumer sources are pinned. **An oversized active environment may exceed the target**; the loader reports this instead of breaking a displayed scene. These limits do not make an oversized scene fit a low-memory phone.
+- Prefer one recent environment's sources; older/unneeded unleased sources retire LRU-first, and even recent sources may be evicted under the byte/count target. HTTP browser cache remains browser-managed; this controller bounds its own decoded cache, not browser HTTP storage.
+- Source hooks include a brief read-to-commit grace window for suspended React renders. Mounted consumers take real leases. Atlas can pin a shared fish even after its old tank retires; closing Atlas releases that lease.
+- A new selection cancels obsolete speculative/queued work, promotes shared pending work, and discards/disposes obsolete results that finish after cancellation. Fetch is abortable; GLTF/image decode is not assumed abortable. Already-active resources are never evicted just to satisfy a speculative budget.
+
+Accounting counts geometry backing buffers and decoded RGBA/mip estimates. It excludes cloned/per-fish geometry/materials, derived terrain/BVHs, renderer render targets/programs, common HDR, transient response buffers/decoder scratch, browser caches and driver allocations. Resource disposal is a lifecycle operation, not proof of immediate memory return. Derived landscape caches have a separate active/recent retention policy; lightweight fish snapshots remain in the existing runtime store.
+
+## Adding an environment
+
+1. Declare its species in `SPECIES`, curate it in `TANKS`, and attach a landscape using the existing data layer. Current GLB/texture dependencies are collected automatically, including sex/life-stage variants.
+2. If introducing a new dependency type (audio, a new texture role, external GLTF sidecars, a renderer-owned resource), extend the manifest collector and adapter explicitly; do not hide a module-scope `useGLTF.preload` inside a scene component. Current shipped GLBs are embedded/self-contained; sidecar request ownership/accounting is not implemented.
+3. Use `useEnvironmentGLTF` / `useEnvironmentTextures` for source consumers, including future Atlas views. Clone mutable per-instance data as before; do not dispose the controller-owned original from a consumer.
+4. Supply better `estimatedBytes` metadata when tuning admission for large assets. Changing budgets is a measured device-policy choice, not a claim that one setting fits all phones.
+5. Extend deterministic tests and test actual cold/warm switches, rapid selection, failure/retry, Atlas overlap and resource retirement on-device.
+
+## Remaining preparation work
+
+- Network and source parse/decode preparation are integrated now. GLTF parse/image decode can still create an indivisible main-thread task even when admitted at idle. Moving suitable decoding to workers or changing asset packaging is a separate measured change.
+- Existing rock merges and coral/staghorn placement still happen when the target mounts; the existing sliced coral placement hook is retained. This patch does not claim all geometry is background-built. A future preparation adapter can feed those existing caches incrementally without mounting/running another tank.
+- Shader compilation and uploads remain renderer-specific. `compileAsync` is not equivalent to uploading every texture or guaranteeing a presented frame. Common HDR stays owned by Drei's environment hook.
+- Freezing a tank under a fully covering Atlas, native Atlas scrolling, adaptive resolution, texture compression and water/reef rendering optimization are separate scopes—not implemented here.
+
+## Verification and rollback
+
+`npm test` runs scheduler regressions covering selection priority, latest-wins, abort/late disposal, shared leases, budgets, pressure/idle gating, decode promotion, error/retry, source Suspense, retirement and future manifest registration. Existing Node/Python/asset/lint/build gates remain required. Browser smoke and physical-phone measurements are separate gates; software-renderer timings are not mobile performance evidence.
+
+Rollback is the feature commit(s): restore the former source hooks/module preloads, direct tank selection and landing readiness together. Do not mix cache owners or roll back only the eviction side of this lifecycle.

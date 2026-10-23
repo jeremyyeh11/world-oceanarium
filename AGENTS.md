@@ -33,6 +33,7 @@ Important paths:
 - `src/components/Biome.jsx` — renders a tank's curated creature assemblage (see `docs/tank-design.md`)
 - `src/components/TankView.jsx` — tank UI, debug mode, follow selection, controls
 - `src/hooks/useCreatures.js` — Supabase/local creature source routing
+- `src/loading/`, `src/hooks/useEnvironmentLoading.js` — budgeted environment/source lifecycle and future loading-UI contract; read `docs/environment-loading.md` before adding preload/cache owners
 - `src/hooks/useOceanAudio.js` — Web Audio graph and SFX
 - `src/data/species.js` — species templates (incl. `tempo`), `TANKS` curation layer, biological facts
 - `src/utils/speciesLookup.js` — species/tank lookups, `creaturesForTank`, dev coherence guard

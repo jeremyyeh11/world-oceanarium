@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.36.0 — The Shallows and Munk's Devil Ray (in development)
 
-Status: `v0.36.0-dev_4` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
+Status: `v0.36.0-dev_5` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
 
 ### Reserves
 
@@ -24,6 +24,7 @@ Status: `v0.36.0-dev_4` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jerem
 
 ### Appearance
 
+- Replaces the ray's embedded `top` base-colour image with Jeremy's darker dorsal photograph (`mexican-fish (3).jpg`, dev_5), at its full 1433 x 1098 resolution as quality-94 JPEG. The same silhouette/framing fits the existing UVs. Bottom/side images, geometry, motion masks and material definitions retain their original data.
 - Individual surface variation for the devil-ray school, strengthened in `dev_4` after review found the first pass barely visible, so the same top texture reads less like repeated copies: three-octave soft noise fixed to the undeformed body, multiplied into textured linear albedo before lighting; noise strength 0.65, source scale 3. Each ray also gets brightness 0.65-1.3, saturation 0.6-1.25 and a warm/cool tint (+/-0.08). All three material parts use the same individual values.
 - `model.surfaceVariation` opts in; other species and the Atlas specimen stay as authored. A separate `id:surface-variation` seed keeps the values stable across remounts without changing movement or animation draws. Shader cache keys distinguish opt-in from opt-out; individual values are uniforms, so rays share a program. No per-frame variation writes or new textures.
 

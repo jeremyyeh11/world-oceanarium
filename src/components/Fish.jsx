@@ -3220,11 +3220,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         if (rockUrgency > 0) turnStep = Math.max(turnStep, openWaterTurnStep * (1 + 2 * rockUrgency))
         const boundaryRecoveryActive = isSoloAgent
           && (boundaryContacts.current !== 0 || turnStep > openWaterTurnStep + 1e-9)
-        // A reef fish setting off for a site behind it also comes round on its turning circle. The
-        // ordinary lerp turn slows toward zero as the target goes astern (at 170° it turns at 6% of
-        // the rate), so it swam on away from the rock and the first progress check gave the site up
-        // (measured 2026-10-19: 41% to 55% of the trips that set off with the entry 120° or more
-        // behind, against 3% to 5% of the rest).
+        // A reef fish travelling to a site behind it (mostly as it sets off) also comes round on its
+        // turning circle. The ordinary lerp turn slows toward zero as the target goes astern (at 170°
+        // it turns at 6% of the rate), so it swam on away from the rock and the first progress check
+        // gave the site up (measured 2026-10-23: 43% of the trips that set off with the entry 120° or
+        // more behind; 9% with this turn).
         const reefTurningBack = agentBehavior.current?.type === 'reef' && reefRef.current.stage === 'travel'
         if (escapeActive) {
           // Escape arc: carve round on the startle turning circle at a true angular rate, so even a

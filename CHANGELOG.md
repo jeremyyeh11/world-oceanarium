@@ -10,19 +10,25 @@ Versioning convention notes:
 
 ## v0.34.1 — Reef fish reach their rocks
 
-Status: in development as `v0.34.1-dev_1` (branch `fix/reef-trip-abandons`, rebased onto `main` at `v0.34.0` on 2026-10-23; first built as `v0.30.2-dev_1`). The ROADMAP item from `v0.30.1-dev_1`: about 40% of reef fish trips to a site were given up on the way, on rock and coral alike.
+Status: in development as `v0.34.1-dev_2` (branch `fix/reef-trip-abandons`, rebased onto `main` at `v0.34.0` on 2026-10-23; first built as `v0.30.2-dev_1`). The ROADMAP item from `v0.30.1-dev_1`: about 40% of reef fish trips to a site were given up on the way, on rock and coral alike.
 
 ### Behaviour
 
 - Cause, logged per trip on desktop at The Reefs (2026-10-19): a third of trips set off with the site's entry 120° or more behind the fish, and the ordinary turn is a normalised lerp, which slows as the target goes astern (6% of its rate at 170°, none at 180°). A fish 160° to 180° off its entry turned only 2° to 15° in the first 3 s, swam on away from the rock, and the 3 s progress check gave the site up: 41% to 55% of those trips, against 3% to 5% of the rest. The median trip given up at the check set off 163° off the entry; the median trip that settled, 84°. Boid forces were not it (capped at 0.25 for these species, with no alignment or cohesion), and rock detours accounted for few of the drops before the fix.
-- Fix: on a reef trip, a fish whose entry is more than about 105° behind it comes round on its own turning circle at its full turn rate (`reefTurningBack` in Fish.jsx: the true arc of `yawToward`, as escapes and wall recoveries already do). The first 3 s progress window and the travel time now start after the time that turn takes: the angle off the entry over the turn rate at cruise (`turnSeconds` in reefBehavior.js). A U-turn takes an adult emperor angelfish 2 to 5 s, the grouper about 8 s.
+- Fix: on a reef trip, a fish whose entry is more than about 105° behind it (mostly as it sets off) comes round on its own turning circle at its full turn rate (`reefTurningBack` in Fish.jsx: the true arc of `yawToward`, as escapes and wall recoveries already do). The first 3 s progress window and the travel time now start after the time that turn takes: the angle off the entry over the turn rate at cruise (`turnSeconds` in reefBehavior.js). A U-turn takes an adult emperor angelfish 2 to 5 s, the grouper about 8 s.
 - Long trips: the travel time cap goes from 45 s to 120 s (`TRAVEL_MAX_SECONDS`; still twice the straight swim plus 8 s). Young emperor angelfish (8 to 14 cm) moving to a new home 28 to 54 WU away, 60 to 160 of their lengths, need 50 to 100 s. At 45 s the trip ran out part-way, and half the time the next decision sent the fish off another way.
-- Measured on desktop at The Reefs, patrols left out, the changes switched off and on in alternating blocks of one session:
+- Measured on `v0.30.1` code (2026-10-19, desktop, The Reefs), patrols left out, the changes switched off and on in alternating blocks of one session:
   - turn and window alone (about 8 minutes each way): 65% of 401 trips settled (rock 71%, coral 59%), 19% given up at the progress check → 79% of 483 (rock 80%, coral 77%), 6%;
   - with the 120 s cap too (about 7 minutes each way): 62% of 390 settled (rock 64%, coral 61%), 25% given up on the way → 84% of 377 (rock 83%, coral 85%), 5%, with no timeouts left;
   - patrols reaching their face: 54% → 84%. Settled by species: young emperor angelfish 68% → 85%, adults 49% → 80%, bannerfish 62% → 80%, clown triggerfish 71% → 88%, grouper 51% → 88%.
-- At the rock: no pops (a frame's step over four times the last) in travel, settling, holding, pecking or leaving, either way. Trips shivering while steering round a rock (10 or more quick heading flips, over 2° a frame each way): 20 of 486 before, 20 of 414 after.
-- What is left: the progress check while steering round a rock to a site on its far side (4% of trips), a cleaner going to follow the sunfish (about 7%), and a pair follower going back to its mate or a startle (about 3%).
+  - at the rock: no pops (a frame's step over four times the last) in travel, settling, holding, pecking or leaving, either way.
+- Measured again after rebasing onto `v0.34.0` (2026-10-23), which brought #138's pinches, #144's rock steering, the raccoon butterflyfish and the humphead wrasse. Desktop, The Reefs, `creatures_dev`: 24 emperor angelfish, 12 bannerfish, 3 clown triggerfish, 3 groupers, 3 humphead wrasse, 20 raccoon butterflyfish, 18 pilot fish, the sunfish. Alternating 3-minute blocks (off, on, on, off, off, on, on, off) after a dropped 2.5-minute warm-up, 12 minutes each way, patrols left out:
+  - settled 64% of 960 → 79% of 834 (rock 68% → 82%, coral 59% → 77%); given up on the way 24% → 9% (at the progress check 20% → 5%, timeouts 3% → 0, pinches 1% → 2%); called off by a ride 12% either way;
+  - trips setting off 120° or more off the entry (a third either way): given up at the check 43% → 9%, settled 42% → 71%;
+  - patrols reaching their face 59% → 77%. Settled by species: emperor angelfish 67% → 83%, bannerfish 54% → 77%, raccoon butterflyfish 57% → 66%, clown triggerfish 74% → 96%, groupers 67% → 91%, humphead wrasse 69% → 96%;
+  - heading flips (over 2° a frame each way), patrols included: trips with 10 or more 25 of 1307 → 36 of 1100, with 30 or more 2 → 8. 15 of the 36 came in one block; one clown triggerfish patrol made 108 flips in 6 s before the pinch give-up. Not yet explained;
+  - pops: none off; 42 on, all in that same block and all but one from fish not on a reef trip (six raccoon butterflyfish, a humphead wrasse at 0.52 WU, a grouper). The changes act only on reef trips; the cause was not traced.
+- What is left: 5% of trips still given up at the progress check (on `v0.30.1` code mostly sites round the far side of a rock; not re-checked since #144); 12% called off when the fish goes to ride (a cleaner to the sunfish, a pair follower to its mate); the flips and the pops above.
 
 ## v0.33.1 — Visitor changelog caught up
 

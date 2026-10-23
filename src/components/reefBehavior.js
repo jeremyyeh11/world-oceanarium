@@ -119,9 +119,16 @@ const ENTRY_MIN = 1.5
 const SETTLE_START_ENTRIES = 1.6
 const SETTLE_CHECK_INTERVAL = 0.25
 // Travelling, it must close at least this many body lengths on the entry point every so many
-// seconds, or it gives the site up.
+// seconds, or it gives the site up. The first window opens once it has had time to turn toward
+// the entry (see startReefBehavior).
 const TRAVEL_PROGRESS_SECONDS = 3
 const TRAVEL_PROGRESS_BODY_LENGTHS = 0.5
+// Travel time: twice the straight swim at cruise plus 8 s, within these bounds. The cap was 45 s,
+// too short for a young angelfish (8 to 14 cm) moving to a new home across the reef: 28 to 54 WU,
+// 60 to 160 of its lengths, takes it 50 to 100 s, so the trip ran out part-way, and half the time
+// the next decision sent it off another way (measured 2026-10-19).
+const TRAVEL_MIN_SECONDS = 10
+const TRAVEL_MAX_SECONDS = 120
 // Faces by normal y: sides and gentle tops for hovering and pecking, undersides too for shelter.
 const FACE_NORMAL_Y = { patrol: [-0.3, 0.7], hover: [-0.25, 0.55], peck: [-0.25, 0.55], shelter: [-0.7, 0.55] }
 const SHELTER_MIN_ENCLOSURE = 0.35
@@ -303,8 +310,10 @@ function rotateToward(current, target, maxAngle) {
 
 /**
  * Choose and start a reef behaviour. ctx: { bodyLength, region, contains, position, rand, now,
- * cruiseSpeed, home (optional Vector3: a pair follower stays by its mate) }. Returns 'started',
- * 'busy' (another fish searched this frame: try again next frame) or 'none'.
+ * cruiseSpeed, home (optional Vector3: a pair follower stays by its mate), forward and turnRate
+ * (optional: the heading, and how fast it turns at cruise in rad/s, to time the turn toward the
+ * site) }. Returns 'started', 'busy' (another fish searched this frame: try again next frame) or
+ * 'none'.
  */
 export function startReefBehavior(reef, profile, ctx) {
   if (!hasReefSurfaces()) return 'none'
@@ -404,10 +413,17 @@ export function startReefBehavior(reef, profile, ctx) {
   reef.outward.copy(reef.site.outward)
   reef.stageStartedAt = ctx.now
   const distance = ctx.position.distanceTo(reef.site.entry)
-  reef.travelUntil = ctx.now + THREE.MathUtils.clamp(distance / Math.max(0.05, ctx.cruiseSpeed) * 2 + 8, 10, 45)
+  // A fish facing away from the entry first swims round its turning circle (Fish.jsx turns it on
+  // the true arc), drifting no closer meanwhile: the travel time and the first progress window
+  // allow for that turn.
+  const turnSeconds = ctx.forward && ctx.turnRate > 0
+    ? ctx.forward.angleTo(scratch.subVectors(reef.site.entry, ctx.position)) / ctx.turnRate
+    : 0
+  reef.travelUntil = ctx.now + turnSeconds
+    + THREE.MathUtils.clamp(distance / Math.max(0.05, ctx.cruiseSpeed) * 2 + 8, TRAVEL_MIN_SECONDS, TRAVEL_MAX_SECONDS)
   reef.nextClearCheckAt = ctx.now
   reef.progressDistance = distance
-  reef.progressCheckAt = ctx.now + TRAVEL_PROGRESS_SECONDS
+  reef.progressCheckAt = ctx.now + turnSeconds + TRAVEL_PROGRESS_SECONDS
   return 'started'
 }
 

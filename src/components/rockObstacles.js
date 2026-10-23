@@ -42,6 +42,12 @@ const SIDE_BAND = 0.25
 const SIDE_FLOOR = 0.5
 // The push off a rock the fish is brushing comes on over this much depth (as summedHit measures it).
 const TOUCH_ONSET = 0.1
+// steerAroundRocks keeps to the side the fish is going round while the heading is within this of
+// head-on to the face (the squared sine of the angle off its normal: 45°). At 30° the two walls of
+// a V of rocks, each about 34° off a heading into its crease, still sent the fish their own ways
+// in turn; at 60° fish took longer ways round and flicked more (a test of 84 runs at a V and at
+// single rocks: 3743 flips without the hold, 43 at 45°, 169 at 60°).
+const HEAD_ON_SIDE_HOLD = 0.5
 
 let field = null
 // Set by pushOutOfRocks, read back with pinchedLastPush and startedInsideLastPush.
@@ -49,6 +55,8 @@ let pinched = false
 let startedInside = false
 // Set by summedHit: how far the pads' normals agree (1 for one pad, 0 where they cancel).
 let summedAgreement = 0
+// Set by steerAroundRocks, read back with rockBendSide.
+let bendSide = 0
 
 const local = new THREE.Vector3()
 const probe = new THREE.Vector3()
@@ -397,24 +405,34 @@ export function rockPad(bodyLength) {
 // `lookAhead` false skips the probe and keeps only the push off rocks it is brushing: for a fish
 // held at a pinch (pushOutOfRocks), which is not going anywhere, and whose probe, ahead into the
 // gap, would only slide it on along the gap.
-export function steerAroundRocks(desired, position, forward, bodyLength, speed, lookAhead = true) {
+//
+// `side` (+1 turning toward increasing yaw, -1 the other way, 0 none) is the way the fish is
+// already going round: within HEAD_ON_SIDE_HOLD of head-on the bend keeps to it (read the side
+// taken back with rockBendSide). Nosing into the crease between two rocks with its destination
+// straight past it, which way round was a coin toss each frame: the heading's own 2° to 3° step
+// tipped it, and the fish shivered there, its heading flipping every frame.
+export function steerAroundRocks(desired, position, forward, bodyLength, speed, lookAhead = true, side = 0) {
+  bendSide = 0
   if (!hasRockObstacles()) return 0
   const pad = rockPad(bodyLength)
   const reach = Math.max(bodyLength * 3, speed * 1.5, 3) + pad
   let urgency = 0
   let weight = 0
+  let lateral = 0
   avoid.set(0, 0, 0)
   for (const t of lookAhead ? PROBE_STEPS : NO_PROBE_STEPS) {
     probe.copy(position).addScaledVector(forward, reach * t)
     const strength = feltHit(probe, pad, PROBE_FEEL_ANGLE * reach * t / 2, position, normal)
     if (strength <= 0 || normal.lengthSq() < 1e-12) continue
     normal.normalize()
-    // Slide along the surface: drop the into-rock part of the heading. Head-on, pick the
-    // side the desired heading already leans to, or turn right by default.
+    // Slide along the surface: drop the into-rock part of the heading. Head-on, keep to the side
+    // it is already going round, else pick the side the desired heading already leans to, or
+    // turn right by default.
     tangent.copy(forward).addScaledVector(normal, -forward.dot(normal))
-    if (tangent.lengthSq() < 0.04) {
+    const offHeadOn = tangent.lengthSq()
+    if (offHeadOn < 0.04 || (side !== 0 && offHeadOn < HEAD_ON_SIDE_HOLD && turnSign(forward, tangent) !== side)) {
       tangent.crossVectors(UP, normal)
-      if (tangent.dot(desired) < 0) tangent.negate()
+      if (side !== 0 ? turnSign(forward, tangent) !== side : tangent.dot(desired) < 0) tangent.negate()
     }
     tangent.normalize()
     const stepUrgency = Math.min(1, strength * ((1 - t) * 0.8 + 0.2) + feltDepth * 0.6)
@@ -423,8 +441,10 @@ export function steerAroundRocks(desired, position, forward, bodyLength, speed, 
     const w = stepUrgency * stepUrgency
     avoid.addScaledVector(tangent, w).addScaledVector(normal, 0.6 * w)
     weight += w
+    lateral += w * turnSign(forward, tangent)
     urgency = Math.max(urgency, stepUrgency)
   }
+  bendSide = Math.sign(lateral)
   if (weight > 0) desired.addScaledVector(avoid, 2.5 * urgency / weight)
   // Already brushing a rock: push straight off it as well, coming on over the first of the padding.
   const touching = summedHit(position, pad * 1.25, normal)
@@ -503,6 +523,17 @@ export function startedInsideLastPush() {
 // there).
 export function pinchedLastPush() {
   return pinched
+}
+
+// Which way round the last steerAroundRocks call bent the heading: +1 toward increasing yaw, -1
+// the other way, 0 when it felt no rock ahead.
+export function rockBendSide() {
+  return bendSide
+}
+
+// +1 if `to` lies toward increasing yaw from `from` (atan2(x, z)), -1 the other way.
+function turnSign(from, to) {
+  return Math.sign(from.z * to.x - from.x * to.z)
 }
 
 // Targets: whether a candidate falls inside a rock (padded generously for the body).

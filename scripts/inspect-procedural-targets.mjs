@@ -52,6 +52,15 @@ const targets = [
     minVertices: 3000,
   },
   {
+    // Stand-in until Jeremy's model lands (scripts/build-devil-ray-placeholder.mjs).
+    name: "Munk's Devil Ray disc-wave stand-in",
+    path: 'public/models/fish/mobula-munkiana/mobula-munkiana_placeholder.glb',
+    staticMesh: true,
+    bodyMeshNames: ['devil-ray-placeholder'],
+    requiredBodyAttributes: ['color_1'],
+    minVertices: 3000,
+  },
+  {
     name: 'Whale Shark static parts',
     path: 'public/models/fish/rhincodon-typus/rhincodon-typus.glb',
     staticMesh: true,

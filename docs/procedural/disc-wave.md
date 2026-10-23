@@ -1,14 +1,16 @@
 # disc-wave
 
-Shader type: `disc-wave-vertex` (proposed) · Status: **Proposed — not implemented**
+Shader type: `disc-wave-vertex` · Status: **Proposed — runtime on a stand-in, not yet validated against a supplied asset**
 
 A travelling wave along a continuous lateral margin. The body is a disc or a mantle;
 thrust ripples down its edge from front to back.
 
 Read [README.md](README.md) first for the rules shared by every type.
 
-> Starting convention only. No runtime code exists. Expect the first asset to change
-> it.
+> The mobuliform sub-mode below runs in `src/components/Fish.jsx` (`applyFishLightMask`,
+> `discWingLift`) on a generated stand-in, `scripts/build-devil-ray-placeholder.mjs`
+> (2026-10-23). The rajiform sections further down are still a starting convention.
+> Promote to Implemented once Jeremy's model has been checked against it.
 
 ## First animal: Munk's devil ray (approved by Jeremy 2026-10-23)
 
@@ -127,11 +129,26 @@ offset.y = sin(phase - G * waveTravel) * amplitude * ramp(R) * speedStroke
 - Normals need the analytic slope correction, as in [caudal-wave](caudal-wave.md);
   a large flat surface shows unlit deformation immediately.
 
-## Config keys (proposed)
+## Config keys
 
-`type`, `bodyMeshNames`, `amplitude`, `waveSpeed`, `waveTravel`, `marginRampPower`,
-`tailAmplitude`, `turnStrength`, `burstAmplitude`, `response`, `idleAmplitudeFloor`,
-`speedFrequencyBoost`, `burstFrequencyBoost`.
+As implemented (`proceduralAnimation` in `species.js`; lengths in source units, 1 = 1 m):
+
+- `type: 'disc-wave-vertex'`, `bodyMeshNames`.
+- `amplitude` — wingtip lift either side of level at full cruise.
+- `waveSpeed` — radians of beat per second at rest; `speedFrequencyBoost`,
+  `burstFrequencyBoost` raise it with speed and bursts (integrated clock, README).
+- `waveTravel` — radians of wave across the chord (G). Under about 0.8 flaps; several
+  radians ripple.
+- `spanLag` — radians the wingtip trails the wing root (R), so the wing curls.
+- `downFraction` — share of the beat spent on the downstroke (the power stroke).
+- `marginRampPower` — exponent on R, so the body stays rigid and the tips move most.
+- `idleAmplitudeFloor` — share of the stroke kept at rest.
+- `burstAmplitude`, `turnStrength` (outer wing beats harder), `response` (turn damping).
+- `heave` — the body's dip against the wings, as a share of the stroke.
+- `tailAmplitude` — the tail's trailing lift (B) and its lean into turns.
+
+The shader takes the wing span (where R starts rising, and the tip) from the paint once
+per model, for the normals' slope.
 
 `idleAmplitudeFloor` is specific to this type and matters: it is what stops a resting
 ray from freezing solid.

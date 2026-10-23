@@ -22,7 +22,9 @@ Subtasks:
 - [x] Size: 5.2 WU at 130 cm across; `sizeRange` 0.65–0.85 keeps the tank's rays at 0.85–1.1 m (3.4–4.4 WU).
 - [x] Motion proposal: mobuliform `disc-wave` (wings beat together, under one wavelength across the chord, tips lag the root via a new `spanLag`, downstroke faster than the upstroke), with the Blender contract, in `docs/procedural/disc-wave.md`. Not foil-flap: the wing has no shoulder joint.
 - [x] Jeremy approved the motion proposal (2026-10-23).
-- [ ] Shader: `disc-wave-vertex` in `src/components/Fish.jsx`, mobuliform config, verifier entry, README index status.
+- [x] Shader: `disc-wave-vertex` in `src/components/Fish.jsx` with the mobuliform config, on a generated stand-in (`scripts/build-devil-ray-placeholder.mjs`, 3379 vertices, 1.3 m disc), verifier target (2026-10-23). Checked in the Atlas locally: wings beat together, the tip trails the mid-wing, downstroke about 43% of the beat.
+- [ ] Glides: devil rays sometimes glide between beats; the beat is continuous for now. Revisit with the school in the reserve.
+- [ ] Swap the stand-in for Jeremy's GLB (path, `bodyMeshNames`, verifier target), check the paint, then promote `disc-wave.md` to Implemented.
 - [ ] Jeremy: model to the contract in `docs/procedural/disc-wave.md` (one mesh, nose −Z, 1 raw = 1 m across the disc, grid quads in the wings, `COLOR_1` R/G/B masks).
 - [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.

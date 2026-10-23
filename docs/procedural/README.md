@@ -25,7 +25,7 @@ that type's doc.
 | [mask-fin-row](mask-fin-row.md) | Rigid body, painted fins rowing from fixed roots | Giant Sunfish; Clown Triggerfish (balistiform variant: rippling fins) | Implemented |
 | [bell-pulse](bell-pulse.md) | Contract-and-glide jet propulsion | Jellyfish, salps | Proposed |
 | [foil-flap](foil-flap.md) | Paired oscillating foils on a rigid body | Sea turtles, penguins, sea lions | Proposed |
-| [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Rays, skates, cuttlefish | Proposed |
+| [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Munk's Devil Ray (mobuliform, on a stand-in); skates, stingrays, cuttlefish | Proposed (runtime on a stand-in) |
 | [limb-step](limb-step.md) | Limb cycling under a rigid carapace | Crabs, walking lobsters | Proposed |
 | [pleopod-beat](pleopod-beat.md) | Metachronal swimmeret wave | Prawns, shrimp, krill | Proposed |
 

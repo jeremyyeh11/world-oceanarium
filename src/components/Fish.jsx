@@ -597,6 +597,30 @@ function molaFinBases(geometry, frame) {
   return result
 }
 
+const discWaveSpanCache = new WeakMap()
+
+// disc-wave-vertex's wing span, read once per model from its paint: from where the span weight
+// (COLOR_1 R) starts rising off the body to the wingtip, in |x|. The shader's normals take the
+// weight's slope across the span from it.
+function discWaveSpan(geometry) {
+  const cached = discWaveSpanCache.get(geometry)
+  if (cached) return cached
+  const color = geometry.getAttribute('color_1')
+  const position = geometry.getAttribute('position')
+  let start = Infinity
+  let end = 0
+  if (color && position) {
+    for (let index = 0; index < position.count; index += 1) {
+      const x = Math.abs(position.getX(index))
+      end = Math.max(end, x)
+      if (color.getX(index) > 0.02) start = Math.min(start, x)
+    }
+  }
+  const span = new THREE.Vector2(Number.isFinite(start) ? start : 0, Math.max(end, 0.0001))
+  discWaveSpanCache.set(geometry, span)
+  return span
+}
+
 // Folding spines (`spineFold`): the model's own shape key for the folded spines, a glTF morph
 // target, weighted per fish (1 folded, 0 open as modelled). Every mesh carrying the target, with
 // its index; each starts folded (the Atlas keeps it so).
@@ -676,7 +700,27 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       }
     })(),
   } : null
-  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms
+  // disc-wave-vertex (docs/procedural/disc-wave.md): a ray's wings beat up and down together,
+  // the wave travelling front to back across the chord and the tips lagging the root. Lengths
+  // are in the model's source units (1 = 1 m by the contract).
+  const discWaveUniforms = proceduralVertex?.type === 'disc-wave-vertex' && proceduralBounds ? {
+    phase: { value: 0 },
+    speed: { value: 0 },
+    turn: { value: 0 },
+    burst: { value: 0 },
+    amplitude: { value: proceduralVertex.amplitude ?? 0.2 },
+    waveTravel: { value: proceduralVertex.waveTravel ?? 0.6 },
+    spanLag: { value: proceduralVertex.spanLag ?? 0.9 },
+    downFraction: { value: proceduralVertex.downFraction ?? 0.42 },
+    marginRampPower: { value: proceduralVertex.marginRampPower ?? 1.6 },
+    idleAmplitudeFloor: { value: proceduralVertex.idleAmplitudeFloor ?? 0.5 },
+    burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.4 },
+    turnStrength: { value: proceduralVertex.turnStrength ?? 0.35 },
+    heave: { value: proceduralVertex.heave ?? 0.06 },
+    tailAmplitude: { value: proceduralVertex.tailAmplitude ?? 0.05 },
+    span: { value: discWaveSpan(geometry) },
+  } : null
+  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms ?? discWaveUniforms
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
@@ -726,6 +770,23 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uMolaAnalAmplitudeScale = molaMaskUniforms.analAmplitudeScale
       shader.uniforms.uMolaCaudalBurstAmplitude = molaMaskUniforms.caudalBurstAmplitude
       shader.uniforms.uMolaCaudalBeatRate = molaMaskUniforms.caudalBeatRate
+    }
+    if (discWaveUniforms) {
+      shader.uniforms.uDiscPhase = discWaveUniforms.phase
+      shader.uniforms.uDiscSpeed = discWaveUniforms.speed
+      shader.uniforms.uDiscTurn = discWaveUniforms.turn
+      shader.uniforms.uDiscBurst = discWaveUniforms.burst
+      shader.uniforms.uDiscAmplitude = discWaveUniforms.amplitude
+      shader.uniforms.uDiscWaveTravel = discWaveUniforms.waveTravel
+      shader.uniforms.uDiscSpanLag = discWaveUniforms.spanLag
+      shader.uniforms.uDiscDownFraction = discWaveUniforms.downFraction
+      shader.uniforms.uDiscRampPower = discWaveUniforms.marginRampPower
+      shader.uniforms.uDiscIdleFloor = discWaveUniforms.idleAmplitudeFloor
+      shader.uniforms.uDiscBurstAmplitude = discWaveUniforms.burstAmplitude
+      shader.uniforms.uDiscTurnStrength = discWaveUniforms.turnStrength
+      shader.uniforms.uDiscHeave = discWaveUniforms.heave
+      shader.uniforms.uDiscTailAmplitude = discWaveUniforms.tailAmplitude
+      shader.uniforms.uDiscSpan = discWaveUniforms.span
     }
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -923,6 +984,82 @@ void proceduralMolaMotion(inout vec3 value) {
     value.z += clavus * uMolaTurn * uMolaTurnStrength;
   }
   value = uMolaFrameInverse * value;
+}` : ''}${discWaveUniforms ? `attribute vec4 color_1;
+uniform float uDiscPhase;
+uniform float uDiscSpeed;
+uniform float uDiscTurn;
+uniform float uDiscBurst;
+uniform float uDiscAmplitude;
+uniform float uDiscWaveTravel;
+uniform float uDiscSpanLag;
+uniform float uDiscDownFraction;
+uniform float uDiscRampPower;
+uniform float uDiscIdleFloor;
+uniform float uDiscBurstAmplitude;
+uniform float uDiscTurnStrength;
+uniform float uDiscHeave;
+uniform float uDiscTailAmplitude;
+uniform vec2 uDiscSpan;
+// The wingbeat: 1 at the top of the stroke, -1 at the bottom. The downstroke (the power
+// stroke) takes uDiscDownFraction of the cycle and the recovery the rest, each eased, so the
+// wings press down quickly and lift back slowly. slope is d(beat)/d(angle).
+float discBeat(float angle, out float slope) {
+  float down = clamp(uDiscDownFraction, 0.05, 0.95);
+  float p = fract(angle / 6.2831853);
+  float t = p < down ? p / down : (p - down) / (1.0 - down);
+  float eased = t * t * (3.0 - 2.0 * t);
+  float easedSlope = 6.0 * t * (1.0 - t) / (p < down ? down : 1.0 - down);
+  slope = (p < down ? -2.0 : 2.0) * easedSlope / 6.2831853;
+  return p < down ? 1.0 - 2.0 * eased : -1.0 + 2.0 * eased;
+}
+float discStroke() {
+  return uDiscAmplitude * mix(uDiscIdleFloor, 1.0, uDiscSpeed) * (1.0 + uDiscBurst * uDiscBurstAmplitude);
+}
+// A wing vertex's lift and its slope across the span (dy/dx). R ramps from the body to the
+// wingtip; G runs leading edge to trailing edge, so the chord carries a short wave; the tip
+// lags the root by uDiscSpanLag, so the wing curls after the stroke. A turn beats the outer
+// wing harder.
+void discWingLift(vec3 p, vec4 mask, out float lift, out float liftSlope) {
+  float r = clamp(mask.r, 0.0, 1.0);
+  float g = clamp(mask.g, 0.0, 1.0);
+  float side = p.x < 0.0 ? -1.0 : 1.0;
+  float ramp = pow(r, uDiscRampPower);
+  float rampSlope = r > 0.0 ? uDiscRampPower * pow(r, uDiscRampPower - 1.0) : 0.0;
+  float stroke = discStroke() * (1.0 + side * uDiscTurn * uDiscTurnStrength);
+  float beatSlope;
+  float beat = discBeat(uDiscPhase - g * uDiscWaveTravel - r * uDiscSpanLag, beatSlope);
+  lift = stroke * ramp * beat;
+  float rPerX = side / max(0.0001, uDiscSpan.y - uDiscSpan.x);
+  liftSlope = stroke * (rampSlope * beat - ramp * beatSlope * uDiscSpanLag) * rPerX;
+}
+// Lighting follows the beat: the normal tips with the wing's slope across the span.
+void proceduralDiscNormal(inout vec3 normalValue) {
+  float lift;
+  float liftSlope;
+  discWingLift(position, color_1, lift, liftSlope);
+  normalValue.x -= liftSlope * normalValue.y;
+  normalValue = normalize(normalValue);
+}
+void proceduralDiscMotion(inout vec3 value) {
+  vec4 mask = color_1;
+  float lift;
+  float liftSlope;
+  discWingLift(value, mask, lift, liftSlope);
+  // The wing bends rather than stretches: draw the vertex in toward the body by about the
+  // length its lift adds to the span.
+  float reach = max(0.05 * uDiscSpan.y, abs(value.x) - uDiscSpan.x);
+  float side = value.x < 0.0 ? -1.0 : 1.0;
+  value.x -= side * min(lift * lift / (2.0 * reach), 0.5 * reach);
+  value.y += lift;
+  // The body heaves a little against the wings: it rises as they press down.
+  float rootSlope;
+  float rootBeat = discBeat(uDiscPhase - clamp(mask.g, 0.0, 1.0) * uDiscWaveTravel, rootSlope);
+  value.y -= uDiscHeave * discStroke() * rootBeat;
+  // The tail trails the heave, its tip later than its root, and leans into turns.
+  float tail = clamp(mask.b, 0.0, 1.0);
+  float tailWeight = tail * tail;
+  value.y += tailWeight * uDiscTailAmplitude * mix(uDiscIdleFloor, 1.0, uDiscSpeed) * sin(uDiscPhase - 1.2 - tail * 2.4);
+  value.x += tailWeight * uDiscTurn * uDiscTailAmplitude * 2.0;
 }` : ''}`
       )
     if (caudalUniforms) {
@@ -962,6 +1099,19 @@ proceduralMolaNormal(objectNormal);`
         .replace(
           '#include <project_vertex>',
           `proceduralMolaMotion(transformed);
+#include <project_vertex>`
+        )
+    }
+    if (discWaveUniforms) {
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          '#include <beginnormal_vertex>',
+          `#include <beginnormal_vertex>
+proceduralDiscNormal(objectNormal);`
+        )
+        .replace(
+          '#include <project_vertex>',
+          `proceduralDiscMotion(transformed);
 #include <project_vertex>`
         )
     }
@@ -1042,7 +1192,9 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
     ? 'static'
     : proceduralVertex.type === 'caudal-vertex'
       ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
-      : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
+      : proceduralVertex.type === 'disc-wave-vertex'
+        ? 'disc-wave-vertex'
+        : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
   material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}`
   material.userData.fishLightMaskUniforms = maskUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
@@ -1411,7 +1563,7 @@ function proceduralAxisMax(bounds, axisIndex) {
 }
 
 function shouldProcedurallyDeformMesh(mesh, proceduralAnimation) {
-  if (!['caudal-vertex', 'mola-mask-vertex'].includes(proceduralAnimation?.type)) return false
+  if (!['caudal-vertex', 'mola-mask-vertex', 'disc-wave-vertex'].includes(proceduralAnimation?.type)) return false
   const name = mesh.name?.toLowerCase() ?? ''
   if (isProceduralBodyFollower(mesh, proceduralAnimation)) return true
   if (proceduralAnimation.bodyMeshNames?.some(bodyName => name === bodyName.toLowerCase())) return true
@@ -1857,6 +2009,25 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
       // The Mola paints its pectorals; an asset with separate pectoral objects (the triggerfish)
       // flutters them like a caudal fish's.
       flutterProceduralFins(proceduralFinMeshes, curveConfig, proceduralWaveClockRef.current, proceduralInput.phase ?? 0, speed01, burst01, curveDeformQuatRef.current)
+    } else if (curveConfig?.type === 'disc-wave-vertex') {
+      // A ray's wingbeat never stops: the clock runs at rest too, and the shader keeps an idle
+      // floor of amplitude (docs/procedural/disc-wave.md).
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 3
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        THREE.MathUtils.clamp(proceduralInput.turn ?? 0, -1, 1),
+        response,
+        rawDelta * simulationSpeed,
+      )
+      const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
+      const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 1.6
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * (
+        1
+        + speed01 * (curveConfig.speedFrequencyBoost ?? 0.3)
+        + burst01 * (curveConfig.burstFrequencyBoost ?? 0.35)
+        + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
+      )
     }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current

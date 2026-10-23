@@ -292,6 +292,26 @@ export function getSchoolState(school, creature, swim) {
       centerZ,
     )
     const goal = pickSoloAgentTarget(new THREE.Vector3(), creature, swim, rand, center)
+    const migrationDir = new THREE.Vector3()
+    if (swim.schoolFormation) {
+      // A wide-winged school must fit before adding slots: clamping each member after
+      // placing it flattens whole rows onto a wall. Preserve all legacy random draws.
+      const wall = Math.max(1.2, creatureBodyLength(creature, swim) * (swim.schoolSoftWallBodyLengths ?? 2))
+      const horizontal = schoolFormationHorizontalHalfExtent(school, creature)
+      const vertical = schoolFormationVerticalHalfExtent(school, creature)
+      for (const point of [center, goal]) {
+        const my = Math.min(vertical + wall, (bounds.yMax - bounds.yMin) * 0.5)
+        const mz = Math.min(horizontal + wall, (bounds.zMax - bounds.zMin) * 0.5)
+        point.y = THREE.MathUtils.clamp(point.y, bounds.yMin + my, bounds.yMax - my)
+        point.z = THREE.MathUtils.clamp(point.z, bounds.zMin + mz, bounds.zMax - mz)
+        const { xMin, xMax } = swimXRangeAtZ(bounds, point.z)
+        const mx = Math.min(horizontal + wall, (xMax - xMin) * 0.5)
+        point.x = THREE.MathUtils.clamp(point.x, xMin + mx, xMax - mx)
+      }
+      migrationDir.set(goal.x - center.x, 0, goal.z - center.z)
+      if (migrationDir.lengthSq() < 1e-6) migrationDir.set(0, 0, -1)
+      migrationDir.normalize()
+    }
     state = {
       seed,
       rand,
@@ -301,7 +321,8 @@ export function getSchoolState(school, creature, swim) {
       // maintained by the leader each frame. Members migrate along the shared direction so
       // they travel parallel and fan into a cloud instead of funnelling toward one point.
       centroid: center.clone(),
-      migrationDir: new THREE.Vector3(),
+      migrationDir,
+      formation: swim.schoolFormation ? createSchoolFormationCloud(school, creature) : null,
       // Live alarm waves (see raiseSchoolAlarm), each { position, age }.
       alarms: [],
     }
@@ -1209,19 +1230,71 @@ function schoolFormationRadius(school, creature) {
 // (112 of 180 sardines, seen in review).
 export function schoolFormationVerticalHalfExtent(school, creature) {
   if (!school) return 0
+  const species = resolveSpecies(creature)
+  const cloud = species?.swim?.schoolFormation
+  if (cloud) return species.swim.bodyLengthWU * (species.sizeRange?.[1] ?? 1) * cloud.heightBodyLengths
   return schoolFormationRadius(school, creature) * SCHOOL_VERTICAL_SPREAD + 0.045
 }
 
-// The furthest any slot sits from the school's centre across the ground plane, whichever way the
-// school heads: its lateral and longitudinal spreads combined. Used like the vertical extent, to
-// keep the goal and the formation off the side, front and back walls.
+// Rotation-independent ground-plane extent; no allocations in the per-frame callers.
 export function schoolFormationHorizontalHalfExtent(school, creature) {
   if (!school) return 0
+  const species = resolveSpecies(creature)
+  const cloud = species?.swim?.schoolFormation
+  if (cloud) return species.swim.bodyLengthWU * (species.sizeRange?.[1] ?? 1) * cloud.radiusBodyLengths
   return schoolFormationRadius(school, creature) * Math.hypot(1, SCHOOL_LONGITUDINAL_SPREAD) + 0.045
+}
+
+// One-time, seeded cloud of body-clearance slots. Sampling continuous coordinates avoids
+// visible rows and stacks. The anisotropic distance gives wings room without treating a
+// flat ray as a sphere. Kept on the shared school state, never resampled per fish/frame.
+function createSchoolFormationCloud(school, creature) {
+  const species = resolveSpecies(creature)
+  const cloud = species.swim.schoolFormation
+  const length = species.swim.bodyLengthWU * (species.sizeRange?.[1] ?? 1)
+  const radius = length * cloud.radiusBodyLengths
+  const height = length * cloud.heightBodyLengths
+  const lateralGap = length * cloud.lateralBodyLengths
+  const verticalGap = length * cloud.verticalBodyLengths
+  const longitudinalGap = length * cloud.longitudinalBodyLengths
+  const rand = mulberry32(hashString(`${school.id}:body-clearance-cloud`))
+  const slots = []
+  for (let i = 0; i < school.count; i += 1) {
+    let best = null
+    let bestClearance = -1
+    // Bound setup cost even for a future overcrowded configuration. The configured 60-ray
+    // cloud fits at full clearance; keep the best available point rather than a duplicate.
+    for (let attempt = 0; attempt < 4096; attempt += 1) {
+      const angle = rand() * Math.PI * 2
+      const r = Math.sqrt(rand()) * radius
+      const x = Math.cos(angle) * r
+      const z = Math.sin(angle) * r
+      const y = (rand() * 2 - 1) * height
+      let clearance = Infinity
+      for (let j = 0; j < slots.length; j += 1) {
+        const other = slots[j]
+        const dx = (x - other.lateral) / lateralGap
+        const dy = (y - other.vertical) / verticalGap
+        const dz = (z - other.longitudinal) / longitudinalGap
+        clearance = Math.min(clearance, dx * dx + dy * dy + dz * dz)
+        if (clearance <= bestClearance) break
+      }
+      if (clearance > bestClearance) {
+        bestClearance = clearance
+        best = { lateral: x, vertical: y, longitudinal: z }
+      }
+      if (clearance >= 1) break
+    }
+    slots.push(best)
+  }
+  return slots
 }
 
 export function schoolFormationOffset(school, creature) {
   if (!school) return null
+  if (resolveSpecies(creature)?.swim?.schoolFormation) {
+    return getSchoolState(school, creature, resolveSwimProfile(creature)).formation[school.index]
+  }
   const rand = mulberry32(hashString(`${school.id}:${creature.id}:formation`))
   const count = Math.max(1, school.count)
   const indexRadius = Math.sqrt((school.index + 0.5) / count)
@@ -1239,6 +1312,7 @@ export function schoolFormationOffset(school, creature) {
     longitudinal,
   }
 }
+
 
 export function followLookaheadDistance(creature, swim, isSchooling) {
   const bodyLength = swim.bodyLengthWU * (creature.size ?? 1)

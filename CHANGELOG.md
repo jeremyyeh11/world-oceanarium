@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.36.0 — The Shallows and Munk's Devil Ray (in development)
 
-Status: `v0.36.0-dev_3` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
+Status: `v0.36.0-dev_4` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
 
 ### Reserves
 
@@ -24,11 +24,14 @@ Status: `v0.36.0-dev_3` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jerem
 
 ### Appearance
 
-- Subtle individual surface variation for the devil-ray school (`dev_3`), so the same top texture reads less like repeated copies: three-octave soft noise fixed to the undeformed body, multiplied into textured linear albedo before lighting; noise strength 0.2, source scale 3. Each ray also gets brightness 0.82–1.12, saturation 0.75–1.2 and a slight warm/cool tint (±0.035). All three material parts use the same individual values.
+- Individual surface variation for the devil-ray school, strengthened in `dev_4` after review found the first pass barely visible, so the same top texture reads less like repeated copies: three-octave soft noise fixed to the undeformed body, multiplied into textured linear albedo before lighting; noise strength 0.65, source scale 3. Each ray also gets brightness 0.65-1.3, saturation 0.6-1.25 and a warm/cool tint (+/-0.08). All three material parts use the same individual values.
 - `model.surfaceVariation` opts in; other species and the Atlas specimen stay as authored. A separate `id:surface-variation` seed keeps the values stable across remounts without changing movement or animation draws. Shader cache keys distinguish opt-in from opt-out; individual values are uniforms, so rays share a program. No per-frame variation writes or new textures.
 
 ### Motion
 
+- Ray wingbeat cadence varies independently per individual (0.78-1.22 of the configured rate, separate `id:beat-rate` stream) while retaining the integrated clock and speed coupling. Phase offsets alone had left the school flapping at the same rate.
+- Random bursts and turn-triggered speed boosts are disabled for the rays for now. Gentler formation correction (0.22), station speed range (0.9-1.1) and shared migration response (0.45) keep cruising calm. Other species keep their action and schooling defaults.
+- Rays start in a seeded organic 3D cloud with anisotropic wing clearance, using the same slots in flight. The whole cloud is inset before adding individual positions, with headings aligned to the first migration goal, preventing boundary-clamped overlap and an immediate crossing of mirrored slots. Generated once per school, with no new per-frame allocation. Regression checks cover 60 rays at maximum tank size over 40 visit seeds.
 - `disc-wave-vertex`, the mobuliform disc-wave Jeremy approved: both wings beat together, a quick downstroke and slow recovery (`downFraction` 0.42), a short chordwise wave (`waveTravel` 0.6), the tip trailing the root (`spanLag` 0.9), an idle floor so a resting ray still beats, a slight body heave and a trailing tail. Normals follow the span slope. Checked on Jeremy's model in dev_2 (front view: both wings press down and lift together, bending smoothly to the tip), and `docs/procedural/disc-wave.md` promoted to Implemented for the mobuliform sub-mode.
 
 ## v0.35.1 — Atlas joins the landing preload (2026-10-23)

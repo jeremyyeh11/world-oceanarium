@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: `Current in development` (`v0.36.0-dev_3`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
+Status: `Current in development` (`v0.36.0-dev_4`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
@@ -26,7 +26,9 @@ Subtasks:
 - [ ] Glides: devil rays sometimes glide between beats; the beat is continuous for now. Revisit with the school in the reserve.
 - [x] Jeremy's model swapped in (`v0.36.0-dev_2`): masks computed by `scripts/paint-disc-wave-masks.py`, scaled to a 1.3 m disc, JPEG textures (934 KB), verifier target, stand-in GLB removed; `disc-wave.md` promoted to Implemented (mobuliform). Checked in the local paint viewer (`paint-viewer.html?model=…`, uncommitted) and in the tank.
 - [x] Break up the repeated top texture in the tight school (`dev_3`, Jeremy, 2026-10-24): soft body-fixed noise multiplied into albedo (0.2, source scale 3), per-fish brightness 0.82–1.12, saturation 0.75–1.2, warmth ±0.035. Separate `id:surface-variation` seed; all three material parts agree; uniforms share one shader program, with an opt-in cache key. Build, existing tests and 60-ID material/randomness checks pass. Browser comparison with variation off/on: the authored markings remain, with restrained differences between individuals; no shader errors.
-- [ ] Jeremy: review `dev_3` texture variation in the tight school, especially the tops; physical-phone FPS still unmeasured.
+- [x] `dev_4` review fixes (Jeremy, 2026-10-24): stronger surface variation (noise 0.65; brightness 0.65-1.3, saturation 0.6-1.25, warmth +/-0.08), stable per-ray wingbeat rate 0.78-1.22 from its own stream, and bursts plus turn-triggered speed boosts disabled. Formation correction is gentler (weight 0.22, speed 0.9-1.1, migration response 0.45).
+- [x] Body-clearance startup: a deterministic continuous 3D cloud, one set of slots per school, inset before spawning and aligned to the first migration heading; no per-member wall collapse or crossing to mirrored slots. 40 visit seeds with 60 maximum-size rays pass finite/bounds/pairwise ellipsoid-clearance checks and have no shared height layers or lateral columns. Other species retain their existing school formation.
+- [ ] Jeremy: review `dev_4` appearance, individual beat rates, fresh spawn and calm cruising; physical-phone FPS still unmeasured.
 - [ ] Belly colour: from below (the resting camera's view) the rays read dark blue-grey; Munk's devil ray is white underneath. Jeremy's `bottom` texture.
 - [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.

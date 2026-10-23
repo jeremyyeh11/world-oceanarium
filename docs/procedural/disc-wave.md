@@ -148,6 +148,7 @@ As implemented (`proceduralAnimation` in `species.js`; lengths in source units, 
   `burstFrequencyBoost` raise it with speed and bursts (integrated clock, README).
 - `waveTravel` — radians of wave across the chord (G). Under about 0.8 flaps; several
   radians ripple.
+- `beatRateRange` — optional individual min/max cadence multipliers (ray [0.78, 1.22]); sampled from a separate `id:beat-rate` stream and multiplied into the integrated clock, not global elapsed time. The Atlas keeps rate 1.
 - `spanLag` — radians the wingtip trails the wing root (R), so the wing curls.
 - `downFraction` — share of the beat spent on the downstroke (the power stroke).
 - `marginRampPower` — exponent on R, so the body stays rigid and the tips move most.

@@ -1359,6 +1359,8 @@ function animationVariationForCreature(creature) {
     // banner). Its own stream, so adding it left the draws above unchanged.
     meshLength01: mulberry32(hashString(`${creature.id ?? creature.species}:mesh-length`))(),
     surfaceSeed: hashString(`${creature.id ?? creature.species}:surface-variation`),
+    // Separate stream: a procedural beat's individual rate, without consuming old draws.
+    beatRate01: mulberry32(hashString(`${creature.id ?? creature.species}:beat-rate`))(),
     speeds: {
       idle: baseSpeed,
       slow_cruise: baseSpeed,
@@ -2087,7 +2089,10 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
       const speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
       const burst01 = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1)
       const waveSpeed = Number.isFinite(curveConfig.waveSpeed) ? curveConfig.waveSpeed : 1.6
-      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * (
+      const beatRate = curveConfig.beatRateRange
+        ? THREE.MathUtils.lerp(curveConfig.beatRateRange[0], curveConfig.beatRateRange[1], animationVariation?.beatRate01 ?? 0.5)
+        : 1
+      proceduralWaveClockRef.current += rawDelta * simulationSpeed * waveSpeed * beatRate * (
         1
         + speed01 * (curveConfig.speedFrequencyBoost ?? 0.3)
         + burst01 * (curveConfig.burstFrequencyBoost ?? 0.35)
@@ -2683,9 +2688,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
 
     const stationSpeedScale = isSchooling
       ? THREE.MathUtils.clamp(
-        1 + SCHOOL_STATION_GAIN * stationError.current / Math.max(0.001, creatureBodyLength(creature, swim)),
-        SCHOOL_STATION_RANGE[0],
-        SCHOOL_STATION_RANGE[1],
+        1 + (swim.schoolStationGain ?? SCHOOL_STATION_GAIN) * stationError.current / Math.max(0.001, creatureBodyLength(creature, swim)),
+        swim.schoolStationSpeedRange?.[0] ?? SCHOOL_STATION_RANGE[0],
+        swim.schoolStationSpeedRange?.[1] ?? SCHOOL_STATION_RANGE[1],
       )
       : 1
 
@@ -2796,9 +2801,19 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         position = fish.position
       } else {
         position = schoolBasePosition.copy(schoolState.center)
-        position.x += schoolOffset.lateral
-        position.y += schoolOffset.vertical
-        position.z += schoolOffset.longitudinal
+        if (swim.schoolFormation) {
+          // Start on the same travel-frame slots used while cruising, already heading
+          // toward the first goal; no crossing the school to find a mirrored slot.
+          const heading = schoolState.migrationDir
+          position.x += heading.z * schoolOffset.lateral + heading.x * schoolOffset.longitudinal
+          position.y += schoolOffset.vertical
+          position.z += -heading.x * schoolOffset.lateral + heading.z * schoolOffset.longitudinal
+          desiredDirection.current.copy(heading)
+        } else {
+          position.x += schoolOffset.lateral
+          position.y += schoolOffset.vertical
+          position.z += schoolOffset.longitudinal
+        }
         clampToSwimBounds(position, swimBounds(creature.depthZone, swim, creature.size ?? 1))
       }
       // Heading estimate for steering/boids until the movement step recomputes the tangent.
@@ -3152,7 +3167,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       tangent.normalize()
 
       const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-      const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * SCHOOL_SOFT_WALL_BODY_LENGTHS)
+      const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * (swim.schoolSoftWallBodyLengths ?? SCHOOL_SOFT_WALL_BODY_LENGTHS))
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
         boundaryContacts.current = 0
@@ -3259,7 +3274,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             if (nextPoint.lengthSq() > 1e-6) {
               nextPoint.normalize()
               if (schoolState.migrationDir.lengthSq() < 1e-6) schoolState.migrationDir.copy(nextPoint)
-              else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * SCHOOL_MIGRATION_SMOOTH))
+              else schoolState.migrationDir.lerp(nextPoint, 1 - Math.exp(-delta * (swim.schoolMigrationSmoothing ?? SCHOOL_MIGRATION_SMOOTH)))
               if (schoolState.migrationDir.lengthSq() > 1e-6) schoolState.migrationDir.normalize()
               else schoolState.migrationDir.copy(nextPoint)
             } else if (schoolState.migrationDir.lengthSq() < 1e-6) {
@@ -3313,7 +3328,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // the centroid, so a strong pull makes the pair orbit their slots (a constant curve that
           // cocks the tail). A pair instead just travels parallel on the shared migration + boid
           // separation; big schools get the full formation shaping.
-          const formationWeight = SCHOOL_FORMATION_WEIGHT * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
+          const formationWeight = (swim.schoolFormationWeight ?? SCHOOL_FORMATION_WEIGHT) * THREE.MathUtils.clamp((school.count - 2) / 6, 0.1, 1)
             * (1 + SCHOOL_ALARM_FORMATION_BOOST * schoolAlarm)
           agentMoveDirection.copy(schoolFollowDirection).multiplyScalar(SCHOOL_MIGRATION_WEIGHT)
           targetDesiredDirection.subVectors(schoolBasePosition, fish.position)
@@ -4125,7 +4140,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         playAnimation(resolveMoveAnimation(model, ride.stage === 'dock' ? 'cruise' : 'drift'))
       } else if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
-        if (!reflex && turn > motion.turnTriggerThreshold) {
+        if (swim.turnSpeedupEnabled !== false && !reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnLeft')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -4138,7 +4153,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (!reflex && turn < -motion.turnTriggerThreshold) {
+        } else if (swim.turnSpeedupEnabled !== false && !reflex && turn < -motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration
           const turnAnimation = resolveMoveAnimation(model, 'turnRight')
           const turnAnimationDuration = modelActionAnimationDuration(model, turnAnimation, turnDuration)
@@ -4151,7 +4166,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           animationCooldown.current = now + Math.max(0.7, turnAnimationDuration * 0.72)
           driftUntil.current = 0
           triggeredAction = true
-        } else if (reflex || (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current)) {
+        } else if (swim.burstEnabled !== false && (reflex || (Math.abs(turn) < BURST_STRAIGHT_THRESHOLD && now > nextBurstAt.current))) {
           const burstDuration = motion.burstActionDuration
           const burstAnimation = resolveMoveAnimation(model, 'burst')
           const burstAnimationDuration = modelActionAnimationDuration(model, burstAnimation, burstDuration)

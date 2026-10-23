@@ -3359,6 +3359,23 @@ export const SPECIES = [
       // flies in a school, never hovers, and turns in broad banked arcs.
       visualTimeScale: 0.6,
       driftEnabled: false,
+      // A calm cruising school: no scheduled surge, nor acceleration on a turn.
+      burstEnabled: false,
+      turnSpeedupEnabled: false,
+      schoolSoftWallBodyLengths: 0.5,
+      schoolFormationWeight: 0.22,
+      schoolStationGain: 0.1,
+      schoolStationSpeedRange: [0.9, 1.1],
+      schoolMigrationSmoothing: 0.45,
+      // An organic 3D cloud, sampled once with clearance for full-size wings and
+      // opposite beat phases. No rows or layers; same slots at spawn and in flight.
+      schoolFormation: {
+        radiusBodyLengths: 2.45,
+        heightBodyLengths: 1.15,
+        lateralBodyLengths: 1.12,
+        longitudinalBodyLengths: 0.9,
+        verticalBodyLengths: 0.5,
+      },
       idleBLPerSec: [0.5, 0.9],
       idleDriftBLPerSec: [0.12, 0.25],
       snapBLPerSec: [1.4, 2.0],
@@ -3390,7 +3407,7 @@ export const SPECIES = [
         separationWeight: 0.35,
         alignmentWeight: 0.4,
         cohesionWeight: 0.2,
-        maxWeight: 0.7,
+        maxWeight: 0.45,
         menace: 0,
         wariness: 0.4,
       },
@@ -3406,11 +3423,11 @@ export const SPECIES = [
       // Individual albedo variation; noiseScale is in the model's source metres. A single
       // seed covers all three material parts and survives tank switches/debug remounts.
       surfaceVariation: {
-        noise: 0.2,
+        noise: 0.65,
         noiseScale: 3,
-        brightness: [0.82, 1.12],
-        saturation: [0.75, 1.2],
-        warmth: [-0.035, 0.035],
+        brightness: [0.65, 1.3],
+        saturation: [0.6, 1.25],
+        warmth: [-0.08, 0.08],
       },
       // 1 m = 4 WU, so the 1.3 m disc is the 5.2 WU body length.
       scale: 4,
@@ -3432,6 +3449,8 @@ export const SPECIES = [
         amplitude: 0.26,
         // About one beat every 1.4 s at cruise (a small ray beats faster than a manta).
         waveSpeed: 3.6,
+        // Stable individual cadence, integrated into the clock (never elapsed * rate).
+        beatRateRange: [0.78, 1.22],
         // Radians of wave across the chord: well under a wavelength, so it flaps, not ripples.
         waveTravel: 0.6,
         // Radians the tip trails the root, so the wing curls after each stroke.

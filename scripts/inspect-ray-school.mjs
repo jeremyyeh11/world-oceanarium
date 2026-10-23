@@ -1,5 +1,5 @@
 // Run Fish.jsx's real movement frame with rendering/audio stubbed out. No copied integrator.
-// Usage: node scripts/inspect-ray-school.mjs [seconds=300] [seed=0] [--verify]
+// Usage: node scripts/inspect-ray-school.mjs [seconds=300] [seed=0] [--verify] [--count=60]
 // Fixed 60 Hz, mixed tank sizes, empty obstacle field. Rendering and real-device FPS
 // still need browser review; this checks the actual movement frame, not GPU motion.
 import assert from 'node:assert/strict'
@@ -12,6 +12,8 @@ const require = createRequire(import.meta.url)
 const seconds = Number(process.argv[2] ?? 300)
 const seed = process.argv[3] ?? '0'
 const verify = process.argv.includes('--verify') || Boolean(process.env.RAY_ASSERT)
+const count = Number(process.argv.find(arg => arg.startsWith('--count='))?.split('=')[1] ?? 60)
+assert.ok(Number.isInteger(count) && count >= 2, 'provide at least two rays')
 assert.ok(Number.isFinite(seconds) && seconds > 0, 'provide positive simulation seconds')
 const state = { frames: [], effects: [], cleanups: [], owner: null }
 const key = '__rayFrameHarness'
@@ -56,7 +58,7 @@ const species = runtime.SPECIES.find(s => s.id === 'mobula-munkiana')
 // Fix only the non-seeded debug-decision jitter for repeatable sampling cadence.
 let randomState = 12345
 Math.random = () => ((randomState = Math.imul(randomState, 1664525) + 1013904223 >>> 0) / 4294967296)
-const creatures = Array.from({ length: 60 }, (_, index) => ({ id: String(464 + index), species: species.id, biome: 'ocean', depthZone: 'epipelagic', size: 0.65 + (index * 0.61803398875 % 1) * 0.2 }))
+const creatures = Array.from({ length: count }, (_, index) => ({ id: String(464 + index), species: species.id, biome: 'ocean', depthZone: 'epipelagic', size: 0.65 + (index * 0.61803398875 % 1) * 0.2 }))
 const schoolId = `ray-runtime-${seed}`
 for (let index = 0; index < creatures.length; index++) {
   state.owner = creatures[index].id
@@ -67,7 +69,7 @@ const camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 1000)
 camera.position.set(0, -24, 24); camera.lookAt(0, -7, -20); camera.updateMatrixWorld()
 let elapsed = 0
 const clock = { getElapsedTime: () => elapsed }
-const school = runtime.getSchoolState({ id: schoolId, count: 60 }, creatures[0], runtime.resolveSwimProfile(creatures[0]))
+const school = runtime.getSchoolState({ id: schoolId, count }, creatures[0], runtime.resolveSwimProfile(creatures[0]))
 const initialOffsets = new Map()
 function sample() {
   const entries = []
@@ -137,7 +139,7 @@ for(let frame=0;frame<=seconds*60;frame++){
 }
 const first = samples[0]
 const summary = {
-  seed, seconds,
+  seed, seconds, count,
   initialSpread: first.spread,
   minSpread: [0,1,2].map(axis => Math.min(...samples.map(s=>s.spread[axis]))),
   maxSpread: [0,1,2].map(axis => Math.max(...samples.map(s=>s.spread[axis]))),

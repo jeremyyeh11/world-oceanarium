@@ -1270,8 +1270,14 @@ function createSchoolFormationCloud(school, creature) {
   const species = resolveSpecies(creature)
   const cloud = species.swim.schoolFormation
   const length = species.swim.bodyLengthWU * (species.sizeRange?.[1] ?? 1) * (cloud.spacingScale ?? 1)
-  const radius = length * cloud.radiusBodyLengths
-  const height = length * cloud.heightBodyLengths
+  // Keep the per-ray room when a production school grows beyond the 60-ray review set.
+  // A cube-root growth expands all three axes without making the school a flat sheet.
+  const countRatio = Math.max(1, school.count / (cloud.referenceCount ?? school.count))
+  const countScale = Math.cbrt(countRatio)
+  const radius = length * cloud.radiusBodyLengths * countScale
+    * (1 + (countRatio - 1) * (cloud.radiusCountPadding ?? 0))
+  const height = length * cloud.heightBodyLengths * countScale
+    * (1 + (countRatio - 1) * (cloud.heightCountPadding ?? 0))
   const lateralGap = length * cloud.lateralBodyLengths
   const verticalGap = length * cloud.verticalBodyLengths
   const longitudinalGap = length * cloud.longitudinalBodyLengths

@@ -3367,6 +3367,7 @@ export const SPECIES = [
       burstEnabled: false,
       turnSpeedupEnabled: false,
       schoolSoftWallBodyLengths: 0.5,
+      schoolMaxSize: 218,
       schoolFormationWeight: 0.75,
       schoolGoalReachedBodyLengths: 1,
       schoolStationGain: 0.2,
@@ -3377,6 +3378,9 @@ export const SPECIES = [
       // Neighbour separation has its own comfortable range, not an exact distance.
       schoolFormation: {
         spacingScale: 0.85,
+        referenceCount: 60,
+        radiusCountPadding: 0.14,
+        heightCountPadding: 0.03,
         positionToleranceBodyLengths: [0.2, 0.45],
         separationStart: 1.2,
         driftStrength: 0.75,
@@ -3400,11 +3404,11 @@ export const SPECIES = [
       // Goals reserve the cloud extent, free-drift band and turning radius so the
       // outer animals do not compress against walls. Portrait framing needs review.
       boundsUseSpeciesSize: false,
-      boundsHalfX: 40,
-      boundsYMin: -16,
-      boundsYMax: 1,
-      boundsZMin: -44,
-      boundsZMax: 31,
+      boundsHalfX: 50,
+      boundsYMin: -25,
+      boundsYMax: 3,
+      boundsZMin: -55,
+      boundsZMax: 42,
       // The school's slots are spaced for sardinella (about 1 WU); a 4 WU ray needs about 3.5
       // times the room, or 60 of them pack into a ball of overlapping wings.
       schoolSpacingScale: 3.5,

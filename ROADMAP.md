@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: `Current in development` (`v0.36.0-dev_10`, branch `feat/mobula-munkiana`, PR #157, started 2026-10-23). A schooling ray in a new third reserve, so open-sea and The Reefs stay uncrowded (Jeremy, 2026-10-23). The Shallows and a school of 60 of Jeremy's rays are in (dev data); waiting on his phone review.
+Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
@@ -36,13 +36,13 @@ Subtasks:
 - [ ] Species-specific disc-width–weight relation for `mass`: FishBase's shape-derived Bayesian relation uses total length and must not be applied to disc width.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
 - [x] Reserve The Shallows (`v0.36.0-dev_1`): `the-shallows` in `TANKS`, landscape `shallows`, 0–10 m, low camera tilted about 22° up (`SHALLOWS_VIEW`), greener water, light shafts, a dark boulder cluster on the left, card still, descent with a new `devil-ray` sprite. Leaping out of the water deferred.
-- [ ] Recheck portrait framing after `dev_6`: the full formation and broad turns now use x +/-40, y -16 to 1, z -59 to 16 WU. The old dev_2 phone samples used a narrower volume and no longer validate this composition.
+- [ ] Recheck portrait framing with 218 rays: the full formation and broad turns use x +/-50, y -25 to 3, z -70 to 27 WU. Earlier phone samples used a smaller school and volume.
 - [x] 60 rays in `creatures_dev` (ids 464–523; prod max was 463, so next free id is 524). Atlas tile and card retaken with Jeremy's model (dev_2).
 - [ ] Jeremy: review dev_2 on a phone (card, descent, the school, the wingbeat).
 - [ ] Composition on a portrait phone: the school sits in the lower half and the top half is plain bright water.
-- [ ] Phone FPS: 60 rays of about 3k vertices each, no LOD; unmeasured on a device.
+- [ ] Phone FPS: 218 rays of about 3k vertices each, no LOD; unmeasured on a device.
 - [ ] Surface: from the resting view the surface reads as bright water rather than a distinct ceiling; revisit with Jeremy.
-- [ ] Prod `creatures` rows for the school: needs Jeremy's go-ahead before the clean release.
+- [x] Jeremy requested the clean release and 218 public `creatures` rays (2026-10-24). The larger single cloud passed five seeded movement runs, including ten minutes at 218; public rows are backed up and verified separately.
 - [ ] Optional: add a devil ray to the landing dive's montage (`GENERAL_DESCENT`).
 - [ ] Projected roster, no species repeated from other reserves (Jeremy, 2026-10-23): giant oceanic manta (*Mobula birostris*, one big animal, same motion), golden cownose ray (*Rhinoptera steindachneri*), East Pacific green turtle, round stingray (*Urobatis halleri*); California sea lion later. Check each range on FishBase/IUCN first.
 

@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.36.0 — The Shallows and Munk's Devil Ray (in development)
+## v0.36.0 — The Shallows and Munk's Devil Ray
 
-Status: `v0.36.0-dev_10` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jeremy: a schooling ray in a reserve of its own, so the open sea and the reef keep their own casts; dev_1 built "everything except for the devil ray glb", dev_2 swaps in his model.
+Status: clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, #157). The Shallows keeps this school apart from the open sea and reef casts.
 
 ### Reserves
 
@@ -19,7 +19,7 @@ Status: `v0.36.0-dev_10` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jere
 
 ### Species
 
-- **Munk's Devil Ray** (`mobula-munkiana`), VU: species data from FishBase, the Sharks and Rays profile and Palacios et al. 2021; 0.85–1.1 m across in the reserve. 60 rays in `creatures_dev` (ids 464–523), one school. A body-clearance cloud now spaces the wide discs; its wider cruising volume is described under Motion.
+- **Munk's Devil Ray** (`mobula-munkiana`), VU: species data from FishBase, the Sharks and Rays profile and Palacios et al. 2021; 0.85–1.1 m across in the reserve. 218 rays in production `creatures` (60 authored dev rays plus 158 new individuals), one school. A body-clearance cloud spaces the wide discs; its larger cruising volume is described under Motion.
 - dev_2: Jeremy's model. `scripts/paint-disc-wave-masks.py` (headless Blender) computes the masks from its shape (vertex paint can't paint one channel alone, and his first paint ramped the wing to full by mid-span, which would move the outer wing as a rigid plate), scales the 11 unit model to a 1.3 m disc, centres the origin, and exports JPEG textures (934 KB; alpha measured solid, so it renders opaque). Three material parts (`munks_devil_ray_1`–`_3`). The dev_1 stand-in GLB is removed. Atlas tile and card retaken with it.
 
 ### Atlas
@@ -38,7 +38,7 @@ Status: `v0.36.0-dev_10` (2026-10-24, branch `feat/mobula-munkiana`, #157). Jere
 - Ray wingbeat cadence varies independently per individual (0.78-1.22 of the configured rate, separate `id:beat-rate` stream) while retaining the integrated clock and speed coupling. Phase offsets alone had left the school flapping at the same rate.
 - Random bursts and turn-triggered speed boosts are disabled for the rays. Shared goals turn on a broad, capped arc; individual speed differences change slowly instead of imposing permanent pace differences that fight spacing. Other species keep their existing schooling defaults.
 - Rays start in a centred, seeded continuous 3D cloud with wing clearance, 15% closer than the first spacious review pass. Position correction is quiet within 0.2 disc widths and eases in over 0.2-0.45 widths; slow personal drift changes their positions inside that band, with close-neighbour separation preserving room for wings.
-- Keeps the full cloud during turns: references retain their initial ground-plane frame, station speed uses actual travel direction, and goals reserve space for the whole school and its turning circle. The ray swim bounds are now x +/-40, y -16 to 1, z -59 to 16 WU; the former narrow volume and per-member compression caused rows and stacks after cruising. Portrait composition needs a new device review.
+- Keeps the full cloud during turns: references retain their initial ground-plane frame, station speed uses actual travel direction, and goals reserve space for the whole school and its turning circle. The ray swim bounds are now x +/-50, y -25 to 3, z -70 to 27 WU. The formation grows across all three axes for 218 rays, retaining the 60-ray spacing at the reference count; five seeded movement runs, including a ten-minute run, found no close pairs or boundary contacts. Portrait composition and phone FPS need device review.
 - Regression checks cover 40 spawn seeds x 60 maximum-size rays, plus five ten-minute runs of Fish.jsx's actual movement frame with 60 mixed-size rays. The school retains its 3D spread with bounded personal drift, no close-pair clusters and no boundary contact. `npm run verify:ray-school` repeats the ten-minute turn regression; the shorter run joins `npm test`. The renderless check omits landscape obstacles and GPU animation.
 - `disc-wave-vertex`, the mobuliform disc-wave Jeremy approved: both wings beat together, a quick downstroke and slow recovery (`downFraction` 0.42), a short chordwise wave (`waveTravel` 0.6), the tip trailing the root (`spanLag` 0.9), an idle floor so a resting ray still beats, a slight body heave and a trailing tail. Normals follow the span slope. Checked on Jeremy's model in dev_2 (front view: both wings press down and lift together, bending smoothly to the tip), and `docs/procedural/disc-wave.md` promoted to Implemented for the mobuliform sub-mode.
 

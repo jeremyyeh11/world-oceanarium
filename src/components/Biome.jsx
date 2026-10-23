@@ -14,7 +14,7 @@ const ENABLE_SARDINE_INSTANCED_LAYER = true
 function schoolMaxSizeForSpecies(species) {
   const configured = species?.swim?.schoolMaxSize
   if (!Number.isFinite(configured)) return SCHOOL_MAX_SIZE
-  return Math.max(2, Math.min(SCHOOL_MAX_SIZE, Math.floor(configured)))
+  return Math.max(2, Math.floor(configured))
 }
 
 function schoolKeyForCreature(creature) {

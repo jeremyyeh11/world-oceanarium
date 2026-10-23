@@ -25,7 +25,8 @@ Subtasks:
 - [x] Shader: `disc-wave-vertex` in `src/components/Fish.jsx` with the mobuliform config, on a generated stand-in (`scripts/build-devil-ray-placeholder.mjs`, 3379 vertices, 1.3 m disc), verifier target (2026-10-23). Checked in the Atlas locally: wings beat together, the tip trails the mid-wing, downstroke about 43% of the beat.
 - [ ] Glides: devil rays sometimes glide between beats; the beat is continuous for now. Revisit with the school in the reserve.
 - [ ] Swap the stand-in for Jeremy's GLB (path, `bodyMeshNames`, verifier target), check the paint, then promote `disc-wave.md` to Implemented.
-- [ ] Jeremy: model to the contract in `docs/procedural/disc-wave.md` (one mesh, nose −Z, 1 raw = 1 m across the disc, grid quads in the wings, `COLOR_1` R/G/B masks).
+- [ ] Jeremy: model to the contract in `docs/procedural/disc-wave.md` (one mesh, nose −Z, 1 raw = 1 m across the disc, grid quads in the wings; masks painted as three black-to-white attributes `red`/`green`/`blue`, packed into `COLOR_1` at intake).
+- [ ] Intake: a headless Blender script that packs `red`/`green`/`blue` into `COLOR_1`, adds a white `COLOR_0` and exports; check it in the local paint viewer (`paint-viewer.html?model=…`, uncommitted, in the devil ray worktree).
 - [ ] Read Palacios et al. 2021 for size at maturity by sex; FishBase length–weight for `mass`.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
 - [x] Reserve The Shallows (`v0.36.0-dev_1`): `the-shallows` in `TANKS`, landscape `shallows`, 0–10 m, low camera tilted about 22° up (`SHALLOWS_VIEW`), greener water, light shafts, a dark boulder cluster on the left, card still, descent with a new `devil-ray` sprite. Leaping out of the water deferred.

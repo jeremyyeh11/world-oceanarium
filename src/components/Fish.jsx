@@ -23,7 +23,7 @@ import {
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
 import { createFishMaterialPass } from './fishMaterialPass'
-import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, seabedHeightAt, startedInsideLastPush, steerAroundRocks } from './rockObstacles'
+import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, rockBendSide, seabedHeightAt, startedInsideLastPush, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
   beginReefSettle,
@@ -378,6 +378,9 @@ const pinchForward = new THREE.Vector3()
 // it over ~0.4 s.
 const ROCK_AVOID_RISE = 10
 const ROCK_AVOID_FALL = 2.5
+// Going round a rock one way, a fish keeps to that side (steerAroundRocks' `side`) until it has
+// felt no rock ahead for this long.
+const ROCK_SIDE_MEMORY_SECONDS = 0.5
 // After the rock clamp pushes a fish off a face, its steering keeps off that face this long.
 const ROCK_CONTACT_MEMORY_SECONDS = 0.35
 // How near the swim floor a fish counts as on it for the rock bend (WU).
@@ -2107,6 +2110,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // The rock-avoidance bend and urgency, smoothed (see the rock step below).
   const rockAvoidSmoothed = useRef(new THREE.Vector3())
   const rockUrgencySmoothed = useRef(0)
+  // Which way round the rocks ahead it is going (rockBendSide), and when it last bent that way.
+  const rockSide = useRef(0)
+  const rockSideAt = useRef(-Infinity)
   // The last rock face the clamp pushed this fish off, and when (simulation time).
   const rockContactNormal = useRef(new THREE.Vector3())
   const rockContactAt = useRef(-Infinity)
@@ -3151,7 +3157,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // At a pinch it steers by where it is going and the push off the rocks it touches, not by
         // the probe ahead, which in the gap would bend it on along the gap.
         rockAvoidBase.copy(targetDesiredDirection)
-        const rawRockUrgency = steerAroundRocks(targetDesiredDirection, fish.position, desiredDirection.current, bodyLength, velocity.current, !rockPinched.current)
+        const keepSide = now - rockSideAt.current < ROCK_SIDE_MEMORY_SECONDS ? rockSide.current : 0
+        const rawRockUrgency = steerAroundRocks(targetDesiredDirection, fish.position, desiredDirection.current, bodyLength, velocity.current, !rockPinched.current, keepSide)
+        if (rockBendSide() !== 0) {
+          rockSide.current = rockBendSide()
+          rockSideAt.current = now
+        }
         rockAvoidDelta.subVectors(targetDesiredDirection, rockAvoidBase)
         const rockAvoidAlpha = 1 - Math.exp(-delta * (rawRockUrgency >= rockUrgencySmoothed.current ? ROCK_AVOID_RISE : ROCK_AVOID_FALL))
         rockAvoidSmoothed.current.lerp(rockAvoidDelta, rockAvoidAlpha)

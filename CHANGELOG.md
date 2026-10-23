@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.34.1 — Reef fish reach their rocks
 
-Status: in development as `v0.34.1-dev_2` (branch `fix/reef-trip-abandons`, rebased onto `main` at `v0.34.0` on 2026-10-23; first built as `v0.30.2-dev_1`). The ROADMAP item from `v0.30.1-dev_1`: about 40% of reef fish trips to a site were given up on the way, on rock and coral alike.
+Status: in development as `v0.34.1-dev_3` (branch `fix/reef-trip-abandons`, rebased onto `main` at `v0.34.0` on 2026-10-23; first built as `v0.30.2-dev_1`). The ROADMAP item from `v0.30.1-dev_1`: about 40% of reef fish trips to a site were given up on the way, on rock and coral alike.
 
 ### Behaviour
 
@@ -26,9 +26,13 @@ Status: in development as `v0.34.1-dev_2` (branch `fix/reef-trip-abandons`, reba
   - settled 64% of 960 → 79% of 834 (rock 68% → 82%, coral 59% → 77%); given up on the way 24% → 9% (at the progress check 20% → 5%, timeouts 3% → 0, pinches 1% → 2%); called off by a ride 12% either way;
   - trips setting off 120° or more off the entry (a third either way): given up at the check 43% → 9%, settled 42% → 71%;
   - patrols reaching their face 59% → 77%. Settled by species: emperor angelfish 67% → 83%, bannerfish 54% → 77%, raccoon butterflyfish 57% → 66%, clown triggerfish 74% → 96%, groupers 67% → 91%, humphead wrasse 69% → 96%;
-  - heading flips (over 2° a frame each way), patrols included: trips with 10 or more 25 of 1307 → 36 of 1100, with 30 or more 2 → 8. 15 of the 36 came in one block; one clown triggerfish patrol made 108 flips in 6 s before the pinch give-up. Not yet explained;
+  - heading flips (over 2° a frame each way), patrols included: trips with 10 or more 25 of 1307 → 36 of 1100, with 30 or more 2 → 8. 15 of the 36 came in one block; one clown triggerfish patrol made 108 flips in 6 s before the pinch give-up (see the side hold below);
   - pops: none off; 42 on, all in that same block and all but one from fish not on a reef trip (six raccoon butterflyfish, a humphead wrasse at 0.52 WU, a grouper). The changes act only on reef trips; the cause was not traced.
-- What is left: 5% of trips still given up at the progress check (on `v0.30.1` code mostly sites round the far side of a rock; not re-checked since #144); 12% called off when the fish goes to ride (a cleaner to the sunfish, a pair follower to its mate); the flips and the pops above.
+- Shivers (`dev_3`). A per-frame trace (2026-10-23, desktop, The Reefs) cleared the turn: the true-arc path made 21 of 1517 flips on reef trips, bursts of 30 or more flips were 11 off and 10 on, and flips per fish-minute rose about as much on open-water swims, which the changes do not touch (3.7 → 4.8), as on reef trips (6.9 → 8.5): trips that used to be given up now spend longer steering round rocks. Most flips came from the rock bend in the crease between two rocks, the fish's destination straight past it: which way round was chosen afresh each frame, the heading's own 2° to 3° step tipped it, and the bend swung about 50° from side to side each frame.
+  - Fix, in rockObstacles.js and Fish.jsx: a fish keeps to the side it is already going round (`steerAroundRocks`' `side`, `rockBendSide`). Within 45° of head-on to a face (`HEAD_ON_SIDE_HOLD`) the bend goes that way, until the fish has felt no rock ahead for 0.5 s (`ROCK_SIDE_MEMORY_SECONDS`). At 30° the two walls of a V, each about 34° off a heading into its crease, still sent the fish their own ways in turn; at 60° fish took longer ways round.
+  - Test runs at a V and at single rocks (84 runs): 3743 heading flips without the hold, 43 with it, every fish still getting round. `tests/rockObstacles.test.mjs` keeps six of them.
+  - Measured on desktop, the hold switched off and on in alternating 2.5-minute blocks after a dropped warm-up, 10 minutes each way, the travel changes on: heading flips per fish-minute on reef trips 8.2 → 6.8, open-water swims 3.2 → 2.6, cleaners riding the sunfish 9.3 → 6.6; trips settled 79% either way; bursts of 30 or more flips 4 and 4, none reaching 100 in 10 s.
+- What is left: 5% of trips still given up at the progress check (on `v0.30.1` code mostly sites round the far side of a rock; not re-checked since #144); 12% called off when the fish goes to ride (a cleaner to the sunfish, a pair follower to its mate); flicks where a fish's destination is far behind it with a rock alongside, the bend along the face nearly cancelling the pull home; and the pops above, with humphead wrasse jumps of 0.52 and 0.83 WU in two runs.
 
 ## v0.33.1 — Visitor changelog caught up
 

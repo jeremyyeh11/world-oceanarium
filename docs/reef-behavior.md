@@ -484,8 +484,17 @@ Since `v0.31.5` (built as `v0.31.4-dev_1` on `fix/reef-rock-shiver`) the probe f
 - The push off a rock the fish is brushing comes on over the first tenth of the padding
   (`TOUCH_ONSET`) instead of at half strength at once.
 
-Heading straight at a rock's middle, the side to turn to is still a choice (the side the
-desired heading leans to).
+Heading straight at a rock's middle, the side to turn to is a choice: the side the desired
+heading leans to. Since `v0.34.1-dev_3` a fish keeps to the side it is already going round
+(`steerAroundRocks`' `side`, read back with `rockBendSide`): within 45° of head-on to a face
+(`HEAD_ON_SIDE_HOLD`), the bend goes its way until the fish has felt no rock ahead for 0.5 s
+(`ROCK_SIDE_MEMORY_SECONDS`, Fish.jsx). Nosing into the crease of a V of two rocks, its
+destination straight past it, a fish had the choice made again every frame: the heading's own
+2° to 3° step tipped it, and the bend swung about 50° from one side to the other each frame (a
+per-frame trace at The Reefs, 2026-10-23). In 84 test runs at a V and at single rocks
+(`tests/rockObstacles.test.mjs` keeps six): 3743 heading flips before, 43 with the hold at 45°
+(169 at 60°, where fish took longer ways round; at 30° the two walls of a V, each about 34° off,
+still sent the fish their own ways in turn).
 
 Measured on desktop (2026-10-20, The Reefs, `creatures_dev`: 24 emperor angelfish, 12
 bannerfish, 3 clown triggerfish, 3 groupers, 18 pilot fish), the change switched off and on in
@@ -497,6 +506,15 @@ alternating 3-minute blocks of one session after a dropped warm-up, 15 minutes e
 - Trips to a rock settled as often: 67.9% of 744 off, 67.6% of 753 on (patrols left out).
 - Pops (a moving fish's frame step over four times the last, frame hitches left out): 24 off,
   23 on; over 0.1 WU 4 and 5, all fish just back from a reef pose (see Known limits).
+
+The side hold, measured on desktop (2026-10-23, The Reefs, the same population as the reef-trip
+measurements in Stages, with the `v0.34.1` travel changes on), switched off and on in alternating
+2.5-minute blocks after a dropped warm-up, 10 minutes each way. Heading flips per fish-minute:
+on reef trips 8.2 off, 6.8 on; on open-water swims 3.2 and 2.6; cleaners riding the sunfish 9.3
+and 6.6. Trips settled 79% either way. Episodes of 30 or more flips in a burst: 4 and 4, and none
+reached 100 in 10 s. What is left: a fish with its destination far behind it (140° to 155°) and
+a rock alongside, whose bend along the face nearly cancels the pull toward the destination, so
+the sum swings from side to side (seen on reef trips and on cleaners riding the sunfish).
 
 ## Tuning
 
@@ -510,9 +528,10 @@ import of an edited module loads a second, empty copy).
 
 ## Known limits
 
-- Heading straight at a rock's middle, the side a fish turns to is still a choice (see Steering
-  past rocks). Shivering on the move past a rock, the last kind of stuck episode in the pinch
-  measurements, is gone since `v0.31.5`.
+- Shivering on the move past a rock, the last kind of stuck episode in the pinch measurements, is
+  gone since `v0.31.5`, and shivering in the crease between two rocks since `v0.34.1-dev_3` (see
+  Steering past rocks). A fish with its destination far behind and a rock alongside still
+  flicks now and then (4 bursts of 30 or more flips in 10 minutes).
 - A fish a pose leaves outside its volume or under the sand pad stays there for a few frames while
   it eases back in (see Back on the pipeline); the poses themselves are not yet kept inside.
 - A grouper settling in moves up to 0.13 WU a frame along the settle curve (an arrival at speed,

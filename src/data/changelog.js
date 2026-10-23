@@ -12,6 +12,7 @@ export const VISITOR_CHANGELOG = [
     changes: [
       ['fix', 'A reef fish heading for a rock behind it now turns round and swims to it, instead of carrying on the other way and giving up.'],
       ['fix', 'Young emperor angelfish moving to a new patch of reef now get all the way there.'],
+      ['fix', 'A fish swimming into the gap between two rocks picks a way round and keeps to it, instead of shivering from side to side.'],
     ],
   },
   {

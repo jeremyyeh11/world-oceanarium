@@ -4,6 +4,7 @@ import {
   clearRockObstacles,
   pinchedLastPush,
   pushOutOfRocks,
+  rockBendSide,
   rockPad,
   setRockObstacles,
   steerAroundRocks,
@@ -199,6 +200,62 @@ clearRockObstacles(bommies)
     }
   }
   assert.ok(flips <= 2, `no shiver past the two rocks (${flips} heading flips)`)
+  clearRockObstacles(rocks)
+}
+
+// Fish nosing into the crease of a V of two rocks, their destination straight past it, a frame at
+// a time with Fish.jsx's bend smoothing, turn cap and side memory (ROCK_SIDE_MEMORY_SECONDS).
+// Which way round was a coin toss each frame, and the heading's own step tipped it: 84 to 171
+// flips a run. Keeping to the side they are going round, they go round one rock.
+{
+  const pieces = [
+    { x: -1.6, y: -6, z: -6, width: 3, height: 10, depth: 3, yaw: 0.6 },
+    { x: 1.6, y: -6, z: -6, width: 3, height: 10, depth: 3, yaw: -0.6 },
+  ]
+  const rocks = setRockObstacles(pieces, OPTIONS)
+  const delta = 1 / 60
+  const goal = new THREE.Vector3(0, -1, -16)
+  let flips = 0
+  for (const bodyLength of [0.4, 1]) {
+    for (const x of [-0.15, 0, 0.15]) {
+      const speed = bodyLength * 3
+      const position = new THREE.Vector3(x, -1, 4)
+      const heading = goal.clone().sub(position).normalize()
+      const smoothed = new THREE.Vector3()
+      let smoothedUrgency = 0
+      let side = 0
+      let sideAt = -Infinity
+      let lastSign = 0
+      let frame = 0
+      for (; frame < 1800 && position.distanceTo(goal) > 1; frame++) {
+        const now = frame * delta
+        const base = goal.clone().sub(position).normalize()
+        const desired = base.clone()
+        const raw = steerAroundRocks(desired, position, heading, bodyLength, speed, true, now - sideAt < 0.5 ? side : 0)
+        if (rockBendSide() !== 0) {
+          side = rockBendSide()
+          sideAt = now
+        }
+        const alpha = 1 - Math.exp(-delta * (raw >= smoothedUrgency ? 10 : 2.5))
+        smoothed.lerp(desired.sub(base), alpha)
+        smoothedUrgency += (raw - smoothedUrgency) * alpha
+        const target = base.add(smoothed).normalize()
+        const cap = speed / bodyLength * delta * (1 + 2 * smoothedUrgency)
+        const before = Math.atan2(heading.x, heading.z)
+        const angle = heading.angleTo(target)
+        if (angle <= cap) heading.copy(target)
+        else heading.lerp(target, cap / angle).normalize()
+        const turn = Math.atan2(Math.sin(Math.atan2(heading.x, heading.z) - before), Math.cos(Math.atan2(heading.x, heading.z) - before))
+        if (Math.abs(turn) > THREE.MathUtils.degToRad(2)) {
+          if (lastSign && Math.sign(turn) !== lastSign) flips += 1
+          lastSign = Math.sign(turn)
+        }
+        position.addScaledVector(heading, speed * delta)
+      }
+      assert.ok(position.distanceTo(goal) <= 1, `a ${bodyLength} WU fish from x ${x} gets round the V`)
+    }
+  }
+  assert.ok(flips <= 3, `no shiver in the crease (${flips} heading flips over 6 runs)`)
   clearRockObstacles(rocks)
 }
 

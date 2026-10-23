@@ -301,18 +301,11 @@ around them.
    the scene has a seabed, the drawn depth (surface `SURFACE_PLANE_Y` 4.6 to the sand,
    `1 WU = 25 cm`). Note in a comment if the two disagree. `tests/reserveDepth.test.mjs`
    fails on a reserve without a sane range.
-4. **Descent scenery** (see below). Decide whether the reserve gets standee scenery and
-   which signature species appear on its descent, draw any missing sprites in
-   `src/data/pixelSprites.js`, and add a `descent` block. Open water (The Open Sea) has
-   none: marine snow and the light are its scenery.
-5. **Landing scenery.** The landing's standees are curated by hand in
-   `src/data/landingScenery.js`, not generated from the roster: decide whether the new
-   reserve or its creatures earn a place on the front page (a signature animal, its
-   corals along the bottom edge), and add them there, composed around the card rather
-   than scattered. A creature that is planned but not
-   in any roster yet can appear as a `comingSoon` piece (a greyed-out silhouette, with
-   `futureSpecies`); when it arrives, drop `comingSoon` and give it `species`.
-6. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
+4. **Descent scenery** (see below). Decide which signature species (and, for a reserve
+   with a seabed, which corals) appear on its loading descent, draw any missing sprites in
+   `src/data/pixelSprites.js`, and add a `descent` block. Scenery is for the loading
+   descents only; the landing stays just the card.
+5. **Selector and loading.** Nothing to wire: the selector card, the attention ranking
    and preloading (`docs/environment-loading.md`) pick the new entry up from `TANKS`.
    Check the card's swatch (from `lighting.backgroundStops`, else the biome colour) and
    the descent on a phone, portrait and landscape.
@@ -321,7 +314,8 @@ around them.
 
 Each reserve's loading descent (the freediver going down the guideline,
 `DiveDescent.jsx`) can carry scenery that says where you are going. Built in
-`v0.35.0-dev_10` for The Reefs; `tests/scenery.test.mjs` checks every piece.
+`v0.35.0-dev_10` for The Reefs and `dev_13` for The Open Sea; `tests/scenery.test.mjs`
+checks every piece. The landing has no scenery (Jeremy, dev_13).
 
 - **Standees, no cardboard.** Flat pixel-art cut-outs set around the guideline, like a
   cardboard standee display without the cardboard outline: same 2 px cell style and CRT
@@ -342,8 +336,9 @@ Each reserve's loading descent (the freediver going down the guideline,
 - **Composed, not scattered.** Lay pieces out as a picture: alternate sides down the line
   so the eye zigzags with the diver, group small species into a school rather than
   spreading them, let the seabed form a garden around the landing spot with the larger
-  mass on one side, and set back secondary pieces with `distance` (dimmer, greyer). The
-  landing follows the same rules around the card (see `src/data/landingScenery.js`).
+  mass on one side, and set back secondary pieces with `distance` (dimmer, greyer).
+  Open water has no seabed: The Open Sea's descent is a sardinella school up in the
+  water on one side and the whale shark deeper on the other.
 - **Data.** A `descent` block on the tank (The Reefs' is in species.js):
 
   ```js
@@ -353,14 +348,15 @@ Each reserve's loading descent (the freediver going down the guideline,
     ],
     scenery: [
       { sprite: 'table-coral', depth: 'floor', side: 'left' },
-      { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -0.4, distance: 0.25 },
+      { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -3, distance: 0.25 },
     ],
   }
   ```
 
   `depth` is metres inside `depthMeters`, or `'floor'` to stand on the seabed (floor
-  pieces line up outward from the line, in list order). `dx` (rem, away from the line)
-  and `dy` (rem, down; not for floor pieces) offset a piece to compose groups, and
+  pieces line up outward from the line, in list order). `dx` (sprite cells, away from the
+  line) and `dy` (sprite cells, down; not for floor pieces) offset a piece to compose
+  groups, so a group scales with its sprites, and
   `distance` (0 near to 1 far) sets it back. `species` must be on the
   reserve's own roster. Sprites face left; `flip` turns one to face the line from the
   left. Pieces keep clear of the depth labels beside the line.

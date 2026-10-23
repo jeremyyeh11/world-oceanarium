@@ -1,4 +1,4 @@
-// Pixel-art sprites for the standee scenery (the landing and each reserve's descent),
+// Pixel-art sprites for the standee scenery on each reserve's loading descent,
 // in the same cell style as the descent's diver. Each sprite is a grid of characters:
 // '.' is empty, any other character is a cell in that palette colour. Every sprite faces
 // left; standees flip it when placed (`flip`).
@@ -8,8 +8,8 @@
 // silhouette and one or two field marks (the bannerfish's pennant and bands, the whale
 // shark's spots) matter more than detail.
 //
-// Adding a sprite: draw it here, add it to a standee list (src/data/landingScenery.js or a
-// tank's `descent` in species.js), and check it at large scale before shipping.
+// Adding a sprite: draw it here, add it to a tank's `descent` in species.js, and check it at
+// large scale before shipping.
 
 export const SPRITE_PALETTE = {
   // Ink and light
@@ -33,10 +33,6 @@ export const SPRITE_PALETTE = {
   O: '#efb07c', // staghorn tips
   u: '#5d93c4', // staghorn blue
   U: '#93bfe2', // staghorn blue tips
-  // Rays (shown greyed out on the landing until they join a roster)
-  n: '#33475a', // dark back
-  N: '#4a6278', // leading edge, lit
-  p: '#b9c7d2', // pale shoulder patches, spots
 }
 
 const SPRITES = {
@@ -54,6 +50,14 @@ const SPRITES = {
     '..sssgsss..........ssss....ggggg....',
     '.....ggg....................ggg.....',
     '......gg.....................g......',
+  ],
+  // Amblygaster sirm, the spotted sardinella: a slim silver fish with a blue back, a row of
+  // gold flank spots and a forked tail. Small on purpose: it reads as one of many.
+  sardine: [
+    '..GGGGGGG..G',
+    '.kGyGyGyGGGG',
+    'ssssssssssG.',
+    '..sssssss..s',
   ],
   // Mola alexandrini, the giant sunfish: a tall disc with a tall dorsal and anal fin at
   // the back and a scalloped clavus instead of a tail.
@@ -153,45 +157,6 @@ const SPRITES = {
     '...uuuu.....',
     '....uu......',
     '....uu......',
-  ],
-  // Rays are drawn from above, head up, wings level: that is how a ray reads. Flip has no
-  // meaning for them.
-  // Mobula alfredi, the reef manta: broad swept wings, the two cephalic fins at the front,
-  // pale shoulder patches.
-  'manta-ray': [
-    '..............N.N..............',
-    '.............NNNNN.............',
-    '..........NNNnnnnnNNN..........',
-    '.......NNNnnnpnnnpnnnNNN.......',
-    '....NNNnnnnppnnnnnppnnnnNNN....',
-    '.NNNnnnnnnnnnnnnnnnnnnnnnnnnNN.',
-    'NnnnnnnnnnnnnnnnnnnnnnnnnnnnnnN',
-    '..nnnnnnnnnnnnnnnnnnnnnnnnnnn..',
-    '......nnnnnnnnnnnnnnnnnnn......',
-    '..........nnnnnnnnnnn..........',
-    '..............nnn..............',
-    '...............n...............',
-    '...............n...............',
-  ],
-  // Aetobatus narinari, the spotted eagle ray: a pointed head, pointed wings, white spots on
-  // a dark back and a long whip tail.
-  'eagle-ray': [
-    '............N............',
-    '...........NNN...........',
-    '..........NnnnN..........',
-    '........NNnnnnnNN........',
-    '.....NNNnnpnnnpnnNNN.....',
-    '..NNNnnpnnnnpnnnnpnnNNN..',
-    'NNnnnnnnnpnnnnnpnnnnnnnNN',
-    '..nnnpnnnnnnnnnnnnnpnnn..',
-    '.....nnnnnpnnnpnnnnn.....',
-    '........nnnnnnnnn........',
-    '...........nnn...........',
-    '............n............',
-    '............n............',
-    '............n............',
-    '.............n...........',
-    '.............n...........',
   ],
 }
 

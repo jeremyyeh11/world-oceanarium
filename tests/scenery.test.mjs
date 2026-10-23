@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { SPECIES, TANKS } from '../src/data/species.js'
-import { LANDING_SCENERY } from '../src/data/landingScenery.js'
 import { PIXEL_SPRITES, SPRITE_PALETTE } from '../src/data/pixelSprites.js'
 import { reserveDepthRange } from '../src/utils/reserveDepth.js'
 
@@ -11,23 +10,6 @@ for (const [name, sprite] of Object.entries(PIXEL_SPRITES)) {
   assert.ok(sprite.width > 0 && sprite.height > 0, `${name} is empty`)
   const palette = new Set(Object.values(SPRITE_PALETTE))
   assert.ok(sprite.runs.every(([, , , colour]) => palette.has(colour)), `${name} uses a colour outside SPRITE_PALETTE`)
-}
-
-// The landing is curated by hand: every piece names a drawn sprite, a real species if it
-// names one, and a position on screen.
-for (const piece of LANDING_SCENERY) {
-  assert.ok(PIXEL_SPRITES[piece.sprite], `landing: no sprite '${piece.sprite}'`)
-  if (piece.species) assert.ok(speciesIds.has(piece.species), `landing: unknown species '${piece.species}'`)
-  // A coming-soon piece is one not on any roster yet; once it is, it should say so.
-  if (piece.comingSoon) {
-    assert.ok(piece.futureSpecies && !piece.species, `landing: coming-soon ${piece.sprite} names its futureSpecies, not species`)
-    assert.ok(!speciesIds.has(piece.futureSpecies), `landing: ${piece.futureSpecies} has arrived; drop comingSoon and make it species`)
-  }
-  assert.ok(piece.x >= 0 && piece.x <= 100, `landing: ${piece.sprite} x out of range`)
-  if (!piece.seabed) assert.ok(piece.y >= 0 && piece.y <= 100, `landing: ${piece.sprite} y out of range`)
-  assert.ok(Number.isInteger(piece.px) && piece.px > 0, `landing: ${piece.sprite} needs a whole-number px (crisp cells)`)
-  if (piece.phone) assert.ok(piece.phone.px === undefined || Number.isInteger(piece.phone.px), `landing: ${piece.sprite} phone px must be whole`)
-  if (piece.distance !== undefined) assert.ok(piece.distance >= 0 && piece.distance <= 1, `landing: ${piece.sprite} distance must be 0–1`)
 }
 
 // A reserve's descent scenery sits inside its depth range, on a side, with drawn sprites;

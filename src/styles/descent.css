@@ -332,15 +332,15 @@
 
 .descent-standee {
   position: absolute;
-  top: calc(var(--at) * var(--descent-travel) + var(--descent-diver-h) / 2 + var(--dy, 0rem));
+  top: calc(var(--at) * var(--descent-travel) + var(--descent-diver-h) / 2 + var(--dy, 0) * var(--descent-px));
   transform: translateY(-50%);
   opacity: 0.5;
   filter: brightness(0.32) saturate(0.35);
   transition: opacity 700ms ease, filter 700ms ease;
 }
 
-.descent-standee.is-left { right: calc(50% + 3.6rem + var(--dx, 0rem)); }
-.descent-standee.is-right { left: calc(50% + 4rem + var(--dx, 0rem)); }
+.descent-standee.is-left { right: calc(50% + 3.6rem + var(--dx, 0) * var(--descent-px)); }
+.descent-standee.is-right { left: calc(50% + 4rem + var(--dx, 0) * var(--descent-px)); }
 
 /* Seabed pieces stand on the floor line, lined up outward from the centre. */
 .descent-standee.is-floor {
@@ -352,8 +352,8 @@
   bottom: 0;
 }
 
-.descent-standee.is-floor.is-left { right: calc(50% + 3.6rem + var(--slot) * 2.2rem + var(--dx, 0rem)); }
-.descent-standee.is-floor.is-right { left: calc(50% + 4rem + var(--slot) * 2.2rem + var(--dx, 0rem)); }
+.descent-standee.is-floor.is-left { right: calc(50% + 3.6rem + var(--slot) * 2.2rem + var(--dx, 0) * var(--descent-px)); }
+.descent-standee.is-floor.is-right { left: calc(50% + 4rem + var(--slot) * 2.2rem + var(--dx, 0) * var(--descent-px)); }
 
 /* Lit, a piece set back (`--far`, 0 near to 1 far) stays dimmer and greyer: depth by
    atmosphere, the way water swallows colour with distance. */
@@ -464,72 +464,4 @@
 /* `scale` rather than `transform`, so the idle bob (`translate`) never cancels a flip. */
 .pixel-sprite.is-flipped {
   scale: -1 1;
-}
-
-/* --- landing standees (src/data/landingScenery.js) ------------------------- */
-
-/* Behind the card, over the gate's water. Hand-placed by % of the screen; seabed pieces
-   stand on the bottom edge. A faint band of sand light along the bottom grounds them. */
-.landing-scenery {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, transparent 88%, rgba(196, 190, 162, 0.07));
-}
-
-.landing-card {
-  z-index: 1;
-}
-
-.landing-standee {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  --sprite-px: var(--px);
-  /* `--far` (0 near to 1 far): set back by atmosphere, dimmer and greyer. */
-  opacity: calc(0.9 - var(--far, 0) * 0.4);
-  filter:
-    brightness(calc(1 - var(--far, 0) * 0.4))
-    saturate(calc(1 - var(--far, 0) * 0.5))
-    drop-shadow(0 0 8px rgba(127, 220, 242, 0.12));
-}
-
-.landing-standee.is-seabed {
-  top: auto;
-  bottom: 0;
-}
-
-.landing-standee.is-species .pixel-sprite {
-  animation: standee-bob 3.6s ease-in-out infinite;
-  animation-delay: var(--bob-delay, 0s);
-}
-
-/* Not in a reserve yet: a dark, greyed-out silhouette, a hint of what is coming. Still,
-   with no glow, so it reads as a shadow in the distance rather than a resident. */
-.landing-standee.is-coming-soon {
-  opacity: 0.5;
-  filter: grayscale(1) brightness(0.7);
-}
-
-@media (max-width: 640px) {
-  .landing-standee {
-    left: var(--x-phone, var(--x));
-    top: var(--y-phone, var(--y));
-    --sprite-px: var(--px-phone, var(--px));
-  }
-
-  .landing-standee.is-seabed {
-    top: auto;
-  }
-
-  .landing-standee.is-desktop-only {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-standee.is-species .pixel-sprite {
-    animation: none;
-  }
 }

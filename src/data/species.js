@@ -73,6 +73,23 @@ export const TANKS = [
     // on its selector card (utils/reserveDepth.js). Without it the zone's range is used.
     // Open water: the whole sunlight zone.
     depthMeters: [0, 200],
+    // The loading descent's standees (docs/tank-design.md, Descent scenery). Open water has
+    // no seabed, so nothing stands on the floor: a sardinella school balled up on the left
+    // in the upper water, and the whale shark deeper on the right, heading for the line.
+    descent: {
+      signature: [
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 12, dy: -5 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 6, dy: 4 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 19, dy: 1, distance: 0.2 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 15, dy: 9, distance: 0.3 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 25, dy: -7, distance: 0.4 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 2, dy: -10, distance: 0.35 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 27, dy: 6, distance: 0.5 },
+        { sprite: 'sardine', species: 'amblygaster-sirm', depth: 40, side: 'left', flip: true, dx: 21, dy: 14, distance: 0.55 },
+        { sprite: 'whale-shark', species: 'rhincodon-typus', depth: 120, side: 'right' },
+      ],
+    },
     // seed varies the surface caustics + background mottle so each tank has a
     // distinct-but-stable sky/surface signature (see SceneLighting / WaterSurface).
     seed: 137,
@@ -117,14 +134,14 @@ export const TANKS = [
         { sprite: 'emperor-angelfish', species: 'pomacanthus-imperator', depth: 5.5, side: 'right' },
         // A loose trio, set back a little.
         { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, distance: 0.3 },
-        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 1.6, dy: -0.7, distance: 0.4 },
-        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 0.9, dy: 0.8, distance: 0.45 },
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 13, dy: -6, distance: 0.4 },
+        { sprite: 'raccoon-butterflyfish', species: 'chaetodon-lunula', depth: 8, side: 'left', flip: true, dx: 7, dy: 6, distance: 0.45 },
       ],
       scenery: [
         { sprite: 'table-coral', depth: 'floor', side: 'left' },
-        { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -0.4, distance: 0.25 },
+        { sprite: 'staghorn-blue', depth: 'floor', side: 'left', dx: -3, distance: 0.25 },
         { sprite: 'staghorn-orange', depth: 'floor', side: 'right' },
-        { sprite: 'table-coral', depth: 'floor', side: 'right', dx: -0.3, distance: 0.35 },
+        { sprite: 'table-coral', depth: 'floor', side: 'right', dx: -2, distance: 0.35 },
       ],
     },
     seed: 953,

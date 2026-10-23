@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.35.0 — Reserve selector and the descent (in development)
 
-Status: `v0.35.0-dev_12` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
+Status: `v0.35.0-dev_13` (2026-10-23, branch `claude/environment-loader-ui-ux-v28m0g`), stacked on `feat/budgeted-environment-loader` (#153, `v0.34.2-dev_5`). Jeremy: landing → dive in → environment selector → loading screen → tank, with a bottom-left button back to the selector. Rebuilt on #153's loader after a first pass on `main` (#154, closed) duplicated its preloading and readiness work.
 
 ### Navigation
 
@@ -32,7 +32,8 @@ Status: `v0.35.0-dev_12` (2026-10-23, branch `claude/environment-loader-ui-ux-v2
 - The Reefs' descent has standees (`descent` in species.js): its signature species, the bannerfish at 3.5 m and the emperor angelfish at 6.5 m, ledges at 2 m and 8 m, and table coral and two staghorns on the seabed. Placed by depth, dark until the diver reaches them, then lit; the fish bob a pixel in place and nothing travels or scrolls. The Open Sea stays bare.
 - The landing has hand-curated standees around the card (`src/data/landingScenery.js`): the whale shark and sunfish up top, a school of raccoon butterflyfish lower left, and table coral and staghorn along the bottom edge, with phone positions of their own. The reef manta and spotted eagle ray are there as `comingSoon` pieces (dev_11): dark, greyed-out silhouettes hinting at what is on the way, named by `futureSpecies` until they join a roster (the test then asks for `species`).
 - dev_12 (Jeremy: "remove ledge also, any form of landscape stuff is gone"; "arranged with composition rather than a random scatter"): the ledge sprite and the rock bases under the coral sprites are gone; scenery is species and corals only. Pieces take `dx`/`dy` offsets and a `distance` (0 near to 1 far: dimmer, greyer). The Reefs' descent zigzags down the line (bannerfish 3 m left, angelfish 5.5 m right, a set-back butterflyfish trio 8 m left) into a coral garden either side of the landing spot, lit on arrival. The landing is composed around the card: the whale shark as hero across the top, the butterflyfish school rising diagonally into the card with its rear fish smaller and dimmer, the sunfish balancing the right third, the coming-soon rays as a distant pair low right, coral masses anchoring both bottom corners.
-- `tests/scenery.test.mjs`: every piece names a drawn sprite and real species, landing pieces sit on screen, descent pieces sit inside the reserve's depth range, and signature species are on that reserve's roster.
+- dev_13 (Jeremy: "remove the sprites for the main landing. keep for loading pages. open sea should have some also"): the landing has no scenery again (`landingScenery.js` and the ray sprites removed). The Open Sea's descent gets a spotted sardinella school balled up on the left at 40 m (new `sardine` sprite, nine fish, the edges set back) and the whale shark deeper on the right at 120 m; no seabed pieces in open water. The first dive after the landing shows it, since that descent warms The Open Sea. `dx`/`dy` are now in sprite cells, so a group keeps its shape at every sprite size.
+- `tests/scenery.test.mjs`: every piece names a drawn sprite and real species, descent pieces sit inside the reserve's depth range, and signature species are on that reserve's roster.
 
 ### Docs
 

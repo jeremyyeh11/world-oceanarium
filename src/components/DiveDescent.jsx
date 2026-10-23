@@ -76,7 +76,8 @@ function cells(rows) {
 // `scenery` is the reserve's `descent` block from TANKS (docs/tank-design.md, Descent
 // scenery): `signature` species and coral `scenery` pieces, each { sprite, depth, side,
 // flip?, dx?, dy?, distance? }. `depth` is metres within the range, or 'floor' to stand on
-// the seabed. `dx` (rem, away from the line) and `dy` (rem, down; not for floor pieces) compose groups such as a
+// the seabed. `dx` (cells, away from the line) and `dy` (cells, down; not for floor pieces) compose
+// groups, in sprite cells so a group scales with its sprites; such as a
 // school; `distance` (0 near to 1 far) sets them back, smaller-looking and dimmer. They are
 // standees: placed, never moving down the screen, dark until the diver reaches their depth.
 export default function DiveDescent({ eyebrow, title, tagline, progress = 0, readout, depthRange = [0, 200], scenery = null, arrived = false, failed = false, label = 'Loading', children = null }) {
@@ -153,7 +154,7 @@ export default function DiveDescent({ eyebrow, title, tagline, progress = 0, rea
               <div
                 key={`${sprite}:${index}`}
                 className={`descent-standee is-${side} is-${kind}${floor ? ' is-floor' : ''}${(arrived && floor) || travelled >= at - 0.02 ? ' is-lit' : ''}`}
-                style={{ '--at': at, '--slot': slot, '--dx': `${dx ?? 0}rem`, '--dy': `${dy ?? 0}rem`, '--far': distance ?? 0 }}
+                style={{ '--at': at, '--slot': slot, '--dx': dx ?? 0, '--dy': dy ?? 0, '--far': distance ?? 0 }}
               >
                 <PixelSprite name={sprite} flip={flip} />
               </div>

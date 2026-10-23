@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { APP_VERSION } from '../version'
 import DiveDescent from './DiveDescent'
-import PixelSprite from './PixelSprite'
-import { LANDING_SCENERY } from '../data/landingScenery'
 import { reserveDepthLabel, reserveDepthRange } from '../utils/reserveDepth'
 
 // The descent holds at least this long, so a warm first reserve still reads as a dive.
@@ -112,30 +110,6 @@ export default function LandingGate({ speciesCount, descent = null, reserve = nu
       aria-modal="true"
       aria-labelledby="landing-title"
     >
-
-      {/* Hand-curated standees around the card (src/data/landingScenery.js). */}
-      <div className="landing-scenery" aria-hidden="true">
-        {LANDING_SCENERY.map((piece, index) => (
-          <div
-            key={`${piece.sprite}:${index}`}
-            className={`landing-standee${piece.seabed ? ' is-seabed' : ''}${piece.species && !piece.seabed ? ' is-species' : ''}${piece.comingSoon ? ' is-coming-soon' : ''}${piece.phone === false ? ' is-desktop-only' : ''}`}
-            style={{
-              '--x': `${piece.x}%`,
-              '--y': `${piece.y ?? 0}%`,
-              '--px': `${piece.px}px`,
-              ...(piece.phone ? {
-                '--x-phone': `${piece.phone.x ?? piece.x}%`,
-                '--y-phone': `${piece.phone.y ?? piece.y ?? 0}%`,
-                '--px-phone': `${piece.phone.px ?? piece.px}px`,
-              } : null),
-              '--bob-delay': `${-(index % 5) * 0.7}s`,
-              '--far': piece.distance ?? 0,
-            }}
-          >
-            <PixelSprite name={piece.sprite} flip={piece.flip} />
-          </div>
-        ))}
-      </div>
 
       {/* No crt-banded here — the fixed .crt-screen film already bands this, and
           doubling it would both muddy the panel and drag the lines down mid-dive. */}

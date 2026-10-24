@@ -3504,6 +3504,109 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.2,
     },
   },
+  // --- Giant oceanic manta (Mobulidae) -------------------------------------------------------
+  // Facts from FishBase, the Sharks and Rays profile and a 2024 tagging study (Environmental
+  // Biology of Fishes, doi 10.1007/s10641-024-01622-2: mantas photo-identified and tagged moving between the
+  // Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of
+  // California). The Shallows' one big animal, on the devil ray's mobuliform disc-wave (Jeremy,
+  // 2026-10-24; ROADMAP: Giant Oceanic Manta). Prep entry: hidden from the Atlas, no model, no
+  // tank slot yet.
+  {
+    id: 'mobula-birostris',
+    name: 'Giant Oceanic Manta',
+    scientificName: 'Mobula birostris',
+    family: 'Mobulidae',
+    alternateNames: ['Oceanic Manta Ray', 'Giant Manta Ray'],
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // "Occurs singly or in loose aggregations" (FishBase): one animal, not a school.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Mainly plankton, sometimes small and moderate-sized fishes (FishBase): a filter feeder.
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 12 November 2019 (A2bcd+3d); CITES Appendix II. Taken by tuna gillnets and
+      // harpoons and for the gill plate trade; one pup every few years.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coastal and Open Ocean',
+      commonDiet: 'Zooplankton such as krill, copepods and fish eggs; sometimes small fishes.',
+      foundIn: 'Tropical to warm temperate seas worldwide, from southern California and Rhode Island to Peru, Uruguay, South Africa and New Zealand, around upwelling coasts, oceanic islands and seamounts. Young mantas visit the southern Gulf of California.',
+      maxLengthLabel: 'Disc width',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Alone or loose groups',
+        groupingBehaviour: 'Alone or in loose aggregations at feeding grounds and cleaning stations. By day mantas stay in shallow water to rest, socialise and be cleaned; at night many move deeper to feed. At the Revillagigedo Islands off Mexico they return to the same cleaning stations for years.',
+        // FishBase: up to 2 young, born 122–127 cm across; Sharks and Rays: 1 pup every 4–5 years.
+        reproduction: 'Bears live young, usually one pup about 1.2 to 1.3 m across, every few years. Males chase a female in courtship trains before mating.',
+      },
+      averages: {
+        // To fill from sources (atlas averages method): FishBase gives only a common width.
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        // FishBase: Lm 422 cm disc width (380–460 cm). Age at maturity not yet read.
+        sexualMaturityYears: 'Unknown; at about 3.8 to 4.6 m across',
+        sexualSterilityYears: 'Unknown',
+        offspringPerMatingEvent: '1 pup, rarely 2',
+      },
+    },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Zooplankton',
+      social: 'Solitary',
+    },
+    description: "The largest ray in the world, up to about 7 m across, black above with white shoulder patches and white below with dark spots. It sieves plankton through its gills, holding its broad head fins unrolled like a funnel, and visits reef cleaning stations where small fish pick it clean. It has a single pup every few years, and fishing for its meat and gill plates has left it Endangered.",
+    // Sizes are disc width. The Sharks and Rays profile gives "at least 700 cm"; FishBase's 910 cm
+    // is an older record. FishBase's maturity width (380–460 cm) starts the adult range.
+    adultLengthRangeMeters: [4.0, 7.0],
+    maxBodyLengthMeters: 7.0,
+    swim: {
+      // Starting values until the model lands: a slow, unhurried cruiser alone, wide turns,
+      // never hovering.
+      visualTimeScale: 0.5,
+      driftEnabled: false,
+      burstEnabled: false,
+      turnSpeedupEnabled: false,
+      idleBLPerSec: [0.12, 0.2],
+      idleDriftBLPerSec: [0.05, 0.1],
+      snapBLPerSec: [0.3, 0.45],
+      burstBLPerSec: [0.5, 0.7],
+      burstInterval: [20.0, 40.0],
+      erraticness: 0.04,
+      turnRadiusBodyLengths: 1.5,
+      // 1 WU = 25 cm: 7 m disc width = 28 WU. Bounds come with The Shallows slot.
+      bodyLengthWU: 28,
+      boids: {
+        neighborCap: 3,
+        perceptionBodyLengths: 1.2,
+        separationWeight: 0.05,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.06,
+        // Harmless and big: like the whale shark, other fish give it room without fleeing.
+        menace: 0.3,
+        wariness: 0.05,
+      },
+    },
+    // Adults from the ~4 m maturity width to the 7 m maximum (16–28 WU). The Shallows holds one
+    // adult at full size (Jeremy, 2026-10-24), not a juvenile stage.
+    sizeRange: [0.57, 1.0],
+  },
   // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since
   // corals are animals"). Not a swimming creature: no `swim`, no tank roster slot, no creature
   // rows. Its tables are placed on the rocks by the landscape (landscapes.js `corals`,

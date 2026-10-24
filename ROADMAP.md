@@ -13,6 +13,21 @@ Status labels:
 
 ## Current work
 
+### Giant Oceanic Manta
+
+Status: `Current in development` (branch `feat/mobula-birostris`, started 2026-10-24). The Shallows' one big animal, on the devil ray's mobuliform disc-wave. Species data is in, hidden from the Atlas, with no model and no tank slot yet. Waiting on Jeremy: his GLB.
+
+Subtasks:
+- [x] Species data and Atlas copy (`Mobula birostris`) from FishBase and the Sharks and Rays profile: EN (2019, A2bcd+3d), CITES II; at least 7 m disc width (FishBase's 910 cm is an older record), maturity at 3.8–4.6 m, one pup about 1.2 m across; alone or in loose groups. Range checked: tagged mantas move between the Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of California (Environmental Biology of Fishes 2024, doi 10.1007/s10641-024-01622-2).
+- [x] Size: 28 WU at 7 m across; adult `sizeRange` 0.57–1.0 (4–7 m).
+- [x] Motion notes: same mobuliform config, slower and larger stroke; Blender contract differences in `docs/procedural/disc-wave.md`.
+- [x] Jeremy: one adult manta at full size, 4–7 m across (16–28 WU), no juvenile stage (2026-10-24).
+- [ ] Jeremy: model to the contract (7 units across, nose −Z, grid quads in the wings).
+- [ ] Atlas averages and lifecycle from sources (sizes by sex, weight, ages, gestation); `mass` from a disc-width relation, not FishBase's total-length one.
+- [ ] `rideHost` (`groups: ['ray']`) so the white suckerfish rides it; anchors via `scripts/fit-ride-anchors.mjs`.
+- [ ] Swim bounds in The Shallows that keep a 16–28 WU animal clear of the devil ray school and the camera; phone framing.
+- [ ] `creatures_dev` row (read prod max id first), Atlas pose and tile in the same build; prod row needs Jeremy's go-ahead.
+
 ### Munk's Devil Ray and The Shallows
 
 Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open. A tighter school, Atlas framing and data, and caustics on the rays shipped in clean `v0.36.1` (2026-10-24, from `v0.36.1-dev_5`, branch `feat/devil-ray-school-spacing`, #158).

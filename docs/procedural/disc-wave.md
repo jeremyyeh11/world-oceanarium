@@ -62,6 +62,37 @@ Blender contract for Jeremy's model (proposed):
 - Purplish-grey to brown above with dark bands across the top of the mouth; white below,
   often with dusky wingtips. Opaque texture, 2048 px or less.
 
+## Second animal: giant oceanic manta (proposed 2026-10-24)
+
+*Mobula birostris* (`mobula-birostris`), The Shallows' one big animal. Same mobuliform
+config and shader as the devil ray; no new motion architecture. What changes is tuning:
+
+- **Slower, larger stroke.** A big manta beats about once every 3–4 s at cruise (the
+  devil ray about 1.4 s): `waveSpeed` roughly 1.6–2.0, with wingtip lift about 0.2 of the
+  wing. It glides between strokes more often than the small ray; gliding stays a later
+  idea for both.
+- **Size.** 28 WU at 7 m across. The tank holds one adult at full size, 4–7 m across
+  (16–28 WU; Jeremy, 2026-10-24), with no juvenile stage.
+- **Cephalic fins.** Larger than the devil ray's; rolled while cruising, as before. `A` stays
+  unused until unrolling to feed is planned.
+- **Riders.** A `rideHost` block (`groups: ['ray']`) lets the white suckerfish ride it, on
+  the belly first; mouth and gill-chamber riding is a separate roadmap item.
+
+Blender contract: the devil ray's, with these differences:
+
+- `1` raw unit = `1` m, scaled so the disc is 7 units wingtip to wingtip (the largest
+  adult); `sizeRange` scales it down to 4 m. Disc width about 2.1–2.3 × disc length (Sharks and Rays).
+- Head projects well forward of the wings, wide terminal mouth, short whip tail with a small
+  bulge at its base, small dorsal fin.
+- Black above with white or grey shoulder patches; the black between them forms a T (a band
+  along the mouth, a stripe back between the patches), the patches' front edges parallel to
+  the mouth. A white V on the back just in front of the tail, and white wingtips (a common
+  variant, per Jeremy's reference: Guy Stevens / Manta Trust, reference only, not a texture).
+  Mouth and head fins dark. White below with dark spots near the last gill slits. Opaque
+  texture, 2048 px or less.
+- Masks are computed by `scripts/paint-disc-wave-masks.py` as for the devil ray (check its
+  1.3 m default disc width before running).
+
 ## Animals
 
 Proposed: rays and skates (rajiform/mobuliform swimmers), cuttlefish.

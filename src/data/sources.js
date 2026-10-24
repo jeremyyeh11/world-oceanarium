@@ -70,6 +70,15 @@ export const SOURCES = [
 // one decided.
 export const STUDY_CREDITS = [
   {
+    id: 'notarbartolo-1988-mobula',
+    subject: "Munk's Devil Ray average size by sex, width–weight relationship and male maturity",
+    authors: 'Notarbartolo di Sciara',
+    year: 1988,
+    title: 'Natural history of the rays of the genus Mobula in the Gulf of California',
+    venue: 'Fishery Bulletin 86: 45–66',
+    url: 'https://spo.nmfs.noaa.gov/sites/default/files/pdf-content/1988/861/notar.pdf',
+  },
+  {
     id: 'serrano-lopez-2021-devil-rays',
     subject: "Munk's Devil Ray maturity size and litter size",
     authors: 'Serrano-López, Soto-López, Ochoa-Báez, O’Sullivan & Galván-Magaña',
@@ -89,7 +98,7 @@ export const STUDY_CREDITS = [
   },
   {
     id: 'manta-trust-munks-devil-ray',
-    subject: "Munk's Devil Ray maximum disc width and unknown lifespan",
+    subject: "Munk's Devil Ray maximum disc width, average width range and unknown lifespan",
     authors: 'Manta Trust',
     title: 'Munk’s Pygmy Devil Ray',
     venue: 'Species guide',

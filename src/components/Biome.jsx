@@ -13,6 +13,8 @@ const ENABLE_SARDINE_INSTANCED_LAYER = true
 
 function schoolMaxSizeForSpecies(species) {
   const configured = species?.swim?.schoolMaxSize
+  // `Infinity`: the species' whole population in a reserve is one school (Munk's devil ray).
+  if (configured === Infinity) return Infinity
   if (!Number.isFinite(configured)) return SCHOOL_MAX_SIZE
   return Math.max(2, Math.floor(configured))
 }
@@ -135,11 +137,15 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
         const schoolGroup = orderedGroup.slice(offset, offset + maxSchoolSize)
         if (schoolGroup.length < 2) continue
         const schoolId = `${key}:visit-${tankVisitSeed}:school-${Math.floor(offset / maxSchoolSize)}`
+        // Each member's size (its body-length multiplier), by school index, shared by every
+        // member: a formation cloud sizes each slot's gaps to the animal that fills it.
+        const memberSizes = schoolGroup.map(creature => creature.size ?? 1)
         schoolGroup.forEach((creature, index) => {
           nextSchoolByCreatureId.set(creature.id, {
             id: schoolId,
             index,
             count: schoolGroup.length,
+            memberSizes,
             modelVariantKey: schoolModelVariantKey(species, schoolId, index, schoolGroup.length),
           })
         })
@@ -152,6 +158,12 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
     () => new Map([...pairFollowersForCreatures(visibleCreatures), ...groupFollowersForCreatures(visibleCreatures)]),
     [visibleCreatures],
   )
+
+  // A landscape's caustics as they fall on its animals (`caustics.fish` overrides), or none.
+  const fishCaustics = useMemo(() => {
+    const caustics = landscapeForTank(tank)?.caustics
+    return caustics?.fish ? { ...caustics, ...caustics.fish } : null
+  }, [tank])
 
   return (
     <group>
@@ -179,6 +191,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
             debugLodView={debugLodView}
             debugSimulationSpeed={debugSimulationSpeed}
             school={school}
+            caustics={fishCaustics}
             pair={pairByCreatureId.get(creature.id) ?? null}
             modelVariantKey={creatureSexModelVariantKey(creature, SPECIES_BY_KEY.get(creature.species), school?.modelVariantKey ?? null)}
             onClick={onCreatureClick}

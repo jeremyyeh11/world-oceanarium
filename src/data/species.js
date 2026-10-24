@@ -3326,20 +3326,29 @@ export const SPECIES = [
         reproduction: 'Bears one live pup, estimated at 35 to 42 cm across at birth. Gestation is estimated at 10 to 12 months by comparison with a related species. Mating and pupping take place from April to June in La Paz Bay, in the southern Gulf of California. Males mature at about 95 cm disc width, females at 95 to 105 cm. Young use sheltered shallow bays as nurseries.',
       },
       averages: {
-        // Jeremy's requested specimen-size reference, matching the 1.3 m scale
-        // (Manta Trust maximum disc width), rather than the regional catch means.
-        maleSizeMeters: '1.3 m (disc width)',
-        femaleSizeMeters: '1.3 m (disc width)',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // Notarbartolo di Sciara 1988 (Fishery Bulletin 86: 45–66), 24 rays measured in the
+        // southern Gulf of California: males 686–900 mm disc width, mean 853.8 mm (n = 10);
+        // females 719–1,097 mm, mean 909.9 mm (n = 14). The Manta Trust gives an 89–100 cm
+        // average. (v0.36.0 showed the 1.3 m maximum here; Jeremy asked for researched
+        // averages, 2026-10-24.)
+        maleSizeMeters: '0.85 m (disc width)',
+        femaleSizeMeters: '0.91 m (disc width)',
+        // The same study's width–weight fit for the 10 rays weighed (4.1–11.8 kg): WT (kg) =
+        // 1.041 × 10⁻⁶ × DW (mm)^2.33 (the scan garbles the exponent's last digit; 2.33–2.34 give
+        // these within 5%), at each sex's mean width.
+        maleWeightKg: '7 kg (estimated)',
+        femaleWeightKg: '8 kg (estimated)',
+        // No age data for this species: the only mobulid ages are for larger species, and the
+        // IUCN's three-generation window (38 years) is inferred from them, so not used here.
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
-        // Serrano-López et al. 2021: male L50 95.24 cm; females 95–105 cm.
-        // No species-specific age data; do not substitute M. mobular's ages.
-        sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        // Age unknown (no ageing study). Size at maturity: Notarbartolo di Sciara 1988, males
+        // from about 87 cm; Serrano-López et al. 2021, male L50 95.24 cm, females 95–105 cm.
+        sexualMaturityYears: 'Unknown; at about 95 cm across (males) and 95 to 105 cm (females)',
+        sexualSterilityYears: 'None known',
+        // Palacios et al. 2021 and Notarbartolo di Sciara 1988: one pup per pregnancy.
         offspringPerMatingEvent: '1 pup',
       },
     },
@@ -3367,27 +3376,38 @@ export const SPECIES = [
       burstEnabled: false,
       turnSpeedupEnabled: false,
       schoolSoftWallBodyLengths: 0.5,
-      schoolMaxSize: 218,
+      // Every Munk's devil ray in a reserve is one school, however many there are (Jeremy,
+      // 2026-10-24); members may stray and return, but the count is never split.
+      schoolMaxSize: Infinity,
       schoolFormationWeight: 0.75,
       schoolGoalReachedBodyLengths: 1,
       schoolStationGain: 0.2,
       schoolStationSpeedRange: [0.8, 1.2],
       schoolTurnRateScale: 0.4,
-      // Seeded continuous 3D references, with 15% closer spacing after review. Fish
-      // drift freely within 0.2 disc widths, easing back across the 0.2-0.45 band.
-      // Neighbour separation has its own comfortable range, not an exact distance.
+      // Seeded continuous 3D references (fishSwim.js createSchoolFormationCloud), packed like
+      // Jeremy's reference photo: wingtip to wingtip in staggered layers, no rows, stacks or
+      // touching wings. Gaps are in units of the largest ray's disc width × spacingScale (4.4 ×
+      // 0.85 = 3.76 WU). Fish drift freely within the tolerance's inner band and ease back
+      // across the outer one; neighbour separation has its own comfortable range.
       schoolFormation: {
         spacingScale: 0.85,
-        referenceCount: 60,
-        radiusCountPadding: 0.14,
-        heightCountPadding: 0.03,
-        positionToleranceBodyLengths: [0.2, 0.45],
+        // Share of the cloud's volume the rays' clearance ellipsoids fill, whatever the count, so
+        // a large school is as dense as a small one (a fixed 60-ray reference padded 218 rays
+        // out to twice the room each). Random packing jams near 0.38.
+        packing: 0.34,
+        positionToleranceBodyLengths: [0.15, 0.4],
         separationStart: 1.2,
         driftStrength: 0.75,
+        // The cloud's shape only (half-height to radius); its size comes from `packing`.
         radiusBodyLengths: 3.2,
         heightBodyLengths: 1.4,
-        lateralBodyLengths: 1.35,
-        longitudinalBodyLengths: 1.05,
+        // Centre to centre: 4.7 WU side by side, wider than the largest ray (4.4 WU); front to
+        // back a ray is only about 0.6 of its width long; 1.9 WU between layers, with no ray
+        // within 1.5 layers straight above another (fishSwim.js), clears two wingbeats. Slots
+        // are laid out in a fixed frame, so they use the side-by-side gap in every horizontal
+        // direction; the swimming separation uses both.
+        lateralBodyLengths: 1.25,
+        longitudinalBodyLengths: 0.85,
         verticalBodyLengths: 0.6,
       },
       idleBLPerSec: [0.5, 0.9],

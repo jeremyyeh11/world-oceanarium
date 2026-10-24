@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open.
+Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open. A tighter school, Atlas framing and data, and caustics on the rays shipped in clean `v0.36.1` (2026-10-24, from `v0.36.1-dev_5`, branch `feat/devil-ray-school-spacing`, #158).
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
@@ -36,7 +36,16 @@ Subtasks:
 - [ ] Species-specific disc-width–weight relation for `mass`: FishBase's shape-derived Bayesian relation uses total length and must not be applied to disc width.
 - [ ] Is `bodyLengthWU` the disc width (wingspan) or the snout-to-disc length? Speeds are in body lengths per second, so a 1 m-wide ray that is 0.5 m long reads twice as fast one way as the other. Decide when the shader lands.
 - [x] Reserve The Shallows (`v0.36.0-dev_1`): `the-shallows` in `TANKS`, landscape `shallows`, 0–10 m, low camera tilted about 22° up (`SHALLOWS_VIEW`), greener water, light shafts, a dark boulder cluster on the left, card still, descent with a new `devil-ray` sprite. Leaping out of the water deferred.
-- [ ] Recheck portrait framing with 218 rays: the full formation and broad turns use x +/-50, y -25 to 3, z -70 to 27 WU. Earlier phone samples used a smaller school and volume.
+- [x] Recheck portrait framing with 218 rays (`v0.36.1-dev_1`, browser, production rows, 40 s): a 375 px phone's middle strip held at least 30 rays throughout, desktop at least 204 of 218; none through rocks or sand; none nearer the camera than 33.7 WU (the bounds reach z 27, past the camera at z 24, but the goal inset keeps the school back).
+- [x] Tighter school like Jeremy's reference photo (`v0.36.1-dev_1`, 2026-10-24): one school per reserve (`schoolMaxSize: Infinity`); cloud sized at a fixed packing for any count (218 rays 17% tighter across), drum clearance, no stacks, never placed overlapping, height drift scaled to the layer gap; the soak checks real body overlap. See CHANGELOG v0.36.1.
+- [x] Slots sized to each ray (`v0.36.1-dev_2`): about 12% tighter than dev_1 at 218 rays, but wings overlap more (up to 3 pairs, 4–99 of 600 samples per seed, against dev_1's 1 pair in 1). Tuning (height drift, gap margin, separation start, free band) did not close the gap.
+- [x] `v0.36.1-dev_3`: Atlas pose (was falling back to tank scale, "too big in atlas"), Atlas tile and card retaken, averages and lifecycle from Notarbartolo di Sciara 1988 and Serrano-López et al. 2021 (CHANGELOG v0.36.1).
+- [x] `v0.36.1-dev_4`: sunlight caustics on the rays' backs near the surface (`caustics.fish` in landscapes.js, The Shallows only). Jeremy to review the strength on a phone; The Reefs could opt in the same way. `dev_5`: larger (11 WU), slower (0.01) net so it slides less.
+- [ ] Belly texture is still the original 389 KB PNG (the dorsal replacement reverted dev_2's JPEG export); a JPEG would save about 350 KB.
+- [x] Jeremy reviewed dev_2's per-ray spacing ("looks good") and shipped it in `v0.36.1`.
+- [ ] Occasional brief wing overlaps in the tighter school (dev_2 trade-off). Density and no overlaps together would need slot-holding reworked, especially through turns. `Backlog`
+- [ ] Far bound: seed 17 at 218 rays brushes the back of the swim volume (z -70) once during an early slow turn, shipped and dev_1 alike.
+- [ ] Capacity: The Shallows' swim volume fits about the current population. At 600 rays the school is about 70 WU across and touches its bounds; a much larger population needs a bigger volume or a looser cap on goals.
 - [x] 60 rays in `creatures_dev` (ids 464–523; prod max was 463, so next free id is 524). Atlas tile and card retaken with Jeremy's model (dev_2).
 - [ ] Jeremy: review dev_2 on a phone (card, descent, the school, the wingbeat).
 - [ ] Composition on a portrait phone: the school sits in the lower half and the top half is plain bright water.

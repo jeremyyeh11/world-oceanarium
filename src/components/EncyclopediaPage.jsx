@@ -191,6 +191,22 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0.3, -0.1, 0],
     lookAt: [0, -0.08, 0],
   },
+  // Munk's devil ray: a flat, wide flier, so the camera looks down onto the disc rather than
+  // along its edge, on the usual diagonal. Without a pose it fell back to the tank scale (5.2
+  // units across) and filled a phone's stage (Jeremy, 2026-10-24: "too big in atlas"). Wider
+  // than long, so phones pull back instead of moving in. The camera stays under the water
+  // surface (y 4.6) on every viewport: at the default 9.2 a 30° look down put it above, and the
+  // stage turned into a flat silhouette.
+  'mobula-munkiana': {
+    pitchDegrees: 30,
+    cameraDistance: 6.8,
+    maxLengthDisplayUnits: 2.9,
+    portraitPhoneDistanceScale: 0.95,
+    mobileDistanceScale: 0.9,
+    // Left of centre so the whip tail, trailing to the right, stays on a phone's stage.
+    position: [-0.35, -0.1, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -220,6 +236,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'rhincodon-typus': 99.8702,
   // Supplied humphead wrasse model, nose to tail tip along Z.
   'crassilabrus-undulatus': 20.1981,
+  // Supplied devil ray model (scripts/paint-disc-wave-masks.py), nose to tail tip along Z; the
+  // disc is 1.3 across.
+  'mobula-munkiana': 1.5228,
   // The table coral cluster, widest across (scripts/build-coral-atlas.py prints its bounds).
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).

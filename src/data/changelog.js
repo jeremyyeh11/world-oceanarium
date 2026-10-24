@@ -6,6 +6,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.36.0',
+    date: '2026-10-24',
+    title: 'The Shallows',
+    changes: [
+      ['new', "A third reserve, The Shallows: a bright, sandy bay in the Sea of Cortez, seen from low on the seabed looking up toward the surface."],
+      ['new', "Munk's devil rays fly over it in one great school, each beating its wings in its own rhythm, each a little different in colour. They are in the Atlas too."],
+    ],
+  },
+  {
     version: 'v0.35.1',
     date: '2026-10-23',
     title: 'A quicker Atlas',

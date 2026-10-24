@@ -8,6 +8,26 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.36.1 — A tighter devil ray school (in development)
+
+Status: `v0.36.1-dev_1` (2026-10-24, branch `feat/devil-ray-school-spacing`). Jeremy: an audit of v0.36.0, a tighter school like his reference photo (layers wingtip to wingtip) without the earlier attempts' grids, stacks, overlapping rays or spawn-to-school jumps, and every devil ray in a reserve in one school.
+
+### Schooling
+
+- One school per reserve: `schoolMaxSize: Infinity` (Biome.jsx), so the whole population schools together whatever the count (the cap was 218, the production count).
+- Formation cloud rebuilt (`createSchoolFormationCloud`): sized from the count at a fixed `packing` (0.34) instead of a 60-ray reference padded out, which gave 218 rays twice the room each; an oblate spheroid outline; placed through a grid of one-gap cells (8 ms for 218, 46 ms for 1,500); a slot is only ever placed at full clearance, the cloud growing 2% when it can't find room (the old one kept its best overlapping try); no ray within 1.5 layers straight above another (no stacks).
+- Clearance is a drum, not an ellipsoid, in the cloud, the swimming separation and the soak: flat wings that overlap seen from above need the whole layer gap however far apart sideways. Slots use the side gap in every horizontal direction, since the formation frame never turns with the school (a front-to-back slot gap put wings side by side after a 90° turn).
+- Height drift and the free band count against the layer gap (`formationLayerScale`, 1.25/0.6), not the wider side gap. Free band 0.15–0.4 widths (was 0.2–0.45), layer gap 0.6.
+- 218 rays: spread 10.9 WU across against 13.2 shipped, about 17% tighter. In the browser with production's 218: at least 204 in frame on desktop and 30 in a 375 px phone's strip over 40 s, none through rocks or sand, none nearer the camera than 33.7 WU.
+
+### Tooling
+
+- `scripts/inspect-ray-school.mjs` checks the bodies themselves: seen from above a ray is about a diamond (as wide as its disc, 0.6 as long), and two overlap when their diamonds do with their heights within two wingbeats. Verify allows at most 2 pairs at once and 2% of samples; `npm test` soaks 218 rays. Shipped v0.36.0 also brushed wings now and then (1 pair in 2 of 301 samples), and touched the far bound on seed 17, as dev_1 still does.
+
+### Atlas and visitors
+
+- The visitor changelog had no v0.36.0 entry; added.
+
 ## v0.36.0 — The Shallows and Munk's Devil Ray
 
 Status: clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, #157). The Shallows keeps this school apart from the open sea and reef casts.

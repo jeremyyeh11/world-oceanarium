@@ -1263,53 +1263,84 @@ export function schoolFormationHorizontalHalfExtent(school, creature) {
   return schoolFormationRadius(school, creature) * Math.hypot(1, SCHOOL_LONGITUDINAL_SPREAD) + 0.045
 }
 
-// One-time, seeded cloud of body-clearance slots. Sampling continuous coordinates avoids
-// visible rows and stacks. The anisotropic distance gives wings room without treating a
-// flat ray as a sphere. Kept on the shared school state, never resampled per fish/frame.
+// Slots of a formation cloud tried before the cloud grows a little (see below).
+const FORMATION_CLOUD_ATTEMPTS = 400
+const FORMATION_CLOUD_GROWTH = 1.02
+// No slot directly above or below another within this many layers, horizontally closer than
+// this share of the side-by-side gap: columns of rays read as stacks (Jeremy, 2026-10-24).
+const FORMATION_CLOUD_COLUMN_LAYERS = 1.5
+const FORMATION_CLOUD_COLUMN_OFFSET = 0.35
+
+// One-time, seeded cloud of body-clearance slots (random sequential packing). Continuous
+// coordinates avoid visible rows and grids. Kept on the shared school state, never resampled
+// per fish or frame. Clearance is a drum (see schoolFormationProximity).
+// - Gaps: the slots live in a fixed ground-plane frame (the school turns, the frame does not),
+//   so every horizontal direction gets the side-by-side gap; a front-to-back gap would put
+//   wings side by side after a 90° turn. Layers get the vertical gap.
+// - Size: an oblate spheroid (half-height to radius from the profile) holding the count at
+//   `packing`, so 600 rays are as dense as 60. A rounded outline, not a cylinder's edges.
+// - Never overlapping: a slot is placed only at full clearance; when a crowded cloud can't
+//   find room in FORMATION_CLOUD_ATTEMPTS tries it grows 2% and tries again.
+// A grid of one-gap cells keeps each try to its 27 neighbouring cells, so any count is cheap.
 function createSchoolFormationCloud(school, creature) {
   const species = resolveSpecies(creature)
   const cloud = species.swim.schoolFormation
   const length = species.swim.bodyLengthWU * (species.sizeRange?.[1] ?? 1) * (cloud.spacingScale ?? 1)
-  // Keep the per-ray room when a production school grows beyond the 60-ray review set.
-  // A cube-root growth expands all three axes without making the school a flat sheet.
-  const countRatio = Math.max(1, school.count / (cloud.referenceCount ?? school.count))
-  const countScale = Math.cbrt(countRatio)
-  const radius = length * cloud.radiusBodyLengths * countScale
-    * (1 + (countRatio - 1) * (cloud.radiusCountPadding ?? 0))
-  const height = length * cloud.heightBodyLengths * countScale
-    * (1 + (countRatio - 1) * (cloud.heightCountPadding ?? 0))
-  const lateralGap = length * cloud.lateralBodyLengths
+  const horizontalGap = length * Math.max(cloud.lateralBodyLengths, cloud.longitudinalBodyLengths)
   const verticalGap = length * cloud.verticalBodyLengths
-  const longitudinalGap = length * cloud.longitudinalBodyLengths
+  const aspect = cloud.heightBodyLengths / cloud.radiusBodyLengths
+  const clearanceVolume = Math.PI / 6 * horizontalGap * horizontalGap * verticalGap
+  let radius = Math.cbrt(school.count * clearanceVolume / (cloud.packing ?? 0.3) / (4 / 3 * Math.PI * aspect))
+  let height = radius * aspect
   const rand = mulberry32(hashString(`${school.id}:body-clearance-cloud`))
   const slots = []
-  for (let i = 0; i < school.count; i += 1) {
-    let best = null
-    let bestClearance = -1
-    // Bound setup cost even for a future overcrowded configuration. The configured 60-ray
-    // cloud fits at full clearance; keep the best available point rather than a duplicate.
-    for (let attempt = 0; attempt < 4096; attempt += 1) {
-      const angle = rand() * Math.PI * 2
-      const r = Math.sqrt(rand()) * radius
-      const x = Math.cos(angle) * r
-      const z = Math.sin(angle) * r
-      const y = (rand() * 2 - 1) * height
-      let clearance = Infinity
-      for (let j = 0; j < slots.length; j += 1) {
-        const other = slots[j]
-        const dx = (x - other.lateral) / lateralGap
-        const dy = (y - other.vertical) / verticalGap
-        const dz = (z - other.longitudinal) / longitudinalGap
-        clearance = Math.min(clearance, dx * dx + dy * dy + dz * dz)
-        if (clearance <= bestClearance) break
+  // Normalised coordinates: one unit = one gap, so clearance is a unit sphere.
+  const cells = new Map()
+  const cellKey = (x, y, z) => `${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`
+  const fits = (x, y, z) => {
+    const cx = Math.floor(x), cy = Math.floor(y), cz = Math.floor(z)
+    // Whole cells: the column reach can be fractional, the cell offsets can't.
+    const layers = Math.max(1, Math.ceil(FORMATION_CLOUD_COLUMN_LAYERS))
+    for (let i = -1; i <= 1; i += 1) {
+      for (let k = -1; k <= 1; k += 1) {
+        for (let j = -layers; j <= layers; j += 1) {
+          const list = cells.get(`${cx + i},${cy + j},${cz + k}`)
+          if (!list) continue
+          for (const other of list) {
+            const dx = x - other.x, dy = y - other.y, dz = z - other.z
+            const horizontal = dx * dx + dz * dz
+            // A drum, not an ellipsoid: flat wings overlapping seen from above need the whole
+            // layer gap, however far apart sideways (an ellipsoid let them closer, and wings
+            // overlapped); side by side at one height they need the whole side gap.
+            if (horizontal < 1 && Math.abs(dy) < 1) return false
+            if (horizontal < FORMATION_CLOUD_COLUMN_OFFSET ** 2 && Math.abs(dy) < FORMATION_CLOUD_COLUMN_LAYERS) return false
+          }
+        }
       }
-      if (clearance > bestClearance) {
-        bestClearance = clearance
-        best = { lateral: x, vertical: y, longitudinal: z }
-      }
-      if (clearance >= 1) break
     }
-    slots.push(best)
+    return true
+  }
+  for (let i = 0; i < school.count; i += 1) {
+    let placed = null
+    while (!placed) {
+      for (let attempt = 0; attempt < FORMATION_CLOUD_ATTEMPTS && !placed; attempt += 1) {
+        // Uniform in the unit ball, then scaled to the spheroid.
+        const ux = rand() * 2 - 1, uy = rand() * 2 - 1, uz = rand() * 2 - 1
+        if (ux * ux + uy * uy + uz * uz > 1) continue
+        const x = ux * radius / horizontalGap
+        const y = uy * height / verticalGap
+        const z = uz * radius / horizontalGap
+        if (fits(x, y, z)) placed = { x, y, z }
+      }
+      if (!placed) {
+        radius *= FORMATION_CLOUD_GROWTH
+        height *= FORMATION_CLOUD_GROWTH
+      }
+    }
+    const key = cellKey(placed.x, placed.y, placed.z)
+    if (!cells.has(key)) cells.set(key, [])
+    cells.get(key).push(placed)
+    slots.push({ lateral: placed.x * horizontalGap, vertical: placed.y * verticalGap, longitudinal: placed.z * horizontalGap })
   }
   // A nonzero mean is a perpetual push on a centroid-anchored formation. Translation
   // preserves every pair's clearance; cache the actual extents after centring above.
@@ -1321,6 +1352,12 @@ function createSchoolFormationCloud(school, creature) {
     slot.longitudinal -= z / slots.length
   }
   return slots
+}
+
+// How much a height error counts against a side error in a formation cloud: the side gap over
+// the layer gap, so the free band and the drift are as small a share of a layer as of a side gap.
+export function formationLayerScale(profile) {
+  return Math.max(1, Math.max(profile.lateralBodyLengths, profile.longitudinalBodyLengths) / profile.verticalBodyLengths)
 }
 
 // A quiet zone around the formation reference, then a smooth return. Individuals
@@ -1575,17 +1612,25 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
         const x = (dx * hz - dz * hx) / (span * cloud.lateralBodyLengths)
         const y = dy / (span * cloud.verticalBodyLengths)
         const z = (dx * hx + dz * hz) / (span * cloud.longitudinalBodyLengths)
-        const proximity = Math.sqrt(x * x + y * y + z * z)
+        // Clearance is a drum around each ray, as in the formation cloud: clear when the discs
+        // don't overlap seen from above (an ellipse, wider than long) or the layer gap is kept.
+        const planar = Math.sqrt(x * x + z * z)
+        const vertical = Math.abs(y)
+        const proximity = Math.max(planar, vertical)
         const reach = cloud.separationStart ?? 1.35
         if (proximity < reach) {
-          // Gradient of the clearance ellipsoid: respect the wide wings and shallow body.
-          boidDelta.set(
-            (x * hz / cloud.lateralBodyLengths + z * hx / cloud.longitudinalBodyLengths),
-            y / cloud.verticalBodyLengths,
-            (-x * hx / cloud.lateralBodyLengths + z * hz / cloud.longitudinalBodyLengths),
-          )
-          if (boidDelta.lengthSq() < 1e-8) boidDelta.set(0, String(creature.id) < String(otherId) ? 1 : -1, 0)
-          boidDelta.normalize()
+          // Part along whichever axis is already the more open: mostly stacked rays move apart
+          // in height, mostly side-by-side ones sideways, so layers stay layers.
+          if (vertical >= planar) boidDelta.set(0, y !== 0 ? Math.sign(y) : (String(creature.id) < String(otherId) ? 1 : -1), 0)
+          else {
+            boidDelta.set(
+              x * hz / cloud.lateralBodyLengths + z * hx / cloud.longitudinalBodyLengths,
+              0,
+              -x * hx / cloud.lateralBodyLengths + z * hz / cloud.longitudinalBodyLengths,
+            )
+            if (boidDelta.lengthSq() < 1e-8) boidDelta.set(0, String(creature.id) < String(otherId) ? 1 : -1, 0)
+            boidDelta.normalize()
+          }
           separationDelta.addScaledVector(boidDelta, (1 - proximity / reach) * params.separationWeight)
         }
       } else if (distanceSq < minDistance * minDistance) {

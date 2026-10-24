@@ -31,6 +31,7 @@ import {
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   schoolPositionCorrection,
+  formationLayerScale,
   soloAgentReachedDistance,
   shapeDirectionForBoundaryContacts,
   shapeSoloAgentSteeringDesired,
@@ -925,9 +926,12 @@ for (let visit = 0; visit < 40; visit += 1) {
 }
 console.log('ray school spawn: 40 visits, 60 slots each; bounds and pairwise wing clearance passed')
 
-// Comfortable position band: no continual station tug, then an eased return.
-assert.equal(schoolPositionCorrection(0.7, 4, raySwim.schoolFormation), 0)
-assert.equal(schoolPositionCorrection(0.8, 4, raySwim.schoolFormation), 0)
-const bandCorrection = schoolPositionCorrection(1.3, 4, raySwim.schoolFormation)
-assert.ok(bandCorrection > 0 && bandCorrection < schoolPositionCorrection(1.8, 4, raySwim.schoolFormation))
+// Comfortable position band: no continual station tug, then an eased return. The free band is
+// 0.15 of a width (0.6 WU for a 4 WU ray), eased back to full by 0.4 (1.6 WU).
+assert.equal(schoolPositionCorrection(0.5, 4, raySwim.schoolFormation), 0)
+assert.equal(schoolPositionCorrection(0.6, 4, raySwim.schoolFormation), 0)
+const bandCorrection = schoolPositionCorrection(1.0, 4, raySwim.schoolFormation)
+assert.ok(bandCorrection > 0 && bandCorrection < schoolPositionCorrection(1.5, 4, raySwim.schoolFormation))
+// Height errors count against the narrower layer gap.
+assert.ok(Math.abs(formationLayerScale(raySwim.schoolFormation) - 1.25 / 0.6) < 1e-9)
 assert.equal(schoolPositionCorrection(1, 4, {}), 1, 'legacy profiles retain their correction')

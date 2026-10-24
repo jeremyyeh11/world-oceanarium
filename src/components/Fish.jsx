@@ -103,6 +103,7 @@ import {
   setFishReefHold,
   schoolFormationOffset,
   schoolPositionCorrection,
+  formationLayerScale,
   schoolFormationHorizontalHalfExtent,
   schoolFormationVerticalHalfExtent,
   separatePair,
@@ -3375,6 +3376,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               const along = targetDesiredDirection.x * stationHx + targetDesiredDirection.z * stationHz
               targetDesiredDirection.x -= stationHx * along
               targetDesiredDirection.z -= stationHz * along
+              // Height counts in proportion to the layer gap, which is narrower than the side gap
+              // (2.5x for the devil ray): the same free band in height let two neighbours drift
+              // into each other's layer and overlap wings.
+              targetDesiredDirection.y *= formationLayerScale(swim.schoolFormation)
               const correction = schoolPositionCorrection(targetDesiredDirection.length(), bodyLength, swim.schoolFormation)
               targetDesiredDirection.multiplyScalar(correction / Math.max(0.001, bodyLength)).clampLength(0, 1)
               agentMoveDirection.addScaledVector(targetDesiredDirection, formationWeight)
@@ -3385,7 +3390,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             // changes inside the tolerance, rather than animating a target or a grid.
             const drift = swim.schoolFormation.driftStrength ?? 0
             agentMoveDirection.x += organicNoise.current.lateral * stationHz * drift
-            agentMoveDirection.y += organicNoise.current.vertical * drift
+            agentMoveDirection.y += organicNoise.current.vertical * drift / formationLayerScale(swim.schoolFormation)
             agentMoveDirection.z -= organicNoise.current.lateral * stationHx * drift
           }
           if (agentMoveDirection.lengthSq() < 1e-6) agentMoveDirection.copy(schoolFollowDirection)

@@ -13,6 +13,8 @@ const ENABLE_SARDINE_INSTANCED_LAYER = true
 
 function schoolMaxSizeForSpecies(species) {
   const configured = species?.swim?.schoolMaxSize
+  // `Infinity`: the species' whole population in a reserve is one school (Munk's devil ray).
+  if (configured === Infinity) return Infinity
   if (!Number.isFinite(configured)) return SCHOOL_MAX_SIZE
   return Math.max(2, Math.floor(configured))
 }

@@ -123,6 +123,17 @@ for v in mesh.vertices:
     v.co = (v.co - offset) * scale
 mesh.update()
 
+# A texture wired to the material's Alpha is always exported as PNG. When its alpha is solid
+# (the usual case: an imported BLEND material over an opaque photo), unwire it so JPEG applies.
+for material in bpy.data.materials:
+    if not material.use_nodes:
+        continue
+    for link in list(material.node_tree.links):
+        image = getattr(link.from_node, 'image', None)
+        if link.to_socket.identifier == 'Alpha' and image and image.size[0]:
+            if min(image.pixels[3::4]) >= 1.0:
+                material.node_tree.links.remove(link)
+
 bpy.ops.export_scene.gltf(
     filepath=dst,
     export_format='GLB',

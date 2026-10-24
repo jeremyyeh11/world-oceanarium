@@ -6,6 +6,16 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.36.1',
+    date: '2026-10-24',
+    title: 'A tighter school',
+    changes: [
+      ['new', "The devil rays fly closer together, in staggered layers, and every ray in The Shallows now keeps to one school."],
+      ['new', 'Near the surface, sunlight ripples across the rays’ backs as they swim through it.'],
+      ['fix', "The devil ray no longer overfills the Atlas on phones, and its Atlas page has measured average sizes and weights."],
+    ],
+  },
+  {
     version: 'v0.36.0',
     date: '2026-10-24',
     title: 'The Shallows',

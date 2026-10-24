@@ -15,7 +15,7 @@ Status labels:
 
 ### Munk's Devil Ray and The Shallows
 
-Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open. `Current in development`: a tighter school, `v0.36.1-dev_1` (branch `feat/devil-ray-school-spacing`).
+Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open. A tighter school, Atlas framing and data, and caustics on the rays shipped in clean `v0.36.1` (2026-10-24, from `v0.36.1-dev_5`, branch `feat/devil-ray-school-spacing`, #158).
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula munkiana`) from FishBase, the Sharks and Rays profile and Palacios et al. 2021: VU (2018, A2d+3d), CITES II, CMS I and II; common 100 cm disc width, about 130 cm maximum (FishBase's 220 cm is from an older reference); one pup about 35 cm across; schools of thousands; leaps in groups.
@@ -42,7 +42,8 @@ Subtasks:
 - [x] `v0.36.1-dev_3`: Atlas pose (was falling back to tank scale, "too big in atlas"), Atlas tile and card retaken, averages and lifecycle from Notarbartolo di Sciara 1988 and Serrano-López et al. 2021 (CHANGELOG v0.36.1).
 - [x] `v0.36.1-dev_4`: sunlight caustics on the rays' backs near the surface (`caustics.fish` in landscapes.js, The Shallows only). Jeremy to review the strength on a phone; The Reefs could opt in the same way. `dev_5`: larger (11 WU), slower (0.01) net so it slides less.
 - [ ] Belly texture is still the original 389 KB PNG (the dorsal replacement reverted dev_2's JPEG export); a JPEG would save about 350 KB.
-- [ ] Jeremy: review dev_2 on a phone against dev_1's spacing; choose. Density and no overlaps together would need slot-holding reworked, especially through turns.
+- [x] Jeremy reviewed dev_2's per-ray spacing ("looks good") and shipped it in `v0.36.1`.
+- [ ] Occasional brief wing overlaps in the tighter school (dev_2 trade-off). Density and no overlaps together would need slot-holding reworked, especially through turns. `Backlog`
 - [ ] Far bound: seed 17 at 218 rays brushes the back of the swim volume (z -70) once during an early slow turn, shipped and dev_1 alike.
 - [ ] Capacity: The Shallows' swim volume fits about the current population. At 600 rays the school is about 70 WU across and touches its bounds; a much larger population needs a bigger volume or a looser cap on goals.
 - [x] 60 rays in `creatures_dev` (ids 464–523; prod max was 463, so next free id is 524). Atlas tile and card retaken with Jeremy's model (dev_2).

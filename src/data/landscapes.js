@@ -400,6 +400,19 @@ export const LANDSCAPES = {
       slant: [0.4, -0.4],
       depth: [-28, 0, 0.75],
       fade: [30, 80],
+      // The same light on the animals (Fish.jsx, Biome.jsx), overriding the keys above: the same
+      // world-space net, so it slides over a ray as it swims through it rather than riding on
+      // its skin, on upward-facing skin only. Subtle, a finer net than on the sand, and only
+      // near the surface: none below y -10, full at y 2 (the rays swim y -16 to 1). Jeremy,
+      // 2026-10-24, after a photo of a devil ray netted in light just under the surface.
+      // The light is added in proportion to the skin's own colour, and a devil ray's back is
+      // dark, so it needs far more strength than the pale sand to show (0.8 was invisible).
+      fish: {
+        strength: 2.6,
+        scale: 5,
+        depth: [-10, 2, 0],
+        fade: [30, 90],
+      },
     },
     sandMax: -6,
     maxTop: -14,

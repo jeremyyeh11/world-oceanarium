@@ -24,6 +24,7 @@ import {
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
 import { getFishRuntime } from './fishRuntimeStore'
 import { createFishMaterialPass } from './fishMaterialPass'
+import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, rockBendSide, seabedHeightAt, startedInsideLastPush, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
@@ -639,9 +640,9 @@ function collectSpineMorphs(root, proceduralAnimation) {
   return morphs
 }
 
-function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null, surfaceVariation = null) {
+function applyFishLightMask(material, rim = null, proceduralVertex = null, geometry = null, surfaceVariation = null, caustics = null) {
   const situationalLight = supportsFishSituationalLight(material)
-  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex && !surfaceVariation) return
+  if (!FISH_LIGHT_MASK_ENABLED && !situationalLight && !rim && !proceduralVertex && !surfaceVariation && !caustics) return
   const rimColor = rim ? new THREE.Color(rim.color) : new THREE.Color('#000000')
   const rimIntensity = rim?.intensity ?? 0
   const rimPower = rim?.power ?? RIM_POWER
@@ -1231,6 +1232,11 @@ float rimAmount = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))
 gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
 #include <dithering_fragment>`
       )
+    // The landscape's sunlight caustics on upward-facing skin (Biome.jsx passes the landscape's
+    // `caustics.fish`): the shared world-space net and clock, so the light belongs to the water
+    // and slides over the animal as it swims. Placed at begin_vertex, before the procedural
+    // motion, so it reads the body's rest position; its normal includes the wingbeat's tilt.
+    applyCaustics(shader, caustics)
   }
   const proceduralKey = !proceduralVertex
     ? 'static'
@@ -1239,14 +1245,14 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
       : proceduralVertex.type === 'disc-wave-vertex'
         ? 'disc-wave-vertex'
         : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
-  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}:${surfaceUniforms ? 'surface-v1' : 'surface-off'}`
+  material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}:${surfaceUniforms ? 'surface-v1' : 'surface-off'}:${causticsCacheKey(caustics)}`
   material.userData.fishLightMaskUniforms = maskUniforms
   if (surfaceUniforms) material.userData.fishSurfaceUniforms = surfaceUniforms
   if (proceduralUniforms) material.userData.proceduralFishUniforms = proceduralUniforms
   material.needsUpdate = true
 }
 
-function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null, alphaBlend = false, surfaceVariation = null) {
+function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proceduralAnimation = null, alphaTest = null, alphaBlend = false, surfaceVariation = null, caustics = null) {
   const materials = []
   root.traverse(child => {
     if (!child.isMesh) return
@@ -1279,6 +1285,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
         proceduralMeshConfig,
         proceduralMeshConfig ? proceduralBoundsGeometry(root, child, proceduralAnimation) : child.geometry,
         surfaceVariation,
+        caustics,
       )
       materials.push(nextMaterial)
       return nextMaterial
@@ -1981,7 +1988,7 @@ function applyMeshLengthVariation(root, proceduralAnimation, amount01) {
   return owned
 }
 
-function FishModel({ model, shadowCasterId = null, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null }) {
+function FishModel({ model, shadowCasterId = null, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null, caustics = null }) {
   const gltf = useGLTF(model.path)
   const meshLength01 = animationVariation?.meshLength01
   const { object, ownedGeometries } = useMemo(() => {
@@ -2018,9 +2025,9 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   })
 
   useEffect(() => {
-    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null, model?.alphaBlend === true, model?.surfaceVariation)
+    materialsRef.current = applyModelMaterialSettings(object, rim, lodDebugColor, model?.proceduralAnimation, model?.alphaTest ?? null, model?.alphaBlend === true, model?.surfaceVariation, caustics)
     applySurfaceVariation(materialsRef.current, model?.surfaceVariation, animationVariation?.surfaceSeed)
-  }, [object, rim, lodDebugColor, model, animationVariation?.surfaceSeed])
+  }, [object, rim, lodDebugColor, model, animationVariation?.surfaceSeed, caustics])
 
   useFrame(({ clock }, rawDelta) => {
     const elapsed = clock.getElapsedTime()
@@ -2254,7 +2261,7 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, caustics = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const materialPass = useMemo(() => createFishMaterialPass(), [])
   useEffect(() => () => materialPass.dispose(), [materialPass])
@@ -4519,6 +4526,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               debugParentScale={size * focusScale}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
+              caustics={caustics}
             />
           ) : renderMolaPlaceholder ? (
             <MolaMolaPlaceholder

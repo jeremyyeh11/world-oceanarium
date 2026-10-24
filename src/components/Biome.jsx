@@ -159,6 +159,12 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
     [visibleCreatures],
   )
 
+  // A landscape's caustics as they fall on its animals (`caustics.fish` overrides), or none.
+  const fishCaustics = useMemo(() => {
+    const caustics = landscapeForTank(tank)?.caustics
+    return caustics?.fish ? { ...caustics, ...caustics.fish } : null
+  }, [tank])
+
   return (
     <group>
       <Environment biome={name} landscape={landscapeForTank(tank)} environmentId={tank?.id} />
@@ -185,6 +191,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
             debugLodView={debugLodView}
             debugSimulationSpeed={debugSimulationSpeed}
             school={school}
+            caustics={fishCaustics}
             pair={pairByCreatureId.get(creature.id) ?? null}
             modelVariantKey={creatureSexModelVariantKey(creature, SPECIES_BY_KEY.get(creature.species), school?.modelVariantKey ?? null)}
             onClick={onCreatureClick}

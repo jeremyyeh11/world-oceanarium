@@ -40,6 +40,7 @@ Subtasks:
 - [x] Tighter school like Jeremy's reference photo (`v0.36.1-dev_1`, 2026-10-24): one school per reserve (`schoolMaxSize: Infinity`); cloud sized at a fixed packing for any count (218 rays 17% tighter across), drum clearance, no stacks, never placed overlapping, height drift scaled to the layer gap; the soak checks real body overlap. See CHANGELOG v0.36.1.
 - [x] Slots sized to each ray (`v0.36.1-dev_2`): about 12% tighter than dev_1 at 218 rays, but wings overlap more (up to 3 pairs, 4–99 of 600 samples per seed, against dev_1's 1 pair in 1). Tuning (height drift, gap margin, separation start, free band) did not close the gap.
 - [x] `v0.36.1-dev_3`: Atlas pose (was falling back to tank scale, "too big in atlas"), Atlas tile and card retaken, averages and lifecycle from Notarbartolo di Sciara 1988 and Serrano-López et al. 2021 (CHANGELOG v0.36.1).
+- [x] `v0.36.1-dev_4`: sunlight caustics on the rays' backs near the surface (`caustics.fish` in landscapes.js, The Shallows only). Jeremy to review the strength on a phone; The Reefs could opt in the same way.
 - [ ] Belly texture is still the original 389 KB PNG (the dorsal replacement reverted dev_2's JPEG export); a JPEG would save about 350 KB.
 - [ ] Jeremy: review dev_2 on a phone against dev_1's spacing; choose. Density and no overlaps together would need slot-holding reworked, especially through turns.
 - [ ] Far bound: seed 17 at 218 rays brushes the back of the swim volume (z -70) once during an early slow turn, shipped and dev_1 alike.

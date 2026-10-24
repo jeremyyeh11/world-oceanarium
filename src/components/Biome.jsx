@@ -137,11 +137,15 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
         const schoolGroup = orderedGroup.slice(offset, offset + maxSchoolSize)
         if (schoolGroup.length < 2) continue
         const schoolId = `${key}:visit-${tankVisitSeed}:school-${Math.floor(offset / maxSchoolSize)}`
+        // Each member's size (its body-length multiplier), by school index, shared by every
+        // member: a formation cloud sizes each slot's gaps to the animal that fills it.
+        const memberSizes = schoolGroup.map(creature => creature.size ?? 1)
         schoolGroup.forEach((creature, index) => {
           nextSchoolByCreatureId.set(creature.id, {
             id: schoolId,
             index,
             count: schoolGroup.length,
+            memberSizes,
             modelVariantKey: schoolModelVariantKey(species, schoolId, index, schoolGroup.length),
           })
         })

@@ -10,7 +10,9 @@ Versioning convention notes:
 
 ## v0.36.1 — A tighter devil ray school (in development)
 
-Status: `v0.36.1-dev_1` (2026-10-24, branch `feat/devil-ray-school-spacing`). Jeremy: an audit of v0.36.0, a tighter school like his reference photo (layers wingtip to wingtip) without the earlier attempts' grids, stacks, overlapping rays or spawn-to-school jumps, and every devil ray in a reserve in one school.
+Status: `v0.36.1-dev_2` (2026-10-24, branch `feat/devil-ray-school-spacing`, #158). Jeremy: an audit of v0.36.0, a tighter school like his reference photo (layers wingtip to wingtip) without the earlier attempts' grids, stacks, overlapping rays or spawn-to-school jumps, and every devil ray in a reserve in one school.
+
+- dev_2 (Jeremy: "push it so i can review on phone"): formation slots sized to each ray. Biome.jsx passes `memberSizes` (by school index) and a pair's slot gaps scale with the mean of their sizes, as the swimming separation's already did; the grid stays one largest gap per cell, so building the school still takes about 10 ms and nothing changes per frame. 218 rays: spread 9.7 WU across against dev_1's 11.0 (about 12% tighter). Trade-off, measured in 600 s soaks: wings overlap more often, up to 3 pairs at once in 4–99 of 600 samples per seed (dev_1: at most 1 pair in at most 1 sample). Not fixed by removing height drift, a 5–10% gap margin, an earlier separation start (1.05–1.1) or a smaller free band; the overlaps come from turns and the separation-versus-slot pull, not personal drift. For review on a phone; `--uniform-slots` in the soak reproduces dev_1. `creatures_dev` topped up from 60 to 218 rays (ids 682–839) so the preview matches production's school.
 
 ### Schooling
 

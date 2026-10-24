@@ -1,5 +1,5 @@
 // Run Fish.jsx's real movement frame with rendering/audio stubbed out. No copied integrator.
-// Usage: node scripts/inspect-ray-school.mjs [seconds=300] [seed=0] [--verify] [--count=60]
+// Usage: node scripts/inspect-ray-school.mjs [seconds=300] [seed=0] [--verify] [--count=60] [--uniform-slots]
 // Fixed 60 Hz, mixed tank sizes, empty obstacle field. Rendering and real-device FPS
 // still need browser review; this checks the actual movement frame, not GPU motion.
 import assert from 'node:assert/strict'
@@ -60,9 +60,12 @@ let randomState = 12345
 Math.random = () => ((randomState = Math.imul(randomState, 1664525) + 1013904223 >>> 0) / 4294967296)
 const creatures = Array.from({ length: count }, (_, index) => ({ id: String(464 + index), species: species.id, biome: 'ocean', depthZone: 'epipelagic', size: 0.65 + (index * 0.61803398875 % 1) * 0.2 }))
 const schoolId = `ray-runtime-${seed}`
+// As Biome.jsx passes them: every member's size, by school index (formation slots are sized
+// to their rays). --uniform-slots leaves them out, sizing every slot for the largest ray.
+const memberSizes = process.argv.includes('--uniform-slots') ? undefined : creatures.map(creature => creature.size)
 for (let index = 0; index < creatures.length; index++) {
   state.owner = creatures[index].id
-  runtime.Fish({ creature: creatures[index], school: { id: schoolId, index, count: creatures.length } })
+  runtime.Fish({ creature: creatures[index], school: { id: schoolId, index, count: creatures.length, memberSizes } })
 }
 for (const effect of state.effects) { const cleanup = effect(); if (typeof cleanup === 'function') state.cleanups.push(cleanup) }
 const camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 1000)

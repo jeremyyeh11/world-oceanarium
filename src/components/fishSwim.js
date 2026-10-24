@@ -1273,7 +1273,7 @@ const FORMATION_CLOUD_COLUMN_OFFSET = 0.35
 
 // One-time, seeded cloud of body-clearance slots (random sequential packing). Continuous
 // coordinates avoid visible rows and grids. Kept on the shared school state, never resampled
-// per fish or frame. Clearance is a drum (see schoolFormationProximity).
+// per fish or frame. Clearance is a drum, as in the swimming separation (computeBoidSteering).
 // - Gaps: the slots live in a fixed ground-plane frame (the school turns, the frame does not),
 //   so every horizontal direction gets the side-by-side gap; a front-to-back gap would put
 //   wings side by side after a 90° turn. Layers get the vertical gap.
@@ -1281,23 +1281,35 @@ const FORMATION_CLOUD_COLUMN_OFFSET = 0.35
 //   `packing`, so 600 rays are as dense as 60. A rounded outline, not a cylinder's edges.
 // - Never overlapping: a slot is placed only at full clearance; when a crowded cloud can't
 //   find room in FORMATION_CLOUD_ATTEMPTS tries it grows 2% and tries again.
-// A grid of one-gap cells keeps each try to its 27 neighbouring cells, so any count is cheap.
+// - Sized to each ray: a pair's gaps scale with the mean of their two sizes, as the swimming
+//   separation's do (`school.memberSizes`, by index, from Biome.jsx). Without sizes every slot
+//   is sized for the largest ray of the species.
+// A grid of cells one largest gap wide keeps each try to its neighbouring cells, so any count
+// is cheap.
 function createSchoolFormationCloud(school, creature) {
   const species = resolveSpecies(creature)
   const cloud = species.swim.schoolFormation
-  const length = species.swim.bodyLengthWU * (species.sizeRange?.[1] ?? 1) * (cloud.spacingScale ?? 1)
+  const largest = species.sizeRange?.[1] ?? 1
+  const length = species.swim.bodyLengthWU * largest * (cloud.spacingScale ?? 1)
   const horizontalGap = length * Math.max(cloud.lateralBodyLengths, cloud.longitudinalBodyLengths)
   const verticalGap = length * cloud.verticalBodyLengths
+  // Each member's size as a share of the largest, capped at 1 so the grid's reach holds.
+  const scales = Array.from({ length: school.count }, (_, index) => {
+    const size = school.memberSizes?.[index]
+    return Number.isFinite(size) && size > 0 ? Math.min(1, size / largest) : 1
+  })
+  const meanScale = scales.reduce((sum, scale) => sum + scale, 0) / Math.max(1, scales.length)
   const aspect = cloud.heightBodyLengths / cloud.radiusBodyLengths
-  const clearanceVolume = Math.PI / 6 * horizontalGap * horizontalGap * verticalGap
+  const clearanceVolume = Math.PI / 6 * horizontalGap * horizontalGap * verticalGap * meanScale ** 3
   let radius = Math.cbrt(school.count * clearanceVolume / (cloud.packing ?? 0.3) / (4 / 3 * Math.PI * aspect))
   let height = radius * aspect
   const rand = mulberry32(hashString(`${school.id}:body-clearance-cloud`))
   const slots = []
-  // Normalised coordinates: one unit = one gap, so clearance is a unit sphere.
+  // Normalised coordinates: one unit = the largest ray's gap, so a pair's clearance is the mean
+  // of their scales.
   const cells = new Map()
   const cellKey = (x, y, z) => `${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`
-  const fits = (x, y, z) => {
+  const fits = (x, y, z, scale) => {
     const cx = Math.floor(x), cy = Math.floor(y), cz = Math.floor(z)
     // Whole cells: the column reach can be fractional, the cell offsets can't.
     const layers = Math.max(1, Math.ceil(FORMATION_CLOUD_COLUMN_LAYERS))
@@ -1309,11 +1321,12 @@ function createSchoolFormationCloud(school, creature) {
           for (const other of list) {
             const dx = x - other.x, dy = y - other.y, dz = z - other.z
             const horizontal = dx * dx + dz * dz
+            const gap = (scale + other.scale) * 0.5
             // A drum, not an ellipsoid: flat wings overlapping seen from above need the whole
             // layer gap, however far apart sideways (an ellipsoid let them closer, and wings
             // overlapped); side by side at one height they need the whole side gap.
-            if (horizontal < 1 && Math.abs(dy) < 1) return false
-            if (horizontal < FORMATION_CLOUD_COLUMN_OFFSET ** 2 && Math.abs(dy) < FORMATION_CLOUD_COLUMN_LAYERS) return false
+            if (horizontal < gap * gap && Math.abs(dy) < gap) return false
+            if (horizontal < (FORMATION_CLOUD_COLUMN_OFFSET * gap) ** 2 && Math.abs(dy) < FORMATION_CLOUD_COLUMN_LAYERS * gap) return false
           }
         }
       }
@@ -1322,6 +1335,7 @@ function createSchoolFormationCloud(school, creature) {
   }
   for (let i = 0; i < school.count; i += 1) {
     let placed = null
+    const scale = scales[i]
     while (!placed) {
       for (let attempt = 0; attempt < FORMATION_CLOUD_ATTEMPTS && !placed; attempt += 1) {
         // Uniform in the unit ball, then scaled to the spheroid.
@@ -1330,7 +1344,7 @@ function createSchoolFormationCloud(school, creature) {
         const x = ux * radius / horizontalGap
         const y = uy * height / verticalGap
         const z = uz * radius / horizontalGap
-        if (fits(x, y, z)) placed = { x, y, z }
+        if (fits(x, y, z, scale)) placed = { x, y, z, scale }
       }
       if (!placed) {
         radius *= FORMATION_CLOUD_GROWTH

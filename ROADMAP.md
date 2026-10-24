@@ -22,7 +22,8 @@ Subtasks:
 - [x] Size: 28 WU at 7 m across; adult `sizeRange` 0.57–1.0 (4–7 m).
 - [x] Motion notes: same mobuliform config, slower and larger stroke; Blender contract differences in `docs/procedural/disc-wave.md`.
 - [x] Jeremy: one adult manta at full size, 4–7 m across (16–28 WU), no juvenile stage (2026-10-24).
-- [ ] Jeremy: model to the contract (7 units across, nose −Z, grid quads in the wings).
+- [x] Jeremy's model (2026-10-25, `_blender models/mobula birostris.blend`): mirror and the `open mouth` shape key baked by `scripts/bake-mirror-shape-keys.py` (on a copy, with his tail and wing edits moved from the key into the basis), masks by `scripts/paint-disc-wave-masks.py --span 7`; 593 KB, JPEG textures, opaque. Top texture is Guy Stevens' photo (© Manta Trust), used by Jeremy's call (he will take it down if asked); the eye texture's source (`Mantaraya_Oceanica_-_Mobula_Birostris1`) is unknown; the belly is a generated image.
+- [ ] Wire the model into the species entry (`model`, `disc-wave-vertex` with a slower manta beat) and check it in the Atlas.
 - [ ] Atlas averages and lifecycle from sources (sizes by sex, weight, ages, gestation); `mass` from a disc-width relation, not FishBase's total-length one.
 - [ ] `rideHost` (`groups: ['ray']`) so the white suckerfish rides it; anchors via `scripts/fit-ride-anchors.mjs`.
 - [ ] Swim bounds in The Shallows that keep a 16–28 WU animal clear of the devil ray school and the camera; phone framing.

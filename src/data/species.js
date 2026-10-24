@@ -105,16 +105,10 @@ export const TANKS = [
       'isurus-oxyrinchus',
       // Juveniles only (see the species entry).
       'rhincodon-typus',
-      // Remoras. The sharksuckers and the common remora ride the mako; the white suckerfish,
-      // marlinsucker, and slender suckerfish only occasionally; the whalesucker swims free
-      // until a whale or dolphin joins the tank.
+      // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
+      // queued until their models land (docs/fish-queue.md).
       'echeneis-naucrates',
       'echeneis-neucratoides',
-      'remora-remora',
-      'remora-albescens',
-      'remora-australis',
-      'remora-osteochir',
-      'phtheirichthys-lineatus',
     ],
   },
   {
@@ -211,7 +205,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
@@ -275,7 +269,7 @@ export const TANKS = [
     },
     landscape: 'shallows',
     camera: SHALLOWS_VIEW,
-    species: ['mobula-munkiana'],
+    species: ['mobula-munkiana', 'mobula-birostris'],
   },
 ]
 
@@ -400,24 +394,6 @@ const WHALE_SHARK_CAUDAL = {
   burstFrequencyBoost: 0.15,
   // Stiff shark pectorals: they trim and barely move.
   pectoralFinFlutter: 0.04,
-}
-function remoraPlaceholderModel(id, bodyLengthWU) {
-  return {
-    path: `/models/fish/${id}/${id}_placeholder.glb`,
-    // Source length is 1, so the scale is the body length in WU.
-    scale: bodyLengthWU,
-    followAim: 'root',
-    moveset: {
-      cruise: 'procedural_cruise',
-      drift: 'procedural_drift',
-      turnLeft: 'procedural_turn_left',
-      turnRight: 'procedural_turn_right',
-      burst: 'procedural_burst',
-    },
-    proceduralAnimation: REMORA_CAUDAL,
-    debugForwardOrigin: 'head',
-    debugForwardOffsetRatio: 0.5,
-  }
 }
 
 export const SPECIES = [
@@ -1131,8 +1107,8 @@ export const SPECIES = [
     },
   },
   // --- Remoras (Echeneidae) ------------------------------------------------------------------
-  // Facts from FishBase species summaries unless noted. No supplied models yet: each renders a
-  // generated stand-in (remoraPlaceholderModel) until its GLB lands. `hitchhiker.hosts` weights come
+  // Facts from FishBase species summaries unless noted. The two sharksuckers have Jeremy's models;
+  // the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
   // from each species' documented host range (1 = its usual host, lower = recorded but
   // occasional); host groups are declared by host species in `rideHost.groups`.
   {
@@ -1423,10 +1399,9 @@ export const SPECIES = [
       freeSeconds: [10, 25],
       discAheadBodyLengths: 0.29,
     },
-    model: remoraPlaceholderModel('remora-remora', 3.456),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#5a4b3f', discLength: 0.32 },
   },
   {
     id: 'remora-albescens',
@@ -1502,10 +1477,9 @@ export const SPECIES = [
       // Its disc is 34–40% of standard length, starting just behind the snout.
       discAheadBodyLengths: 0.285,
     },
-    model: remoraPlaceholderModel('remora-albescens', 1.2),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#cfd6d8', discLength: 0.33 },
   },
   {
     id: 'remora-australis',
@@ -1579,10 +1553,9 @@ export const SPECIES = [
       // further back than on any other remora.
       discAheadBodyLengths: 0.225,
     },
-    model: remoraPlaceholderModel('remora-australis', 3.04),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#6b5a48', discLength: 0.45 },
   },
   {
     id: 'remora-brachyptera',
@@ -1656,10 +1629,9 @@ export const SPECIES = [
       freeSeconds: [6, 14],
       discAheadBodyLengths: 0.3,
     },
-    model: remoraPlaceholderModel('remora-brachyptera', 2.0),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#b9cad6', discLength: 0.3 },
   },
   {
     id: 'remora-osteochir',
@@ -1732,10 +1704,9 @@ export const SPECIES = [
       freeSeconds: [8, 18],
       discAheadBodyLengths: 0.3,
     },
-    model: remoraPlaceholderModel('remora-osteochir', 1.6),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#7a7f84', discLength: 0.3 },
   },
   {
     id: 'phtheirichthys-lineatus',
@@ -1808,10 +1779,9 @@ export const SPECIES = [
       // The smallest disc in the family (18–28% of standard length), close behind the snout.
       discAheadBodyLengths: 0.35,
     },
-    model: remoraPlaceholderModel('phtheirichthys-lineatus', 3.04),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#5d646b', discLength: 0.2 },
   },
   // --- Pilot fish (Carangidae) ---------------------------------------------------------------
   // Facts from FishBase. It runs the remoras' escort path but never clamps on
@@ -3504,6 +3474,204 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.2,
     },
   },
+  // --- Giant oceanic manta (Mobulidae) -------------------------------------------------------
+  // Facts from FishBase, the Sharks and Rays profile and a 2024 tagging study (Environmental
+  // Biology of Fishes, doi 10.1007/s10641-024-01622-2: mantas photo-identified and tagged moving between the
+  // Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of
+  // California) and the Florida Museum's profile (maturity widths by sex, life span). The
+  // Shallows' one big animal, on the devil ray's mobuliform disc-wave (Jeremy, 2026-10-24;
+  // ROADMAP: Giant Oceanic Manta), as Jeremy's model.
+  {
+    id: 'mobula-birostris',
+    name: 'Giant Oceanic Manta',
+    scientificName: 'Mobula birostris',
+    family: 'Mobulidae',
+    alternateNames: ['Oceanic Manta Ray', 'Giant Manta Ray'],
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // "Occurs singly or in loose aggregations" (FishBase): one animal, not a school.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Mainly plankton, sometimes small and moderate-sized fishes (FishBase): a filter feeder.
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 12 November 2019 (A2bcd+3d); CITES Appendix II. Taken by tuna gillnets and
+      // harpoons and for the gill plate trade; one pup every few years.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coastal and Open Ocean',
+      commonDiet: 'Zooplankton such as krill, copepods and fish eggs; sometimes small fishes.',
+      foundIn: 'Tropical to warm temperate seas worldwide, from southern California and Rhode Island to Peru, Uruguay, South Africa and New Zealand, around upwelling coasts, oceanic islands and seamounts. Young mantas visit the southern Gulf of California.',
+      maxLengthLabel: 'Disc width',
+      // Florida Museum: males mature at 4 m or more across, females at about 5 m.
+      sexualDimorphism: 'Females grow larger than males. Males have a pair of claspers by the tail.',
+      // FishBase's maximum reported age (Ref. 31742) and the Florida Museum's estimate agree on
+      // about 20 years; the IUCN's ~45 years is inferred from the reef manta, so not used.
+      lifeSpan: 'About 20 years',
+      // Estimates of 6–9 years exist, all from the reef manta's breeding cycle, not measured.
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Alone or loose groups',
+        groupingBehaviour: 'Alone or in loose aggregations at feeding grounds and cleaning stations. By day mantas stay in shallow water to rest, socialise and be cleaned; at night many move deeper to feed. At the Revillagigedo Islands off Mexico they return to the same cleaning stations for years.',
+        // FishBase: up to 2 young, born 122–127 cm across and 9–11 kg; Sharks and Rays: 1 pup
+        // every 4–5 years; NOAA: gestation thought to be about a year. Florida Museum: born in
+        // shallow water, where the young stay for a few years.
+        reproduction: 'Bears live young, usually one pup about 1.2 to 1.3 m across and around 10 kg, after a pregnancy thought to last about a year, and only every few years. Pups are born in shallow water, where the young stay for their first years. Males chase a female in courtship trains before mating.',
+      },
+      averages: {
+        // No measured means by sex for this species. FishBase's common width (450 cm, unsexed)
+        // sits between the maturity widths by sex (Florida Museum, ♂ 4 m, ♀ 5 m); no
+        // width–weight relation exists, so weights stay Unknown (FishBase's 3 t is a maximum).
+        maleSizeMeters: 'Unknown; about 4.5 m across in both sexes',
+        femaleSizeMeters: 'Unknown; about 4.5 m across in both sexes',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        // Florida Museum maturity widths; FishBase gives Lm 422 cm (380–460) unsexed. Ages are
+        // only extrapolated from the reef manta.
+        sexualMaturityYears: 'Unknown; at about 4 m across (males) and 5 m (females)',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: '1 pup, rarely 2',
+      },
+    },
+    atlasSummary: {
+      biome: 'Ocean',
+      zone: 'Sunlight',
+      diet: 'Zooplankton',
+      social: 'Solitary',
+    },
+    // Rendered in The Shallows from the follow camera, the devil rays hidden (dev_1, 2026-10-25).
+    atlasThumbnail: '/atlas/mobula-birostris-thumbnail.png',
+    description: "The largest ray in the world, up to about 7 m across, black above with white shoulder patches and white below with dark spots. It sieves plankton through its gills, holding its broad head fins unrolled like a funnel, and visits reef cleaning stations where small fish pick it clean. It has a single pup every few years, and fishing for its meat and gill plates has left it Endangered.",
+    // Sizes are disc width. The Sharks and Rays profile gives "at least 700 cm"; FishBase's 910 cm
+    // is an older record. FishBase's maturity width (380–460 cm) starts the adult range.
+    adultLengthRangeMeters: [4.0, 7.0],
+    maxBodyLengthMeters: 7.0,
+    swim: {
+      // A slow, unhurried cruiser alone, in broad banked turns, never hovering. Body lengths are
+      // the disc width, so 0.12–0.2 per second at 0.5 visual time is about 0.4–0.7 m/s for the
+      // largest manta.
+      visualTimeScale: 0.5,
+      driftEnabled: false,
+      burstEnabled: false,
+      turnSpeedupEnabled: false,
+      idleBLPerSec: [0.12, 0.2],
+      idleDriftBLPerSec: [0.05, 0.1],
+      snapBLPerSec: [0.3, 0.45],
+      burstBLPerSec: [0.5, 0.7],
+      burstInterval: [20.0, 40.0],
+      erraticness: 0.04,
+      // 10 WU at 23 WU across: banked turns that fit the narrow phone-friendly box.
+      turnRadiusBodyLengths: 0.45,
+      // 1 WU = 25 cm: 7 m disc width = 28 WU.
+      bodyLengthWU: 28,
+      // In The Shallows (SHALLOWS_VIEW: camera at y -24, z 24, looking up), in the middle of the
+      // devil ray school's height (y -18 to 0; they part round it, giveWaySlot). A phone shows
+      // only the middle quarter of the 16:9 view, so one animal has to stay central and back:
+      // Z is offset by -15 in fishSwim.js, -5/-50 becomes -20/-65 (44–89 WU from the camera),
+      // where the phone strip is ±11–23 WU wide. At ±22 and up to z -7 its centre was in a
+      // phone's strip 6% of the time and on a desktop screen 51%.
+      boundsUseSpeciesSize: false,
+      boundsHalfX: 12,
+      boundsYMin: -12,
+      boundsYMax: -6,
+      boundsZMin: -50,
+      boundsZMax: -5,
+      boids: {
+        neighborCap: 3,
+        perceptionBodyLengths: 1.2,
+        separationWeight: 0.05,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.06,
+        // Harmless and big: the devil rays (wariness 0.4) steer out of its way, but never startle
+        // (startles: false), and the school's slots move over or under its wings
+        // (fishSwim.js giveWaySlot). Menace alone (0.3 like the whale shark, up to 4) left 4–13
+        // rays inside its wings.
+        menace: 1.5,
+        startles: false,
+        wariness: 0.05,
+      },
+    },
+    // Adults from the ~4 m maturity width to the 7 m maximum (16–28 WU). The Shallows holds one
+    // adult at full size (Jeremy, 2026-10-24), not a juvenile stage.
+    sizeRange: [0.57, 1.0],
+    // Info card weight from disc width (cm → g). No published width–weight relation; cubed and
+    // fitted to FishBase's one weighed manta, a 550 cm female of 1,050 kg (Galápagos): about
+    // 1.2 t at 5.8 m and 2.2 t at 7 m, under FishBase's 3 t maximum. The default relation gave
+    // 5.6 t at 5.8 m.
+    mass: { coefficient: 0.0063, exponent: 3 },
+    // Jeremy's model (`_blender models/mobula birostris.blend`, 2026-10-25): Mirror and the
+    // "open mouth" shape key baked by scripts/bake-mirror-shape-keys.py, then
+    // scripts/paint-disc-wave-masks.py --span 7: 1 unit = 1 m, a 7 m disc, origin mid-disc, nose
+    // -Z, COLOR_1 masks from its shape, JPEG textures (opaque). One mesh in four material parts:
+    // top, bottom, eye and mouth. The open mouth is a morph target, played by its feeding passes.
+    // Top texture: Guy Stevens' photo (© Manta Trust), Jeremy's call.
+    model: {
+      path: '/models/fish/mobula-birostris/mobula-birostris.glb',
+      surfaceVariation: {
+        noise: 0.4,
+        noiseScale: 3,
+        brightness: [0.85, 1.15],
+        saturation: [0.85, 1.15],
+        warmth: [-0.04, 0.04],
+      },
+      // 1 m = 4 WU, so the 7 m disc is the 28 WU body length.
+      scale: 4,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      // The devil ray's mobuliform disc-wave (docs/procedural/disc-wave.md), slower and broader:
+      // a big manta beats about once every 3–4 s (open-water data, about 0.3 Hz at 3–4 m across).
+      // Lengths in source metres.
+      proceduralAnimation: {
+        type: 'disc-wave-vertex',
+        bodyMeshNames: ['mobula_birostris_1', 'mobula_birostris_2', 'mobula_birostris_3', 'mobula_birostris_4'],
+        // Wingtip lift at full cruise, either side of level: 1.0 of the 2.9 m wing, about 20°.
+        amplitude: 1.0,
+        // About 3.9 s per beat at rest, 3 s at full cruise.
+        waveSpeed: 1.6,
+        beatRateRange: [0.9, 1.1],
+        waveTravel: 0.6,
+        spanLag: 0.9,
+        downFraction: 0.42,
+        marginRampPower: 1.6,
+        idleAmplitudeFloor: 0.5,
+        burstAmplitude: 0.4,
+        turnStrength: 0.35,
+        // The devil ray's, scaled from its 1.3 m disc.
+        heave: 0.3,
+        tailAmplitude: 0.15,
+        response: 2,
+        speedFrequencyBoost: 0.3,
+        burstFrequencyBoost: 0.35,
+        // Feeding passes (Fish.jsx, Jeremy 2026-10-25): every 1–3 min it slows to 0.6 of its
+        // pace and opens its mouth, his "open mouth" shape key, for 10–20 s.
+        feeding: {
+          morphTarget: 'open mouth',
+          interval: [60, 180],
+          duration: [10, 20],
+          easeSeconds: 1.5,
+          speedScale: 0.6,
+        },
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.2,
+    },
+  },
   // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since
   // corals are animals"). Not a swimming creature: no `swim`, no tank roster slot, no creature
   // rows. Its tables are placed on the rocks by the landscape (landscapes.js `corals`,
@@ -3700,19 +3868,12 @@ export const CREATURES = [
     sex: 'female',
     size: 0.82,
   },
-  // Remora review fixtures: more shark riders than the mako has anchors, so some always
-  // wait their turn, plus one of each host-less or occasional rider.
+  // Remora review fixtures: the two sharksuckers (the other remoras are queued with no model,
+  // docs/fish-queue.md).
   ...[
     ['echeneis-naucrates', 0.7],
     ['echeneis-naucrates', 0.35],
     ['echeneis-neucratoides', 0.6],
-    ['remora-remora', 0.5],
-    ['remora-remora', 0.25],
-    ['remora-albescens', 0.6],
-    ['remora-australis', 0.5],
-    ['remora-brachyptera', 0.6],
-    ['remora-osteochir', 0.5],
-    ['phtheirichthys-lineatus', 0.55],
   ].map(([species, size], index) => ({
     id: 95 + index,
     species,

@@ -52,6 +52,19 @@ bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 mesh = obj.data
 mesh.name = NAME
 obj.name = NAME
+
+# An inside-out export (the manta's: every face pointing inward, so from above the app showed the
+# belly through the back wherever faces are culled, as in the Atlas) has a negative signed
+# volume: turn its faces out, and drop the imported normals so Blender recomputes them.
+bm = bmesh.new()
+bm.from_mesh(mesh)
+if bm.calc_volume(signed=True) < 0:
+    bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    if mesh.has_custom_normals:
+        bpy.ops.mesh.customdata_custom_splitnormals_clear()
+    print('inside out: faces reversed')
+bm.free()
 # glTF import gives Blender +Y forward/-Y back for glTF -Z/+Z: work in glTF axes throughout.
 def gltf(co):
     return Vector((co.x, co.z, -co.y))
@@ -121,7 +134,24 @@ for i, (r, g, b) in enumerate(masks):
 offset = Vector((centre.x, -centre.z, centre.y))
 for v in mesh.vertices:
     v.co = (v.co - offset) * scale
+# Shape keys (a manta's open mouth) hold their own positions: move every key with the mesh. The
+# masks come from the basis shape.
+if mesh.shape_keys:
+    for key in mesh.shape_keys.key_blocks:
+        for point in key.data:
+            point.co = (point.co - offset) * scale
 mesh.update()
+
+# A texture wired to the material's Alpha is always exported as PNG. When its alpha is solid
+# (the usual case: an imported BLEND material over an opaque photo), unwire it so JPEG applies.
+for material in bpy.data.materials:
+    if not material.use_nodes:
+        continue
+    for link in list(material.node_tree.links):
+        image = getattr(link.from_node, 'image', None)
+        if link.to_socket.identifier == 'Alpha' and image and image.size[0]:
+            if min(image.pixels[3::4]) >= 1.0:
+                material.node_tree.links.remove(link)
 
 bpy.ops.export_scene.gltf(
     filepath=dst,

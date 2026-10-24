@@ -65,6 +65,18 @@ const targets = [
     minVertices: 1300,
   },
   {
+    // Jeremy's model, Mirror and "open mouth" baked by scripts/bake-mirror-shape-keys.py, masks
+    // by scripts/paint-disc-wave-masks.py. Four material parts: top (_1), bottom (_2), eye (_3)
+    // and mouth (_4); the floors are per part, so only the two disc parts are checked (1519 and
+    // 1336 vertices).
+    name: 'Giant Oceanic Manta disc-wave',
+    path: 'public/models/fish/mobula-birostris/mobula-birostris.glb',
+    staticMesh: true,
+    bodyMeshNames: ['mobula_birostris_1', 'mobula_birostris_2'],
+    requiredBodyAttributes: ['color_1'],
+    minVertices: 1300,
+  },
+  {
     name: 'Whale Shark static parts',
     path: 'public/models/fish/rhincodon-typus/rhincodon-typus.glb',
     staticMesh: true,
@@ -188,18 +200,6 @@ const targets = [
     minBodyLength: 10,
     minVertices: 2000,
   },
-  // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
-  // the real models replace them: unit length, single body mesh, same contract.
-  ...SPECIES
-    .filter(species => species.placeholder?.type === 'remora' && species.model?.path?.endsWith('_placeholder.glb'))
-    .map(species => ({
-      name: `${species.name} placeholder`,
-      path: `public${species.model.path}`,
-      staticMesh: true,
-      bodyMeshNames: ['remora-placeholder'],
-      minBodyLength: 0.99,
-      minVertices: 1000,
-    })),
 ]
 
 const axisValue = (vector, axis) => axis === 'x' ? vector.x : (axis === 'y' ? vector.y : vector.z)

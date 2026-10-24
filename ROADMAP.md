@@ -13,6 +13,27 @@ Status labels:
 
 ## Current work
 
+### Giant Oceanic Manta
+
+Status: shipped in clean `v0.37.0` (2026-10-25, branch `feat/mobula-birostris`, #161). The Shallows' one big animal, on the devil ray's mobuliform disc-wave, with feeding passes; one manta in prod (id 682) and dev (id 840). Open items below are follow-ups.
+
+Subtasks:
+- [x] Species data and Atlas copy (`Mobula birostris`) from FishBase and the Sharks and Rays profile: EN (2019, A2bcd+3d), CITES II; at least 7 m disc width (FishBase's 910 cm is an older record), maturity at 3.8–4.6 m, one pup about 1.2 m across; alone or in loose groups. Range checked: tagged mantas move between the Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of California (Environmental Biology of Fishes 2024, doi 10.1007/s10641-024-01622-2).
+- [x] Size: 28 WU at 7 m across; adult `sizeRange` 0.57–1.0 (4–7 m).
+- [x] Motion notes: same mobuliform config, slower and larger stroke; Blender contract differences in `docs/procedural/disc-wave.md`.
+- [x] Jeremy: one adult manta at full size, 4–7 m across (16–28 WU), no juvenile stage (2026-10-24).
+- [x] Jeremy's model (2026-10-25, `_blender models/mobula birostris.blend`): mirror and the `open mouth` shape key baked by `scripts/bake-mirror-shape-keys.py` (on a copy, with his tail and wing edits moved from the key into the basis), masks by `scripts/paint-disc-wave-masks.py --span 7`; 593 KB, JPEG textures, opaque. Top texture is Guy Stevens' photo (© Manta Trust), used by Jeremy's call (he will take it down if asked); the eye texture's source (`Mantaraya_Oceanica_-_Mobula_Birostris1`) is unknown; the belly is a generated image.
+- [x] Model wired (`dev_1`): `disc-wave-vertex`, `waveSpeed` 1.6 (about 3–4 s per beat), wingtip lift 1.0 m; verifier target. His export was inside out (every face pointing in: the Atlas showed the belly through the back); `paint-disc-wave-masks.py` now turns an inside-out mesh's faces out.
+- [x] Atlas data (`dev_1`): maturity widths by sex and life span from the Florida Museum, gestation from NOAA, birth size and weight from FishBase; sizes by sex, weights and ages Unknown where nothing is measured (CHANGELOG v0.37.0). Info-card `mass` fitted to FishBase's one weighed manta (550 cm, 1,050 kg): 1.2 t at 5.8 m, was 5.6 t.
+- [ ] `rideHost` (`groups: ['ray']`) for the white suckerfish: no use while no remora lives in The Shallows (no species repeat across reserves); revisit if the manta ever joins a reserve with riders.
+- [x] Swim bounds (`dev_1`): x ±12, y −12 to −6 (the school's middle), z −20 to −65; centre on a 375 px phone's screen in 80 of 80 samples. The school parts round it (`giveWaySlot`, `startles: false`): after spawn, 1 ray inside its wings in 4 of 65 samples (was 4–13 rays in every sample).
+- [x] `creatures_dev` row 840 (size 0.6, 5.8 m), Atlas pose (2.3 units, 30° down) and tile, `dev_1`.
+- [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it, feeding passes). Shipped before a phone review, on his call.
+- [x] Prod `creatures` row 682 (size 0.6, female, same as dev 840), on Jeremy's go-ahead (2026-10-25: "go ahead. 1"); backed up before and after (502 → 503 rows).
+- [ ] The school sometimes overlaps the manta for a few seconds right after spawn (spawn places slots before the manta is registered). `Backlog`: Jeremy ships the current avoidance as is (2026-10-25: "no more avoidance work before going live"). Later options: place the starting school round the manta (about 1 h); sideways parting (about half a day, needs the ray soak extended); school-level routing round it (about 1 day).
+- [x] Feeding passes (`dev_2`, Jeremy): every 1–3 min it slows to 0.6 of its pace and opens its mouth (his "open mouth" shape key, `proceduralAnimation.feeding` in Fish.jsx) for 10–20 s, easing over about 1.5 s. Checked in the browser with a 5–8 s test interval: the morph opens to 1, closes and reopens on schedule.
+- [ ] Feeding passes: unroll the head fins too (the key opens the jaw); maybe feed only near the surface.
+
 ### Munk's Devil Ray and The Shallows
 
 Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open. A tighter school, Atlas framing and data, and caustics on the rays shipped in clean `v0.36.1` (2026-10-24, from `v0.36.1-dev_5`, branch `feat/devil-ray-school-spacing`, #158).
@@ -393,7 +414,7 @@ Subtasks:
 
 ### Remoras (week 1 of the species series)
 
-Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins stay `hiddenInAtlas` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
+Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins were removed in `v0.37.0-dev_2` (Jeremy, 2026-10-25): their species entries stay, with no model, on no tank, listed in `docs/fish-queue.md` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
 
 Reference:
 - System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).

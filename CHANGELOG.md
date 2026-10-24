@@ -8,6 +8,31 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.37.0 — The giant manta (2026-10-25)
+
+Status: clean `v0.37.0` (2026-10-25, from `v0.37.0-dev_2`, branch `feat/mobula-birostris`, #161). Jeremy: "Promote to clean v0.37.0 and merge PR #161"; ships with the current avoidance ("no more avoidance work before going live"). One manta in prod `creatures` (id 682). Jeremy picked the Giant Oceanic Manta as The Shallows' one big animal (2026-10-24): one adult at full size, 4–7 m across, on the devil ray's mobuliform disc-wave. "Wire everything up, do a push."
+
+- dev_2 (Jeremy: "every 1-3 min the manta slows, opens its mouth (the open mouth key) for 10-20 s, then closes"): feeding passes. `proceduralAnimation.feeding` (Fish.jsx): a per-fish seeded schedule (first pass 60–180 s after its first frame, never at once), `speedScale` 0.6 on the target speed for every move but an escape, and the morph target eased open and shut (`damp` at 3 / `easeSeconds` 1.5). Driven like the butterflyfish's spines: `collectMouthMorphs`, `proceduralInput.mouthOpen`. Checked with a 5–8 s test interval: the influence reached 1, closed to 0 and reopened.
+- dev_2 (Jeremy: "remove all the sharksucker/suckerfish placeholders in the open sea tank ... keep the names"): the six remoras without models (common remora, white suckerfish, whalesucker, spearfish remora, marlinsucker, slender suckerfish) left the open sea's roster (the spearfish remora The Reefs'), the dev fixtures, the Atlas poses and the asset verifier; their generated GLBs and `scripts/build-remora-placeholders.mjs` are gone. Their species entries stay (facts, ride data) with no model. No database rows used them. New `docs/fish-queue.md` lists them with where each fits, plus the planned species.
+
+### New species
+
+- Giant Oceanic Manta (`mobula-birostris`, IUCN EN 2019): 28 WU at a 7 m disc, `sizeRange` 0.57–1.0; one `creatures_dev` row (id 840, size 0.6, about 5.8 m across). Prod `creatures` has no manta row yet.
+- Jeremy's model: Mirror and the "open mouth" shape key baked from a copy of his .blend by `scripts/bake-mirror-shape-keys.py` (edits he made with the key active were moved into the basis behind the head), then `scripts/paint-disc-wave-masks.py --span 7`. 593 KB, four parts (top, bottom, eye, mouth), JPEG textures. The open mouth is a morph target, unused for now.
+- Motion: `disc-wave-vertex` with the devil ray's mobuliform settings, slower and broader: `waveSpeed` 1.6 (about 3.9 s per beat at rest, 3 s at cruise), wingtip lift 1.0 m (about 20°), heave 0.3, `beatRateRange` 0.9–1.1. Cruises at 0.12–0.2 disc widths per second (0.4–0.7 m/s at 7 m), turn radius 0.45 widths.
+- In The Shallows: box ±12 across, y −12 to −6 (the school's middle), z −65 to −20 after the −15 offset (44–89 WU from the camera). Its centre stayed on a 375 px phone's screen in 80 of 80 one-second samples; at ±22 and up to z −7 it was there 6% of the time.
+- Info card weight: `mass` fitted to FishBase's one weighed manta (550 cm, 1,050 kg), cubed: 1.2 t for the 5.8 m dev manta (the default relation gave 5.6 t, over the 3 t maximum).
+- His export was inside out (every face pointing in), so the Atlas, which culls back faces, showed the belly through the back; the tank draws both sides and looked right.
+- Atlas: pose like the devil ray's (2.3 units nose to tail, 30° down), source length 5.4073; facts from FishBase, Sharks and Rays, the Florida Museum, NOAA and Rubin et al. 2024 (credited in Studies). Sizes by sex, weights and ages are Unknown where no measured value exists (maturity ages and the IUCN's 45-year span are extrapolated from the reef manta).
+
+### Behaviour
+
+- The ray school opens round the manta. A school member's formation slot under a `startles: false` animal's wings (a diamond as wide as the disc and half as long, looked 3 s ahead) moves over or under it by up to 0.15 of its width plus 3 WU, easing to nothing at the outline (`giveWaySlot` in fishSwim.js, called from Fish.jsx for `schoolFormation` species). The new boid flag `startles: false` also keeps `threatLevelAt` from startling the rays into escape bursts, so the manta can carry menace 1.5 (pair 0.6 with the ray's wariness) as a gentle push. Menace alone, from the whale shark's 0.3 up to 4, left 4–13 rays inside its wings at every one-second sample: the slot pull wins. With the slots giving way: after the first 15 s, 1 ray inside in 1–4 of 65 samples.
+
+### Tooling
+
+- `scripts/paint-disc-wave-masks.py`: unwires solid texture alpha so JPEG export applies (an imported BLEND material forced PNG; the manta went from 4.3 MB to 593 KB), moves shape keys with the rescale, and turns an inside-out mesh's faces out (negative signed volume).
+
 ## v0.36.1 — A tighter devil ray school (2026-10-24)
 
 Status: clean `v0.36.1` (2026-10-24, from `v0.36.1-dev_5`, branch `feat/devil-ray-school-spacing`, #158). Jeremy: "push clean and merge". Ships dev_2's per-ray slot sizing (the tighter school he reviewed), dev_3's Atlas framing and data, and dev_4/dev_5's caustics. Jeremy: an audit of v0.36.0, a tighter school like his reference photo (layers wingtip to wingtip) without the earlier attempts' grids, stacks, overlapping rays or spawn-to-school jumps, and every devil ray in a reserve in one school.

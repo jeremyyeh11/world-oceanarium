@@ -6,6 +6,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.37.0',
+    date: '2026-10-25',
+    title: 'The giant manta',
+    changes: [
+      ['new', 'A Giant Oceanic Manta, the largest ray in the world, glides through The Shallows with slow beats of its 6 m wings, and the devil rays make way for it. It is in the Atlas too.'],
+      ['new', 'Every few minutes the manta slows down and opens its mouth wide to feed.'],
+    ],
+  },
+  {
     version: 'v0.36.1',
     date: '2026-10-24',
     title: 'A tighter school',

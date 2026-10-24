@@ -1460,6 +1460,9 @@ function buildBoidParams(creature, swim) {
     // threatening neighbors. Prey want high wariness; the mako wants high menace.
     menace: config.menace ?? BOID_DEFAULT_MENACE,
     wariness: config.wariness ?? BOID_DEFAULT_WARINESS,
+    // false for a big, harmless animal (the manta): others still steer out of its way by its
+    // menace, but it never startles them into an escape burst (threatLevelAt).
+    startles: config.startles ?? true,
   }
 }
 
@@ -1805,6 +1808,40 @@ function addBodyClearance(out, fish, creature, bodyLength, followDirection) {
   })
 }
 
+// A school opens round a big, harmless animal passing through it (`startles: false`, the manta).
+// Threat avoidance alone loses to the formation's pull back to each slot (4–13 devil rays sat
+// inside the manta's wings at every sample, at any menace short of a startle), so the slots
+// themselves give way: one under the animal's wings, seen from above, moves over or under it,
+// whichever side it is already on, by up to GIVE_WAY_GAP_BODY_LENGTHS of the animal plus a
+// margin. The wings are a diamond as wide as the disc and half as long, looked ahead along the
+// animal's path so the rays clear before it arrives. A lens, not a step: the shift eases to
+// nothing at the wing's outline.
+const GIVE_WAY_GAP_BODY_LENGTHS = 0.15
+const GIVE_WAY_MARGIN = 3
+const GIVE_WAY_LOOKAHEAD_SECONDS = 3
+
+export function giveWaySlot(slot, creature) {
+  THREAT_ENTRIES.forEach((other, id) => {
+    if (other.startles !== false || id === creature.id || other.biome !== creature.biome) return
+    const half = other.bodyLength * 0.5
+    const lookahead = (other.speed ?? 0) * GIVE_WAY_LOOKAHEAD_SECONDS
+    const fx = other.forward.x
+    const fz = other.forward.z
+    const fl = Math.hypot(fx, fz) || 1
+    const dx = slot.x - (other.position.x + (fx / fl) * lookahead * 0.5)
+    const dz = slot.z - (other.position.z + (fz / fl) * lookahead * 0.5)
+    const along = (dx * fx + dz * fz) / fl
+    const side = (dx * fz - dz * fx) / fl
+    const reach = Math.abs(side) / (half + GIVE_WAY_MARGIN)
+      + Math.abs(along) / (half * 0.5 + GIVE_WAY_MARGIN + lookahead * 0.5)
+    if (reach >= 1) return
+    const gap = (other.bodyLength * GIVE_WAY_GAP_BODY_LENGTHS + GIVE_WAY_MARGIN) * Math.sqrt(1 - reach * reach)
+    if (slot.y >= other.position.y) slot.y = Math.max(slot.y, other.position.y + gap)
+    else slot.y = Math.min(slot.y, other.position.y - gap)
+  })
+  return slot
+}
+
 // How alarming the worst threat near `position` is right now: the same menace × wariness ×
 // proximity² that scales the threat push, taken as a max rather than a sum, so a sardine beside
 // a charging mako reads ~0.8 and one near a mahi at most ~0.34. The boid steering that reacts to
@@ -1818,7 +1855,7 @@ export function threatLevelAt(position, creature, swim, escapeOut = null) {
   const threatRadius = boidPerceptionRadius(creature, swim, params) * BOID_THREAT_PERCEPTION_SCALE
   let level = 0
   THREAT_ENTRIES.forEach((other, id) => {
-    if (id === creature.id || other.biome !== creature.biome) return
+    if (id === creature.id || other.biome !== creature.biome || other.startles === false) return
     const threatPair = other.menace * params.wariness
     if (threatPair <= BOID_THREAT_MIN_PAIR || threatPair <= level) return
     if (!closestThreatApproach(threatLevelOffset, position, other)) return
@@ -1854,6 +1891,7 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
     entry.repulsionScale = boidParams.repulsionScale
     entry.repulser = repulser
     entry.menace = boidParams.menace
+    entry.startles = boidParams.startles
     entry.speed = speed
     entry.rideHostId = rideHostId
   } else {
@@ -1871,6 +1909,7 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
       repulsionScale: boidParams.repulsionScale,
       repulser,
       menace: boidParams.menace,
+      startles: boidParams.startles,
       speed,
       rideHostId,
       // Rendered pose, published only by ride hosts, which also overwrite `speed` with their actual travel speed (see updateFishRegistryPose).
@@ -1960,8 +1999,8 @@ export function caudalLateralCurve(out, tail01, config, phase, speed01, turn, bu
 const RIDE_SLOTS = new Map()
 const rideHostProfiles = new WeakMap()
 const hitchhikerProfiles = new WeakMap()
-// Root-to-disc-top height: matches DISC_TOP in scripts/build-remora-placeholders.mjs, so the
-// stand-in's disc sits exactly on the host's skin. Set per species from a supplied model.
+// Root-to-disc-top height of the old generated remora stand-ins (unit length), the default
+// before a supplied model sets its own per species.
 const RIDE_DEFAULT_DORSAL_CLEARANCE_BODY_LENGTHS = 0.058
 // How far below the disc top the rider's back sits at its rear contact point (0.2 body
 // lengths behind its root): the stand-in's back there is at 0.037 against a 0.058 disc top.

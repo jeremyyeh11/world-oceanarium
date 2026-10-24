@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### Focused debug instruments
+
+Status: `Current in development` — review `v0.36.2-dev_1`, branch `feat/update-debug-menu`. Jeremy approved the first audit pass. Do not promote/merge without release approval.
+
+Feel: inspect one animal, understand the readout, then get the instrument out of the view. Preserve the flat full-width bottom strip.
+
+- [x] Remove Bones display/control/helpers only; keep animation clips, rig deformation and skeletal cloning.
+- [x] Count living creatures using the reserve's actual `creaturesForTank` filter; identify sardine-only LOD/culling and browser RAF cadence accurately.
+- [x] Independent heading/speed, steering, neighbours, labels and behaviour overlays. Normal overlays never force sardine detail; explicit override is off by default. Canonical sardine ID also supports raw fixture slugs (previous name-only check missed them).
+- [x] Selected-creature inspector, contextual Mola Bask, explicit Reset/Exit, 44px touch targets and collapsible Creature/Render/Scene/Audio/Data sections. Optional diagnostics read only while open/visible.
+- [x] Automated regressions, full suite/lint/build/procedural contracts and desktop/mobile browser smoke; exact evidence/limits in `docs/debug-menu.md`. Sticky-header duplicate paint fixed and fresh production bundle checked.
+- [ ] Jeremy: review layout, text and overlay legibility on the preview; physical-phone touch/feel remains a human gate.
+- [ ] Slow motion/pause is deliberately excluded; audit the coordinated simulation clocks before a separate proposal.
+
 ### Munk's Devil Ray and The Shallows
 
 Status: shipped in clean `v0.36.0` (2026-10-24, branch `feat/mobula-munkiana`, PR #157). The Shallows holds 218 of Jeremy's rays in one school; physical-phone review remains open. A tighter school, Atlas framing and data, and caustics on the rays shipped in clean `v0.36.1` (2026-10-24, from `v0.36.1-dev_5`, branch `feat/devil-ray-school-spacing`, #158).

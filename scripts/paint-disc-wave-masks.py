@@ -121,6 +121,12 @@ for i, (r, g, b) in enumerate(masks):
 offset = Vector((centre.x, -centre.z, centre.y))
 for v in mesh.vertices:
     v.co = (v.co - offset) * scale
+# Shape keys (a manta's open mouth) hold their own positions: move every key with the mesh. The
+# masks come from the basis shape.
+if mesh.shape_keys:
+    for key in mesh.shape_keys.key_blocks:
+        for point in key.data:
+            point.co = (point.co - offset) * scale
 mesh.update()
 
 # A texture wired to the material's Alpha is always exported as PNG. When its alpha is solid

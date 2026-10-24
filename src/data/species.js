@@ -3326,20 +3326,29 @@ export const SPECIES = [
         reproduction: 'Bears one live pup, estimated at 35 to 42 cm across at birth. Gestation is estimated at 10 to 12 months by comparison with a related species. Mating and pupping take place from April to June in La Paz Bay, in the southern Gulf of California. Males mature at about 95 cm disc width, females at 95 to 105 cm. Young use sheltered shallow bays as nurseries.',
       },
       averages: {
-        // Jeremy's requested specimen-size reference, matching the 1.3 m scale
-        // (Manta Trust maximum disc width), rather than the regional catch means.
-        maleSizeMeters: '1.3 m (disc width)',
-        femaleSizeMeters: '1.3 m (disc width)',
-        maleWeightKg: 'Unknown',
-        femaleWeightKg: 'Unknown',
+        // Notarbartolo di Sciara 1988 (Fishery Bulletin 86: 45–66), 24 rays measured in the
+        // southern Gulf of California: males 686–900 mm disc width, mean 853.8 mm (n = 10);
+        // females 719–1,097 mm, mean 909.9 mm (n = 14). The Manta Trust gives an 89–100 cm
+        // average. (v0.36.0 showed the 1.3 m maximum here; Jeremy asked for researched
+        // averages, 2026-10-24.)
+        maleSizeMeters: '0.85 m (disc width)',
+        femaleSizeMeters: '0.91 m (disc width)',
+        // The same study's width–weight fit for the 10 rays weighed (4.1–11.8 kg): WT (kg) =
+        // 1.041 × 10⁻⁶ × DW (mm)^2.33 (the scan garbles the exponent's last digit; 2.33–2.34 give
+        // these within 5%), at each sex's mean width.
+        maleWeightKg: '7 kg (estimated)',
+        femaleWeightKg: '8 kg (estimated)',
+        // No age data for this species: the only mobulid ages are for larger species, and the
+        // IUCN's three-generation window (38 years) is inferred from them, so not used here.
         maleLifeExpectancyYears: 'Unknown',
         femaleLifeExpectancyYears: 'Unknown',
       },
       lifecycle: {
-        // Serrano-López et al. 2021: male L50 95.24 cm; females 95–105 cm.
-        // No species-specific age data; do not substitute M. mobular's ages.
-        sexualMaturityYears: 'Unknown',
-        sexualSterilityYears: 'Unknown',
+        // Age unknown (no ageing study). Size at maturity: Notarbartolo di Sciara 1988, males
+        // from about 87 cm; Serrano-López et al. 2021, male L50 95.24 cm, females 95–105 cm.
+        sexualMaturityYears: 'Unknown; at about 95 cm across (males) and 95 to 105 cm (females)',
+        sexualSterilityYears: 'None known',
+        // Palacios et al. 2021 and Notarbartolo di Sciara 1988: one pup per pregnancy.
         offspringPerMatingEvent: '1 pup',
       },
     },

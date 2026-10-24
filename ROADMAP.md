@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Oceanic Manta
 
-Status: `Blocked / waiting review` (branch `feat/mobula-birostris`, `v0.37.0-dev_2`, 2026-10-25). The Shallows' one big animal, on the devil ray's mobuliform disc-wave. Swims in The Shallows (one `creatures_dev` row) and is in the Atlas. Waiting on Jeremy: phone review. Prod has its one manta (id 682).
+Status: shipped in clean `v0.37.0` (2026-10-25, branch `feat/mobula-birostris`, #161). The Shallows' one big animal, on the devil ray's mobuliform disc-wave, with feeding passes; one manta in prod (id 682) and dev (id 840). Open items below are follow-ups.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula birostris`) from FishBase and the Sharks and Rays profile: EN (2019, A2bcd+3d), CITES II; at least 7 m disc width (FishBase's 910 cm is an older record), maturity at 3.8–4.6 m, one pup about 1.2 m across; alone or in loose groups. Range checked: tagged mantas move between the Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of California (Environmental Biology of Fishes 2024, doi 10.1007/s10641-024-01622-2).
@@ -28,7 +28,7 @@ Subtasks:
 - [ ] `rideHost` (`groups: ['ray']`) for the white suckerfish: no use while no remora lives in The Shallows (no species repeat across reserves); revisit if the manta ever joins a reserve with riders.
 - [x] Swim bounds (`dev_1`): x ±12, y −12 to −6 (the school's middle), z −20 to −65; centre on a 375 px phone's screen in 80 of 80 samples. The school parts round it (`giveWaySlot`, `startles: false`): after spawn, 1 ray inside its wings in 4 of 65 samples (was 4–13 rays in every sample).
 - [x] `creatures_dev` row 840 (size 0.6, 5.8 m), Atlas pose (2.3 units, 30° down) and tile, `dev_1`.
-- [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it).
+- [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it, feeding passes). Shipped before a phone review, on his call.
 - [x] Prod `creatures` row 682 (size 0.6, female, same as dev 840), on Jeremy's go-ahead (2026-10-25: "go ahead. 1"); backed up before and after (502 → 503 rows).
 - [ ] The school sometimes overlaps the manta for a few seconds right after spawn (spawn places slots before the manta is registered). `Backlog`: Jeremy ships the current avoidance as is (2026-10-25: "no more avoidance work before going live"). Later options: place the starting school round the manta (about 1 h); sideways parting (about half a day, needs the ray soak extended); school-level routing round it (about 1 day).
 - [x] Feeding passes (`dev_2`, Jeremy): every 1–3 min it slows to 0.6 of its pace and opens its mouth (his "open mouth" shape key, `proceduralAnimation.feeding` in Fish.jsx) for 10–20 s, easing over about 1.5 s. Checked in the browser with a 5–8 s test interval: the morph opens to 1, closes and reopens on schedule.

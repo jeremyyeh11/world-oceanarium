@@ -30,7 +30,7 @@ Subtasks:
 - [x] `creatures_dev` row 840 (size 0.6, 5.8 m), Atlas pose (2.3 units, 30° down) and tile, `dev_1`.
 - [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it).
 - [x] Prod `creatures` row 682 (size 0.6, female, same as dev 840), on Jeremy's go-ahead (2026-10-25: "go ahead. 1"); backed up before and after (502 → 503 rows).
-- [ ] The school sometimes overlaps the manta for a few seconds right after spawn (spawn places slots before the manta is registered).
+- [ ] The school sometimes overlaps the manta for a few seconds right after spawn (spawn places slots before the manta is registered). `Backlog`: Jeremy ships the current avoidance as is (2026-10-25: "no more avoidance work before going live"). Later options: place the starting school round the manta (about 1 h); sideways parting (about half a day, needs the ray soak extended); school-level routing round it (about 1 day).
 - [x] Feeding passes (`dev_2`, Jeremy): every 1–3 min it slows to 0.6 of its pace and opens its mouth (his "open mouth" shape key, `proceduralAnimation.feeding` in Fish.jsx) for 10–20 s, easing over about 1.5 s. Checked in the browser with a 5–8 s test interval: the morph opens to 1, closes and reopens on schedule.
 - [ ] Feeding passes: unroll the head fins too (the key opens the jaw); maybe feed only near the surface.
 

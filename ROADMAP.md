@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### Focused debug instruments
+
+Status: `Current in development` — review `v0.36.2-dev_1`, branch `feat/update-debug-menu`. Jeremy approved the first audit pass. Do not promote/merge without release approval.
+
+Feel: inspect one animal, understand the readout, then get the instrument out of the view. Preserve the flat full-width bottom strip.
+
+- [x] Remove Bones display/control/helpers only; keep animation clips, rig deformation and skeletal cloning.
+- [x] Count living creatures using the reserve's actual `creaturesForTank` filter; identify sardine-only LOD/culling and browser RAF cadence accurately.
+- [x] Independent heading/speed, steering, neighbours, labels and behaviour overlays. Normal overlays never force sardine detail; explicit override is off by default. Canonical sardine ID also supports raw fixture slugs (previous name-only check missed them).
+- [x] Selected-creature inspector, contextual Mola Bask, explicit Reset/Exit, 44px touch targets and collapsible Creature/Render/Scene/Audio/Data sections. Optional diagnostics read only while open/visible.
+- [x] Automated regressions, full suite/lint/build/procedural contracts and desktop/mobile browser smoke; exact evidence/limits in `docs/debug-menu.md`. Sticky-header duplicate paint fixed and fresh production bundle checked.
+- [ ] Jeremy: review layout, text and overlay legibility on the preview; physical-phone touch/feel remains a human gate.
+- [ ] Slow motion/pause is deliberately excluded; audit the coordinated simulation clocks before a separate proposal.
+
 ### The Shallows: animals circling
 
 Status: shipped in clean `v0.37.1` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: everybody in The Shallows swam in a visible circle; leaving the screen and coming back is fine. Fixed with `goalPick: 'across'` and wider rooms (dev_1), then wedge-shaped rooms and a frame that widens up to 21:9 (dev_2; CHANGELOG v0.37.1).

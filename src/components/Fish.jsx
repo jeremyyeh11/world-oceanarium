@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Billboard, Text, useAnimations } from '@react-three/drei'
+import { Text, useAnimations } from '@react-three/drei'
 import { useEnvironmentGLTF as useGLTF } from '../hooks/useEnvironmentLoading'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
@@ -22,6 +22,7 @@ import {
   supportsFishSituationalLight,
 } from '../utils/fishSituationalLight'
 import { SARDINE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
+import { debugOverlayVisibility } from '../utils/debugMenu'
 import { getFishRuntime } from './fishRuntimeStore'
 import { createFishMaterialPass } from './fishMaterialPass'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
@@ -1865,120 +1866,6 @@ function removePreviousCurveDeformAdditive(bone, state, index, scratchQuat) {
   state.hasPreviousAdditive[index] = false
 }
 
-function collectModelBones(object) {
-  const bones = []
-  object.traverse(child => {
-    if (child?.isBone) bones.push(child)
-  })
-  return bones
-}
-
-function BoneDebugOverlay({ object, bones, modelScale = 1, parentScale = 1 }) {
-  const markerRefs = useRef([])
-  const labelRefs = useRef([])
-  const scratchWorldPositionRef = useRef(new THREE.Vector3())
-  const localPositions = useMemo(
-    () => bones.map(() => new THREE.Vector3()),
-    [bones],
-  )
-  const boneIndices = useMemo(() => new Map(bones.map((bone, index) => [bone.uuid, index])), [bones])
-  const boneSegments = useMemo(() => {
-    const segments = []
-    bones.forEach((bone, index) => {
-      const parentIndex = bone.parent?.isBone ? boneIndices.get(bone.parent.uuid) : undefined
-      if (Number.isInteger(parentIndex)) segments.push([parentIndex, index])
-    })
-    return segments
-  }, [bones, boneIndices])
-  const lineGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry()
-    const pointCount = Math.max(2, boneSegments.length * 2)
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(pointCount * 3), 3))
-    return geometry
-  }, [boneSegments.length])
-  const markerScale = THREE.MathUtils.clamp(0.055 / Math.max(0.001, modelScale), 0.035, 0.12)
-  const labelScale = DEBUG_NAME_LABEL_SCALE / Math.max(0.001, modelScale * parentScale)
-
-  useFrame(() => {
-    if (!object || bones.length === 0) return
-    object.updateWorldMatrix(true, true)
-    const scratch = scratchWorldPositionRef.current
-    bones.forEach((bone, index) => {
-      bone.getWorldPosition(scratch)
-      localPositions[index].copy(scratch)
-      object.worldToLocal(localPositions[index])
-      const marker = markerRefs.current[index]
-      if (marker) marker.position.copy(localPositions[index])
-      const label = labelRefs.current[index]
-      if (label) label.position.copy(localPositions[index]).addScalar(markerScale * 1.15)
-    })
-    const positionAttribute = lineGeometry.getAttribute('position')
-    let cursor = 0
-    boneSegments.forEach(([startIndex, endIndex]) => {
-      const start = localPositions[startIndex]
-      const end = localPositions[endIndex]
-      positionAttribute.setXYZ(cursor, start.x, start.y, start.z)
-      positionAttribute.setXYZ(cursor + 1, end.x, end.y, end.z)
-      cursor += 2
-    })
-    while (cursor < positionAttribute.count) {
-      const fallback = localPositions[0] ?? scratch.set(0, 0, 0)
-      positionAttribute.setXYZ(cursor, fallback.x, fallback.y, fallback.z)
-      cursor += 1
-    }
-    positionAttribute.needsUpdate = true
-    lineGeometry.computeBoundingSphere()
-  })
-
-  if (bones.length === 0) return null
-
-  return (
-    <group raycast={() => null}>
-      <lineSegments geometry={lineGeometry} raycast={() => null} renderOrder={45}>
-        <lineBasicMaterial color="#35f7ff" transparent opacity={0.92} depthTest={false} depthWrite={false} />
-      </lineSegments>
-      {bones.map((bone, index) => (
-        <group key={`${bone.uuid}:${index}`}>
-          <mesh
-            ref={element => { markerRefs.current[index] = element }}
-            scale={markerScale}
-            raycast={() => null}
-            renderOrder={46}
-          >
-            <sphereGeometry args={[1, 8, 8]} />
-            <meshBasicMaterial color={bone.parent?.isBone ? '#35f7ff' : '#ffec6a'} transparent opacity={0.9} depthTest={false} depthWrite={false} />
-          </mesh>
-          <Billboard
-            ref={element => { labelRefs.current[index] = element }}
-            follow
-            raycast={() => null}
-            renderOrder={80}
-          >
-            <Text
-              fontSize={labelScale}
-              font={DEBUG_LABEL_FONT}
-              fontWeight="normal"
-              color="#eaffff"
-              anchorX="left"
-              anchorY="middle"
-              depthTest={false}
-              depthWrite={false}
-              renderOrder={81}
-              material-depthTest={false}
-              material-depthWrite={false}
-              material-transparent
-              material-toneMapped={false}
-              raycast={() => null}
-            >
-              {bone.name}
-            </Text>
-          </Billboard>
-        </group>
-      ))}
-    </group>
-  )
-}
-
 // A part whose length differs per fish (`proceduralAnimation.meshLengthVariation`: the
 // bannerfish's banner). This fish gets its own copy of the part's geometry, stretched once along
 // the body axis from the part's front end, so the root stays put on the body and only the far
@@ -2011,7 +1898,7 @@ function applyMeshLengthVariation(root, proceduralAnimation, amount01) {
   return owned
 }
 
-function FishModel({ model, shadowCasterId = null, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, debugCurveBones = false, debugParentScale = 1, rim = null, lodDebugColor = null, caustics = null }) {
+function FishModel({ model, shadowCasterId = null, animation = 'idle', animationVariation, animationSpeedScaleRef = null, curveDeformInputRef = null, waveOutRef = null, debugSimulationSpeed = 1, rim = null, lodDebugColor = null, caustics = null }) {
   const gltf = useGLTF(model.path)
   const meshLength01 = animationVariation?.meshLength01
   const { object, ownedGeometries } = useMemo(() => {
@@ -2032,7 +1919,6 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
     () => collectProceduralFinFollow(object, proceduralFinMeshes, model?.proceduralAnimation),
     [object, proceduralFinMeshes, model],
   )
-  const debugBones = useMemo(() => collectModelBones(object), [object])
   const { actions } = useAnimations(animations, object)
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
@@ -2281,14 +2167,11 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
       position={model.position ?? [0, 0, 0]}
     >
       <primitive object={object} />
-      {debugCurveBones && debugBones.length > 0 && (
-        <BoneDebugOverlay object={object} bones={debugBones} modelScale={model.scale ?? 1} parentScale={debugParentScale} />
-      )}
     </group>
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, caustics = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugForceDetail = false, debugInspectorEnabled = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, caustics = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const materialPass = useMemo(() => createFishMaterialPass(), [])
   useEffect(() => () => materialPass.dispose(), [materialPass])
@@ -2315,7 +2198,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const species = useMemo(() => resolveSpecies(creature), [creature])
   const model = useMemo(() => resolveModel(creature, modelVariantKey), [creature, modelVariantKey])
-  const canInstanceSardine = model?.path?.includes('/sardine/') && creature.species === 'Spotted Sardinella'
+  const canInstanceSardine = model?.path?.includes('/sardine/') && species?.id === 'amblygaster-sirm'
   const animationVariation = useMemo(() => animationVariationForCreature(creature), [creature])
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
@@ -2340,6 +2223,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // Only the designed solitary hunters surface the agent debug readout; an orphaned schooling
   // fish roams on the same path but shouldn't spawn debug labels/vectors in the tank.
   const showAgentDebug = isSoloAgent && species.schooling === false
+  const debugVisibility = useMemo(
+    () => debugOverlayVisibility(debugLayers, selected, showAgentDebug),
+    [debugLayers, selected, showAgentDebug],
+  )
   // Remoras ride hosts (see the ride section of fishSwim.js). Only a solo agent rides; hosts
   // publish their rendered pose each frame for the riders to read.
   const hitchhiker = useMemo(() => (isSoloAgent ? hitchhikerProfile(species) : null), [isSoloAgent, species])
@@ -3950,16 +3837,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
 
     if (debug) {
-      const showDirection = debugLayers?.direction ?? true
-      const showName = debugLayers?.name ?? true
+      const visibility = debugVisibility
       const effectiveDebugVelocity = velocity.current * organicMotion.speedScale
       const effectiveDebugSpeedMeters = effectiveDebugVelocity * WORLD_UNIT_METERS
       const debugVectorLength = DEBUG_FORWARD_MIN_LENGTH + effectiveDebugVelocity * DEBUG_FORWARD_SPEED_SCALE
       debugForwardStart.copy(fish.position).addScaledVector(pitchedForward, debugForwardOffset(creature, swim, model))
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
-      if (forwardLineRef.current) forwardLineRef.current.visible = showDirection && !showAgentDebug
-      const showBoidDebug = showDirection && (selected || showAgentDebug)
+      if (forwardLineRef.current) forwardLineRef.current.visible = visibility.heading
+      const showBoidDebug = visibility.steering
       const boidDebug = boidDebugState.current
       updateDebugVectorLine(boidSeparationLineRef, debugForwardStart, boidDebug.separation, DEBUG_BOID_VECTOR_SCALE)
       updateDebugVectorLine(boidAlignmentLineRef, debugForwardStart, boidDebug.alignment, DEBUG_BOID_VECTOR_SCALE)
@@ -3975,7 +3861,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       // Neighbor connectors (colored by relation) + heading ticks, tracking live positions.
       // Only drawn for the focused fish (selected or agent-debug) so one individual's
       // perception is legible instead of every sampled fish webbing the whole school.
-      const showNeighborWeb = showBoidDebug && (selected || showAgentDebug)
+      const showNeighborWeb = visibility.neighbors
       const headingTickLength = Math.max(0.35, bodyLength * 0.9)
       for (let n = 0; n < BOID_MAX_DEBUG_NEIGHBORS; n += 1) {
         const connector = boidNeighborLineRefs.current[n]
@@ -4011,7 +3897,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
         speedLabelRef.current.text = `${effectiveDebugSpeedMeters.toFixed(2)} m/s`
         speedLabelRef.current.lookAt(camera.position)
-        speedLabelRef.current.visible = showDirection && !showAgentDebug
+        speedLabelRef.current.visible = visibility.heading
       }
       if (agentLabelRef.current) {
         const bodyLength = creatureBodyLength(creature, swim)
@@ -4024,7 +3910,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const queuedAction = sunBaskQueued.current ? 'sun-bask' : 'none'
         agentLabelRef.current.text = `${creature.id ?? '?'} • ${displayName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\n${status} • ${currentAnimation}\nqueue ${queuedAction}`
         agentLabelRef.current.lookAt(camera.position)
-        agentLabelRef.current.visible = showDirection && showAgentDebug
+        agentLabelRef.current.visible = visibility.behavior
       }
       if (nameLabelRef.current) {
         nameLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.16 + 0.045)
@@ -4034,7 +3920,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // clamped so it neither vanishes far away nor overwhelms up close.
         const nameLabelDistance = fish.position.distanceTo(camera.position)
         nameLabelRef.current.scale.setScalar(THREE.MathUtils.clamp(nameLabelDistance * DEBUG_LABEL_DISTANCE_SCALE, 0.85, 3.2))
-        nameLabelRef.current.visible = showName && !showAgentDebug
+        nameLabelRef.current.visible = visibility.name
       }
     }
 
@@ -4203,7 +4089,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       window[SARDINE_DEBUG_GLOBAL] = stats
     }
 
-    const forceDetailedForDebug = debug && !debugLodView
+    // Observational overlays never force LOD. Selection keeps its normal close-up behaviour.
+    const forceDetailedForDebug = debugForceDetail
     if (canInstanceSardine && !selected && !forceDetailedForDebug) {
       const distanceToCamera = camera.position.distanceTo(fish.position)
       const lod2Distance = zoomActive ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE
@@ -4274,8 +4161,16 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       }
     } else {
       if (modelRootRef.current) modelRootRef.current.visible = true
-      removeSardineLod0Entry(creature.id)
-      removeSardineFrustumEntry(creature.id)
+      if (canInstanceSardine) {
+        const lod0Entry = sardineRegistryEntries.lod0
+        lod0Entry.candidate = !instancedSardineLod
+        lod0Entry.drawn = !instancedSardineLod
+        updateSardineLod0Entry(creature.id, lod0Entry)
+        const frustumEntry = sardineRegistryEntries.frustum
+        frustumEntry.candidate = true
+        frustumEntry.culled = false
+        updateSardineFrustumEntry(creature.id, frustumEntry)
+      }
       if (instancedSardineLod) setInstancedSardineLod(null)
       removeSardineLod1Instance(creature.id)
       removeSardineInstance(creature.id)
@@ -4467,6 +4362,22 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     runtime.driftUntil = driftUntil.current
   }, isRideHost ? RIDE_HOST_FRAME_PRIORITY : 0)
 
+  // The inspector reads live refs on demand (not a second per-frame publisher).
+  useEffect(() => {
+    const fish = ref.current
+    if (!fish || !selected || !debugInspectorEnabled) return undefined
+    const inspect = () => ({
+      speed: velocity.current * organicMotion.speedScale * WORLD_UNIT_METERS,
+      behavior: isSchooling ? 'schooling' : agentStatus.current,
+      school: school?.id ?? null,
+      host: ride.hostId,
+      queued: sunBaskQueued.current ? 'sun-bask (after current behaviour)' : null,
+      reef: reefConfig ? `${reefRef.current.mode ?? 'none'} / ${reefRef.current.stage}` : null,
+    })
+    fish.userData.inspectCreature = inspect
+    return () => { if (fish.userData.inspectCreature === inspect) delete fish.userData.inspectCreature }
+  }, [selected, debugInspectorEnabled, organicMotion.speedScale, isSchooling, school?.id, ride, reefConfig])
+
   const focusScale = 1
   const bodyLength = creatureBodyLength(creature, swim)
   const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
@@ -4617,8 +4528,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               curveDeformInputRef={curveDeformInputRef}
               waveOutRef={waveOutRef}
               debugSimulationSpeed={debugSimulationSpeed}
-              debugCurveBones={debug && selected && Boolean(debugLayers?.bones)}
-              debugParentScale={size * focusScale}
               rim={fresnelRim}
               lodDebugColor={lodDebugColor}
               caustics={caustics}

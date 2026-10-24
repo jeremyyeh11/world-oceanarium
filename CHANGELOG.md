@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.36.2 — Focused debug instruments
+
+Status: review `v0.36.2-dev_1` on `feat/update-debug-menu`; not a clean release.
+
+### Debugging
+
+- Replace the dense icon strip with a flat bottom instrument: Selected/All scope, independent heading/speed, steering, neighbours, labels and behaviour, contextual Mola Bask, Reset/Exit and on-demand Creature/Render/Scene/Audio/Data sections. Touch targets are at least 44px; the selected inspector reads existing runtime refs twice per second only while open.
+- Remove obsolete Bones display helpers, not rig/animation support. No motion-clock refactor, pause control, database changes, environment/loading UI or quality reduction.
+- Reserve population uses the renderer's curated species filter. LOD and point-frustum figures come only from sardine registries, not inferred mixed-species totals; browser callback cadence is labelled RAF/s, not GPU FPS.
+- Overlay scope/LOD colours no longer implicitly force detailed sardines. Explicit Force sardine detail is off by default, labelled as a workload override, and Reset/Exit restores normal detail and 1x. Canonical species identity makes existing instancing work for fixture slugs as well as normalized display names.
+- Optional scene/creature/audio diagnostics stop sampling when closed or hidden; the existing lightweight audio timer remains but skips analyser scans without a diagnostic subscriber. Scene values describe the previous renderer pass, not a full multipass GPU profile or memory bytes.
+
 ## v0.37.1 — The Shallows' animals roam the bay (2026-10-25)
 
 Status: clean `v0.37.1` (2026-10-25, from `v0.37.1-dev_4`, branch `fix/shallows-wider-bounds`, #162). Jeremy: "Promote to clean v0.37.1 and merge PR #162". Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."

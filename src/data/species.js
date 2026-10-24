@@ -3350,7 +3350,9 @@ export const SPECIES = [
       // 2026-10-24); members may stray and return, but the count is never split.
       schoolMaxSize: Infinity,
       schoolFormationWeight: 0.75,
-      schoolGoalReachedBodyLengths: 1,
+      // A goal counts as reached 3.5 body lengths out (about 14–18 WU), wider than the school's
+      // turning circle (4.4 × 1.2 / 0.4 = 13 WU): at 1 it could never hit the goal and orbited it.
+      schoolGoalReachedBodyLengths: 3.5,
       schoolStationGain: 0.2,
       schoolStationSpeedRange: [0.8, 1.2],
       schoolTurnRateScale: 0.4,
@@ -3390,15 +3392,22 @@ export const SPECIES = [
       // 1 WU = 25 cm: 130 cm disc width = 5.2 WU.
       bodyLengthWU: 5.2,
       // Room for the full school plus its broad turning circle, above the sand and
-      // the low camera. Z is offset by -15 in fishSwim.js: -44/31 becomes -59/16.
-      // Goals reserve the cloud extent, free-drift band and turning radius so the
-      // outer animals do not compress against walls. Portrait framing needs review.
+      // the low camera. Z is offset by -15 in fishSwim.js: -110/42 becomes -125/27.
+      // Goals reserve the cloud extent, free-drift band and turning radius (about 39 WU
+      // a side), so the room they are picked in is about 140 by 74 WU. Wider than the
+      // view on purpose (Jeremy, 2026-10-25: leaving the screen and coming back is fine
+      // if the motion reads better): at ±50 by 97 WU the room left was 52 by 37, a
+      // school 30 WU across turned all the time, and it read as circling.
       boundsUseSpeciesSize: false,
-      boundsHalfX: 50,
+      boundsHalfX: 110,
       boundsYMin: -25,
       boundsYMax: 3,
-      boundsZMin: -55,
+      boundsZMin: -110,
       boundsZMax: 42,
+      // Each new goal anywhere in that room, far from the school, at any height it
+      // allows (fishSwim.js pickGoalAcross), not a step ahead bent toward the middle:
+      // that turned the school the same way every time, 12 laps in 10 minutes.
+      goalPick: 'across',
       // The school's slots are spaced for sardinella (about 1 WU); a 4 WU ray needs about 3.5
       // times the room, or 60 of them pack into a ball of overlapping wings.
       schoolSpacingScale: 3.5,
@@ -3569,22 +3578,26 @@ export const SPECIES = [
       burstBLPerSec: [0.5, 0.7],
       burstInterval: [20.0, 40.0],
       erraticness: 0.04,
-      // 10 WU at 23 WU across: banked turns that fit the narrow phone-friendly box.
-      turnRadiusBodyLengths: 0.45,
+      // 14 WU at 23 WU across: broad banked turns.
+      turnRadiusBodyLengths: 0.6,
+      // Each new goal anywhere in its room, far from where it is (fishSwim.js pickGoalAcross).
+      // The default, the opposite quarter of the room and ahead, kept it turning one way:
+      // 4 laps in a row even in the wide box.
+      goalPick: 'across',
       // 1 WU = 25 cm: 7 m disc width = 28 WU.
       bodyLengthWU: 28,
-      // In The Shallows (SHALLOWS_VIEW: camera at y -24, z 24, looking up), in the middle of the
-      // devil ray school's height (y -18 to 0; they part round it, giveWaySlot). A phone shows
-      // only the middle quarter of the 16:9 view, so one animal has to stay central and back:
-      // Z is offset by -15 in fishSwim.js, -5/-50 becomes -20/-65 (44–89 WU from the camera),
-      // where the phone strip is ±11–23 WU wide. At ±22 and up to z -7 its centre was in a
-      // phone's strip 6% of the time and on a desktop screen 51%.
+      // In The Shallows (SHALLOWS_VIEW: camera at y -24, z 24, looking up), in the height of the
+      // devil ray school (y -18 to 0; they part round it, giveWaySlot). A solo animal's next goal
+      // is at least 3 body lengths away (about 70 WU for this one), so its room has to hold
+      // that: in the ±12 by 45 WU box of v0.37.0 every pick fell back to the nearest point and
+      // it swam 11 laps one way in 10 minutes (Jeremy, 2026-10-25: leaving the screen and
+      // coming back is fine). Z is offset by -15 in fishSwim.js: -100/0 becomes -115/-15.
       boundsUseSpeciesSize: false,
-      boundsHalfX: 12,
-      boundsYMin: -12,
-      boundsYMax: -6,
-      boundsZMin: -50,
-      boundsZMax: -5,
+      boundsHalfX: 60,
+      boundsYMin: -14,
+      boundsYMax: -4,
+      boundsZMin: -100,
+      boundsZMax: 0,
       boids: {
         neighborCap: 3,
         perceptionBodyLengths: 1.2,

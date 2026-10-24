@@ -8,6 +8,20 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.37.1 — The Shallows' animals roam the bay (in progress)
+
+Status: `v0.37.1-dev_1` (2026-10-25, branch `fix/shallows-wider-bounds`). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
+
+### Movement
+
+- Measured first, in a renderless soak of Fish.jsx's real movement frame (218 rays plus the manta, 600 s, 4 seeds): the devil ray school made 12 net laps in ten minutes, turning one way for up to 4,362° at a stretch, at one height, its centre held to x ±15 and z −46 to 5 in a ±50 box; the manta made 11 laps.
+- Causes: the school's next goal was always a step ahead, bent toward the middle (`pickSoloAgentContinuationTarget`); it counted a goal as reached only within 1 body length (about 5 WU), inside its own 13 WU turning circle, so it orbited goals; the insets for its size and turning circle left a room of 52 by 37 WU for a school 30 WU across. The manta's next goal must be 3 body lengths away (about 70 WU), more than its ±12 box held, so every pick fell back to the nearest point.
+- New swim option `goalPick: 'across'` (fishSwim.js `pickGoalAcross`, `insetSwimBox`): a school's leader or a solo animal picks its next goal anywhere in its room (inset from the walls as the existing clamps inset it), at least 0.4 of the room's diagonal away, on the other side of its heading from the last goal, so the turns alternate into S-bends. Far goals alone still looped the room (the manta 4 laps, the interior always on one side).
+- A `goalPick: 'across'` school also drifts to its goal's height (`center.y`, damped at 0.05/s): the school changes depth a few WU instead of cruising at one height.
+- Devil ray school: `goalPick: 'across'`, box ±110 by z −125 to 27 (was ±50, −70 to 27), goal reached at 3.5 body lengths (was 1). Manta: `goalPick: 'across'`, box ±60 by z −115 to −15 and y −14 to −4 (was ±12, −65 to −20, y −12 to −6), turn radius 0.6 widths (was 0.45).
+- Result over the same soak: the school's longest one-way turn 227–340° (under a lap), net −1.5 to +1.0 laps in ten minutes, 150–240°/min of turning (was about 440), roaming x ±70–88 and z −105 to 5; the manta's longest one-way turn 394°, net −0.2 laps. Trade-off, as Jeremy allowed: a 375 px phone sees the school's centre about 30% of the time (was 47%) and the manta's 39% (was 100% in its old narrow box); a desktop screen 81–89% and 91–96%. The school is about 30 WU across, so part of it is often on screen when its centre is not. Starting them near the middle of the view was tried and dropped: they leave for a far goal within seconds either way.
+- The ray school soak in `npm test` is unchanged (wing overlaps 1 pair in 2 samples, no wall contact). Browser: no console errors; with prod's 218 rays the school made a long straight crossing to the front right.
+
 ## v0.37.0 — The giant manta (2026-10-25)
 
 Status: clean `v0.37.0` (2026-10-25, from `v0.37.0-dev_2`, branch `feat/mobula-birostris`, #161). Jeremy: "Promote to clean v0.37.0 and merge PR #161"; ships with the current avoidance ("no more avoidance work before going live"). One manta in prod `creatures` (id 682). Jeremy picked the Giant Oceanic Manta as The Shallows' one big animal (2026-10-24): one adult at full size, 4–7 m across, on the devil ray's mobuliform disc-wave. "Wire everything up, do a push."

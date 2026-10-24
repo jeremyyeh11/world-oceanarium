@@ -13,6 +13,16 @@ Status labels:
 
 ## Current work
 
+### The Shallows: animals circling
+
+Status: `Blocked / waiting review` (branch `fix/shallows-wider-bounds`, `v0.37.1-dev_1`, 2026-10-25). Jeremy: everybody in The Shallows swam in a visible circle; leaving the screen and coming back is fine. Fixed with `goalPick: 'across'` and wider rooms (CHANGELOG v0.37.1).
+
+Subtasks:
+- [x] Measure the circling (renderless soak, 600 s, 4 seeds): school 12 laps, manta 11.
+- [x] `goalPick: 'across'`: far goals anywhere in the room, alternating sides; school depth drifts to its goal; wider boxes; school goal reached at 3.5 body lengths. School under one lap one way, manta 394°.
+- [ ] Jeremy: review on a phone (the school and manta are off a phone's screen more often now: about 70% and 60% of the time).
+- [ ] Optional: a soak assertion for laps (longest one-way turn) in `npm test`; the tracking script lived in the session scratchpad.
+
 ### Giant Oceanic Manta
 
 Status: shipped in clean `v0.37.0` (2026-10-25, branch `feat/mobula-birostris`, #161). The Shallows' one big animal, on the devil ray's mobuliform disc-wave, with feeding passes; one manta in prod (id 682) and dev (id 840). Open items below are follow-ups.

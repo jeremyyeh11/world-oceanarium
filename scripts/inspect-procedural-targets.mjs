@@ -65,6 +65,18 @@ const targets = [
     minVertices: 1300,
   },
   {
+    // Jeremy's model, Mirror and "open mouth" baked by scripts/bake-mirror-shape-keys.py, masks
+    // by scripts/paint-disc-wave-masks.py. Four material parts: top (_1), bottom (_2), eye (_3)
+    // and mouth (_4); the floors are per part, so only the two disc parts are checked (1519 and
+    // 1336 vertices).
+    name: 'Giant Oceanic Manta disc-wave',
+    path: 'public/models/fish/mobula-birostris/mobula-birostris.glb',
+    staticMesh: true,
+    bodyMeshNames: ['mobula_birostris_1', 'mobula_birostris_2'],
+    requiredBodyAttributes: ['color_1'],
+    minVertices: 1300,
+  },
+  {
     name: 'Whale Shark static parts',
     path: 'public/models/fish/rhincodon-typus/rhincodon-typus.glb',
     staticMesh: true,

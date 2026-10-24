@@ -210,6 +210,39 @@ export const STUDY_CREDITS = [
     venue: 'Bulletin of the Peabody Museum of Natural History 66: 263–338',
     url: 'https://doi.org/10.3374/014.066.0201',
   },
+  {
+    id: 'rubin-2024-oceanic-manta',
+    subject: 'Giant Oceanic Manta range in Mexico and the Gulf of California',
+    authors: 'Rubin, Kumli, Klimley, Stewart, Ketchum et al.',
+    year: 2024,
+    title: 'Insular and mainland interconnectivity in the movements of oceanic manta rays (Mobula birostris) off Mexico in the Eastern Tropical Pacific',
+    venue: 'Environmental Biology of Fishes 108: 555–568',
+    url: 'https://doi.org/10.1007/s10641-024-01622-2',
+  },
+  {
+    id: 'florida-museum-manta',
+    subject: 'Giant Oceanic Manta maturity sizes by sex, life span and nurseries',
+    authors: 'Florida Museum of Natural History',
+    title: 'Manta ray',
+    venue: 'Discover Fishes species profile',
+    url: 'https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/manta-ray/',
+  },
+  {
+    id: 'sharks-and-rays-oceanic-manta',
+    subject: 'Giant Oceanic Manta maximum width, colour forms and breeding interval',
+    authors: 'Sharks and Rays',
+    title: 'Oceanic Manta Ray',
+    venue: 'Species profile',
+    url: 'https://www.sharksandrays.com/species/oceanic-manta-ray/',
+  },
+  {
+    id: 'noaa-giant-manta',
+    subject: 'Giant Oceanic Manta gestation',
+    authors: 'NOAA Fisheries',
+    title: 'Giant Manta Ray',
+    venue: 'Species directory',
+    url: 'https://www.fisheries.noaa.gov/species/giant-manta-ray',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one

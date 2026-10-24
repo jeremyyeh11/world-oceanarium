@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Oceanic Manta
 
-Status: `Current in development` (branch `feat/mobula-birostris`, started 2026-10-24). The Shallows' one big animal, on the devil ray's mobuliform disc-wave. Species data is in, hidden from the Atlas, with no model and no tank slot yet. Waiting on Jeremy: his GLB.
+Status: `Blocked / waiting review` (branch `feat/mobula-birostris`, `v0.37.0-dev_1`, 2026-10-25). The Shallows' one big animal, on the devil ray's mobuliform disc-wave. Swims in The Shallows (one `creatures_dev` row) and is in the Atlas. Waiting on Jeremy: phone review, then the go-ahead for a prod row.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula birostris`) from FishBase and the Sharks and Rays profile: EN (2019, A2bcd+3d), CITES II; at least 7 m disc width (FishBase's 910 cm is an older record), maturity at 3.8–4.6 m, one pup about 1.2 m across; alone or in loose groups. Range checked: tagged mantas move between the Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of California (Environmental Biology of Fishes 2024, doi 10.1007/s10641-024-01622-2).
@@ -23,11 +23,14 @@ Subtasks:
 - [x] Motion notes: same mobuliform config, slower and larger stroke; Blender contract differences in `docs/procedural/disc-wave.md`.
 - [x] Jeremy: one adult manta at full size, 4–7 m across (16–28 WU), no juvenile stage (2026-10-24).
 - [x] Jeremy's model (2026-10-25, `_blender models/mobula birostris.blend`): mirror and the `open mouth` shape key baked by `scripts/bake-mirror-shape-keys.py` (on a copy, with his tail and wing edits moved from the key into the basis), masks by `scripts/paint-disc-wave-masks.py --span 7`; 593 KB, JPEG textures, opaque. Top texture is Guy Stevens' photo (© Manta Trust), used by Jeremy's call (he will take it down if asked); the eye texture's source (`Mantaraya_Oceanica_-_Mobula_Birostris1`) is unknown; the belly is a generated image.
-- [ ] Wire the model into the species entry (`model`, `disc-wave-vertex` with a slower manta beat) and check it in the Atlas.
-- [ ] Atlas averages and lifecycle from sources (sizes by sex, weight, ages, gestation); `mass` from a disc-width relation, not FishBase's total-length one.
-- [ ] `rideHost` (`groups: ['ray']`) so the white suckerfish rides it; anchors via `scripts/fit-ride-anchors.mjs`.
-- [ ] Swim bounds in The Shallows that keep a 16–28 WU animal clear of the devil ray school and the camera; phone framing.
-- [ ] `creatures_dev` row (read prod max id first), Atlas pose and tile in the same build; prod row needs Jeremy's go-ahead.
+- [x] Model wired (`dev_1`): `disc-wave-vertex`, `waveSpeed` 1.6 (about 3–4 s per beat), wingtip lift 1.0 m; verifier target. His export was inside out (every face pointing in: the Atlas showed the belly through the back); `paint-disc-wave-masks.py` now turns an inside-out mesh's faces out.
+- [x] Atlas data (`dev_1`): maturity widths by sex and life span from the Florida Museum, gestation from NOAA, birth size and weight from FishBase; sizes by sex, weights and ages Unknown where nothing is measured (CHANGELOG v0.37.0). Info-card `mass` fitted to FishBase's one weighed manta (550 cm, 1,050 kg): 1.2 t at 5.8 m, was 5.6 t.
+- [ ] `rideHost` (`groups: ['ray']`) for the white suckerfish: no use while no remora lives in The Shallows (no species repeat across reserves); revisit if the manta ever joins a reserve with riders.
+- [x] Swim bounds (`dev_1`): x ±12, y −12 to −6 (the school's middle), z −20 to −65; centre on a 375 px phone's screen in 80 of 80 samples. The school parts round it (`giveWaySlot`, `startles: false`): after spawn, 1 ray inside its wings in 4 of 65 samples (was 4–13 rays in every sample).
+- [x] `creatures_dev` row 840 (size 0.6, 5.8 m), Atlas pose (2.3 units, 30° down) and tile, `dev_1`.
+- [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it).
+- [ ] Prod `creatures` row: needs Jeremy's go-ahead (prod max id 681, next free 682).
+- [ ] The school sometimes overlaps the manta for a few seconds right after spawn (spawn places slots before the manta is registered).
 
 ### Munk's Devil Ray and The Shallows
 

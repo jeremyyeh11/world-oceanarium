@@ -52,6 +52,19 @@ bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 mesh = obj.data
 mesh.name = NAME
 obj.name = NAME
+
+# An inside-out export (the manta's: every face pointing inward, so from above the app showed the
+# belly through the back wherever faces are culled, as in the Atlas) has a negative signed
+# volume: turn its faces out, and drop the imported normals so Blender recomputes them.
+bm = bmesh.new()
+bm.from_mesh(mesh)
+if bm.calc_volume(signed=True) < 0:
+    bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    if mesh.has_custom_normals:
+        bpy.ops.mesh.customdata_custom_splitnormals_clear()
+    print('inside out: faces reversed')
+bm.free()
 # glTF import gives Blender +Y forward/-Y back for glTF -Z/+Z: work in glTF axes throughout.
 def gltf(co):
     return Vector((co.x, co.z, -co.y))

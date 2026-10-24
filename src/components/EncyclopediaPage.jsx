@@ -207,6 +207,17 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.35, -0.1, 0],
     lookAt: [0, -0.1, 0],
   },
+  // Giant oceanic manta: the devil ray's framing. Its disc is 1.3 times as wide as it is long
+  // nose to tail, so the length shown is shorter to give the same width on stage.
+  'mobula-birostris': {
+    pitchDegrees: 30,
+    cameraDistance: 6.8,
+    maxLengthDisplayUnits: 2.3,
+    portraitPhoneDistanceScale: 0.95,
+    mobileDistanceScale: 0.9,
+    position: [-0.25, -0.1, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -239,6 +250,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // Supplied devil ray model (scripts/paint-disc-wave-masks.py), nose to tail tip along Z; the
   // disc is 1.3 across.
   'mobula-munkiana': 1.5228,
+  // Supplied manta model (scripts/paint-disc-wave-masks.py), nose to tail tip along Z; the disc
+  // is 7 across.
+  'mobula-birostris': 5.4073,
   // The table coral cluster, widest across (scripts/build-coral-atlas.py prints its bounds).
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).

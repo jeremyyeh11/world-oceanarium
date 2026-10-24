@@ -116,6 +116,7 @@ import {
   swimBounds,
   swimXRangeAtZ,
   threatLevelAt,
+  giveWaySlot,
   turnRateForCreature,
   turnDirectionTowardWithBoundaryRecovery,
   unregisterFish,
@@ -3356,8 +3357,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             ? bounds.yMax - schoolSoftWall - schoolState.centroid.y
             : schoolState.centroid.y - (bounds.yMin + schoolSoftWall)
           const verticalReach = Math.max(0.001, schoolFormationVerticalHalfExtent(school, creature) * packing)
-          if (swim.schoolFormation) schoolBasePosition.y = schoolState.center.y + verticalOffset
-          else schoolBasePosition.y += verticalOffset * THREE.MathUtils.clamp(verticalRoom / verticalReach, 0, 1)
+          if (swim.schoolFormation) {
+            schoolBasePosition.y = schoolState.center.y + verticalOffset
+            // Slots under a passing manta's wings move over or under it (fishSwim.js giveWaySlot).
+            giveWaySlot(schoolBasePosition, creature)
+          } else schoolBasePosition.y += verticalOffset * THREE.MathUtils.clamp(verticalRoom / verticalReach, 0, 1)
           // Front-back error to the slot along the travel direction; next frame's cruise speed
           // closes it (see SCHOOL_STATION_GAIN).
           const stationHx = swim.schoolFormation ? schoolState.travelDir.x : hx

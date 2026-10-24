@@ -11,6 +11,7 @@ export const VISITOR_CHANGELOG = [
     title: 'The giant manta',
     changes: [
       ['new', 'A Giant Oceanic Manta, the largest ray in the world, glides through The Shallows with slow beats of its 6 m wings, and the devil rays make way for it. It is in the Atlas too.'],
+      ['new', 'Every few minutes the manta slows down and opens its mouth wide to feed.'],
     ],
   },
   {

@@ -135,12 +135,6 @@ const VIEW_POSES_BY_SPECIES = {
   // the fish fills about 85% of the stage's width.
   'echeneis-naucrates': { maxLengthDisplayUnits: 3.7, portraitPhoneDistanceScale: 0.9 },
   'echeneis-neucratoides': { maxLengthDisplayUnits: 1.85 },
-  'remora-remora': { maxLengthDisplayUnits: 1.95 },
-  'remora-albescens': { maxLengthDisplayUnits: 1.4 },
-  'remora-australis': { maxLengthDisplayUnits: 1.85 },
-  'remora-brachyptera': { maxLengthDisplayUnits: 1.6 },
-  'remora-osteochir': { maxLengthDisplayUnits: 1.5 },
-  'phtheirichthys-lineatus': { maxLengthDisplayUnits: 1.85 },
   // Pilot fish: 0.7 m, framed a touch shorter than the 0.75 m whitefin sharksucker.
   'naucrates-ductor': { maxLengthDisplayUnits: 1.75 },
   // Longfin bannerfish: 0.25 m, the sardinella's size and camera. Its banner trails another 0.6
@@ -229,12 +223,6 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'echeneis-naucrates': 6.6014,
   // Supplied Whitefin Sharksucker model (scripts/fit-rider-model.mjs).
   'echeneis-neucratoides': 5.4912,
-  'remora-remora': 1,
-  'remora-albescens': 1,
-  'remora-australis': 1,
-  'remora-brachyptera': 1,
-  'remora-osteochir': 1,
-  'phtheirichthys-lineatus': 1,
   // Supplied pilot fish model, nose to tail tip along Z.
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).

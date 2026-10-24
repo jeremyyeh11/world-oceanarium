@@ -10,7 +10,10 @@ Versioning convention notes:
 
 ## v0.37.0 — The giant manta (in progress)
 
-Status: `v0.37.0-dev_1` (2026-10-25, branch `feat/mobula-birostris`). Jeremy picked the Giant Oceanic Manta as The Shallows' one big animal (2026-10-24): one adult at full size, 4–7 m across, on the devil ray's mobuliform disc-wave. "Wire everything up, do a push."
+Status: `v0.37.0-dev_2` (2026-10-25, branch `feat/mobula-birostris`). Jeremy picked the Giant Oceanic Manta as The Shallows' one big animal (2026-10-24): one adult at full size, 4–7 m across, on the devil ray's mobuliform disc-wave. "Wire everything up, do a push."
+
+- dev_2 (Jeremy: "every 1-3 min the manta slows, opens its mouth (the open mouth key) for 10-20 s, then closes"): feeding passes. `proceduralAnimation.feeding` (Fish.jsx): a per-fish seeded schedule (first pass 60–180 s after its first frame, never at once), `speedScale` 0.6 on the target speed for every move but an escape, and the morph target eased open and shut (`damp` at 3 / `easeSeconds` 1.5). Driven like the butterflyfish's spines: `collectMouthMorphs`, `proceduralInput.mouthOpen`. Checked with a 5–8 s test interval: the influence reached 1, closed to 0 and reopened.
+- dev_2 (Jeremy: "remove all the sharksucker/suckerfish placeholders in the open sea tank ... keep the names"): the six remoras without models (common remora, white suckerfish, whalesucker, spearfish remora, marlinsucker, slender suckerfish) left the open sea's roster (the spearfish remora The Reefs'), the dev fixtures, the Atlas poses and the asset verifier; their generated GLBs and `scripts/build-remora-placeholders.mjs` are gone. Their species entries stay (facts, ride data) with no model. No database rows used them. New `docs/fish-queue.md` lists them with where each fits, plus the planned species.
 
 ### New species
 

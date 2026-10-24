@@ -100,8 +100,9 @@ assert.equal(weightOn('echeneis-naucrates', molaHost), 0.5, 'group matching take
 for (const species of SPECIES.filter(s => s.family === 'Echeneidae')) {
   assert.equal(species.schooling, false, `${species.id} runs the solo-agent path it rides from`)
   assert.ok(hitchhikerProfile(species), `${species.id} has a hitchhiker profile`)
-  if (species.model.path.endsWith('_placeholder.glb')) {
-    assert.equal(species.placeholder?.type, 'remora', `${species.id} renders a remora placeholder until its model lands`)
+  if (!species.model) {
+    // Queued (docs/fish-queue.md): no model, so it is on no tank until one lands.
+    assert.equal(species.hiddenInAtlas, true, `${species.id} stays out of the Atlas until its model lands`)
   } else {
     // A supplied model is measured, not assumed: its top line replaces the stand-in's straight back.
     assert.ok(hitchhikerProfile(species).backProfile?.length > 1, `${species.id} carries its measured back profile`)

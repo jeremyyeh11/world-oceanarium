@@ -200,18 +200,6 @@ const targets = [
     minBodyLength: 10,
     minVertices: 2000,
   },
-  // Generated remora stand-ins (scripts/build-remora-placeholders.mjs), one per species, until
-  // the real models replace them: unit length, single body mesh, same contract.
-  ...SPECIES
-    .filter(species => species.placeholder?.type === 'remora' && species.model?.path?.endsWith('_placeholder.glb'))
-    .map(species => ({
-      name: `${species.name} placeholder`,
-      path: `public${species.model.path}`,
-      staticMesh: true,
-      bodyMeshNames: ['remora-placeholder'],
-      minBodyLength: 0.99,
-      minVertices: 1000,
-    })),
 ]
 
 const axisValue = (vector, axis) => axis === 'x' ? vector.x : (axis === 'y' ? vector.y : vector.z)

@@ -1999,8 +1999,8 @@ export function caudalLateralCurve(out, tail01, config, phase, speed01, turn, bu
 const RIDE_SLOTS = new Map()
 const rideHostProfiles = new WeakMap()
 const hitchhikerProfiles = new WeakMap()
-// Root-to-disc-top height: matches DISC_TOP in scripts/build-remora-placeholders.mjs, so the
-// stand-in's disc sits exactly on the host's skin. Set per species from a supplied model.
+// Root-to-disc-top height of the old generated remora stand-ins (unit length), the default
+// before a supplied model sets its own per species.
 const RIDE_DEFAULT_DORSAL_CLEARANCE_BODY_LENGTHS = 0.058
 // How far below the disc top the rider's back sits at its rear contact point (0.2 body
 // lengths behind its root): the stand-in's back there is at 0.037 against a 0.058 disc top.

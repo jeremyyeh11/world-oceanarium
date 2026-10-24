@@ -105,16 +105,10 @@ export const TANKS = [
       'isurus-oxyrinchus',
       // Juveniles only (see the species entry).
       'rhincodon-typus',
-      // Remoras. The sharksuckers and the common remora ride the mako; the white suckerfish,
-      // marlinsucker, and slender suckerfish only occasionally; the whalesucker swims free
-      // until a whale or dolphin joins the tank.
+      // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
+      // queued until their models land (docs/fish-queue.md).
       'echeneis-naucrates',
       'echeneis-neucratoides',
-      'remora-remora',
-      'remora-albescens',
-      'remora-australis',
-      'remora-osteochir',
-      'phtheirichthys-lineatus',
     ],
   },
   {
@@ -211,7 +205,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'remora-brachyptera', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
@@ -400,24 +394,6 @@ const WHALE_SHARK_CAUDAL = {
   burstFrequencyBoost: 0.15,
   // Stiff shark pectorals: they trim and barely move.
   pectoralFinFlutter: 0.04,
-}
-function remoraPlaceholderModel(id, bodyLengthWU) {
-  return {
-    path: `/models/fish/${id}/${id}_placeholder.glb`,
-    // Source length is 1, so the scale is the body length in WU.
-    scale: bodyLengthWU,
-    followAim: 'root',
-    moveset: {
-      cruise: 'procedural_cruise',
-      drift: 'procedural_drift',
-      turnLeft: 'procedural_turn_left',
-      turnRight: 'procedural_turn_right',
-      burst: 'procedural_burst',
-    },
-    proceduralAnimation: REMORA_CAUDAL,
-    debugForwardOrigin: 'head',
-    debugForwardOffsetRatio: 0.5,
-  }
 }
 
 export const SPECIES = [
@@ -1131,8 +1107,8 @@ export const SPECIES = [
     },
   },
   // --- Remoras (Echeneidae) ------------------------------------------------------------------
-  // Facts from FishBase species summaries unless noted. No supplied models yet: each renders a
-  // generated stand-in (remoraPlaceholderModel) until its GLB lands. `hitchhiker.hosts` weights come
+  // Facts from FishBase species summaries unless noted. The two sharksuckers have Jeremy's models;
+  // the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
   // from each species' documented host range (1 = its usual host, lower = recorded but
   // occasional); host groups are declared by host species in `rideHost.groups`.
   {
@@ -1423,10 +1399,9 @@ export const SPECIES = [
       freeSeconds: [10, 25],
       discAheadBodyLengths: 0.29,
     },
-    model: remoraPlaceholderModel('remora-remora', 3.456),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#5a4b3f', discLength: 0.32 },
   },
   {
     id: 'remora-albescens',
@@ -1502,10 +1477,9 @@ export const SPECIES = [
       // Its disc is 34–40% of standard length, starting just behind the snout.
       discAheadBodyLengths: 0.285,
     },
-    model: remoraPlaceholderModel('remora-albescens', 1.2),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#cfd6d8', discLength: 0.33 },
   },
   {
     id: 'remora-australis',
@@ -1579,10 +1553,9 @@ export const SPECIES = [
       // further back than on any other remora.
       discAheadBodyLengths: 0.225,
     },
-    model: remoraPlaceholderModel('remora-australis', 3.04),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#6b5a48', discLength: 0.45 },
   },
   {
     id: 'remora-brachyptera',
@@ -1656,10 +1629,9 @@ export const SPECIES = [
       freeSeconds: [6, 14],
       discAheadBodyLengths: 0.3,
     },
-    model: remoraPlaceholderModel('remora-brachyptera', 2.0),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#b9cad6', discLength: 0.3 },
   },
   {
     id: 'remora-osteochir',
@@ -1732,10 +1704,9 @@ export const SPECIES = [
       freeSeconds: [8, 18],
       discAheadBodyLengths: 0.3,
     },
-    model: remoraPlaceholderModel('remora-osteochir', 1.6),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#7a7f84', discLength: 0.3 },
   },
   {
     id: 'phtheirichthys-lineatus',
@@ -1808,10 +1779,9 @@ export const SPECIES = [
       // The smallest disc in the family (18–28% of standard length), close behind the snout.
       discAheadBodyLengths: 0.35,
     },
-    model: remoraPlaceholderModel('phtheirichthys-lineatus', 3.04),
-    // Out of the Atlas until its model lands: it still renders a generated stand-in.
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
+    // ride data stay for when its GLB lands.
     hiddenInAtlas: true,
-    placeholder: { type: 'remora', bodyColor: '#5d646b', discLength: 0.2 },
   },
   // --- Pilot fish (Carangidae) ---------------------------------------------------------------
   // Facts from FishBase. It runs the remoras' escort path but never clamps on
@@ -3643,7 +3613,7 @@ export const SPECIES = [
     // "open mouth" shape key baked by scripts/bake-mirror-shape-keys.py, then
     // scripts/paint-disc-wave-masks.py --span 7: 1 unit = 1 m, a 7 m disc, origin mid-disc, nose
     // -Z, COLOR_1 masks from its shape, JPEG textures (opaque). One mesh in four material parts:
-    // top, bottom, eye and mouth. The open mouth (feeding) is a morph target, unused for now.
+    // top, bottom, eye and mouth. The open mouth is a morph target, played by its feeding passes.
     // Top texture: Guy Stevens' photo (© Manta Trust), Jeremy's call.
     model: {
       path: '/models/fish/mobula-birostris/mobula-birostris.glb',
@@ -3688,6 +3658,15 @@ export const SPECIES = [
         response: 2,
         speedFrequencyBoost: 0.3,
         burstFrequencyBoost: 0.35,
+        // Feeding passes (Fish.jsx, Jeremy 2026-10-25): every 1–3 min it slows to 0.6 of its
+        // pace and opens its mouth, his "open mouth" shape key, for 10–20 s.
+        feeding: {
+          morphTarget: 'open mouth',
+          interval: [60, 180],
+          duration: [10, 20],
+          easeSeconds: 1.5,
+          speedScale: 0.6,
+        },
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.2,
@@ -3889,19 +3868,12 @@ export const CREATURES = [
     sex: 'female',
     size: 0.82,
   },
-  // Remora review fixtures: more shark riders than the mako has anchors, so some always
-  // wait their turn, plus one of each host-less or occasional rider.
+  // Remora review fixtures: the two sharksuckers (the other remoras are queued with no model,
+  // docs/fish-queue.md).
   ...[
     ['echeneis-naucrates', 0.7],
     ['echeneis-naucrates', 0.35],
     ['echeneis-neucratoides', 0.6],
-    ['remora-remora', 0.5],
-    ['remora-remora', 0.25],
-    ['remora-albescens', 0.6],
-    ['remora-australis', 0.5],
-    ['remora-brachyptera', 0.6],
-    ['remora-osteochir', 0.5],
-    ['phtheirichthys-lineatus', 0.55],
   ].map(([species, size], index) => ({
     id: 95 + index,
     species,

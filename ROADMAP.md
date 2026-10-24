@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Oceanic Manta
 
-Status: `Blocked / waiting review` (branch `feat/mobula-birostris`, `v0.37.0-dev_1`, 2026-10-25). The Shallows' one big animal, on the devil ray's mobuliform disc-wave. Swims in The Shallows (one `creatures_dev` row) and is in the Atlas. Waiting on Jeremy: phone review. Prod has its one manta (id 682).
+Status: `Blocked / waiting review` (branch `feat/mobula-birostris`, `v0.37.0-dev_2`, 2026-10-25). The Shallows' one big animal, on the devil ray's mobuliform disc-wave. Swims in The Shallows (one `creatures_dev` row) and is in the Atlas. Waiting on Jeremy: phone review. Prod has its one manta (id 682).
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula birostris`) from FishBase and the Sharks and Rays profile: EN (2019, A2bcd+3d), CITES II; at least 7 m disc width (FishBase's 910 cm is an older record), maturity at 3.8–4.6 m, one pup about 1.2 m across; alone or in loose groups. Range checked: tagged mantas move between the Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of California (Environmental Biology of Fishes 2024, doi 10.1007/s10641-024-01622-2).
@@ -31,6 +31,8 @@ Subtasks:
 - [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it).
 - [x] Prod `creatures` row 682 (size 0.6, female, same as dev 840), on Jeremy's go-ahead (2026-10-25: "go ahead. 1"); backed up before and after (502 → 503 rows).
 - [ ] The school sometimes overlaps the manta for a few seconds right after spawn (spawn places slots before the manta is registered).
+- [x] Feeding passes (`dev_2`, Jeremy): every 1–3 min it slows to 0.6 of its pace and opens its mouth (his "open mouth" shape key, `proceduralAnimation.feeding` in Fish.jsx) for 10–20 s, easing over about 1.5 s. Checked in the browser with a 5–8 s test interval: the morph opens to 1, closes and reopens on schedule.
+- [ ] Feeding passes: unroll the head fins too (the key opens the jaw); maybe feed only near the surface.
 
 ### Munk's Devil Ray and The Shallows
 
@@ -412,7 +414,7 @@ Subtasks:
 
 ### Remoras (week 1 of the species series)
 
-Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins stay `hiddenInAtlas` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
+Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins were removed in `v0.37.0-dev_2` (Jeremy, 2026-10-25): their species entries stay, with no model, on no tank, listed in `docs/fish-queue.md` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
 
 Reference:
 - System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).

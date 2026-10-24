@@ -280,13 +280,10 @@ clamped when you come back to the tank.
 
 ## Remora models
 
-Until the real GLBs arrive, each remora renders a stand-in from
-`node scripts/build-remora-placeholders.mjs`. It writes
-`public/models/fish/<id>/<id>_placeholder.glb`: unit length along Z, nose at −Z, up +Y,
-origin mid-body, and one mesh named `remora-placeholder` that rides the real
-`caudal-vertex` wave. The disc is built at the species' `discAheadBodyLengths` and
-`placeholder.discLength`, and the colour comes from `placeholder.bodyColor`. Rerun the
-script after changing any of those.
+Only the two sharksuckers have models. The other remoras keep their species entries
+(facts, `hitchhiker` data) but no model, on no tank and out of the Atlas, until their GLBs
+arrive; they are listed in [fish-queue.md](fish-queue.md). The generated stand-ins they
+used to render were removed in `v0.37.0-dev_2`.
 
 A supplied model needs nose at −Z and up +Y; its origin can be anywhere. The Live
 Sharksucker (`echeneis-naucrates.glb`) was the first. To take one in:

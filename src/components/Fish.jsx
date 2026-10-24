@@ -184,6 +184,10 @@ const SPINE_ALERT_SECONDS = 4
 const SPINE_RAISE_AT_ROCK = 0.5
 const SPINE_RAISE_RATE = 12
 const SPINE_FOLD_RATE = 2.5
+// Feeding passes (proceduralAnimation.feeding, the manta): every `interval` seconds the animal
+// slows to `speedScale` of its pace and opens its mouth (its own shape key, a glTF morph target)
+// for `duration` seconds, easing open and shut over about `easeSeconds`.
+const FEEDING_DEFAULTS = { interval: [60, 180], duration: [10, 20], easeSeconds: 1.5, speedScale: 0.6 }
 const CAUDAL_WHIP_EXTRA_BURST = 1.8
 const CAUDAL_WHIP_FREQUENCY_BOOST = 1.0
 const DEFAULT_MOVESET = {
@@ -636,6 +640,20 @@ function collectSpineMorphs(root, proceduralAnimation) {
     const index = child.isMesh ? child.morphTargetDictionary?.[name] : undefined
     if (index === undefined || !child.morphTargetInfluences) return
     child.morphTargetInfluences[index] = 1
+    morphs.push({ mesh: child, index })
+  })
+  return morphs
+}
+
+// Feeding passes (`feeding`): the open-mouth shape key, every mesh carrying it, starting shut.
+function collectMouthMorphs(root, proceduralAnimation) {
+  const name = proceduralAnimation?.feeding?.morphTarget
+  if (!root || !name) return []
+  const morphs = []
+  root.traverse(child => {
+    const index = child.isMesh ? child.morphTargetDictionary?.[name] : undefined
+    if (index === undefined || !child.morphTargetInfluences) return
+    child.morphTargetInfluences[index] = 0
     morphs.push({ mesh: child, index })
   })
   return morphs
@@ -2015,6 +2033,7 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   const activeActionRef = useRef(null)
   const materialsRef = useRef([])
   const spineMorphs = useMemo(() => collectSpineMorphs(object, model?.proceduralAnimation), [object, model])
+  const mouthMorphs = useMemo(() => collectMouthMorphs(object, model?.proceduralAnimation), [object, model])
   const curveDeformTurnRef = useRef(0)
   const proceduralWaveClockRef = useRef(0)
   const curveDeformQuatRef = useRef(new THREE.Quaternion())
@@ -2219,6 +2238,9 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
     }
     for (let i = 0; i < spineMorphs.length; i += 1) {
       spineMorphs[i].mesh.morphTargetInfluences[spineMorphs[i].index] = proceduralInput.spineFold ?? 1
+    }
+    for (let i = 0; i < mouthMorphs.length; i += 1) {
+      mouthMorphs[i].mesh.morphTargetInfluences[mouthMorphs[i].index] = proceduralInput.mouthOpen ?? 0
     }
     if (curveConfig?.type === 'caudal-vertex') {
       // The values the shader just received: independent fins follow the body under their
@@ -2442,6 +2464,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // Folding spines (proceduralAnimation.spineFold): 0 folded, 1 raised; raised until this time after a startle.
   const spineRaise = useRef(0)
   const spineAlertUntil = useRef(0)
+  // Feeding passes (proceduralAnimation.feeding): how open the mouth is (0–1), when the current
+  // pass ends and when the next begins, from the fish's own seeded stream.
+  const feedingRand = useRef(mulberry32(hashString(`${creature.id ?? creature.species}:feeding`)))
+  const mouthOpen = useRef(0)
+  const feedingUntil = useRef(0)
+  const feedingNextAt = useRef(null)
   const startleEscape = useRef(new THREE.Vector3())
   const nextDriftAt = useRef(runtime.nextDriftAt)
   const driftUntil = useRef(runtime.driftUntil)
@@ -2759,7 +2787,22 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const individualPace = swim.schoolFormation
       ? 1 + organicNoise.current.longitudinal * (swim.schoolFormation.driftStrength ?? 0)
       : 1
+    // Feeding passes: the next one is scheduled from the fish's first frame, never at once.
+    const feeding = model?.proceduralAnimation?.feeding
+    let isFeeding = false
+    if (feeding) {
+      const config = { ...FEEDING_DEFAULTS, ...feeding }
+      const between = (range) => THREE.MathUtils.lerp(range[0], range[1], feedingRand.current())
+      if (feedingNextAt.current === null) feedingNextAt.current = now + between(config.interval)
+      if (now >= feedingNextAt.current) {
+        feedingUntil.current = now + between(config.duration)
+        feedingNextAt.current = feedingUntil.current + between(config.interval)
+      }
+      isFeeding = now < feedingUntil.current
+    }
     let targetVelocity = isActionMoveActive ? actionSpeedTarget.current : (isDrifting ? motion.driftSpeed : idleVelocity * individualPace)
+    // Turns and drifts slow down too (a turn sets its own speed); only an escape does not.
+    if (isFeeding && now >= startleUntil.current) targetVelocity *= feeding.speedScale ?? FEEDING_DEFAULTS.speedScale
     const escaping = now < startleUntil.current
     let velocityResponse = isActionMoveActive ? (escaping ? THREAT_STARTLE_VELOCITY_RESPONSE : 8) : (isDrifting ? 1.2 : 2.4)
     if (riding) {
@@ -4333,6 +4376,13 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         const rate = raiseTarget > spineRaise.current ? SPINE_RAISE_RATE : SPINE_FOLD_RATE
         spineRaise.current = THREE.MathUtils.damp(spineRaise.current, raiseTarget, rate, delta)
         curveDeformInputRef.current.spineFold = 1 - spineRaise.current
+      }
+      // Feeding passes: the mouth eases open while a pass lasts and shut after it (about 95% of
+      // the way in easeSeconds).
+      if (model?.proceduralAnimation?.feeding) {
+        const easeSeconds = model.proceduralAnimation.feeding.easeSeconds ?? FEEDING_DEFAULTS.easeSeconds
+        mouthOpen.current = THREE.MathUtils.damp(mouthOpen.current, now < feedingUntil.current ? 1 : 0, 3 / easeSeconds, delta)
+        curveDeformInputRef.current.mouthOpen = mouthOpen.current
       }
 
       // Nor does a reef fish turning on the spot at a rock bank into the turn.

@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.36.2 — Focused debug instruments
+
+Status: review `v0.36.2-dev_1` on `feat/update-debug-menu`; not a clean release.
+
+### Debugging
+
+- Replace the dense icon strip with a flat bottom instrument: Selected/All scope, independent heading/speed, steering, neighbours, labels and behaviour, contextual Mola Bask, Reset/Exit and on-demand Creature/Render/Scene/Audio/Data sections. Touch targets are at least 44px; the selected inspector reads existing runtime refs twice per second only while open.
+- Remove obsolete Bones display helpers, not rig/animation support. No motion-clock refactor, pause control, database changes, environment/loading UI or quality reduction.
+- Reserve population uses the renderer's curated species filter. LOD and point-frustum figures come only from sardine registries, not inferred mixed-species totals; browser callback cadence is labelled RAF/s, not GPU FPS.
+- Overlay scope/LOD colours no longer implicitly force detailed sardines. Explicit Force sardine detail is off by default, labelled as a workload override, and Reset/Exit restores normal detail and 1x. Canonical species identity makes existing instancing work for fixture slugs as well as normalized display names.
+- Optional scene/creature/audio diagnostics stop sampling when closed or hidden; the existing lightweight audio timer remains but skips analyser scans without a diagnostic subscriber. Scene values describe the previous renderer pass, not a full multipass GPU profile or memory bytes.
+
 ## v0.36.1 — A tighter devil ray school (2026-10-24)
 
 Status: clean `v0.36.1` (2026-10-24, from `v0.36.1-dev_5`, branch `feat/devil-ray-school-spacing`, #158). Jeremy: "push clean and merge". Ships dev_2's per-ray slot sizing (the tighter school he reviewed), dev_3's Atlas framing and data, and dev_4/dev_5's caustics. Jeremy: an audit of v0.36.0, a tighter school like his reference photo (layers wingtip to wingtip) without the earlier attempts' grids, stacks, overlapping rays or spawn-to-school jumps, and every devil ray in a reserve in one school.

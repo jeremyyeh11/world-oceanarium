@@ -86,6 +86,8 @@ import {
   groupBondProfile,
   pickMolaSunBaskExitTarget,
   pickMolaSunBaskTarget,
+  insetSwimBox,
+  pickGoalAcross,
   pickSoloAgentContinuationTarget,
   pickSoloAgentSteeringDestination,
   pickSoloAgentTarget,
@@ -247,6 +249,8 @@ const MOLA_SUN_BASK_ANIMATION_SPEED_SCALE = 0.5
 // leader picks a new (forward-biased) goal once the group is within SCHOOL_GOAL_REACHED of it.
 const SCHOOL_GOAL_REACHED_BODY_LENGTHS = 3.0
 const SCHOOL_GOAL_REACHED_MIN = 2.0
+// How fast a `goalPick: 'across'` school drifts to its goal's depth (1/s, damped).
+const SCHOOL_DEPTH_DRIFT_RATE = 0.05
 // The shared migration direction is low-pass filtered so goal re-picks (which nudge the goal
 // laterally) can't accumulate into a constant slow turn — the school holds straight glides and
 // only swings when the goal genuinely shifts. Time constant in 1/seconds. Kept moderate: too low
@@ -2363,6 +2367,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const agentHasTarget = useRef(false)
   const boundaryContacts = useRef(0)
   const boundaryTurnSide = useRef((hashString(`${creature.id ?? creature.species}:boundary-turn`) & 1) === 0 ? -1 : 1)
+  // `goalPick: 'across'`: the side of its heading the last goal lay on, so the next turns the other way.
+  const goalSide = useRef(0)
   const nextAgentRetargetAt = useRef(0)
   const agentStatus = useRef('cruise')
   const agentBehavior = useRef(null)
@@ -3120,15 +3126,31 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           }
           // Just turned away from a pinch: the next swim is picked in the half behind it, back the
           // way it came, rather than ahead, which mostly lay past the same gap again.
-          const destination = pickSoloAgentSteeringDestination(
-            agentCandidateTarget,
-            creature,
-            swim,
-            agentRand.current,
-            position,
-            pinchTurnBack.current ? pinchForward.copy(currentForward).negate() : currentForward,
-            usesDepthResidency ? agentDepthMode.current : 'any',
-          )
+          const soloBounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+          const acrossGoal = swim.goalPick === 'across' && soloBounds.box && !reefConfig && !pinchTurnBack.current
+          if (acrossGoal) {
+            // Anywhere in its room, inset by its turning circle, on the other side of its heading
+            // from the last goal (fishSwim.js pickGoalAcross).
+            goalSide.current = pickGoalAcross(
+              agentCandidateTarget,
+              position,
+              insetSwimBox(soloBounds, bodyLength * swim.turnRadiusBodyLengths),
+              agentRand.current,
+              currentForward,
+              goalSide.current,
+            )
+          }
+          const destination = acrossGoal
+            ? agentCandidateTarget
+            : pickSoloAgentSteeringDestination(
+              agentCandidateTarget,
+              creature,
+              swim,
+              agentRand.current,
+              position,
+              pinchTurnBack.current ? pinchForward.copy(currentForward).negate() : currentForward,
+              usesDepthResidency ? agentDepthMode.current : 'any',
+            )
           if (destination && reefConfig && reefRef.current.hasHome && !pairFollow && !pinchTurnBack.current) {
             // A reef fish's swims into open water stay within its home range ("rarely more than a
             // few metres off the reef"), rather than crossing the whole tank. Not one turning back
@@ -3305,10 +3327,24 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             const reached = Math.max(bodyLength * (swim.schoolGoalReachedBodyLengths ?? SCHOOL_GOAL_REACHED_BODY_LENGTHS), SCHOOL_GOAL_REACHED_MIN)
             if (schoolState.centroid.distanceTo(schoolState.goal) <= reached) {
               const heading = desiredDirection.current.lengthSq() > 0.0001 ? desiredDirection.current : tangent
-              pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
               // Inset the goal from the walls so a wide-turning school (big fish, tight bounds)
               // banks away early instead of driving into a boundary it can't out-turn and thrashing.
               const gm = Math.min(bodyLength * 2, (bounds.zMax - bounds.zMin) * 0.28)
+              if (swim.goalPick === 'across' && bounds.box) {
+                // Anywhere in the school's room: the box inset as the clamps below inset it (the
+                // formation's reach, its turning circle and the soft wall), so the clamps leave it be.
+                const fit = schoolFormationHorizontalHalfExtent(school, creature)
+                  + species.swim.bodyLengthWU * species.sizeRange[1] * swim.turnRadiusBodyLengths / swim.schoolTurnRateScale
+                  + schoolSoftWall
+                const room = insetSwimBox(
+                  bounds,
+                  Math.max(gm, fit),
+                  Math.max(gm * 0.5, schoolFormationVerticalHalfExtent(school, creature) + schoolSoftWall),
+                )
+                schoolState.goalSide = pickGoalAcross(schoolState.goal, schoolState.centroid, room, schoolState.rand, schoolState.migrationDir, schoolState.goalSide ?? 0)
+              } else {
+                pickSoloAgentContinuationTarget(schoolState.goal, creature, swim, schoolState.rand, schoolState.centroid, heading)
+              }
               schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, bounds.xMin + gm, bounds.xMax - gm)
               // Vertically, the whole formation has to fit above and below the goal, or the clamp
               // flattens the part that doesn't into a sheet against the bound.
@@ -3333,6 +3369,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               const goalHalfX = swimXRangeAtZ(bounds, schoolState.goal.z).xMax
               const gx = Math.min(Math.max(gm, horizontalFit + turnRoom), goalHalfX)
               schoolState.goal.x = THREE.MathUtils.clamp(schoolState.goal.x, -goalHalfX + gx, goalHalfX - gx)
+            }
+            // A school picking goals across its room also changes depth: its formation is centred
+            // on center.y, which drifts toward the goal's height over a minute or so.
+            if (swim.goalPick === 'across') {
+              schoolState.center.y = THREE.MathUtils.damp(schoolState.center.y, schoolState.goal.y, SCHOOL_DEPTH_DRIFT_RATE, delta)
             }
             // Shared direction, identical for every member. The ray's goal turns more
             // slowly than its members can follow; other schools retain their smoothing.

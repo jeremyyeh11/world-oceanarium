@@ -1203,6 +1203,61 @@ export function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   return nudgeOutOfRocks(out, bodyLength)
 }
 
+// The next goal anywhere in a swim room (`swim.goalPick: 'across'`, for a school's leader or a solo
+// animal), at least GOAL_ACROSS_MIN_SHARE of the room's ground diagonal from `from`, so each leg
+// crosses the room, and on the other side of `heading` from the last goal (`lastSide`), so the
+// turns alternate into S-bends. The default picks (a step ahead bent toward the middle for a
+// school; the opposite quarter, ahead, for a solo animal) kept The Shallows' animals turning one
+// way: the devil ray school made 12 laps in ten minutes, the manta 11 (Jeremy, 2026-10-25). Far
+// goals alone still looped the room, the interior always on the same side. `room` is the swim
+// box already inset from its walls (insetSwimBox), so goals spread over it instead of piling onto
+// its rim. Returns the side this goal lies on (1 left, -1 right, 0 without a heading).
+const GOAL_ACROSS_MIN_SHARE = 0.4
+const GOAL_ACROSS_ATTEMPTS = 16
+
+export function pickGoalAcross(out, from, room, rand, heading = null, lastSide = 0) {
+  const minDistance = Math.hypot(room.xMax - room.xMin, room.zMax - room.zMin) * GOAL_ACROSS_MIN_SHARE
+  let best = -Infinity
+  let bestSide = 0
+  for (let attempt = 0; attempt < GOAL_ACROSS_ATTEMPTS; attempt += 1) {
+    const z = randomRange(rand, room.zMin, room.zMax)
+    const x = randomXInSwimBoundsAtZ(rand, room, z)
+    const y = randomRange(rand, room.yMin, room.yMax)
+    const dx = x - from.x
+    const dz = z - from.z
+    const distance = Math.hypot(dx, dz)
+    const side = heading ? Math.sign(heading.z * dx - heading.x * dz) : 0
+    const alternates = lastSide === 0 || side !== lastSide
+    // Far and alternating first; then far; then just the farthest.
+    const score = distance + (alternates ? minDistance * 2 : 0)
+    if (score > best) {
+      best = score
+      bestSide = side
+      out.set(x, y, z)
+    }
+    if (distance >= minDistance && alternates) break
+  }
+  return bestSide
+}
+
+// A box swim volume (`swim.boundsHalfX`) shrunk by `inset` on the ground plane and `insetY` in
+// height, never past its middle. Allocates: only for an occasional goal pick.
+export function insetSwimBox(bounds, inset, insetY = 0) {
+  const inX = Math.min(inset, bounds.x)
+  const inZ = Math.min(inset, (bounds.zMax - bounds.zMin) * 0.5)
+  const inY = Math.min(insetY, (bounds.yMax - bounds.yMin) * 0.5)
+  return {
+    box: true,
+    x: bounds.x - inX,
+    xMin: bounds.xMin + inX,
+    xMax: bounds.xMax - inX,
+    yMin: bounds.yMin + inY,
+    yMax: bounds.yMax - inY,
+    zMin: bounds.zMin + inZ,
+    zMax: bounds.zMax - inZ,
+  }
+}
+
 export function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startForward) {
   const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
   const bodyLength = creatureBodyLength(creature, swim)

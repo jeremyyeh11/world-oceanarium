@@ -99,6 +99,27 @@ try {
     assert.equal(runtime.getSardineLod0Stats().candidates, 0, 'unmount clears LOD registry')
   }
   for (const snapshot of snapshots.slice(1)) assert.deepEqual(snapshot, snapshots[0], 'diagnostics/LOD overrides do not change motion')
+  // PR review regression: unpaired mahi runs the solo path, regardless of old label eligibility.
+  function orphanRun(inspect) {
+    for (const value of Object.values(h)) if (Array.isArray(value)) value.length = 0
+    runtime.pruneFishRuntime([])
+    Math.random = () => 0.5
+    runtime.Fish({ creature: { ...creature, id: 8888, species: 'coryphaena-hippurus' }, selected: true, debug: true, debugInspectorEnabled: inspect })
+    for (const effect of h.effects) { const cleanup = effect(); if (cleanup) h.cleanups.push(cleanup) }
+    const fish = h.groups.find(g => g.children.some(c => c.isMesh))
+    const publisher = h.groups.find(g => g.userData.inspectCreature)
+    const points = [], labels = []
+    for (let frame = 1; frame <= 180; frame++) {
+      for (const fn of h.frames) fn({ camera, clock: { getElapsedTime: () => frame / 60 } }, 1 / 60)
+      points.push(fish.position.toArray())
+      if (inspect) labels.push(publisher.userData.inspectCreature().behavior)
+    }
+    for (const cleanup of h.cleanups) cleanup()
+    return { points, labels }
+  }
+  const plain = orphanRun(false), inspected = orphanRun(true)
+  assert.deepEqual(inspected.points, plain.points, 'inspecting unpaired mahi does not change movement')
+  assert.ok(inspected.labels.some(value => value !== 'cruise'), 'unpaired schooling species reports live solo behaviour, not initial label-only cruise')
 } finally {
   Math.random = originalRandom
   delete globalThis[key]

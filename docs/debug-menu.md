@@ -44,7 +44,7 @@ Shared legend: pink LOD0/high; green LOD1/low; blue LOD2/far; purple LOD3/min; a
 Run npm test, npm run lint, npm run build, npm run verify:procedural-fish-assets, git diff --check. Rust gates inapplicable: no Cargo manifest.
 
 - Pure/SSR tests: curated population/dead rows, exactly three overlay switches/two sections, persistent source/error text, selected-only readout, contextual Bask, truthful unavailable metrics and full LOD legend.
-- Actual Fish callback test: 180 fixed frames per mode; exact motion equivalence, slug/display-name identity, normal distant LOD despite diagnostic colours and removed Force prop, selected-only getter/steering and cleanup. GPU rendering is not simulated by this test.
+- Actual Fish callback test: 180 fixed frames per mode; exact motion equivalence, slug/display-name identity, normal distant LOD despite diagnostic colours and removed Force prop, selected-only getter/steering and cleanup. The PR review regression covers an unpaired mahi: normally schooling species still report their live solo behaviour, with identical movement with/without inspection. GPU rendering is not simulated by this test.
 - Frame/GPU tests: count submitted frames only, CPU duration, unsupported/pending/disjoint/context-lost timers, external-query ownership and cleanup.
 - Shader/geometry tests: chain procedural callbacks/cache keys, retain uniforms, exact restore; all tiers survive merging with unchanged positions.
 - Existing full suite includes the 218-ray renderless school soak and procedural asset contracts. No data writes.

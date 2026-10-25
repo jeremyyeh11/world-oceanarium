@@ -2208,12 +2208,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   // set has an odd count in a biome/depthZone (e.g. a paired mahi died), not on the even
   // static/dev set.
   const isSoloAgent = Boolean(species) && !isSchooling
-  // Only the designed solitary hunters surface the agent debug readout; an orphaned schooling
-  // fish roams on the same path but shouldn't spawn debug labels/vectors in the tank.
-  const showAgentDebug = isSoloAgent && species.schooling === false
   const debugVisibility = useMemo(
-    () => debugOverlayVisibility(debugLayers, selected, showAgentDebug),
-    [debugLayers, selected, showAgentDebug],
+    () => debugOverlayVisibility(debugLayers),
+    [debugLayers],
   )
   // Remoras ride hosts (see the ride section of fishSwim.js). Only a solo agent rides; hosts
   // publish their rendered pose each frame for the riders to read.
@@ -3672,7 +3669,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       else tangent.copy(agentMoveDirection)
     }
 
-    if (showAgentDebug) {
+    // Unpaired members of schooling species also run this solo behaviour path.
+    // Observed status must not depend on the old world-label eligibility.
+    if (isSoloAgent) {
       const behavior = agentBehavior.current
       agentStatus.current = ride.stage === 'pair'
         ? `pair → ${pairFollow?.leaderId}${ride.hostId != null ? ` (follow → ${ride.hostId})` : ''}`

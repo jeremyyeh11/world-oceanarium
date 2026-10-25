@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.37.1 — The Shallows' animals roam the bay (in progress)
 
-Status: `v0.37.1-dev_3` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
+Status: `v0.37.1-dev_4` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
 
 ### Movement
 
@@ -36,6 +36,12 @@ Status: `v0.37.1-dev_3` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). 
 
 - Jeremy (dev_2 preview, a 2000 × 793 window): with the animals roaming further out, the edge of the water surface plane showed as a line. The plane is 320 WU square, fixed at the tank's centre (edges at x ±160), and fades out between 45 and 120 WU from the camera; a follow camera out with the school or manta (x ±110–170) came within reach of the edge.
 - The plane now follows the camera across the ground plane (WaterSurface.jsx), in whole 1.25 WU grid steps so its vertices stay on the same world lattice, and the shader samples the waves at their world place (`uSurfaceOffset`, program key v8), so the waves don't travel with it. Its edge is always 160 WU from the camera, past the fade, in every tank and camera mode. Browser: following a ray at x 131 and looking up, no edge; no console errors.
+
+### Closer to the camera (dev_4)
+
+- Jeremy: they seemed to stop short at an invisible wall, quite far from the camera. Goals keep the school's reach and turning room (about 39 WU) inside the swim volume, and its front was at z 27 (world), so goals stopped at z -12, 36 WU from the camera; the manta's at z -29, 53 WU.
+- Fronts moved toward and past the camera: rays `boundsZMax` 50 (world 35), goals to about z -5; manta 15 (world 0), goals to about z -14. They pass 10–20 WU above the camera's height.
+- Measured (600 s, 4 seeds): the school's centre comes within 18–29 WU of the camera on the ground, single rays within 7–15 WU, the manta within 31–49 WU (it stopped at about 53 before). Still no circling (the school's longest one-way turn 340–469°, the manta's 277–300°), no wall seen in a 21:9 frame, at least 10 rays on a 16:9 screen 97–99% of the time (phone 41–57%). The manta is on a 16:9 screen 68–76% of the time (was 80–83%): close passes take it partly out of the top of the frame. The 218-ray soak in `npm test` is unchanged.
 
 ## v0.37.0 — The giant manta (2026-10-25)
 

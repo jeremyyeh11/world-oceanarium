@@ -8,9 +8,9 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.37.1 — The Shallows' animals roam the bay (in progress)
+## v0.37.1 — The Shallows' animals roam the bay (2026-10-25)
 
-Status: `v0.37.1-dev_4` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
+Status: clean `v0.37.1` (2026-10-25, from `v0.37.1-dev_4`, branch `fix/shallows-wider-bounds`, #162). Jeremy: "Promote to clean v0.37.1 and merge PR #162". Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
 
 ### Movement
 

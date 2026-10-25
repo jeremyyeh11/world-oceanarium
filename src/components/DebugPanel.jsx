@@ -63,7 +63,6 @@ export default function DebugPanel({ population, section, onSectionChange, debug
       <button type="button" className="debug-panel-button" onClick={onReset}>Reset</button>
       <button type="button" className="debug-panel-button" onClick={onExit}>Exit</button>
     </div>
-    <div className="debug-tabs" role="tablist" aria-label="Diagnostic sections" onKeyDown={onTabKeyDown}>{DEBUG_SECTIONS.map(id => <button type="button" key={id} id={`debug-tab-${id}`} role="tab" className="debug-tab" aria-selected={section === id} tabIndex={section === id ? 0 : -1} aria-controls={`debug-${id}`} onClick={() => onSectionChange(id)}>{id === 'creature' ? 'Creatures' : 'Performance'}</button>)}</div>
     <div id="debug-creature" role="tabpanel" aria-labelledby="debug-tab-creature" tabIndex={0} hidden={section !== 'creature'} className="debug-detail">
       <div className="debug-panel-row" aria-label="Overlay scope"><span>Scope</span><Toggle label="Selected" active={debugView === 'focused'} onClick={() => onDebugViewChange('focused')} /><Toggle label="All" active={debugView === 'all'} onClick={() => onDebugViewChange('all')} /></div>
       <div className="debug-panel-row" aria-label="Creature overlays">{DEBUG_LAYERS.map(({ id, label }) => <Toggle key={id} label={label} active={debugLayers[id]} onClick={() => onDebugLayerToggle(id)} />)}</div>
@@ -78,6 +77,7 @@ export default function DebugPanel({ population, section, onSectionChange, debug
       <p className="debug-note">Environment {environmentLoading?.activeId ?? '—'} · {environmentLoading?.phase ?? 'unknown'}{environmentLoading?.error && ` · ${environmentLoading.error.message}`}</p>
       <details className="debug-advanced"><summary>Advanced soak test</summary><div className="debug-panel-row">{[1, 4, 10].map(speed => <Toggle key={speed} label={`${speed}x`} active={debugSimulationSpeed === speed} onClick={() => onDebugSimulationSpeedChange(speed)} />)}</div></details>
     </div>
+    <div className="debug-tabs" role="tablist" aria-label="Diagnostic sections" onKeyDown={onTabKeyDown}>{DEBUG_SECTIONS.map(id => <button type="button" key={id} id={`debug-tab-${id}`} role="tab" className="debug-tab" aria-selected={section === id} tabIndex={section === id ? 0 : -1} aria-controls={`debug-${id}`} onClick={() => onSectionChange(id)}>{id === 'creature' ? 'Creatures' : 'Performance'}</button>)}</div>
   </div>
 }
 

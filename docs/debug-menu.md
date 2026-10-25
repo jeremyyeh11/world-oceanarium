@@ -1,6 +1,6 @@
 # Debug instruments
 
-Review: `v0.37.2-dev_4`, `feat/update-debug-menu`, issue #159 / PR #160. Rebased on clean `v0.37.1` (`origin/main`); no merge/release approval.
+Review: `v0.37.2-dev_5`, `feat/update-debug-menu`, issue #159 / PR #160. Rebased on clean `v0.37.1` (`origin/main`); no merge/release approval.
 
 ## Feel and boundaries
 
@@ -19,7 +19,7 @@ A field instrument: watch the animal, glance at text, get out of its way. Flat, 
 
 All top-left text uses an explicit system code-monospace stack, left-aligned in one pointer-transparent flow stack below the normal top controls. Data/readout share the same safe-area-aware left edge; long Data errors wrap without colliding with creature/performance text. No CRT display-font fallback.
 
-Creatures and Performance are true flat underline tabs, not bordered buttons. Exactly one active panel; ArrowLeft/Right wrap, Home/End select endpoints; roving tab focus and associated ARIA panels. Clicking the active tab does not collapse it. Reset selects Creatures.
+Creatures and Performance are true flat underline tabs, not bordered buttons. The tab row sits below both content panels, at the bottom of the debug strip; DOM/focus order matches visual order. Exactly one active panel; ArrowLeft/Right wrap, Home/End select endpoints; roving tab focus and associated ARIA panels. Clicking the active tab does not collapse it. Reset selects Creatures.
 
 ## LOD colour contract
 

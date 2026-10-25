@@ -57,6 +57,14 @@ for (const [section, key, expected] of [
   tablist.props.children.find(tab => tab.props.id === `debug-tab-${section}`).props.onClick()
   assert.equal(changed, section, 'clicking active tab does not collapse either panel')
 }
+for (const section of ['creature', 'performance']) {
+  const tree = DebugPanel({ ...props, section })
+  const children = tree.props.children.filter(Boolean)
+  assert.equal(children.at(-1).props.role, 'tablist', 'tabs are last, below both content panels')
+  assert.deepEqual(children.slice(1, -1).map(child => child.props.role), ['tabpanel', 'tabpanel'])
+  const markup = renderToStaticMarkup(createElement(DebugPanel, { ...props, section }))
+  assert.ok(markup.lastIndexOf('role="tablist"') > markup.lastIndexOf('role="tabpanel"'), 'rendered DOM order follows bottom-tab visual order')
+}
 const molaHtml = renderToStaticMarkup(createElement(DebugPanel, { ...props, canQueueSunBask: true }))
 assert.match(molaHtml, /Queue Mola sun-bask/)
 const performanceHtml = renderToStaticMarkup(createElement(DebugPanel, { ...props, section: 'performance', debugSimulationSpeed: 4 }))

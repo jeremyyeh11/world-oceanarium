@@ -127,10 +127,11 @@ const STAGHORN_KIT = {
   doubleSided: true,
 }
 
-// Jeremy's giant sea fans (Annella mollis, `_blender models/annella mollis.glb`), normalised by
-// scripts/build-sea-fan-kit.py: fan0, fan1, ... each in metres with its holdfast at the origin and
-// its lattice in the XY plane, with the GLB's own materials (the lattice cut out by its
-// texture's alpha). The model contract is docs/procedural/coral-sway.md.
+// Jeremy's giant sea fans (Annella mollis, `_blender models/annella mollis.glb`, 2026-10-26),
+// normalised by scripts/build-sea-fan-kit.py: fan0, fan1, ... each in metres with its holdfast at
+// the origin and its lattice in the XY plane, with the GLB's own photo materials (the lattice cut
+// out by its texture's alpha, WebP). 0: orange, 1.0 m; 1: yellow, 0.94 m wide, a lobe hanging
+// below its holdfast; 2: pink, 0.86 m. The model contract is docs/procedural/coral-sway.md.
 const SEA_FAN_KIT = {
   path: '/models/landscape/sea-fans.glb',
   // Merged in square chunks this many WU wide (per material), so off-screen ones are culled.
@@ -400,12 +401,11 @@ export const LANDSCAPES = {
     // ones low. A fan grows broadside to the current; `current` (x, z) is set along the resting
     // camera's line of sight, so the fans face the visitor, each within `facingJitter` radians.
     // `sway` is SEA_FAN_SWAY. About footShare of the fans stand on the sand at the bommie's foot.
-    // `pending` until Jeremy's model is in public/models/landscape/sea-fans.glb (docs/fish-queue.md).
+    // A fan needs `minVisible` of 9 points on its face seen from the resting camera.
     seaFans: {
       kit: SEA_FAN_KIT,
-      pending: true,
       seed: 8411, perCluster: [1, 3], height: [3, 7.5],
-      current: [0.16, 1], facingJitter: 0.35, footShare: 0.5,
+      current: [0.16, 1], facingJitter: 0.35, footShare: 0.5, minVisible: 6,
       sway: SEA_FAN_SWAY,
     },
   },

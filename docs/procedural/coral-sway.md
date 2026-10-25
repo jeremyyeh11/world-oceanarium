@@ -60,7 +60,9 @@ each fan's size, triangles and materials, and warns where the model breaks the c
    objects are fine: each top-level object and its children make one fan). The placement scales
    them to 3 to 7.5 WU tall, so a few distinct silhouettes beat many sizes of one.
 3. **Upright, facing front view.** +Z up, the lattice spread across X and Z, facing −Y (what the
-   front view sees). The holdfast is the lowest point; the script moves the origin there.
+   front view sees). A fan modelled lying flat in the XY plane (Jeremy's first three, 2026-10-26)
+   is stood up by the script, its −Y edge going down. The holdfast is the lowest point of the
+   trunk (the opaque parts; a lobe of lattice may hang lower); the script moves the origin there.
    Transforms need not be applied.
 4. **Trunk and main branches: low-poly tubes.** 6 sides, 3 to 6 main branches, flat shaded
    (the faceted style). They give the fan its thickness where it matters.
@@ -69,22 +71,25 @@ each fan's size, triangles and materials, and warns where the model breaks the c
    empty corners of a rectangle count as fan and cost it room on the bommies.
 6. **Lattice material: alpha clip.** Image texture Alpha → **Math node, Round** → Principled BSDF
    Alpha. The exporter writes that as `alphaMode: MASK` (cutoff 0.5); for another cutoff use Math
-   nodes for `1 - (alpha < cutoff)`. Never Blend: overlapping blended fans sort wrongly.
+   nodes for `1 - (alpha < cutoff)`. Never Blend: overlapping blended fans sort wrongly. An alpha
+   wired straight in (Blend) gets the Round node from the script.
 7. **Paint the mesh thicker than life.** A fan far off is drawn from a small mip of the texture,
    where thin strands average below the cutoff and vanish. Keep strands at least about 1.5% of
    the texture's width (15 px on 1024). The runtime smooths the cut edges with alpha to coverage.
-8. **Texture: PNG with alpha, up to 2048 px** (the script scales larger ones down), flat colour
-   to match the faceted models, not a photo cut-out. The branches can share the lattice's
-   texture (opaque areas) or have their own opaque material.
-9. **Budget: up to 3000 triangles a fan.** No bones, animation clips or shape keys.
+8. **Texture: PNG with alpha.** The script scales a lattice's image to 2048 px at most and an
+   image only the branches use to 1024, and writes WebP (Jeremy's first GLB was 76 MB with
+   photo textures up to 4720 px; the kit is 4.1 MB). His fans are photo cut-outs; credit each
+   photo in src/data/sources.js IMAGE_CREDITS.
+9. **Budget: up to 3000 triangles a fan** (the yellow fan's branches are 4,646; fine for three
+   models). No bones, animation clips or shape keys.
 
 ## Intake checklist
 
 1. Run the kit script; read its warnings and preview.
 2. Measure fan0 from the print-out: set species.js `maxBodyLengthMeters` and EncyclopediaPage.jsx
    `MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES['annella-mollis']` to its largest extent.
-3. Set landscapes.js `seaFans.pending` to `false` and species.js `hiddenInAtlas` to `false`; add
-   `'annella-mollis'` to The Reefs' `landscapeSpecies`.
+3. Give the landscape its `seaFans` block (landscapes.js), drop species.js `hiddenInAtlas`, and
+   add `'annella-mollis'` to The Reefs' `landscapeSpecies` (all done for the first fans, `dev_2`).
 4. Phone (375 px) review of the resting view: the fans read, sway gently, do not flicker far off,
    and none clips a rock, table or staghorn colony or floats.
 5. Atlas tile in the same build (docs/new-species-checklist.md §6).
@@ -103,3 +108,6 @@ each fan's size, triangles and materials, and warns where the model breaks the c
 - Reef fish treat fans as solid (site rays, obstacle field) but never visit them: the `fan` coral
   form has no modes yet (docs/reef-behavior.md, Coral forms).
 - The Reefs is drawn as 0 to 10 m deep; *Annella mollis* lives at 10 to 40 m. Jeremy's call.
+- The sight test (`minVisible`) only checks the rock: a fan can still sit behind a table, the
+  staghorn (placed after it) or a fish. In `v0.38.0-dev_2` five fans placed, three in a phone's
+  centre crop, two of them about 90 WU off in the blue.

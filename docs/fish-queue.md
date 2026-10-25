@@ -4,15 +4,6 @@ Species that are named for the oceanarium but not swimming in it yet. A species 
 list when it swims in a reserve and has its Atlas tile ([new-species-checklist.md](new-species-checklist.md)).
 No species repeats across reserves.
 
-## Prepped: waiting for Jeremy's model
-
-- **Giant Sea Fan** (`annella-mollis`, a soft coral up to 2 m, IUCN Not Evaluated). Landscape
-  species for The Reefs, like the Acroporas: no creature rows. Species entry (hidden), placement
-  (`src/components/seaFanPlacement.js`), sway (`src/utils/coralSway.js`), Atlas pose and the kit
-  script are in (`v0.38.0-dev_1`); landscapes.js `seaFans.pending` keeps it off. Needs his
-  `_blender models/annella mollis.glb` to the contract in
-  [procedural/coral-sway.md](procedural/coral-sway.md), then that doc's intake checklist.
-
 ## Queued: species entry in `src/data/species.js`, no model
 
 These keep their researched entries (facts, Atlas copy, `hitchhiker` ride data) but have no

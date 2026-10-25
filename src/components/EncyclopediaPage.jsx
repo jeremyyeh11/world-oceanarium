@@ -259,9 +259,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).
   'acropora-muricata': 3.157,
-  // The kit's tallest fan, its largest extent (scripts/build-sea-fan-kit.py prints fan0's
-  // dims): set at intake from Jeremy's model.
-  'annella-mollis': 1.76,
+  // The kit's tallest fan (the orange one), its largest extent: 1.0 m across
+  // (scripts/build-sea-fan-kit.py prints fan0's dims).
+  'annella-mollis': 1.0,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

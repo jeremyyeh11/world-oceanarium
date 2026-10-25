@@ -8,15 +8,19 @@
 # its children) is one fan: trunk and main branches as low-poly tubes, the fine lattice as a
 # subdivided plane cut out by its texture's alpha (a Math node set to Round between the
 # texture's alpha and the Principled BSDF's Alpha, which the glTF exporter writes as alphaMode
-# MASK). Each fan's parts are joined into one mesh (one primitive per material), its transforms
-# applied, welded, turned so its lattice lies across Blender's Y axis (facing front view) if it
-# was modelled side-on, and moved so its origin is its holdfast: the middle of the lowest 4 cm,
-# at its lowest z. Fans are named fan0, fan1, ... tallest first.
+# MASK; a lattice exported as Blend, its alpha wired straight in, gets the Round node here). Each
+# fan's parts are joined into one mesh (one primitive per material), its transforms applied,
+# welded, turned so its lattice lies across Blender's Y axis (facing front view) if it was
+# modelled side-on or lying flat (Jeremy's first fans, 2026-10-26, lay in the XY plane with their
+# holdfasts toward -Y: stood up so -Y goes down), and moved so its origin is its holdfast: the
+# middle of the lowest 4 cm of its trunk (the opaque parts; a lobe of lattice may hang lower), at
+# the trunk's lowest z. Fans are named fan0, fan1, ... tallest first.
 #
 # Writes <out>/models/landscape/sea-fans.glb (every fan, for the tank) and
 # <out>/models/fish/annella-mollis/annella-mollis.glb (fan0 alone, the Atlas specimen), with the
-# source's materials and textures (PNG, alpha kept; any image over MAX_TEXTURE px is scaled
-# down). Prints each fan's size, triangles and materials, and warns where the contract is broken.
+# source's materials and textures as WebP (alpha kept): a lattice's image scaled down to at most
+# MAX_TEXTURE px, an image only the opaque branches use to MAX_BRANCH_TEXTURE (Jeremy's first GLB
+# held photo textures up to 4720 px, 76 MB). Prints each fan's size, triangles and materials, and warns where the contract is broken.
 
 import bpy, bmesh, sys, os
 from mathutils import Matrix, Vector
@@ -31,6 +35,7 @@ scene = bpy.context.scene
 # Contract limits (docs/procedural/coral-sway.md).
 MAX_TRIANGLES = 3000
 MAX_TEXTURE = 2048
+MAX_BRANCH_TEXTURE = 1024
 # A fan is 0.3 to 3 m tall in the source (real size, 1 unit = 1 m).
 HEIGHT_RANGE = (0.3, 3.0)
 
@@ -51,6 +56,26 @@ def descendants(obj):
         out += descendants(child)
     return out
 
+def image_alpha_links(mat):
+    # Links from an image texture's Alpha (directly) into the Principled BSDF's Alpha.
+    if not mat or not mat.use_nodes:
+        return []
+    return [l for l in mat.node_tree.links
+            if l.to_node.type == 'BSDF_PRINCIPLED' and l.to_socket.name == 'Alpha'
+            and l.from_node.type == 'TEX_IMAGE' and l.from_socket.name == 'Alpha']
+
+def round_alpha(mat):
+    # Blend → Mask: a Round node between the image's alpha and the BSDF's.
+    for link in image_alpha_links(mat):
+        tree = mat.node_tree
+        node = tree.nodes.new('ShaderNodeMath')
+        node.operation = 'ROUND'
+        src, dst = link.from_socket, link.to_socket
+        tree.links.remove(link)
+        tree.links.new(src, node.inputs[0])
+        tree.links.new(node.outputs[0], dst)
+        print('MASK', mat.name, 'alpha rounded (was Blend)')
+
 def alpha_rounded(mat):
     # Whether the material's alpha passes through a Round (or Less Than) Math node: alphaMode MASK.
     if not mat or not mat.use_nodes:
@@ -58,6 +83,18 @@ def alpha_rounded(mat):
     return any(n.type == 'MATH' and n.operation in ('ROUND', 'LESS_THAN') for n in mat.node_tree.nodes)
 
 roots = [o for o in scene.objects if o.parent is None and any(d.type == 'MESH' for d in descendants(o))]
+for mat in bpy.data.materials:
+    round_alpha(mat)
+
+def opaque_verts(obj):
+    # Vertices of faces whose material is not cut out by alpha: the trunk and branches.
+    masked = {i for i, m in enumerate(obj.data.materials) if alpha_rounded(m)}
+    keep = set()
+    for poly in obj.data.polygons:
+        if poly.material_index not in masked:
+            keep.update(poly.vertices)
+    return [obj.data.vertices[i].co.copy() for i in keep] or [v.co.copy() for v in obj.data.vertices]
+
 fans = []
 for root in roots:
     meshes = [d for d in descendants(root) if d.type == 'MESH']
@@ -85,9 +122,12 @@ for root in roots:
         fan.data.transform(Matrix.Rotation(1.5708, 4, 'Z'))
         warnings.append(f'{root.name}: lattice was across X; turned 90 degrees to face front view')
     elif d.z < d.x and d.z < d.y:
-        warnings.append(f'{root.name}: thinnest along Z (lying flat?); expected upright, facing front view')
-    # Origin at the holdfast: the middle of the lowest 4 cm, at the lowest z.
-    verts = [v.co.copy() for v in fan.data.vertices]
+        # Lying flat in the XY plane: stand it up, its -Y edge (the holdfast) going down.
+        fan.data.transform(Matrix.Rotation(1.5708, 4, 'X'))
+        print('STOOD UP', root.name, '(was lying flat; -Y now down)')
+    fan.data.update()
+    # Origin at the holdfast: the middle of the trunk's lowest 4 cm, at its lowest z.
+    verts = opaque_verts(fan)
     min_z = min(v.z for v in verts)
     foot = [v for v in verts if v.z < min_z + 0.04]
     base = Vector((sum(v.x for v in foot) / len(foot), sum(v.y for v in foot) / len(foot), min_z))
@@ -112,12 +152,17 @@ for i, (source, fan) in enumerate(fans):
     if len(fan.data.vertices) < 60:
         warnings.append(f'{fan.name}: only {len(fan.data.vertices)} vertices; the lattice needs subdividing (8 x 8 or more) to bend')
 
+lattice_images = {n.image.name for m in bpy.data.materials if alpha_rounded(m)
+                  for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image}
 for image in bpy.data.images:
-    if image.size[0] > MAX_TEXTURE or image.size[1] > MAX_TEXTURE:
-        k = MAX_TEXTURE / max(image.size)
+    if not image.size[0]:
+        continue
+    cap = MAX_TEXTURE if image.name in lattice_images else MAX_BRANCH_TEXTURE
+    if max(image.size) > cap:
+        k = cap / max(image.size)
         image.scale(int(image.size[0] * k), int(image.size[1] * k))
         print('TEX scaled', image.name, tuple(image.size))
-    elif image.size[0]:
+    else:
         print('TEX', image.name, tuple(image.size))
 
 kept = [fan for _, fan in fans]
@@ -129,7 +174,7 @@ def export(objs, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     select_only(objs, objs[0])
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_materials='EXPORT',
-                              export_image_format='AUTO', export_texcoords=True, export_normals=True,
+                              export_image_format='WEBP', export_texcoords=True, export_normals=True,
                               export_yup=True, export_animations=False)
     print('GLB', path, os.path.getsize(path))
 

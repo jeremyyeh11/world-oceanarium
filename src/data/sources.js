@@ -366,4 +366,13 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    id: 'delso-giant-sea-fan',
+    subject: 'Giant Sea Fan texture (yellow fan)',
+    author: 'Diego Delso',
+    work: 'Coral (Annella mollis), Ras Muhammad National Park, Egypt',
+    url: 'https://commons.wikimedia.org/wiki/File:Coral_(Annella_mollis),_parque_nacional_Ras_Muhammad,_Egipto,_2022-03-28,_DD_108.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Cut out and mapped onto the 3D model, and resized; the adapted texture is shared under the same licence.',
+  },
 ]

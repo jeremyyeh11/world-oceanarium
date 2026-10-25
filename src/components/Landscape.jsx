@@ -528,7 +528,7 @@ function useExtraObstacles(obstacles) {
 // _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
 // obstacles. Loads on its own, so the rocks never wait. The staghorn (landscape.staghorn)
 // grows on the same bommies once the tables are placed.
-function Corals({ landscape, coralRocks, environmentId }) {
+function Corals({ landscape, coralRocks, sightRocks, environmentId }) {
   const { kit } = landscape.corals
   const { meshes, materials } = useCoralKit(kit, landscape.caustics)
   const clusters = useMemo(() => coralClusters(landscape, coralRocks, landscape.view), [landscape, coralRocks])
@@ -558,9 +558,9 @@ function Corals({ landscape, coralRocks, environmentId }) {
   return (
     <>
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
-      {corals && landscape.seaFans && !landscape.seaFans.pending ? (
+      {corals && landscape.seaFans ? (
         <Suspense fallback={null}>
-          <SeaFans landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} />
+          <SeaFans landscape={landscape} clusters={clusters} tables={corals} sightRocks={sightRocks} environmentId={environmentId} />
         </Suspense>
       ) : corals && landscape.staghorn && (
         <Suspense fallback={null}>
@@ -711,14 +711,14 @@ function fanReefSurfaces(landscape, fans, models) {
 // (seaFanPlacement.js), merged per material and square chunk, swaying in the surge. Each fan
 // joins the fish's rock obstacles and blocks their site rays. The staghorn
 // (landscape.staghorn) is placed after them, clear of them.
-function SeaFans({ landscape, clusters, tables, environmentId }) {
+function SeaFans({ landscape, clusters, tables, sightRocks, environmentId }) {
   const { kit, sway } = landscape.seaFans
   const { models, materials } = useSeaFanKit(kit, sway, landscape.caustics)
   useSwayClock()
   const fans = useSlicedPlacement(PLACED_SEA_FANS, landscape, () => {
     const measures = models.map(parts => measureFan(parts.map(part => part.geometry)))
-    return placeSeaFans(landscape, clusters, tables, measures, landscape.view)
-  }, [models, clusters, tables], environmentId)
+    return placeSeaFans(landscape, clusters, tables, measures, landscape.view, sightRocks)
+  }, [models, clusters, tables, sightRocks], environmentId)
 
   const { merged, obstacles } = useMemo(() => {
     if (!fans) return { merged: [], obstacles: [] }
@@ -808,6 +808,8 @@ export default function Landscape({ landscape, environmentId }) {
     return rockMaterial
   }, [textures, landscape.rockShade, landscape.caustics])
   const { chunks, reefSurfaces, coralRocks } = useMemo(() => builtLandscape(landscape, gltf, rocks), [landscape, gltf, rocks])
+  // Every drawn rock, for the sea fans' sight test (seaFanPlacement.js).
+  const sightRocks = useMemo(() => chunks.map(chunk => chunk.geometry), [chunks])
 
   // Built imperatively, so R3F won't dispose them; free their GPU copies when the tank
   // unmounts. The chunks stay cached (builtLandscape): three uploads them again on a return visit.
@@ -826,7 +828,7 @@ export default function Landscape({ landscape, environmentId }) {
       {chunks.map(chunk => <mesh key={chunk.key} geometry={chunk.geometry} material={material} />)}
       {landscape.corals && (
         <Suspense fallback={null}>
-          <Corals landscape={landscape} coralRocks={coralRocks} environmentId={environmentId} />
+          <Corals landscape={landscape} coralRocks={coralRocks} sightRocks={sightRocks} environmentId={environmentId} />
         </Suspense>
       )}
     </group>

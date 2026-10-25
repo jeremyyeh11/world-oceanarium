@@ -209,7 +209,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -3860,8 +3860,8 @@ export const SPECIES = [
   // Giant Sea Fan (Annella mollis): Jeremy's pick (2026-10-25) for a soft coral back on The Reefs.
   // A landscape species like the Acroporas: fans stand on the table corals' bommies (landscapes.js
   // `seaFans`, src/components/seaFanPlacement.js) and sway in the surge (utils/coralSway.js,
-  // docs/procedural/coral-sway.md). Hidden until Jeremy's model is in (docs/fish-queue.md); the
-  // Atlas shows the kit's tallest fan (scripts/build-sea-fan-kit.py).
+  // docs/procedural/coral-sway.md). Jeremy's model (2026-10-26): three photo-textured fans; the
+  // Atlas shows the kit's tallest, the orange one (scripts/build-sea-fan-kit.py).
   // Facts: SeaLifeBase (IUCN Not Evaluated; Indo-West Pacific; 12-18 m on lower reef slopes and
   // reefs exposed to strong tidal currents, on rock or sand, after Goh & Chou 1996; host of
   // Denise's pygmy seahorse), Florent's Guide to the Tropical Reefs (up to 2 m; 10-40 m),
@@ -3873,7 +3873,9 @@ export const SPECIES = [
     name: 'Giant Sea Fan',
     scientificName: 'Annella mollis',
     family: 'Subergorgiidae',
-    hiddenInAtlas: true,
+    // Tile (2026-10-26): the orange fan's top and trunk, three-quarter, against reef blue, rendered
+    // square at 940 px in Blender from the Atlas model and scaled to 470 px.
+    atlasThumbnail: '/atlas/annella-mollis-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -3921,9 +3923,9 @@ export const SPECIES = [
       social: 'Colonial',
     },
     description: 'A soft coral that grows as one flat fan of fused branches, up to 2 m across, standing broadside to the current on reef slopes so its polyps can sieve plankton from the passing water. It sways with the surge, and Denise\'s pygmy seahorse lives among its branches.',
-    // The Atlas fan's size, for the scale comparison: set from scripts/build-sea-fan-kit.py's
-    // print-out for fan0 at intake (fans reach 2 m).
-    maxBodyLengthMeters: 1.6,
+    // The Atlas fan's size, for the scale comparison: fan0 is 1.0 m across and 0.99 m tall
+    // (scripts/build-sea-fan-kit.py; fans reach 2 m).
+    maxBodyLengthMeters: 1,
     model: {
       path: '/models/fish/annella-mollis/annella-mollis.glb',
       // The kit's tallest fan alone, holdfast at the origin, lattice facing +Z. 1 raw = 1 m -> 4 WU.

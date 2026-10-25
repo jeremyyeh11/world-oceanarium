@@ -67,7 +67,15 @@ export function applyCoralSway(material, settings, caustics = null) {
         float swayWave = sin(swayT) + ${f(settings.flutter)} * aSwayFlex * sin(2.7 * swayT + 4.0 * aSwayFlex);
         transformed += aSway.xyz * (aSwayFlex * aSwayFlex) * swayWave;
       }`)
+    // Both faces lit alike: a double-sided material turns a back face's normal round, so the
+    // side of a fan facing away from the sun shaded dark and read as missing (Jeremy, 2026-10-26:
+    // "render the fan plane on both sides"). A thin lattice is lit through, so the back face
+    // keeps the front's normal.
+    shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_begin>', `#include <normal_fragment_begin>
+      #ifdef DOUBLE_SIDED
+        normal *= faceDirection;
+      #endif`)
     applyCaustics(shader, caustics)
   }
-  material.customProgramCacheKey = () => `coral-sway:${f(settings.period)}:${f(settings.flutter)}|${causticsCacheKey(caustics)}`
+  material.customProgramCacheKey = () => `coral-sway:${f(settings.period)}:${f(settings.flutter)}:lit-both|${causticsCacheKey(caustics)}`
 }

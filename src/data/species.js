@@ -3861,7 +3861,7 @@ export const SPECIES = [
   // A landscape species like the Acroporas: fans stand on the table corals' bommies (landscapes.js
   // `seaFans`, src/components/seaFanPlacement.js) and sway in the surge (utils/coralSway.js,
   // docs/procedural/coral-sway.md). Jeremy's model (2026-10-26): three photo-textured fans; the
-  // Atlas shows the orange fan on a low rock (scripts/build-sea-fan-atlas.py).
+  // Atlas shows all three fans on a low rock (scripts/build-sea-fan-atlas.py).
   // Facts: SeaLifeBase (IUCN Not Evaluated; Indo-West Pacific; 12-18 m on lower reef slopes and
   // reefs exposed to strong tidal currents, on rock or sand, after Goh & Chou 1996; host of
   // Denise's pygmy seahorse), Florent's Guide to the Tropical Reefs (up to 2 m; 10-40 m),
@@ -3923,13 +3923,13 @@ export const SPECIES = [
       social: 'Colonial',
     },
     description: 'A soft coral that grows as one flat fan of fused branches, up to 2 m across, standing broadside to the current on reef slopes so its polyps can sieve plankton from the passing water. It sways with the surge, and Denise\'s pygmy seahorse lives among its branches.',
-    // The Atlas fan's size, for the scale comparison: fan0 is 1.0 m across and 0.99 m tall
+    // The Atlas fan's size, for the scale comparison: fan0 is 1.13 m across and 1.12 m tall
     // (scripts/build-sea-fan-kit.py; fans reach 2 m).
-    maxBodyLengthMeters: 1,
+    maxBodyLengthMeters: 1.1,
     model: {
       path: '/models/fish/annella-mollis/annella-mollis.glb',
-      // The kit's tallest fan on a low limestone rock (scripts/build-sea-fan-atlas.py), the rock's
-      // foot at the origin, the fan's node at its holdfast, lattice facing +Z. 1 raw = 1 m -> 4 WU.
+      // The kit's three fans on a low limestone rock (scripts/build-sea-fan-atlas.py), the rock's
+      // foot at the origin, each fan's node at its holdfast, lattices facing +Z. 1 raw = 1 m -> 4 WU.
       scale: 4,
       // The lattice is one cut-out sheet, seen from both sides.
       doubleSided: true,

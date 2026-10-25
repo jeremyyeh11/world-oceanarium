@@ -7,8 +7,8 @@
 #
 # Jeremy (2026-10-26): "add a rock base to the fan in the atlas viewport"; a fan grows from a
 # holdfast cemented to rock. The rock is one kit rock fitted to a low box, shaded like the
-# staghorn specimen's (scripts/build-staghorn-atlas.py); the fan stands on its top, its holdfast
-# sunk 2 cm in, its lattice facing the front (-Y). The fan keeps its own node, origin at the
+# staghorn specimen's (scripts/build-staghorn-atlas.py); the three fans stand on it, holdfasts
+# sunk 2 cm in, lattices facing the front (-Y). Each fan keeps its own node, origin at its
 # holdfast, so the Atlas sways it about that point (EncyclopediaPage.jsx prepareAtlasSway) and not
 # the rock. Everything in metres, the rock's foot centred on the origin. Prints the specimen's
 # bounds: its largest extent is the Atlas source length (EncyclopediaPage.jsx).
@@ -30,8 +30,8 @@ def imported(path):
 
 rock_kit = imported(os.path.join(kit_dir, 'limestone-boulders.glb'))
 fan_kit = imported(os.path.join(kit_dir, 'sea-fans.glb'))
-fan = fan_kit['fan0']
-for o in list(rock_kit.values()) + [o for o in fan_kit.values() if o is not fan]:
+fans = [fan_kit['fan0'], fan_kit['fan1'], fan_kit['fan2']]
+for o in list(rock_kit.values()) + [o for o in fan_kit.values() if o not in fans]:
     bpy.data.objects.remove(o, do_unlink=True)
 
 def update():
@@ -72,10 +72,10 @@ for o in src.values():
     bpy.data.objects.remove(o, do_unlink=True)
 scene.collection.objects.link(rock)
 rock.name = rock.data.name = 'rock'
-# A low rock about 0.7 m across, 0.5 m deep and 0.35 m tall: the fan's base, not a bommie.
-size = (0.7, 0.5, 0.35)
+# A low rock about 1.1 m across, 0.55 m deep and 0.38 m tall: the fans' base, not a bommie.
+size = (1.1, 0.55, 0.38)
 dims = rock.dimensions
-rock.rotation_euler = (0, 0, 0.4)
+rock.rotation_euler = (0, 0, 0.15)
 rock.scale = (size[0] / dims.x, size[1] / dims.y, size[2] / dims.z)
 update()
 lo, hi = world_bounds([rock])
@@ -95,17 +95,34 @@ bpy.ops.object.mode_set(mode='OBJECT')
 rock.data.materials.clear()
 rock.data.materials.append(rock_mat)
 
-# --- The fan on the rock's top, a little behind its middle, lattice facing -Y ------------------
+# --- The fans on the rock: the orange one (fan0) on its top, a little behind its middle; the
+# yellow (fan1) and pink (fan2), smaller, on its left and right shoulders, leaning outward and
+# turned a little toward the viewer (Jeremy, 2026-10-26: "add the other two colours in left and
+# right"). Lattices face -Y; each stands a little apart in depth so no two lattices meet: the
+# yellow in front of the orange (behind it, the orange hid it), the pink level with it.
 # The kit's fans face glTF +Z, Blender -Y; the import keeps that.
 tree = BVHTree.FromObject(rock, bpy.context.evaluated_depsgraph_get())
-hit, hit_normal, _, _ = tree.ray_cast(Vector((0.0, 0.05, 2.0)), Vector((0, 0, -1)))
-holdfast = hit - Vector((0, 0, 0.02))
-fan.location = holdfast
+# (fan, x, depth, scale, lean about Y (outward), turn about Z)
+PLACES = [(fans[0], 0.0, 0.05, 1.0, 0.0, 0.0),
+          (fans[1], -0.5, -0.12, 0.88, -0.55, 0.3),
+          (fans[2], 0.47, 0.0, 0.78, 0.75, -0.25)]
+holdfasts = []
+for fan, x, y, scale, lean, turn in PLACES:
+    # Down onto the rock, stepping in toward its middle until the ray meets it.
+    hit = None
+    while hit is None:
+        hit, _, _, _ = tree.ray_cast(Vector((x, y, 2.0)), Vector((0, 0, -1)))
+        x *= 0.9
+    holdfast = hit - Vector((0, 0, 0.02))
+    fan.location = holdfast
+    fan.rotation_euler = (0, lean, turn)
+    fan.scale = (scale, scale, scale)
+    holdfasts.append(tuple(round(v, 3) for v in holdfast))
 update()
 
-lo, hi = world_bounds([rock, fan])
+lo, hi = world_bounds([rock] + fans)
 print('BOUNDS', tuple(round(v, 3) for v in lo), tuple(round(v, 3) for v in hi),
-      'largest', round(max(hi - lo), 3), 'holdfast', tuple(round(v, 3) for v in holdfast))
+      'largest', round(max(hi - lo), 3), 'holdfasts', holdfasts)
 
 if preview_dir:
     scene.render.engine = 'BLENDER_EEVEE'
@@ -121,7 +138,7 @@ if preview_dir:
     scene.collection.objects.link(sun)
     cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam'))
     cam.data.lens = 40
-    cam.location = (1.0, -2.4, 0.9)
+    cam.location = (0.5, -2.6, 0.9)
     target = Vector((0, 0, (hi.z) / 2))
     cam.rotation_euler = (target - cam.location).to_track_quat('-Z', 'Y').to_euler()
     scene.collection.objects.link(cam)
@@ -132,9 +149,9 @@ if preview_dir:
 
 os.makedirs(os.path.dirname(out_path), exist_ok=True)
 bpy.ops.object.select_all(action='DESELECT')
-for o in (rock, fan):
+for o in [rock] + fans:
     o.select_set(True)
-bpy.context.view_layer.objects.active = fan
+bpy.context.view_layer.objects.active = fans[0]
 bpy.ops.export_scene.gltf(filepath=out_path, export_format='GLB', use_selection=True, export_materials='EXPORT',
                           export_image_format='WEBP', export_texcoords=True, export_normals=True,
                           export_yup=True, export_animations=False)

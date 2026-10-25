@@ -51,14 +51,15 @@ Jeremy's source: `_blender models/annella mollis.glb`. Build the kit with:
   --python scripts/build-sea-fan-kit.py -- "<path>/annella mollis.glb" public <preview-dir>
 ```
 
-Add `--alpha="<image key>=<mask>"` per lattice to replace its texture's alpha with a black and
-white mask (white solid). Jeremy's fans read "too see through" (2026-10-26), so he painted fuller
-masks, kept beside the source as `annella mollis alpha orange|pink|yellow.jpg` (keys `orange`,
-`pink`, `coral_(annella`); the solid share went from 24/11/21% to 33/16/32%. Rebuild with them.
+`--alpha="<image key>=<mask>"` replaces a lattice texture's alpha with a black and white mask
+(white solid). Jeremy's fans read "too see through" (2026-10-26); he painted fuller masks
+(`annella mollis alpha orange|pink|yellow.jpg` beside the source) and then baked them into the
+GLB's own textures (34/18/32% solid), so the current build needs no `--alpha`.
 
 It writes `public/models/landscape/sea-fans.glb` (every fan, for the tank), prints each fan's
 size, triangles and materials, and warns where the model breaks the contract. Then build the
-Atlas specimen (the tallest fan on a low limestone rock) from it:
+Atlas specimen (all three fans on a low limestone rock: the orange in the middle, the yellow and
+pink leaning out left and right, after Jeremy's sketch) from it:
 
 ```
 "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup   --python scripts/build-sea-fan-atlas.py -- public/models/landscape   public/models/fish/annella-mollis/annella-mollis.glb <preview-dir>
@@ -70,9 +71,11 @@ Atlas specimen (the tallest fan on a low limestone rock) from it:
    them to 3 to 7.5 WU tall, so a few distinct silhouettes beat many sizes of one.
 3. **Upright, facing front view.** +Z up, the lattice spread across X and Z, facing −Y (what the
    front view sees). A fan modelled lying flat in the XY plane (Jeremy's first three, 2026-10-26)
-   is stood up by the script, its −Y edge going down. The holdfast is the lowest point of the
-   trunk (the opaque parts; a lobe of lattice may hang lower); the script moves the origin there.
-   Transforms need not be applied.
+   is stood up by the script, turned about its root so the least of it hangs below the root
+   (within 70° of the root-to-middle direction). **The object's origin is the holdfast:** put it
+   at the root of the trunk (taking the trunk's lowest point instead left fans floating).
+   Lattice hanging below the root can only go into the rock, so the fan fits fewer spots; the
+   yellow fan's 31 cm does. Transforms need not be applied.
 4. **Trunk and main branches: low-poly tubes.** 6 sides, 3 to 6 main branches, flat shaded
    (the faceted style). They give the fan its thickness where it matters.
 5. **Lattice: one plane, subdivided at least 8 × 8,** so it can bend. Trim it to the fan's
@@ -130,11 +133,21 @@ upright, and were too few. Since `dev_3`:
   underside or rock at the sand); the fan grows along the face's normal tipped up (`GROW_UP`),
   its face turned toward the current. Its holdfast is sunk 4% of its height into the rock and
   must test as inside rock, so none floats.
-- Clashes: a 10 × 10 grid over the fan's face (where the model has lattice) and 24 branch points
+- Clashes: a 14 × 14 grid over the fan's face (where the model has lattice) and 24 branch points
   must stay out of every drawn rock (not only the bommie's), the sand, every table's plate and
-  stalk, and every fan already placed; the staghorn, placed after, keeps its sample points and
-  its body clear of the fans (`inFan` with an extra margin).
-- Count: `perCluster` 3–5 on each table bommie, and 1–3 on each of up to 20 other rocks in front
-  of the camera (`scatter`), at 2.5–6.5 WU. On desktop, 25 fans placed (want 75: the tables crowd
-  the bommies); 22 in frame, 10 in a phone's centre crop. A lattice-point audit found none inside
-  rock or within 0.3 WU of a table or staghorn colony.
+  stalk, and every fan already placed; only points within 12% of the fan's height of the holdfast
+  (by distance) may touch rock. The staghorn, placed after, keeps its sample points and its body
+  clear of the fans (`inFan` with an extra margin).
+- Stances (`dev_5`): with the strict rock test most spots failed because a fan facing the current
+  ran its lattice along the rock it grows from, so a spot tries up to eight stances (`VARIANTS`:
+  turned up to 69° from the current, or tipped further out from the face) before giving up.
+- Count: `perCluster` 3–6 on each table bommie, and 1–3 on each of up to 30 other rocks in front
+  of the camera (`scatter`), at 2.2–6 WU. On desktop (`dev_5`): 25 fans (want about 140: tables
+  crowd the bommies), 22 in frame, 11 in a phone's centre crop; dive to placed about 12 s (was 9),
+  phone time unmeasured.
+- Audit (`dev_5`, raycasts against rock seen from both sides; an earlier one-sided audit could
+  not see inside rock and proved nothing): every holdfast is inside rock; 0.5% of sampled lattice
+  points are inside rock (2.4% before the distance rule and stances), thin edges between the test
+  points.
+- Lighting: both faces of a fan are shaded with the front's normal (`applyCoralSway`), so the
+  side facing away from the sun no longer reads dark or missing.

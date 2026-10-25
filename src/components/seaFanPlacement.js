@@ -25,18 +25,22 @@ import { inPlate } from './staghornPlacement'
 // their bommies or the foreground rocks.
 
 const UP = new THREE.Vector3(0, 1, 0)
-const ATTEMPTS_PER_FAN = 200
+const ATTEMPTS_PER_FAN = 120
 // How far a fan on a wall is tipped up from the wall's normal: its growth direction is the
 // normal plus this much of straight up.
 const GROW_UP = 0.9
 // Faces pointing further down than this (an overhang's underside) take no holdfast.
 const MIN_FACE_UP = -0.25
 // Points of the fan tested against the rock, sand, tables and fans: a grid over its face and
-// points along its branches. Points within this share of its height of the holdfast may touch the
+// points along its branches. Points within this share of its height of the holdfast (by distance:
+// a lobe of lattice hanging below the holdfast is not excused) may touch the
 // rock it grows from.
-const GRID = 9
+const GRID = 13
 const BRANCH_SAMPLES = 24
 const BASE_SHARE = 0.12
+// The ways a fan may stand at a spot, tried in turn: [turn from the current about its growth
+// direction, how far it is tipped up from the rock face's normal (GROW_UP first)].
+const VARIANTS = [[0, GROW_UP], [0.6, GROW_UP], [-0.6, GROW_UP], [1.2, GROW_UP], [-1.2, GROW_UP], [0, 0.35], [0.9, 0.35], [-0.9, 0.35]]
 // The holdfast sinks this share of the fan's height into the rock, along the face's normal.
 const SINK = 0.04
 // Water kept either side of a fan's lattice by other corals (inFan), in WU, on top of its sway.
@@ -229,36 +233,47 @@ export function* placeSeaFans(landscape, clusters, tables, measures, view, sight
       if (!hit || hit.normal.dot(direction) > 0 || hit.normal.y < MIN_FACE_UP) continue
       if (hit.point.y < sandHeight(landscape, hit.point.x, hit.point.z) + 0.2) continue
       const normal = hit.normal.normalize()
-      // Out along the face, tipped up; the face broadside to the current, turned a little.
-      grow.copy(normal).addScaledVector(UP, GROW_UP).normalize()
-      face.copy(current).applyAxisAngle(UP, (rand() * 2 - 1) * config.facingJitter)
-      face.addScaledVector(grow, -face.dot(grow))
-      if (face.length() < 0.4) continue
-      face.normalize()
-      side.crossVectors(grow, face)
       const height = pick(config.height) * (site < clusters.length ? 1 : 0.85)
       const model = Math.floor(rand() * measures.length)
       const shape = measures[model]
       const scale = height / shape.height
       const base = hit.point.clone().addScaledVector(normal, -height * SINK)
-      basis.makeBasis(side, grow, face)
-      const matrix = new THREE.Matrix4().compose(base, new THREE.Quaternion().setFromRotationMatrix(basis), new THREE.Vector3(scale, scale, scale))
       // Buried at the holdfast: nothing floats.
       if (!allRocks.inside(base)) continue
       if (placed.some(other => other.base.distanceTo(base) < (other.width + shape.width * scale) * 0.3)) continue
-      let clash = false
+      // Out along the face, tipped up; the face broadside to the current, turned a little. If
+      // that runs the lattice into the rock it grows from (most often: it spans along the rock
+      // face), the same spot tries the fan turned further from the current, then tipped further
+      // out from the face, before it gives up.
+      const turn = (rand() * 2 - 1) * config.facingJitter
+      let matrix = null
       let top = -Infinity
-      for (const sample of shape.samples) {
-        point.copy(sample).applyMatrix4(matrix)
-        top = Math.max(top, point.y)
-        if (point.y < sandHeight(landscape, point.x, point.z) || inTable(tableFeet, plates, point) || inFan(placed, point)
-          || (sample.y > shape.height * BASE_SHARE && allRocks.inside(point))) {
-          clash = true
-          break
+      for (const [spin, tip] of VARIANTS) {
+        grow.copy(normal).addScaledVector(UP, tip).normalize()
+        face.copy(current).applyAxisAngle(UP, turn + spin)
+        face.addScaledVector(grow, -face.dot(grow))
+        if (face.length() < 0.4) continue
+        face.normalize()
+        side.crossVectors(grow, face)
+        basis.makeBasis(side, grow, face)
+        const candidate = new THREE.Matrix4().compose(base, new THREE.Quaternion().setFromRotationMatrix(basis), new THREE.Vector3(scale, scale, scale))
+        let clash = false
+        top = -Infinity
+        for (const sample of shape.samples) {
+          point.copy(sample).applyMatrix4(candidate)
+          top = Math.max(top, point.y)
+          if (point.y < sandHeight(landscape, point.x, point.z) || inTable(tableFeet, plates, point) || inFan(placed, point)
+            || (sample.length() > shape.height * BASE_SHARE && allRocks.inside(point))) {
+            clash = true
+            break
+          }
         }
+        if (clash || top > landscape.maxTop) continue
+        if (sight && pointsSeen(shape, candidate, sight, point) < config.minVisible) continue
+        matrix = candidate
+        break
       }
-      if (clash || top > landscape.maxTop) continue
-      if (sight && pointsSeen(shape, matrix, sight, point) < config.minVisible) continue
+      if (!matrix) continue
       // The obstacle box: the fan's extent across and along its face's horizontal heading.
       const yaw = Math.atan2(face.x, face.z)
       const across = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw))

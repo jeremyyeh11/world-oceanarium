@@ -94,9 +94,10 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.1, 0],
     lookAt: [0, -0.1, 0],
   },
-  // One sea fan growing from a low rock (the model's origin is the rock's foot), nearly face on
-  // so the lattice reads, turned a little so it shows it is a flat sheet; lowered by half its
-  // height so it sits in the middle of the stage.
+  // Three sea fans growing from a low rock (the model's origin is the rock's foot): the orange
+  // in the middle, the yellow and pink leaning out to the left and right (Jeremy's sketch,
+  // 2026-10-26). Nearly face on so the lattices read, turned a little so they show they are flat
+  // sheets; lowered so the group sits in the middle of the stage.
   'annella-mollis': {
     yawOffset: -0.35,
     pitchDegrees: 8,
@@ -104,7 +105,7 @@ const VIEW_POSES_BY_SPECIES = {
     cameraDistance: 6.4,
     portraitPhoneDistanceScale: 1.05,
     mobileDistanceScale: 0.95,
-    position: [0, -1.3, 0],
+    position: [0, -1.05, 0],
     lookAt: [0, -0.05, 0],
   },
   'amblygaster-sirm': {
@@ -259,8 +260,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).
   'acropora-muricata': 3.157,
-  // The orange fan on its rock, tallest (scripts/build-sea-fan-atlas.py prints the bounds).
-  'annella-mollis': 1.24,
+  // The three fans on their rock, widest across (scripts/build-sea-fan-atlas.py prints the bounds).
+  'annella-mollis': 1.711,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

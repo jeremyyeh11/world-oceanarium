@@ -129,9 +129,10 @@ const STAGHORN_KIT = {
 
 // Jeremy's giant sea fans (Annella mollis, `_blender models/annella mollis.glb`, 2026-10-26),
 // normalised by scripts/build-sea-fan-kit.py: fan0, fan1, ... each in metres with its holdfast at
-// the origin and its lattice in the XY plane, with the GLB's own photo materials (the lattice cut
-// out by its texture's alpha, WebP). 0: orange, 1.0 m; 1: yellow, 0.94 m wide, a lobe hanging
-// below its holdfast; 2: pink, 0.86 m. The model contract is docs/procedural/coral-sway.md.
+// the origin (his object origin, at the trunk's root) and its lattice in the XY plane, with the
+// GLB's own photo materials (the lattice cut out by its texture's alpha, from his fuller masks,
+// WebP). 0: orange, 1.1 m; 1: yellow, 0.95 m, a lobe hanging 37 cm below its holdfast; 2: pink,
+// 1.0 m. The model contract is docs/procedural/coral-sway.md.
 const SEA_FAN_KIT = {
   path: '/models/landscape/sea-fans.glb',
   // Merged in square chunks this many WU wide (per material), so off-screen ones are culled.
@@ -398,16 +399,16 @@ export const LANDSCAPES = {
     // tables and clear of them, and before the staghorn, which keeps clear of them (placed after
     // it, a fan found room on almost no bommie): `perCluster` fans a bommie, and `scatter.perRock`
     // on each of up to `scatter.rocks` other rocks in front of the camera, `scatter.spacing` WU
-    // apart. `height` in WU (60 cm to 1.6 m: colonies are mostly 76 to 150 cm, Brihatee et al.
+    // apart. `height` in WU (55 cm to 1.5 m: colonies are mostly 76 to 150 cm, Brihatee et al.
     // 2025, and reach 2 m). Each grows from rock only (tops, slopes and walls), its holdfast
     // buried; broadside to the current; `current` (x, z) is set along the resting camera's line of
     // sight, so the fans face the visitor, each within `facingJitter` radians. `sway` is
     // SEA_FAN_SWAY. A fan needs `minVisible` of 9 points on its face seen from the resting camera.
     seaFans: {
       kit: SEA_FAN_KIT,
-      seed: 8411, perCluster: [3, 5], height: [2.5, 6.5],
+      seed: 8411, perCluster: [3, 6], height: [2.2, 6],
       current: [0.16, 1], facingJitter: 0.35, minVisible: 2,
-      scatter: { seed: 8501, rocks: 20, perRock: [1, 3], spacing: 10, maxDistance: 95 },
+      scatter: { seed: 8501, rocks: 30, perRock: [1, 3], spacing: 8, maxDistance: 95 },
       sway: SEA_FAN_SWAY,
     },
   },

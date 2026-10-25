@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Sea Fan
 
-Status: `Blocked / waiting review` — `v0.38.0-dev_4` (2026-10-26, branch `feat/annella-mollis`): Jeremy's three fans are in. His pick (2026-10-25): a soft coral back on The Reefs. Contract and intake: `docs/procedural/coral-sway.md`.
+Status: `Blocked / waiting review` — `v0.38.0-dev_5` (2026-10-26, branch `feat/annella-mollis`): Jeremy's three fans are in. His pick (2026-10-25): a soft coral back on The Reefs. Contract and intake: `docs/procedural/coral-sway.md`.
 
 Subtasks:
 - [x] Species entry (`annella-mollis`) from SeaLifeBase, Florent's Guide, Brihatee et al. 2025 and Chang 2007; sources credited.
@@ -26,6 +26,7 @@ Subtasks:
 - [x] Atlas: unhidden, 1 m fan, tile rendered in Blender from the Atlas model (in-page capture was not available).
 - [x] `dev_3` (Jeremy: some floating, clipping into corals and walls, only upright, too few): rock-only holdfasts on any face but undersides, buried; denser clash tests against every rock, tables, fans; staghorn clears the fans' body; 3–5 a bommie plus 1–3 on up to 20 other rocks: 25 fans (was 5). Atlas fan on a limestone rock (`scripts/build-sea-fan-atlas.py`).
 - [x] `dev_4` (Jeremy: fans "too see through", want "volume"): his three fuller lattice masks replace the alphas (`--alpha` in the kit script); kit 5.2 MB; tile re-rendered.
+- [x] `dev_5` (Jeremy: still some floating; use each fan's origin as its root; both sides; three fans in the Atlas): holdfast = his object origin; fans turned about it so less hangs below; strict rock test by distance from the root, eight stances a spot (25 fans, 0.5% of lattice points in rock); back faces lit like front; his updated GLB textures (fuller alphas baked in); Atlas: three fans on a wider rock.
 - [ ] Phone review: sway amount (`SEA_FAN_SWAY.bend` 0.05, `period` 7 s), fan count and visibility (`perCluster` 1–3, `minVisible` 6), sizes (3–7.5 WU).
 - [ ] Photo sources of the orange and pink fans (yellow: Diego Delso, CC BY-SA 4.0, credited).
 - [ ] Jeremy's call: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.

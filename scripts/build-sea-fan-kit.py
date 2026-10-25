@@ -19,10 +19,10 @@
 # MASK; a lattice exported as Blend, its alpha wired straight in, gets the Round node here). Each
 # fan's parts are joined into one mesh (one primitive per material), its transforms applied,
 # welded, turned so its lattice lies across Blender's Y axis (facing front view) if it was
-# modelled side-on or lying flat (Jeremy's first fans, 2026-10-26, lay in the XY plane with their
-# holdfasts toward -Y: stood up so -Y goes down), and moved so its origin is its holdfast: the
-# middle of the lowest 4 cm of its trunk (the opaque parts; a lobe of lattice may hang lower), at
-# the trunk's lowest z. Fans are named fan0, fan1, ... tallest first.
+# modelled side-on or lying flat (Jeremy's first fans, 2026-10-26, lay in the XY plane), and
+# turned so it grows up +Z from its holdfast. The holdfast is each source object's origin, which
+# Jeremy sets at the root of the trunk; the fan is moved so it is the origin. Fans are named
+# fan0, fan1, ... tallest first.
 #
 # Writes <out>/models/landscape/sea-fans.glb (every fan, for the tank; the Atlas specimen is built
 # from it by scripts/build-sea-fan-atlas.py), with the
@@ -30,7 +30,7 @@
 # MAX_TEXTURE px, an image only the opaque branches use to MAX_BRANCH_TEXTURE (Jeremy's first GLB
 # held photo textures up to 4720 px, 76 MB). Prints each fan's size, triangles and materials, and warns where the contract is broken.
 
-import bpy, bmesh, sys, os
+import bpy, bmesh, sys, os, math
 import numpy as np
 from mathutils import Matrix, Vector
 
@@ -97,15 +97,6 @@ roots = [o for o in scene.objects if o.parent is None and any(d.type == 'MESH' f
 for mat in bpy.data.materials:
     round_alpha(mat)
 
-def opaque_verts(obj):
-    # Vertices of faces whose material is not cut out by alpha: the trunk and branches.
-    masked = {i for i, m in enumerate(obj.data.materials) if alpha_rounded(m)}
-    keep = set()
-    for poly in obj.data.polygons:
-        if poly.material_index not in masked:
-            keep.update(poly.vertices)
-    return [obj.data.vertices[i].co.copy() for i in keep] or [v.co.copy() for v in obj.data.vertices]
-
 fans = []
 for root in roots:
     meshes = [d for d in descendants(root) if d.type == 'MESH']
@@ -126,22 +117,47 @@ for root in roots:
     bm.free()
     fan.data.update()
     bpy.context.view_layer.update()
+    # The holdfast is the source object's origin: Jeremy sets each fan's origin at the root of
+    # its trunk (2026-10-26, after the lowest point of the trunk left some fans floating).
+    base = root.matrix_world.translation.copy()
+    centre = sum((v.co for v in fan.data.vertices), Vector()) / len(fan.data.vertices)
     # The lattice is the fan's thinnest extent; it should be across Y (the front view looks
-    # along +Y). Modelled across X instead, turn it a quarter round Z.
+    # along +Y), the fan growing up +Z from its holdfast. Turn it so: first lay the direction from
+    # the holdfast to the fan's middle along the lattice's long axis, then stand it up.
     d = fan.dimensions
     if d.x < d.y and d.x < d.z:
-        fan.data.transform(Matrix.Rotation(1.5708, 4, 'Z'))
-        warnings.append(f'{root.name}: lattice was across X; turned 90 degrees to face front view')
+        turn = Matrix.Rotation(1.5708, 4, 'Z')
+        print('TURNED', root.name, '(lattice was across X)')
     elif d.z < d.x and d.z < d.y:
-        # Lying flat in the XY plane: stand it up, its -Y edge (the holdfast) going down.
-        fan.data.transform(Matrix.Rotation(1.5708, 4, 'X'))
-        print('STOOD UP', root.name, '(was lying flat; -Y now down)')
+        # Lying flat in the XY plane: turn it about its holdfast so it grows along +Y, then +Y up.
+        # Of the turns within 70 degrees of holdfast-to-middle, the one leaving the least of the
+        # fan below its holdfast: what hangs below it can only go into the rock it grows from
+        # (Jeremy's fans hang 8 to 37 cm of lattice below their roots when leaned to their middle).
+        grow = centre - base
+        aim = math.atan2(-grow.x, grow.y)
+        pts = [v.co - base for v in fan.data.vertices]
+        def below(angle):
+            c, s = math.cos(angle), math.sin(angle)
+            # The height of each point along the direction at `angle` from +Y.
+            return min(-p.x * s + p.y * c for p in pts)
+        best = max((aim + math.radians(k) for k in range(-70, 71, 2)), key=below)
+        spin = Matrix.Rotation(-best, 4, 'Z')
+        turn = Matrix.Rotation(1.5708, 4, 'X') @ spin
+        print('STOOD UP', root.name, '(was lying flat): lowest point', round(below(aim), 3), '->', round(below(best), 3),
+              'm below the holdfast, turned', round(math.degrees(best - aim)), 'degrees from its middle')
+    else:
+        turn = Matrix.Identity(4)
+    fan.data.transform(turn)
+    base = turn @ base
+    centre = turn @ centre
+    if (d.y < d.x and d.y < d.z) or (d.x < d.y and d.x < d.z):
+        # Upright: lean holdfast-to-middle onto +Z, about Y.
+        grow = centre - base
+        lean = Matrix.Rotation(math.atan2(-grow.x, grow.z), 4, 'Y')
+        fan.data.transform(lean)
+        base = lean @ base
     fan.data.update()
-    # Origin at the holdfast: the middle of the trunk's lowest 4 cm, at its lowest z.
-    verts = opaque_verts(fan)
-    min_z = min(v.z for v in verts)
-    foot = [v for v in verts if v.z < min_z + 0.04]
-    base = Vector((sum(v.x for v in foot) / len(foot), sum(v.y for v in foot) / len(foot), min_z))
+    print('HOLDFAST', root.name, 'at its origin', tuple(round(v, 3) for v in base))
     fan.data.transform(Matrix.Translation(-base))
     fan.data.update()
     bpy.context.view_layer.update()

@@ -15,7 +15,7 @@ Status labels:
 
 ### Focused debug instruments
 
-Status: `Current in development` — review `v0.37.2-dev_5`, branch `feat/update-debug-menu`. Jeremy requested a simpler creature menu and all-GLB performance view. Do not promote/merge without release approval.
+Status: `Archive candidate` — accepted `v0.37.2-dev_5`, promoted to clean `v0.37.2`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly authorized merge on 2026-10-25 UTC. Retain technical main/deployment verification in release evidence; physical-phone measurements are not claimed.
 
 Feel: inspect one animal, glance at text, then get the instrument out of the view. Flat full-width bottom strip.
 
@@ -29,9 +29,9 @@ Feel: inspect one animal, glance at text, then get the instrument out of the vie
 - [x] Dev_5: move Creatures/Performance tabs below the active controls, matching DOM/focus and visual order; no telemetry/simulation changes.
 - [x] Keep Reset/Exit, flat >=44px controls and visible-only sampling. Tests/docs in `docs/debug-menu.md`; [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160), issue #159.
 - [x] Full local tests/lint/build/procedural checks and desktop/mobile compiled-production QA: no overflow/sub-44px debug buttons, live selected/performance text, all-GLB tint/restoration, persistent Data and Exit/card restoration. Dev_3 browser QA also proves shared monospace/left edge, live measurements on Creatures across tab switches, grey GLBs/legend and actual keyboard tab focus.
-- [ ] Verify exact-head CI/deployment after publishing this iteration.
-- [ ] Jeremy: visual/physical-phone review and explicit release approval. **Do not merge.**
-- [ ] Slow motion/pause remains deliberately excluded; audit coordinated clocks before a separate proposal.
+- [x] Accepted dev_5 exact-head CI/Vercel passed (`08c7785`); clean promotion reruns local/PR/main gates, with final release evidence in PR #160.
+- [x] Jeremy accepted the reviewed iteration and explicitly approved merge. Physical-phone performance remains unmeasured, not a release-blocking approval gate.
+- Slow motion/pause: future/backlog, deliberately outside this accepted release; audit coordinated clocks before a separate proposal.
 
 ### The Shallows: animals circling
 

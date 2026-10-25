@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.37.2 — Selected text and all-GLB performance instruments
 
-Status: review `v0.37.2-dev_5` on `feat/update-debug-menu`; not a clean release.
+Status: clean `v0.37.2` (2026-10-25 UTC), promoted from accepted `v0.37.2-dev_5`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly approved merge.
 
 ### Debugging
 
@@ -21,7 +21,7 @@ Status: review `v0.37.2-dev_5` on `feat/update-debug-menu`; not a clean release.
 - Always-visible debug performance readings, independent of selected tab. Live Canvas FPS, frame/CPU ms, optional nonblocking GPU timer, JS heap and complete-frame draw calls/triangles; unsupported measurements say unavailable. No whole-device utilisation claim.
 - Preserve authored fish colour/emission through repeated LOD-colour on/off/Reset/Exit; diagnostic colour is shader-only, never baked into cloned material values.
 - Debug readout replaces the normal follow hint/card while open, retaining selection and restoring normal card on Exit. Reset/Exit restore ordinary detail/1x/colours.
-- Keep animation/rig support after removing Bones display. Maintain normal simulation/population/asset data. Rebase review branch on v0.37.1; no merge or release.
+- Keep animation/rig support after removing Bones display. Maintain normal simulation/population/asset data. Based on clean v0.37.1; normal simulation, assets and database remain unchanged.
 
 ## v0.37.1 — The Shallows' animals roam the bay (2026-10-25)
 

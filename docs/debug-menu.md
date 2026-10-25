@@ -1,6 +1,6 @@
 # Debug instruments
 
-Review: `v0.37.2-dev_5`, `feat/update-debug-menu`, issue #159 / PR #160. Rebased on clean `v0.37.1` (`origin/main`); no merge/release approval.
+Release: `v0.37.2`, promoted from accepted `v0.37.2-dev_5`, `feat/update-debug-menu`, issue #159 / [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Based on clean `v0.37.1`; Jeremy explicitly approved merge on 2026-10-25 UTC. Physical-phone performance remains unmeasured, not a claim of this release.
 
 ## Feel and boundaries
 
@@ -54,4 +54,4 @@ Run npm test, npm run lint, npm run build, npm run verify:procedural-fish-assets
 - Shader/geometry tests: chain procedural callbacks/cache keys, retain uniforms, exact restore; all tiers survive merging with unchanged positions.
 - Existing full suite includes the 218-ray renderless school soak and procedural asset contracts. No data writes.
 
-Browser evidence/remaining gates are recorded with the PR and in external debug-menu-qa-v3 evidence. Local production preview uses missing-env fixtures, not live tables. Cold selection before startup readiness can leave the existing selector picked; waiting for startup then selecting normally works (selector/App/loading code unchanged). Human visual/phone review remains open. Remote CI/deployment must be verified on the exact pushed commit; preview login protection is not deployed-app smoke.
+Browser evidence/remaining gates are recorded with the PR and in external debug-menu-qa-v3 evidence. Local production preview uses missing-env fixtures, not live tables. Cold selection before startup readiness can leave the existing selector picked; waiting for startup then selecting normally works (selector/App/loading code unchanged). Jeremy accepted this iteration and authorized clean release; physical-phone performance/heat/touch measurements were not performed. Remote CI/deployment must be verified on the exact pushed commit; preview login protection is not deployed-app smoke.

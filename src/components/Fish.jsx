@@ -1291,11 +1291,8 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
       nextMaterial.depthWrite = !blendsAlpha
       nextMaterial.roughness = nextMaterial.roughness ?? 0.5
       if (nextMaterial.name?.toLowerCase() === 'sardine') nextMaterial.roughness = SARDINE_MATERIAL_ROUGHNESS
-      if (lodDebugColor && nextMaterial.color) nextMaterial.color.set(lodDebugColor)
-      if (lodDebugColor && nextMaterial.emissive) {
-        nextMaterial.emissive.set(lodDebugColor)
-        nextMaterial.emissiveIntensity = 0.32
-      }
+      // LOD tint is final-RGB shader-only below. Never bake diagnostic colour/emission
+      // into the material: subsequent setup clones this assignment on Reset/Exit.
       const proceduralMeshConfig = shouldProcedurallyDeformMesh(child, proceduralAnimation) ? proceduralAnimation : null
       applyFishLightMask(
         nextMaterial,

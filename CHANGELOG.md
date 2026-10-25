@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.37.2 — Selected text and all-GLB performance instruments
 
-Status: review `v0.37.2-dev_3` on `feat/update-debug-menu`; not a clean release.
+Status: review `v0.37.2-dev_4` on `feat/update-debug-menu`; not a clean release.
 
 ### Debugging
 
@@ -19,6 +19,7 @@ Status: review `v0.37.2-dev_3` on `feat/update-debug-menu`; not a clean release.
 - Colour all reserve GLBs by actual drawn source tier, including mixed rock/table-coral chunks and staghorn low/high/far/min lifecycle; distinguish single-level models.
 - Flat underline Creatures/Performance tabs with keyboard/ARIA support. All top-left text shares a left-aligned code-monospace stack; Data no longer has its own inset. Single-level LOD is dark grey.
 - Always-visible debug performance readings, independent of selected tab. Live Canvas FPS, frame/CPU ms, optional nonblocking GPU timer, JS heap and complete-frame draw calls/triangles; unsupported measurements say unavailable. No whole-device utilisation claim.
+- Preserve authored fish colour/emission through repeated LOD-colour on/off/Reset/Exit; diagnostic colour is shader-only, never baked into cloned material values.
 - Debug readout replaces the normal follow hint/card while open, retaining selection and restoring normal card on Exit. Reset/Exit restore ordinary detail/1x/colours.
 - Keep animation/rig support after removing Bones display. Maintain normal simulation/population/asset data. Rebase review branch on v0.37.1; no merge or release.
 

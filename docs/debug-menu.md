@@ -1,6 +1,6 @@
 # Debug instruments
 
-Review: `v0.37.2-dev_3`, `feat/update-debug-menu`, issue #159 / PR #160. Rebased on clean `v0.37.1` (`origin/main`); no merge/release approval.
+Review: `v0.37.2-dev_4`, `feat/update-debug-menu`, issue #159 / PR #160. Rebased on clean `v0.37.1` (`origin/main`); no merge/release approval.
 
 ## Feel and boundaries
 
@@ -50,6 +50,7 @@ Run npm test, npm run lint, npm run build, npm run verify:procedural-fish-assets
 - Pure/SSR tests: curated population/dead rows, exactly three overlay switches/two sections, persistent source/error text, selected-only readout, contextual Bask, truthful unavailable metrics and full LOD legend.
 - Actual Fish callback test: 180 fixed frames per mode; exact motion equivalence, slug/display-name identity, normal distant LOD despite diagnostic colours and removed Force prop, selected-only getter/steering and cleanup. The PR review regression covers an unpaired mahi: normally schooling species still report their live solo behaviour, with identical movement with/without inspection. GPU rendering is not simulated by this test.
 - Frame/GPU tests: count submitted frames only, CPU duration, unsupported/pending/disjoint/context-lost timers, external-query ownership and cleanup.
+- Real Fish material-helper regression: repeated normal/grey/off/pink/off cycles preserve authored colour/emission and remove the diagnostic shader on every off path. Scalar diagnostic tint/emission writes removed; all colours are final-RGB overrides only.
 - Shader/geometry tests: chain procedural callbacks/cache keys, retain uniforms, exact restore; all tiers survive merging with unchanged positions.
 - Existing full suite includes the 218-ray renderless school soak and procedural asset contracts. No data writes.
 

@@ -1,5 +1,6 @@
 // Exercise Fish.jsx's actual movement/render-decision frame. GPU work is not simulated.
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import * as THREE from 'three'
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
@@ -33,11 +34,12 @@ h.jsx = (type, props, ...children) => {
   return object
 }
 const result = await build({
-  stdin: { contents: `export {default as Fish} from './src/components/Fish.jsx'; export {getSardineLod0Stats} from './src/components/sardineInstanceRegistry.js'; export {pruneFishRuntime} from './src/components/fishRuntimeStore.js';`, resolveDir: resolve('.') },
+  stdin: { contents: `export {default as Fish, applyModelMaterialSettings} from './src/components/Fish.jsx'; export {getSardineLod0Stats} from './src/components/sardineInstanceRegistry.js'; export {pruneFishRuntime} from './src/components/fishRuntimeStore.js';`, resolveDir: resolve('.') },
   bundle: true, write: false, format: 'esm', platform: 'node', jsxFactory: '__debugJSX', jsxFragment: '__debugFragment',
   banner: { js: `const __debugJSX=globalThis.${key}.jsx; const __debugFragment=Symbol('fragment');` },
   define: { 'import.meta.env.DEV': 'false' },
   plugins: [{ name: 'frame-dependencies', setup(b) {
+    b.onLoad({ filter: /components\/Fish\.jsx$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')) + '\nexport { applyModelMaterialSettings };', loader: 'jsx' }))
     b.onResolve({ filter: /^three(\/.*)?$/ }, args => ({ path: pathToFileURL(require.resolve(args.path)).href, external: true }))
     b.onResolve({ filter: /^(react|@react-three\/fiber|@react-three\/drei)$|\/hooks\/(useEnvironmentLoading|useOceanAudio)$|^\.\/WaterSurface$/ }, args => ({ path: args.path, namespace: 'stub' }))
     b.onLoad({ filter: /.*/, namespace: 'stub' }, args => {
@@ -51,6 +53,23 @@ const result = await build({
   } }],
 })
 const runtime = await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString('base64')}`)
+// Real material helper regression: repeated colour on/off must preserve authored values.
+const modelRoot = new THREE.Group()
+const original = new THREE.MeshStandardMaterial({ color: '#507fb1', emissive: '#162738', emissiveIntensity: 0.17, roughness: 0.42 })
+const mesh = new THREE.Mesh(new THREE.BoxGeometry(), original)
+modelRoot.add(mesh)
+const authored = { colour: original.color.toArray(), emissive: original.emissive.toArray(), intensity: original.emissiveIntensity }
+const allocated = []
+for (const colour of [null, '#454545', null, '#ff4fd8', null, '#454545', null]) {
+  allocated.push(...runtime.applyModelMaterialSettings(modelRoot, null, colour))
+  assert.deepEqual(mesh.material.color.toArray(), authored.colour, 'LOD on/off never bakes tint into colour')
+  assert.deepEqual(mesh.material.emissive.toArray(), authored.emissive, 'LOD on/off never bakes glow into emissive')
+  assert.equal(mesh.material.emissiveIntensity, authored.intensity)
+  const shader = { vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader, uniforms: {} }
+  mesh.material.onBeforeCompile(shader, {})
+  assert.equal(shader.fragmentShader.includes('float debugLevel'), Boolean(colour), 'normal shader restored on every off path')
+}
+allocated.forEach(material => material.dispose()); original.dispose(); mesh.geometry.dispose()
 const camera = new THREE.PerspectiveCamera(61, 16 / 9, 0.1, 200)
 camera.position.set(0, -8, 80)
 camera.lookAt(0, -8, 0)

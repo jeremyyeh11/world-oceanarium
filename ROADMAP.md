@@ -13,6 +13,26 @@ Status labels:
 
 ## Current work
 
+### Focused debug instruments
+
+Status: `Archive candidate` — accepted `v0.37.2-dev_5`, promoted to clean `v0.37.2`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly authorized merge on 2026-10-25 UTC. Retain technical main/deployment verification in release evidence; physical-phone measurements are not claimed.
+
+Feel: inspect one animal, glance at text, then get the instrument out of the view. Flat full-width bottom strip.
+
+- [x] Remove Bones display/control/helpers only; retain rig/animation support and normal simulation.
+- [x] Creatures: only Heading/speed, Neighbours, Labels. Selected-only steering/behaviour plain text top left; contextual Mola action.
+- [x] Combine Render/Scene into Performance, remove Audio tab/sardine-detail override, make Data persistent top-bar text.
+- [x] All reserve GLB colours distinguish actual single/high/low/far/min sources and restore exactly; no forced detail, geometry/LOD changes or new draw calls.
+- [x] Live Canvas FPS, CPU frame ms, optional GPU ms, JS heap, full-frame draw calls/triangles and renderer/scene state. Unsupported metrics labelled unavailable.
+- [x] Review dev_3: dark-grey single level, left-aligned Data/readout in an explicit code-monospace stack, always-visible debug performance and flat underline keyboard-accessible tabs.
+- [x] Dev_4 review fix: remove scalar fish material tint/emission mutations. Real helper regression proves repeated normal/grey/off/pink/off cycles preserve authored values and restore normal shaders; fresh mobile production Reset restores textured fish.
+- [x] Dev_5: move Creatures/Performance tabs below the active controls, matching DOM/focus and visual order; no telemetry/simulation changes.
+- [x] Keep Reset/Exit, flat >=44px controls and visible-only sampling. Tests/docs in `docs/debug-menu.md`; [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160), issue #159.
+- [x] Full local tests/lint/build/procedural checks and desktop/mobile compiled-production QA: no overflow/sub-44px debug buttons, live selected/performance text, all-GLB tint/restoration, persistent Data and Exit/card restoration. Dev_3 browser QA also proves shared monospace/left edge, live measurements on Creatures across tab switches, grey GLBs/legend and actual keyboard tab focus.
+- [x] Accepted dev_5 exact-head CI/Vercel passed (`08c7785`); clean promotion reruns local/PR/main gates, with final release evidence in PR #160.
+- [x] Jeremy accepted the reviewed iteration and explicitly approved merge. Physical-phone performance remains unmeasured, not a release-blocking approval gate.
+- Slow motion/pause: future/backlog, deliberately outside this accepted release; audit coordinated clocks before a separate proposal.
+
 ### The Shallows: animals circling
 
 Status: shipped in clean `v0.37.1` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: everybody in The Shallows swam in a visible circle; leaving the screen and coming back is fine. Fixed with `goalPick: 'across'` and wider rooms (dev_1), then wedge-shaped rooms and a frame that widens up to 21:9 (dev_2; CHANGELOG v0.37.1).

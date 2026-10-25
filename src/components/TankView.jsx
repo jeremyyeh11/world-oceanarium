@@ -1,18 +1,18 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Camera from './Camera'
 import DiverCamera from './DiverCamera'
 import Biome from './Biome'
+import DebugPanel, { DebugDataStatus, DebugReadout } from './DebugPanel'
+import PerformanceDiagnostics from './PerformanceDiagnostics'
+import { clearedDebugLayers, reservePopulation } from '../utils/debugMenu'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
-import { LEVEL_FLOOR_DB, useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { landscapeForTank } from '../data/landscapes'
-import { APP_VERSION_LABEL, APP_VERSION_SHORT_LABEL } from '../version'
-import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
+import { DEBUG_TOGGLE_EVENT } from '../utils/debugIdentifiers'
 import { useEnvironmentLoading } from '../hooks/useEnvironmentLoading'
 import { environmentLoader, reportEnvironmentFrame, reportRenderingPaused, reportRenderingResumed } from '../loading/environmentRuntime'
 import { compileEnvironmentScene } from '../loading/compileEnvironmentScene'
@@ -49,18 +49,6 @@ const clampFollowOrbit = ({ yaw, pitch }) => ({
   yaw: Math.max(-MAX_FOLLOW_ORBIT_YAW, Math.min(MAX_FOLLOW_ORBIT_YAW, yaw)),
   pitch: Math.max(-MAX_FOLLOW_ORBIT_PITCH, Math.min(MAX_FOLLOW_ORBIT_PITCH, pitch)),
 })
-const DEBUG_VIEW_MODES = [
-  { id: 'all', icon: '◎', label: 'View all' },
-  { id: 'focused', icon: '◉', label: 'Selected creature' },
-]
-const DEBUG_LAYER_BUTTONS = [
-  { id: 'direction', icon: '↗', label: 'Show direction' },
-  { id: 'name', icon: '#', label: 'Show name' },
-  { id: 'lod', icon: 'L', label: 'Show LOD colors' },
-  { id: 'bones', icon: 'B', label: 'Show curve-deform bones' },
-]
-const DEBUG_SIMULATION_SPEEDS = [1, 4, 10]
-const FPS_SAMPLE_MS = 1000
 
 // Prepares shader variants for the mounted scene. Uploads/first draw can still cost
 // time; only the subsequent submitted frame acknowledges readiness.
@@ -162,13 +150,6 @@ function creatureDisplayName(creature) {
   return resolveSpecies(creature)?.name ?? creature?.species ?? 'This fish'
 }
 
-function summarizeRenderLoad(creatures, biomeId) {
-  const visibleCreatures = creatures.filter(creature => creature.alive && creature.biome === biomeId)
-  return {
-    visibleCreatures: visibleCreatures.length,
-  }
-}
-
 function getPanLimits() {
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
@@ -212,7 +193,7 @@ function defaultFollowDistanceForCreature(creature) {
 
 // The Atlas and the sources/changelog modals open over a followed fish without
 // releasing it, so the follow-mode scroll block has to let their own scrollers through.
-const SCROLLABLE_PANEL_SELECTOR = '.info-card, .encyclopedia-page, .sources-modal'
+const SCROLLABLE_PANEL_SELECTOR = '.info-card, .encyclopedia-page, .sources-modal, .debug-panel'
 
 function eventStartedInScrollablePanel(event) {
   return event.target instanceof Element && Boolean(event.target.closest(SCROLLABLE_PANEL_SELECTOR))
@@ -228,7 +209,8 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   const [focusedFishRef, setFocusedFishRef] = useState(null)
   const [debugMode, setDebugMode] = useState(false)
   const [debugView, setDebugView] = useState('focused')
-  const [debugLayers, setDebugLayers] = useState({ direction: true, name: true, lod: false, bones: true })
+  const [debugLayers, setDebugLayers] = useState(() => ({ ...clearedDebugLayers(), heading: true, name: true, lod: false }))
+  const [debugSection, setDebugSection] = useState('creature')
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
 
   const [stagePan, setStagePan] = useState(0)
@@ -245,19 +227,16 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   const [panLimits, setPanLimits] = useState(() => ({ enabled: false, maxPan: 0 }))
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
   const [recoveryNotice, setRecoveryNotice] = useState(null)
-  const performanceStatsRef = useRef({ fps: null })
-  const audioLevels = useAudioLevels(debugMode)
+  const diagnosticsActive = debugMode && !hidden && !paused && !screenshotMode
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
   const focusChangeAtRef = useRef(0)
   const suppressCreatureFocusUntilRef = useRef(0)
   const fishRefsByCreatureId = useRef(new Map())
   const zoomActive = Boolean(selectedCreature)
-  const visibleDebugVisuals = debugMode
-  const visibleDebugPanel = debugMode && !screenshotMode
-  const boneDebugAvailable = debugView !== 'all'
-  const activeDebugLayers = boneDebugAvailable ? debugLayers : { ...debugLayers, bones: false }
-  const renderLoad = summarizeRenderLoad(creatures, biome?.id)
+  const visibleDebugVisuals = debugMode && !hidden && !screenshotMode
+  const visibleDebugPanel = visibleDebugVisuals
+  const population = useMemo(() => reservePopulation(creatures, tank, biome?.id), [creatures, tank, biome?.id])
   const canQueueDebugSunBask = debugMode && zoomActive && selectedCreature && isMolaCreature(selectedCreature)
   const selectedModel = selectedCreature ? resolveSpecies(selectedCreature)?.model ?? null : null
   // Static assets declare root aim explicitly. `proceduralAnimation` can also describe a
@@ -270,9 +249,18 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   }
 
 
-  const toggleDebugMode = () => {
+  const resetDebug = useCallback(() => {
+    setDebugLayers({ ...clearedDebugLayers(), lod: false })
+    setDebugView('focused')
+    setDebugSimulationSpeed(1)
+    setDebugSection('creature')
+  }, [])
+
+  const toggleDebugMode = useCallback(() => {
+    // Leaving debug cannot leave a hidden quality/simulation override behind.
+    if (debugMode) resetDebug()
     setDebugMode(current => !current)
-  }
+  }, [debugMode, resetDebug])
 
   useEffect(() => {
     const updatePanLimits = () => {
@@ -298,7 +286,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
 
     window.addEventListener('keydown', toggleDebugOnShortcut)
     return () => window.removeEventListener('keydown', toggleDebugOnShortcut)
-  }, [debugMode, hidden])
+  }, [toggleDebugMode, hidden])
 
   useEffect(() => {
     if (hidden) return undefined
@@ -318,7 +306,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
     if (hidden) return undefined
     window.addEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
     return () => window.removeEventListener(DEBUG_TOGGLE_EVENT, toggleDebugMode)
-  }, [debugMode, hidden])
+  }, [toggleDebugMode, hidden])
 
   useEffect(() => {
     if (!selectedCreature) return undefined
@@ -538,55 +526,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
     setDebugLayers(current => ({ ...current, [layerId]: !current[layerId] }))
   }
 
-  useEffect(() => {
-    if (!visibleDebugVisuals || paused) {
-      const resetStats = { fps: null }
-      performanceStatsRef.current = resetStats
-      setPerformanceStats(resetStats)
-      return undefined
-    }
-
-    let frameId = 0
-    let frameCount = 0
-    let sampleStartedAt = performance.now()
-
-    const sampleFps = (now) => {
-      frameCount += 1
-      const elapsed = now - sampleStartedAt
-      if (elapsed >= FPS_SAMPLE_MS) {
-        const instanceDebug = window[SARDINE_INSTANCE_DEBUG_GLOBAL]
-        const instancingMode = instanceDebug?.mode ?? 'off'
-        const lod1Drawn = Number.isFinite(instanceDebug?.lod1Total) ? instanceDebug.lod1Total : 0
-        const lod2Drawn = Number.isFinite(instanceDebug?.lod2Total) ? instanceDebug.lod2Total : (Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0)
-        const lod0Stats = getSardineLod0Stats()
-        const frustumStats = getSardineFrustumStats()
-        const nextStats = {
-          fps: Math.round((frameCount * 1000) / elapsed),
-          sardineCandidates: getSardineInstances().size,
-          lod1Candidates: getSardineLod1Instances().size,
-          lod1Drawn,
-          instancedDrawn: lod2Drawn,
-          lod0Drawn: lod0Stats.drawn,
-          lod0Candidates: lod0Stats.candidates,
-          frustumCulled: frustumStats.culled,
-          frustumCandidates: frustumStats.candidates,
-          instancingMode,
-          instancingDistance: selectedCreature ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE,
-          lod1Distance: selectedCreature ? SARDINE_LOD1_DISTANCE : SARDINE_TANK_LOD1_DISTANCE,
-        }
-        if (!arePerformanceStatsEqual(performanceStatsRef.current, nextStats)) {
-          performanceStatsRef.current = nextStats
-          setPerformanceStats(nextStats)
-        }
-        frameCount = 0
-        sampleStartedAt = now
-      }
-      frameId = window.requestAnimationFrame(sampleFps)
-    }
-
-    frameId = window.requestAnimationFrame(sampleFps)
-    return () => window.cancelAnimationFrame(frameId)
-  }, [visibleDebugVisuals, selectedCreature, paused])
 
   useEffect(() => {
     if (hidden) return undefined
@@ -823,6 +762,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             inline position and size give way to that rule. */}
         <Canvas className="tank-canvas" style={{ position: undefined, width: undefined, height: undefined }} camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <ResumeClock paused={paused} />
+          {diagnosticsActive && <PerformanceDiagnostics onSample={setPerformanceStats} />}
           <StageWindow panRef={stagePanRef} maxAspect={tank?.camera?.maxStageAspect} />
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
@@ -862,9 +802,9 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             hideSelectionSilhouette={screenshotMode}
             debug={visibleDebugVisuals}
             debugView={debugView}
-            debugLayers={activeDebugLayers}
-            debugLodView={visibleDebugVisuals && Boolean(activeDebugLayers.lod)}
-            debugStatsEnabled={visibleDebugVisuals}
+            debugLayers={debugLayers}
+            debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
+            debugInspectorEnabled={diagnosticsActive}
             debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
             onCreatureClick={selectCreatureFromPointer}
             onCreatureReady={registerCreatureRef}
@@ -908,281 +848,43 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
       {!screenshotMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
 
+      {visibleDebugPanel && <div className="debug-overlay">
+        <DebugDataStatus loading={creatureDataLoading} source={creatureDataSource} totalCount={creatures.length} population={population} error={creatureDataError} />
+        <DebugReadout key={selectedCreature?.id ?? 'none'} selectedCreature={selectedCreature} fishRef={focusedFishRef} performanceStats={performanceStats} />
+      </div>}
       {visibleDebugPanel && (
         <DebugPanel
-          className="debug-panel--floating"
-          creatureDataSource={creatureDataSource}
-          creatureDataError={creatureDataError}
-          creatureCount={creatures.length}
+          population={population}
+          section={debugSection}
+          onSectionChange={setDebugSection}
           debugView={debugView}
           debugLayers={debugLayers}
-          boneDebugAvailable={boneDebugAvailable}
           debugSimulationSpeed={debugSimulationSpeed}
-          audioLevels={audioLevels}
-          performanceStats={performanceStats}
-          renderLoad={renderLoad}
+          environmentLoading={environmentLoading}
           canQueueSunBask={canQueueDebugSunBask}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
           onDebugSimulationSpeedChange={setDebugSimulationSpeed}
           onQueueSunBask={queueDebugSunBask}
+          onReset={resetDebug}
+          onExit={toggleDebugMode}
         />
       )}
 
-      {!screenshotMode && selectedCreature && <FocusHint />}
+      {!screenshotMode && !visibleDebugPanel && selectedCreature && <FocusHint />}
       {!screenshotMode && diverMode && <DiverHint />}
       {recoveryNotice && (
         <div key={recoveryNotice.id} className="runtime-recovery-notice" role="status" aria-live="polite">
           {recoveryNotice.text}
         </div>
       )}
-      {!screenshotMode && selectedCreature && (
+      {!screenshotMode && !visibleDebugPanel && selectedCreature && (
         <InfoCard creature={selectedCreature} onClose={releaseFocus} onOpenEncyclopedia={onOpenEncyclopedia} />
       )}
     </div>
   )
 }
 
-function clampDebugCount(value) {
-  return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0
-}
-
-function arePerformanceStatsEqual(left, right) {
-  return left?.fps === right?.fps &&
-    left?.sardineCandidates === right?.sardineCandidates &&
-    left?.lod1Candidates === right?.lod1Candidates &&
-    left?.lod1Drawn === right?.lod1Drawn &&
-    left?.instancedDrawn === right?.instancedDrawn &&
-    left?.lod0Drawn === right?.lod0Drawn &&
-    left?.lod0Candidates === right?.lod0Candidates &&
-    left?.frustumCulled === right?.frustumCulled &&
-    left?.frustumCandidates === right?.frustumCandidates &&
-    left?.instancingMode === right?.instancingMode &&
-    left?.instancingDistance === right?.instancingDistance &&
-    left?.lod1Distance === right?.lod1Distance
-}
-
-function DebugPanel({
-  className = '',
-  creatureDataSource,
-  creatureDataError,
-  creatureCount,
-  debugView,
-  debugLayers,
-  boneDebugAvailable = true,
-  debugSimulationSpeed = 1,
-  audioLevels,
-  performanceStats,
-  renderLoad,
-  canQueueSunBask = false,
-  onDebugViewChange,
-  onDebugLayerToggle,
-  onDebugSimulationSpeedChange,
-  onQueueSunBask,
-}) {
-  const visibleCreatureCount = clampDebugCount(renderLoad?.visibleCreatures)
-  const lod1Drawn = clampDebugCount(performanceStats?.lod1Drawn)
-  const lod1Candidates = Math.max(lod1Drawn, clampDebugCount(performanceStats?.lod1Candidates))
-  const lod2Drawn = clampDebugCount(performanceStats?.instancedDrawn)
-  const lod2Candidates = Math.max(lod2Drawn, clampDebugCount(performanceStats?.sardineCandidates))
-  const lod0Candidates = Math.max(0, visibleCreatureCount - lod1Candidates - lod2Candidates)
-  const frustumCandidates = Math.max(visibleCreatureCount, clampDebugCount(performanceStats?.frustumCandidates))
-  const frustumCulled = Math.min(frustumCandidates, clampDebugCount(performanceStats?.frustumCulled))
-  const lod0Drawn = Math.max(0, lod0Candidates - frustumCulled)
-  const debugVersionTapCount = useRef(0)
-  const debugVersionTapTimer = useRef(null)
-
-  const resetDebugVersionTaps = () => {
-    debugVersionTapCount.current = 0
-    if (!debugVersionTapTimer.current) return
-    window.clearTimeout(debugVersionTapTimer.current)
-    debugVersionTapTimer.current = null
-  }
-
-  const handleDebugVersionTap = (event) => {
-    event.stopPropagation()
-    if (debugVersionTapTimer.current) {
-      window.clearTimeout(debugVersionTapTimer.current)
-    }
-
-    debugVersionTapCount.current += 1
-
-    if (debugVersionTapCount.current >= 3) {
-      resetDebugVersionTaps()
-      window.dispatchEvent(new CustomEvent(DEBUG_TOGGLE_EVENT))
-      return
-    }
-
-    debugVersionTapTimer.current = window.setTimeout(resetDebugVersionTaps, 1200)
-  }
-
-  const fpsLabel = Number.isFinite(performanceStats?.fps) ? performanceStats.fps : '—'
-
-  return (
-    <div className={`debug-panel ${className}`}>
-      <div className="debug-mobile-readout" aria-label="Compact mobile debug readout">
-        <div className="debug-mobile-stat"><span>C</span><strong>{visibleCreatureCount}/{creatureCount}</strong></div>
-        <div className="debug-mobile-stat"><span>LOD</span><strong>{lod0Drawn}/{lod1Drawn}/{lod2Drawn}</strong></div>
-        <div className="debug-mobile-stat"><span>F</span><strong>{frustumCulled}/{frustumCandidates}</strong></div>
-        <div className="debug-mobile-stat"><span>FPS</span><strong>{fpsLabel}</strong></div>
-        <button
-          className="debug-mobile-version"
-          type="button"
-          aria-label="Tap three times to disable debug mode"
-          onPointerUp={handleDebugVersionTap}
-          onContextMenu={(event) => event.preventDefault()}
-        >
-          <span className="version-label-full">{APP_VERSION_LABEL}</span>
-          <span className="version-label-short">{APP_VERSION_SHORT_LABEL}</span>
-        </button>
-      </div>
-      <div className="debug-panel-section debug-panel-section--runtime" aria-label="Runtime stats">
-        <div className="debug-panel-stat"><span aria-hidden="true">◷</span><span className="debug-panel-label">FPS</span><strong>{fpsLabel}</strong></div>
-        <div className="debug-panel-stat"><span aria-hidden="true">◆</span><span className="debug-panel-label">Data</span><strong>{creatureDataSource}</strong></div>
-      </div>
-      <div className="debug-panel-section debug-panel-section--load" aria-label="Creature render load">
-        <div className="debug-load-column">
-          <div className="debug-panel-label">Creatures</div>
-          <strong>{visibleCreatureCount}/{creatureCount}</strong>
-        </div>
-        <div className="debug-load-column debug-load-column--lod">
-          <div className="debug-panel-label">LOD</div>
-          <div className="debug-load-stack">
-            <div className="debug-panel-stat"><span className="debug-panel-label">LOD 0</span><strong>{lod0Drawn}/{lod0Candidates}</strong></div>
-            <div className="debug-panel-stat"><span className="debug-panel-label">LOD 1</span><strong>{lod1Drawn}/{lod1Candidates}</strong></div>
-            <div className="debug-panel-stat"><span className="debug-panel-label">LOD 2</span><strong>{lod2Drawn}/{lod2Candidates}</strong></div>
-          </div>
-        </div>
-        <div className="debug-load-column">
-          <div className="debug-panel-label">Frustum</div>
-          <strong>{frustumCulled}/{frustumCandidates}</strong>
-        </div>
-      </div>
-      <div className="debug-panel-section debug-panel-section--controls" aria-label="Debug controls">
-        <div className="debug-panel-row">
-          <span className="debug-panel-label">View</span>
-          {DEBUG_VIEW_MODES.map(mode => (
-            <button
-              key={mode.id}
-              type="button"
-              title={mode.label}
-              aria-label={`Debug ${mode.label}`}
-              aria-pressed={debugView === mode.id}
-              className="debug-panel-button"
-              onClick={() => onDebugViewChange(mode.id)}
-            >
-              {mode.icon}
-            </button>
-          ))}
-        </div>
-        <div className="debug-panel-row">
-          <span className="debug-panel-label">Overlay</span>
-          {DEBUG_LAYER_BUTTONS.map(layer => {
-            const disabled = layer.id === 'bones' && !boneDebugAvailable
-            return (
-              <button
-                key={layer.id}
-                type="button"
-                title={disabled ? 'Bone overlay is only available for selected creature view' : layer.label}
-                aria-label={`Toggle ${layer.label}`}
-                aria-pressed={disabled ? false : debugLayers[layer.id]}
-                className="debug-panel-button"
-                disabled={disabled}
-                onClick={() => {
-                  if (!disabled) onDebugLayerToggle(layer.id)
-                }}
-              >
-                {layer.icon}
-              </button>
-            )
-          })}
-        </div>
-        <div className="debug-panel-row">
-          <span className="debug-panel-label">Sim</span>
-          {DEBUG_SIMULATION_SPEEDS.map(speed => (
-            <button
-              key={speed}
-              type="button"
-              title={`Simulation speed ${speed}x`}
-              aria-label={`Simulation speed ${speed}x`}
-              aria-pressed={debugSimulationSpeed === speed}
-              className="debug-panel-button"
-              onClick={() => onDebugSimulationSpeedChange(speed)}
-            >
-              {speed}x
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          title={canQueueSunBask ? 'Queue Mola sun-bask' : 'Follow Mola in debug mode to queue sun-bask'}
-          aria-label="Queue Mola sun-bask"
-          className="debug-panel-button debug-panel-button--wide"
-          disabled={!canQueueSunBask}
-          onClick={onQueueSunBask}
-        >
-          ☀ bask
-        </button>
-      </div>
-      <AudioDebugMeters levels={audioLevels} />
-      {creatureDataError && (
-        <div className="debug-panel-error">
-          {creatureDataError.code ? `${creatureDataError.code}: ` : ''}{creatureDataError.message ?? String(creatureDataError)}
-        </div>
-      )}
-      <div className="debug-panel-section debug-panel-section--identity" aria-label="Build version">
-        <button
-          className="debug-panel-version"
-          type="button"
-          aria-label="Tap three times to disable debug mode"
-          onPointerUp={handleDebugVersionTap}
-          onContextMenu={(event) => event.preventDefault()}
-        >
-          <span className="version-label-full">{APP_VERSION_LABEL}</span>
-          <span className="version-label-short">{APP_VERSION_SHORT_LABEL}</span>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-
-function clamp01(value) {
-  return Math.max(0, Math.min(1, value))
-}
-
-function formatDb(value) {
-  if (!Number.isFinite(value) || value <= LEVEL_FLOOR_DB + 0.5) return '-∞ dB'
-  return `${Math.round(value)} dB`
-}
-
-function meterLevel(value) {
-  if (!Number.isFinite(value)) return 0
-  return clamp01((value - LEVEL_FLOOR_DB) / Math.abs(LEVEL_FLOOR_DB))
-}
-
-function AudioDebugMeters({ levels }) {
-  const rows = [
-    { id: 'overall', label: 'Overall', value: levels.overallDb },
-    { id: 'ambient', label: 'Ambient', value: levels.ambientDb },
-    { id: 'sfx', label: 'SFX', value: levels.sfxDb },
-  ]
-
-  return (
-    <div className="audio-debug-meters" aria-label="Audio volume debug meters">
-      <div className="audio-debug-heading">Audio dB{levels.muted ? ' · muted' : ''}</div>
-      {rows.map(row => (
-        <div className="audio-debug-row" key={row.id}>
-          <span className="audio-debug-label">{row.label}</span>
-          <div className="audio-debug-track" aria-hidden="true">
-            <span className="audio-debug-fill" style={{ transform: `scaleX(${meterLevel(row.value)})` }} />
-          </div>
-          <span className="audio-debug-value">{formatDb(row.value)}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 function FocusHint() {
   return (

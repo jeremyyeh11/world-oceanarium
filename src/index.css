@@ -531,38 +531,20 @@ button { font: inherit; }
 }
 
 .debug-panel {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
   box-sizing: border-box;
-  width: 100vw;
-  max-width: none;
-  min-height: 3.05rem;
-  padding: 0 max(0.72rem, env(safe-area-inset-right)) max(0.22rem, env(safe-area-inset-bottom)) max(0.72rem, env(safe-area-inset-left));
-  border-top: 0;
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
+  width: 100%;
+  max-height: 52dvh;
+  padding: 0 max(0.72rem, env(safe-area-inset-right)) max(0.35rem, env(safe-area-inset-bottom)) max(0.72rem, env(safe-area-inset-left));
+  border: 0;
   border-radius: 0;
-  background: rgba(0,10,24,0.92);
-  color: rgba(220,245,255,0.72);
-  font: 0.62rem/1.18 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
-  backdrop-filter: none;
+  background: rgba(0,10,24,0.94);
+  color: rgba(220,245,255,0.86);
+  font: 0.75rem/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   pointer-events: auto;
-  overflow-x: auto;
   overflow-y: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-}
-
-.debug-panel::-webkit-scrollbar {
-  display: none;
-}
-
-.debug-mobile-readout {
-  display: none;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-width: thin;
 }
 
 .debug-panel--floating {
@@ -573,212 +555,100 @@ button { font: inherit; }
   z-index: 75;
 }
 
-.debug-panel--inline {
-  display: none;
-}
-
-.debug-panel-section {
-  flex: 0 0 auto;
+.debug-summary, .debug-tabs, .debug-panel-row {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 100%;
-  padding: 0.48rem 0.78rem;
-  border-left: 1px solid rgba(220,245,255,0.09);
-}
-
-.debug-panel-section:first-child {
-  border-left: 0;
-  padding-left: 0;
-}
-
-.debug-panel-section--identity {
-  position: sticky;
-  right: 0;
-  z-index: 1;
-  margin-left: auto;
-  gap: 0.38rem;
-  background: rgba(0,10,24,0.92);
-  color: rgba(238,252,255,0.9);
-}
-
-.debug-panel-section--load {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  align-content: center;
-  align-items: start;
-  gap: 0.72rem;
-}
-
-.debug-load-column {
-  display: grid;
-  gap: 0.18rem;
-  align-content: start;
-  white-space: nowrap;
-}
-
-.debug-load-column > strong {
-  color: rgba(245,255,255,0.94);
-  font-size: calc(var(--crt-read-scale) * 0.8rem);
-  font-weight: 500;
-  letter-spacing: 0.025em;
-}
-
-.debug-load-stack {
-  display: grid;
-  gap: 0.14rem;
-}
-
-.debug-load-stack .debug-panel-stat {
-  grid-template-columns: 3rem auto;
-}
-
-.debug-panel-section--controls {
-  gap: 0.72rem;
   flex-wrap: wrap;
-  align-content: center;
+  align-items: center;
+  gap: 0.35rem;
 }
 
+.debug-overlay {
+  position: absolute;
+  top: calc(max(8px, env(safe-area-inset-top)) + 44px);
+  left: max(10px, env(safe-area-inset-left));
+  right: max(10px, env(safe-area-inset-right));
+  z-index: 42;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+  color: #d9f2e6;
+  text-align: left;
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: normal;
+  font-variant-ligatures: none;
+  text-shadow: 0 1px 3px #000, 0 0 5px #000;
+  overflow-wrap: anywhere;
+}
+.debug-topbar, .debug-readout { margin: 0; font: inherit; text-align: left; }
+.debug-performance-readout { margin-top: 8px; }
+@media (max-width: 640px) {
+  .debug-overlay { font-size: 11px; }
+}
+.debug-lod-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; }
+.debug-lod-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.debug-lod-legend i { width: 10px; height: 10px; }
+.debug-advanced summary { min-height: 44px; cursor: pointer; display: flex; align-items: center; }
 
-.debug-panel-section-icon {
-  color: rgba(125,249,255,0.72);
-  font-size: 0.92rem;
-  line-height: 1;
+.debug-summary {
+  /* Normal flow: sticky compositing over this WebGL/CRT stack painted a duplicate
+     empty header across the tank in Chromium. Scroll the instrument as one strip. */
+  padding-block: 0.35rem;
+  background: #000a18;
 }
 
-.debug-panel-version {
+.debug-summary > span { margin-right: 0.5rem; }
+.debug-summary .debug-version { margin-left: auto; color: rgba(220,245,255,0.55); }
+.debug-tabs {
+  border-top: 1px solid rgba(125,249,255,0.16);
+  border-bottom: 1px solid rgba(125,249,255,0.22);
+  gap: 0;
+}
+.debug-tab {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
   border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: rgba(180,225,240,0.65);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.debug-tab[aria-selected="true"] { border-bottom-color: #bfeaf2; color: #f5ffff; }
+.debug-tab:focus-visible { outline: 1px solid #bfeaf2; outline-offset: -4px; }
+.debug-tab:hover { color: #f5ffff; }
+.debug-detail { padding-block: 0.35rem; overflow-wrap: anywhere; }
+.debug-detail p { margin: 0.4rem 0; }
+.debug-panel-row { margin-bottom: 0.35rem; }
+.debug-note, .debug-panel-label { color: rgba(180,225,240,0.68); }
+.debug-warning { color: #ffd796; }
+
+.debug-panel-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid rgba(125,249,255,0.22);
+  border-radius: 0;
   background: transparent;
-  color: rgba(220, 245, 255, 0.26);
-  cursor: default;
-  font: 0.8rem/1.2 var(--crt-font-tiny);
-  font-synthesis-weight: none;
-  letter-spacing: 0.1em;
-  padding: 0;
-  text-transform: lowercase;
-  white-space: nowrap;
-  user-select: none;
-  -webkit-user-select: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   touch-action: manipulation;
 }
 
-.debug-panel-stat {
-  flex: 0 0 auto;
-  display: inline-grid;
-  grid-template-columns: auto auto auto;
-  align-items: baseline;
-  gap: 0.24rem;
-  white-space: nowrap;
+.debug-panel-button[aria-pressed="true"], .debug-panel-button[aria-expanded="true"] {
+  border-color: rgba(125,249,255,0.78);
+  color: #f5ffff;
+  background: rgba(0,76,96,0.5);
 }
 
-.debug-panel-stat strong {
-  color: rgba(245,255,255,0.94);
-  font-size: calc(var(--crt-read-scale) * 0.8rem);
-  font-weight: 500;
-  letter-spacing: 0.025em;
-}
-
-.debug-panel-row {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 0.28rem;
-}
-
-.debug-panel-label {
-  color: rgba(180,225,240,0.54);
-  white-space: nowrap;
-}
-
-.debug-panel-button {
-  min-width: 26px;
-  height: 24px;
-  border-radius: 0;
-  border: 1px solid rgba(125,249,255,0.18);
-  background: rgba(0,18,32,0.46);
-  color: rgba(220,245,255,0.64);
-  cursor: pointer;
-  font: 0.72rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  line-height: 1;
-  padding: 0 0.34rem;
-}
-
-.debug-panel-button[aria-pressed="true"] {
-  border-color: rgba(125,249,255,0.72);
-  background: rgba(0,76,96,0.72);
-  color: rgba(245,255,255,0.96);
-}
-
-.debug-panel-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.38;
-}
-
-.debug-panel-button--wide {
-  width: auto;
-  min-width: 4.4rem;
-  padding-inline: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.debug-panel-error {
-  flex: 0 0 auto;
-  max-width: 280px;
-  padding: 0.48rem 0.78rem;
-  border-left: 1px solid rgba(255, 220, 220, 0.1);
-  white-space: normal;
-  text-transform: none;
-  color: rgba(255,205,205,0.8);
-}
-
-.audio-debug-meters {
-  flex: 0 0 auto;
-  min-width: 10.5rem;
-  padding: 0.48rem 0.78rem;
-  border-left: 1px solid rgba(220, 245, 255, 0.09);
-}
-
-.audio-debug-heading {
-  margin-bottom: 0.26rem;
-  color: rgba(220, 245, 255, 0.64);
-}
-
-.audio-debug-row {
-  display: grid;
-  grid-template-columns: 3.5rem 4.4rem 3.1rem;
-  align-items: center;
-  gap: 0.3rem;
-  margin-top: 0.18rem;
-}
-
-.audio-debug-label {
-  color: rgba(220, 245, 255, 0.58);
-}
-
-.audio-debug-track {
-  position: relative;
-  height: 0.42rem;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(125, 249, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(125, 249, 255, 0.11);
-}
-
-.audio-debug-fill {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgba(70, 190, 255, 0.62), rgba(125, 249, 255, 0.92));
-  transform-origin: left center;
-  transition: transform 120ms linear;
-}
-
-.audio-debug-value {
-  color: rgba(230, 252, 255, 0.76);
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  text-transform: none;
+.debug-panel-button:focus-visible {
+  outline: 2px solid #7df9ff;
+  outline-offset: 2px;
 }
 
 .tank-viewport {
@@ -1000,112 +870,17 @@ body:has(.debug-panel) .app-version-footnote {
   }
 
   .debug-panel {
-    flex-direction: column;
-    align-items: stretch;
-    min-height: 0;
-    max-height: 56dvh;
-    padding: 0 max(0.42rem, env(safe-area-inset-right)) max(0.18rem, env(safe-area-inset-bottom)) max(0.42rem, env(safe-area-inset-left));
-    overflow-x: hidden;
-    overflow-y: auto;
-    font-size: 0.56rem;
-    line-height: 1.18;
+    max-height: 52dvh;
+    padding-inline: max(0.5rem, env(safe-area-inset-left)) max(0.5rem, env(safe-area-inset-right));
+    font-size: 0.72rem;
   }
 
-  .debug-mobile-readout {
-    display: flex;
-    align-items: center;
-    gap: 0.42rem;
-    min-width: 0;
-    padding: 0.38rem 0 0.28rem;
-    border-bottom: 1px solid rgba(220,245,255,0.08);
-    white-space: nowrap;
-  }
+  .debug-summary { gap: 0.25rem; }
+  .debug-summary > span { margin-right: 0.15rem; }
+  .debug-summary .debug-version { display: none; }
+  .debug-tabs { gap: 0; }
+  .debug-tabs .debug-tab { flex: 1; padding-inline: 0.2rem; }
 
-  .debug-mobile-stat {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.18rem;
-  }
-
-  .debug-mobile-stat span {
-    color: rgba(180,225,240,0.54);
-  }
-
-  .debug-mobile-stat strong {
-    color: rgba(245,255,255,0.94);
-    font-weight: 800;
-    letter-spacing: 0.02em;
-  }
-
-  .debug-mobile-version {
-    flex: 1 1 auto;
-    min-width: 6.4rem;
-    overflow: hidden;
-    border: 0;
-    background: transparent;
-    color: rgba(220, 245, 255, 0.26);
-    cursor: default;
-    font: 0.68rem/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    letter-spacing: 0.04em;
-    padding: 0;
-    text-align: right;
-    text-overflow: ellipsis;
-    text-transform: lowercase;
-    white-space: nowrap;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-  }
-
-  .debug-panel-section--runtime,
-  .debug-panel-section--load,
-  .debug-panel-section--identity,
-  .audio-debug-meters {
-    display: none;
-  }
-
-  .debug-panel-section--controls {
-    display: flex;
-    min-height: 0;
-    gap: 0.55rem;
-    flex-wrap: wrap;
-    overflow-x: hidden;
-    overflow-y: visible;
-    overscroll-behavior-x: contain;
-    padding: 0.32rem 0 0.28rem;
-    border-left: 0;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .debug-panel-section--controls::-webkit-scrollbar {
-    display: none;
-  }
-
-  .debug-panel-row {
-    gap: 0.22rem;
-  }
-
-
-  .debug-panel-button {
-    min-width: 24px;
-    height: 22px;
-    padding: 0 0.28rem;
-    font-size: 0.64rem;
-  }
-
-  .debug-panel-button--wide {
-    min-width: 3.9rem;
-    padding-inline: 0.42rem;
-  }
-
-  .debug-panel-error {
-    max-width: none;
-    padding: 0.26rem 0;
-    border-left: 0;
-    border-top: 1px solid rgba(255,220,220,0.1);
-  }
 }
 
 @media (max-width: 640px) and (orientation: portrait) {
@@ -1113,20 +888,6 @@ body:has(.debug-panel) .app-version-footnote {
     transform: translate(calc(-50% + var(--stage-pan-x, 0px)), -50%);
   }
 
-
-  .tank-viewport .debug-panel--floating {
-    font-size: calc(var(--crt-read-scale) * 0.72rem);
-    line-height: 1.28;
-  }
-
-  .tank-viewport .debug-panel--floating .audio-debug-meters {
-    min-width: 0;
-  }
-
-  .tank-viewport .debug-panel--floating .audio-debug-row {
-    grid-template-columns: 3.45rem minmax(0, 1fr) 3rem;
-    gap: 0.28rem;
-  }
 
   .tank-viewport.is-following-fish .focus-hint {
     top: 4.35rem !important;
@@ -1178,7 +939,7 @@ body:has(.debug-panel) .app-version-footnote {
 
   .tank-viewport.is-following-fish.has-debug-panel .info-card {
     bottom: calc(var(--floating-debug-panel-height, 4rem) + 0.65rem) !important;
-    max-height: calc(40dvh - var(--floating-debug-panel-height, 4rem) - 0.65rem) !important;
+    max-height: max(5rem, min(24dvh, calc(80dvh - var(--floating-debug-panel-height, 4rem) - 0.65rem))) !important;
     padding-bottom: 0.72rem !important;
   }
 

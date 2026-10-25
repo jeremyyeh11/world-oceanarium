@@ -8,6 +8,21 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.37.2 — Selected text and all-GLB performance instruments
+
+Status: clean `v0.37.2` (2026-10-25 UTC), promoted from accepted `v0.37.2-dev_5`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly approved merge.
+
+### Debugging
+
+- Creatures has only Heading/speed, Neighbours, Labels. Steering/behaviour are selected-only top-left plain text, never world overlays.
+- Combine Render/Scene into Performance. Remove Audio/Data tabs and Force sardine detail. Persist source/count/error text at the top.
+- Colour all reserve GLBs by actual drawn source tier, including mixed rock/table-coral chunks and staghorn low/high/far/min lifecycle; distinguish single-level models.
+- Bottom-positioned flat underline Creatures/Performance tabs below their controls, with keyboard/ARIA support. All top-left text shares a left-aligned code-monospace stack; Data no longer has its own inset. Single-level LOD is dark grey.
+- Always-visible debug performance readings, independent of selected tab. Live Canvas FPS, frame/CPU ms, optional nonblocking GPU timer, JS heap and complete-frame draw calls/triangles; unsupported measurements say unavailable. No whole-device utilisation claim.
+- Preserve authored fish colour/emission through repeated LOD-colour on/off/Reset/Exit; diagnostic colour is shader-only, never baked into cloned material values.
+- Debug readout replaces the normal follow hint/card while open, retaining selection and restoring normal card on Exit. Reset/Exit restore ordinary detail/1x/colours.
+- Keep animation/rig support after removing Bones display. Maintain normal simulation/population/asset data. Based on clean v0.37.1; normal simulation, assets and database remain unchanged.
+
 ## v0.37.1 — The Shallows' animals roam the bay (2026-10-25)
 
 Status: clean `v0.37.1` (2026-10-25, from `v0.37.1-dev_4`, branch `fix/shallows-wider-bounds`, #162). Jeremy: "Promote to clean v0.37.1 and merge PR #162". Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."

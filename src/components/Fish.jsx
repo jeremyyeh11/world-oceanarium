@@ -3127,7 +3127,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // Just turned away from a pinch: the next swim is picked in the half behind it, back the
           // way it came, rather than ahead, which mostly lay past the same gap again.
           const soloBounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
-          const acrossGoal = swim.goalPick === 'across' && soloBounds.box && !reefConfig && !pinchTurnBack.current
+          const acrossGoal = swim.goalPick === 'across' && (soloBounds.box || soloBounds.wedge) && !reefConfig && !pinchTurnBack.current
           if (acrossGoal) {
             // Anywhere in its room, inset by its turning circle, on the other side of its heading
             // from the last goal (fishSwim.js pickGoalAcross).
@@ -3330,7 +3330,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
               // Inset the goal from the walls so a wide-turning school (big fish, tight bounds)
               // banks away early instead of driving into a boundary it can't out-turn and thrashing.
               const gm = Math.min(bodyLength * 2, (bounds.zMax - bounds.zMin) * 0.28)
-              if (swim.goalPick === 'across' && bounds.box) {
+              if (swim.goalPick === 'across' && (bounds.box || bounds.wedge)) {
                 // Anywhere in the school's room: the box inset as the clamps below inset it (the
                 // formation's reach, its turning circle and the soft wall), so the clamps leave it be.
                 const fit = schoolFormationHorizontalHalfExtent(school, creature)

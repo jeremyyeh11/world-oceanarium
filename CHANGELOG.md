@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.37.1 — The Shallows' animals roam the bay (in progress)
 
-Status: `v0.37.1-dev_1` (2026-10-25, branch `fix/shallows-wider-bounds`). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
+Status: `v0.37.1-dev_2` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
 
 ### Movement
 
@@ -21,6 +21,16 @@ Status: `v0.37.1-dev_1` (2026-10-25, branch `fix/shallows-wider-bounds`). Jeremy
 - Devil ray school: `goalPick: 'across'`, box ±110 by z −125 to 27 (was ±50, −70 to 27), goal reached at 3.5 body lengths (was 1). Manta: `goalPick: 'across'`, box ±60 by z −115 to −15 and y −14 to −4 (was ±12, −65 to −20, y −12 to −6), turn radius 0.6 widths (was 0.45).
 - Result over the same soak: the school's longest one-way turn 227–340° (under a lap), net −1.5 to +1.0 laps in ten minutes, 150–240°/min of turning (was about 440), roaming x ±70–88 and z −105 to 5; the manta's longest one-way turn 394°, net −0.2 laps. Trade-off, as Jeremy allowed: a 375 px phone sees the school's centre about 30% of the time (was 47%) and the manta's 39% (was 100% in its old narrow box); a desktop screen 81–89% and 91–96%. The school is about 30 WU across, so part of it is often on screen when its centre is not. Starting them near the middle of the view was tried and dropped: they leave for a far goal within seconds either way.
 - The ray school soak in `npm test` is unchanged (wing overlaps 1 pair in 2 samples, no wall contact). Browser: no console errors; with prod's 218 rays the school made a long straight crossing to the front right.
+
+### Wide screens (dev_2)
+
+- Jeremy (on the dev_1 preview): on a 21:9 screen the animals could be seen meeting the border and pivoting; and widening the window cropped the bottom, losing the sand (The Reefs was fine).
+- Framing: the stage was always a 16:9 frame at least as large as the window, so a window wider than 16:9 kept the same width of view and cropped the top and bottom; The Shallows' camera looks up from the sand, so the sand went first. A tank may now set `camera.maxStageAspect` (TankView.jsx `StageWindow`): up to that aspect the frame widens with the window, showing more at the sides instead of cropping. The Shallows: 21:9 (32:9 crops again, as Jeremy allowed). Other tanks and portrait phones unchanged.
+- Swim walls: the straight-sided boxes showed their sides at the back of a wide view. New `swim.boundsWedge` (fishSwim.js `halfXAt`/`sideKAt`): sides that widen with distance from the camera, `margin` + `slope` × distance, sized from the Shallows camera so they stay outside a 21:9 frame at every depth and height the animals reach, with half the animal's width: rays 45 + 1.4 × (18 would do for 21:9; at 18 the school's swing past a far goal met the wall and squeezed the cloud, 5 tight pairs in the 218-ray soak), manta 20 + 1.4 ×. In the soak, at an 18 margin, no animal near a wall was ever inside a 21:9 frame (0 of 250–1,200 wall-close samples a seed); the wider margin only moves the walls further out.
+- Goals are picked in a narrower wedge (`goalSlope`): about a 16:9 screen's view for the school (1.0 ×) and well inside it for the manta (0.55 ×; it runs 30–55 WU past a goal before it has turned). With goals out to the 21:9 walls a 16:9 screen saw the manta 53–58% of the time.
+- A school spawning in a wedge is placed where the wedge is as wide as its cloud at the cloud's front edge (the spawn test caught slots past the narrow front).
+- The manta's far limit came in from z −115 to −95.
+- Measured (600 s, 4 seeds, before the wider ray margin): the school's longest one-way turn 231–474°, at least 10 rays on a 16:9 screen 98% of the time, on 21:9 100%, on a phone 40–52%; the manta's 679° (about 1.9 laps over 4 minutes, net −0.4 to −1.4 laps in ten minutes), on a 16:9 screen 80–83%, on 21:9 91%, on a phone 24–28%. The 218-ray soak in `npm test` is unchanged (0 tight pairs, 1 overlapping pair in 2 samples); seeds 7 and 11 show 1–2 tight pairs, as main's code does.
 
 ## v0.37.0 — The giant manta (2026-10-25)
 

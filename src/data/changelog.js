@@ -11,6 +11,7 @@ export const VISITOR_CHANGELOG = [
     title: 'The whole bay',
     changes: [
       ['fix', 'In The Shallows, the devil rays and the manta roam the whole bay instead of swimming in circles, sometimes out of view and back again.'],
+      ['fix', 'On wide screens, up to 21:9, The Shallows shows more of the bay at the sides instead of cropping away the sand, and the animals never turn at a visible edge.'],
     ],
   },
   {

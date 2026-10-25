@@ -3394,12 +3394,19 @@ export const SPECIES = [
       // Room for the full school plus its broad turning circle, above the sand and
       // the low camera. Z is offset by -15 in fishSwim.js: -110/42 becomes -125/27.
       // Goals reserve the cloud extent, free-drift band and turning radius (about 39 WU
-      // a side), so the room they are picked in is about 140 by 74 WU. Wider than the
-      // view on purpose (Jeremy, 2026-10-25: leaving the screen and coming back is fine
-      // if the motion reads better): at ±50 by 97 WU the room left was 52 by 37, a
-      // school 30 WU across turned all the time, and it read as circling.
+      // a side). Wider than the view on purpose (Jeremy, 2026-10-25: leaving the screen
+      // and coming back is fine if the motion reads better): at ±50 by 97 WU the room
+      // left was 52 by 37, a school 30 WU across turned all the time, and it read as
+      // circling. The sides are a wedge from the camera (45 + 1.4 × the distance), outside
+      // a 21:9 frame at every depth and height (TankView.jsx shows up to 21:9; 18 would do),
+      // so no ray is seen meeting a wall and pivoting; a straight ±110 box showed its
+      // sides at the back on an ultrawide screen. Goals are picked in a narrower wedge,
+      // about a 16:9 screen's view (1.0 × the distance): with goals out to the 21:9 walls
+      // a 16:9 screen saw the school's centre 73–87% of the time. The extra wall margin
+      // is room for the school's swing past a far goal: at 18 its edge met the wall there and
+      // the cloud squeezed (5 tight pairs in the 218-ray soak).
       boundsUseSpeciesSize: false,
-      boundsHalfX: 110,
+      boundsWedge: { apexZ: 24, slope: 1.4, margin: 45, goalSlope: 1.0, goalMargin: 0 },
       boundsYMin: -25,
       boundsYMax: 3,
       boundsZMin: -110,
@@ -3591,12 +3598,16 @@ export const SPECIES = [
       // is at least 3 body lengths away (about 70 WU for this one), so its room has to hold
       // that: in the ±12 by 45 WU box of v0.37.0 every pick fell back to the nearest point and
       // it swam 11 laps one way in 10 minutes (Jeremy, 2026-10-25: leaving the screen and
-      // coming back is fine). Z is offset by -15 in fishSwim.js: -100/0 becomes -115/-15.
+      // coming back is fine). Z is offset by -15 in fishSwim.js: -80/0 becomes -95/-15. The
+      // sides are a wedge from the camera like the rays' (20 + 1.4 × the distance, its wider
+      // body), just outside a 21:9 frame, and its goals well inside a 16:9 screen's view
+      // (0.8 × the distance), since it swings wide past each goal before it turns: with goals
+      // out to the walls a 16:9 screen saw it 53–58% of the time, at 1.0 × 64%.
       boundsUseSpeciesSize: false,
-      boundsHalfX: 60,
+      boundsWedge: { apexZ: 24, slope: 1.4, margin: 20, goalSlope: 0.55, goalMargin: 0 },
       boundsYMin: -14,
       boundsYMax: -4,
-      boundsZMin: -100,
+      boundsZMin: -80,
       boundsZMax: 0,
       boids: {
         neighborCap: 3,

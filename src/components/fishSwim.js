@@ -316,7 +316,15 @@ export function getSchoolState(school, creature, swim) {
         const mz = Math.min(horizontal + wall + turnRoom, (bounds.zMax - bounds.zMin) * 0.5)
         point.y = THREE.MathUtils.clamp(point.y, bounds.yMin + my, bounds.yMax - my)
         point.z = THREE.MathUtils.clamp(point.z, bounds.zMin + mz, bounds.zMax - mz)
-        const { xMin, xMax } = swimXRangeAtZ(bounds, point.z)
+        // A wedge narrows toward the camera, so the cloud has to fit where its front edge is:
+        // far enough back that the wedge there is as wide as the cloud, and clamped across to
+        // that width.
+        if (bounds.wedge) {
+          const fitZ = bounds.wedge.apexZ - horizontal
+            - Math.max(0, horizontal + wall + turnRoom - bounds.wedge.margin) / bounds.wedge.slope
+          point.z = Math.max(bounds.zMin + mz, Math.min(point.z, fitZ))
+        }
+        const { xMin, xMax } = swimXRangeAtZ(bounds, bounds.wedge ? Math.min(bounds.zMax, point.z + horizontal) : point.z)
         const mx = Math.min(horizontal + wall + turnRoom, (xMax - xMin) * 0.5)
         point.x = THREE.MathUtils.clamp(point.x, xMin + mx, xMax - mx)
       }
@@ -693,13 +701,23 @@ function setSideBoundaryOutwardNormal(out, side, z, bounds) {
 
 // A swim volume's sides are the camera's wedge (projectedScreenHalfXAtZ), unless the volume is a
 // box (swim.boundsHalfX: The Reefs' reef fish, whose camera no longer sits where the wedge assumes):
-// then they are straight, at ±bounds.x at every depth.
+// then they are straight, at ±bounds.x at every depth. Or a wedge of its own (swim.boundsWedge,
+// The Shallows): sides that widen with distance from an apex at the tank's camera, `margin` +
+// `slope` × the distance, so they stay just outside the view at every depth.
 function halfXAt(bounds, z) {
+  if (bounds?.wedge) return wedgeHalfX(bounds.wedge, z)
   return bounds?.box ? bounds.x : projectedScreenHalfXAtZ(z)
 }
 
 function sideKAt(bounds, z) {
+  if (bounds?.wedge) return bounds.wedge.apexZ - z > 0 && wedgeHalfX(bounds.wedge, z) > WEDGE_MIN_HALF_X ? bounds.wedge.slope : 0
   return bounds?.box ? 0 : projectedScreenSideKAtZ(z)
+}
+
+const WEDGE_MIN_HALF_X = 1
+
+function wedgeHalfX(wedge, z) {
+  return Math.max(WEDGE_MIN_HALF_X, wedge.margin + wedge.slope * Math.max(0, wedge.apexZ - z))
 }
 
 // The x range is symmetric about the centre line, so per-frame callers read the half-width
@@ -744,9 +762,19 @@ function computeSwimBounds(depthZone, swim, size) {
   const nearX = projectedScreenHalfXAtZ(zMax)
   const farX = projectedScreenHalfXAtZ(zMin)
   const box = Number.isFinite(swim.boundsHalfX)
-  const x = box ? swim.boundsHalfX : Math.max(nearX, farX)
+  const wedge = swim.boundsWedge
+    ? {
+      apexZ: swim.boundsWedge.apexZ,
+      slope: swim.boundsWedge.slope,
+      margin: swim.boundsWedge.margin,
+      goalSlope: swim.boundsWedge.goalSlope,
+      goalMargin: swim.boundsWedge.goalMargin,
+    }
+    : null
+  const x = wedge ? wedgeHalfX(wedge, zMin) : box ? swim.boundsHalfX : Math.max(nearX, farX)
   return {
     box,
+    wedge,
     x,
     z: Math.max(Math.abs(zMin), Math.abs(zMax)),
     xMin: -x,
@@ -1201,6 +1229,72 @@ export function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
   }
 
   return nudgeOutOfRocks(out, bodyLength)
+}
+
+// The next goal anywhere in a swim room (`swim.goalPick: 'across'`, for a school's leader or a solo
+// animal), at least GOAL_ACROSS_MIN_SHARE of the room's ground diagonal from `from`, so each leg
+// crosses the room, and on the other side of `heading` from the last goal (`lastSide`), so the
+// turns alternate into S-bends. The default picks (a step ahead bent toward the middle for a
+// school; the opposite quarter, ahead, for a solo animal) kept The Shallows' animals turning one
+// way: the devil ray school made 12 laps in ten minutes, the manta 11 (Jeremy, 2026-10-25). Far
+// goals alone still looped the room, the interior always on the same side. `room` is the swim
+// box already inset from its walls (insetSwimBox), so goals spread over it instead of piling onto
+// its rim. Returns the side this goal lies on (1 left, -1 right, 0 without a heading).
+const GOAL_ACROSS_MIN_SHARE = 0.4
+const GOAL_ACROSS_ATTEMPTS = 16
+
+export function pickGoalAcross(out, from, room, rand, heading = null, lastSide = 0) {
+  // The room's width halfway back: a wedge's widest end would ask for legs most of it can't hold.
+  const width = 2 * halfXAt(room, (room.zMin + room.zMax) * 0.5)
+  const minDistance = Math.hypot(width, room.zMax - room.zMin) * GOAL_ACROSS_MIN_SHARE
+  let best = -Infinity
+  let bestSide = 0
+  for (let attempt = 0; attempt < GOAL_ACROSS_ATTEMPTS; attempt += 1) {
+    const z = randomRange(rand, room.zMin, room.zMax)
+    const x = randomXInSwimBoundsAtZ(rand, room, z)
+    const y = randomRange(rand, room.yMin, room.yMax)
+    const dx = x - from.x
+    const dz = z - from.z
+    const distance = Math.hypot(dx, dz)
+    const side = heading ? Math.sign(heading.z * dx - heading.x * dz) : 0
+    const alternates = lastSide === 0 || side !== lastSide
+    // Far and alternating first; then far; then just the farthest.
+    const score = distance + (alternates ? minDistance * 2 : 0)
+    if (score > best) {
+      best = score
+      bestSide = side
+      out.set(x, y, z)
+    }
+    if (distance >= minDistance && alternates) break
+  }
+  return bestSide
+}
+
+// A box or wedge swim volume (`swim.boundsHalfX`, `swim.boundsWedge`) shrunk by `inset` on the
+// ground plane and `insetY` in height, never past its middle: the room goals are picked in.
+// A wedge with its own goal sides (`goalSlope`, `goalMargin`) uses those instead across: goals
+// inside the narrower view most screens show, its walls further out, beyond the widest one.
+// Allocates: only for an occasional goal pick.
+export function insetSwimBox(bounds, inset, insetY = 0) {
+  const inX = Math.min(inset, bounds.x)
+  const inZ = Math.min(inset, (bounds.zMax - bounds.zMin) * 0.5)
+  const inY = Math.min(insetY, (bounds.yMax - bounds.yMin) * 0.5)
+  const wedge = bounds.wedge
+    ? Number.isFinite(bounds.wedge.goalSlope)
+      ? { apexZ: bounds.wedge.apexZ, slope: bounds.wedge.goalSlope, margin: bounds.wedge.goalMargin ?? 0 }
+      : { ...bounds.wedge, margin: bounds.wedge.margin - inset }
+    : null
+  return {
+    box: bounds.box,
+    wedge,
+    x: wedge ? wedgeHalfX(wedge, bounds.zMin + inZ) : bounds.x - inX,
+    xMin: bounds.xMin + inX,
+    xMax: bounds.xMax - inX,
+    yMin: bounds.yMin + inY,
+    yMax: bounds.yMax - inY,
+    zMin: bounds.zMin + inZ,
+    zMax: bounds.zMax - inZ,
+  }
 }
 
 export function pickSoloAgentContinuationTarget(out, creature, swim, rand, from, startForward) {

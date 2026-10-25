@@ -6,6 +6,16 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.37.1',
+    date: '2026-10-25',
+    title: 'The whole bay',
+    changes: [
+      ['fix', 'In The Shallows, the devil rays and the manta roam the whole bay instead of swimming in circles, sometimes out of view and back again.'],
+      ['fix', 'On wide screens, up to 21:9, The Shallows shows more of the bay at the sides instead of cropping away the sand, and the animals never turn at a visible edge.'],
+      ['fix', 'The water surface no longer shows an edge when you follow an animal far across a reserve.'],
+    ],
+  },
+  {
     version: 'v0.37.0',
     date: '2026-10-25',
     title: 'The giant manta',

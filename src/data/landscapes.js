@@ -144,8 +144,10 @@ export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY:
 // The Shallows' resting camera: low over the sand (4 WU up) and tilted about 22° up, so the
 // devil ray school passes overhead against the bright surface and shows its wings, not its
 // edge, with the sand along the bottom of the frame. At eye level (y -20, 15° up) the rays
-// read edge-on, as lines.
-export const SHALLOWS_VIEW = { fov: 58, x: 0, y: -24, z: 24, lookX: 0, lookY: -14.3 }
+// read edge-on, as lines. A window wider than 16:9 widens the view up to 21:9 (TankView.jsx
+// StageWindow) rather than cropping the frame's top and bottom, which lost the sand (Jeremy,
+// 2026-10-25); the animals' swim wedges are sized to stay outside a 21:9 frame.
+export const SHALLOWS_VIEW = { fov: 58, x: 0, y: -24, z: 24, lookX: 0, lookY: -14.3, maxStageAspect: 21 / 9 }
 
 export const LANDSCAPES = {
   reefs: {

@@ -3350,7 +3350,9 @@ export const SPECIES = [
       // 2026-10-24); members may stray and return, but the count is never split.
       schoolMaxSize: Infinity,
       schoolFormationWeight: 0.75,
-      schoolGoalReachedBodyLengths: 1,
+      // A goal counts as reached 3.5 body lengths out (about 14–18 WU), wider than the school's
+      // turning circle (4.4 × 1.2 / 0.4 = 13 WU): at 1 it could never hit the goal and orbited it.
+      schoolGoalReachedBodyLengths: 3.5,
       schoolStationGain: 0.2,
       schoolStationSpeedRange: [0.8, 1.2],
       schoolTurnRateScale: 0.4,
@@ -3390,15 +3392,33 @@ export const SPECIES = [
       // 1 WU = 25 cm: 130 cm disc width = 5.2 WU.
       bodyLengthWU: 5.2,
       // Room for the full school plus its broad turning circle, above the sand and
-      // the low camera. Z is offset by -15 in fishSwim.js: -44/31 becomes -59/16.
-      // Goals reserve the cloud extent, free-drift band and turning radius so the
-      // outer animals do not compress against walls. Portrait framing needs review.
+      // the low camera. Z is offset by -15 in fishSwim.js: -110/50 becomes -125/35.
+      // Goals reserve the cloud extent, free-drift band and turning radius (about 39 WU
+      // a side). Wider than the view on purpose (Jeremy, 2026-10-25: leaving the screen
+      // and coming back is fine if the motion reads better): at ±50 by 97 WU the room
+      // left was 52 by 37, a school 30 WU across turned all the time, and it read as
+      // circling. The sides are a wedge from the camera (45 + 1.4 × the distance), outside
+      // a 21:9 frame at every depth and height (TankView.jsx shows up to 21:9; 18 would do),
+      // so no ray is seen meeting a wall and pivoting; a straight ±110 box showed its
+      // sides at the back on an ultrawide screen. Goals are picked in a narrower wedge,
+      // about a 16:9 screen's view (1.0 × the distance): with goals out to the 21:9 walls
+      // a 16:9 screen saw the school's centre 73–87% of the time. The extra wall margin
+      // is room for the school's swing past a far goal: at 18 its edge met the wall there and
+      // the cloud squeezed (5 tight pairs in the 218-ray soak).
       boundsUseSpeciesSize: false,
-      boundsHalfX: 50,
+      // The front reaches past the camera (z 24): goals keep the school's reach and turning
+      // room (about 39 WU) inside it, so they come to about z -5, 29 WU from the camera; at a
+      // z 27 front they stopped at z -12 and the school seemed to meet an invisible wall
+      // (Jeremy, 2026-10-25). It passes 11–15 WU above the camera.
+      boundsWedge: { apexZ: 24, slope: 1.4, margin: 45, goalSlope: 1.0, goalMargin: 0 },
       boundsYMin: -25,
       boundsYMax: 3,
-      boundsZMin: -55,
-      boundsZMax: 42,
+      boundsZMin: -110,
+      boundsZMax: 50,
+      // Each new goal anywhere in that room, far from the school, at any height it
+      // allows (fishSwim.js pickGoalAcross), not a step ahead bent toward the middle:
+      // that turned the school the same way every time, 12 laps in 10 minutes.
+      goalPick: 'across',
       // The school's slots are spaced for sardinella (about 1 WU); a 4 WU ray needs about 3.5
       // times the room, or 60 of them pack into a ball of overlapping wings.
       schoolSpacingScale: 3.5,
@@ -3569,22 +3589,32 @@ export const SPECIES = [
       burstBLPerSec: [0.5, 0.7],
       burstInterval: [20.0, 40.0],
       erraticness: 0.04,
-      // 10 WU at 23 WU across: banked turns that fit the narrow phone-friendly box.
-      turnRadiusBodyLengths: 0.45,
+      // 14 WU at 23 WU across: broad banked turns.
+      turnRadiusBodyLengths: 0.6,
+      // Each new goal anywhere in its room, far from where it is (fishSwim.js pickGoalAcross).
+      // The default, the opposite quarter of the room and ahead, kept it turning one way:
+      // 4 laps in a row even in the wide box.
+      goalPick: 'across',
       // 1 WU = 25 cm: 7 m disc width = 28 WU.
       bodyLengthWU: 28,
-      // In The Shallows (SHALLOWS_VIEW: camera at y -24, z 24, looking up), in the middle of the
-      // devil ray school's height (y -18 to 0; they part round it, giveWaySlot). A phone shows
-      // only the middle quarter of the 16:9 view, so one animal has to stay central and back:
-      // Z is offset by -15 in fishSwim.js, -5/-50 becomes -20/-65 (44–89 WU from the camera),
-      // where the phone strip is ±11–23 WU wide. At ±22 and up to z -7 its centre was in a
-      // phone's strip 6% of the time and on a desktop screen 51%.
+      // In The Shallows (SHALLOWS_VIEW: camera at y -24, z 24, looking up), in the height of the
+      // devil ray school (y -18 to 0; they part round it, giveWaySlot). A solo animal's next goal
+      // is at least 3 body lengths away (about 70 WU for this one), so its room has to hold
+      // that: in the ±12 by 45 WU box of v0.37.0 every pick fell back to the nearest point and
+      // it swam 11 laps one way in 10 minutes (Jeremy, 2026-10-25: leaving the screen and
+      // coming back is fine). Z is offset by -15 in fishSwim.js: -80/15 becomes -95/0. The
+      // sides are a wedge from the camera like the rays' (20 + 1.4 × the distance, its wider
+      // body), just outside a 21:9 frame, and its goals well inside a 16:9 screen's view
+      // (0.8 × the distance), since it swings wide past each goal before it turns: with goals
+      // out to the walls a 16:9 screen saw it 53–58% of the time, at 1.0 × 64%.
       boundsUseSpeciesSize: false,
-      boundsHalfX: 12,
-      boundsYMin: -12,
-      boundsYMax: -6,
-      boundsZMin: -50,
-      boundsZMax: -5,
+      // Its goals come to about z -14, 38 WU from the camera (were z -29, 53 WU: it seemed to
+      // stop at an invisible wall; Jeremy, 2026-10-25), 10–20 WU above it.
+      boundsWedge: { apexZ: 24, slope: 1.4, margin: 20, goalSlope: 0.55, goalMargin: 0 },
+      boundsYMin: -14,
+      boundsYMax: -4,
+      boundsZMin: -80,
+      boundsZMax: 15,
       boids: {
         neighborCap: 3,
         perceptionBodyLengths: 1.2,

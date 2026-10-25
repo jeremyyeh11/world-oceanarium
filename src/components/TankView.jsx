@@ -128,24 +128,29 @@ function ResumeClock({ paused }) {
 // camera renders the matching window of the full frame (`setViewOffset`): the same
 // picture and framing at about a quarter of the fragments on a portrait phone. Runs
 // before everything else in the frame so this frame's projection already has it.
+//
+// A tank can let the frame widen with the window up to `camera.maxStageAspect` (The Shallows:
+// 21:9) instead of cropping its top and bottom: there the camera looks up from the sand, and a
+// wider window cropped the sand away (Jeremy, 2026-10-25). Wider than that it crops again.
 const STAGE_ASPECT = 16 / 9
 
-function StageWindow({ panRef }) {
+function StageWindow({ panRef, maxAspect = STAGE_ASPECT }) {
   const camera = useThree(state => state.camera)
   const size = useThree(state => state.size)
   useFrame(() => {
     const { width, height } = size
     if (!width || !height) return
-    const fullWidth = Math.max(width, height * STAGE_ASPECT)
-    const fullHeight = fullWidth / STAGE_ASPECT
+    const aspect = Math.min(Math.max(width / height, STAGE_ASPECT), Math.max(STAGE_ASPECT, maxAspect))
+    const fullWidth = Math.max(width, height * aspect)
+    const fullHeight = fullWidth / aspect
     const offsetX = (fullWidth - width) / 2 - panRef.current
     const offsetY = (fullHeight - height) / 2
     const view = camera.view
     // r3f resets the aspect to the canvas's own on resize; put the full frame's back.
-    if (camera.aspect === STAGE_ASPECT && view?.enabled && view.fullWidth === fullWidth
+    if (camera.aspect === aspect && view?.enabled && view.fullWidth === fullWidth
       && view.fullHeight === fullHeight && view.offsetX === offsetX && view.offsetY === offsetY
       && view.width === width && view.height === height) return
-    camera.aspect = STAGE_ASPECT
+    camera.aspect = aspect
     camera.setViewOffset(fullWidth, fullHeight, offsetX, offsetY, width, height)
   }, -1)
   return null
@@ -818,7 +823,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             inline position and size give way to that rule. */}
         <Canvas className="tank-canvas" style={{ position: undefined, width: undefined, height: undefined }} camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <ResumeClock paused={paused} />
-          <StageWindow panRef={stagePanRef} />
+          <StageWindow panRef={stagePanRef} maxAspect={tank?.camera?.maxStageAspect} />
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
             biome={biome.id}

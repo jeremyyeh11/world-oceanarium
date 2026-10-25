@@ -51,6 +51,11 @@ Jeremy's source: `_blender models/annella mollis.glb`. Build the kit with:
   --python scripts/build-sea-fan-kit.py -- "<path>/annella mollis.glb" public <preview-dir>
 ```
 
+Add `--alpha="<image key>=<mask>"` per lattice to replace its texture's alpha with a black and
+white mask (white solid). Jeremy's fans read "too see through" (2026-10-26), so he painted fuller
+masks, kept beside the source as `annella mollis alpha orange|pink|yellow.jpg` (keys `orange`,
+`pink`, `coral_(annella`); the solid share went from 24/11/21% to 33/16/32%. Rebuild with them.
+
 It writes `public/models/landscape/sea-fans.glb` (every fan, for the tank), prints each fan's
 size, triangles and materials, and warns where the model breaks the contract. Then build the
 Atlas specimen (the tallest fan on a low limestone rock) from it:

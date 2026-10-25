@@ -2,7 +2,15 @@
 # open Blender scene:
 #
 #   "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
-#     --python scripts/build-sea-fan-kit.py -- <source.glb> public [preview-dir]
+#     --python scripts/build-sea-fan-kit.py -- <source.glb> public [preview-dir] \
+#     [--alpha=<image key>=<mask>] ...
+#
+# Each --alpha replaces the alpha of the lattice image whose name contains <image key> (any case)
+# with a black and white mask (white solid), scaled to the image. Jeremy's masks for his first
+# fans (2026-10-26: the fans read "too see through", wanting "volume") are beside the source:
+#   --alpha="orange=<dir>/annella mollis alpha orange.jpg"
+#   --alpha="pink=<dir>/annella mollis alpha pink.jpg"
+#   --alpha="coral_(annella=<dir>/annella mollis alpha yellow.jpg"
 #
 # The model contract is docs/procedural/coral-sway.md. Each top-level object of the source (with
 # its children) is one fan: trunk and main branches as low-poly tubes, the fine lattice as a
@@ -23,9 +31,12 @@
 # held photo textures up to 4720 px, 76 MB). Prints each fan's size, triangles and materials, and warns where the contract is broken.
 
 import bpy, bmesh, sys, os
+import numpy as np
 from mathutils import Matrix, Vector
 
-args = sys.argv[sys.argv.index('--') + 1:]
+argv = sys.argv[sys.argv.index('--') + 1:]
+args = [a for a in argv if not a.startswith('--alpha=')]
+alpha_masks = [a[len('--alpha='):].split('=', 1) for a in argv if a.startswith('--alpha=')]
 src, out_dir = args[0], os.path.abspath(args[1])
 preview_dir = args[2] if len(args) > 2 else None
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -164,6 +175,29 @@ for image in bpy.data.images:
         print('TEX scaled', image.name, tuple(image.size))
     else:
         print('TEX', image.name, tuple(image.size))
+
+def replace_alpha(image, mask_path):
+    w, h = image.size
+    mask = bpy.data.images.load(mask_path)
+    mask.colorspace_settings.name = 'Non-Color'
+    mask.scale(w, h)
+    m = np.empty(w * h * 4, dtype=np.float32)
+    mask.pixels.foreach_get(m)
+    px = np.empty(w * h * 4, dtype=np.float32)
+    image.pixels.foreach_get(px)
+    before = float((px[3::4] > 0.5).mean())
+    px[3::4] = m[0::4]
+    image.pixels.foreach_set(px)
+    image.update()
+    bpy.data.images.remove(mask)
+    print('ALPHA', image.name, 'from', os.path.basename(mask_path), 'solid share', round(before, 3), '->', round(float((px[3::4] > 0.5).mean()), 3))
+
+for key, mask_path in alpha_masks:
+    matches = [im for im in bpy.data.images if im.name in lattice_images and key.lower() in im.name.lower()]
+    if len(matches) != 1:
+        warnings.append(f'--alpha {key}: matched {len(matches)} lattice images')
+        continue
+    replace_alpha(matches[0], mask_path)
 
 kept = [fan for _, fan in fans]
 for o in list(scene.objects):

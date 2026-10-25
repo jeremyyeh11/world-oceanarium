@@ -4345,7 +4345,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const proxyDimensions = model && species?.family === 'Echeneidae'
     ? [placeholderProxy[2], placeholderProxy[1], placeholderProxy[0]]
     : placeholderProxy
-  const lodDebugColor = debugLodView && renderModel ? (canInstanceSardine ? LOD0_DEBUG_COLOR : '#ffd166') : null
+  const lodDebugColor = debugLodView && renderModel ? (canInstanceSardine ? LOD0_DEBUG_COLOR : '#454545') : null
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
   const fresnelRim = useMemo(() => (

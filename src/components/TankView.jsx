@@ -253,7 +253,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
     setDebugLayers({ ...clearedDebugLayers(), lod: false })
     setDebugView('focused')
     setDebugSimulationSpeed(1)
-    setDebugSection(null)
+    setDebugSection('creature')
   }, [])
 
   const toggleDebugMode = useCallback(() => {
@@ -762,7 +762,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             inline position and size give way to that rule. */}
         <Canvas className="tank-canvas" style={{ position: undefined, width: undefined, height: undefined }} camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <ResumeClock paused={paused} />
-          {diagnosticsActive && debugSection === 'performance' && <PerformanceDiagnostics onSample={setPerformanceStats} />}
+          {diagnosticsActive && <PerformanceDiagnostics onSample={setPerformanceStats} />}
           <StageWindow panRef={stagePanRef} maxAspect={tank?.camera?.maxStageAspect} />
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
@@ -848,10 +848,10 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
       {!screenshotMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
 
-      {visibleDebugPanel && <>
+      {visibleDebugPanel && <div className="debug-overlay">
         <DebugDataStatus loading={creatureDataLoading} source={creatureDataSource} totalCount={creatures.length} population={population} error={creatureDataError} />
-        <DebugReadout key={selectedCreature?.id ?? 'none'} selectedCreature={selectedCreature} fishRef={focusedFishRef} performanceStats={performanceStats} showPerformance={debugSection === 'performance'} />
-      </>}
+        <DebugReadout key={selectedCreature?.id ?? 'none'} selectedCreature={selectedCreature} fishRef={focusedFishRef} performanceStats={performanceStats} />
+      </div>}
       {visibleDebugPanel && (
         <DebugPanel
           population={population}

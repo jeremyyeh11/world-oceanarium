@@ -1,7 +1,7 @@
 import { BufferAttribute } from 'three'
 
 // Shared legend. Single-level GLBs are not mislabeled as an adaptive LOD0.
-export const LOD_DEBUG_COLORS = ['#ff4fd8', '#80ff72', '#5ab8ff', '#b58cff', '#ffd166']
+export const LOD_DEBUG_COLORS = ['#ff4fd8', '#80ff72', '#5ab8ff', '#b58cff', '#454545']
 
 export function tagLodGeometry(geometry, level) {
   const values = new Uint8Array(geometry.attributes.position.count).fill(level)
@@ -23,7 +23,7 @@ export function installLodDebug(material, level = null) {
       shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vDebugLodLevel;')
     }
     const index = level == null ? 'vDebugLodLevel' : Number(level).toFixed(1)
-    const colours = ['vec3(1.0, 0.310, 0.847)', 'vec3(0.502, 1.0, 0.447)', 'vec3(0.353, 0.722, 1.0)', 'vec3(0.710, 0.549, 1.0)', 'vec3(1.0, 0.820, 0.400)']
+    const colours = ['vec3(1.0, 0.310, 0.847)', 'vec3(0.502, 1.0, 0.447)', 'vec3(0.353, 0.722, 1.0)', 'vec3(0.710, 0.549, 1.0)', 'vec3(0.271, 0.271, 0.271)']
     shader.fragmentShader = shader.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>\nfloat debugLevel = ${index};\ngl_FragColor.rgb = debugLevel < 0.5 ? ${colours[0]} : debugLevel < 1.5 ? ${colours[1]} : debugLevel < 2.5 ? ${colours[2]} : debugLevel < 3.5 ? ${colours[3]} : ${colours[4]};`)
   }
   material.onBeforeCompile = compile

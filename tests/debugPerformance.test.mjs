@@ -2,8 +2,9 @@ import assert from 'node:assert/strict'
 import { MeshStandardMaterial, BoxGeometry, ShaderLib, Matrix4 } from 'three'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import { createFrameMeter, createGpuTimer } from '../src/utils/frameProfiler.js'
-import { installLodDebug, tagLodGeometry } from '../src/utils/lodDebug.js'
+import { installLodDebug, tagLodGeometry, LOD_DEBUG_COLORS } from '../src/utils/lodDebug.js'
 
+assert.equal(LOD_DEBUG_COLORS[4], '#454545', 'single level uses neutral dark grey in the legend')
 let clock = 0
 const meter = createFrameMeter(() => clock)
 for (let i = 0; i < 60; i++) { meter.begin(); clock += 17; assert.equal(meter.end(), null, 'no Canvas frame, no FPS') }
@@ -55,6 +56,7 @@ for (const level of [null, 0, 1, 2, 3, 4]) {
   material.onBeforeCompile(shader, {})
   assert.equal(called, 1); assert.equal(shader.uniforms.proceduralTime.value, 12)
   assert.match(shader.fragmentShader, /gl_FragColor.rgb = debugLevel/)
+  assert.match(shader.fragmentShader, /vec3\(0\.271, 0\.271, 0\.271\)/, 'single-level shader is dark neutral grey')
   assert.match(material.customProgramCacheKey(), /procedural-cache-key\|debug-lod/)
   if (level == null) assert.match(shader.vertexShader, /attribute float debugLodLevel/)
   else assert.match(shader.fragmentShader, new RegExp(`float debugLevel = ${level}\\.0`))

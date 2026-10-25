@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEnvironment } from '@react-three/drei'
 import * as THREE from 'three'
@@ -8,6 +8,9 @@ import { SURFACE_PLANE_Y, SURFACE_PLANE_X, SURFACE_PLANE_Z, SURFACE_PLANE_WIDTH,
 const SURFACE_WAVE_GLSL = /* glsl */ `
   uniform float uSurfaceTime;
   uniform vec2 uSurfaceSeed;
+  // How far the plane has been moved to stay centred on the camera, in its own xy: the waves are
+  // sampled where they are in the world, so they don't travel with the plane.
+  uniform vec2 uSurfaceOffset;
 
   const float SURFACE_TAU = 6.28318530718;
 
@@ -56,7 +59,7 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
     vec3 displaced = basePosition;
     vec3 tangentX = vec3(1.0, 0.0, 0.0);
     vec3 tangentY = vec3(0.0, 1.0, 0.0);
-    vec2 samplePosition = basePosition.xy;
+    vec2 samplePosition = basePosition.xy + uSurfaceOffset;
 
     // Three crossed scales. Each pair uses an incommensurate wavelength,
     // direction, and speed so no single sinusoid owns the reflected pattern.
@@ -77,7 +80,7 @@ const SURFACE_WAVE_GLSL = /* glsl */ `
 `
 
 const SURFACE_ENVIRONMENT = `${import.meta.env.BASE_URL}hdr/qwantani-puresky-1k.hdr`
-const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v7'
+const SURFACE_PROGRAM_KEY = () => 'world-oceanarium-physical-gerstner-water-v8'
 
 // Defined in `../utils/waterSurfaceGeometry` so `.js` modules and the Node test
 // runner can read them without importing this renderer component. Re-exported
@@ -90,6 +93,13 @@ const SURFACE_PLANE_ROTATION = [-Math.PI / 2, 0, 0]
 // edge, while 256 subdivisions support the tight 3.7 WU reflection spectrum.
 const SURFACE_PLANE_SEGMENTS = [256, 256]
 const SURFACE_PLANE_SIZE = [SURFACE_PLANE_WIDTH, SURFACE_PLANE_DEPTH, ...SURFACE_PLANE_SEGMENTS]
+// The plane follows the camera across the ground plane, in whole grid steps so its vertices stay
+// on the same world lattice (no shimmer), and the shader samples the waves at their fixed world
+// place (uSurfaceOffset). Its edge is then always half its width from the camera, past the 120 WU
+// fade. Fixed at the tank's centre, a follow camera out with The Shallows' wide-roaming rays and
+// manta came within reach of the edge and showed it as a line (Jeremy, 2026-10-25).
+const SURFACE_GRID_STEP_X = SURFACE_PLANE_WIDTH / SURFACE_PLANE_SEGMENTS[0]
+const SURFACE_GRID_STEP_Z = SURFACE_PLANE_DEPTH / SURFACE_PLANE_SEGMENTS[1]
 
 function seedOffset(seed) {
   const h = hashString(`tank-surface:${seed}`)
@@ -104,9 +114,11 @@ const DEFAULT_SURFACE_ATTENUATION_COLOR = '#3f709a'
 export default function WaterSurface({ seed = 0, color = DEFAULT_SURFACE_COLOR, attenuationColor = DEFAULT_SURFACE_ATTENUATION_COLOR }) {
   const gl = useThree(state => state.gl)
   const environment = useEnvironment({ files: SURFACE_ENVIRONMENT })
+  const meshRef = useRef(null)
   const uniforms = useMemo(() => ({
     uSurfaceTime: { value: 0 },
     uSurfaceSeed: { value: new THREE.Vector2() },
+    uSurfaceOffset: { value: new THREE.Vector2() },
   }), [])
 
   useEffect(() => {
@@ -126,6 +138,7 @@ export default function WaterSurface({ seed = 0, color = DEFAULT_SURFACE_COLOR, 
   const prepareMaterial = useCallback((shader) => {
     shader.uniforms.uSurfaceTime = uniforms.uSurfaceTime
     shader.uniforms.uSurfaceSeed = uniforms.uSurfaceSeed
+    shader.uniforms.uSurfaceOffset = uniforms.uSurfaceOffset
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${SURFACE_WAVE_GLSL}`)
       .replace(
@@ -146,12 +159,19 @@ export default function WaterSurface({ seed = 0, color = DEFAULT_SURFACE_COLOR, 
     )
   }, [uniforms])
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera }) => {
     uniforms.uSurfaceTime.value = clock.getElapsedTime()
+    const mesh = meshRef.current
+    if (!mesh) return
+    const dx = Math.round((camera.position.x - SURFACE_PLANE_X) / SURFACE_GRID_STEP_X) * SURFACE_GRID_STEP_X
+    const dz = Math.round((camera.position.z - SURFACE_PLANE_Z) / SURFACE_GRID_STEP_Z) * SURFACE_GRID_STEP_Z
+    mesh.position.set(SURFACE_PLANE_X + dx, SURFACE_PLANE_Y, SURFACE_PLANE_Z + dz)
+    // The plane is turned flat (rotation x -90°): its local y runs along world -z.
+    uniforms.uSurfaceOffset.value.set(dx, -dz)
   })
 
   return (
-    <mesh position={SURFACE_PLANE_POSITION} rotation={SURFACE_PLANE_ROTATION} raycast={() => null}>
+    <mesh ref={meshRef} position={SURFACE_PLANE_POSITION} rotation={SURFACE_PLANE_ROTATION} raycast={() => null}>
       <planeGeometry args={SURFACE_PLANE_SIZE} />
       <meshPhysicalMaterial
         color={color}

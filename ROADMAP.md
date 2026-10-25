@@ -15,12 +15,13 @@ Status labels:
 
 ### The Shallows: animals circling
 
-Status: `Blocked / waiting review` (branch `fix/shallows-wider-bounds`, `v0.37.1-dev_2`, #162, 2026-10-25). Jeremy: everybody in The Shallows swam in a visible circle; leaving the screen and coming back is fine. Fixed with `goalPick: 'across'` and wider rooms (dev_1), then wedge-shaped rooms and a frame that widens up to 21:9 (dev_2; CHANGELOG v0.37.1).
+Status: `Blocked / waiting review` (branch `fix/shallows-wider-bounds`, `v0.37.1-dev_3`, #162, 2026-10-25). Jeremy: everybody in The Shallows swam in a visible circle; leaving the screen and coming back is fine. Fixed with `goalPick: 'across'` and wider rooms (dev_1), then wedge-shaped rooms and a frame that widens up to 21:9 (dev_2; CHANGELOG v0.37.1).
 
 Subtasks:
 - [x] Measure the circling (renderless soak, 600 s, 4 seeds): school 12 laps, manta 11.
 - [x] `goalPick: 'across'`: far goals anywhere in the room, alternating sides; school depth drifts to its goal; wider boxes; school goal reached at 3.5 body lengths. School under one lap one way, manta 394°.
 - [x] `dev_2` (Jeremy: on 21:9 the animals were seen meeting the border and pivoting; a wider window cropped the sand): the frame widens with the window up to 21:9 (`camera.maxStageAspect`), and the swim rooms are wedges (`swim.boundsWedge`) whose walls stay outside a 21:9 frame, goals inside a narrower one.
+- [x] `dev_3` (Jeremy: the water surface plane's edge showed, the animals roaming far out): the surface plane follows the camera in grid steps, waves sampled in world space.
 - [ ] Jeremy: review on 16:9, 21:9 and a phone. A phone sees at least 10 rays 40–52% of the time and the manta 24–28%.
 - [ ] Optional: a soak assertion for laps (longest one-way turn) in `npm test`; the tracking script lived in the session scratchpad.
 

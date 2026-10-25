@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.37.1 — The Shallows' animals roam the bay (in progress)
 
-Status: `v0.37.1-dev_2` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
+Status: `v0.37.1-dev_3` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."
 
 ### Movement
 
@@ -31,6 +31,11 @@ Status: `v0.37.1-dev_2` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). 
 - A school spawning in a wedge is placed where the wedge is as wide as its cloud at the cloud's front edge (the spawn test caught slots past the narrow front).
 - The manta's far limit came in from z −115 to −95.
 - Measured (600 s, 4 seeds, before the wider ray margin): the school's longest one-way turn 231–474°, at least 10 rays on a 16:9 screen 98% of the time, on 21:9 100%, on a phone 40–52%; the manta's 679° (about 1.9 laps over 4 minutes, net −0.4 to −1.4 laps in ten minutes), on a 16:9 screen 80–83%, on 21:9 91%, on a phone 24–28%. The 218-ray soak in `npm test` is unchanged (0 tight pairs, 1 overlapping pair in 2 samples); seeds 7 and 11 show 1–2 tight pairs, as main's code does.
+
+### Water surface (dev_3)
+
+- Jeremy (dev_2 preview, a 2000 × 793 window): with the animals roaming further out, the edge of the water surface plane showed as a line. The plane is 320 WU square, fixed at the tank's centre (edges at x ±160), and fades out between 45 and 120 WU from the camera; a follow camera out with the school or manta (x ±110–170) came within reach of the edge.
+- The plane now follows the camera across the ground plane (WaterSurface.jsx), in whole 1.25 WU grid steps so its vertices stay on the same world lattice, and the shader samples the waves at their world place (`uSurfaceOffset`, program key v8), so the waves don't travel with it. Its edge is always 160 WU from the camera, past the fade, in every tank and camera mode. Browser: following a ray at x 131 and looking up, no edge; no console errors.
 
 ## v0.37.0 — The giant manta (2026-10-25)
 

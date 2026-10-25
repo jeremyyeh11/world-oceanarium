@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Text, useAnimations } from '@react-three/drei'
 import { useEnvironmentGLTF as useGLTF } from '../hooks/useEnvironmentLoading'
 import * as THREE from 'three'
+import { installLodDebug } from '../utils/lodDebug'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { WORLD_UNIT_METERS } from '../data/species'
 import { triggerFishSwimSound } from '../hooks/useOceanAudio'
@@ -221,11 +222,9 @@ const DEBUG_FORWARD_SPEED_SCALE = 0.625
 const DEBUG_FORWARD_MIN_LENGTH = 0.11
 const DEBUG_LABEL_SCALE = 0.0525
 const DEBUG_NAME_LABEL_SCALE = 0.045
-const DEBUG_AGENT_LABEL_SCALE = 0.045
 // Multiplies camera distance to keep world-space debug labels a near-constant on-screen
 // size (see nameLabel update). Tuned so a mid-tank creature reads at ~1x.
 const DEBUG_LABEL_DISTANCE_SCALE = 0.09
-const DEBUG_BOID_VECTOR_SCALE = 5.0
 // Ceiling on a single simulation step (before the debug speed multiplier). On a smooth
 // display rawDelta is ~0.016s so this never engages; it only caps genuine hitches / very
 // low frame rates, where an unbounded step would let a fast swimmer leap clear across its
@@ -419,7 +418,6 @@ const finFlutterEuler = new THREE.Euler()
 const bankQuaternion = new THREE.Quaternion()
 const tempScale = new THREE.Vector3()
 const cullProjection = new THREE.Vector3()
-const debugBoidVectorEnd = new THREE.Vector3()
 const debugNeighborStart = new THREE.Vector3()
 const debugNeighborEnd = new THREE.Vector3()
 const debugNeighborHeadingEnd = new THREE.Vector3()
@@ -447,10 +445,6 @@ function updateDebugLine(lineRef, start, end) {
   geometry.computeBoundingSphere()
 }
 
-function updateDebugVectorLine(lineRef, start, vector, scale = 1) {
-  debugBoidVectorEnd.copy(start).addScaledVector(vector, scale)
-  updateDebugLine(lineRef, start, debugBoidVectorEnd)
-}
 
 // How far above the sand a fish's centre stays: about its half-depth, plus a margin.
 function seabedPad(bodyLength) {
@@ -1311,6 +1305,7 @@ function applyModelMaterialSettings(root, rim = null, lodDebugColor = null, proc
         surfaceVariation,
         caustics,
       )
+      if (lodDebugColor) installLodDebug(nextMaterial, lodDebugColor === LOD0_DEBUG_COLOR ? 0 : 4)
       materials.push(nextMaterial)
       return nextMaterial
     })
@@ -2171,7 +2166,7 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   )
 }
 
-export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugForceDetail = false, debugInspectorEnabled = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, caustics = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
+export default function Fish({ creature, selected = false, zoomActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugLayers = null, debugLodView = false, debugInspectorEnabled = false, debugSimulationSpeed = 1, school = null, pair = null, modelVariantKey = null, caustics = null, onClick, onReady, onRuntimeRecoveryNeeded }) {
   const ref = useRef()
   const materialPass = useMemo(() => createFishMaterialPass(), [])
   useEffect(() => () => materialPass.dispose(), [materialPass])
@@ -2182,18 +2177,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const runtime = useMemo(() => getFishRuntime(creature.id), [creature.id])
   const modelRootRef = useRef()
   const forwardLineRef = useRef()
-  const boidSeparationLineRef = useRef()
-  const boidAlignmentLineRef = useRef()
-  const boidCohesionLineRef = useRef()
-  const boidThreatLineRef = useRef()
-  const boidResultLineRef = useRef()
-  const boidLabelRef = useRef()
   // Per-neighbor debug lines: a connector fish->neighbor (colored by relation) and a
   // short tick showing the neighbor's own heading. Fixed pools so nothing allocates.
   const boidNeighborLineRefs = useRef([])
   const boidNeighborHeadingRefs = useRef([])
   const speedLabelRef = useRef()
-  const agentLabelRef = useRef()
   const nameLabelRef = useRef()
   const swim = useMemo(() => resolveSwimProfile(creature), [creature])
   const species = useMemo(() => resolveSpecies(creature), [creature])
@@ -2320,7 +2308,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const repulserDrift = useRef(new THREE.Vector3())
   const desiredDirection = useRef(runtime.desiredDirection)
-  const labelPosition = useRef(new THREE.Vector3())
   const previousPosition = useRef(runtime.previousPosition)
   const hasFollowPosition = useRef(runtime.hasFollowPosition)
   const previousTangent = useRef(runtime.previousTangent)
@@ -2386,11 +2373,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const [animation, setAnimation] = useState(() => resolveMoveAnimation(model, 'cruise'))
   const [instancedSardineLod, setInstancedSardineLod] = useState(null)
   const forwardDebugGeometry = useMemo(() => makeDebugLineGeometry(), [])
-  const boidSeparationGeometry = useMemo(() => makeDebugLineGeometry(), [])
-  const boidAlignmentGeometry = useMemo(() => makeDebugLineGeometry(), [])
-  const boidCohesionGeometry = useMemo(() => makeDebugLineGeometry(), [])
-  const boidThreatGeometry = useMemo(() => makeDebugLineGeometry(), [])
-  const boidResultGeometry = useMemo(() => makeDebugLineGeometry(), [])
   const boidNeighborGeometries = useMemo(
     () => Array.from({ length: BOID_MAX_DEBUG_NEIGHBORS }, () => makeDebugLineGeometry()),
     [],
@@ -3845,18 +3827,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       debugForwardEnd.copy(debugForwardStart).addScaledVector(pitchedForward, debugVectorLength)
       updateDebugLine(forwardLineRef, debugForwardStart, debugForwardEnd)
       if (forwardLineRef.current) forwardLineRef.current.visible = visibility.heading
-      const showBoidDebug = visibility.steering
       const boidDebug = boidDebugState.current
-      updateDebugVectorLine(boidSeparationLineRef, debugForwardStart, boidDebug.separation, DEBUG_BOID_VECTOR_SCALE)
-      updateDebugVectorLine(boidAlignmentLineRef, debugForwardStart, boidDebug.alignment, DEBUG_BOID_VECTOR_SCALE)
-      updateDebugVectorLine(boidCohesionLineRef, debugForwardStart, boidDebug.cohesion, DEBUG_BOID_VECTOR_SCALE)
-      updateDebugVectorLine(boidThreatLineRef, debugForwardStart, boidDebug.threat, DEBUG_BOID_VECTOR_SCALE)
-      updateDebugVectorLine(boidResultLineRef, debugForwardStart, smoothedBoidSteering.current, DEBUG_BOID_VECTOR_SCALE)
-      if (boidSeparationLineRef.current) boidSeparationLineRef.current.visible = showBoidDebug && boidDebug.separation.lengthSq() > 0.000001
-      if (boidAlignmentLineRef.current) boidAlignmentLineRef.current.visible = showBoidDebug && boidDebug.alignment.lengthSq() > 0.000001
-      if (boidCohesionLineRef.current) boidCohesionLineRef.current.visible = showBoidDebug && boidDebug.cohesion.lengthSq() > 0.000001
-      if (boidThreatLineRef.current) boidThreatLineRef.current.visible = showBoidDebug && boidDebug.threat.lengthSq() > 0.000001
-      if (boidResultLineRef.current) boidResultLineRef.current.visible = showBoidDebug && smoothedBoidSteering.current.lengthSq() > 0.000001
 
       // Neighbor connectors (colored by relation) + heading ticks, tracking live positions.
       // Only drawn for the focused fish (selected or agent-debug) so one individual's
@@ -3887,30 +3858,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           connector.visible = active
         }
       }
-      if (boidLabelRef.current) {
-        boidLabelRef.current.position.copy(debugForwardStart).addScaledVector(up, 0.30 + size * 0.06)
-        boidLabelRef.current.text = `boid n${boidDebug.neighborCount} social ${boidDebug.socialWeightTotal.toFixed(1)}\nsep ${boidDebug.separation.length().toFixed(2)} align ${boidDebug.alignment.length().toFixed(2)} coh ${boidDebug.cohesion.length().toFixed(2)} threat ${boidDebug.threat.length().toFixed(2)} out ${smoothedBoidSteering.current.length().toFixed(2)}`
-        boidLabelRef.current.lookAt(camera.position)
-        boidLabelRef.current.visible = showBoidDebug
-      }
       if (speedLabelRef.current) {
         speedLabelRef.current.position.copy(debugForwardEnd).addScaledVector(up, 0.14)
         speedLabelRef.current.text = `${effectiveDebugSpeedMeters.toFixed(2)} m/s`
         speedLabelRef.current.lookAt(camera.position)
         speedLabelRef.current.visible = visibility.heading
-      }
-      if (agentLabelRef.current) {
-        const bodyLength = creatureBodyLength(creature, swim)
-        const status = agentStatus.current
-        const displayName = creature.customName?.trim() || species?.name || creature.species || 'Unknown'
-        const scientificName = species?.scientificName ?? '—'
-        labelPosition.current.copy(fish.position).addScaledVector(up, bodyLength * 0.46 + 0.28)
-        agentLabelRef.current.position.copy(labelPosition.current)
-        const currentAnimation = animationRef.current ?? '—'
-        const queuedAction = sunBaskQueued.current ? 'sun-bask' : 'none'
-        agentLabelRef.current.text = `${creature.id ?? '?'} • ${displayName}\n${scientificName}\nspeed ${effectiveDebugSpeedMeters.toFixed(2)} m/s\n${status} • ${currentAnimation}\nqueue ${queuedAction}`
-        agentLabelRef.current.lookAt(camera.position)
-        agentLabelRef.current.visible = visibility.behavior
       }
       if (nameLabelRef.current) {
         nameLabelRef.current.position.copy(fish.position).addScaledVector(up, creatureBodyLength(creature, swim) * 0.16 + 0.045)
@@ -4090,8 +4042,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     }
 
     // Observational overlays never force LOD. Selection keeps its normal close-up behaviour.
-    const forceDetailedForDebug = debugForceDetail
-    if (canInstanceSardine && !selected && !forceDetailedForDebug) {
+    if (canInstanceSardine && !selected) {
       const distanceToCamera = camera.position.distanceTo(fish.position)
       const lod2Distance = zoomActive ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE
       const lod1Distance = zoomActive ? SARDINE_LOD1_DISTANCE : SARDINE_TANK_LOD1_DISTANCE
@@ -4367,8 +4318,14 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     const fish = ref.current
     if (!fish || !selected || !debugInspectorEnabled) return undefined
     const inspect = () => ({
+      creatureId: creature.id,
       speed: velocity.current * organicMotion.speedScale * WORLD_UNIT_METERS,
       behavior: isSchooling ? 'schooling' : agentStatus.current,
+      steering: desiredDirection.current.toArray(),
+      steeringForces: {
+        separation: boidDebugState.current.separation.length(), alignment: boidDebugState.current.alignment.length(),
+        cohesion: boidDebugState.current.cohesion.length(), threat: boidDebugState.current.threat.length(), result: smoothedBoidSteering.current.length(),
+      },
       school: school?.id ?? null,
       host: ride.hostId,
       queued: sunBaskQueued.current ? 'sun-bask (after current behaviour)' : null,
@@ -4376,11 +4333,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     })
     fish.userData.inspectCreature = inspect
     return () => { if (fish.userData.inspectCreature === inspect) delete fish.userData.inspectCreature }
-  }, [selected, debugInspectorEnabled, organicMotion.speedScale, isSchooling, school?.id, ride, reefConfig])
+  }, [selected, debugInspectorEnabled, creature.id, organicMotion.speedScale, isSchooling, school?.id, ride, reefConfig])
 
   const focusScale = 1
   const bodyLength = creatureBodyLength(creature, swim)
-  const agentDebugLabelScale = THREE.MathUtils.clamp(bodyLength * 0.024, DEBUG_AGENT_LABEL_SCALE, 0.22)
   const showSelectedOutline = selected && debug && !hideSelectionSilhouette
   const renderModel = model && !instancedSardineLod
   const renderMolaPlaceholder = !model && species?.placeholder?.type === 'mola-mola'
@@ -4390,7 +4346,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const proxyDimensions = model && species?.family === 'Echeneidae'
     ? [placeholderProxy[2], placeholderProxy[1], placeholderProxy[0]]
     : placeholderProxy
-  const lodDebugColor = debugLodView && renderModel && canInstanceSardine ? LOD0_DEBUG_COLOR : null
+  const lodDebugColor = debugLodView && renderModel ? (canInstanceSardine ? LOD0_DEBUG_COLOR : '#ffd166') : null
   const rimColor = showSelectedOutline ? SELECTED_OUTLINE_COLOR : (debug && isSchoolLeader ? LEADER_OUTLINE_COLOR : null)
   const rimIntensity = showSelectedOutline ? SELECTED_RIM_INTENSITY : LEADER_RIM_INTENSITY
   const fresnelRim = useMemo(() => (
@@ -4411,21 +4367,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         <>
           <line ref={forwardLineRef} geometry={forwardDebugGeometry} raycast={() => null}>
             <lineBasicMaterial color="#ff4fd8" transparent opacity={0.95} depthTest={false} depthWrite={false} />
-          </line>
-          <line ref={boidSeparationLineRef} geometry={boidSeparationGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#ff5a36" transparent opacity={0.95} depthTest={false} depthWrite={false} />
-          </line>
-          <line ref={boidAlignmentLineRef} geometry={boidAlignmentGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#80ff72" transparent opacity={0.95} depthTest={false} depthWrite={false} />
-          </line>
-          <line ref={boidCohesionLineRef} geometry={boidCohesionGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#ffd166" transparent opacity={0.95} depthTest={false} depthWrite={false} />
-          </line>
-          <line ref={boidThreatLineRef} geometry={boidThreatGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#ff2fa0" transparent opacity={0.95} depthTest={false} depthWrite={false} />
-          </line>
-          <line ref={boidResultLineRef} geometry={boidResultGeometry} raycast={() => null}>
-            <lineBasicMaterial color="#ffffff" transparent opacity={0.95} depthTest={false} depthWrite={false} />
           </line>
           {boidNeighborGeometries.map((geometry, n) => (
             <line
@@ -4450,19 +4391,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             </line>
           ))}
           <Text
-            ref={boidLabelRef}
-            fontSize={DEBUG_LABEL_SCALE}
-            font={DEBUG_LABEL_FONT}
-            color="#ffffff"
-            anchorX="center"
-            anchorY="middle"
-            depthTest={false}
-            renderOrder={22}
-            raycast={() => null}
-          >
-            boid n0
-          </Text>
-          <Text
             ref={speedLabelRef}
             fontSize={DEBUG_LABEL_SCALE}
             font={DEBUG_LABEL_FONT}
@@ -4474,21 +4402,6 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           >
             0.00 m/s
           </Text>
-          {showAgentDebug && (
-            <Text
-              ref={agentLabelRef}
-              fontSize={agentDebugLabelScale}
-              font={DEBUG_LABEL_FONT}
-              color="#9af7ff"
-              anchorX="center"
-              anchorY="middle"
-              depthTest={false}
-              renderOrder={20}
-              raycast={() => null}
-            >
-              agent cruise-wander
-            </Text>
-          )}
           <Text
             ref={nameLabelRef}
             fontSize={DEBUG_NAME_LABEL_SCALE}

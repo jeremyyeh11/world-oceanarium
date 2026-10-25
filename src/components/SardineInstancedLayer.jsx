@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useEnvironmentGLTF as useGLTF } from '../hooks/useEnvironmentLoading'
 import * as THREE from 'three'
+import { installLodDebug } from '../utils/lodDebug'
 import { getSardineInstances, getSardineLod1Instances } from './sardineInstanceRegistry'
 import { hashString } from '../utils/hash'
 import { SARDINE_MATERIAL_ROUGHNESS } from '../utils/sardineMaterials'
@@ -302,6 +303,12 @@ export default function SardineInstancedLayer({ debugLodView = false, debugStats
   const lod2Asset = useInstancedSardineAsset(SARDINE_LOD2_MODEL_PATH, 'sardine-lod2-glb')
   const lod1MeshRef = useRef(null)
   const lod2MeshRef = useRef(null)
+  useEffect(() => {
+    if (!debugLodView) return undefined
+    const restore1 = installLodDebug(lod1Asset.material, 1)
+    const restore2 = installLodDebug(lod2Asset.material, 2)
+    return () => { restore1(); restore2() }
+  }, [debugLodView, lod1Asset.material, lod2Asset.material])
 
   useFrame(({ clock }, delta) => {
     updateWiggleTime(lod1Asset.material, clock.elapsedTime)

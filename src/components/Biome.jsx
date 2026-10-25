@@ -109,7 +109,7 @@ function groupFollowersForCreatures(creatures) {
   return followers
 }
 
-export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugForceDetail = false, debugInspectorEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
+export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugInspectorEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   // Retire failed target geometry only after this scene has actually unmounted.
   useLayoutEffect(() => tank?.id ? environmentLoader.retainScene(tank.id) : undefined, [tank?.id])
   const visibleCreatures = useMemo(
@@ -167,7 +167,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
 
   return (
     <group>
-      <Environment biome={name} landscape={landscapeForTank(tank)} environmentId={tank?.id} />
+      <Environment biome={name} landscape={landscapeForTank(tank)} environmentId={tank?.id} debugLodView={debugLodView} />
       {name === 'ocean' && <OceanBubbles />}
       {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} debugStatsEnabled={debugStatsEnabled} />}
       {visibleCreatures.map(creature => {
@@ -189,7 +189,6 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
             debug={showDebug}
             debugLayers={debugLayers}
             debugLodView={debugLodView}
-            debugForceDetail={debugForceDetail}
             debugInspectorEnabled={debugInspectorEnabled && selected}
             debugSimulationSpeed={debugSimulationSpeed}
             school={school}

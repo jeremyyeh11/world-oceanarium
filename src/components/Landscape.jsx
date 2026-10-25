@@ -13,6 +13,7 @@ import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
 import { measureColony, placeStaghorn } from './staghornPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
+import { installLodDebug, tagLodGeometry } from '../utils/lodDebug'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
 // modelled rocks. Every piece and rubble chunk is transformed, given fresh UVs and baked into
@@ -210,7 +211,7 @@ function makeLandscapeChunks(landscape, rocks) {
     if (drop > 0) placed.translate(0, -drop, 0)
     placed.computeBoundingBox()
     topShortfall.set(piece.seed, piece.top - placed.boundingBox.max.y)
-    const projected = projectUVs(placed, kit.textureTileWU, look.uvOffset)
+    const projected = tagLodGeometry(projectUVs(placed, kit.textureTileWU, look.uvOffset), source === rocks[`rock${look.rock}_hi`] ? 0 : source === rocks[`rock${look.rock}_rubble`] ? 2 : 1)
     const reachable = inReefReach(landscape.reefReach, piece)
     if (reachable) reefSurfaces.push(placed)
     const rock = bySeed && piece.kind !== 'rubble' ? coralRockOf(piece, bySeed) : null
@@ -230,6 +231,14 @@ function makeLandscapeChunks(landscape, rocks) {
     return { key, geometry }
   })
   return { chunks: merged, reefSurfaces, coralRocks }
+}
+
+function useLodDebugMaterials(materials, enabled) {
+  useLayoutEffect(() => {
+    if (!enabled) return undefined
+    const undo = materials.map(material => installLodDebug(material))
+    return () => undo.forEach(restore => restore())
+  }, [materials, enabled])
 }
 
 const PLACEMENT_SLICE_MS = 6
@@ -334,7 +343,7 @@ function* thicketReefSurfaces(landscape, colonies, meshes, kit) {
 
 // A coral kit's meshes by name and one material per kit model (its baked colour and normal
 // maps), shaded like the rock; two-sided when the kit says so (`doubleSided`).
-function useCoralKit(kit, caustics) {
+function useCoralKit(kit, caustics, debugLodView) {
   const gltf = useGLTF(kit.path)
   const maps = useTexture(kit.models.flatMap(model => [model.color, model.normal]))
   const meshes = useMemo(() => {
@@ -359,6 +368,7 @@ function useCoralKit(kit, caustics) {
     return coralMaterial
   }), [kit, maps, caustics])
   useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
+  useLodDebugMaterials(materials, debugLodView)
   return { meshes, materials }
 }
 
@@ -417,7 +427,7 @@ function mergeKitModels(placed, kit, meshes, view, centreOf) {
     const centre = centreOf(item)
     const distance = camera.distanceTo(centre)
     const lod = distance < kit.hiDetailDistance ? 'hi' : distance < kit.loDetailDistance ? 'lo' : 'far'
-    const geometry = kitGeometry(meshes[`${kit.models[item.model].name}_${lod}`], item.matrix)
+    const geometry = tagLodGeometry(kitGeometry(meshes[`${kit.models[item.model].name}_${lod}`], item.matrix), lod === 'hi' ? 0 : lod === 'lo' ? 1 : 2)
     const key = `${item.model}:${Math.floor(centre.x / kit.chunkWU)}:${Math.floor(centre.z / kit.chunkWU)}`
     if (!parts.has(key)) parts.set(key, { model: item.model, list: [] })
     parts.get(key).list.push(geometry)
@@ -455,7 +465,7 @@ function staghornLods(colonies, kit, meshes, materials) {
     // This bommie's colonies of one kit model at one level, merged, in the LOD's frame.
     const local = new THREE.Matrix4()
     const merge = (level, model, group) => {
-      const parts = group.map(colony => kitGeometry(meshes[`${kit.models[model].name}_${level}`], local.multiplyMatrices(toLocal, colony.matrix)))
+      const parts = group.map(colony => tagLodGeometry(kitGeometry(meshes[`${kit.models[model].name}_${level}`], local.multiplyMatrices(toLocal, colony.matrix)), level === 'hi' ? 0 : level === 'lo' ? 1 : level === 'far' ? 2 : 3))
       const geometry = mergeGeometries(parts)
       parts.forEach(part => part.dispose())
       geometry.computeBoundingSphere()
@@ -522,9 +532,9 @@ function useExtraObstacles(obstacles) {
 // _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
 // obstacles. Loads on its own, so the rocks never wait. The staghorn (landscape.staghorn)
 // grows on the same bommies once the tables are placed.
-function Corals({ landscape, coralRocks, environmentId }) {
+function Corals({ landscape, coralRocks, environmentId, debugLodView }) {
   const { kit } = landscape.corals
-  const { meshes, materials } = useCoralKit(kit, landscape.caustics)
+  const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
   const clusters = useMemo(() => coralClusters(landscape, coralRocks, landscape.view), [landscape, coralRocks])
   const corals = useSlicedPlacement(PLACED_CORALS, landscape, () => {
     const measures = kit.models.map(model => measureCoral(meshes[`${model.name}_hi`]))
@@ -554,7 +564,7 @@ function Corals({ landscape, coralRocks, environmentId }) {
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
       {corals && landscape.staghorn && (
         <Suspense fallback={null}>
-          <Staghorn landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} />
+          <Staghorn landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} debugLodView={debugLodView} />
         </Suspense>
       )}
     </>
@@ -564,9 +574,9 @@ function Corals({ landscape, coralRocks, environmentId }) {
 // Staghorn (landscape.staghorn): patches of one colour each on the table corals' bommies,
 // clear of their plates (staghornPlacement.js), each bommie's drawn as one LOD (staghornLods).
 // Each colony joins the fish's rock obstacles.
-function Staghorn({ landscape, clusters, tables, environmentId }) {
+function Staghorn({ landscape, clusters, tables, environmentId, debugLodView }) {
   const { kit } = landscape.staghorn
-  const { meshes, materials } = useCoralKit(kit, landscape.caustics)
+  const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
   const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
     const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
     return placeStaghorn(landscape, clusters, tables, measures, landscape.view)
@@ -619,7 +629,7 @@ function builtLandscape(landscape, gltf, rocks) {
   return result
 }
 
-export default function Landscape({ landscape, environmentId }) {
+export default function Landscape({ landscape, environmentId, debugLodView = false }) {
   const { kit } = landscape
   const gltf = useGLTF(kit.path)
   const textures = useTexture(kit.textures)
@@ -645,6 +655,8 @@ export default function Landscape({ landscape, environmentId }) {
     applyRockShade(rockMaterial, landscape.rockShade, landscape.caustics)
     return rockMaterial
   }, [textures, landscape.rockShade, landscape.caustics])
+  const debugMaterials = useMemo(() => [material], [material])
+  useLodDebugMaterials(debugMaterials, debugLodView)
   const { chunks, reefSurfaces, coralRocks } = useMemo(() => builtLandscape(landscape, gltf, rocks), [landscape, gltf, rocks])
 
   // Built imperatively, so R3F won't dispose them; free their GPU copies when the tank
@@ -664,7 +676,7 @@ export default function Landscape({ landscape, environmentId }) {
       {chunks.map(chunk => <mesh key={chunk.key} geometry={chunk.geometry} material={material} />)}
       {landscape.corals && (
         <Suspense fallback={null}>
-          <Corals landscape={landscape} coralRocks={coralRocks} environmentId={environmentId} />
+          <Corals landscape={landscape} coralRocks={coralRocks} environmentId={environmentId} debugLodView={debugLodView} />
         </Suspense>
       )}
     </group>

@@ -3,17 +3,16 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import Camera from './Camera'
 import DiverCamera from './DiverCamera'
 import Biome from './Biome'
-import DebugPanel from './DebugPanel'
+import DebugPanel, { DebugDataStatus, DebugReadout } from './DebugPanel'
+import PerformanceDiagnostics from './PerformanceDiagnostics'
 import { clearedDebugLayers, reservePopulation } from '../utils/debugMenu'
 import WaterSurface from './WaterSurface'
 import SceneLighting from './SceneLighting'
 import UnderwaterFX from './UnderwaterFX'
 import InfoCard from './InfoCard'
-import { getSardineFrustumStats, getSardineInstances, getSardineLod1Instances, getSardineLod0Stats, SARDINE_INSTANCE_DISTANCE, SARDINE_LOD1_DISTANCE, SARDINE_TANK_INSTANCE_DISTANCE, SARDINE_TANK_LOD1_DISTANCE } from './sardineInstanceRegistry'
-import { useAudioLevels } from '../hooks/useOceanAudio'
 import { creatureBodyLengthWU, isMolaCreature, resolveSpecies } from '../utils/speciesLookup'
 import { landscapeForTank } from '../data/landscapes'
-import { DEBUG_TOGGLE_EVENT, SARDINE_INSTANCE_DEBUG_GLOBAL } from '../utils/debugIdentifiers'
+import { DEBUG_TOGGLE_EVENT } from '../utils/debugIdentifiers'
 import { useEnvironmentLoading } from '../hooks/useEnvironmentLoading'
 import { environmentLoader, reportEnvironmentFrame, reportRenderingPaused, reportRenderingResumed } from '../loading/environmentRuntime'
 import { compileEnvironmentScene } from '../loading/compileEnvironmentScene'
@@ -50,7 +49,6 @@ const clampFollowOrbit = ({ yaw, pitch }) => ({
   yaw: Math.max(-MAX_FOLLOW_ORBIT_YAW, Math.min(MAX_FOLLOW_ORBIT_YAW, yaw)),
   pitch: Math.max(-MAX_FOLLOW_ORBIT_PITCH, Math.min(MAX_FOLLOW_ORBIT_PITCH, pitch)),
 })
-const FPS_SAMPLE_MS = 1000
 
 // Prepares shader variants for the mounted scene. Uploads/first draw can still cost
 // time; only the subsequent submitted frame acknowledges readiness.
@@ -213,8 +211,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   const [debugView, setDebugView] = useState('focused')
   const [debugLayers, setDebugLayers] = useState(() => ({ ...clearedDebugLayers(), heading: true, name: true, lod: false }))
   const [debugSection, setDebugSection] = useState('creature')
-  const [debugForceDetail, setDebugForceDetail] = useState(false)
-  const [sceneStats, setSceneStats] = useState(null)
   const [debugSimulationSpeed, setDebugSimulationSpeed] = useState(1)
 
   const [stagePan, setStagePan] = useState(0)
@@ -232,7 +228,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
   const [performanceStats, setPerformanceStats] = useState({ fps: null })
   const [recoveryNotice, setRecoveryNotice] = useState(null)
   const diagnosticsActive = debugMode && !hidden && !paused && !screenshotMode
-  const audioLevels = useAudioLevels(diagnosticsActive && debugSection === 'audio')
   const dragRef = useRef(null)
   const touchPointsRef = useRef(new Map())
   const focusChangeAtRef = useRef(0)
@@ -258,7 +253,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
     setDebugLayers({ ...clearedDebugLayers(), lod: false })
     setDebugView('focused')
     setDebugSimulationSpeed(1)
-    setDebugForceDetail(false)
     setDebugSection(null)
   }, [])
 
@@ -532,52 +526,6 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
     setDebugLayers(current => ({ ...current, [layerId]: !current[layerId] }))
   }
 
-  useEffect(() => {
-    if (!diagnosticsActive) {
-      const resetStats = { fps: null }
-      setPerformanceStats(resetStats)
-      return undefined
-    }
-
-    let frameId = 0
-    let frameCount = 0
-    let sampleStartedAt = performance.now()
-
-    const sampleFps = (now) => {
-      frameCount += 1
-      const elapsed = now - sampleStartedAt
-      if (elapsed >= FPS_SAMPLE_MS) {
-        const renderStatsActive = debugSection === 'render'
-        const instanceDebug = renderStatsActive ? window[SARDINE_INSTANCE_DEBUG_GLOBAL] : null
-        const instancingMode = instanceDebug?.mode ?? 'off'
-        const lod1Drawn = Number.isFinite(instanceDebug?.lod1Total) ? instanceDebug.lod1Total : 0
-        const lod2Drawn = Number.isFinite(instanceDebug?.lod2Total) ? instanceDebug.lod2Total : (Number.isFinite(instanceDebug?.total) ? instanceDebug.total : 0)
-        const lod0Stats = renderStatsActive ? getSardineLod0Stats() : {}
-        const frustumStats = renderStatsActive ? getSardineFrustumStats() : {}
-        const nextStats = {
-          fps: Math.round((frameCount * 1000) / elapsed),
-          sardineCandidates: renderStatsActive ? getSardineInstances().size : 0,
-          lod1Candidates: renderStatsActive ? getSardineLod1Instances().size : 0,
-          lod1Drawn,
-          instancedDrawn: lod2Drawn,
-          lod0Drawn: lod0Stats.drawn,
-          lod0Candidates: lod0Stats.candidates,
-          frustumCulled: frustumStats.culled,
-          frustumCandidates: frustumStats.candidates,
-          instancingMode,
-          instancingDistance: selectedCreature ? SARDINE_INSTANCE_DISTANCE : SARDINE_TANK_INSTANCE_DISTANCE,
-          lod1Distance: selectedCreature ? SARDINE_LOD1_DISTANCE : SARDINE_TANK_LOD1_DISTANCE,
-        }
-        setPerformanceStats(nextStats)
-        frameCount = 0
-        sampleStartedAt = now
-      }
-      frameId = window.requestAnimationFrame(sampleFps)
-    }
-
-    frameId = window.requestAnimationFrame(sampleFps)
-    return () => window.cancelAnimationFrame(frameId)
-  }, [diagnosticsActive, selectedCreature, debugSection])
 
   useEffect(() => {
     if (hidden) return undefined
@@ -814,7 +762,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             inline position and size give way to that rule. */}
         <Canvas className="tank-canvas" style={{ position: undefined, width: undefined, height: undefined }} camera={{ fov: 61, near: 0.1, far: 200 }} dpr={[1, 1.5]} frameloop={paused ? 'never' : 'always'} onPointerMissed={zoomActive ? undefined : releaseFocus}>
           <ResumeClock paused={paused} />
-          {diagnosticsActive && debugSection === 'scene' && <SceneDiagnostics onSample={setSceneStats} />}
+          {diagnosticsActive && debugSection === 'performance' && <PerformanceDiagnostics onSample={setPerformanceStats} />}
           <StageWindow panRef={stagePanRef} maxAspect={tank?.camera?.maxStageAspect} />
           <SceneLighting biome={biome.id} seed={tank?.seed ?? 0} paletteOverrides={tank?.lighting ?? null} />
           <Camera
@@ -856,9 +804,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             debugView={debugView}
             debugLayers={debugLayers}
             debugLodView={visibleDebugVisuals && Boolean(debugLayers.lod)}
-            debugForceDetail={visibleDebugVisuals && debugForceDetail}
-            debugInspectorEnabled={diagnosticsActive && debugSection === 'creature'}
-            debugStatsEnabled={diagnosticsActive && debugSection === 'render'}
+            debugInspectorEnabled={diagnosticsActive}
             debugSimulationSpeed={visibleDebugVisuals ? debugSimulationSpeed : 1}
             onCreatureClick={selectCreatureFromPointer}
             onCreatureReady={registerCreatureRef}
@@ -902,68 +848,43 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
       {!screenshotMode && !zoomActive && onBack && <button onClick={onBack} aria-label="Back to biome menu" className="tank-back-button">←</button>}
 
 
+      {visibleDebugPanel && <>
+        <DebugDataStatus loading={creatureDataLoading} source={creatureDataSource} totalCount={creatures.length} population={population} error={creatureDataError} />
+        <DebugReadout key={selectedCreature?.id ?? 'none'} selectedCreature={selectedCreature} fishRef={focusedFishRef} performanceStats={performanceStats} showPerformance={debugSection === 'performance'} />
+      </>}
       {visibleDebugPanel && (
         <DebugPanel
           population={population}
-          totalCount={creatures.length}
-          selectedCreature={selectedCreature}
-          fishRef={focusedFishRef}
           section={debugSection}
           onSectionChange={setDebugSection}
           debugView={debugView}
           debugLayers={debugLayers}
           debugSimulationSpeed={debugSimulationSpeed}
-          forceDetail={debugForceDetail}
-          audioLevels={audioLevels}
-          performanceStats={performanceStats}
-          sceneStats={sceneStats}
           environmentLoading={environmentLoading}
-          creatureDataSource={creatureDataSource}
-          creatureDataError={creatureDataError}
           canQueueSunBask={canQueueDebugSunBask}
           onDebugViewChange={setDebugView}
           onDebugLayerToggle={toggleDebugLayer}
           onDebugSimulationSpeedChange={setDebugSimulationSpeed}
-          onForceDetailChange={setDebugForceDetail}
           onQueueSunBask={queueDebugSunBask}
           onReset={resetDebug}
           onExit={toggleDebugMode}
         />
       )}
 
-      {!screenshotMode && selectedCreature && <FocusHint />}
+      {!screenshotMode && !visibleDebugPanel && selectedCreature && <FocusHint />}
       {!screenshotMode && diverMode && <DiverHint />}
       {recoveryNotice && (
         <div key={recoveryNotice.id} className="runtime-recovery-notice" role="status" aria-live="polite">
           {recoveryNotice.text}
         </div>
       )}
-      {!screenshotMode && selectedCreature && (
+      {!screenshotMode && !visibleDebugPanel && selectedCreature && (
         <InfoCard creature={selectedCreature} onClose={releaseFocus} onOpenEncyclopedia={onOpenEncyclopedia} />
       )}
     </div>
   )
 }
 
-
-// Mount only while Scene is open. Observe the preceding renderer pass, never
-// change quality or install a positive render priority (which would take over R3F).
-function SceneDiagnostics({ onSample }) {
-  const nextSampleAt = useRef(0)
-  useFrame(({ gl }) => {
-    const now = performance.now()
-    if (now < nextSampleAt.current) return
-    nextSampleAt.current = now + FPS_SAMPLE_MS
-    onSample({
-      calls: gl.info.render.calls,
-      triangles: gl.info.render.triangles,
-      geometries: gl.info.memory.geometries,
-      textures: gl.info.memory.textures,
-      dpr: gl.getPixelRatio(),
-    })
-  })
-  return null
-}
 
 function FocusHint() {
   return (

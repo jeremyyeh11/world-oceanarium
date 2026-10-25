@@ -76,7 +76,7 @@ try {
     for (const effect of h.effects) { const cleanup = effect(); if (cleanup) h.cleanups.push(cleanup) }
     for (let frame = 1; frame <= 180; frame++) for (const fn of h.frames) fn({ camera, clock: { getElapsedTime: () => frame / 60 } }, 1 / 60)
     const lodRequests = h.setters.flatMap(s => s.values).filter(v => v === 'lod1' || v === 'lod2')
-    assert.equal(lodRequests.length > 0, !options.debugForceDetail && !options.selected, 'only explicit forced detail or selection suppresses distant LOD')
+    assert.equal(lodRequests.length > 0, !options.selected, 'only ordinary selection suppresses distant LOD; removed forced-detail prop has no effect')
     if (options.debugLayers?.heading) {
       assert.ok(h.lines[0].visible, 'heading visible')
       assert.ok(h.lines.slice(1).every(line => !line.visible), 'heading does not enable steering/neighbours')
@@ -85,7 +85,11 @@ try {
     const fish = h.groups.find(g => g.userData.inspectCreature)
     if (options.debugInspectorEnabled) {
       const snapshot = fish?.userData.inspectCreature()
+      assert.equal(snapshot?.creatureId, creature.id, 'inspector identifies source to reject stale previous-fish refs')
       assert.ok(Number.isFinite(snapshot?.speed), 'inspector reads live speed')
+      assert.equal(snapshot.steering.length, 3, 'selected steering is text-readable world XYZ')
+      assert.ok(Object.values(snapshot.steeringForces).every(Number.isFinite), 'selected steering forces available')
+      assert.equal(h.texts.length, 2, 'only speed and identity text exist in world space')
       assert.equal(h.texts.at(-1).visible, true, 'independent identity label visible')
     } else assert.equal(fish, undefined, 'no inspector publisher when closed')
     const positioned = h.groups.find(g => g.children.some(c => c.isMesh))
@@ -99,4 +103,4 @@ try {
   Math.random = originalRandom
   delete globalThis[key]
 }
-console.log('actual Fish frame: normal/overlay/colour/forced/selected LOD, independent heading, inspector lifecycle and motion equivalence passed (180 frames each)')
+console.log('actual Fish frame: normal/overlay/colour/removed-override/selected LOD, independent heading, inspector lifecycle and motion equivalence passed (180 frames each)')

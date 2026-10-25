@@ -15,17 +15,20 @@ Status labels:
 
 ### Focused debug instruments
 
-Status: `Current in development` — review `v0.36.2-dev_1`, branch `feat/update-debug-menu`. Jeremy approved the first audit pass. Do not promote/merge without release approval.
+Status: `Current in development` — review `v0.37.2-dev_2`, branch `feat/update-debug-menu`. Jeremy requested a simpler creature menu and all-GLB performance view. Do not promote/merge without release approval.
 
-Feel: inspect one animal, understand the readout, then get the instrument out of the view. Preserve the flat full-width bottom strip.
+Feel: inspect one animal, glance at text, then get the instrument out of the view. Flat full-width bottom strip.
 
-- [x] Remove Bones display/control/helpers only; keep animation clips, rig deformation and skeletal cloning.
-- [x] Count living creatures using the reserve's actual `creaturesForTank` filter; identify sardine-only LOD/culling and browser RAF cadence accurately.
-- [x] Independent heading/speed, steering, neighbours, labels and behaviour overlays. Normal overlays never force sardine detail; explicit override is off by default. Canonical sardine ID also supports raw fixture slugs (previous name-only check missed them).
-- [x] Selected-creature inspector, contextual Mola Bask, explicit Reset/Exit, 44px touch targets and collapsible Creature/Render/Scene/Audio/Data sections. Optional diagnostics read only while open/visible.
-- [x] Automated regressions, full suite/lint/build/procedural contracts and desktop/mobile browser smoke; exact evidence/limits in `docs/debug-menu.md`. Sticky-header duplicate paint fixed and fresh production bundle checked.
-- [ ] Jeremy: review layout, text and overlay legibility on the preview; physical-phone touch/feel remains a human gate.
-- [ ] Slow motion/pause is deliberately excluded; audit the coordinated simulation clocks before a separate proposal.
+- [x] Remove Bones display/control/helpers only; retain rig/animation support and normal simulation.
+- [x] Creatures: only Heading/speed, Neighbours, Labels. Selected-only steering/behaviour plain text top left; contextual Mola action.
+- [x] Combine Render/Scene into Performance, remove Audio tab/sardine-detail override, make Data persistent top-bar text.
+- [x] All reserve GLB colours distinguish actual single/high/low/far/min sources and restore exactly; no forced detail, geometry/LOD changes or new draw calls.
+- [x] Live Canvas FPS, CPU frame ms, optional GPU ms, JS heap, full-frame draw calls/triangles and renderer/scene state. Unsupported metrics labelled unavailable.
+- [x] Keep Reset/Exit, flat >=44px controls and visible-only sampling. Tests/docs in `docs/debug-menu.md`; [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160), issue #159.
+- [x] Full local tests/lint/build/procedural checks and desktop/mobile compiled-production QA: no overflow/sub-44px debug buttons, live selected/performance text, all-GLB tint/restoration, persistent collapsed data and Exit/card restoration.
+- [ ] Verify exact-head CI/deployment after publishing this iteration.
+- [ ] Jeremy: visual/physical-phone review and explicit release approval. **Do not merge.**
+- [ ] Slow motion/pause remains deliberately excluded; audit coordinated clocks before a separate proposal.
 
 ### The Shallows: animals circling
 

@@ -562,6 +562,36 @@ button { font: inherit; }
   gap: 0.35rem;
 }
 
+.debug-topbar, .debug-readout {
+  position: absolute;
+  z-index: 42;
+  pointer-events: none;
+  color: #d9f2e6;
+  font: 12px/1.5 var(--crt-mono, monospace);
+  font-weight: normal;
+  text-shadow: 0 1px 3px #000, 0 0 5px #000;
+  overflow-wrap: anywhere;
+}
+.debug-topbar {
+  top: max(8px, env(safe-area-inset-top));
+  left: 64px;
+  right: 64px;
+}
+.debug-readout {
+  top: calc(max(8px, env(safe-area-inset-top)) + 48px);
+  left: 10px;
+  max-width: calc(100% - 20px);
+}
+.debug-performance-readout { margin-top: 8px; }
+@media (max-width: 640px) {
+  .debug-topbar { top: calc(max(8px, env(safe-area-inset-top)) + 44px); left: 10px; right: 10px; }
+  .debug-readout { top: calc(max(8px, env(safe-area-inset-top)) + 100px); font-size: 11px; }
+}
+.debug-lod-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; }
+.debug-lod-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.debug-lod-legend i { width: 10px; height: 10px; }
+.debug-advanced summary { min-height: 44px; cursor: pointer; display: flex; align-items: center; }
+
 .debug-summary {
   /* Normal flow: sticky compositing over this WebGL/CRT stack painted a duplicate
      empty header across the tank in Chromium. Scroll the instrument as one strip. */

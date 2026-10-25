@@ -1,77 +1,52 @@
 # Debug instruments
 
-Review: `v0.36.2-dev_1`, `feat/update-debug-menu`, issue #159. Base: `e2447609193ba38d83ba0de62007f75859057f0f` (`v0.36.1`). Not a clean release.
+Review: `v0.37.2-dev_2`, `feat/update-debug-menu`, issue #159 / PR #160. Rebased on clean `v0.37.1` (`origin/main`); no merge/release approval.
 
-## Felt intention and boundaries
+## Feel and boundaries
 
-Inspect one animal, understand what it is doing, then get the instrument out of the view. Keep the flat full-width bottom strip; no decorative cards, rounded controls or scene grading.
+A field instrument: watch the animal, glance at text, get out of its way. Flat, full-width bottom strip. No scene grading, simulation-clock refactor, new motion, loading UI, asset edits or database writes. Removing Bones display does not remove skeletal cloning, authored clips or procedural animation support.
 
-This changes diagnostic UI and rendering overrides, not the simulation clocks, steering, authored behaviours, assets, environment loading UI or database. Bones display is removed; skeletal cloning, authored clips and procedural/curve rig animation remain intact. Slow motion/pause needs a separate coordinated clock audit.
+## Layout and lifecycle
 
-## Access and lifecycle
+- **Creatures:** only Heading/speed, Neighbours, Labels. Selected/All scopes apply to those three world overlays. All includes schooling neighbours, not only solo agents.
+- Steering/behaviour have no world vectors, floating labels or global switches. Only the selected animal publishes a runtime getter; a top-left, pointer-transparent text overlay samples it every 500ms. Includes actual speed, behaviour, desired world-XYZ heading, boid force magnitudes, school/host/reef and queued action where available. Nothing selected: prompt, not stale previous-animal data.
+- Normal follow hint/info card are suppressed while debug is visible so they cannot occlude the text. Selection/follow remain intact; normal card returns on Exit. Background click/Escape still releases follow.
+- **Performance:** combines former Render + Scene. Live top-left metrics while expanded; actual all-GLB LOD tint and an advanced 1x/4x/10x soak control. No Force sardine detail.
+- **Data:** persistent plain source/total/reserve/error text at the top, including when both sections collapse; no Data tab. Population uses the same living curated filter as Biome, not screen visibility. Full error also appears in its title.
+- No Audio tab/subscription. Existing subscriber guard means no diagnostic analyser scans; playback graph is untouched.
+- Existing shortcut/version access retained. Reset clears overlays/colours, restores Selected/1x and collapses sections; Exit resets then closes. Neither repositions fish nor releases follow. Reopening cannot retain hidden simulation overrides.
+- Hidden/paused/screenshot views stop optional sampling. Screenshot mode suppresses debug visuals/speed overrides. Touch targets >=44px; flat panel scrolls if needed, no sticky header (Chromium/WebGL compositing previously duplicated its paint).
 
-- Existing Ctrl/Cmd+Shift+D and version-entry interaction still open debug.
-- Scope starts at Selected. With no creature followed, the inspector asks for selection.
-- Heading/speed and identity start enabled. Steering, neighbours, behaviour, LOD colours and Force detail start off.
-- Creature/Render/Scene/Audio/Data sections toggle independently of overlay state; only one section is expanded at a time. Click the active section again to collapse it.
-- Reset clears every overlay (including colours), chooses Selected, restores 1x and normal detail, and collapses sections. It does not reposition fish or release follow.
-- Exit performs the same reset and closes debug. Re-entry does not restore hidden quality/speed overrides.
-- Hidden, paused and screenshot views do not sample optional diagnostics. Screenshot mode suppresses debug visuals and speed/detail overrides.
-- Touch controls are at least 44px in each dimension. The panel scrolls vertically when necessary and is capped at 52dvh. Follow-card scrolling and debug scrolling are exempt from the follow camera's page-scroll blocker.
+## LOD colour contract
 
-## Readout semantics
+Shared legend: pink LOD0/high; green LOD1/low; blue LOD2/far; purple LOD3/min; amber Single level.
 
-### Population and source
+- FishModel: all fish GLBs, including sex/age variants, retain their deformation/animation path. Most use a single supplied model (amber), not an invented adaptive LOD0.
+- Sardines: detailed GLB pink; existing LOD1/LOD2 instanced GLBs green/blue. Canonical species identity supports scientific slugs and normalized display-name rows. Colour/scope never forces detail or bypasses point culling; selected sardines keep normal close-up behaviour.
+- Rocks: mark the actual chosen hi/lo/rubble source (0/1/2, including lo fallback). Table corals mark hi/lo/far (0/1/2). Tags survive merging within one chunk without splitting it or adding draw calls.
+- Staghorn: tag actual hi/lo/far/min geometry, including the near level's temporary lo geometry before a sliced high-detail build and its lo fallback after retirement. Colour does not pretend that the LOD container's index is its current source mesh.
+- A one-byte-per-vertex diagnostic tier attribute is kept on derived landscape geometry. Normal shaders ignore it, but Three still uploads all geometry attributes, so budget that extra byte per derived vertex even with colours off. No source GLBs are edited.
+- Tint chains existing onBeforeCompile/cache-key hooks, overwrites final RGB only and preserves alpha, rig, morphs, depth, placements and LOD distances. Restore hooks exactly on switch-off/Exit/unmount; no texture disposal/material cloning. Water, procedural sand and effects are not GLBs and are not tinted. Scope is the reserve, not a separate Atlas view.
 
-`reservePopulation` uses `creaturesForTank`, the same living curated species filter as Biome. A population is not an on-screen count. Data separately identifies the source, loaded row count and any fetch/config warning.
+## Honest measurements
 
-Raw local fixtures in this audit have 103 Open Sea animals and 7 Reef animals out of 110 loaded rows; The Shallows has no local fixture rays. These are fixture counts, not production-table assertions. No database writes were made.
+`PerformanceDiagnostics` mounts only for an expanded, visible Performance section. No positive useFrame priority and no render-loop takeover.
 
-### Rendering
+- FPS counts Canvas frames through R3F callbacks, not an independent requestAnimationFrame counter. Mean frame interval includes browser scheduling/vsync/GPU stalls. Still not a display scan-out or GPU-completion count.
+- CPU frame is mean synchronous R3F callback/render submission time in ms, measured between R3F before/after hooks. It does not mean CPU usage %, per-core load, asynchronous work or total browser CPU.
+- GPU ms uses EXT_disjoint_timer_query_webgl2, at most one pending query and at most two samples/s. Poll availability without blocking; invalidate disjoint/context-lost results; release owned queries. Missing extension/result displays unavailable, not a fake estimate. Device-wide GPU utilisation/VRAM are unavailable.
+- JS heap uses performance.memory.usedJSHeapSize when supported. It is not total RAM, decoded texture memory, GPU memory or RSS. Other browsers may report unavailable.
+- Draw calls/triangles are renderer.info sums across the latest complete active-canvas frame (including multipass). Temporarily disable automatic per-render resets, reset at frame start and restore the previous setting on cleanup. Resident geometry/texture counts are object counts, not bytes; DPR is renderer pixel ratio.
+- GPU timing, overlays and recompiling tint themselves have overhead. Software-GPU/browser-emulation results do not measure physical-phone FPS, latency, heat or touch feel.
 
-- RAF/s counts browser animation callbacks over about one second. It is not GPU completion, GPU time, or a phone benchmark.
-- LOD 0/1/2 and point-frustum counts are sardine-only registry submissions. Never infer LOD0 by subtracting sardines from the entire mixed-species reserve population.
-- Selected or explicitly forced sardines contribute to the detailed registry. A state transition may briefly reflect a pending React render; this is diagnostic sampling, not a synchronized GPU visibility query.
-- Normal overlays, All scope and LOD colours do not force detailed sardines. The explicit Force sardine detail override applies reserve-wide and bypasses the normal sardine point-cull path; it is labelled as a workload change.
-- Selection retains the existing close-inspection detail behaviour even without debug.
-- Sardine eligibility uses resolved canonical species identity, not an exact display-name comparison. Both `amblygaster-sirm` fixtures and normalized `Spotted Sardinella` rows must work.
-- 4x/10x remain advanced soak-test controls, with a persistent override warning. No new simulation speed or clock logic was added.
+## Tests and review
 
-### Creature and scene
+Run npm test, npm run lint, npm run build, npm run verify:procedural-fish-assets, git diff --check. Rust gates inapplicable: no Cargo manifest.
 
-`Fish` exposes `userData.inspectCreature` only for a selected creature while its inspector is requested. The getter reads existing runtime refs; the DOM inspector polls it every 500ms. Cleanup removes the getter and timer. There is no second per-frame snapshot publisher. Available fields: speed in m/s, behaviour, school, host, reef mode/stage and queued action. Bask is a queue, not an immediate interrupt: the inspector explicitly says it waits for the current behaviour.
+- Pure/SSR tests: curated population/dead rows, exactly three overlay switches/two sections, persistent source/error text, selected-only readout, contextual Bask, truthful unavailable metrics and full LOD legend.
+- Actual Fish callback test: 180 fixed frames per mode; exact motion equivalence, slug/display-name identity, normal distant LOD despite diagnostic colours and removed Force prop, selected-only getter/steering and cleanup. GPU rendering is not simulated by this test.
+- Frame/GPU tests: count submitted frames only, CPU duration, unsupported/pending/disjoint/context-lost timers, external-query ownership and cleanup.
+- Shader/geometry tests: chain procedural callbacks/cache keys, retain uniforms, exact restore; all tiers survive merging with unchanged positions.
+- Existing full suite includes the 218-ray renderless school soak and procedural asset contracts. No data writes.
 
-Heading/speed, steering vectors, neighbour web, identity and agent-behaviour labels have independent switches. Steering/neighbours keep the existing selected-creature-or-solitary-agent eligibility. Heading now also works for solitary agents without requiring their combined behaviour label.
-
-Scene mounts its R3F observer only while open. It reads the previous renderer pass's calls/triangles, resident geometries/textures and DPR once per second. These are not full multipass GPU timings or memory bytes; transmission may reset render counters between passes. The observer never takes over rendering or changes quality.
-
-### Audio
-
-The Audio section is the only `useAudioLevels` subscriber. Without subscribers, the existing 100ms meter timer skips analyser scans; closing the section does not mute or rewire sound. UI level updates retain their existing one-second cadence/quantization. Hidden/paused views release the subscription.
-
-## Implementation map
-
-- `src/components/DebugPanel.jsx`: section presentation, contextual actions and selected inspection timer.
-- `src/utils/debugMenu.js`: pure overlay eligibility, reset state, reserve count and measured sardine formatting.
-- `src/components/TankView.jsx`: debug lifecycle, demand gates, summary RAF sampling and optional renderer observer.
-- `src/components/Biome.jsx`: explicit detail/inspection prop routing.
-- `src/components/Fish.jsx`: independent visibility, explicit detail override, precise selected/forced registry entries and on-demand getter. Animation/steering implementations remain unchanged.
-- `src/hooks/useOceanAudio.js`: diagnostic subscriber demand guard; sound graph/playback unchanged.
-
-Keep the summary in normal flow. A sticky header reproduced a second empty dark bar over the tank in Chromium despite correct DOM bounds; changing only its position to static removed it. The final compiled stylesheet was tested again from a fresh production-preview navigation.
-
-## Verification
-
-Run `npm test`, `npm run lint`, `npm run build`, `npm run verify:procedural-fish-assets` and `git diff --check`.
-
-Passed locally:
-- New pure/SSR regressions: reserve filtering (including dead rows), independent switches, cleared state, measured-only counters, empty/selected/contextual/error/override UI.
-- Actual Fish frame regressions: normal/overlay/LOD-colour/forced/selected paths, slug and normalized-name eligibility, heading independence, inspector cleanup, registry cleanup, and exact unchanged motion across diagnostic modes over 180 fixed frames each. Rendering is stubbed in this test, not the Fish movement callback.
-- Existing full suite, including the 218-ray 180-second renderless school check; existing procedural asset contracts pass.
-- Lint: zero errors, eight existing warnings. Production build succeeds with its existing large-chunk warning. Rust gates are inapplicable (no Cargo manifest).
-- Real Chromium UI smoke at 1280×800 and 375×812: Sea and Reef, selected Mako/Mola, contextual Bask queue, scope/overlay switches, explicit detail and 4x/10x warnings, Reset/Exit/re-entry, Scene/Data/Audio sections, follow-card layout/scroll exemption. Final clean production bundle: no horizontal menu overflow, no undersized buttons, static header and no captured page exceptions.
-- Browser registry check: local 88 sardines stayed at LOD2 with normal diagnostics, switched to 88 LOD0 only after Force detail. Audio analyser instrumentation observed 21 scans with Audio open and zero during the subsequent closed interval; probe restored afterward.
-
-Evidence is saved outside the application tree in the Game Builder browser workspace `debug-menu-qa/`, including `final-clean-bundle.json`, `final-desktop-layout.json`, `final-clean-mobile.png`, `final-clean-desktop.png`, `bask-queue.json`, and intermediate pre-fix screenshots. Early programmatic selection during startup once left the selector picked; a clean reload, startup settling and normal pointer input succeeded. No unrelated selector/loading change was made. Local production preview's Vercel analytics-script 404s are expected without Vercel hosting.
-
-Limits: local missing-env fixture source only, not live table validation. Browser/software-renderer timings are not physical-phone FPS, heat, latency or touch-feel measurements. The Shallows' full population is exercised by the existing renderless school suite, not this fixture-backed browser pass. Jeremy's visual/feel review and physical-phone review remain open. Remote preview/CI status must be checked separately on the pushed commit.
+Browser evidence/remaining gates are recorded with the PR and in external debug-menu-qa-v2 evidence. Local production preview uses missing-env fixtures, not live tables. Cold selection before startup readiness can leave the existing selector picked; waiting for startup then selecting normally works (selector/App/loading code unchanged). Human visual/phone review remains open. Remote CI/deployment must be verified on the exact pushed commit; preview login protection is not deployed-app smoke.

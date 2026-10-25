@@ -51,9 +51,13 @@ Jeremy's source: `_blender models/annella mollis.glb`. Build the kit with:
   --python scripts/build-sea-fan-kit.py -- "<path>/annella mollis.glb" public <preview-dir>
 ```
 
-It writes `public/models/landscape/sea-fans.glb` (every fan, for the tank) and
-`public/models/fish/annella-mollis/annella-mollis.glb` (the tallest fan, for the Atlas), prints
-each fan's size, triangles and materials, and warns where the model breaks the contract.
+It writes `public/models/landscape/sea-fans.glb` (every fan, for the tank), prints each fan's
+size, triangles and materials, and warns where the model breaks the contract. Then build the
+Atlas specimen (the tallest fan on a low limestone rock) from it:
+
+```
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup   --python scripts/build-sea-fan-atlas.py -- public/models/landscape   public/models/fish/annella-mollis/annella-mollis.glb <preview-dir>
+```
 
 1. **Real size, metres.** 1 unit = 1 m. Fans 0.75 to 2 m tall (most colonies are 76 to 150 cm).
 2. **One to three fans per file**, of different shapes, each its own top-level object (child
@@ -86,8 +90,9 @@ each fan's size, triangles and materials, and warns where the model breaks the c
 ## Intake checklist
 
 1. Run the kit script; read its warnings and preview.
-2. Measure fan0 from the print-out: set species.js `maxBodyLengthMeters` and EncyclopediaPage.jsx
-   `MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES['annella-mollis']` to its largest extent.
+2. Set species.js `maxBodyLengthMeters` to fan0's size (kit print-out) and EncyclopediaPage.jsx
+   `MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES['annella-mollis']` to the specimen's largest extent
+   (Atlas print-out).
 3. Give the landscape its `seaFans` block (landscapes.js), drop species.js `hiddenInAtlas`, and
    add `'annella-mollis'` to The Reefs' `landscapeSpecies` (all done for the first fans, `dev_2`).
 4. Phone (375 px) review of the resting view: the fans read, sway gently, do not flicker far off,
@@ -109,5 +114,22 @@ each fan's size, triangles and materials, and warns where the model breaks the c
   form has no modes yet (docs/reef-behavior.md, Coral forms).
 - The Reefs is drawn as 0 to 10 m deep; *Annella mollis* lives at 10 to 40 m. Jeremy's call.
 - The sight test (`minVisible`) only checks the rock: a fan can still sit behind a table, the
-  staghorn (placed after it) or a fish. In `v0.38.0-dev_2` five fans placed, three in a phone's
-  centre crop, two of them about 90 WU off in the blue.
+  staghorn (placed after it) or a fish.
+
+## Placement (seaFanPlacement.js)
+
+Jeremy (2026-10-26, on `dev_2`): fans floated, clipped into corals and walls, only ever stood
+upright, and were too few. Since `dev_3`:
+
+- Rock only: a ray from outside meets a rock face (tops, slopes and walls; not an overhang's
+  underside or rock at the sand); the fan grows along the face's normal tipped up (`GROW_UP`),
+  its face turned toward the current. Its holdfast is sunk 4% of its height into the rock and
+  must test as inside rock, so none floats.
+- Clashes: a 10 × 10 grid over the fan's face (where the model has lattice) and 24 branch points
+  must stay out of every drawn rock (not only the bommie's), the sand, every table's plate and
+  stalk, and every fan already placed; the staghorn, placed after, keeps its sample points and
+  its body clear of the fans (`inFan` with an extra margin).
+- Count: `perCluster` 3–5 on each table bommie, and 1–3 on each of up to 20 other rocks in front
+  of the camera (`scatter`), at 2.5–6.5 WU. On desktop, 25 fans placed (want 75: the tables crowd
+  the bommies); 22 in frame, 10 in a phone's centre crop. A lattice-point audit found none inside
+  rock or within 0.3 WU of a table or staghorn colony.

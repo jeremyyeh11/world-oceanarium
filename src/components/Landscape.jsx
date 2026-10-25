@@ -560,7 +560,7 @@ function Corals({ landscape, coralRocks, sightRocks, environmentId }) {
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
       {corals && landscape.seaFans ? (
         <Suspense fallback={null}>
-          <SeaFans landscape={landscape} clusters={clusters} tables={corals} sightRocks={sightRocks} environmentId={environmentId} />
+          <SeaFans landscape={landscape} clusters={clusters} tables={corals} sightRocks={sightRocks} coralRocks={coralRocks} environmentId={environmentId} />
         </Suspense>
       ) : corals && landscape.staghorn && (
         <Suspense fallback={null}>
@@ -580,7 +580,7 @@ function Staghorn({ landscape, clusters, tables, fans = null, environmentId }) {
   const { meshes, materials } = useCoralKit(kit, landscape.caustics)
   const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
     const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
-    return placeStaghorn(landscape, clusters, tables, measures, landscape.view, fans && (point => inFan(fans, point)))
+    return placeStaghorn(landscape, clusters, tables, measures, landscape.view, fans && ((point, extra) => inFan(fans, point, extra)))
   }, [kit, meshes, clusters, tables, fans], environmentId)
 
   const { bommies, obstacles } = useMemo(() => {
@@ -707,18 +707,18 @@ function fanReefSurfaces(landscape, fans, models) {
   return result
 }
 
-// Giant sea fans (landscape.seaFans): on the table corals' bommies, clear of the tables
-// (seaFanPlacement.js), merged per material and square chunk, swaying in the surge. Each fan
-// joins the fish's rock obstacles and blocks their site rays. The staghorn
-// (landscape.staghorn) is placed after them, clear of them.
-function SeaFans({ landscape, clusters, tables, sightRocks, environmentId }) {
+// Giant sea fans (landscape.seaFans): on the table corals' bommies and scattered over the
+// reef's other rocks, clear of the tables (seaFanPlacement.js), merged per material and square
+// chunk, swaying in the surge. Each fan joins the fish's rock obstacles and blocks their site
+// rays. The staghorn (landscape.staghorn) is placed after them, clear of them.
+function SeaFans({ landscape, clusters, tables, sightRocks, coralRocks, environmentId }) {
   const { kit, sway } = landscape.seaFans
   const { models, materials } = useSeaFanKit(kit, sway, landscape.caustics)
   useSwayClock()
   const fans = useSlicedPlacement(PLACED_SEA_FANS, landscape, () => {
-    const measures = models.map(parts => measureFan(parts.map(part => part.geometry)))
-    return placeSeaFans(landscape, clusters, tables, measures, landscape.view, sightRocks)
-  }, [models, clusters, tables, sightRocks], environmentId)
+    const measures = models.map(parts => measureFan(parts.map(part => ({ geometry: part.geometry, masked: materials[part.material].alphaTest > 0 }))))
+    return placeSeaFans(landscape, clusters, tables, measures, landscape.view, sightRocks, coralRocks)
+  }, [models, materials, clusters, tables, sightRocks, coralRocks], environmentId)
 
   const { merged, obstacles } = useMemo(() => {
     if (!fans) return { merged: [], obstacles: [] }

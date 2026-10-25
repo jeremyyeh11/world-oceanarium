@@ -5,42 +5,44 @@ import { boundsOf, rockCaster } from './coralPlacement'
 import { inPlate } from './staghornPlacement'
 
 // Giant sea fans (a landscape's `seaFans`, landscapes.js), placed once the table corals are
-// (coralPlacement.js), on the same bommies: Jeremy wants every coral form on the same rocks as
-// one cluster (2026-10-20), not each form on rocks of its own. They go in before the staghorn,
+// (coralPlacement.js): on the same bommies, as Jeremy wants every coral form on the same rocks
+// as one cluster (2026-10-20), and a few more scattered singly over the reef's other rocks (he
+// found the first fans "very little ... scattered", 2026-10-26). They go in before the staghorn,
 // which then keeps clear of them (staghornPlacement.js, inFan): the staghorn crowds a bommie's
 // tops and feet with 40-odd colonies, and placed after it a fan found room on almost none.
 //
-// A sea fan grows upright from a holdfast on rock (or sand by the rock) on reef slopes swept by
-// strong tidal currents (SeaLifeBase, after Goh & Chou 1996), its flat lattice broadside to the
-// current so the polyps sieve the most water. So each fan here stands on a ledge or gentle slope
-// of the bommie, or the sand at its foot, upright with a slight lean, its face turned within
-// `facingJitter` of the landscape's current. A fan is kept only if its lattice stays out of the
-// rock (a few points may touch), the sand and every table's plate, stays under water, stands
-// clear of the bommie's other fans, and can be seen from the resting camera: at least
-// `minVisible` of nine points spread over its face in frame and not behind any rock. Without
-// that, Jeremy's first fans (2026-10-26) mostly stood behind their bommies or the foreground
-// rocks, and a phone's resting view saw almost none.
+// A sea fan grows from a holdfast cemented to rock (Brihatee et al. 2025: consolidated rock on
+// steep slopes), on tops, slopes and walls alike: Jeremy (2026-10-26) "these corals should grow on
+// rocks ... they can grow along rock faces, no need to always be upward facing". Its flat lattice
+// stands broadside to the current so the polyps sieve the most water (SeaLifeBase, after Goh &
+// Chou 1996). So each fan here starts from a point on a rock face hit by a ray from outside, any
+// face but an overhang's underside; it grows out along the face's normal tipped up toward the
+// light (a fan on a wall leans out and up, one on a top stands upright), its face turned toward
+// the current within `facingJitter`. A fan is kept only if its holdfast is buried in the rock (no
+// fan floats), its lattice and branches stay out of every rock, the sand, every table (plate and
+// stalk) and every other fan, it stays under water, and the resting camera sees at least
+// `minVisible` of nine points on its face: without that the first fans mostly stood behind
+// their bommies or the foreground rocks.
 
-const DOWN = new THREE.Vector3(0, -1, 0)
 const UP = new THREE.Vector3(0, 1, 0)
-const ATTEMPTS_PER_FAN = 120
-// Largest lean off upright, about 7°.
-const MAX_LEAN = 0.12
-// Points of the fan tested against the rock and sand, and how many may touch the rock or dip
-// into the sand (a holdfast on a slope has its lowest branches near the rock).
-const SAMPLE_COUNT = 40
-const INSIDE_ALLOWED = 2
-const SAND_ALLOWED = 2
-// Ledges this steep or gentler (a face pointing at least this much up) take a holdfast.
-const MIN_LEDGE_UP = 0.35
-// A fan on the sand stands this many WU out from where a level ray met its rock's foot.
-const SAND_REACH = [0.3, 2]
-// Least distance between two fans' holdfasts, in shares of their summed half widths.
-const SPACING = 1.1
-// The holdfast sinks this share of the fan's height into the rock or sand.
-const SINK = 0.02
+const ATTEMPTS_PER_FAN = 200
+// How far a fan on a wall is tipped up from the wall's normal: its growth direction is the
+// normal plus this much of straight up.
+const GROW_UP = 0.9
+// Faces pointing further down than this (an overhang's underside) take no holdfast.
+const MIN_FACE_UP = -0.25
+// Points of the fan tested against the rock, sand, tables and fans: a grid over its face and
+// points along its branches. Points within this share of its height of the holdfast may touch the
+// rock it grows from.
+const GRID = 9
+const BRANCH_SAMPLES = 24
+const BASE_SHARE = 0.12
+// The holdfast sinks this share of the fan's height into the rock, along the face's normal.
+const SINK = 0.04
 // Water kept either side of a fan's lattice by other corals (inFan), in WU, on top of its sway.
 const FAN_CLEAR = 0.4
+// Water kept between a fan and a table's stalk, in WU.
+const STALK_CLEAR = 0.4
 const YIELD_EVERY = 20
 // Points on a fan's face tested for sight from the resting camera, as shares of its width
 // (across its middle) and height.
@@ -49,13 +51,82 @@ const SIGHT_POINTS = [-0.3, 0, 0.3].flatMap(x => [0.3, 0.55, 0.8].map(y => [x, y
 const FRAME_TAN_Y = Math.tan(THREE.MathUtils.degToRad(21))
 const FRAME_TAN_X = FRAME_TAN_Y * 16 / 9
 
+// Fan facts of a kit model (model metres, holdfast at the origin, lattice in the XY plane):
+// height, the farthest point from the holdfast (its rim), the lattice's extent along x, and
+// test points: a GRID × GRID grid over the face (kept where the model has a vertex nearby, so a
+// trimmed outline's empty corners are not tested) and points spread over the rest.
+// parts: [{ geometry, masked }], masked for the lattice cut out by its texture.
+export function measureFan(parts) {
+  let height = 0
+  let reach = 0
+  let minX = Infinity
+  let maxX = -Infinity
+  const lattice = []
+  const branches = []
+  for (const { geometry, masked } of parts) {
+    const position = geometry.attributes.position
+    for (let i = 0; i < position.count; i++) {
+      const point = new THREE.Vector3().fromBufferAttribute(position, i)
+      height = Math.max(height, point.y)
+      reach = Math.max(reach, point.length())
+      minX = Math.min(minX, point.x)
+      maxX = Math.max(maxX, point.x)
+      ;(masked ? lattice : branches).push(point)
+    }
+  }
+  const width = maxX - minX
+  const cell = Math.max(width, height) / GRID
+  const samples = []
+  for (let i = 0; i <= GRID; i++) {
+    for (let j = 0; j <= GRID; j++) {
+      const x = minX + width * i / GRID
+      const y = height * j / GRID
+      let nearest = null
+      let best = cell
+      for (const point of lattice) {
+        const d = Math.hypot(point.x - x, point.y - y)
+        if (d < best) { best = d; nearest = point }
+      }
+      if (nearest) samples.push(new THREE.Vector3(x, y, nearest.z))
+    }
+  }
+  for (let k = 0; k < BRANCH_SAMPLES && branches.length; k++) samples.push(branches[Math.floor(k * branches.length / BRANCH_SAMPLES)])
+  return { height, reach, minX, maxX, width, samples }
+}
+
+// Whether a point is in a placed fan's lattice, or within its clearance (FAN_CLEAR and its
+// sway) plus `extra` WU of it, for the corals placed after the fans (staghornPlacement.js).
+const local = new THREE.Vector3()
+export function inFan(fans, point, extra = 0) {
+  for (const fan of fans) {
+    const reach = fan.reach + fan.clear + extra
+    if (Math.abs(point.x - fan.base.x) > reach || Math.abs(point.z - fan.base.z) > reach || Math.abs(point.y - fan.base.y) > reach) continue
+    local.copy(point).applyMatrix4(fan.inverse)
+    const margin = (fan.clear + extra) / fan.scale
+    if (Math.abs(local.z) < margin && local.y > -margin && local.y < fan.shape.height + margin
+      && local.x > fan.shape.minX - margin && local.x < fan.shape.maxX + margin) return true
+  }
+  return false
+}
+
+// Whether a point is in a table's plate or near its stalk (from its foot up to its plate).
+function inTable(tables, plates, point) {
+  if (inPlate(plates, point)) return true
+  for (const table of tables) {
+    const { plate } = table
+    const foot = table.foot
+    if (point.y < foot.y - 0.5 || point.y > plate.y) continue
+    if (Math.hypot(point.x - foot.x, point.z - foot.z) < plate.radius * 0.2 + STALK_CLEAR) return true
+  }
+  return false
+}
+
 // How many of a fan's SIGHT_POINTS the resting camera sees: in frame and with no rock between.
-function pointsSeen(fan, matrix, sight, scratch) {
-  if (!sight) return SIGHT_POINTS.length
+function pointsSeen(shape, matrix, sight, scratch) {
   const { eye, forward, right, up, rocks } = sight
   let seen = 0
   for (const [x, y] of SIGHT_POINTS) {
-    scratch.set((fan.minX + fan.maxX) / 2 + x * fan.width, y * fan.height, 0).applyMatrix4(matrix).sub(eye)
+    scratch.set((shape.minX + shape.maxX) / 2 + x * shape.width, y * shape.height, 0).applyMatrix4(matrix).sub(eye)
     const depth = scratch.dot(forward)
     if (depth <= 0 || Math.abs(scratch.dot(right)) > depth * FRAME_TAN_X || Math.abs(scratch.dot(up)) > depth * FRAME_TAN_Y) continue
     const distance = scratch.length()
@@ -64,150 +135,142 @@ function pointsSeen(fan, matrix, sight, scratch) {
   return seen
 }
 
-// Fan facts of a kit model (model metres, holdfast at the origin, lattice in the XY plane):
-// height, the farthest point from the holdfast (its rim), the lattice's extent along x, and
-// points spread over it, the rim's weighing most.
-export function measureFan(geometries) {
-  let height = 0
-  let reach = 0
-  let minX = Infinity
-  let maxX = -Infinity
-  const points = []
-  for (const geometry of geometries) {
-    const position = geometry.attributes.position
-    for (let i = 0; i < position.count; i++) {
-      const x = position.getX(i)
-      const y = position.getY(i)
-      const z = position.getZ(i)
-      height = Math.max(height, y)
-      reach = Math.max(reach, Math.hypot(x, y, z))
-      minX = Math.min(minX, x)
-      maxX = Math.max(maxX, x)
-      points.push(new THREE.Vector3(x, y, z))
-    }
+// The sites fans grow on: each coral cluster (`perCluster` fans), then up to `scatter.rocks` of
+// the reef's other coral-host rocks (`scatter.perRock` fans each) at least `scatter.spacing` WU
+// from every cluster and each other, within `scatter.maxDistance` of the resting camera and in
+// front of it. coralRocks: Map of rock → its drawn world-space geometries (Landscape.jsx).
+function fanSites(config, clusters, coralRocks, view, rand) {
+  const sites = clusters.map(cluster => ({ geometries: cluster.geometries, seed: cluster.seed, count: config.perCluster }))
+  const scatter = config.scatter
+  if (!scatter || !coralRocks || !view) return sites
+  const eye = new THREE.Vector3(view.x ?? 0, view.y ?? 0, view.z ?? 0)
+  const forward = new THREE.Vector3(view.lookX ?? eye.x, eye.y, view.lookZ ?? 0).sub(eye).setY(0).normalize()
+  const used = new Set(clusters.flatMap(cluster => cluster.roots ?? []))
+  const taken = clusters.map(cluster => boundsOf(cluster.geometries).getCenter(new THREE.Vector3()))
+  const candidates = []
+  for (const [root, geometries] of coralRocks) {
+    if (used.has(root)) continue
+    const centre = boundsOf(geometries).getCenter(new THREE.Vector3())
+    const toRock = centre.clone().sub(eye).setY(0)
+    const distance = toRock.length()
+    if (distance > scatter.maxDistance || toRock.normalize().dot(forward) < Math.cos(0.7)) continue
+    candidates.push({ root, geometries, centre })
   }
-  // Farthest from the holdfast first; half the samples from the outer fifth, half over the rest.
-  points.sort((a, b) => b.length() - a.length())
-  const samples = []
-  for (let k = 0; k < SAMPLE_COUNT; k++) {
-    const i = k < SAMPLE_COUNT / 2
-      ? Math.floor(k * points.length / (SAMPLE_COUNT * 2.5))
-      : Math.floor((k - SAMPLE_COUNT / 2) * points.length / (SAMPLE_COUNT / 2))
-    samples.push(points[i])
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[candidates[i], candidates[j]] = [candidates[j], candidates[i]]
   }
-  return { height, reach, minX, maxX, width: maxX - minX, samples }
+  for (const candidate of candidates) {
+    if (sites.length - clusters.length >= scatter.rocks) break
+    if (taken.some(other => Math.hypot(other.x - candidate.centre.x, other.z - candidate.centre.z) < scatter.spacing)) continue
+    taken.push(candidate.centre)
+    sites.push({ geometries: candidate.geometries, seed: scatter.seed * 7919 + candidate.root, count: scatter.perRock })
+  }
+  return sites
 }
 
-// Whether a point is in a placed fan's lattice, or within FAN_CLEAR of it plus its sway, for the
-// corals placed after the fans (staghornPlacement.js).
-const local = new THREE.Vector3()
-export function inFan(fans, point) {
-  for (const fan of fans) {
-    if (Math.abs(point.x - fan.base.x) > fan.reach + fan.clear || Math.abs(point.z - fan.base.z) > fan.reach + fan.clear) continue
-    local.copy(point).applyMatrix4(fan.inverse)
-    const margin = fan.clear / fan.scale
-    if (Math.abs(local.z) < margin && local.y > -margin && local.y < fan.shape.height + margin
-      && local.x > fan.shape.minX - margin && local.x < fan.shape.maxX + margin) return true
-  }
-  return false
-}
-
-// Placed sea fans: [{ model, matrix, site, base, height, reach, width, normal, phase, obstacle, ... }],
-// with `site` the index of the cluster it grows in, `normal` its face (the way it swings),
-// `phase` its sway's phase and `obstacle` a piece box for rockObstacles.js. A generator, like
-// placeCorals: it yields every few candidate spots and returns the fans when done.
-// clusters are coralClusters'; tables the placed tables; measures are measureFan per kit model;
-// view is the resting camera; sightRocks every drawn rock (the landscape's merged chunks), for
-// the sight test.
-export function* placeSeaFans(landscape, clusters, tables, measures, view, sightRocks = null) {
+// Placed sea fans: [{ model, matrix, inverse, scale, shape, site, base, height, reach, width,
+// normal, phase, clear, obstacle }], with `site` the index of the site it grows on, `normal` its
+// face (the way it swings), `phase` its sway's phase and `obstacle` a piece box for
+// rockObstacles.js. A generator, like placeCorals: it yields every few candidate spots and
+// returns the fans when done. clusters are coralClusters'; tables the placed tables; measures
+// are measureFan per kit model; view is the resting camera; sightRocks every drawn rock (the
+// landscape's merged chunks: the rock and sight tests); coralRocks the coral-host rocks
+// (Landscape.jsx) for the scattered fans.
+export function* placeSeaFans(landscape, clusters, tables, measures, view, sightRocks, coralRocks = null) {
   const config = landscape.seaFans
   const plates = tables.map(table => table.plate)
+  const tableFeet = tables.map(table => ({ plate: table.plate, foot: new THREE.Vector3().setFromMatrixPosition(table.matrix) }))
+  const current = new THREE.Vector3(config.current[0], 0, config.current[1]).normalize()
+  // A BVH tree per rock chunk, one a slice (each takes a few ms), kept on the chunk for the session.
+  for (const geometry of sightRocks) {
+    if (geometry.boundsTree) continue
+    geometry.boundsTree = new MeshBVH(geometry)
+    yield
+  }
+  const allRocks = rockCaster(sightRocks)
   let sight = null
-  if (view && sightRocks?.length) {
-    // A BVH tree per chunk, one a slice (each takes a few ms), kept on the chunk for the session.
-    for (const geometry of sightRocks) {
-      if (geometry.boundsTree) continue
-      geometry.boundsTree = new MeshBVH(geometry)
-      yield
-    }
+  if (view) {
     const eye = new THREE.Vector3(view.x ?? 0, view.y ?? 0, view.z ?? 0)
     const forward = new THREE.Vector3(view.lookX ?? eye.x, view.lookY ?? eye.y, view.lookZ ?? 0).sub(eye).normalize()
     const right = new THREE.Vector3().crossVectors(forward, UP).normalize()
-    sight = { eye, forward, right, up: new THREE.Vector3().crossVectors(right, forward), rocks: rockCaster(sightRocks) }
+    sight = { eye, forward, right, up: new THREE.Vector3().crossVectors(right, forward), rocks: allRocks }
   }
-  const current = new THREE.Vector3(config.current[0], 0, config.current[1]).normalize()
+  const sites = fanSites(config, clusters, coralRocks, view, seededRandom(config.seed * 31 + 7))
   const placed = []
   const origin = new THREE.Vector3()
+  const direction = new THREE.Vector3()
   const point = new THREE.Vector3()
-  const inward = new THREE.Vector3()
-  for (const [site, cluster] of clusters.entries()) {
-    const rocks = rockCaster(cluster.geometries)
-    const bounds = boundsOf(cluster.geometries)
+  const grow = new THREE.Vector3()
+  const face = new THREE.Vector3()
+  const side = new THREE.Vector3()
+  const basis = new THREE.Matrix4()
+  for (const [site, { geometries, seed, count: countRange }] of sites.entries()) {
+    const rocks = rockCaster(geometries)
+    const bounds = boundsOf(geometries)
     const centre = bounds.getCenter(new THREE.Vector3())
     const size = bounds.getSize(new THREE.Vector3())
-    const rand = seededRandom(config.seed * 7919 + cluster.seed)
+    const out = Math.max(size.x, size.y, size.z)
+    const rand = seededRandom(config.seed * 7919 + seed)
     const pick = ([min, max]) => min + rand() * (max - min)
     const facing = view ? Math.atan2(view.z - centre.z, view.x - centre.x) : Math.PI / 2
-    const count = Math.round(pick(config.perCluster))
+    const count = Math.round(pick(countRange))
     let kept = 0
     for (let attempt = 0; attempt < count * ATTEMPTS_PER_FAN && kept < count; attempt++) {
       if (attempt % YIELD_EVERY === YIELD_EVERY - 1) yield
-      // All round the bommie, a little more often on the side facing the camera.
-      const angle = facing + (rand() * 2 - 1) * (rand() < 0.5 ? 1.6 : Math.PI)
-      let baseY
-      if (rand() < config.footShare) {
-        // At the foot: a level ray in from outside finds the rock, and the holdfast goes on the
-        // sand a little out from where it met it, not under an overhang.
-        const out = Math.max(size.x, size.z)
-        origin.set(centre.x + Math.cos(angle) * out, 0, centre.z + Math.sin(angle) * out)
-        origin.y = sandHeight(landscape, origin.x, origin.z) + 0.6
-        inward.set(centre.x - origin.x, 0, centre.z - origin.z).normalize()
-        const foot = rocks.nearest(origin, inward, out * 1.5)
-        if (!foot) continue
-        origin.copy(foot.point).addScaledVector(inward, -pick(SAND_REACH))
-        baseY = sandHeight(landscape, origin.x, origin.z)
-        if (rocks.nearest(point.set(origin.x, baseY + 0.3, origin.z), UP, 30)) continue
-      } else {
-        // On a ledge or gentle slope of the bommie's top and shoulders.
-        const edge = 0.3 + rand() * 0.65
-        origin.set(centre.x + Math.cos(angle) * edge * size.x / 2, bounds.max.y + 2, centre.z + Math.sin(angle) * edge * size.z / 2)
-        const sandY = sandHeight(landscape, origin.x, origin.z)
-        const hit = rocks.nearest(origin, DOWN, bounds.max.y + 2 - sandY + 1)
-        if (!hit || hit.point.y <= sandY || hit.normal.y < MIN_LEDGE_UP) continue
-        baseY = hit.point.y
-      }
-      // The biggest fans low, on the sand and the lower ledges; small ones higher up.
-      const low = THREE.MathUtils.clamp((bounds.max.y - baseY) / Math.max(size.y, 1), 0, 1)
-      const height = THREE.MathUtils.lerp(config.height[0], config.height[1], THREE.MathUtils.clamp(low * 0.7 + rand() * 0.5, 0, 1))
+      // A ray in at the rock from outside: all round it, more often from the camera's side, from
+      // level to steeply above, aimed at a point inside its bounds.
+      const azimuth = facing + (rand() * 2 - 1) * (rand() < 0.6 ? 1.6 : Math.PI)
+      const elevation = -0.1 + rand() * 1.2
+      direction.set(Math.cos(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.sin(azimuth) * Math.cos(elevation))
+      point.set(centre.x + (rand() - 0.5) * size.x * 0.6, bounds.min.y + size.y * (0.15 + rand() * 0.85), centre.z + (rand() - 0.5) * size.z * 0.6)
+      origin.copy(point).addScaledVector(direction, out * 1.5)
+      const hit = rocks.nearest(origin, direction.negate(), out * 3)
+      if (!hit || hit.normal.dot(direction) > 0 || hit.normal.y < MIN_FACE_UP) continue
+      if (hit.point.y < sandHeight(landscape, hit.point.x, hit.point.z) + 0.2) continue
+      const normal = hit.normal.normalize()
+      // Out along the face, tipped up; the face broadside to the current, turned a little.
+      grow.copy(normal).addScaledVector(UP, GROW_UP).normalize()
+      face.copy(current).applyAxisAngle(UP, (rand() * 2 - 1) * config.facingJitter)
+      face.addScaledVector(grow, -face.dot(grow))
+      if (face.length() < 0.4) continue
+      face.normalize()
+      side.crossVectors(grow, face)
+      const height = pick(config.height) * (site < clusters.length ? 1 : 0.85)
       const model = Math.floor(rand() * measures.length)
       const shape = measures[model]
       const scale = height / shape.height
-      // Face turned within facingJitter of the current; the lattice is two-sided, so either way.
-      const turn = (rand() * 2 - 1) * config.facingJitter
-      const normal = current.clone().applyAxisAngle(UP, turn)
-      const yaw = Math.atan2(normal.x, normal.z)
-      const rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler((rand() * 2 - 1) * MAX_LEAN, yaw, (rand() * 2 - 1) * MAX_LEAN * 0.5, 'YXZ'))
-      const base = new THREE.Vector3(origin.x, baseY - height * SINK, origin.z)
-      if (base.y + height > landscape.maxTop) continue
-      const halfWidth = shape.width * scale / 2
-      if (placed.some(other => other.site === site
-        && Math.hypot(other.base.x - base.x, other.base.z - base.z) < (other.width / 2 + halfWidth) * SPACING)) continue
-      const matrix = new THREE.Matrix4().compose(base, rotation, new THREE.Vector3(scale, scale, scale))
-      let inside = 0
-      let sand = 0
+      const base = hit.point.clone().addScaledVector(normal, -height * SINK)
+      basis.makeBasis(side, grow, face)
+      const matrix = new THREE.Matrix4().compose(base, new THREE.Quaternion().setFromRotationMatrix(basis), new THREE.Vector3(scale, scale, scale))
+      // Buried at the holdfast: nothing floats.
+      if (!allRocks.inside(base)) continue
+      if (placed.some(other => other.base.distanceTo(base) < (other.width + shape.width * scale) * 0.3)) continue
       let clash = false
+      let top = -Infinity
       for (const sample of shape.samples) {
         point.copy(sample).applyMatrix4(matrix)
-        if (inPlate(plates, point) || (point.y < sandHeight(landscape, point.x, point.z) && ++sand > SAND_ALLOWED)) {
+        top = Math.max(top, point.y)
+        if (point.y < sandHeight(landscape, point.x, point.z) || inTable(tableFeet, plates, point) || inFan(placed, point)
+          || (sample.y > shape.height * BASE_SHARE && allRocks.inside(point))) {
           clash = true
           break
         }
-        if (rocks.inside(point) && ++inside > INSIDE_ALLOWED) break
       }
-      if (clash || inside > INSIDE_ALLOWED) continue
-      if (pointsSeen(shape, matrix, sight, point) < config.minVisible) continue
-      // The lattice's middle along its width, for the obstacle box.
-      const middle = new THREE.Vector3((shape.minX + shape.maxX) / 2, 0, 0).applyMatrix4(matrix)
+      if (clash || top > landscape.maxTop) continue
+      if (sight && pointsSeen(shape, matrix, sight, point) < config.minVisible) continue
+      // The obstacle box: the fan's extent across and along its face's horizontal heading.
+      const yaw = Math.atan2(face.x, face.z)
+      const across = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw))
+      const along = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw))
+      let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity, minY = Infinity
+      for (const sample of shape.samples) {
+        point.copy(sample).applyMatrix4(matrix)
+        minA = Math.min(minA, point.dot(across)); maxA = Math.max(maxA, point.dot(across))
+        minB = Math.min(minB, point.dot(along)); maxB = Math.max(maxB, point.dot(along))
+        minY = Math.min(minY, point.y)
+      }
+      const middle = across.clone().multiplyScalar((minA + maxA) / 2).addScaledVector(along, (minB + maxB) / 2)
       placed.push({
         model,
         matrix,
@@ -219,13 +282,15 @@ export function* placeSeaFans(landscape, clusters, tables, measures, view, sight
         height,
         reach: shape.reach * scale,
         width: shape.width * scale,
-        normal,
+        normal: face.clone(),
         // Along the current, so the surge passes through the reef as a wave, plus a little jitter.
         phase: base.dot(current) * 0.35 + rand() * 0.8,
         // Water other corals keep from the lattice: FAN_CLEAR and the rim's swing.
         clear: FAN_CLEAR + config.sway.bend * height,
-        // The fan as an obstacle box: the lattice's width and height, thin across it.
-        obstacle: { x: middle.x, z: middle.z, y: base.y, height, width: shape.width * scale * 0.9, depth: 0.6, yaw },
+        obstacle: {
+          x: middle.x, z: middle.z, y: minY, height: top - minY,
+          width: (maxA - minA) * 0.9, depth: Math.max(maxB - minB, 0.6), yaw,
+        },
       })
       kept++
     }

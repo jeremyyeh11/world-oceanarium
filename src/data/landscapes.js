@@ -396,16 +396,18 @@ export const LANDSCAPES = {
     },
     // Giant sea fans (src/components/seaFanPlacement.js) on the same bommies, placed after the
     // tables and clear of them, and before the staghorn, which keeps clear of them (placed after
-    // it, a fan found room on almost no bommie): `perCluster` fans a bommie, `height` in WU (75 cm
-    // to 1.9 m: colonies are mostly 76 to 150 cm, Brihatee et al. 2025, and reach 2 m), the big
-    // ones low. A fan grows broadside to the current; `current` (x, z) is set along the resting
-    // camera's line of sight, so the fans face the visitor, each within `facingJitter` radians.
-    // `sway` is SEA_FAN_SWAY. About footShare of the fans stand on the sand at the bommie's foot.
-    // A fan needs `minVisible` of 9 points on its face seen from the resting camera.
+    // it, a fan found room on almost no bommie): `perCluster` fans a bommie, and `scatter.perRock`
+    // on each of up to `scatter.rocks` other rocks in front of the camera, `scatter.spacing` WU
+    // apart. `height` in WU (60 cm to 1.6 m: colonies are mostly 76 to 150 cm, Brihatee et al.
+    // 2025, and reach 2 m). Each grows from rock only (tops, slopes and walls), its holdfast
+    // buried; broadside to the current; `current` (x, z) is set along the resting camera's line of
+    // sight, so the fans face the visitor, each within `facingJitter` radians. `sway` is
+    // SEA_FAN_SWAY. A fan needs `minVisible` of 9 points on its face seen from the resting camera.
     seaFans: {
       kit: SEA_FAN_KIT,
-      seed: 8411, perCluster: [1, 3], height: [3, 7.5],
-      current: [0.16, 1], facingJitter: 0.35, footShare: 0.5, minVisible: 6,
+      seed: 8411, perCluster: [3, 5], height: [2.5, 6.5],
+      current: [0.16, 1], facingJitter: 0.35, minVisible: 2,
+      scatter: { seed: 8501, rocks: 20, perRock: [1, 3], spacing: 10, maxDistance: 95 },
       sway: SEA_FAN_SWAY,
     },
   },

@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Sea Fan
 
-Status: `Blocked / waiting review` — `v0.38.0-dev_2` (2026-10-26, branch `feat/annella-mollis`): Jeremy's three fans are in. His pick (2026-10-25): a soft coral back on The Reefs. Contract and intake: `docs/procedural/coral-sway.md`.
+Status: `Blocked / waiting review` — `v0.38.0-dev_3` (2026-10-26, branch `feat/annella-mollis`): Jeremy's three fans are in. His pick (2026-10-25): a soft coral back on The Reefs. Contract and intake: `docs/procedural/coral-sway.md`.
 
 Subtasks:
 - [x] Species entry (`annella-mollis`) from SeaLifeBase, Florent's Guide, Brihatee et al. 2025 and Chang 2007; sources credited.
@@ -24,6 +24,7 @@ Subtasks:
 - [x] Jeremy's GLB (2026-10-26, 76 MB, three photo-textured fans lying flat, lattices exported as Blend): the kit script stands them up, rounds the alpha to Mask, finds the holdfast on the trunk, and writes WebP textures: 4.1 MB kit, 1.0 MB Atlas model (`dev_2`).
 - [x] Sight test (`dev_2`): his fans first stood mostly behind rocks; a fan now needs 6 of 9 face points seen from the resting camera. Five fans, three in a phone's centre crop.
 - [x] Atlas: unhidden, 1 m fan, tile rendered in Blender from the Atlas model (in-page capture was not available).
+- [x] `dev_3` (Jeremy: some floating, clipping into corals and walls, only upright, too few): rock-only holdfasts on any face but undersides, buried; denser clash tests against every rock, tables, fans; staghorn clears the fans' body; 3–5 a bommie plus 1–3 on up to 20 other rocks: 25 fans (was 5). Atlas fan on a limestone rock (`scripts/build-sea-fan-atlas.py`).
 - [ ] Phone review: sway amount (`SEA_FAN_SWAY.bend` 0.05, `period` 7 s), fan count and visibility (`perCluster` 1–3, `minVisible` 6), sizes (3–7.5 WU).
 - [ ] Photo sources of the orange and pink fans (yellow: Diego Delso, CC BY-SA 4.0, credited).
 - [ ] Jeremy's call: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.

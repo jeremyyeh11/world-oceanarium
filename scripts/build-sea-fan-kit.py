@@ -16,8 +16,8 @@
 # middle of the lowest 4 cm of its trunk (the opaque parts; a lobe of lattice may hang lower), at
 # the trunk's lowest z. Fans are named fan0, fan1, ... tallest first.
 #
-# Writes <out>/models/landscape/sea-fans.glb (every fan, for the tank) and
-# <out>/models/fish/annella-mollis/annella-mollis.glb (fan0 alone, the Atlas specimen), with the
+# Writes <out>/models/landscape/sea-fans.glb (every fan, for the tank; the Atlas specimen is built
+# from it by scripts/build-sea-fan-atlas.py), with the
 # source's materials and textures as WebP (alpha kept): a lattice's image scaled down to at most
 # MAX_TEXTURE px, an image only the opaque branches use to MAX_BRANCH_TEXTURE (Jeremy's first GLB
 # held photo textures up to 4720 px, 76 MB). Prints each fan's size, triangles and materials, and warns where the contract is broken.
@@ -179,7 +179,6 @@ def export(objs, path):
     print('GLB', path, os.path.getsize(path))
 
 export(kept, os.path.join(out_dir, 'models', 'landscape', 'sea-fans.glb'))
-export(kept[:1], os.path.join(out_dir, 'models', 'fish', 'annella-mollis', 'annella-mollis.glb'))
 
 if preview_dir:
     # The fans side by side from the front, for a look before shipping.

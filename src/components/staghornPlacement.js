@@ -86,9 +86,9 @@ export function inPlate(plates, point) {
 // piece box for rockObstacles.js. A generator, like
 // placeCorals: it yields every few candidate spots and returns the colonies when done.
 // clusters are coralClusters' (the bommies the tables crown); tables the placed tables;
-// measures are measureColony per kit model; view is the resting camera. `avoid`, if given, says
-// whether a point is taken by a coral placed before the staghorn (the sea fans, seaFanPlacement.js
-// inFan).
+// measures are measureColony per kit model; view is the resting camera. `avoid(point, extra)`, if
+// given, says whether a point (with `extra` WU round it) is taken by a coral placed before the
+// staghorn (the sea fans, seaFanPlacement.js inFan).
 export function* placeStaghorn(landscape, clusters, tables, measures, view, avoid = null) {
   const config = landscape.staghorn
   const { kit } = config
@@ -190,6 +190,8 @@ export function* placeStaghorn(landscape, clusters, tables, measures, view, avoi
         if (clash || inside > INSIDE_ALLOWED) continue
         // The base too: not inside a table's plate (a colony standing on one).
         if (inPlate(plates, base) || avoid?.(base)) continue
+        // And the colony's body, not only its sample points: thin branches pass between them.
+        if (avoid?.(point.set(base.x, base.y + height / 2, base.z), Math.max(reach, height / 2) * 0.8)) continue
         placed.push({
           model,
           matrix,

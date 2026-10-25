@@ -94,9 +94,9 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.1, 0],
     lookAt: [0, -0.1, 0],
   },
-  // One sea fan standing on its holdfast (the model's origin), nearly face on so the lattice
-  // reads, turned a little so it shows it is a flat sheet; lowered by half its height so it sits
-  // in the middle of the stage.
+  // One sea fan growing from a low rock (the model's origin is the rock's foot), nearly face on
+  // so the lattice reads, turned a little so it shows it is a flat sheet; lowered by half its
+  // height so it sits in the middle of the stage.
   'annella-mollis': {
     yawOffset: -0.35,
     pitchDegrees: 8,
@@ -259,9 +259,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).
   'acropora-muricata': 3.157,
-  // The kit's tallest fan (the orange one), its largest extent: 1.0 m across
-  // (scripts/build-sea-fan-kit.py prints fan0's dims).
-  'annella-mollis': 1.0,
+  // The orange fan on its rock, tallest (scripts/build-sea-fan-atlas.py prints the bounds).
+  'annella-mollis': 1.24,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -579,13 +578,15 @@ function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = fals
   return scene
 }
 
-// A soft coral specimen swaying as it does in the tank (`model.sway`, utils/coralSway.js): the
-// model's holdfast is its origin and its lattice faces +Z, so it swings along Z, its rim the
-// most. Each mesh gets its own copy of its geometry with the sway baked in.
+// A soft coral specimen swaying as it does in the tank (`model.sway`, utils/coralSway.js): each
+// coral mesh's origin is its holdfast and its lattice faces +Z, so it swings along Z, its rim the
+// most. Meshes under a node named `rock…` (the specimen's base rock) stay still. Each coral mesh
+// gets its own copy of its geometry with the sway baked in.
 function prepareAtlasSway(scene, sway) {
   if (!sway) return
   const meshes = []
-  scene.traverse(object => { if (object.isMesh) meshes.push(object) })
+  const onRock = object => object && (object.name.startsWith('rock') || onRock(object.parent))
+  scene.traverse(object => { if (object.isMesh && !onRock(object)) meshes.push(object) })
   let height = 0
   let reach = 0
   for (const mesh of meshes) {

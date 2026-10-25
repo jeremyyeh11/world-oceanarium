@@ -223,7 +223,10 @@ Forms:
   flanks, narrow gaps inside. Implemented (`v0.31.4`).
 - `mound` (massive, brain and encrusting corals): a solid surface like rock, an overhang at the
   base. Proposed; no model yet.
-- `fan` (gorgonians, sea whips, soft corals): a flat, bendy lattice. Proposed.
+- `fan` (gorgonians, sea whips, soft corals; Giant Sea Fan): a flat, bendy lattice. Solid since
+  `v0.38.0-dev_1` (its surfaces block the site rays, `form: 'fan'`, and it is in the obstacle
+  field), but no mode visits it yet: `fan` is not in `CORAL_FORMS`. Proposed: hover and patrol
+  beside the lattice.
 - `host` (anemones): a home for one symbiont, closer to docs/ride-hosts.md. Proposed; needs its
   own design.
 

@@ -34,6 +34,8 @@ export function createEnvironmentManifests(tanks = TANKS, species = SPECIES, lan
         add('gltf', coral.kit.path)
         for (const model of coral.kit.models) for (const url of [model.color, model.normal]) add('texture', url)
       }
+      // The sea fans' textures are inside their GLB.
+      if (landscape.seaFans && !landscape.seaFans.pending) add('gltf', landscape.seaFans.kit.path)
     }
     return { id: tank.id, assets: [...assets.values()] }
   })

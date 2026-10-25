@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### Giant Sea Fan
+
+Status: `Blocked / waiting review` — prepped as `v0.38.0-dev_1` (2026-10-25, branch `feat/annella-mollis`), waiting for Jeremy's model. His pick (2026-10-25): a soft coral back on The Reefs; masked lattice plane plus low-poly tube trunk and branches. Contract and intake: `docs/procedural/coral-sway.md`.
+
+Subtasks:
+- [x] Species entry (`annella-mollis`, hidden) from SeaLifeBase, Florent's Guide, Brihatee et al. 2025 and Chang 2007; sources credited.
+- [x] Sway: `src/utils/coralSway.js` (shared clock, baked attributes, two-sided masked material with alpha to coverage); tank and Atlas.
+- [x] Placement: `src/components/seaFanPlacement.js`, after the tables and before the staghorn, which keeps clear of the fans. A test fan (scratch, not shipped): 12 fans on 9 bommies, staghorn still on all 9, no console errors.
+- [x] Kit script `scripts/build-sea-fan-kit.py`, run end to end on a generated test fan.
+- [ ] Jeremy's GLB → kit, then the intake checklist in `docs/procedural/coral-sway.md` (unhide, `landscapeSpecies`, Atlas length, tile).
+- [ ] Phone review: sway amount (`SEA_FAN_SWAY.bend` 0.05, `period` 7 s), fan count (`perCluster` 1–3), sizes (3–7.5 WU).
+- [ ] Jeremy's call: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.
+- [ ] Backlog: a `fan` coral form for reef fish (hover/patrol beside the lattice); docs/reef-behavior.md.
+
 ### The Shallows: animals circling
 
 Status: shipped in clean `v0.37.1` (2026-10-25, branch `fix/shallows-wider-bounds`, #162). Jeremy: everybody in The Shallows swam in a visible circle; leaving the screen and coming back is fine. Fixed with `goalPick: 'across'` and wider rooms (dev_1), then wedge-shaped rooms and a frame that widens up to 21:9 (dev_2; CHANGELOG v0.37.1).

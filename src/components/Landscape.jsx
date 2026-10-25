@@ -12,7 +12,9 @@ import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurface
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
 import { measureColony, placeStaghorn } from './staghornPlacement'
+import { inFan, measureFan, placeSeaFans } from './seaFanPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
+import { addSwayAttributes, applyCoralSway, useSwayClock } from '../utils/coralSway'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
 // modelled rocks. Every piece and rubble chunk is transformed, given fresh UVs and baked into
@@ -241,6 +243,10 @@ const PLACED_STAGHORN = new WeakMap()
 const THICKET_REEF_SURFACES = new WeakMap()
 // The tables reef fish can reach, as raycast surfaces (reefSites.js setCoralSurfaces), per placement.
 const CORAL_REEF_SURFACES = new WeakMap()
+// Placed sea fans per landscape, for the session.
+const PLACED_SEA_FANS = new WeakMap()
+// The sea fans reef fish can reach, as raycast surfaces, per placement.
+const FAN_REEF_SURFACES = new WeakMap()
 
 // One world-space geometry per table inside the landscape's reef reach, from its _lo mesh (700
 // triangles, 300 for the small one: plenty for a ray), with its plate for the site search to aim
@@ -552,7 +558,11 @@ function Corals({ landscape, coralRocks, environmentId }) {
   return (
     <>
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
-      {corals && landscape.staghorn && (
+      {corals && landscape.seaFans && !landscape.seaFans.pending ? (
+        <Suspense fallback={null}>
+          <SeaFans landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} />
+        </Suspense>
+      ) : corals && landscape.staghorn && (
         <Suspense fallback={null}>
           <Staghorn landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} />
         </Suspense>
@@ -562,15 +572,16 @@ function Corals({ landscape, coralRocks, environmentId }) {
 }
 
 // Staghorn (landscape.staghorn): patches of one colour each on the table corals' bommies,
-// clear of their plates (staghornPlacement.js), each bommie's drawn as one LOD (staghornLods).
-// Each colony joins the fish's rock obstacles.
-function Staghorn({ landscape, clusters, tables, environmentId }) {
+// clear of their plates and of the sea fans when there are any (`fans`, placed first:
+// staghornPlacement.js), each bommie's drawn as one LOD (staghornLods). Each colony joins the
+// fish's rock obstacles.
+function Staghorn({ landscape, clusters, tables, fans = null, environmentId }) {
   const { kit } = landscape.staghorn
   const { meshes, materials } = useCoralKit(kit, landscape.caustics)
   const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
     const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
-    return placeStaghorn(landscape, clusters, tables, measures, landscape.view)
-  }, [kit, meshes, clusters, tables], environmentId)
+    return placeStaghorn(landscape, clusters, tables, measures, landscape.view, fans && (point => inFan(fans, point)))
+  }, [kit, meshes, clusters, tables, fans], environmentId)
 
   const { bommies, obstacles } = useMemo(() => {
     if (!colonies) return { bommies: [], obstacles: [] }
@@ -601,6 +612,157 @@ function ThicketReefSurfaces({ landscape, colonies, meshes, kit, environmentId }
     return () => clearCoralSurfaces(owner)
   }, [surfaces])
   return null
+}
+
+// A sea fan kit (landscape.seaFans.kit, built by scripts/build-sea-fan-kit.py): each fan (fan0,
+// fan1, ...) in model metres with its holdfast at the origin and its lattice in the XY plane, as
+// its parts (one per material: the branches, the lattice cut out by its texture's alpha) and one
+// shared list of materials. The GLB's own materials, two-sided, swaying (utils/coralSway.js),
+// and a masked one smoothed at its cut edges by alpha to coverage (the canvas is antialiased),
+// so thin branches fade instead of flickering when the fan is far off.
+function useSeaFanKit(kit, sway, caustics) {
+  const gltf = useGLTF(kit.path)
+  const { models, materials } = useMemo(() => {
+    const sources = []
+    const models = []
+    gltf.scene.updateMatrixWorld(true)
+    const toFan = new THREE.Matrix4()
+    gltf.scene.traverse(object => {
+      if (!object.isMesh) return
+      let fan = object
+      while (fan && !/^fan\d+$/.test(fan.name)) fan = fan.parent
+      if (!fan) return
+      const index = Number(fan.name.slice(3))
+      let material = sources.indexOf(object.material)
+      if (material < 0) material = sources.push(object.material) - 1
+      const source = object.geometry
+      const geometry = new THREE.BufferGeometry()
+      geometry.setAttribute('position', source.attributes.position.clone())
+      if (source.attributes.normal) geometry.setAttribute('normal', source.attributes.normal.clone())
+      else geometry.computeVertexNormals()
+      // Every part needs the same attributes to merge; an untextured part gets zero UVs.
+      geometry.setAttribute('uv', source.attributes.uv?.clone() ?? new THREE.BufferAttribute(new Float32Array(source.attributes.position.count * 2), 2))
+      geometry.setIndex(source.index ? source.index.clone() : [...Array(source.attributes.position.count).keys()])
+      geometry.applyMatrix4(toFan.copy(fan.matrixWorld).invert().multiply(object.matrixWorld))
+      if (!models[index]) models[index] = []
+      models[index].push({ geometry, material })
+    })
+    const materials = sources.map(source => {
+      const material = source.clone()
+      material.side = THREE.DoubleSide
+      material.transparent = false
+      material.depthWrite = true
+      material.alphaToCoverage = material.alphaTest > 0
+      material.roughness = 0.9
+      material.metalness = 0
+      material.envMapIntensity = 0.35
+      applyCoralSway(material, sway, caustics)
+      return material
+    })
+    return { models: models.filter(Boolean), materials }
+  }, [gltf, sway, caustics])
+  useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
+  return { models, materials }
+}
+
+// A placed fan's parts, moved into place with its sway baked in.
+function placedFanParts(fan, parts, sway) {
+  return parts.map(part => {
+    const geometry = new THREE.BufferGeometry()
+    for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, part.geometry.attributes[attribute].clone())
+    geometry.setIndex(part.geometry.index.clone())
+    geometry.applyMatrix4(fan.matrix)
+    addSwayAttributes(geometry, { origin: fan.base, direction: fan.normal, amplitude: sway.bend * fan.height, reach: fan.reach, phase: fan.phase })
+    return { geometry, material: part.material }
+  })
+}
+
+// The sea fans inside the landscape's reef reach as raycast surfaces (reefSites.js
+// setCoralSurfaces), one per fan, so a fan blocks a fish's site rays like rock. No reef mode
+// visits the `fan` form yet (docs/reef-behavior.md, Coral forms); fish steer round them.
+function fanReefSurfaces(landscape, fans, models) {
+  const cached = FAN_REEF_SURFACES.get(fans)
+  if (cached) return cached
+  const reach = landscape.reefReach
+  const geometries = []
+  const metas = []
+  for (const fan of fans) {
+    const { base } = fan
+    if (reach && (base.x < reach.xMin || base.x > reach.xMax || base.z < reach.zMin || base.z > reach.zMax
+      || base.y < reach.yMin - 4 || base.y > reach.yMax)) continue
+    const parts = models[fan.model].map(part => {
+      const geometry = new THREE.BufferGeometry()
+      geometry.setAttribute('position', part.geometry.attributes.position.clone())
+      geometry.setIndex(part.geometry.index.clone())
+      return geometry.applyMatrix4(fan.matrix)
+    })
+    const geometry = parts.length > 1 ? mergeGeometries(parts) : parts[0]
+    if (parts.length > 1) parts.forEach(part => part.dispose())
+    geometry.computeBoundingBox()
+    geometries.push(geometry)
+    metas.push({ form: 'fan', centre: base.clone(), top: base.y + fan.height, radius: fan.width / 2, normal: fan.normal.clone() })
+  }
+  const result = { geometries, metas }
+  FAN_REEF_SURFACES.set(fans, result)
+  return result
+}
+
+// Giant sea fans (landscape.seaFans): on the table corals' bommies, clear of the tables
+// (seaFanPlacement.js), merged per material and square chunk, swaying in the surge. Each fan
+// joins the fish's rock obstacles and blocks their site rays. The staghorn
+// (landscape.staghorn) is placed after them, clear of them.
+function SeaFans({ landscape, clusters, tables, environmentId }) {
+  const { kit, sway } = landscape.seaFans
+  const { models, materials } = useSeaFanKit(kit, sway, landscape.caustics)
+  useSwayClock()
+  const fans = useSlicedPlacement(PLACED_SEA_FANS, landscape, () => {
+    const measures = models.map(parts => measureFan(parts.map(part => part.geometry)))
+    return placeSeaFans(landscape, clusters, tables, measures, landscape.view)
+  }, [models, clusters, tables], environmentId)
+
+  const { merged, obstacles } = useMemo(() => {
+    if (!fans) return { merged: [], obstacles: [] }
+    const groups = new Map()
+    for (const fan of fans) {
+      const chunk = `${Math.floor(fan.base.x / kit.chunkWU)}:${Math.floor(fan.base.z / kit.chunkWU)}`
+      for (const part of placedFanParts(fan, models[fan.model], sway)) {
+        const key = `${part.material}:${chunk}`
+        if (!groups.has(key)) groups.set(key, { material: part.material, list: [] })
+        groups.get(key).list.push(part.geometry)
+      }
+    }
+    return {
+      merged: [...groups].map(([key, { material, list }]) => {
+        const geometry = mergeGeometries(list)
+        list.forEach(part => part.dispose())
+        // Room for the swing, so a fan at a chunk's edge is not culled mid-sway.
+        geometry.computeBoundingSphere()
+        geometry.boundingSphere.radius += sway.bend * landscape.seaFans.height[1] * 2
+        return { key, material, geometry }
+      }),
+      obstacles: fans.map(fan => fan.obstacle),
+    }
+  }, [kit, models, sway, landscape, fans])
+
+  useExtraObstacles(obstacles)
+  const reefFans = useMemo(() => (fans ? fanReefSurfaces(landscape, fans, models) : null), [landscape, fans, models])
+  useLayoutEffect(() => {
+    if (!reefFans?.geometries.length) return undefined
+    const owner = setCoralSurfaces(reefFans.geometries, reefFans.metas)
+    return () => clearCoralSurfaces(owner)
+  }, [reefFans])
+  useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
+
+  return (
+    <>
+      {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.material]} />)}
+      {fans && landscape.staghorn && (
+        <Suspense fallback={null}>
+          <Staghorn landscape={landscape} clusters={clusters} tables={tables} fans={fans} environmentId={environmentId} />
+        </Suspense>
+      )}
+    </>
+  )
 }
 
 // Built rocks per landscape, kept for the session. React renders a tank several times before
@@ -690,6 +852,10 @@ const unsubscribeRetirement = environmentLoader.onRetire((id, current) => {
   for (const geometry of surfaces?.geometries ?? []) disposeGeometry(geometry)
   if (corals) CORAL_REEF_SURFACES.delete(corals)
   for (const geometry of THICKET_REEF_SURFACES.get(landscape)?.geometries ?? []) disposeGeometry(geometry)
+  const fans = PLACED_SEA_FANS.get(landscape)
+  for (const geometry of (fans && FAN_REEF_SURFACES.get(fans)?.geometries) ?? []) disposeGeometry(geometry)
+  if (fans) FAN_REEF_SURFACES.delete(fans)
+  PLACED_SEA_FANS.delete(landscape)
   BUILT_LANDSCAPES.delete(landscape)
   PLACED_CORALS.delete(landscape)
   PLACED_STAGHORN.delete(landscape)

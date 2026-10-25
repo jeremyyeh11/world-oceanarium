@@ -127,6 +127,21 @@ const STAGHORN_KIT = {
   doubleSided: true,
 }
 
+// Jeremy's giant sea fans (Annella mollis, `_blender models/annella mollis.glb`), normalised by
+// scripts/build-sea-fan-kit.py: fan0, fan1, ... each in metres with its holdfast at the origin and
+// its lattice in the XY plane, with the GLB's own materials (the lattice cut out by its
+// texture's alpha). The model contract is docs/procedural/coral-sway.md.
+const SEA_FAN_KIT = {
+  path: '/models/landscape/sea-fans.glb',
+  // Merged in square chunks this many WU wide (per material), so off-screen ones are culled.
+  chunkWU: 60,
+}
+
+// How the sea fans sway (utils/coralSway.js), in the tank and in the Atlas: one swing back and
+// forth every `period` s (the surge), the rim swinging `bend` of the fan's height either way,
+// with a faster `flutter` toward the rim.
+export const SEA_FAN_SWAY = { period: 7, bend: 0.05, flutter: 0.25 }
+
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
@@ -377,6 +392,21 @@ export const LANDSCAPES = {
       kit: STAGHORN_KIT,
       seed: 7301, tablesPerPatch: 4, patches: [3, 6], footShare: 0.35,
       patchRadius: [2, 3.2], perPatch: [12, 18], scale: [3.6, 6],
+    },
+    // Giant sea fans (src/components/seaFanPlacement.js) on the same bommies, placed after the
+    // tables and clear of them, and before the staghorn, which keeps clear of them (placed after
+    // it, a fan found room on almost no bommie): `perCluster` fans a bommie, `height` in WU (75 cm
+    // to 1.9 m: colonies are mostly 76 to 150 cm, Brihatee et al. 2025, and reach 2 m), the big
+    // ones low. A fan grows broadside to the current; `current` (x, z) is set along the resting
+    // camera's line of sight, so the fans face the visitor, each within `facingJitter` radians.
+    // `sway` is SEA_FAN_SWAY. About footShare of the fans stand on the sand at the bommie's foot.
+    // `pending` until Jeremy's model is in public/models/landscape/sea-fans.glb (docs/fish-queue.md).
+    seaFans: {
+      kit: SEA_FAN_KIT,
+      pending: true,
+      seed: 8411, perCluster: [1, 3], height: [3, 7.5],
+      current: [0.16, 1], facingJitter: 0.35, footShare: 0.5,
+      sway: SEA_FAN_SWAY,
     },
   },
   // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's

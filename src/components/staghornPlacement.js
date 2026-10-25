@@ -72,7 +72,7 @@ export function measureColony(geometry) {
 
 // Whether a point is in a table's plate, or within PLATE_CLEAR of it. plates: the placed tables'
 // `plate`s (coralPlacement.js placeCorals).
-function inPlate(plates, point) {
+export function inPlate(plates, point) {
   for (const plate of plates) {
     if (Math.abs(point.y - plate.y) > plate.thickness / 2 + PLATE_CLEAR) continue
     if (Math.hypot(point.x - plate.x, point.z - plate.z) < plate.radius + PLATE_CLEAR) return true
@@ -86,8 +86,10 @@ function inPlate(plates, point) {
 // piece box for rockObstacles.js. A generator, like
 // placeCorals: it yields every few candidate spots and returns the colonies when done.
 // clusters are coralClusters' (the bommies the tables crown); tables the placed tables;
-// measures are measureColony per kit model; view is the resting camera.
-export function* placeStaghorn(landscape, clusters, tables, measures, view) {
+// measures are measureColony per kit model; view is the resting camera. `avoid`, if given, says
+// whether a point is taken by a coral placed before the staghorn (the sea fans, seaFanPlacement.js
+// inFan).
+export function* placeStaghorn(landscape, clusters, tables, measures, view, avoid = null) {
   const config = landscape.staghorn
   const { kit } = config
   const plates = tables.map(table => table.plate)
@@ -179,7 +181,7 @@ export function* placeStaghorn(landscape, clusters, tables, measures, view) {
         let clash = false
         for (const sample of shape.samples) {
           point.copy(sample).applyMatrix4(matrix)
-          if (inPlate(plates, point) || (point.y < sandHeight(landscape, point.x, point.z) && ++sand > SAND_ALLOWED)) {
+          if (inPlate(plates, point) || avoid?.(point) || (point.y < sandHeight(landscape, point.x, point.z) && ++sand > SAND_ALLOWED)) {
             clash = true
             break
           }
@@ -187,7 +189,7 @@ export function* placeStaghorn(landscape, clusters, tables, measures, view) {
         }
         if (clash || inside > INSIDE_ALLOWED) continue
         // The base too: not inside a table's plate (a colony standing on one).
-        if (inPlate(plates, base)) continue
+        if (inPlate(plates, base) || avoid?.(base)) continue
         placed.push({
           model,
           matrix,

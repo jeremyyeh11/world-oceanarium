@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { REEFS_VIEW, SHALLOWS_VIEW } from './landscapes.js'
+import { REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -3855,6 +3855,82 @@ export const SPECIES = [
       scale: 4,
       // The sand's soft edge is alpha-blended; the rock and colonies are opaque.
       alphaBlend: true,
+    },
+  },
+  // Giant Sea Fan (Annella mollis): Jeremy's pick (2026-10-25) for a soft coral back on The Reefs.
+  // A landscape species like the Acroporas: fans stand on the table corals' bommies (landscapes.js
+  // `seaFans`, src/components/seaFanPlacement.js) and sway in the surge (utils/coralSway.js,
+  // docs/procedural/coral-sway.md). Hidden until Jeremy's model is in (docs/fish-queue.md); the
+  // Atlas shows the kit's tallest fan (scripts/build-sea-fan-kit.py).
+  // Facts: SeaLifeBase (IUCN Not Evaluated; Indo-West Pacific; 12-18 m on lower reef slopes and
+  // reefs exposed to strong tidal currents, on rock or sand, after Goh & Chou 1996; host of
+  // Denise's pygmy seahorse), Florent's Guide to the Tropical Reefs (up to 2 m; 10-40 m),
+  // Brihatee et al. 2025 (Rodrigues: colonies mostly 76-150 cm, at about 27 m on steep outer
+  // slopes, 0.15-0.17 a square metre), Chang 2007 via the Coral Trait Database (spawns in
+  // September in southern Taiwan).
+  {
+    id: 'annella-mollis',
+    name: 'Giant Sea Fan',
+    scientificName: 'Annella mollis',
+    family: 'Subergorgiidae',
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'NE',
+      label: 'Not Evaluated',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Fan size',
+      commonDiet: 'Plankton and particles its polyps catch from the passing current.',
+      foundIn: 'The Indo-West Pacific, on lower reef slopes and steep outer slopes swept by strong tidal currents, on rock or sand, 10 to 40 m deep.',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each fan is one colony of tiny eight-tentacled polyps on a shared, flexible skeleton, its branches fused into a net and held broadside to the current. Fans grow singly, spaced out along the slope: about one to every 6 m² on the outer reef at Rodrigues.',
+        reproduction: 'In southern Taiwan it spawns in September. Its larvae drift in the plankton, then settle on rock and grow into new fans.',
+      },
+      averages: {
+        // Colonies are not sexed, and no average size, weight or age is published (most measured
+        // colonies are 76 to 150 cm, Brihatee et al. 2025).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Plankton',
+      social: 'Colonial',
+    },
+    description: 'A soft coral that grows as one flat fan of fused branches, up to 2 m across, standing broadside to the current on reef slopes so its polyps can sieve plankton from the passing water. It sways with the surge, and Denise\'s pygmy seahorse lives among its branches.',
+    // The Atlas fan's size, for the scale comparison: set from scripts/build-sea-fan-kit.py's
+    // print-out for fan0 at intake (fans reach 2 m).
+    maxBodyLengthMeters: 1.6,
+    model: {
+      path: '/models/fish/annella-mollis/annella-mollis.glb',
+      // The kit's tallest fan alone, holdfast at the origin, lattice facing +Z. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      // The lattice is one cut-out sheet, seen from both sides.
+      doubleSided: true,
+      sway: SEA_FAN_SWAY,
     },
   },
 ]

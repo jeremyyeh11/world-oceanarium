@@ -53,6 +53,15 @@ export const SOURCES = [
     provides: ['Colony size', 'Growth', 'Eggs per polyp'],
   },
   {
+    id: 'sealifebase',
+    name: 'SeaLifeBase',
+    kicker: 'Invertebrate biology',
+    url: 'https://www.sealifebase.se/',
+    summary:
+      "FishBase's sister database for the animals that are not fish, read for the corals' habitat, depth, range and conservation status.",
+    provides: ['Habitat', 'Depth', 'Range', 'Conservation status'],
+  },
+  {
     id: 'world-oceanarium',
     name: 'world-oceanarium',
     fullName: 'GitHub repository',
@@ -242,6 +251,41 @@ export const STUDY_CREDITS = [
     title: 'Giant Manta Ray',
     venue: 'Species directory',
     url: 'https://www.fisheries.noaa.gov/species/giant-manta-ray',
+  },
+  {
+    id: 'goh-chou-1996-gorgonians',
+    subject: 'Giant Sea Fan habitat and depth (via SeaLifeBase)',
+    authors: 'Goh & Chou',
+    year: 1996,
+    title: 'An annotated checklist of the gorgonians (Anthozoa: Octocorallia) of Singapore, with a discussion of gorgonian diversity in the Indo-West Pacific',
+    venue: 'The Raffles Bulletin of Zoology 44(2): 435–459',
+    url: 'https://www.sealifebase.se/summary/Annella-mollis.html',
+  },
+  {
+    id: 'brihatee-2025-annella',
+    subject: 'Giant Sea Fan colony sizes, depth and spacing on outer reef slopes',
+    authors: 'Brihatee et al.',
+    year: 2025,
+    title: 'First record of Annella mollis (Octocorallia) from Rodrigues Island, Western Indian Ocean',
+    venue: 'Indo Pacific Journal of Ocean Life 9: 140–146',
+    url: 'https://smujo.id/ol/article/view/24149',
+  },
+  {
+    id: 'chang-2007-gorgonian-spawning',
+    subject: 'Giant Sea Fan spawning month (via the Coral Trait Database)',
+    authors: 'Chang',
+    year: 2007,
+    title: 'Sexual reproduction of four gorgonian corals in southern Taiwan',
+    venue: 'MSc thesis, National Sun Yat-sen University',
+    url: 'https://www.coraltraits.org/resources/1188',
+  },
+  {
+    id: 'reefguide-annella-mollis',
+    subject: 'Giant Sea Fan maximum size and depth range',
+    authors: 'Florent Charpin',
+    title: 'Giant Sea Fan, Annella mollis',
+    venue: "Florent's Guide to the Tropical Reefs",
+    url: 'https://reefguide.org/subergorgiamollis.html',
   },
 ]
 

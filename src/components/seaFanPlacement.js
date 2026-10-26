@@ -17,10 +17,11 @@ import { inPlate } from './staghornPlacement'
 // stands broadside to the current so the polyps sieve the most water (SeaLifeBase, after Goh &
 // Chou 1996). So each fan here starts from a point on a rock face hit by a ray from outside, any
 // face but an overhang's underside; it grows out along the face's normal tipped up toward the
-// light (a fan on a wall leans out and up, one on a top stands upright), its face turned toward
-// the current within `facingJitter`. A fan is kept only if its holdfast is buried in the rock (no
-// fan floats), its lattice and branches stay out of every rock, the sand, every table (plate and
-// stalk) and every other fan, it stays under water, and the resting camera sees at least
+// light (a fan on a wall leans out and up, one on a top stands upright). At a wall the local
+// current runs along the rock: the fan's sheet projects out from it instead of facing into it.
+// On a gentler top its face follows the landscape current. A fan is kept only if its holdfast
+// is buried in the rock (no fan floats), its lattice and branches stay out of every rock, the
+// sand, every table (plate and stalk) and every other fan, it stays under water, and the resting camera sees at least
 // `minVisible` of nine points on its face: without that the first fans mostly stood behind
 // their bommies or the foreground rocks.
 
@@ -29,6 +30,9 @@ const ATTEMPTS_PER_FAN = 120
 // How far a fan on a wall is tipped up from the wall's normal: its growth direction is the
 // normal plus this much of straight up.
 const GROW_UP = 0.9
+// A face steeper than 45 degrees is a wall. On gentler tops the landscape current already
+// passes across the rock rather than into it.
+const WALL_MAX_UP = Math.SQRT1_2
 // Faces pointing further down than this (an overhang's underside) take no holdfast.
 const MIN_FACE_UP = -0.25
 // Points of the fan tested against the rock, sand, tables and fans: a grid over its face and
@@ -38,9 +42,13 @@ const MIN_FACE_UP = -0.25
 const GRID = 13
 const BRANCH_SAMPLES = 24
 const BASE_SHARE = 0.12
-// The ways a fan may stand at a spot, tried in turn: [turn from the current about its growth
-// direction, how far it is tipped up from the rock face's normal (GROW_UP first)].
+// The ways a fan may stand at a spot, tried in turn: [turn from the current on a level top,
+// how far it is tipped up from the rock face's normal (GROW_UP first)]. Steep slopes and walls keep
+// the face tangent to the rock at every stance; a yaw fallback must never turn it into the wall.
 const VARIANTS = [[0, GROW_UP], [0.6, GROW_UP], [-0.6, GROW_UP], [1.2, GROW_UP], [-1.2, GROW_UP], [0, 0.35], [0.9, 0.35], [-0.9, 0.35]]
+// Opposite signs face the same current axis, but put an asymmetric fan's branches on opposite
+// sides of its trunk. Try both, and three outward/upward leans, without turning toward the wall.
+const WALL_VARIANTS = [[0, GROW_UP], [Math.PI, GROW_UP], [0, 0.35], [Math.PI, 0.35], [0, 2], [Math.PI, 2]]
 // The holdfast sinks this share of the fan's height into the rock, along the face's normal.
 const SINK = 0.04
 // Water kept either side of a fan's lattice by other corals (inFan), in WU, on top of its sway.
@@ -241,18 +249,25 @@ export function* placeSeaFans(landscape, clusters, tables, measures, view, sight
       // Buried at the holdfast: nothing floats.
       if (!allRocks.inside(base)) continue
       if (placed.some(other => other.base.distanceTo(base) < (other.width + shape.width * scale) * 0.3)) continue
-      // Out along the face, tipped up; the face broadside to the current, turned a little. If
-      // that runs the lattice into the rock it grows from (most often: it spans along the rock
-      // face), the same spot tries the fan turned further from the current, then tipped further
-      // out from the face, before it gives up.
+      // The sheet includes the rock's outward normal, so its broad face cannot point into its
+      // host wall. Its face normal is the local current along the wall (normal × up), with the
+      // sign nearest the landscape current. Gentler tops keep the authored current and yaw
+      // variation. Try a more outward lean if the first stance clashes.
       const turn = (rand() * 2 - 1) * config.facingJitter
       let matrix = null
       let top = -Infinity
-      for (const [spin, tip] of VARIANTS) {
+      const wall = normal.y < WALL_MAX_UP
+      for (const [spin, tip] of wall ? WALL_VARIANTS : VARIANTS) {
         grow.copy(normal).addScaledVector(UP, tip).normalize()
-        face.copy(current).applyAxisAngle(UP, turn + spin)
-        face.addScaledVector(grow, -face.dot(grow))
-        if (face.length() < 0.4) continue
+        if (wall) {
+          face.crossVectors(normal, UP)
+          if (face.dot(current) < 0) face.negate()
+          if (spin !== 0) face.negate()
+        } else {
+          face.copy(current).applyAxisAngle(UP, turn + spin)
+          face.addScaledVector(grow, -face.dot(grow))
+        }
+        if (face.lengthSq() < 1e-8) continue
         face.normalize()
         side.crossVectors(grow, face)
         basis.makeBasis(side, grow, face)
@@ -298,6 +313,7 @@ export function* placeSeaFans(landscape, clusters, tables, measures, view, sight
         reach: shape.reach * scale,
         width: shape.width * scale,
         normal: face.clone(),
+        surfaceNormal: normal.clone(),
         // Along the current, so the surge passes through the reef as a wave, plus a little jitter.
         phase: base.dot(current) * 0.35 + rand() * 0.8,
         // Water other corals keep from the lattice: FAN_CLEAR and the rim's swing.

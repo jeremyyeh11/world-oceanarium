@@ -151,3 +151,10 @@ upright, and were too few. Since `dev_3`:
   points.
 - Lighting: both faces of a fan are shaded with the front's normal (`applyCoralSway`), so the
   side facing away from the sun no longer reads dark or missing.
+- Orientation (`dev_6`, Jeremy: fans must not face the rock wall): faces steeper than 45° use
+  local flow along the wall (`surfaceNormal × up`). The fan's sheet projects out from the wall,
+  with its face normal exactly tangent to it. Both signs of that flow axis and three upward
+  leans (0.35, 0.9, 2) are tried to fit asymmetric branches; no yaw fallback may turn it toward
+  the wall. Gentler tops keep the authored current and yaw variation. The placed fan retains
+  `surfaceNormal` for orientation audits. Current layout: 14 fans, all three shapes, five fan
+  centres in a 375 × 812 resting-camera crop; zero floating roots. Physical-phone review pending.

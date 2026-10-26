@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.38.0 — Giant Sea Fan (in development)
+
+### Reef placement
+
+- Giant Sea Fan sheets project outward from their host walls, broadside to local flow along the
+  rock. Wall attachments keep that orientation through every fitting attempt; gentler tops
+  follow the landscape current. The stricter layout has 14 fans across all three shapes.
+
 ## v0.37.1 — The Shallows' animals roam the bay (2026-10-25)
 
 Status: clean `v0.37.1` (2026-10-25, from `v0.37.1-dev_4`, branch `fix/shallows-wider-bounds`, #162). Jeremy: "Promote to clean v0.37.1 and merge PR #162". Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."

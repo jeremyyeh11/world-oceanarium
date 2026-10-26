@@ -13,28 +13,35 @@ Status labels:
 
 ## Current work
 
-### Giant Sea Fan
+### Giant Sea Fan follow-ups
 
-Status: `Blocked / waiting review` — `v0.38.0-dev_8` (2026-10-26, branch `feat/annella-mollis`): 25 outward-facing fans across Jeremy's three shapes; site rays block both sides, sway amplitude increased 20%. His pick (2026-10-25): a soft coral back on The Reefs. Contract and intake: `docs/procedural/coral-sway.md`.
+Status: `Backlog` — clean `v0.38.0` accepted on 2026-10-26; shipped work is under Released / archived. Contract: `docs/procedural/coral-sway.md`.
 
-Subtasks:
-- [x] Species entry (`annella-mollis`) from SeaLifeBase, Florent's Guide, Brihatee et al. 2025 and Chang 2007; sources credited.
-- [x] Sway: `src/utils/coralSway.js` (shared clock, baked attributes, two-sided masked material with alpha to coverage); tank and Atlas.
-- [x] Placement: `src/components/seaFanPlacement.js`, after the tables and before the staghorn, which keeps clear of the fans.
-- [x] Jeremy's GLB (2026-10-26, 76 MB, three photo-textured fans lying flat, lattices exported as Blend): the kit script stands them up, rounds the alpha to Mask, finds the holdfast on the trunk, and writes WebP textures: 4.1 MB kit, 1.0 MB Atlas model (`dev_2`).
-- [x] Sight test (`dev_2`): his fans first stood mostly behind rocks; a fan now needs 6 of 9 face points seen from the resting camera. Five fans, three in a phone's centre crop.
-- [x] Atlas: unhidden, 1 m fan, tile rendered in Blender from the Atlas model (in-page capture was not available).
-- [x] `dev_3` (Jeremy: some floating, clipping into corals and walls, only upright, too few): rock-only holdfasts on any face but undersides, buried; denser clash tests against every rock, tables, fans; staghorn clears the fans' body; 3–5 a bommie plus 1–3 on up to 20 other rocks: 25 fans (was 5). Atlas fan on a limestone rock (`scripts/build-sea-fan-atlas.py`).
-- [x] `dev_4` (Jeremy: fans "too see through", want "volume"): his three fuller lattice masks replace the alphas (`--alpha` in the kit script); kit 5.2 MB; tile re-rendered.
-- [x] `dev_5` (Jeremy: still some floating; use each fan's origin as its root; both sides; three fans in the Atlas): holdfast = his object origin; fans turned about it so less hangs below; strict rock test by distance from the root, eight stances a spot (25 fans, 0.5% of lattice points in rock); back faces lit like front; his updated GLB textures (fuller alphas baked in); Atlas: three fans on a wider rock.
-- [x] `dev_6` (Jeremy: fans must not face their host wall): fan sheets project outward from faces steeper than 45°, their face normals tangent to the rock; local flow along the wall, no yaw fallback toward it. Both flow signs and three leans tried. Current layout: 14 fans, all three shapes, five centres in a 375 × 812 camera crop; no floating roots. Geometry regression covers wall and top attachments under three current headings.
-- [x] `dev_7` (Jeremy: restore around 25 while facing away from walls): scatter sites 6.5 WU apart (was 8), 2–4 candidates per rock (was 1–3). Shipped-kit audit: 25 fans on 19 sites, all three shapes, five centres in a 375 × 812 camera crop, every wall face tangent to its host, no floating roots. Existing clearance, sizes, visibility threshold and orientation rules retained.
-- [x] `dev_8` (Jeremy): fan reef-site surfaces use a dedicated two-sided raycast material; rock/table/thicket semantics retained, regression covers both approach directions and cleanup. Shared tank/Atlas sway `bend` 0.05 → 0.06 (+20% amplitude); period 7 s and flutter 0.25 unchanged. Shipped-kit audit still gives 25 fans on 19 sites, outward wall orientation and no floating roots.
-- [ ] Phone review: sway amount (`SEA_FAN_SWAY.bend` 0.06, `period` 7 s), orientation/count and visibility (`perCluster` 3–6, `minVisible` 2), sizes (2.2–6 WU).
-- [ ] Review follow-up (`dev_5` review): check visible lattice below the holdfast using texture alpha (raw plane vertices include transparent margins).
+- [ ] Physical-phone review of sway, visibility and density; no physical-phone measurements claimed.
+- [ ] Check visible lattice below the holdfast using texture alpha; raw plane vertices include transparent margins.
 - [ ] Photo sources of the orange and pink fans (yellow: Diego Delso, CC BY-SA 4.0, credited).
-- [ ] Jeremy's call: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.
-- [ ] Backlog: a `fan` coral form for reef fish (hover/patrol beside the lattice); docs/reef-behavior.md.
+- [ ] Habitat depth follow-up: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.
+- [ ] A `fan` coral form for reef fish (hover/patrol beside the lattice); `docs/reef-behavior.md`.
+
+### Focused debug instruments
+
+Status: `Archive candidate` — accepted `v0.37.2-dev_5`, promoted to clean `v0.37.2`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly authorized merge on 2026-10-25 UTC. Retain technical main/deployment verification in release evidence; physical-phone measurements are not claimed.
+
+Feel: inspect one animal, glance at text, then get the instrument out of the view. Flat full-width bottom strip.
+
+- [x] Remove Bones display/control/helpers only; retain rig/animation support and normal simulation.
+- [x] Creatures: only Heading/speed, Neighbours, Labels. Selected-only steering/behaviour plain text top left; contextual Mola action.
+- [x] Combine Render/Scene into Performance, remove Audio tab/sardine-detail override, make Data persistent top-bar text.
+- [x] All reserve GLB colours distinguish actual single/high/low/far/min sources and restore exactly; no forced detail, geometry/LOD changes or new draw calls.
+- [x] Live Canvas FPS, CPU frame ms, optional GPU ms, JS heap, full-frame draw calls/triangles and renderer/scene state. Unsupported metrics labelled unavailable.
+- [x] Review dev_3: dark-grey single level, left-aligned Data/readout in an explicit code-monospace stack, always-visible debug performance and flat underline keyboard-accessible tabs.
+- [x] Dev_4 review fix: remove scalar fish material tint/emission mutations. Real helper regression proves repeated normal/grey/off/pink/off cycles preserve authored values and restore normal shaders; fresh mobile production Reset restores textured fish.
+- [x] Dev_5: move Creatures/Performance tabs below the active controls, matching DOM/focus and visual order; no telemetry/simulation changes.
+- [x] Keep Reset/Exit, flat >=44px controls and visible-only sampling. Tests/docs in `docs/debug-menu.md`; [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160), issue #159.
+- [x] Full local tests/lint/build/procedural checks and desktop/mobile compiled-production QA: no overflow/sub-44px debug buttons, live selected/performance text, all-GLB tint/restoration, persistent Data and Exit/card restoration. Dev_3 browser QA also proves shared monospace/left edge, live measurements on Creatures across tab switches, grey GLBs/legend and actual keyboard tab focus.
+- [x] Accepted dev_5 exact-head CI/Vercel passed (`08c7785`); clean promotion reruns local/PR/main gates, with final release evidence in PR #160.
+- [x] Jeremy accepted the reviewed iteration and explicitly approved merge. Physical-phone performance remains unmeasured, not a release-blocking approval gate.
+- Slow motion/pause: future/backlog, deliberately outside this accepted release; audit coordinated clocks before a separate proposal.
 
 ### The Shallows: animals circling
 
@@ -887,6 +894,16 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### v0.38.0 — Giant Sea Fan
+
+Accepted 2026-10-26 from `v0.38.0-dev_8`, branch `feat/annella-mollis`. Jeremy: “looks good, promote this to clean v0.38.0 and merge it into main”.
+
+- 25 fans on 19 rock sites, across three photo-textured shapes; wall-mounted sheets project outward, roots buried, staghorn kept clear.
+- Shared reserve/Atlas sway: bend 0.06 (+20% amplitude), period 7 s and flutter 0.25 unchanged; both lattice faces lit and detected by reef-site rays.
+- Atlas: three fans on limestone, thumbnail, species facts and source credits. New procedural contract and build scripts in `docs/procedural/coral-sway.md`.
+- Integrates clean `v0.37.2` debug UI and passes its LOD state through the sea-fan subtree. Remaining follow-ups are in the active backlog above.
+
 
 Newest first. Each entry shipped as a clean public release and was drained here per the roadmap-hygiene rule.
 

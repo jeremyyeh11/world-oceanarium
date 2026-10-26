@@ -6,6 +6,7 @@ const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
 const UI_CLICK_SFX_EVENT = 'world-oceanarium-ui-click-sfx'
 const LEVEL_FLOOR_DB = -72
 const LEVEL_FRAME_MS = 100
+let audioLevelSubscribers = 0
 const DEBUG_AUDIO_UI_SAMPLE_MS = 1000
 const AUDIO_UI_DB_STEP = 2
 const MOBILE_MASTER_TARGET_GAIN = 2.0 // Jeremy requested roughly 2x overall loudness on mobile.
@@ -463,6 +464,8 @@ export function useOceanAudio() {
     if (levelTimerRef.current) return
 
     levelTimerRef.current = window.setInterval(() => {
+      // No analyser scans while the optional Audio diagnostic section is closed.
+      if (audioLevelSubscribers === 0) return
       const graph = audioRef.current?.graph
       if (!graph || mutedRef.current) {
         emitAudioLevels({ overallDb: LEVEL_FLOOR_DB, ambientDb: LEVEL_FLOOR_DB, sfxDb: LEVEL_FLOOR_DB, muted: mutedRef.current })
@@ -683,8 +686,13 @@ export function useAudioLevels(active) {
       setLevels(nextLevels)
     }
 
+    audioLevelSubscribers += 1
+    lastUiUpdateAt.current = -Infinity
     window.addEventListener(AUDIO_VOLUME_EVENT, updateLevels)
-    return () => window.removeEventListener(AUDIO_VOLUME_EVENT, updateLevels)
+    return () => {
+      audioLevelSubscribers -= 1
+      window.removeEventListener(AUDIO_VOLUME_EVENT, updateLevels)
+    }
   }, [active])
 
   return levels

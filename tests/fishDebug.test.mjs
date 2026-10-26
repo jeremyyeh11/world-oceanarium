@@ -39,7 +39,7 @@ const result = await build({
   banner: { js: `const __debugJSX=globalThis.${key}.jsx; const __debugFragment=Symbol('fragment');` },
   define: { 'import.meta.env.DEV': 'false' },
   plugins: [{ name: 'frame-dependencies', setup(b) {
-    b.onLoad({ filter: /components\/Fish\.jsx$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')) + '\nexport { applyModelMaterialSettings };', loader: 'jsx' }))
+    b.onLoad({ filter: /components[\\/]Fish\.jsx$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')) + '\nexport { applyModelMaterialSettings };', loader: 'jsx' }))
     b.onResolve({ filter: /^three(\/.*)?$/ }, args => ({ path: pathToFileURL(require.resolve(args.path)).href, external: true }))
     b.onResolve({ filter: /^(react|@react-three\/fiber|@react-three\/drei)$|\/hooks\/(useEnvironmentLoading|useOceanAudio)$|^\.\/WaterSurface$/ }, args => ({ path: args.path, namespace: 'stub' }))
     b.onLoad({ filter: /.*/, namespace: 'stub' }, args => {

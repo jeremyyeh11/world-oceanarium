@@ -13,6 +13,16 @@ Status labels:
 
 ## Current work
 
+### Giant Sea Fan follow-ups
+
+Status: `Backlog` — clean `v0.38.0` accepted on 2026-10-26; shipped work is under Released / archived. Contract: `docs/procedural/coral-sway.md`.
+
+- [ ] Physical-phone review of sway, visibility and density; no physical-phone measurements claimed.
+- [ ] Check visible lattice below the holdfast using texture alpha; raw plane vertices include transparent margins.
+- [ ] Photo sources of the orange and pink fans (yellow: Diego Delso, CC BY-SA 4.0, credited).
+- [ ] Habitat depth follow-up: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.
+- [ ] A `fan` coral form for reef fish (hover/patrol beside the lattice); `docs/reef-behavior.md`.
+
 ### Focused debug instruments
 
 Status: `Archive candidate` — accepted `v0.37.2-dev_5`, promoted to clean `v0.37.2`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly authorized merge on 2026-10-25 UTC. Retain technical main/deployment verification in release evidence; physical-phone measurements are not claimed.
@@ -884,6 +894,16 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### v0.38.0 — Giant Sea Fan
+
+Accepted 2026-10-26 from `v0.38.0-dev_8`, branch `feat/annella-mollis`. Jeremy: “looks good, promote this to clean v0.38.0 and merge it into main”.
+
+- 25 fans on 19 rock sites, across three photo-textured shapes; wall-mounted sheets project outward, roots buried, staghorn kept clear.
+- Shared reserve/Atlas sway: bend 0.06 (+20% amplitude), period 7 s and flutter 0.25 unchanged; both lattice faces lit and detected by reef-site rays.
+- Atlas: three fans on limestone, thumbnail, species facts and source credits. New procedural contract and build scripts in `docs/procedural/coral-sway.md`.
+- Integrates clean `v0.37.2` debug UI and passes its LOD state through the sea-fan subtree. Remaining follow-ups are in the active backlog above.
+
 
 Newest first. Each entry shipped as a clean public release and was drained here per the roadmap-hygiene rule.
 

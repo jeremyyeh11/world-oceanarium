@@ -28,6 +28,7 @@ that type's doc.
 | [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Munk's Devil Ray (mobuliform); skates, stingrays, cuttlefish proposed | Implemented (mobuliform) |
 | [limb-step](limb-step.md) | Limb cycling under a rigid carapace | Crabs, walking lobsters | Proposed |
 | [pleopod-beat](pleopod-beat.md) | Metachronal swimmeret wave | Prawns, shrimp, krill | Proposed |
+| [coral-sway](coral-sway.md) | A landscape coral rocking in the surge, holdfast still, rim swinging most | Giant Sea Fan (landscape, not a creature) | Implemented (`src/utils/coralSway.js`) |
 
 `Implemented` means the shader type exists in `src/components/Fish.jsx` and ships.
 `Proposed` means the doc is a starting convention only — no runtime code exists yet,

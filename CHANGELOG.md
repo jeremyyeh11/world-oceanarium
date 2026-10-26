@@ -8,6 +8,29 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.38.0 — Giant Sea Fan (2026-10-26)
+
+Status: clean `v0.38.0`, accepted from `v0.38.0-dev_8`, branch `feat/annella-mollis`. Jeremy explicitly approved promotion and merge to main. Includes the latest `v0.37.2` debug UI.
+
+### Species and Atlas
+
+- Giant Sea Fan (*Annella mollis*) joins The Reefs as a landscape species, with three photo-textured forms, sourced biological facts and credits.
+- The Atlas presents all three fans growing from a limestone rock, using the same gentle sway as the reserve.
+
+### Reef placement
+
+- Giant Sea Fan sheets project outward from their host walls, broadside to local flow along the
+  rock. Wall attachments keep that orientation through every fitting attempt; gentler tops
+  follow the landscape current. More scattered rock hosts restore 25 fans across all three
+  shapes while preserving the wall orientation and clearance checks.
+
+### Behaviour and motion
+
+- Sea fan lattices block reef-site and approach rays from both sides. Solid rock and other
+  coral forms retain their existing raycast behaviour.
+- Sea fan sway amplitude increased 20% in the reserve and Atlas (`bend` 0.05 → 0.06), with
+  the same seven-second period and flutter frequency.
+
 ## v0.37.2 — Selected text and all-GLB performance instruments
 
 Status: clean `v0.37.2` (2026-10-25 UTC), promoted from accepted `v0.37.2-dev_5`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly approved merge.

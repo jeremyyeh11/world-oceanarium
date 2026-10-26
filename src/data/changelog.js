@@ -6,6 +6,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.38.0',
+    date: '2026-10-26',
+    title: 'Fans in the current',
+    changes: [
+      ['new', 'Giant Sea Fans grow from the rocks in The Reefs, their orange, yellow and pink lattices swaying gently in the current.'],
+      ['new', 'Meet all three sea fan shapes together on a limestone rock in the Atlas.'],
+    ],
+  },
+  {
     version: 'v0.37.1',
     date: '2026-10-25',
     title: 'The whole bay',

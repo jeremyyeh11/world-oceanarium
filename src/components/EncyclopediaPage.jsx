@@ -6,6 +6,7 @@ import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
 import { speciesForLifeStage, speciesForSex } from '../utils/speciesLookup'
+import { addSwayAttributes, applyCoralSway, useSwayClock } from '../utils/coralSway'
 import Environment from './Environment'
 import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
@@ -92,6 +93,20 @@ const VIEW_POSES_BY_SPECIES = {
     mobileDistanceScale: 0.95,
     position: [0, -0.1, 0],
     lookAt: [0, -0.1, 0],
+  },
+  // Three sea fans growing from a low rock (the model's origin is the rock's foot): the orange
+  // in the middle, the yellow and pink leaning out to the left and right (Jeremy's sketch,
+  // 2026-10-26). Nearly face on so the lattices read, turned a little so they show they are flat
+  // sheets; lowered so the group sits in the middle of the stage.
+  'annella-mollis': {
+    yawOffset: -0.35,
+    pitchDegrees: 8,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.05,
+    mobileDistanceScale: 0.95,
+    position: [0, -1.05, 0],
+    lookAt: [0, -0.05, 0],
   },
   'amblygaster-sirm': {
     maxLengthDisplayUnits: 1.35,
@@ -245,6 +260,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'acropora-hyacinthus': 5.013,
   // The staghorn thicket, widest across (scripts/build-staghorn-atlas.py prints its bounds).
   'acropora-muricata': 3.157,
+  // The three fans on their rock, widest across (scripts/build-sea-fan-atlas.py prints the bounds).
+  'annella-mollis': 1.711,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -533,7 +550,7 @@ function nextBurstDelay() {
   return THREE.MathUtils.randFloat(6.5, 10.5)
 }
 
-function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = false) {
+function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = false, doubleSided = false) {
   const scene = clone(sourceScene)
   scene.traverse(object => {
     if (!object.isMesh) return
@@ -548,7 +565,10 @@ function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = fals
       nextMaterial.opacity = 1
       nextMaterial.depthWrite = !blendsAlpha
       nextMaterial.depthTest = true
-      nextMaterial.side = THREE.FrontSide
+      // Two-sided for a model that is a single sheet in places (a sea fan's lattice: `model.doubleSided`).
+      nextMaterial.side = doubleSided ? THREE.DoubleSide : THREE.FrontSide
+      // A lattice cut out by its texture's alpha: smoothed at the cut edges, as in the tank.
+      nextMaterial.alphaToCoverage = doubleSided && nextMaterial.alphaTest > 0
       nextMaterial.needsUpdate = true
       return nextMaterial
     }
@@ -559,12 +579,46 @@ function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = fals
   return scene
 }
 
+// A soft coral specimen swaying as it does in the tank (`model.sway`, utils/coralSway.js): each
+// coral mesh's origin is its holdfast and its lattice faces +Z, so it swings along Z, its rim the
+// most. Meshes under a node named `rock…` (the specimen's base rock) stay still. Each coral mesh
+// gets its own copy of its geometry with the sway baked in.
+function prepareAtlasSway(scene, sway) {
+  if (!sway) return
+  const meshes = []
+  const onRock = object => object && (object.name.startsWith('rock') || onRock(object.parent))
+  scene.traverse(object => { if (object.isMesh && !onRock(object)) meshes.push(object) })
+  let height = 0
+  let reach = 0
+  for (const mesh of meshes) {
+    const position = mesh.geometry.attributes.position
+    for (let i = 0; i < position.count; i++) {
+      height = Math.max(height, position.getY(i))
+      reach = Math.max(reach, Math.hypot(position.getX(i), position.getY(i), position.getZ(i)))
+    }
+  }
+  const origin = new THREE.Vector3()
+  const direction = new THREE.Vector3(0, 0, 1)
+  for (const mesh of meshes) {
+    mesh.geometry = addSwayAttributes(mesh.geometry.clone(), { origin, direction, amplitude: sway.bend * height, reach, phase: 0 })
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+    materials.forEach(material => applyCoralSway(material, sway))
+  }
+}
+
 function ModelAsset({ species, adultSpecies = species, pose, companion = null }) {
   const modelPath = species?.model?.path
   const gltf = useGLTF(modelPath)
   const alphaTest = species?.model?.alphaTest ?? null
   const alphaBlend = species?.model?.alphaBlend === true
-  const scene = useMemo(() => prepareAtlasModelScene(gltf.scene, alphaTest, alphaBlend), [gltf.scene, alphaTest, alphaBlend])
+  const doubleSided = species?.model?.doubleSided === true
+  const sway = species?.model?.sway ?? null
+  const scene = useMemo(() => {
+    const prepared = prepareAtlasModelScene(gltf.scene, alphaTest, alphaBlend, doubleSided)
+    prepareAtlasSway(prepared, sway)
+    return prepared
+  }, [gltf.scene, alphaTest, alphaBlend, doubleSided, sway])
+  useSwayClock()
   const proceduralAnimation = species?.model?.proceduralAnimation ?? null
   const proceduralMaterials = useMemo(
     () => prepareProceduralVertexMaterials(scene, proceduralAnimation),

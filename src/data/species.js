@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { REEFS_VIEW, SHALLOWS_VIEW } from './landscapes.js'
+import { REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -209,7 +209,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -3855,6 +3855,85 @@ export const SPECIES = [
       scale: 4,
       // The sand's soft edge is alpha-blended; the rock and colonies are opaque.
       alphaBlend: true,
+    },
+  },
+  // Giant Sea Fan (Annella mollis): Jeremy's pick (2026-10-25) for a soft coral back on The Reefs.
+  // A landscape species like the Acroporas: fans stand on the table corals' bommies (landscapes.js
+  // `seaFans`, src/components/seaFanPlacement.js) and sway in the surge (utils/coralSway.js,
+  // docs/procedural/coral-sway.md). Jeremy's model (2026-10-26): three photo-textured fans; the
+  // Atlas shows all three fans on a low rock (scripts/build-sea-fan-atlas.py).
+  // Facts: SeaLifeBase (IUCN Not Evaluated; Indo-West Pacific; 12-18 m on lower reef slopes and
+  // reefs exposed to strong tidal currents, on rock or sand, after Goh & Chou 1996; host of
+  // Denise's pygmy seahorse), Florent's Guide to the Tropical Reefs (up to 2 m; 10-40 m),
+  // Brihatee et al. 2025 (Rodrigues: colonies mostly 76-150 cm, at about 27 m on steep outer
+  // slopes, 0.15-0.17 a square metre), Chang 2007 via the Coral Trait Database (spawns in
+  // September in southern Taiwan).
+  {
+    id: 'annella-mollis',
+    name: 'Giant Sea Fan',
+    scientificName: 'Annella mollis',
+    family: 'Subergorgiidae',
+    // Tile (2026-10-26): the orange fan's top and trunk, three-quarter, against reef blue, rendered
+    // square at 940 px in Blender from the Atlas model and scaled to 470 px.
+    atlasThumbnail: '/atlas/annella-mollis-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      code: 'NE',
+      label: 'Not Evaluated',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Fan size',
+      commonDiet: 'Plankton and particles its polyps catch from the passing current.',
+      foundIn: 'The Indo-West Pacific, on lower reef slopes and steep outer slopes swept by strong tidal currents, on rock or sand, 10 to 40 m deep.',
+      sexualDimorphism: 'Unknown',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each fan is one colony of tiny eight-tentacled polyps on a shared, flexible skeleton, its branches fused into a net and held broadside to the current. Fans grow singly, spaced out along the slope: about one to every 6 m² on the outer reef at Rodrigues.',
+        reproduction: 'In southern Taiwan it spawns in September. Its larvae drift in the plankton, then settle on rock and grow into new fans.',
+      },
+      averages: {
+        // Colonies are not sexed, and no average size, weight or age is published (most measured
+        // colonies are 76 to 150 cm, Brihatee et al. 2025).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Plankton',
+      social: 'Colonial',
+    },
+    description: 'A soft coral that grows as one flat fan of fused branches, up to 2 m across, standing broadside to the current on reef slopes so its polyps can sieve plankton from the passing water. It sways with the surge, and Denise\'s pygmy seahorse lives among its branches.',
+    // The Atlas fan's size, for the scale comparison: fan0 is 1.13 m across and 1.12 m tall
+    // (scripts/build-sea-fan-kit.py; fans reach 2 m).
+    maxBodyLengthMeters: 1.1,
+    model: {
+      path: '/models/fish/annella-mollis/annella-mollis.glb',
+      // The kit's three fans on a low limestone rock (scripts/build-sea-fan-atlas.py), the rock's
+      // foot at the origin, each fan's node at its holdfast, lattices facing +Z. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      // The lattice is one cut-out sheet, seen from both sides.
+      doubleSided: true,
+      sway: SEA_FAN_SWAY,
     },
   },
 ]

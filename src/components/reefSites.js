@@ -15,6 +15,9 @@ import { MeshBVH, acceleratedRaycast } from 'three-mesh-bvh'
 
 // Front faces only: a ray starting inside a rock passes out through it rather than hitting it.
 const SURFACE_MATERIAL = new THREE.MeshBasicMaterial()
+// A sea fan's lattice is a single sheet: both sides must block fish's site/approach rays.
+// Keep a separate shared material so rays originating inside solid rock still pass outward.
+const FAN_SURFACE_MATERIAL = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })
 // Ring of directions for the room-to-turn and enclosure checks (unit, horizontal).
 const RING = Array.from({ length: 8 }, (_, k) => new THREE.Vector3(Math.cos(k * Math.PI / 4), 0, Math.sin(k * Math.PI / 4)))
 const UP = new THREE.Vector3(0, 1, 0)
@@ -82,7 +85,7 @@ function surfaceMesh(geometry, kind) {
   if (!geometry.boundingBox) geometry.computeBoundingBox()
   if (!geometry.boundingSphere) geometry.computeBoundingSphere()
   if (!geometry.boundsTree) geometry.boundsTree = new MeshBVH(geometry)
-  const mesh = new THREE.Mesh(geometry, SURFACE_MATERIAL)
+  const mesh = new THREE.Mesh(geometry, kind === 'fan' ? FAN_SURFACE_MATERIAL : SURFACE_MATERIAL)
   mesh.raycast = acceleratedRaycast
   mesh.userData.reefKind = kind
   mesh.updateMatrixWorld(true)

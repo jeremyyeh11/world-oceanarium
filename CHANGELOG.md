@@ -17,6 +17,13 @@ Versioning convention notes:
   follow the landscape current. More scattered rock hosts restore 25 fans across all three
   shapes while preserving the wall orientation and clearance checks.
 
+### Behaviour and motion
+
+- Sea fan lattices block reef-site and approach rays from both sides. Solid rock and other
+  coral forms retain their existing raycast behaviour.
+- Sea fan sway amplitude increased 20% in the reserve and Atlas (`bend` 0.05 → 0.06), with
+  the same seven-second period and flutter frequency.
+
 ## v0.37.1 — The Shallows' animals roam the bay (2026-10-25)
 
 Status: clean `v0.37.1` (2026-10-25, from `v0.37.1-dev_4`, branch `fix/shallows-wider-bounds`, #162). Jeremy: "Promote to clean v0.37.1 and merge PR #162". Jeremy: "the shallows swim bounds seem to be too small, everybody is swimming in a very noticeable and visible circle. im ok with them leaving the screen sometimes and coming back if that gives us a better looking motion."

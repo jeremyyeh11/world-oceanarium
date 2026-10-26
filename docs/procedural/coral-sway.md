@@ -36,7 +36,7 @@ Config (landscapes.js `SEA_FAN_SWAY`, shared by the tank and the Atlas):
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `period` | 7 | Seconds for one swing back and forth (the surge) |
-| `bend` | 0.05 | The rim's swing either way, as a share of the fan's height (0.28 WU on a 5.6 WU fan) |
+| `bend` | 0.06 | The rim's swing either way, as a share of the fan's height (0.336 WU on a 5.6 WU fan) |
 | `flutter` | 0.25 | The faster ripple's share of the swing at the rim |
 
 Normals are not bent with the fan (the swing is a few degrees), and the fish's raycast surfaces
@@ -120,6 +120,8 @@ pink leaning out left and right, after Jeremy's sketch) from it:
 
 - Reef fish treat fans as solid (site rays, obstacle field) but never visit them: the `fan` coral
   form has no modes yet (docs/reef-behavior.md, Coral forms).
+  Fan site-ray surfaces are two-sided; unlike solid rocks, their single-sheet backs must also
+  stop an approach. `reefSites.js` selects a separate shared DoubleSide material for `fan` only.
 - The Reefs is drawn as 0 to 10 m deep; *Annella mollis* lives at 10 to 40 m. Jeremy's call.
 - The sight test (`minVisible`) only checks the rock: a fan can still sit behind a table, the
   staghorn (placed after it) or a fish.
@@ -163,3 +165,6 @@ upright, and were too few. Since `dev_3`:
   25 fans on 19 sites, all three shapes, five centres in the phone camera crop. Wall orientation,
   per-fan clearance, visibility threshold and size range are unchanged; all holdfasts remain
   inside rock. Placement still runs in the existing preparation slices, with no new frame work.
+- Sway (`dev_8`, Jeremy: +20% intensity, no faster): `bend` 0.05 → 0.06 scales the complete
+  displacement by 1.2 in the tank and Atlas. Period 7 s, flutter share 0.25 and its 2.7×
+  frequency multiplier stay unchanged. The larger clearance still gives 25 fans on 19 sites.

@@ -142,7 +142,7 @@ const SEA_FAN_KIT = {
 // How the sea fans sway (utils/coralSway.js), in the tank and in the Atlas: one swing back and
 // forth every `period` s (the surge), the rim swinging `bend` of the fan's height either way,
 // with a faster `flutter` toward the rim.
-export const SEA_FAN_SWAY = { period: 7, bend: 0.05, flutter: 0.25 }
+export const SEA_FAN_SWAY = { period: 7, bend: 0.06, flutter: 0.25 }
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the

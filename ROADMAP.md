@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Sea Fan
 
-Status: `Blocked / waiting review` — `v0.38.0-dev_7` (2026-10-26, branch `feat/annella-mollis`): 25 fans across Jeremy's three shapes; wall-mounted fans project outward into the water. His pick (2026-10-25): a soft coral back on The Reefs. Contract and intake: `docs/procedural/coral-sway.md`.
+Status: `Blocked / waiting review` — `v0.38.0-dev_8` (2026-10-26, branch `feat/annella-mollis`): 25 outward-facing fans across Jeremy's three shapes; site rays block both sides, sway amplitude increased 20%. His pick (2026-10-25): a soft coral back on The Reefs. Contract and intake: `docs/procedural/coral-sway.md`.
 
 Subtasks:
 - [x] Species entry (`annella-mollis`) from SeaLifeBase, Florent's Guide, Brihatee et al. 2025 and Chang 2007; sources credited.
@@ -29,8 +29,9 @@ Subtasks:
 - [x] `dev_5` (Jeremy: still some floating; use each fan's origin as its root; both sides; three fans in the Atlas): holdfast = his object origin; fans turned about it so less hangs below; strict rock test by distance from the root, eight stances a spot (25 fans, 0.5% of lattice points in rock); back faces lit like front; his updated GLB textures (fuller alphas baked in); Atlas: three fans on a wider rock.
 - [x] `dev_6` (Jeremy: fans must not face their host wall): fan sheets project outward from faces steeper than 45°, their face normals tangent to the rock; local flow along the wall, no yaw fallback toward it. Both flow signs and three leans tried. Current layout: 14 fans, all three shapes, five centres in a 375 × 812 camera crop; no floating roots. Geometry regression covers wall and top attachments under three current headings.
 - [x] `dev_7` (Jeremy: restore around 25 while facing away from walls): scatter sites 6.5 WU apart (was 8), 2–4 candidates per rock (was 1–3). Shipped-kit audit: 25 fans on 19 sites, all three shapes, five centres in a 375 × 812 camera crop, every wall face tangent to its host, no floating roots. Existing clearance, sizes, visibility threshold and orientation rules retained.
-- [ ] Phone review: sway amount (`SEA_FAN_SWAY.bend` 0.05, `period` 7 s), orientation/count and visibility (`perCluster` 3–6, `minVisible` 2), sizes (2.2–6 WU).
-- [ ] Review follow-ups (`dev_5` review): check visible lattice below the holdfast using texture alpha (raw plane vertices include transparent margins), and make single-sheet fan reef-site raycasts two-sided.
+- [x] `dev_8` (Jeremy): fan reef-site surfaces use a dedicated two-sided raycast material; rock/table/thicket semantics retained, regression covers both approach directions and cleanup. Shared tank/Atlas sway `bend` 0.05 → 0.06 (+20% amplitude); period 7 s and flutter 0.25 unchanged. Shipped-kit audit still gives 25 fans on 19 sites, outward wall orientation and no floating roots.
+- [ ] Phone review: sway amount (`SEA_FAN_SWAY.bend` 0.06, `period` 7 s), orientation/count and visibility (`perCluster` 3–6, `minVisible` 2), sizes (2.2–6 WU).
+- [ ] Review follow-up (`dev_5` review): check visible lattice below the holdfast using texture alpha (raw plane vertices include transparent margins).
 - [ ] Photo sources of the orange and pink fans (yellow: Diego Delso, CC BY-SA 4.0, credited).
 - [ ] Jeremy's call: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.
 - [ ] Backlog: a `fan` coral form for reef fish (hover/patrol beside the lattice); docs/reef-behavior.md.

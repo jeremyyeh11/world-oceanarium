@@ -401,14 +401,17 @@ export const LANDSCAPES = {
     // on each of up to `scatter.rocks` other rocks in front of the camera, `scatter.spacing` WU
     // apart. `height` in WU (55 cm to 1.5 m: colonies are mostly 76 to 150 cm, Brihatee et al.
     // 2025, and reach 2 m). Each grows from rock only (tops, slopes and walls), its holdfast
-    // buried; broadside to the current; `current` (x, z) is set along the resting camera's line of
-    // sight, so the fans face the visitor, each within `facingJitter` radians. `sway` is
+    // buried; broadside to the current; `current` (x, z) follows the resting camera's line of
+    // sight on gentle tops, within `facingJitter`; wall fans follow local flow along their rock,
+    // their sheets projecting outward (seaFanPlacement.js). `sway` is
     // SEA_FAN_SWAY. A fan needs `minVisible` of 9 points on its face seen from the resting camera.
     seaFans: {
       kit: SEA_FAN_KIT,
       seed: 8411, perCluster: [3, 6], height: [2.2, 6],
       current: [0.16, 1], facingJitter: 0.35, minVisible: 2,
-      scatter: { seed: 8501, rocks: 30, perRock: [1, 3], spacing: 8, maxDistance: 95 },
+      // More host rocks, 1.625 m apart rather than 2 m, with 2–4 candidate fans per rock:
+      // 25 fans after clearance checks, retaining dev_6's perpendicular wall attachments.
+      scatter: { seed: 8501, rocks: 30, perRock: [2, 4], spacing: 6.5, maxDistance: 95 },
       sway: SEA_FAN_SWAY,
     },
   },

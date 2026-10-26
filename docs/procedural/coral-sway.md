@@ -156,5 +156,10 @@ upright, and were too few. Since `dev_3`:
   with its face normal exactly tangent to it. Both signs of that flow axis and three upward
   leans (0.35, 0.9, 2) are tried to fit asymmetric branches; no yaw fallback may turn it toward
   the wall. Gentler tops keep the authored current and yaw variation. The placed fan retains
-  `surfaceNormal` for orientation audits. Current layout: 14 fans, all three shapes, five fan
+  `surfaceNormal` for orientation audits. The dev_6 layout: 14 fans, all three shapes, five fan
   centres in a 375 × 812 resting-camera crop; zero floating roots. Physical-phone review pending.
+- Density (`dev_7`, Jeremy: restore around 25): scatter host spacing 6.5 WU (was 8), with 2–4
+  candidate fans per rock (was 1–3), up to the same 30 host rocks. The shipped kits produce
+  25 fans on 19 sites, all three shapes, five centres in the phone camera crop. Wall orientation,
+  per-fan clearance, visibility threshold and size range are unchanged; all holdfasts remain
+  inside rock. Placement still runs in the existing preparation slices, with no new frame work.

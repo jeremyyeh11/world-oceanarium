@@ -14,7 +14,8 @@ Versioning convention notes:
 
 - Giant Sea Fan sheets project outward from their host walls, broadside to local flow along the
   rock. Wall attachments keep that orientation through every fitting attempt; gentler tops
-  follow the landscape current. The stricter layout has 14 fans across all three shapes.
+  follow the landscape current. More scattered rock hosts restore 25 fans across all three
+  shapes while preserving the wall orientation and clearance checks.
 
 ## v0.37.1 — The Shallows' animals roam the bay (2026-10-25)
 

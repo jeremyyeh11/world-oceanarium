@@ -306,8 +306,19 @@ const REMORA_SWIM = {
     wariness: 0.05,
   },
 }
+// Open water extends beyond the resting camera (z 10), including overhead passes.
+// Z bounds are offset by -15 in fishSwim.js: this is -80 through +45 WU.
+// Walls sit outside the view, with room for the sharks' turns; narrower goal sides
+// keep crossings in view without making the visible frame a turning boundary.
+const OPEN_SEA_BOUNDS = {
+  boundsUseSpeciesSize: false,
+  boundsWedge: { apexZ: 10, slope: 1.3, margin: 36, goalSlope: 0.8, goalMargin: 4 },
+  boundsZMin: -65,
+  boundsZMax: 60,
+  goalPick: 'across',
+}
 // Riders share their host's swim volume, so every anchor on it stays reachable.
-const OPEN_SEA_RIDER_BOUNDS = { movementBoundsScale: 1.22, boundsYMin: -14, boundsZMin: -26, boundsZMax: 4 }
+const OPEN_SEA_RIDER_BOUNDS = { ...OPEN_SEA_BOUNDS, boundsYMin: -14 }
 const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZMin: -25, boundsZMax: 0 }
 // Reef fish reach down, back and forward to the rocks of The Reefs (landscapes.js): to y -19,
 // above the basin's highest dune crest (-20.5), back to z -52, the canyon's front faces, and
@@ -456,6 +467,7 @@ export const SPECIES = [
     maxBodyLengthMeters: 0.27,
     swim: {
       // World Oceanarium scale: 1 WU = 25 cm. A. sirm maximum standard length ≈27 cm = 1.08 WU.
+      ...OPEN_SEA_BOUNDS,
       bodyLengthWU: 1.08,
       // Keeps biologically grounded BL/s ratios readable in the aquarium camera.
       visualTimeScale: 0.35,
@@ -467,14 +479,14 @@ export const SPECIES = [
       erraticness: 0.24,
       // Turn radius in body lengths — nimble bait, but still arcs forward through turns.
       turnRadiusBodyLengths: 2.0,
+      // Across-room goals reserve one normal turning radius around the school's centre.
+      schoolTurnRateScale: 1,
       // Bait balls range through the upper column; deepened for vertical spread.
       boundsYMin: -10,
       // Up to just under the water surface (SURFACE_PLANE_Y 4.6), where bait balls really do end up.
       // The epipelagic band stopped them at 2.83, an invisible ceiling 1.8 WU below the surface
       // that a school driven upward flattened against.
       boundsYMax: 3.9,
-      boundsZMin: -15,
-      boundsZMax: 8,
       boids: {
         // Nearest six, not fourteen: studies of schooling fish find a fish's one or two nearest
         // neighbours dominate how it moves (Katz et al. 2011), so averaging over fourteen blurred
@@ -624,18 +636,12 @@ export const SPECIES = [
       // snap clip that froze the body in a C-curl. Only sharp turns trigger the snap.
       turnTriggerThreshold: 0.3,
       erraticness: 0.08,
-      // Cruiser turns, but sized to the mahi's confined upper-column bounds. The old 2.8 gave a
-      // ~20 WU turn radius in a ~27 WU-wide box, so a pair that reached a wall/corner could not
-      // out-turn it and just orbited in place (a constant curve that cocked the tails). 1.3 keeps
-      // a broad, committed arc that still fits the box, so the mahi carves away and straightens.
+      // Keep the accepted broad arcs; the room now extends past the camera and visible sides.
       turnRadiusBodyLengths: 1.3,
       speedMultiplier: 1.0,
-      movementBoundsScale: 1.18,
-      boundsUseSpeciesSize: false,
+      ...OPEN_SEA_BOUNDS,
       // Surface-associated (often near floating cover) — stays in the upper column.
       boundsYMin: -7,
-      boundsZMin: -23,
-      boundsZMax: 4,
       boids: {
         neighborCap: 1,
         perceptionBodyLengths: 2.1,
@@ -834,21 +840,13 @@ export const SPECIES = [
       turnActionDuration: 3.2,
       turnTriggerThreshold: 0.042,
       erraticness: 0.018,
-      // Apex pelagic shark: long glides and wide banking turns, never a pivot. Sized to the
-      // tightened bounds below (the old 2.6 gave a ~41 WU radius that could not out-turn the
-      // envelope and overshot into hard clamps at the tank edges); 1.7 keeps a broad, committed
-      // arc that still fits so the mako carves away cleanly instead of snapping back.
+      // Apex pelagic shark: retain its broad, committed banking arcs in the larger room.
       turnRadiusBodyLengths: 1.7,
       speedMultiplier: 1.0,
-      // Pulled in from 1.48 / z -36 so the mako stays a visible presence in the main tank instead
-      // of roaming far off-screen most of the time; still the widest-ranging fish in the tank.
-      movementBoundsScale: 1.22,
+      ...OPEN_SEA_BOUNDS,
       soloTargetVerticalBodyLengths: 0.18,
-      boundsUseSpeciesSize: false,
       // Ranges from the surface into deeper offshore water — deep diver.
       boundsYMin: -14,
-      boundsZMin: -26,
-      boundsZMax: 4,
       boids: {
         // Apex solo hunter: sees few neighbors, is unbothered by others, but reads as
         // maximally menacing so nearly everything else steers away from it.
@@ -2800,14 +2798,10 @@ export const SPECIES = [
       // Broad, unhurried turns; boundary steering tightens them near the walls, as for the mako.
       turnRadiusBodyLengths: 1.0,
       speedMultiplier: 1.0,
-      movementBoundsScale: 1.22,
+      ...OPEN_SEA_BOUNDS,
       soloTargetVerticalBodyLengths: 0.1,
-      boundsUseSpeciesSize: false,
-      // Feeds near the surface. Held further back than the mako (z -2 rather than 4) so the
-      // nose of a 24 WU body stays well short of the camera.
+      // Feeds near the surface, with room for the whole juvenile to pass over the camera.
       boundsYMin: -12,
-      boundsZMin: -28,
-      boundsZMax: -2,
       // 1 WU = 25 cm: the 20 m maximum is 80 WU. Never drawn at this size (see lifeStages).
       bodyLengthWU: 80,
       boids: {

@@ -8,6 +8,15 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.38.2 — Open Sea roaming (in development)
+
+Status: preview `v0.38.2-dev_1`, branch `codex/open-sea-movement-boundaries`; awaiting visual acceptance.
+
+### Behaviour and motion
+
+- Open Sea animals roam farther back and past the viewer, including overhead passes. Wedge-shaped side limits extend beyond the visible frame; narrower crossing goals keep animals returning through the view. Retains the accepted camera, vertical bands, speeds and turn radii.
+- Sharksuckers share the expanded host room, so detached riders can still reach their sharks.
+
 ## v0.38.1 — Open Sea camera (2026-10-27)
 
 Status: clean `v0.38.1`, accepted from `v0.38.1-dev_2`; PR #164. Jeremy approved promotion and merge on 2026-10-27.

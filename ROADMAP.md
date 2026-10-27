@@ -15,14 +15,15 @@ Status labels:
 
 ### Yellowfin Tuna model intake
 
-Status: `Next` — biological data, draft profile and reel brief prepared in clean `v0.39.0`;
-continuing in the separate Yellowfin Tuna chat. Unicornfish acceptance is archived below.
+Status: `Current in development` — model intake in `v0.40.0-dev_1` on
+`species/thunnus-albacares`. Unicornfish acceptance is archived below.
 Research and model contract: [docs/species-preparation.md](docs/species-preparation.md).
 
-- [ ] Inspect/measure the supplied GLB, configure the existing caudal wave, verify school
-  turns and solo fallback; check the real formation's turning room in The Open Sea.
-- [ ] Atlas pose/tile and responsive review, then backed-up dev stocking after Jeremy
-  confirms the tuna population and sex mix. Tuna remains hidden until asset intake.
+- [x] Inspect/measure the supplied GLB; add the centred runtime copy and existing
+  caudal-wave configuration. Fork length 2.240529418 source units; size 1 is 9.56 WU.
+- [x] Atlas pose, runtime-rendered tile and desktop/portrait/landscape browser framing.
+- [ ] Confirm population and sex mix before backed-up dev stocking; verify school turns,
+  solo fallback and Open Sea turning room. No live rows or reserve slot added yet.
 - [ ] Separate visual/feel approval, public stocking approval and clean release for tuna.
 
 ### Atlas measurement clarity

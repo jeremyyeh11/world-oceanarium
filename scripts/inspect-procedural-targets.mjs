@@ -7,6 +7,15 @@ globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
   {
+    name: 'Yellowfin Tuna static body',
+    path: 'public/models/fish/thunnus-albacares/thunnus-albacares.glb',
+    staticMesh: true,
+    bodyMeshNames: ['thunnus_albacares'],
+    sourceAxis: 'z',
+    minBodyLength: 2.398,
+    minVertices: 3200,
+  },
+  {
     name: 'Bluespine Unicornfish static parts',
     path: 'public/models/fish/naso-unicornis/naso-unicornis.glb',
     staticMesh: true,

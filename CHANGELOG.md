@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.40.0 — Yellowfin Tuna (in development)
+
+### Species and Atlas
+- Adds Jeremy's supplied Yellowfin Tuna model with the existing caudal-wave shader,
+  a firm front body and compact tail stroke. Dorsal/anal fins and finlets follow the body;
+  pectorals remain joined as supplied.
+- Centres the runtime copy and calibrates world/Atlas scale from the mouth to the tail
+  fork, excluding the extended caudal tips. Preserves the original embedded texture.
+- Adds an animated Atlas specimen and list tile. Live development stocking and visual
+  acceptance are tracked separately in the roadmap; public stocking is not included.
+
 ## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
 
 Status: clean `v0.39.0`, accepted from `v0.39.0-dev_5`; PR #165. Jeremy approved

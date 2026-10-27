@@ -14,12 +14,14 @@ dev adults at 40–55 cm FL; `creatures_dev` IDs 841–846, three of each sex, s
 parameters 0/0.2/0.4/0.6/0.8/1. One adult model represents both sexes; its depicted
 sex and photo provenance have not been established. Do not infer a licence.
 
-Yellowfin remains hidden, with no model, thumbnail, reserve slot or creature rows.
-No new loading owner, shader architecture or database migration is needed.
+Yellowfin model intake is now in `v0.40.0-dev_1`: the supplied model, procedural
+Atlas specimen and rendered tile are registered. Reserve slot and live creature rows
+remain pending Jeremy's population/sex choice. No new loading owner, shader architecture
+or database migration is needed.
 
 Swim constants describe authored feel, not measured animal speeds. Jeremy accepted
 the unicornfish from `v0.39.0-dev_5` on 2026-10-27 and explicitly approved clean
-promotion/merge plus six public adults. Yellowfin still needs its own intake and approvals.
+promotion/merge plus six public adults. Yellowfin still needs stocking and visual approvals.
 
 Public unicornfish: IDs 847–852, three of each sex, size parameters
 0/0.2/0.4/0.6/0.8/1, matching the dev size distribution. The repository backup ran
@@ -121,6 +123,33 @@ Research decisions:
 Model emphasis: fusiform body, caudal keels, crescent tail, yellow finlets and
 second dorsal/anal fins appropriate to the selected adult size. Longer yellow fins
 are not a male-only trait. One adult model can serve both sexes initially.
+
+## Yellowfin intake — `v0.40.0-dev_1`
+
+The supplied `thunnus albacares.glb` (2026-10-27) is one static mesh with 3,202
+exported vertices / 1,668 triangles, one opaque embedded PNG, no bones, clips or
+vertex colours. All fins remain joined; there is no independent pectoral flutter.
+The original is untouched. The hash-guarded `scripts/prepare-yellowfin-model.py`
+reproduces the centred runtime copy; provenance is beside the GLB.
+
+Measured mouth vertex 8 to central caudal notch vertex 91: 2.240529418 source units.
+Tail-tip span is 2.398549914. Scale 4.266848684615521 maps fork length to 9.56 WU /
+239 cm at size 1; Atlas uses the same reference. The mouth/fork midpoint is the
+root-follow pivot. Orientation is nose -Z, Y up. Two-sided fins are preserved;
+unnecessary BLEND is removed because every source alpha sample is 255.
+
+Existing `caudal-vertex` supplies a late compact tail stroke: flex 0.55–0.92,
+amplitude 0.100824 source units (0.045 fork lengths), turn strength 0.067216,
+wave speed 3, travel 2.4, burst amplitude 0.7. This is authored motion tuning,
+not a measured tailbeat frequency. Dorsals, anal fin, finlets and tail remain
+attached through the shared deformation. No new motion architecture was added.
+
+The runtime-shader tile is a left-facing three-quarter head close-up, rendered
+alone. Browser checks at 1366x900, 390x844 and 844x390 show the complete Atlas
+specimen and scale bar without fin/tail clipping or horizontal overflow. These
+are browser viewport checks, not physical-phone testing. School/solo reserve
+paths remain to be reviewed after population confirmation. Model intake does
+not add fallback residents, reserve dependencies or database rows.
 
 ## Export contract for both GLBs
 

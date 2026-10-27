@@ -532,14 +532,14 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
-  // Queued until Jeremy supplies its GLB; no missing model requests or reserve slot.
+  // Jeremy's supplied adult model; live stocking is confirmed separately.
   {
     id: 'thunnus-albacares',
     name: 'Yellowfin Tuna',
     scientificName: 'Thunnus albacares',
     family: 'Scombridae',
     alternateNames: ['Yellowfin', 'Ahi', 'Kihada'],
-    hiddenInAtlas: true,
+    atlasThumbnail: '/atlas/thunnus-albacares-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: true,
@@ -619,6 +619,46 @@ export const SPECIES = [
       boundsZMin: -38,
       boundsZMax: 3,
       boids: { neighborCap: 5, perceptionBodyLengths: 3, separationWeight: 0.3, alignmentWeight: 0.3, cohesionWeight: 0.15, maxWeight: 0.6, menace: 0.45, wariness: 0.4 },
+    },
+    model: {
+      path: '/models/fish/thunnus-albacares/thunnus-albacares.glb',
+      doubleSided: true,
+      // Supplied 2026-10-27; prepare-yellowfin-model.py bakes/centres the root.
+      // Mouth -> central tail fork = 2.240529418 source units, not 2.398550 tail tips.
+      // Size 1 = 239 cm FL / 9.56 WU; proposed adults are 120–150 cm FL.
+      scale: 4.266848684615521,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['thunnus_albacares'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Thunniform: firm front, thrust from a compact rear-body/tail stroke.
+        // Source-space displacement: 0.045 fork lengths, stronger under burst.
+        amplitude: 0.100824,
+        turnStrength: 0.067216,
+        waveSpeed: 3.0,
+        waveTravel: 2.4,
+        flexStart: 0.55,
+        flexFull: 0.92,
+        burstAmplitude: 0.7,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        // All fins are joined in this export; no independent fin rowing.
+        pectoralFinFlutter: 0,
+        pelvicFinFlutter: 0,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
     },
   },
   {

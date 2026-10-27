@@ -226,6 +226,17 @@ back, in the flexing region, and behind the tail tip it moves with the tail tip.
 `meshLengthVariation: { meshName: 'banner', range: [0.8, 1.2] }` gives each fish its own
 banner length; even the shortest ends 0.4 body lengths past the tail.
 
+**Bluespine Unicornfish** — the same labriform configuration, at 40–55 cm fork length.
+Jeremy's 2026-10-27 export has 57.402794 source units from the mouth to the central
+caudal rear rim (59.821167 to the longest tail tip). `amplitude` and `turnStrength`
+are 1.722084, 0.03 fork lengths; `waveSpeed: 3.1`, `waveTravel: 2.5`,
+`flexStart: 0.5`, `flexFull: 0.9`, `response: 8`, `burstAmplitude: 1.2`, boosts
+`0.4`/`0.35`, flutter `0.45`/`0.08`, `finRootFrom: 'body-surface'`. Pectorals row at
+cruise; the rear-body wave assists turns/bursts. The pelvic roots are forward of
+the wave, so they remain separate. Tail plates are joined into `naso_unicornis`.
+`scripts/prepare-unicornfish-model.py` bakes the five node translations and centres
+the source copy without changing topology, normals, UVs or the embedded texture.
+
 Note the pattern: **bigger animal → lower `waveSpeed`, higher `waveTravel` and
 `amplitude`, lower `response`.** Mass reads as slow cadence, long wave, and lazy
 steering.

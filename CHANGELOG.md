@@ -8,6 +8,35 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
+
+Status: clean `v0.39.0`, accepted from `v0.39.0-dev_5`; PR #165. Jeremy approved
+the unicornfish, clean promotion/merge and six public adults on 2026-10-27.
+
+### Species preparation
+
+- Prepares both species' Atlas biology, social behaviour, averages, lifecycle and conservation
+  fields, with study/profile credits. Regional sample means, common-length proxies, estimated
+  weights and longevity records are documented; unavailable unicornfish batch fecundity stays Unknown.
+- Simplifies both new Atlas entries by removing the FL abbreviation and parenthetical notes.
+  Their scale bar says Specimen. Source context and the underlying measurement/scale
+  conventions remain in the research notes.
+- Adds draft loose-group reef grazing and pelagic schooling profiles using existing systems.
+  Unicornfish cannot select live coral for peck visits. Yellowfin remains queued and hidden,
+  with no model URL, reserve slot or creature rows until its GLB arrives.
+- Records the fork-length scale contract, asset intake checklist and 30-second reel briefs.
+
+### Unicornfish model intake
+
+- Dev_3 includes the accepted v0.38.1 Open Sea camera patch from main so the review branch stays mergeable.
+- Registers Jeremy's static GLB, centres its five meshes without changing their geometry,
+  and uses the existing labriform caudal wave with rowing pectorals. The 57.402794-unit
+  mouth-to-fork reference maps to 70 cm at size 1; longer tail tips are excluded from scale.
+- Adds the Atlas specimen, responsive pose and rendered tank tile. Stocks six approved
+  dev adults in The Reefs at 40–55 cm FL (IDs 841–846), three of each sex, after backups.
+  The accepted public population matches those sizes and sexes (IDs 847–852), with
+  before/after backups and readback; prior production rows and all dev rows are unchanged.
+
 ## v0.38.1 — Open Sea camera (2026-10-27)
 
 Status: clean `v0.38.1`, accepted from `v0.38.1-dev_2`; PR #164. Jeremy approved promotion and merge on 2026-10-27.

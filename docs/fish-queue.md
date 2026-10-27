@@ -6,6 +6,24 @@ No species repeats across reserves.
 
 ## Queued: species entry in `src/data/species.js`, no model
 
+### Next: Yellowfin Tuna
+
+Prepared in `v0.39.0-dev_1` on Jeremy's request (2026-10-27), with researched
+Atlas fields, scale references, mass relationship and draft movement data.
+Still hidden in Atlas, with no model, tank roster entry or creature rows.
+See [the preparation and GLB handoff](species-preparation.md)
+for sources, measurement conventions, proposed populations and the 30-second reels.
+
+- **Yellowfin Tuna** (`thunnus-albacares`): The Open Sea; proposed four to six schooling
+  adults at 120–150 cm fork length. Existing `caudal-wave` with a firm front and a
+  compact tail stroke; no drift/hover, hunting system or new animation type.
+
+Bluespine Unicornfish (`naso-unicornis`) was accepted for clean `v0.39.0` on
+2026-10-27: Jeremy's model, Atlas entry/tile and six adults in The Reefs, 40–55 cm
+fork length, in both dev and public populations. It is no longer queued.
+
+### Remoras awaiting their models
+
 These keep their researched entries (facts, Atlas copy, `hitchhiker` ride data) but have no
 model, are on no tank and are out of the Atlas. They need Jeremy's GLB, then the remora
 intake in [ride-hosts.md](ride-hosts.md) (`node scripts/fit-rider-model.mjs <id>`), a tank

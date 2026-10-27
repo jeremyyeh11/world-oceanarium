@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna (in development)
+
+### Species preparation
+
+- Prepares both species' Atlas biology, social behaviour, averages, lifecycle and conservation
+  fields, with study/profile credits. Regional sample means, common-length proxies, estimated
+  weights and longevity records are labelled; unavailable unicornfish batch fecundity stays Unknown.
+- Adds draft loose-group reef grazing and pelagic schooling profiles using existing systems.
+  Unicornfish cannot select live coral for peck visits. Both entries remain queued and hidden,
+  with no model URLs, reserve slots or creature rows until Jeremy supplies and reviews the GLBs.
+- Records the fork-length scale contract, asset intake checklist and 30-second reel briefs.
+
 ## v0.38.0 — Giant Sea Fan (2026-10-26)
 
 Status: clean `v0.38.0`, accepted from `v0.38.0-dev_8`, branch `feat/annella-mollis`. Jeremy explicitly approved promotion and merge to main. Includes the latest `v0.37.2` debug UI.

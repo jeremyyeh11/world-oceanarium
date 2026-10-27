@@ -13,6 +13,22 @@ Status labels:
 
 ## Current work
 
+### Bluespine Unicornfish + Yellowfin Tuna preparation
+
+Status: `Current in development` — `v0.39.0-dev_1`, branch `codex/prepare-unicornfish-yellowfin`.
+Jeremy (2026-10-27): prepare both species and all Atlas data before he supplies the GLBs.
+Research, model contract and reel briefs: [docs/species-preparation.md](docs/species-preparation.md).
+
+- [x] Canonical entries, source-backed Atlas fields, explicitly labelled regional/common-size
+  proxies, lifecycle, mass relationships and draft movement/reef profiles; Sources credits.
+- [x] Queue safely: no placeholder model/URL, reserve roster change or creature-data write;
+  species/loader regression, full tests, scoped lint, build and existing procedural checks pass.
+- [ ] Jeremy's GLBs: inspect, measure fork length separately from total bounds, configure the
+  existing caudal-wave path, verify normals/fin roots and tune motion in the intended reserve.
+- [ ] Atlas poses and real rendered tiles, desktop/phone review; confirm counts/sex mix,
+  then backed-up development stocking. Production stocking needs a separate go-ahead.
+- [ ] Public Atlas/reserve activation and clean release after model review; preparation stays dev.
+
 ### Giant Sea Fan follow-ups
 
 Status: `Backlog` — clean `v0.38.0` accepted on 2026-10-26; shipped work is under Released / archived. Contract: `docs/procedural/coral-sway.md`.

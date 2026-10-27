@@ -1,7 +1,45 @@
 import assert from 'node:assert/strict'
 import { SPECIES, TANKS } from '../src/data/species.js'
+import { atlasWarmupUrls } from '../src/loading/atlasWarmup.js'
+import { ENVIRONMENT_MANIFESTS } from '../src/loading/environmentManifest.js'
+import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
+
+// Prepared species must not create missing-GLB requests or invisible live residents.
+// They become eligible for actual asset/pose verification when Jeremy supplies the GLBs.
+for (const id of ['naso-unicornis', 'thunnus-albacares']) {
+  const prepared = speciesById.get(id)
+  assert.ok(prepared, `${id} canonical species exists`)
+  assert.equal(prepared.hiddenInAtlas, true, `${id} waits for the real specimen and tile`)
+  assert.equal(prepared.model, undefined, `${id} does not advertise a nonexistent model`)
+  assert.deepEqual(atlasWarmupUrls([prepared]), [], `${id} causes no speculative asset requests`)
+  assert.ok(ENVIRONMENT_MANIFESTS.every(manifest => manifest.assets.every(asset => !asset.url.includes(id))), `${id} cannot block reserve loading`)
+  // Alias resolution is ready, but a future alive row cannot enter an existing reserve early.
+  for (const alias of [id, prepared.name, prepared.scientificName]) {
+    const creature = { id: `pending-${id}`, species: alias, alive: true, size: 0.6 }
+    assert.equal(resolveSpecies(creature), prepared)
+    for (const tank of TANKS) assert.deepEqual(creaturesForTank([creature], tank), [], `${id} is not stocked before intake`)
+  }
+  assert.equal(prepared.atlasDetails.maxLengthLabel, 'Fork length')
+  assert.ok(Math.abs(prepared.swim.bodyLengthWU * 0.25 - prepared.maxBodyLengthMeters) < 1e-9, `${id} biological reference and world scale agree`)
+  assert.ok(prepared.sizeRange[0] > 0 && prepared.sizeRange[1] <= 1)
+}
+
+const unicornfish = speciesById.get('naso-unicornis')
+const tuna = speciesById.get('thunnus-albacares')
+assert.equal(unicornfish.schooling, false, 'reef visits retain individual control')
+assert.equal(unicornfish.group.maxSize, 6)
+for (const form of ['table', 'thicket']) assert.equal(unicornfish.reef.corals[form].peck, 0, 'an algae browser must override inherited coral-biting shares')
+assert.equal(tuna.schooling, true)
+assert.equal(tuna.swim.driftEnabled, false, 'a ram-ventilating tuna must keep swimming')
+assert.equal(tuna.reef, undefined, 'pelagic tuna must not inherit reef holds')
+// Guard the length convention/units: unlike the FishBase TL relationship, these
+// pooled relationships use fork cm and return grams. Proposed specimens are in range.
+assert.ok(Math.abs(unicornfish.mass.coefficient * 42.2 ** unicornfish.mass.exponent / 1000 - 1.4) < 0.1)
+assert.ok(Math.abs(tuna.mass.coefficient * 150 ** tuna.mass.exponent / 1000 - 63) < 1)
+assert.match(tuna.atlasDetails.averages.maleSizeMeters, /common length; sexes pooled/)
+assert.match(tuna.atlasDetails.averages.maleLifeExpectancyYears, /longevity record; sexes pooled/)
 
 const sardinella = speciesById.get('amblygaster-sirm')
 assert.ok(sardinella)

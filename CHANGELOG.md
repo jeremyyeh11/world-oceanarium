@@ -8,6 +8,12 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.38.1 — Open Sea camera (in development)
+
+### Presentation
+
+- Trial Open Sea's resting camera at The Shallows' upward pitch (about 22°), retaining Open Sea's position and field of view.
+
 ## v0.38.0 — Giant Sea Fan (2026-10-26)
 
 Status: clean `v0.38.0`, accepted from `v0.38.0-dev_8`, branch `feat/annella-mollis`. Jeremy explicitly approved promotion and merge to main. Includes the latest `v0.37.2` debug UI.

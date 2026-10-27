@@ -63,6 +63,8 @@ export const BIOMES = [
 export const TANKS = [
   {
     id: 'open-sea',
+    // Match The Shallows' upward pitch, retaining Open Sea's resting position and FOV.
+    camera: { lookY: -3.35 + 10 * (SHALLOWS_VIEW.lookY - SHALLOWS_VIEW.y) / SHALLOWS_VIEW.z },
     name: 'The Open Sea',
     tagline: 'A blue-water pursuit',
     // One or two lines shown under the tank name above the switcher.

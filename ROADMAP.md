@@ -13,14 +13,6 @@ Status labels:
 
 ## Current work
 
-### Open Sea opening camera
-
-Status: `Current in development` — `v0.38.1-dev_2`, branch `codex/open-sea-camera-pitch`.
-
-- [x] Match The Shallows' upward resting-camera pitch; retain Open Sea's Z position and field of view.
-- [x] `dev_2`: lower the camera from y −3.35 to −16 after the pitch-only trial left animals at the bottom of the frame.
-- [ ] Jeremy to compare the preview's opening feel before accepting a clean release.
-
 ### Giant Sea Fan follow-ups
 
 Status: `Backlog` — clean `v0.38.0` accepted on 2026-10-26; shipped work is under Released / archived. Contract: `docs/procedural/coral-sway.md`.

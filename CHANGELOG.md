@@ -8,11 +8,13 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.38.1 — Open Sea camera (in development)
+## v0.38.1 — Open Sea camera (2026-10-27)
+
+Status: clean `v0.38.1`, accepted from `v0.38.1-dev_2`; PR #164. Jeremy approved promotion and merge on 2026-10-27.
 
 ### Presentation
 
-- Trial Open Sea's resting camera at The Shallows' upward pitch (about 22°), lowered to y −16 so the swimmers sit above the viewer; retain Open Sea's Z position and field of view.
+- Open Sea's resting camera at The Shallows' upward pitch (about 22°), lowered to y −16 so the swimmers sit above the viewer; retain Open Sea's Z position and field of view.
 
 ## v0.38.0 — Giant Sea Fan (2026-10-26)
 

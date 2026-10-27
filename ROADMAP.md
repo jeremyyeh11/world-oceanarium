@@ -19,8 +19,6 @@ Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-
 [PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168) ·
 [Contract and validation](docs/species-preparation.md).
 
-- [ ] Obtain separate approval for production tuna stocking; the 299-fish school
-  remains in development data. Production creature rows are unchanged by this release.
 - [ ] Measure physical-phone performance and track any resulting rendering work;
   desktop samples and simulated movement checks are not a physical-phone benchmark.
 
@@ -921,7 +919,10 @@ Shipped model with all four paired fins joined into one runtime primitive, Atlas
 large-school behavior and solo fallback, clean visitor changelog history, and
 adult Whale Shark visible goals with broad turning space. Full validation and
 299-fish development stocking evidence are in `docs/species-preparation.md`.
-Production stocking and physical-phone measurement remain active follow-ups above.
+Production stocking was separately approved and completed on 2026-10-28:
+299 adults, production IDs 1152–1450 (150 female / 149 male), total 509→808.
+Both tables were backed up before/after; all prior production rows and all
+development rows are unchanged. Physical-phone measurement remains active above.
 
 
 ### v0.39.0 — Bluespine Unicornfish

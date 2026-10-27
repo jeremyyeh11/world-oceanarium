@@ -25,6 +25,8 @@ Write this before implementation:
 - [ ] **Compute the animal's size in world units before anything else** (`1 WU = 25 cm`) and compare it against the smallest shipping species, Spotted Sardinella at `1.08` WU / 27 cm. If it lands far below that, resolve it now — pick a larger species in the group, accept it as a near-camera-only detail animal, or conclude it does not earn a tank slot. A motion design built around detail the viewer cannot resolve is wasted work.
 - [ ] Inspect the supplied GLB before adding data: mesh names/counts, vertices, materials, bounds, root orientation, bones/skinning, clips, and source length.
 - [ ] Confirm provenance is recorded as supplied/approved; do not invent licensing claims.
+- [ ] List every image embedded in the GLB (name, size) and look at each one. Remove anything that is not the animal (logos, watermarked comps, screenshots); if a material samples only a corner of one, cut that corner out and remap the UVs.
+- [ ] Credit every photo texture in `IMAGE_CREDITS` (`src/data/sources.js`) in the build that ships it: the full credit, or an entry with no `url` that shows "Unknown source" plus a ROADMAP item to find it. Generated images are not listed.
 - [ ] Put the runtime asset at `public/models/fish/<scientific-slug>/` and update the relevant preload only when startup cost is justified.
 - [ ] Set model transform, real-world scale (`1 WU = 25 cm`), body length, and source-length measurement deliberately.
 - [ ] Ensure the authored root/origin is at the intended follow point—normally the body/swim pivot; if it is used for camera follow, it must be visually meaningful.
@@ -79,7 +81,8 @@ Write this before implementation:
 - [ ] For `creatures_dev` or production `creatures` writes: back up before and after, use canonical scientific slug, and read back IDs/counts/species values.
 - [ ] Never change public Supabase data unless specifically requested.
 - [ ] Add dev review rows only when the review build actually reads them; static fallback is not proof when configured Supabase data wins.
-- [ ] Keep this work on a `feat/...` branch and release as a `-dev` review build until explicit approval.
+- [ ] Keep this work on its own `species/<scientific-name>` branch (one species per branch, AGENTS.md) and release as a `-dev` review build until explicit approval.
+- [ ] After any production `creatures` write, update ROADMAP, CHANGELOG and the species docs that state production counts in the same session; never leave them saying the write is pending.
 
 ## 8. Verification evidence
 
@@ -89,6 +92,8 @@ Write this before implementation:
 - [ ] Capture before/after screenshots or video for movement, follow framing, and Atlas framing across required viewports.
 - [ ] Check GitHub Build and Vercel on the review commit after push.
 - [ ] Before clean release: rebase latest `origin/main`, rerun gates, get explicit Jeremy/YK approval, promote version/changelog/roadmap together, merge, delete branch, and verify main deployment.
+- [ ] Release hygiene (AGENTS.md): both changelogs updated, and every visitor line true of production (nothing only `creatures_dev` shows); the species' ROADMAP section moved out of Current work; the entry appended at the end of `SPECIES`, its header comment matching what shipped; merged through the PR so the title ends in `(#N)`.
+- [ ] Nothing outside the codebase is committed: reel and social briefs, book materials and the like go to Jeremy in chat (AGENTS.md, Release hygiene).
 
 ## Review handoff
 

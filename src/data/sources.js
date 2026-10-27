@@ -361,6 +361,10 @@ export const STUDY_CREDITS = [
 // Image credits section after the references. Each licence asks for credit, a link
 // to the licence, and a note of changes; CC BY-SA also asks that the adapted
 // texture is shared under the same licence, which `changes` says.
+// Every photo texture gets an entry. One whose source is not known has no `url`
+// and shows "Unknown source" (with `author` when only the photographer is known);
+// replace it with the full credit once the source is found. Generated images are
+// not photographs and are not listed.
 export const IMAGE_CREDITS = [
   {
     id: 'zerpe-emperor-angelfish',
@@ -443,4 +447,26 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Cut out and mapped onto the 3D model, and resized; the adapted texture is shared under the same licence.',
   },
+  // Photo textures whose source is not known yet (audit, 2026-10-28).
+  { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
+  { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },
+  { id: 'unknown-shortfin-mako', subject: 'Shortfin Mako Shark texture' },
+  { id: 'unknown-giant-sunfish', subject: 'Giant Sunfish texture' },
+  { id: 'unknown-live-sharksucker', subject: 'Live Sharksucker textures (two photos)' },
+  { id: 'unknown-whitefin-sharksucker', subject: 'Whitefin Sharksucker textures (two photos)' },
+  { id: 'unknown-pilot-fish', subject: 'Pilot Fish texture' },
+  { id: 'unknown-longfin-bannerfish', subject: 'Longfin Bannerfish texture' },
+  { id: 'unknown-raccoon-butterflyfish', subject: 'Raccoon Butterflyfish texture' },
+  { id: 'unknown-clown-triggerfish', subject: 'Clown Triggerfish texture' },
+  // The file name credits the photographer: humphead-wrasse-simon-ilett-underwater-photography.
+  { id: 'ilett-humphead-wrasse', subject: 'Humphead Wrasse body texture', author: 'Simon Ilett' },
+  // ROADMAP (v0.37.0): Guy Stevens' photo, © Manta Trust, used on Jeremy's call.
+  { id: 'stevens-giant-manta', subject: 'Giant Oceanic Manta top texture', author: 'Guy Stevens, Manta Trust' },
+  { id: 'unknown-giant-manta', subject: 'Giant Oceanic Manta eye and mouth textures' },
+  { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
+  { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
+  { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
+  { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
+  { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
+  { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },
 ]

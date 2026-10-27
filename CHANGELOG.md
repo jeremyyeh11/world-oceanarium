@@ -8,6 +8,43 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.40.1 — Giants of the Open Sea (in development)
+
+Status: `v0.40.1-dev_1`, branch `fix/whale-shark-adult-and-credits`. Follow-ups from an
+audit of v0.38.0–v0.40.0 (2026-10-28).
+
+### Creature data
+
+- Production whale shark (id 411) matches development's adult (id 410), on Jeremy's request:
+  `life_stage` adult, size 0.1083 (9.3 m; was a 6 m juvenile at 0.5), same description.
+  `npm run backup:creatures` before and after: 808 rows, only row 411 changed. The
+  bundled fixture (id 110) matches. The juvenile profile stays in `lifeStages`, unused.
+- The 299-fish production tuna school (ids 1152–1450, stocked 2026-10-28 on Jeremy's
+  approval; PR #169's record is included here) is now in the visitor changelog.
+
+### Credits and assets
+
+- Image credits list every photo texture. 19 entries are new: 17 show "Unknown source" and
+  two name only the photographer (Simon Ilett, humphead wrasse body; Guy Stevens, Manta
+  Trust, manta top). Generated textures (whale shark, manta belly) are not listed.
+  `SourcesModal.jsx` renders an entry with no `url` as "Unknown source".
+- The mako GLB's mouth and teeth sampled a 17 × 39 px corner of an unrelated IHC Melbourne
+  logo. That patch is now the whole texture, with the UVs remapped onto it (6,184 sampled
+  vertices, colours unchanged); 3.15 → 3.11 MB.
+
+### Presentation
+
+- The visitor changelog's v0.40.0 entry no longer claims an adult whale shark: production
+  had only the juvenile then.
+
+### Docs
+
+- ROADMAP: shipped sections leave Current work: finished ones join Released / archived,
+  ones with open items move to a new "Shipped, with open follow-ups" section. No lines lost.
+- Stale sea fan placement notes in AGENTS.md and species.js; the whale shark's comments.
+- AGENTS.md and `docs/new-species-checklist.md` gain the release rules this audit found
+  missed (see AGENTS.md, Release hygiene).
+
 ## v0.40.0 — Yellowfin Tuna (2026-10-27)
 
 Accepted from `v0.40.0-dev_6`; Jeremy requested clean promotion and merge of

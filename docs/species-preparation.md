@@ -227,20 +227,6 @@ single-shark simulation results; they do not replace live/phone visual review.
 Outer bounds remain wide; `swim.goalBounds` and the existing true-angle yaw/pitch
 arc bring it through the visible scene. Contract: `docs/tank-design.md`.
 
-## Documentary reel briefs (30 seconds each)
-
-Unicornfish — **“Unicorns are real.”** 0–5 s: side silhouette/horn reveal. 5–15 s:
-orbit toward the blue tail blades. 15–25 s: observe a grazing visit. 25–30 s:
-widen to the loose reef group and reveal the name. Narration distinguishes the
-horn's uncertain purpose from the tail blades and algae diet. No fighting or coral
-destruction animation is required.
-
-Yellowfin — **“Every breath is a swim.”** 0–5 s: uninterrupted side-follow and the
-breathing hook. 5–15 s: mouth/gill/tail close views with narration about water flow.
-15–25 s: the school banks, showing yellow fins and streamlined bodies. 25–30 s:
-continue into blue water and reveal the name. Do not imply simulated gill-fluid
-dynamics; an explanatory graphic can illustrate the biology in the edit.
-
 ## Source links (consulted 2026-10-27)
 
 - [FishBase: Naso unicornis](https://www.fishbase.se/summary/Naso-unicornis.html)

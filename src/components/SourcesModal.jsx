@@ -116,20 +116,24 @@ export default function SourcesModal({ onClose }) {
               <section className="sources-credits" aria-labelledby="sources-credits-title">
                 <h3 id="sources-credits-title" className="sources-credits-title">Image credits</h3>
                 <p className="sources-credits-intro">
-                  Photographs from Wikimedia Commons that the 3D models are textured from.
+                  Photographs the 3D models are textured from.
                 </p>
                 <ul className="sources-credits-list">
                   {IMAGE_CREDITS.map(credit => (
                     <li key={credit.id} className="sources-credit">
                       <strong>{credit.subject}</strong>
-                      <span>
-                        <a href={credit.url} target="_blank" rel="noreferrer noopener">{credit.work}</a>
-                        {' by '}{credit.author}
-                        {', '}
-                        <a href={credit.licence.url} target="_blank" rel="noreferrer noopener">{credit.licence.name}</a>
-                        .
-                      </span>
-                      <span className="sources-credit-changes">Modified: {credit.changes}</span>
+                      {credit.url ? (
+                        <span>
+                          <a href={credit.url} target="_blank" rel="noreferrer noopener">{credit.work}</a>
+                          {' by '}{credit.author}
+                          {', '}
+                          <a href={credit.licence.url} target="_blank" rel="noreferrer noopener">{credit.licence.name}</a>
+                          .
+                        </span>
+                      ) : (
+                        <span>{credit.author ? `Photo by ${credit.author}; source and licence unknown.` : 'Unknown source.'}</span>
+                      )}
+                      {credit.changes && <span className="sources-credit-changes">Modified: {credit.changes}</span>}
                     </li>
                   ))}
                 </ul>

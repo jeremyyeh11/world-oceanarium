@@ -45,7 +45,7 @@ Important paths:
 - `docs/reef-behavior.md` — reef fish at the rocks: `reef` profiles, the patrol/hover/peck/shelter modes and stages, site raycasts, swim volume; and the coral forms index (`table`, `thicket`; `mound`, `fan`, `host` proposed): how each mode plays at each form, and the universal rules every fish follows at every coral. A new coral is a row under an existing form unless its shape offers something none covers
 - `src/components/coralPlacement.js` — table corals on the reef rocks: which rocks get a cluster, and the foot/top/shoulder placement against the drawn rock. The coral kit and its Atlas specimen are built by `scripts/build-coral-kit.py` and `scripts/build-coral-atlas.py` (headless Blender)
 - `src/components/staghornPlacement.js` — staghorn coral in one-colour patches on the table corals' bommies, placed after the tables and clear of their plates; drawn as one `THREE.LOD` per bommie. Each patch is one `thicket` reef-site surface (Landscape.jsx `thicketReefSurfaces`). Kit and Atlas specimen from `scripts/build-staghorn-kit.py` and `scripts/build-staghorn-atlas.py`
-- `src/components/seaFanPlacement.js` — giant sea fans on the table corals' bommies, placed after the tables and before the staghorn (which keeps clear of them, `inFan`), broadside to the landscape's current; swaying via `src/utils/coralSway.js` (`docs/procedural/coral-sway.md`, which holds the model contract). Kit and Atlas specimen from `scripts/build-sea-fan-kit.py`
+- `src/components/seaFanPlacement.js` — giant sea fans growing from rock faces on the table corals' bommies and, singly, on other reef rocks, placed after the tables and before the staghorn (which keeps clear of them, `inFan`), broadside to the landscape's current; swaying via `src/utils/coralSway.js` (`docs/procedural/coral-sway.md`, which holds the model contract). Kit and Atlas specimen from `scripts/build-sea-fan-kit.py`
 - `src/version.js` — visible bottom-right version label
 - `CHANGELOG.md` — categorized release-bucket notes
 - `ROADMAP.md` — active TODOs, release blockers, and review follow-ups ordered by current work, priority, then chronology
@@ -100,6 +100,20 @@ Visible versions use a target-release plus dev-suffix model:
 - When work starts on a roadmap item, mark it `Current in development` and add subtasks when useful.
 - When an item is completed and pushed to a clean public release, remove it from active roadmap sections or archive it away.
 - Do not bump `src/version.js` for roadmap-only/doc-only edits unless asked.
+- At every clean release, in the same PR: move the released section out of `## Current work`, to `## Released / archived` when nothing in it is open, or to `## Shipped, with open follow-ups` when items remain. A shipped section never stays in Current work.
+
+## Release hygiene
+
+Each rule below was missed at least once in v0.38.0–v0.40.0 (audit, 2026-10-28).
+
+- **Two changelogs, one truth.** A clean release updates `CHANGELOG.md` and the visitor list in `src/data/changelog.js` in the same PR. A visitor line describes what production shows: never a change that only `creatures_dev` or a dev-only life stage can show. A production data write that changes what visitors see (a new school, an animal grown or replaced) gets a visitor line in the next release bucket.
+- **Production writes are recorded in the same session.** After a `creatures` write, update ROADMAP, CHANGELOG and any species doc that states production counts before the session ends, on the same branch as the code where there is one. Never leave a doc saying a write is pending once it has happened.
+- **Every photo texture is credited when it ships.** List each image embedded in a GLB (name, size) at intake and look at each one. Each photo gets an `IMAGE_CREDITS` entry in `src/data/sources.js`: the full credit, or, with no known source, an entry with no `url` (it shows "Unknown source"; add `author` if only the photographer is known) and a ROADMAP item to find it. Never ship a photo with no entry. Generated images are not photos and are not listed.
+- **No foreign images in assets.** Logos, watermarked stock comps, screenshots and other images that are not the animal never ship inside a GLB. If a material only samples a corner of one, cut that corner out as the texture and remap the UVs (`v0.40.1`, the mako's mouth).
+- **Comments and docs follow behaviour.** When a dev build changes how something works (where it is placed, which rows production holds), update the entry's header comment in `species.js`, its AGENTS.md path line and its docs in the same commit.
+- **Append new species** at the end of `SPECIES` (and of the per-species maps in `EncyclopediaPage.jsx`). The Atlas sorts by name, so order is only for readers; a comment above an entry describes that entry only.
+- **Merge through the PR** so the squash title ends in `(#N)`, and link the PR in the CHANGELOG status line.
+- **Commit only what belongs to the codebase.** Anything else (reel and social notes, book materials, personal notes) is never committed, and neither is where it is kept: no personal folder or vault paths in the repo. Hand such material to Jeremy in chat.
 
 ## Validation
 

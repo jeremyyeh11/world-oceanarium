@@ -30,35 +30,137 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
   across the Atlas in a separate copy pass. The two new entries currently omit FL and
   parenthetical notes at Jeremy's request; research context stays in the preparation notes.
 
+### Photo texture sources
+
+Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
+
+- [ ] Find the source page and licence of each photo texture credited as "Unknown source"
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 17 entries), and the link and
+  licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
+  Replace each with a full credit.
+- [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).
+
 ### Giant Sea Fan follow-ups
 
 Status: `Backlog` — clean `v0.38.0` accepted on 2026-10-26; shipped work is under Released / archived. Contract: `docs/procedural/coral-sway.md`.
 
 - [ ] Physical-phone review of sway, visibility and density; no physical-phone measurements claimed.
 - [ ] Check visible lattice below the holdfast using texture alpha; raw plane vertices include transparent margins.
-- [ ] Photo sources of the orange and pink fans (yellow: Diego Delso, CC BY-SA 4.0, credited).
+- [ ] Photo sources of the orange and pink fans, credited as "Unknown source" for now (yellow: Diego Delso, CC BY-SA 4.0, credited). See Photo texture sources.
 - [ ] Habitat depth follow-up: *Annella mollis* lives 10–40 m deep; The Reefs is drawn as 0–10 m.
 - [ ] A `fan` coral form for reef fish (hover/patrol beside the lattice); `docs/reef-behavior.md`.
 
-### Focused debug instruments
+### Reserve follow-ups (after `v0.35.0`)
 
-Status: `Archive candidate` — accepted `v0.37.2-dev_5`, promoted to clean `v0.37.2`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly authorized merge on 2026-10-25 UTC. Retain technical main/deployment verification in release evidence; physical-phone measurements are not claimed.
+- [ ] Refine the descent sprites with Jeremy. `Next`
+- [ ] Refine the descent with Jeremy (diver sprite, copy: "Into the blue"). `Next`
+- [ ] Device check: phone landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll. `Next`
+- [ ] Physical-phone cold/warm/rapid-switch and memory review of #153's loader. `Backlog`
+- [ ] Decide whether the speculative budget should cover a whole second reserve (today about four files per visit); Open Sea's fish models are evicted and re-fetched after The Reefs under the 192 MiB target. `Backlog`
 
-Feel: inspect one animal, glance at text, then get the instrument out of the view. Flat full-width bottom strip.
+### Remoras (week 1 of the species series)
 
-- [x] Remove Bones display/control/helpers only; retain rig/animation support and normal simulation.
-- [x] Creatures: only Heading/speed, Neighbours, Labels. Selected-only steering/behaviour plain text top left; contextual Mola action.
-- [x] Combine Render/Scene into Performance, remove Audio tab/sardine-detail override, make Data persistent top-bar text.
-- [x] All reserve GLB colours distinguish actual single/high/low/far/min sources and restore exactly; no forced detail, geometry/LOD changes or new draw calls.
-- [x] Live Canvas FPS, CPU frame ms, optional GPU ms, JS heap, full-frame draw calls/triangles and renderer/scene state. Unsupported metrics labelled unavailable.
-- [x] Review dev_3: dark-grey single level, left-aligned Data/readout in an explicit code-monospace stack, always-visible debug performance and flat underline keyboard-accessible tabs.
-- [x] Dev_4 review fix: remove scalar fish material tint/emission mutations. Real helper regression proves repeated normal/grey/off/pink/off cycles preserve authored values and restore normal shaders; fresh mobile production Reset restores textured fish.
-- [x] Dev_5: move Creatures/Performance tabs below the active controls, matching DOM/focus and visual order; no telemetry/simulation changes.
-- [x] Keep Reset/Exit, flat >=44px controls and visible-only sampling. Tests/docs in `docs/debug-menu.md`; [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160), issue #159.
-- [x] Full local tests/lint/build/procedural checks and desktop/mobile compiled-production QA: no overflow/sub-44px debug buttons, live selected/performance text, all-GLB tint/restoration, persistent Data and Exit/card restoration. Dev_3 browser QA also proves shared monospace/left edge, live measurements on Creatures across tab switches, grey GLBs/legend and actual keyboard tab focus.
-- [x] Accepted dev_5 exact-head CI/Vercel passed (`08c7785`); clean promotion reruns local/PR/main gates, with final release evidence in PR #160.
-- [x] Jeremy accepted the reviewed iteration and explicitly approved merge. Physical-phone performance remains unmeasured, not a release-blocking approval gate.
-- Slow motion/pause: future/backlog, deliberately outside this accepted release; audit coordinated clocks before a separate proposal.
+Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins were removed in `v0.37.0-dev_2` (Jeremy, 2026-10-25): their species entries stay, with no model, on no tank, listed in `docs/fish-queue.md` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
+
+Reference:
+- System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).
+- Species: the eight `Echeneidae` entries in [`src/data/species.js`](src/data/species.js).
+
+Subtasks:
+- [x] Ride system: host groups and anchors, weighted host choice, approach → latch → attached → release, fade and surface rules, tank-switch persistence.
+- [x] Species data and Atlas copy for all eight, from FishBase; true-length placeholders until models land.
+- [x] Mako and Mola anchors measured off their meshes.
+- [x] Jeremy review (2026-09-26, local preview): remoras clipped through the host while finding a spot, and the rigid stand-ins had no tail beat. Fixed with host clearance ellipsoids, staging points, swing-round waypoints, a push-out clamp, and a docking stage, plus generated stand-in GLBs on the real `caudal-vertex` wave.
+- [x] Live Sharksucker GLB (2026-09-27, from the `feat/echeneis-naucrates` branch, model only). Recentred with `model.position`, disc moving with the head through the new `followBodyMeshNames`, and the ride fit now uses the model's measured top line (`backProfile`, from the new `scripts/fit-rider-model.mjs`).
+- [x] Revised Live Sharksucker model (2026-09-28, `dev_17`): narrower head, single-surface disc. Same fit numbers; body depth, disc, pectoral and pelvic lengths measured inside published ranges.
+- [x] Production `creatures` now has four Live Sharksuckers. Whitefins intentionally remain dev-only for a later population release; the tables continue to diverge by design.
+- [ ] Supply the other six remora GLBs (Jeremy). Intake per species is the five steps under "Remora models" in `docs/ride-hosts.md`, starting with `node scripts/fit-rider-model.mjs <id>`.
+- [x] Clamped remoras bend their rear body onto the host's skin (2026-09-28, `dev_11`, Jeremy: "bend it"). The fit picks the bend with the tilt; the `caudal-vertex` shader draws it (`uProceduralHug`). A full-size sharksucker's tail reaches the mako's skin on 14 of 18 spots.
+- [x] Remora swim wave slowed after review ("they look like snakes", 2026-09-28): `waveSpeed 4.4 → 3.0`, `waveTravel 4.6 → 3.2`.
+- [x] Fins pivot at their roots (2026-09-28, `dev_9`). The sharksucker GLB's `pectoral.r` and `pelvic.r` share their left twin's origin; the renderer now finds each fin's root and turns it there, so no asset change is needed.
+- [x] Ride spots sampled from each host's mesh by face normal, host capacity by length, rider spacing, and riders following the host's caudal wave (2026-09-28, `dev_9`, Jeremy's review: "limit suckers by host size", "more asymmetrical", "use the mesh's face normals").
+- [ ] Decide `creatures_dev` review population for the other six remoras and write the rows (backup before/after). `creatures_dev` has four Live Sharksuckers (ids 283–286, sizes 0.76–1.0) and two Whitefin Sharksuckers (ids 287–288), while production intentionally has no Whitefins yet.
+- [ ] Jeremy feel review on device: latch, ride, and release on the mako and the Mola.
+
+Follow-ups (`Backlog`):
+- [ ] Riders moving between anchors on the same host (real remoras relocate when disturbed).
+- [ ] Mouth and gill-chamber riding (white suckerfish in mantas, juvenile spearfish remoras) — needs hosts with open mouths first.
+- [ ] Whalesucker, white suckerfish, marlinsucker get their real hosts in week 3 (spinner dolphin, manta, billfish): each needs only a `rideHost` block.
+- [x] Remoras escort a host loosely when they have no spot or have just let go (2026-09-28, `dev_10`, Jeremy's review).
+- [ ] Week 2's non-attaching followers (pilot fish, golden trevally, rainbow runner) can reuse the remoras' `escort` stage: a `hitchhiker` block that never attaches, only escorts. Pilot fish hold ahead of the snout and golden trevally off the pectorals, so they need their own station ranges.
+
+### Nature of Code autonomous-agents review (`v0.15.8` bucket onward)
+
+Status: `Current in development` — all three planned branches are in: `perf/frame-cost` shipped in clean `v0.15.8`, `feat/predator-response` merged as `v0.16.0-dev_3` (#105) and `feat/school-neighbours` as `v0.16.0-dev_6`. `v0.16.0` was promoted clean on 2026-09-28 with the remoras. What remains is the backlog below.
+
+Reference:
+- Source: [Nature of Code ch. 5, Autonomous Agents](https://natureofcode.com/autonomous-agents/), compared against `fishSwim.js` / `Fish.jsx` and measured live in the Open Sea (281 fish, desktop dev build). Before this work: frame 2.8–3.2 ms, of which render ~1.7–2.1 ms and simulation ~1.1 ms; the neighbour search was only ~0.04 ms per frame.
+- Split into one branch per risk level, so a rejected look can be dropped without losing the rest.
+
+Subtasks:
+- [x] `perf/frame-cost` — hide the tap-target proxies and remove per-frame allocations (#103, shipped in clean `v0.15.8`). No behaviour change, proven against `main` by an equivalence harness.
+- [x] `feat/predator-response` — all three steps, merged as `v0.16.0-dev_3` (#105) after Jeremy's review.
+  - [x] Evade the threat's path, not its position (the chapter's pursue/evade). Prey push away from the closest point of the threat's path over the next 1 s (`BOID_THREAT_LOOKAHEAD_SECONDS`), so a sardine beside a passing mako breaks sideways off its line instead of fleeing ahead down it, and a charging mako is noticed before it is in range. The registry gained `speed`. With speed 0 the push is identical to before.
+  - [x] Detection range scales with the predator: a threat is noticed from at least one of its own body lengths away (`BOID_THREAT_BODY_LENGTH_REACH`), not only from the prey's own capped ~6–8 WU. Only the mako is long enough for this to change anything: sardines and mahi now notice it from ~16.7 WU; sardines startle within ~7.4 WU of its path (was ~3) and mahi within ~4.6 WU (was 2.15, so they never visibly escaped).
+  - [x] A real threat startles a fish into an escape. `threatLevelAt` runs every frame against only the fish with menace (`THREAT_ENTRIES`: the mako and the mahi), because the boid steering is only re-decided every 1–2.6 s. The escape is an arc, not a snap: the fish carves toward the escape direction on a 0.8-body-length turning circle while it accelerates to 2.5× its burst speed, curling into the turn through the ordinary turn deformation, amplified. A mahi's turn builds 172 → ~290°/s over ~0.65 s. The tail whips at up to ~3.5× its cruise stroke and ~2× the beat, on the detailed model and the instanced sardine layer (which draws nearly every sardine near a predator). A 1.6–2.6 s per-fish cooldown follows a startle only; idle bursts no longer block one. Idle bursts and normal turns are unchanged.
+  - [x] School-wide alarm (state-dependent weights, Exercises 5.14 / 5.18). A startle drops an alarm event; it spreads through the school as a wave at 15 WU/s (~3× a cruising mako), weakening to nothing at 12 WU and fading ~2.2 s after it arrives (`raiseSchoolAlarm` / `schoolAlarmAt`, aged by the leader since members' clocks differ). Alarmed fish pack toward 40% of the formation spacing with up to 2.5× the pull to their slot, cruise at up to 1.8× idle without drifting, startle at half the threat level, and flinch with an ordinary burst as the wave arrives. Staged pass: 177 of 180 alarmed within ~1.8 s; median nearest-neighbour distance ~1.05 → ~0.8 WU. The school's overall radius does not shrink, since escapes split it around the mako first. If the packing still reads too subtle on a phone, the next notch is 25% spacing and a longer alarm reach.
+  - [x] Sardine school flattened into a sheet against its top bound, and on a long run got trapped there (all 180 at `yMax`, pointing ~30° up). Two pre-existing causes, fixed on this branch at Jeremy's call: the goal was only inset ~0.6–0.9 WU from the bounds while the formation is ±3.98 WU tall (now inset by `schoolFormationVerticalHalfExtent`), and the bound clamp left headings pitched into the bound for alignment to spread (fish on a vertical bound now glide along it via `glideAlongVerticalBound`, and slots are clamped inside the bounds). Two-minute soak after the fix: vertical spread never below 2.08 WU (big school) / 1.33 WU (small); 0–9 sardines on a bound in steady state. One reading of 65 on the bottom bound, most likely the recovery dive right after the pinned school let go.
+  - Evidence caveat: the before/after numbers come from staged passes (the mako teleported near a school or a mahi). Early ones measured mostly how fast sardines cleared out from under a mako dropped onto them, not a natural approach.
+  - Note: the mako's registry position sits near its gills, not its centre — snout 4.9 WU ahead, tail 11.6 WU behind (measured off the live mesh). No asset change needed: it is where the model turns from. The collision sphere (7.0 WU around the origin) overhangs the snout ~2 WU and stops ~4.6 WU short of the tail tip; `Backlog` unless clipping shows. Its `debugForwardOffsetRatio` was measured from the tail end (0.697) and is now 0.303, so debug vectors start at the snout.
+- [x] `feat/school-neighbours` — merged as `v0.16.0-dev_6` after Jeremy's review in the browser pane.
+  - [x] Threats read straight from `THREAT_ENTRIES`; social neighbours gathered only within perception. Behaviour-identical (125,120 checks against `dev_3`, max difference 1.7×10⁻¹⁶); a decision 9.5 → 4.4 µs.
+  - [x] Sardines watch 6 nearest neighbours, not 14 (Katz et al. 2011).
+  - [x] Station keeping by speed: 25% faster per body length the slot lies ahead, within 0.7–1.5× idle (`SCHOOL_STATION_GAIN`). One ~85 s run each: fewer stragglers in both schools (5.2 → 3.0, 3.8 → 2.1); other metrics mixed.
+  - [x] Soft vertical walls: sardine ceiling raised to just under the surface (`boundsYMax` 3.9), schools steered away within ~2 body lengths of a vertical bound (`verticalBoundRepulsion`), the formation compresses near a bound instead of clamping, and the glide rule applies at the surface only. Two-minute run: at most 4 sardines on the surface and 3 on the floor at once; never more than 17% of a school in one 0.15 WU layer.
+- [x] Soft front, back and side walls for schools (`fix/school-walls`, `v0.16.0-dev_13`): the same push, glide, formation squeeze and goal inset the top and bottom got in `dev_6`. Jeremy's review found a school pinned into a front-side corner (a vertical line of sardines). Live, pinned samples went from 46 of 104 to 0 of 107.
+- [ ] Mako wander plus occasional long search runs when prey is sparse (Sims 2008, Humphries 2010) instead of random destinations. `Backlog`
+- [ ] A gentle ocean current (flow field) that carries drifters like the Mola and biases schools. `Backlog`
+- [ ] A few informed fish lead the school instead of one shared goal (Couzin 2005). High risk to school cohesion. `Backlog`
+- [ ] One flock loop plus a spatial grid for sardines. Only worth it if sardine numbers approach ~1,000; ~2–3 days. `Backlog`
+
+Explicitly rejected — do not re-propose:
+- Force-based steering: the turn-radius arcs already prevent the sideways strafing it produces.
+- Path following: removed earlier because schools read as conga lines.
+- Sine lookup tables and quadtrees: negligible gains in modern JavaScript, overkill below ~1,000 fish.
+- The chapter's wall behaviour: the predictive boundary avoidance is already better.
+
+### Procedural animation doc set
+
+Status: `Current in development` — hub and the two implemented type contracts are written; five type docs are unvalidated sketches awaiting their first asset.
+
+Reference:
+- Gate: [`scripts/verify-procedural-docs.mjs`](scripts/verify-procedural-docs.mjs) — doc coverage for every shipping procedural type.
+- Hub: [`docs/procedural/README.md`](docs/procedural/README.md) — shared asset contract, runtime drivers, motion primitives, creature/type index.
+- Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md).
+- Proposed: [`bell-pulse.md`](docs/procedural/bell-pulse.md), [`foil-flap.md`](docs/procedural/foil-flap.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`limb-step.md`](docs/procedural/limb-step.md), [`pleopod-beat.md`](docs/procedural/pleopod-beat.md).
+- Superseded: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md) kept as the `v0.14.0`–`v0.15.3` review record.
+
+Subtasks:
+- [x] Split docs by motion architecture rather than by creature, with a "new doc only when it needs a new shader type" rule.
+- [x] Migrate the caudal and Mola contracts out of the review doc into per-type docs.
+- [x] Record the Mako pelvic-fin weld as a shared rule instead of a per-species outcome.
+- [x] Enforce doc coverage: `scripts/verify-procedural-docs.mjs` fails when a procedural type ships with no contract in `docs/procedural/`, and warns when a shipping type's doc is still marked `Proposed`. Chained ahead of the GLB inspection in `npm run verify:procedural-fish-assets`.
+- [x] Add stop-and-ask instructions for new motion architectures to AGENTS.md and the new-species checklist, so an unwritten type surfaces in conversation rather than only at the gate.
+- [x] Close the gaps a live agent test exposed (comb jelly / ctenophore prompt): require the world-unit size check before motion design, require naming the closest existing type and why it was rejected, require naming which layer produces thrust, and point the type docs back at the checklist's biological prerequisites.
+- [ ] Validate each `Proposed` doc against its first real asset and promote it to `Implemented`. `Backlog`
+- [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. `Backlog`
+- [ ] Prototype the `limb-step` gait before committing to an architecture; foot-planting may not fit the GPU vertex path at all. `Backlog`
+
+Known runtime work the docs assume but that does not exist yet:
+- [ ] Shared bounds across meshes — uniforms currently derive min/max from each mesh's own `geometry.boundingBox`, so no type can deform continuously across two objects. Blocks `bell-pulse`. `Backlog`
+- [ ] Opt-in material overrides — `applyModelMaterialSettings` hard-forces `transparent = false`, `opacity = 1`, `depthWrite = true`, and the Mola fade-recovery path at `Fish.jsx:3031` resets opacity to `1`. Blocks any translucent species. `Backlog`
+- [ ] Impulse-and-decay locomotion coupling for pulse-propelled animals. Blocks `bell-pulse` and `pleopod-beat`. `Backlog`
+
+Test evidence:
+- Live test, "add a comb jelly, how would you implement the procedural animation?" — the agent correctly refused `bell-pulse` on biological grounds, proposed a new type contract before implementing, found both applicable runtime blockers, and correctly reasoned that impulse-and-decay coupling does not apply to ciliary rowing. It did not compute the animal's world-unit size (a sea gooseberry is ~0.08 WU against a 1.08 WU sardinella, so its whole design premise was sub-pixel), did not pick a species slug, and did not argue against the closest existing type. Fixes above address all three.
+
+Review gates:
+- [x] `AGENTS.md` and the README index point at the hub; the README index also regained the missing `deforming-ocean-surface.md` row.
+- [ ] Jeremy confirms the type split and the per-doc template before the first new-type implementation starts.
+
+## Shipped, with open follow-ups
+
+Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
 
 ### The Shallows: animals circling
 
@@ -135,54 +237,6 @@ Subtasks:
 - [x] Jeremy requested the clean release and 218 public `creatures` rays (2026-10-24). The larger single cloud passed five seeded movement runs, including ten minutes at 218; public rows are backed up and verified separately.
 - [ ] Optional: add a devil ray to the landing dive's montage (`GENERAL_DESCENT`).
 - [ ] Projected roster, no species repeated from other reserves (Jeremy, 2026-10-23): giant oceanic manta (*Mobula birostris*, one big animal, same motion), golden cownose ray (*Rhinoptera steindachneri*), East Pacific green turtle, round stingray (*Urobatis halleri*); California sea lion later. Check each range on FishBase/IUCN first.
-
-### Reserve follow-ups (after `v0.35.0`)
-
-- [ ] Refine the descent sprites with Jeremy. `Next`
-- [ ] Refine the descent with Jeremy (diver sprite, copy: "Into the blue"). `Next`
-- [ ] Device check: phone landscape and iPad, first dive and revisit times, back button against the follow card, selector scroll. `Next`
-- [ ] Physical-phone cold/warm/rapid-switch and memory review of #153's loader. `Backlog`
-- [ ] Decide whether the speculative budget should cover a whole second reserve (today about four files per visit); Open Sea's fish models are evicted and re-fetched after The Reefs under the 192 MiB target. `Backlog`
-
-### Reserve selector and the descent
-
-Status: shipped in clean `v0.35.0` (2026-10-23, from `v0.35.0-dev_18`, branch `claude/environment-loader-ui-ux-v28m0g`, #155). `Archive candidate`. Landing → selector → loading screen → reserve, with a bottom-left button back to the selector. Open items moved to Reserve follow-ups.
-
-Subtasks:
-- [x] Selector, loading screen (files / building / error + retry), bottom-left Tanks button; old tank list removed.
-- [x] Attention-ranked boot request and prefetch through #153's loader (`prefetchOrder`).
-- [x] Hidden/paused tank under the selector and loader; one canvas per session.
-- [x] Public copy says reserves (UI only); opaque landing gate; the descent (diver on a guideline) for the landing dive and each reserve's loading screen.
-- [x] Per-reserve depth range (`depthMeters`) for the descent scale and selector card; new reserve checklist in docs/tank-design.md.
-- [x] Descent scenery, composed: The Reefs (bannerfish, emperor angelfish, butterflyfish trio, coral garden) and The Open Sea (sardinella school, whale shark). Landing has none (dev_13).
-- [x] The Reefs' depth: 0–10 m (dev_9), matching the drawn scene's ~7 m.
-- [x] Render only the on-screen window of the 16:9 stage (dev_17): about 4× fewer fragments on a portrait phone, same picture.
-- [x] Card preview stills (dev_18), screenshots chosen over sprite scenes after an A/B.
-- [x] Phone frame rate after dev_17 (Jeremy, 2026-10-23: "much smoother now, reef is fine").
-
-### Budgeted environment-loading infrastructure
-
-Status: shipped in clean `v0.35.0` (2026-10-23, from `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #153, closes #152). `Archive candidate`. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.
-
-- [x] Manifest-driven shared-source loading, selected-first queue, latest-wins cancellation and source leases shared with Atlas.
-- [x] Idle/pressure-aware speculative admission, byte/count accounting and retirement of unneeded sources/derived landscape caches.
-- [x] Loading-state/navigation hooks and comments; API, budgets, adding environments, caveats and rollback in `docs/environment-loading.md`.
-- [x] Review/regression fixes and local Node/lint/build/asset/browser gates. CI and deployed-preview evidence tracked on [PR #153](https://github.com/jeremyyeh11/world-oceanarium/pull/153); no merge approval.
-- [x] Jeremy's go-ahead (2026-10-23): "merge 153 then 155, clean version". Physical-phone review moved to Reserve follow-ups.
-
-Separate follow-ups: loading UI (Jeremy), mount-time geometry preparation/worker decoding, and steady rendering/Atlas performance. These are not silently included in this infrastructure patch.
-
-### Humphead Wrasse females
-
-Status: shipped in clean `v0.34.0` (2026-10-22, from `v0.34.0-dev_1`, branch `feat/humphead-wrasse-female`, #151). `Archive candidate`. Jeremy's female model, the second model planned when the male shipped.
-
-Subtasks:
-- [x] Model intake: 10.008 raw, nose −Z, normals outward; texture PNG -> JPEG, `BLEND` dropped (3.2 MB -> 0.58 MB); Diego Delso photo (CC BY-SA 4.0) credited in Sources.
-- [x] Female `sexVariant` with the male's swim; `sizeRangeBySex` keeps females at 0.8–1.0 m.
-- [x] Atlas: the male shown with a female (`sex` companions); desktop, 375 px portrait and phone landscape checked.
-- [x] Two females in `creatures_dev` (460, 461).
-- [x] Jeremy's go-ahead (2026-10-22): "promote to clean v0.34.0, merge, then add the two females to prod once it's live".
-- [x] Production `creatures` rows 462 and 463, written once the live bundle served `v0.34.0`.
 
 ### Humphead Wrasse
 
@@ -344,14 +398,6 @@ Subtasks:
 - [x] Sexual dimorphism: "Males tend to grow faster and larger than females" (Solomon Islands JCU thesis; Khasanah et al. 2019, whose males-smaller ranges are the camouflage grouper's).
 - [ ] Hovering near rock and coral, shared with the angelfish's open reef-behaviour item under The Reefs landscape. `Backlog`
 
-### Diver camera
-
-Status: shipped in clean `v0.26.0` (2026-10-17, from `v0.26.0-dev_2`, branch `feat/diver-camera`, #131). Jeremy (2026-10-17): free cam from the menu, WASD + mouse, eased drag so motion stays smooth. `Archive candidate`; the open item below carries over.
-
-- [x] Diver camera with two-stage eased move and look, menu toggle, Esc to exit, phone touch gestures (`dev_1`).
-- [x] Jeremy review of `dev_1`: WASD a bit faster, mouse a bit slower, hide cursor and no click-drag, "esc to exit" → `dev_2` (3 WU/s, 0.0021 rad/px, pointer lock).
-- [ ] `Backlog`: tune on device if needed — pointer lock feel on desktop Chrome/Safari, two-finger drift/spread on phone (neither could be exercised in the preview pane).
-
 ### The Reefs landscape
 
 Status: shipped in clean `v0.25.0` (2026-10-17, from `v0.25.0-dev_11`, branch `feat/reef-landscape`, #130). Jeremy (2026-10-16): The Drift is now The Reefs; it gets a fixed landscape of rocks, then corals. The open items below carry over.
@@ -471,263 +517,6 @@ Subtasks:
 - [ ] Production `creatures` rows: none yet, so clean builds show no pilot fish. Needs Jeremy's go-ahead on the count.
 - [x] Atlas photo tile: tank capture of fish 306, in the bannerfish PR (`v0.19.0-dev_3`).
 - [x] Jeremy feel review on device: roaming share and speed contrast accepted (2026-10-10).
-
-### Remoras (week 1 of the species series)
-
-Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins were removed in `v0.37.0-dev_2` (Jeremy, 2026-10-25): their species entries stay, with no model, on no tank, listed in `docs/fish-queue.md` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
-
-Reference:
-- System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).
-- Species: the eight `Echeneidae` entries in [`src/data/species.js`](src/data/species.js).
-
-Subtasks:
-- [x] Ride system: host groups and anchors, weighted host choice, approach → latch → attached → release, fade and surface rules, tank-switch persistence.
-- [x] Species data and Atlas copy for all eight, from FishBase; true-length placeholders until models land.
-- [x] Mako and Mola anchors measured off their meshes.
-- [x] Jeremy review (2026-09-26, local preview): remoras clipped through the host while finding a spot, and the rigid stand-ins had no tail beat. Fixed with host clearance ellipsoids, staging points, swing-round waypoints, a push-out clamp, and a docking stage, plus generated stand-in GLBs on the real `caudal-vertex` wave.
-- [x] Live Sharksucker GLB (2026-09-27, from the `feat/echeneis-naucrates` branch, model only). Recentred with `model.position`, disc moving with the head through the new `followBodyMeshNames`, and the ride fit now uses the model's measured top line (`backProfile`, from the new `scripts/fit-rider-model.mjs`).
-- [x] Revised Live Sharksucker model (2026-09-28, `dev_17`): narrower head, single-surface disc. Same fit numbers; body depth, disc, pectoral and pelvic lengths measured inside published ranges.
-- [x] Production `creatures` now has four Live Sharksuckers. Whitefins intentionally remain dev-only for a later population release; the tables continue to diverge by design.
-- [ ] Supply the other six remora GLBs (Jeremy). Intake per species is the five steps under "Remora models" in `docs/ride-hosts.md`, starting with `node scripts/fit-rider-model.mjs <id>`.
-- [x] Clamped remoras bend their rear body onto the host's skin (2026-09-28, `dev_11`, Jeremy: "bend it"). The fit picks the bend with the tilt; the `caudal-vertex` shader draws it (`uProceduralHug`). A full-size sharksucker's tail reaches the mako's skin on 14 of 18 spots.
-- [x] Remora swim wave slowed after review ("they look like snakes", 2026-09-28): `waveSpeed 4.4 → 3.0`, `waveTravel 4.6 → 3.2`.
-- [x] Fins pivot at their roots (2026-09-28, `dev_9`). The sharksucker GLB's `pectoral.r` and `pelvic.r` share their left twin's origin; the renderer now finds each fin's root and turns it there, so no asset change is needed.
-- [x] Ride spots sampled from each host's mesh by face normal, host capacity by length, rider spacing, and riders following the host's caudal wave (2026-09-28, `dev_9`, Jeremy's review: "limit suckers by host size", "more asymmetrical", "use the mesh's face normals").
-- [ ] Decide `creatures_dev` review population for the other six remoras and write the rows (backup before/after). `creatures_dev` has four Live Sharksuckers (ids 283–286, sizes 0.76–1.0) and two Whitefin Sharksuckers (ids 287–288), while production intentionally has no Whitefins yet.
-- [ ] Jeremy feel review on device: latch, ride, and release on the mako and the Mola.
-
-Follow-ups (`Backlog`):
-- [ ] Riders moving between anchors on the same host (real remoras relocate when disturbed).
-- [ ] Mouth and gill-chamber riding (white suckerfish in mantas, juvenile spearfish remoras) — needs hosts with open mouths first.
-- [ ] Whalesucker, white suckerfish, marlinsucker get their real hosts in week 3 (spinner dolphin, manta, billfish): each needs only a `rideHost` block.
-- [x] Remoras escort a host loosely when they have no spot or have just let go (2026-09-28, `dev_10`, Jeremy's review).
-- [ ] Week 2's non-attaching followers (pilot fish, golden trevally, rainbow runner) can reuse the remoras' `escort` stage: a `hitchhiker` block that never attaches, only escorts. Pilot fish hold ahead of the snout and golden trevally off the pectorals, so they need their own station ranges.
-
-### Nature of Code autonomous-agents review (`v0.15.8` bucket onward)
-
-Status: `Current in development` — all three planned branches are in: `perf/frame-cost` shipped in clean `v0.15.8`, `feat/predator-response` merged as `v0.16.0-dev_3` (#105) and `feat/school-neighbours` as `v0.16.0-dev_6`. `v0.16.0` was promoted clean on 2026-09-28 with the remoras. What remains is the backlog below.
-
-Reference:
-- Source: [Nature of Code ch. 5, Autonomous Agents](https://natureofcode.com/autonomous-agents/), compared against `fishSwim.js` / `Fish.jsx` and measured live in the Open Sea (281 fish, desktop dev build). Before this work: frame 2.8–3.2 ms, of which render ~1.7–2.1 ms and simulation ~1.1 ms; the neighbour search was only ~0.04 ms per frame.
-- Split into one branch per risk level, so a rejected look can be dropped without losing the rest.
-
-Subtasks:
-- [x] `perf/frame-cost` — hide the tap-target proxies and remove per-frame allocations (#103, shipped in clean `v0.15.8`). No behaviour change, proven against `main` by an equivalence harness.
-- [x] `feat/predator-response` — all three steps, merged as `v0.16.0-dev_3` (#105) after Jeremy's review.
-  - [x] Evade the threat's path, not its position (the chapter's pursue/evade). Prey push away from the closest point of the threat's path over the next 1 s (`BOID_THREAT_LOOKAHEAD_SECONDS`), so a sardine beside a passing mako breaks sideways off its line instead of fleeing ahead down it, and a charging mako is noticed before it is in range. The registry gained `speed`. With speed 0 the push is identical to before.
-  - [x] Detection range scales with the predator: a threat is noticed from at least one of its own body lengths away (`BOID_THREAT_BODY_LENGTH_REACH`), not only from the prey's own capped ~6–8 WU. Only the mako is long enough for this to change anything: sardines and mahi now notice it from ~16.7 WU; sardines startle within ~7.4 WU of its path (was ~3) and mahi within ~4.6 WU (was 2.15, so they never visibly escaped).
-  - [x] A real threat startles a fish into an escape. `threatLevelAt` runs every frame against only the fish with menace (`THREAT_ENTRIES`: the mako and the mahi), because the boid steering is only re-decided every 1–2.6 s. The escape is an arc, not a snap: the fish carves toward the escape direction on a 0.8-body-length turning circle while it accelerates to 2.5× its burst speed, curling into the turn through the ordinary turn deformation, amplified. A mahi's turn builds 172 → ~290°/s over ~0.65 s. The tail whips at up to ~3.5× its cruise stroke and ~2× the beat, on the detailed model and the instanced sardine layer (which draws nearly every sardine near a predator). A 1.6–2.6 s per-fish cooldown follows a startle only; idle bursts no longer block one. Idle bursts and normal turns are unchanged.
-  - [x] School-wide alarm (state-dependent weights, Exercises 5.14 / 5.18). A startle drops an alarm event; it spreads through the school as a wave at 15 WU/s (~3× a cruising mako), weakening to nothing at 12 WU and fading ~2.2 s after it arrives (`raiseSchoolAlarm` / `schoolAlarmAt`, aged by the leader since members' clocks differ). Alarmed fish pack toward 40% of the formation spacing with up to 2.5× the pull to their slot, cruise at up to 1.8× idle without drifting, startle at half the threat level, and flinch with an ordinary burst as the wave arrives. Staged pass: 177 of 180 alarmed within ~1.8 s; median nearest-neighbour distance ~1.05 → ~0.8 WU. The school's overall radius does not shrink, since escapes split it around the mako first. If the packing still reads too subtle on a phone, the next notch is 25% spacing and a longer alarm reach.
-  - [x] Sardine school flattened into a sheet against its top bound, and on a long run got trapped there (all 180 at `yMax`, pointing ~30° up). Two pre-existing causes, fixed on this branch at Jeremy's call: the goal was only inset ~0.6–0.9 WU from the bounds while the formation is ±3.98 WU tall (now inset by `schoolFormationVerticalHalfExtent`), and the bound clamp left headings pitched into the bound for alignment to spread (fish on a vertical bound now glide along it via `glideAlongVerticalBound`, and slots are clamped inside the bounds). Two-minute soak after the fix: vertical spread never below 2.08 WU (big school) / 1.33 WU (small); 0–9 sardines on a bound in steady state. One reading of 65 on the bottom bound, most likely the recovery dive right after the pinned school let go.
-  - Evidence caveat: the before/after numbers come from staged passes (the mako teleported near a school or a mahi). Early ones measured mostly how fast sardines cleared out from under a mako dropped onto them, not a natural approach.
-  - Note: the mako's registry position sits near its gills, not its centre — snout 4.9 WU ahead, tail 11.6 WU behind (measured off the live mesh). No asset change needed: it is where the model turns from. The collision sphere (7.0 WU around the origin) overhangs the snout ~2 WU and stops ~4.6 WU short of the tail tip; `Backlog` unless clipping shows. Its `debugForwardOffsetRatio` was measured from the tail end (0.697) and is now 0.303, so debug vectors start at the snout.
-- [x] `feat/school-neighbours` — merged as `v0.16.0-dev_6` after Jeremy's review in the browser pane.
-  - [x] Threats read straight from `THREAT_ENTRIES`; social neighbours gathered only within perception. Behaviour-identical (125,120 checks against `dev_3`, max difference 1.7×10⁻¹⁶); a decision 9.5 → 4.4 µs.
-  - [x] Sardines watch 6 nearest neighbours, not 14 (Katz et al. 2011).
-  - [x] Station keeping by speed: 25% faster per body length the slot lies ahead, within 0.7–1.5× idle (`SCHOOL_STATION_GAIN`). One ~85 s run each: fewer stragglers in both schools (5.2 → 3.0, 3.8 → 2.1); other metrics mixed.
-  - [x] Soft vertical walls: sardine ceiling raised to just under the surface (`boundsYMax` 3.9), schools steered away within ~2 body lengths of a vertical bound (`verticalBoundRepulsion`), the formation compresses near a bound instead of clamping, and the glide rule applies at the surface only. Two-minute run: at most 4 sardines on the surface and 3 on the floor at once; never more than 17% of a school in one 0.15 WU layer.
-- [x] Soft front, back and side walls for schools (`fix/school-walls`, `v0.16.0-dev_13`): the same push, glide, formation squeeze and goal inset the top and bottom got in `dev_6`. Jeremy's review found a school pinned into a front-side corner (a vertical line of sardines). Live, pinned samples went from 46 of 104 to 0 of 107.
-- [ ] Mako wander plus occasional long search runs when prey is sparse (Sims 2008, Humphries 2010) instead of random destinations. `Backlog`
-- [ ] A gentle ocean current (flow field) that carries drifters like the Mola and biases schools. `Backlog`
-- [ ] A few informed fish lead the school instead of one shared goal (Couzin 2005). High risk to school cohesion. `Backlog`
-- [ ] One flock loop plus a spatial grid for sardines. Only worth it if sardine numbers approach ~1,000; ~2–3 days. `Backlog`
-
-Explicitly rejected — do not re-propose:
-- Force-based steering: the turn-radius arcs already prevent the sideways strafing it produces.
-- Path following: removed earlier because schools read as conga lines.
-- Sine lookup tables and quadtrees: negligible gains in modern JavaScript, overkill below ~1,000 fish.
-- The chapter's wall behaviour: the predictive boundary avoidance is already better.
-
-### Procedural animation doc set
-
-Status: `Current in development` — hub and the two implemented type contracts are written; five type docs are unvalidated sketches awaiting their first asset.
-
-Reference:
-- Gate: [`scripts/verify-procedural-docs.mjs`](scripts/verify-procedural-docs.mjs) — doc coverage for every shipping procedural type.
-- Hub: [`docs/procedural/README.md`](docs/procedural/README.md) — shared asset contract, runtime drivers, motion primitives, creature/type index.
-- Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md).
-- Proposed: [`bell-pulse.md`](docs/procedural/bell-pulse.md), [`foil-flap.md`](docs/procedural/foil-flap.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`limb-step.md`](docs/procedural/limb-step.md), [`pleopod-beat.md`](docs/procedural/pleopod-beat.md).
-- Superseded: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md) kept as the `v0.14.0`–`v0.15.3` review record.
-
-Subtasks:
-- [x] Split docs by motion architecture rather than by creature, with a "new doc only when it needs a new shader type" rule.
-- [x] Migrate the caudal and Mola contracts out of the review doc into per-type docs.
-- [x] Record the Mako pelvic-fin weld as a shared rule instead of a per-species outcome.
-- [x] Enforce doc coverage: `scripts/verify-procedural-docs.mjs` fails when a procedural type ships with no contract in `docs/procedural/`, and warns when a shipping type's doc is still marked `Proposed`. Chained ahead of the GLB inspection in `npm run verify:procedural-fish-assets`.
-- [x] Add stop-and-ask instructions for new motion architectures to AGENTS.md and the new-species checklist, so an unwritten type surfaces in conversation rather than only at the gate.
-- [x] Close the gaps a live agent test exposed (comb jelly / ctenophore prompt): require the world-unit size check before motion design, require naming the closest existing type and why it was rejected, require naming which layer produces thrust, and point the type docs back at the checklist's biological prerequisites.
-- [ ] Validate each `Proposed` doc against its first real asset and promote it to `Implemented`. `Backlog`
-- [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. `Backlog`
-- [ ] Prototype the `limb-step` gait before committing to an architecture; foot-planting may not fit the GPU vertex path at all. `Backlog`
-
-Known runtime work the docs assume but that does not exist yet:
-- [ ] Shared bounds across meshes — uniforms currently derive min/max from each mesh's own `geometry.boundingBox`, so no type can deform continuously across two objects. Blocks `bell-pulse`. `Backlog`
-- [ ] Opt-in material overrides — `applyModelMaterialSettings` hard-forces `transparent = false`, `opacity = 1`, `depthWrite = true`, and the Mola fade-recovery path at `Fish.jsx:3031` resets opacity to `1`. Blocks any translucent species. `Backlog`
-- [ ] Impulse-and-decay locomotion coupling for pulse-propelled animals. Blocks `bell-pulse` and `pleopod-beat`. `Backlog`
-
-Test evidence:
-- Live test, "add a comb jelly, how would you implement the procedural animation?" — the agent correctly refused `bell-pulse` on biological grounds, proposed a new type contract before implementing, found both applicable runtime blockers, and correctly reasoned that impulse-and-decay coupling does not apply to ciliary rowing. It did not compute the animal's world-unit size (a sea gooseberry is ~0.08 WU against a 1.08 WU sardinella, so its whole design premise was sub-pixel), did not pick a species slug, and did not argue against the closest existing type. Fixes above address all three.
-
-Review gates:
-- [x] `AGENTS.md` and the README index point at the hub; the README index also regained the missing `deforming-ocean-surface.md` row.
-- [ ] Jeremy confirms the type split and the per-doc template before the first new-type implementation starts.
-
-### Sources panel
-
-Status: `Archive candidate` — accepted as clean `v0.15.7` and ready to archive after merge verification.
-
-Reference:
-- Data: [`src/data/sources.js`](src/data/sources.js) — the list the panel renders, in order.
-- UI: [`src/components/SourcesModal.jsx`](src/components/SourcesModal.jsx), styled by [`src/styles/sources.css`](src/styles/sources.css).
-
-Subtasks:
-- [x] Add a Sources key to the top-right menu and a browsable modal behind it.
-- [x] Seed the list with FishBase, WoRMS, the IUCN Red List, and this repository.
-- [x] Move the key above screenshot mode so the bibliography sits at the top of the menu.
-- [ ] Decide whether per-species attribution belongs on an Atlas entry as well, or whether the shared bibliography is enough. `Backlog`
-
-Review gates:
-- [x] Escape, the close key, and a backdrop press all dismiss the panel; the list scrolls once it outgrows the card.
-- [x] Jeremy accepted the panel and the menu order before promotion.
-
-### Static procedural fish runtime assets
-
-Status: `Archive candidate` — accepted for clean `v0.15.3` and ready to archive after merge verification.
-
-Reference:
-- Branch: `feat/static-procedural-fish-models`; accepted clean release: `v0.15.3` from review build `v0.15.3-dev_5`.
-- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
-
-Subtasks:
-- [x] Move supplied static Sardinella, Mahi, Mako, and Mola GLBs onto the procedural runtime path.
-- [x] Keep Mola’s heavy disc body stable while dorsal/anal fins use soft painted-root, independent rotational strokes.
-- [x] Replace Mola’s mask export with Jeremy’s finer attachment gradient; slow fin cadence and add only a subtle passive-drift roll.
-- [x] Rebase this review branch onto current `main` before final merge checks.
-- [x] Collect explicit clean-release / merge approval after final checks.
-
-Review gates:
-- [x] Static asset contracts reject clips, bones, and skinning; Mola requires `color_1`.
-- [x] Jeremy accepted the current Mola fin feel in `v0.14.0-dev_20` before this mainline rebase.
-- [x] Final post-rebase technical and deployment checks pass.
-
-### CRT/pixel interface
-
-Status: `Archive candidate` — shipped clean as `v0.15.0`; follow-ups closed in `v0.15.1`.
-
-Reference:
-- Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
-- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar), `v0.15.0-dev_9` (scale reference relabelled and resourced), `v0.15.0-dev_10` (readout legibility), `v0.15.0-dev_11` (stage banding).
-- Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
-- Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
-
-Subtasks:
-- [x] Extract the CRT recipe from the reference site rather than approximating it.
-- [x] Build tokens plus primitives: scanline banding, phosphor glow/split, notched pixel edges.
-- [x] Retrofit existing chrome (top controls, tank switcher, search, screenshot help, atlas, focus card).
-- [x] Add the landing gate with a dive-down dismissal that also unlocks Web Audio.
-- [x] Soften the whole pass after `dev_1` read too sharp; move to Pixelify Sans for real weights.
-- [x] Trim landing copy to title, tagline, species count, follow hint.
-- [x] Remove the top-centre tank title/zone subtitle now that the switcher dock names the tank.
-- [x] Restyle the follow readout out of its glass pill and into the CRT language.
-- [x] Reimagine the Atlas as a field dex (chamfers, corner brackets, bracket tags, dex numbers) without losing any data.
-- [x] Move the tank switcher bottom-left and rebuild it as a vertical index, fixing the measured clip-at-five-tanks failure on phones.
-- [x] Collapse the tank index behind a hamburger showing the active tank, opening upward; chrome-less on compact viewports; same mode adopted by desktop past `TANK_INLINE_LIMIT` tanks.
-- [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
-- [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
-- [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
-- [ ] In-canvas 3D labels (fish name and debug labels in `Fish.jsx`) render from a font file inside the WebGL scene, so the clean `v0.17.2` type rule (pixel faces for labels, IBM Plex Mono for reading text) does not reach them. Bring them in line if they read as out of place.
-- [x] Rework the specimen stage into a measurement bay: graph grid, scale readout naming diver and specimen, diver silhouette moved onto the palette.
-- [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
-- [x] Replace the in-scene diver sprite with a proportional scale bar; remove the pose editor and persistence that existed only to position it.
-- [x] Dead CSS in `index.css` (`.atlas-pose-editor*`, `.encyclopedia-stage-label`, `.atlas-human-scale*`) plus orphaned `public/atlas/diver.png` and `diver.svg` — done on `chore/atlas-dead-css-cleanup` (`v0.15.1-dev_1`).
-- [ ] Anything meant to be visible on the specimen stage must live in `.atlas-stage-frame`. The stage's CSS background and its `is-tank-backdrop::after` layer are permanently hidden behind the opaque WebGL canvas.
-
-Review gates:
-- [x] Reads soft rather than sharp at arm's length on a phone.
-- [x] Scanlines do not shimmer or moire against the moving scene.
-- [x] Dive timing feels like descending, not like a modal sliding away.
-- [x] Screenshot mode still captures the scene free of interface framing (verified: the tube film, tank dock, top controls and version footnote all clear on entry and restore on exit).
-- [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
-- [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
-- [x] Removed synthetic bold from small type: Jersey 15 is weight-400-only, so `font-weight: 600` was smearing glyphs shut rather than selecting a bold face (`v0.15.2-dev_1`).
-- [x] Small-type face chosen: **Jersey 15**, on `feat/jersey-small-type` (`v0.15.1-dev_2`). Picked by rasterising confusable glyph pairs at 10px and diffing pixels; beat Silkscreen, which was the expected winner. Sizes nudged +10% to compensate for its shorter cap height.
-- [x] `HUMAN_SCALE_METERS` back to the better-sourced `1.65`; Jersey 15's 5/S overlap measured 53% at the deployed size against Pixelify's 75%.
-- [x] IUCN conservation codes raised from ~7.4px to 9.1px on mobile (and 9.9px to 11.2px on desktop).
-
-### Procedural caudal-fish animation
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy requested a clean test that completely deprecates authored animation for Sardinella, Mahi-mahi, and Mako.
-- Branch: `feat/procedural-fish-animation`; accepted as clean `v0.14.0` from review build `v0.14.0-dev_4`.
-- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
-
-Subtasks:
-- [x] Ignore every authored GLB clip for the three target species.
-- [x] Drive procedural pose from live speed, acceleration, turn, burst, and drift/forward-travel state.
-- [x] Keep a continuous per-fish wave clock and deterministic phase offset.
-- [x] Verify target bone chains for Sardinella, both Mahi variants, and Mako.
-- [x] Fix hierarchical angle accumulation that folded the Mahi tail in `v0.14.0-dev_1`.
-- [x] Replace male Mahi with Jeremy's static, rig-free mesh and derive deformation from local longitudinal bounds.
-- [x] Strengthen the static male Mahi body wave after `v0.14.0-dev_3` read too subtly.
-- [x] Preserve separate pectoral/pelvic objects in updated male and female Mahi Blender source files.
-- [x] Collect Jeremy release approval.
-- [ ] Export the named Mahi fin parts into a future runtime GLB and add independent fin motion; clean `v0.14.0` still uses the reviewed combined static male GLB.
-- [ ] Replace the Sardinella/Mako/female-Mahi rig bridges with automatic longitudinal GPU vertex deformation when matching static runtime assets are supplied.
-
-Review gates:
-- [x] Sardinella reads lively, not twitchy or synchronized.
-- [x] Mahi front body stays stable and rear-body bend follows real steering.
-- [x] Mako reads heavy and caudal-powered, not eel-like.
-- [x] No authored clip influences target-species pose; Mola behavior remains unchanged.
-
-### Deforming ocean surface
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
-- Branch: `feat/deforming-ocean-surface`; accepted for clean `v0.13.0` from the historically labeled review build `v0.14.0-dev_12` after Jeremy reju.
-- Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
-
-Subtasks:
-- [x] Replace the flat plane with a subdivided, vertex-displaced surface.
-- [x] Use layered mobile-conscious Gerstner waves with analytic normals.
-- [x] Replace the localized fragment treatment with a full-plane physical water material and material-specific CC0 HDR environment.
-- [x] Overscan beyond camera range and use a half-resolution refraction target for mobile-conscious physical transmission.
-- [x] Retune the material from cyan toward muted cobalt and dissolve its grazing-angle horizon with distance + facing fades.
-- [x] Remove the repeated low-angle reflection bands from portrait/level views while retaining the physical surface in steeper upward views.
-- [x] Restore low-angle HDR reflection with a much tighter `4.2–8.5 WU` Gerstner spectrum for smaller reflected ripples.
-- [x] Break the remaining periodic rhythm into three crossed scales, each pairing waves with different directions, speeds, phases, and incommensurate wavelengths.
-- [x] Brighten the material-local HDR reflection without changing global tank or creature lighting.
-- [x] Increase coarse-to-fine wavelength separation and lower the resting camera up-pitch so the surface reads less tiled and crowns portrait framing instead of filling half the screen.
-- [x] Raise the minimum wave scale from `3.1` to `4.5 WU` and brighten the water-local HDR reflection from `1.15` to `2.2`.
-- [x] Increase the water-local HDR intensity to `8.0` so reflected sky highlights shine above the blue water body.
-- [x] Render the authored fake god-ray planes only in the settled default camera view; disable them throughout follow/orbit and the return transition.
-- [x] Give coarse, medium, and fine wave pairs descending displacement magnitudes while preserving the existing `0.119 WU` maximum summed excursion.
-- [x] Collect desktop and physical-phone visual/performance review and Jeremy release approval.
-
-Review gates:
-- [x] The ceiling reads as calm moving water, not cloth, chrome, or a noisy special effect.
-- [x] No rectangular plane edge appears during upward camera angles.
-- [x] Fish remain legible and normal tank performance remains stable on phone.
-
-### Larger Sardinella schools
-
-Status: `Archive candidate`
-
-Reference:
-- Jeremy asked to increase the code-level school-size cap from 64 to 180 after adding 187 production Sardinellas.
-- Branch: `feat/sardinella-school-size`; accepted for clean `v0.12.3` release from `v0.12.3-dev_1` after Jeremy approval.
-
-Subtasks:
-- [x] Raise the shared-school cap to 180 while preserving Mahi-mahi's explicit pair cap.
-- [x] Build and browser-smoke `v0.12.3-dev_1`.
-- [x] Collect Jeremy release approval.
-
-Review gate:
-- [x] 275 live Sardinellas resolve into two logical schools (180 + 95) without obvious frame-rate or formation regressions.
 
 ## Code cleanup / maintenance
 
@@ -924,7 +713,6 @@ Production stocking was separately approved and completed on 2026-10-28:
 Both tables were backed up before/after; all prior production rows and all
 development rows are unchanged. Physical-phone measurement remains active above.
 
-
 ### v0.39.0 — Bluespine Unicornfish
 
 Accepted 2026-10-27 from `v0.39.0-dev_5`, [PR #165](https://github.com/jeremyyeh11/world-oceanarium/pull/165).
@@ -947,8 +735,67 @@ Accepted 2026-10-26 from `v0.38.0-dev_8`, branch `feat/annella-mollis`. Jeremy: 
 - Atlas: three fans on limestone, thumbnail, species facts and source credits. New procedural contract and build scripts in `docs/procedural/coral-sway.md`.
 - Integrates clean `v0.37.2` debug UI and passes its LOD state through the sea-fan subtree. Remaining follow-ups are in the active backlog above.
 
-
 Newest first. Each entry shipped as a clean public release and was drained here per the roadmap-hygiene rule.
+
+### v0.37.2 — Focused debug instruments
+
+Status: `Archive candidate` — accepted `v0.37.2-dev_5`, promoted to clean `v0.37.2`, branch `feat/update-debug-menu`, [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160). Jeremy explicitly authorized merge on 2026-10-25 UTC. Retain technical main/deployment verification in release evidence; physical-phone measurements are not claimed.
+
+Feel: inspect one animal, glance at text, then get the instrument out of the view. Flat full-width bottom strip.
+
+- [x] Remove Bones display/control/helpers only; retain rig/animation support and normal simulation.
+- [x] Creatures: only Heading/speed, Neighbours, Labels. Selected-only steering/behaviour plain text top left; contextual Mola action.
+- [x] Combine Render/Scene into Performance, remove Audio tab/sardine-detail override, make Data persistent top-bar text.
+- [x] All reserve GLB colours distinguish actual single/high/low/far/min sources and restore exactly; no forced detail, geometry/LOD changes or new draw calls.
+- [x] Live Canvas FPS, CPU frame ms, optional GPU ms, JS heap, full-frame draw calls/triangles and renderer/scene state. Unsupported metrics labelled unavailable.
+- [x] Review dev_3: dark-grey single level, left-aligned Data/readout in an explicit code-monospace stack, always-visible debug performance and flat underline keyboard-accessible tabs.
+- [x] Dev_4 review fix: remove scalar fish material tint/emission mutations. Real helper regression proves repeated normal/grey/off/pink/off cycles preserve authored values and restore normal shaders; fresh mobile production Reset restores textured fish.
+- [x] Dev_5: move Creatures/Performance tabs below the active controls, matching DOM/focus and visual order; no telemetry/simulation changes.
+- [x] Keep Reset/Exit, flat >=44px controls and visible-only sampling. Tests/docs in `docs/debug-menu.md`; [PR #160](https://github.com/jeremyyeh11/world-oceanarium/pull/160), issue #159.
+- [x] Full local tests/lint/build/procedural checks and desktop/mobile compiled-production QA: no overflow/sub-44px debug buttons, live selected/performance text, all-GLB tint/restoration, persistent Data and Exit/card restoration. Dev_3 browser QA also proves shared monospace/left edge, live measurements on Creatures across tab switches, grey GLBs/legend and actual keyboard tab focus.
+- [x] Accepted dev_5 exact-head CI/Vercel passed (`08c7785`); clean promotion reruns local/PR/main gates, with final release evidence in PR #160.
+- [x] Jeremy accepted the reviewed iteration and explicitly approved merge. Physical-phone performance remains unmeasured, not a release-blocking approval gate.
+- Slow motion/pause: future/backlog, deliberately outside this accepted release; audit coordinated clocks before a separate proposal.
+
+### v0.35.0 — Reserve selector and the descent
+
+Status: shipped in clean `v0.35.0` (2026-10-23, from `v0.35.0-dev_18`, branch `claude/environment-loader-ui-ux-v28m0g`, #155). `Archive candidate`. Landing → selector → loading screen → reserve, with a bottom-left button back to the selector. Open items moved to Reserve follow-ups.
+
+Subtasks:
+- [x] Selector, loading screen (files / building / error + retry), bottom-left Tanks button; old tank list removed.
+- [x] Attention-ranked boot request and prefetch through #153's loader (`prefetchOrder`).
+- [x] Hidden/paused tank under the selector and loader; one canvas per session.
+- [x] Public copy says reserves (UI only); opaque landing gate; the descent (diver on a guideline) for the landing dive and each reserve's loading screen.
+- [x] Per-reserve depth range (`depthMeters`) for the descent scale and selector card; new reserve checklist in docs/tank-design.md.
+- [x] Descent scenery, composed: The Reefs (bannerfish, emperor angelfish, butterflyfish trio, coral garden) and The Open Sea (sardinella school, whale shark). Landing has none (dev_13).
+- [x] The Reefs' depth: 0–10 m (dev_9), matching the drawn scene's ~7 m.
+- [x] Render only the on-screen window of the 16:9 stage (dev_17): about 4× fewer fragments on a portrait phone, same picture.
+- [x] Card preview stills (dev_18), screenshots chosen over sprite scenes after an A/B.
+- [x] Phone frame rate after dev_17 (Jeremy, 2026-10-23: "much smoother now, reef is fine").
+
+### v0.35.0 — Budgeted environment-loading infrastructure
+
+Status: shipped in clean `v0.35.0` (2026-10-23, from `v0.34.2-dev_5`, branch `feat/budgeted-environment-loader`, #153, closes #152). `Archive candidate`. Jeremy requested a scalable loading foundation and clear docs/comments; **loading UI belongs to Jeremy and is not implemented here**. Target differs from the already-open `v0.34.1` reef-motion branch.
+
+- [x] Manifest-driven shared-source loading, selected-first queue, latest-wins cancellation and source leases shared with Atlas.
+- [x] Idle/pressure-aware speculative admission, byte/count accounting and retirement of unneeded sources/derived landscape caches.
+- [x] Loading-state/navigation hooks and comments; API, budgets, adding environments, caveats and rollback in `docs/environment-loading.md`.
+- [x] Review/regression fixes and local Node/lint/build/asset/browser gates. CI and deployed-preview evidence tracked on [PR #153](https://github.com/jeremyyeh11/world-oceanarium/pull/153); no merge approval.
+- [x] Jeremy's go-ahead (2026-10-23): "merge 153 then 155, clean version". Physical-phone review moved to Reserve follow-ups.
+
+Separate follow-ups: loading UI (Jeremy), mount-time geometry preparation/worker decoding, and steady rendering/Atlas performance. These are not silently included in this infrastructure patch.
+
+### v0.34.0 — Humphead Wrasse females
+
+Status: shipped in clean `v0.34.0` (2026-10-22, from `v0.34.0-dev_1`, branch `feat/humphead-wrasse-female`, #151). `Archive candidate`. Jeremy's female model, the second model planned when the male shipped.
+
+Subtasks:
+- [x] Model intake: 10.008 raw, nose −Z, normals outward; texture PNG -> JPEG, `BLEND` dropped (3.2 MB -> 0.58 MB); Diego Delso photo (CC BY-SA 4.0) credited in Sources.
+- [x] Female `sexVariant` with the male's swim; `sizeRangeBySex` keeps females at 0.8–1.0 m.
+- [x] Atlas: the male shown with a female (`sex` companions); desktop, 375 px portrait and phone landscape checked.
+- [x] Two females in `creatures_dev` (460, 461).
+- [x] Jeremy's go-ahead (2026-10-22): "promote to clean v0.34.0, merge, then add the two females to prod once it's live".
+- [x] Production `creatures` rows 462 and 463, written once the live bundle served `v0.34.0`.
 
 ### v0.31.2 — Lossless performance cleanup
 
@@ -959,6 +806,171 @@ Status: clean promotion approved by YK on 2026-10-20 from `v0.31.2-dev_3` (PR #1
 - [x] Three review/fix rounds; all confirmed findings fixed; final independent review has no actionable findings. Node/Python tests, build, procedural checks and review CI/Vercel passed.
 - [x] YK explicitly approved merge/clean release after the review summary. Public and dev DB rows untouched.
 - [ ] Physical-phone CPU/GPU/touch-scroll A/B measurement remains an optional performance follow-up, not a measured shipping gain or unresolved approval gate. `Backlog`
+
+### v0.26.0 — Diver camera
+
+Status: shipped in clean `v0.26.0` (2026-10-17, from `v0.26.0-dev_2`, branch `feat/diver-camera`, #131). Jeremy (2026-10-17): free cam from the menu, WASD + mouse, eased drag so motion stays smooth. `Archive candidate`; the open item below carries over.
+
+- [x] Diver camera with two-stage eased move and look, menu toggle, Esc to exit, phone touch gestures (`dev_1`).
+- [x] Jeremy review of `dev_1`: WASD a bit faster, mouse a bit slower, hide cursor and no click-drag, "esc to exit" → `dev_2` (3 WU/s, 0.0021 rad/px, pointer lock).
+- [ ] `Backlog`: tune on device if needed — pointer lock feel on desktop Chrome/Safari, two-finger drift/spread on phone (neither could be exercised in the preview pane).
+
+### v0.15.7 — Sources panel
+
+Status: `Archive candidate` — accepted as clean `v0.15.7` and ready to archive after merge verification.
+
+Reference:
+- Data: [`src/data/sources.js`](src/data/sources.js) — the list the panel renders, in order.
+- UI: [`src/components/SourcesModal.jsx`](src/components/SourcesModal.jsx), styled by [`src/styles/sources.css`](src/styles/sources.css).
+
+Subtasks:
+- [x] Add a Sources key to the top-right menu and a browsable modal behind it.
+- [x] Seed the list with FishBase, WoRMS, the IUCN Red List, and this repository.
+- [x] Move the key above screenshot mode so the bibliography sits at the top of the menu.
+- [ ] Decide whether per-species attribution belongs on an Atlas entry as well, or whether the shared bibliography is enough. `Backlog`
+
+Review gates:
+- [x] Escape, the close key, and a backdrop press all dismiss the panel; the list scrolls once it outgrows the card.
+- [x] Jeremy accepted the panel and the menu order before promotion.
+
+### v0.15.3 — Static procedural fish runtime assets
+
+Status: `Archive candidate` — accepted for clean `v0.15.3` and ready to archive after merge verification.
+
+Reference:
+- Branch: `feat/static-procedural-fish-models`; accepted clean release: `v0.15.3` from review build `v0.15.3-dev_5`.
+- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
+
+Subtasks:
+- [x] Move supplied static Sardinella, Mahi, Mako, and Mola GLBs onto the procedural runtime path.
+- [x] Keep Mola’s heavy disc body stable while dorsal/anal fins use soft painted-root, independent rotational strokes.
+- [x] Replace Mola’s mask export with Jeremy’s finer attachment gradient; slow fin cadence and add only a subtle passive-drift roll.
+- [x] Rebase this review branch onto current `main` before final merge checks.
+- [x] Collect explicit clean-release / merge approval after final checks.
+
+Review gates:
+- [x] Static asset contracts reject clips, bones, and skinning; Mola requires `color_1`.
+- [x] Jeremy accepted the current Mola fin feel in `v0.14.0-dev_20` before this mainline rebase.
+- [x] Final post-rebase technical and deployment checks pass.
+
+### CRT/pixel interface
+
+Status: `Archive candidate` — shipped clean as `v0.15.0`; follow-ups closed in `v0.15.1`.
+
+Reference:
+- Jeremy asked whether the CRT/pixel feel of [krillion.io](https://krillion.io) could be adopted for the UI while the scene stays pseudo-realistic.
+- Branch: `feat/crt-pixel-ui`; review builds `v0.15.0-dev_1` (initial pass), `v0.15.0-dev_2` (softening + font + copy), `v0.15.0-dev_3` (drop duplicated tank header), `v0.15.0-dev_4` (follow readout + Atlas dex), `v0.15.0-dev_5` (tank index moved bottom-left and made vertical), `v0.15.0-dev_6` (collapsible tank menu), `v0.15.0-dev_7` (specimen stage as a measurement bay), `v0.15.0-dev_8` (grid fix + diver replaced by a scale bar), `v0.15.0-dev_9` (scale reference relabelled and resourced), `v0.15.0-dev_10` (readout legibility), `v0.15.0-dev_11` (stage banding).
+- Atlas direction: adapted Pokedex/HUD, semi-retro, per Jeremy's reference images. Grammar only, not palette.
+- Look is quarantined in `src/styles/crt.css` and `src/styles/crt-retrofit.css`; removing the retrofit import reverts it.
+
+Subtasks:
+- [x] Extract the CRT recipe from the reference site rather than approximating it.
+- [x] Build tokens plus primitives: scanline banding, phosphor glow/split, notched pixel edges.
+- [x] Retrofit existing chrome (top controls, tank switcher, search, screenshot help, atlas, focus card).
+- [x] Add the landing gate with a dive-down dismissal that also unlocks Web Audio.
+- [x] Soften the whole pass after `dev_1` read too sharp; move to Pixelify Sans for real weights.
+- [x] Trim landing copy to title, tagline, species count, follow hint.
+- [x] Remove the top-centre tank title/zone subtitle now that the switcher dock names the tank.
+- [x] Restyle the follow readout out of its glass pill and into the CRT language.
+- [x] Reimagine the Atlas as a field dex (chamfers, corner brackets, bracket tags, dex numbers) without losing any data.
+- [x] Move the tank switcher bottom-left and rebuild it as a vertical index, fixing the measured clip-at-five-tanks failure on phones.
+- [x] Collapse the tank index behind a hamburger showing the active tank, opening upward; chrome-less on compact viewports; same mode adopted by desktop past `TANK_INLINE_LIMIT` tanks.
+- [ ] Jeremy to review `dev_2` on device — the scanline pitch is 1px at a 3px pitch and has never been seen at DPR 2–3.
+- [ ] Decide whether the global tube film should cover the 3D scene at all, or be scoped to UI surfaces only.
+- [ ] Self-host the webfont if the Google Fonts request proves slow on mobile data.
+- [ ] In-canvas 3D labels (fish name and debug labels in `Fish.jsx`) render from a font file inside the WebGL scene, so the clean `v0.17.2` type rule (pixel faces for labels, IBM Plex Mono for reading text) does not reach them. Bring them in line if they read as out of place.
+- [x] Rework the specimen stage into a measurement bay: graph grid, scale readout naming diver and specimen, diver silhouette moved onto the palette.
+- [ ] Atlas dex follow-ups if the direction lands: a species-count readout in the topbar, and a depth-band strip on the specimen stage.
+- [x] Replace the in-scene diver sprite with a proportional scale bar; remove the pose editor and persistence that existed only to position it.
+- [x] Dead CSS in `index.css` (`.atlas-pose-editor*`, `.encyclopedia-stage-label`, `.atlas-human-scale*`) plus orphaned `public/atlas/diver.png` and `diver.svg` — done on `chore/atlas-dead-css-cleanup` (`v0.15.1-dev_1`).
+- [ ] Anything meant to be visible on the specimen stage must live in `.atlas-stage-frame`. The stage's CSS background and its `is-tank-backdrop::after` layer are permanently hidden behind the opaque WebGL canvas.
+
+Review gates:
+- [x] Reads soft rather than sharp at arm's length on a phone.
+- [x] Scanlines do not shimmer or moire against the moving scene.
+- [x] Dive timing feels like descending, not like a modal sliding away.
+- [x] Screenshot mode still captures the scene free of interface framing (verified: the tube film, tank dock, top controls and version footnote all clear on entry and restore on exit).
+- [ ] Bottom-left tank index does not fight the bottom-right focus card on a phone while following a creature. The dock is still hidden outright while following; the collapsed menu is small enough that it may now be able to coexist.
+- [ ] Collapsed tank menu stays legible over bright surface caustics with no container behind it.
+- [x] Removed synthetic bold from small type: Jersey 15 is weight-400-only, so `font-weight: 600` was smearing glyphs shut rather than selecting a bold face (`v0.15.2-dev_1`).
+- [x] Small-type face chosen: **Jersey 15**, on `feat/jersey-small-type` (`v0.15.1-dev_2`). Picked by rasterising confusable glyph pairs at 10px and diffing pixels; beat Silkscreen, which was the expected winner. Sizes nudged +10% to compensate for its shorter cap height.
+- [x] `HUMAN_SCALE_METERS` back to the better-sourced `1.65`; Jersey 15's 5/S overlap measured 53% at the deployed size against Pixelify's 75%.
+- [x] IUCN conservation codes raised from ~7.4px to 9.1px on mobile (and 9.9px to 11.2px on desktop).
+
+### Procedural caudal-fish animation
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy requested a clean test that completely deprecates authored animation for Sardinella, Mahi-mahi, and Mako.
+- Branch: `feat/procedural-fish-animation`; accepted as clean `v0.14.0` from review build `v0.14.0-dev_4`.
+- Technical/feel contract: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md).
+
+Subtasks:
+- [x] Ignore every authored GLB clip for the three target species.
+- [x] Drive procedural pose from live speed, acceleration, turn, burst, and drift/forward-travel state.
+- [x] Keep a continuous per-fish wave clock and deterministic phase offset.
+- [x] Verify target bone chains for Sardinella, both Mahi variants, and Mako.
+- [x] Fix hierarchical angle accumulation that folded the Mahi tail in `v0.14.0-dev_1`.
+- [x] Replace male Mahi with Jeremy's static, rig-free mesh and derive deformation from local longitudinal bounds.
+- [x] Strengthen the static male Mahi body wave after `v0.14.0-dev_3` read too subtly.
+- [x] Preserve separate pectoral/pelvic objects in updated male and female Mahi Blender source files.
+- [x] Collect Jeremy release approval.
+- [ ] Export the named Mahi fin parts into a future runtime GLB and add independent fin motion; clean `v0.14.0` still uses the reviewed combined static male GLB.
+- [ ] Replace the Sardinella/Mako/female-Mahi rig bridges with automatic longitudinal GPU vertex deformation when matching static runtime assets are supplied.
+
+Review gates:
+- [x] Sardinella reads lively, not twitchy or synchronized.
+- [x] Mahi front body stays stable and rear-body bend follows real steering.
+- [x] Mako reads heavy and caudal-powered, not eel-like.
+- [x] No authored clip influences target-species pose; Mola behavior remains unchanged.
+
+### Deforming ocean surface
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy requested a separate ocean-surface branch rather than coupling genuine mesh deformation to the cinematic-camera PR.
+- Branch: `feat/deforming-ocean-surface`; accepted for clean `v0.13.0` from the historically labeled review build `v0.14.0-dev_12` after Jeremy reju.
+- Technical contract: [`docs/deforming-ocean-surface.md`](docs/deforming-ocean-surface.md).
+
+Subtasks:
+- [x] Replace the flat plane with a subdivided, vertex-displaced surface.
+- [x] Use layered mobile-conscious Gerstner waves with analytic normals.
+- [x] Replace the localized fragment treatment with a full-plane physical water material and material-specific CC0 HDR environment.
+- [x] Overscan beyond camera range and use a half-resolution refraction target for mobile-conscious physical transmission.
+- [x] Retune the material from cyan toward muted cobalt and dissolve its grazing-angle horizon with distance + facing fades.
+- [x] Remove the repeated low-angle reflection bands from portrait/level views while retaining the physical surface in steeper upward views.
+- [x] Restore low-angle HDR reflection with a much tighter `4.2–8.5 WU` Gerstner spectrum for smaller reflected ripples.
+- [x] Break the remaining periodic rhythm into three crossed scales, each pairing waves with different directions, speeds, phases, and incommensurate wavelengths.
+- [x] Brighten the material-local HDR reflection without changing global tank or creature lighting.
+- [x] Increase coarse-to-fine wavelength separation and lower the resting camera up-pitch so the surface reads less tiled and crowns portrait framing instead of filling half the screen.
+- [x] Raise the minimum wave scale from `3.1` to `4.5 WU` and brighten the water-local HDR reflection from `1.15` to `2.2`.
+- [x] Increase the water-local HDR intensity to `8.0` so reflected sky highlights shine above the blue water body.
+- [x] Render the authored fake god-ray planes only in the settled default camera view; disable them throughout follow/orbit and the return transition.
+- [x] Give coarse, medium, and fine wave pairs descending displacement magnitudes while preserving the existing `0.119 WU` maximum summed excursion.
+- [x] Collect desktop and physical-phone visual/performance review and Jeremy release approval.
+
+Review gates:
+- [x] The ceiling reads as calm moving water, not cloth, chrome, or a noisy special effect.
+- [x] No rectangular plane edge appears during upward camera angles.
+- [x] Fish remain legible and normal tank performance remains stable on phone.
+
+### Larger Sardinella schools
+
+Status: `Archive candidate`
+
+Reference:
+- Jeremy asked to increase the code-level school-size cap from 64 to 180 after adding 187 production Sardinellas.
+- Branch: `feat/sardinella-school-size`; accepted for clean `v0.12.3` release from `v0.12.3-dev_1` after Jeremy approval.
+
+Subtasks:
+- [x] Raise the shared-school cap to 180 while preserving Mahi-mahi's explicit pair cap.
+- [x] Build and browser-smoke `v0.12.3-dev_1`.
+- [x] Collect Jeremy release approval.
+
+Review gate:
+- [x] 275 live Sardinellas resolve into two logical schools (180 + 95) without obvious frame-rate or formation regressions.
 
 ### v0.12.2 — Persistent tank sessions
 

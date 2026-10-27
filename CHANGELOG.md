@@ -16,9 +16,18 @@ Versioning convention notes:
   fields, with study/profile credits. Regional sample means, common-length proxies, estimated
   weights and longevity records are labelled; unavailable unicornfish batch fecundity stays Unknown.
 - Adds draft loose-group reef grazing and pelagic schooling profiles using existing systems.
-  Unicornfish cannot select live coral for peck visits. Both entries remain queued and hidden,
-  with no model URLs, reserve slots or creature rows until Jeremy supplies and reviews the GLBs.
+  Unicornfish cannot select live coral for peck visits. Yellowfin remains queued and hidden,
+  with no model URL, reserve slot or creature rows until its GLB arrives.
 - Records the fork-length scale contract, asset intake checklist and 30-second reel briefs.
+
+### Unicornfish model intake
+
+- Registers Jeremy's static GLB, centres its five meshes without changing their geometry,
+  and uses the existing labriform caudal wave with rowing pectorals. The 57.402794-unit
+  mouth-to-fork reference maps to 70 cm at size 1; longer tail tips are excluded from scale.
+- Adds the Atlas specimen, responsive pose and rendered tank tile. Stocks six approved
+  dev adults in The Reefs at 40–55 cm FL (IDs 841–846), three of each sex, after backups.
+  Production creature rows are unchanged. Motion/visual review remains a dev-release gate.
 
 ## v0.38.0 — Giant Sea Fan (2026-10-26)
 

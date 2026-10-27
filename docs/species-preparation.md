@@ -6,23 +6,51 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Current boundary
+## Current boundary — `v0.39.0-dev_2`
 
-Both entries are `hiddenInAtlas: true`, with no `model`, thumbnail, reserve roster
-entry or creature row. This follows the existing queue convention: prepared Atlas
-data becomes visible with the real model and tile, rather than an empty specimen
-stage. No new loading owner, preload cache, shader architecture, database migration,
-placeholder animal or missing GLB URL is needed. Both will use the existing
-environment manifest and Atlas source leases once their models are registered.
+The unicornfish GLB was supplied on 2026-10-27 and registered with the existing
+caudal-wave, reef, environment-manifest and Atlas systems. Jeremy confirmed six
+dev adults at 40–55 cm FL; `creatures_dev` IDs 841–846, three of each sex, size
+parameters 0/0.2/0.4/0.6/0.8/1. One adult model represents both sexes; its depicted
+sex and photo provenance have not been established. Do not infer a licence.
 
-Draft swim constants describe a starting feel, not measured animal speeds or
-reviewed movement. Counts below are proposals, not permission to write live data.
+Yellowfin remains hidden, with no model, thumbnail, reserve slot or creature rows.
+No new loading owner, shader architecture or database migration is needed.
+
+Swim constants describe authored feel, not measured animal speeds. Production
+stocking and clean release still require Jeremy's approval.
+
+### Unicornfish intake record
+
+- Original: Jeremy's `naso unicornis.glb`, 1,723,400 bytes, SHA-256
+  `f7916e72b78ed2682b1ad7a990c4d9a147c5ed658a1c7b06aa0ff97c488bf1c9`.
+  The original is untouched. Runtime copy is rebuilt with
+  `python scripts/prepare-unicornfish-model.py "<original path>"`.
+- Five meshes, 5,278 exported vertices / 2,684 triangles: body `naso_unicornis`,
+  `pectorall/r`, `pelvicl/r`. No clips, bones, skins or morphs. Winding agrees with
+  normals; all five signed volumes are positive. Nose −Z, up +Y.
+- Source fork length 57.4027938843: mouth vertex 106 to the midpoint of central
+  caudal rear-rim vertices 150/250 (original body POSITION accessor). The latter
+  bracket the middle rays; this is an approximate geometric reference on the
+  faceted model. Tail-tip bounds are 59.8211669922. Model scale
+  `0.04877811358180113` maps the fork reference to 2.8 WU / 70 cm FL. The Atlas
+  uses that same reference.
+- All node translations baked into positions, then shifted by source
+  `[-1.4091576338, 2, 9.6684169769]`: centred laterally, near the body axis and
+  halfway along the fork length. All five runtime node transforms are identity.
+- Original 960 × 616 PNG retained byte-for-byte; alpha is 255 throughout, so the
+  material uses opaque rendering. No resampling, topology or normal changes.
+- Before/after production backups via the repository backup script; separate
+  ignored dev snapshots contain 496 before / 502 after. Existing dev rows unchanged.
+  The dev ID sequence was already behind existing IDs (default insert collided at
+  682 and rolled back); insertion allocated 841–846 under a dev-table lock, leaving
+  the shared sequence and production rows alone.
 
 ## Bluespine Unicornfish — `naso-unicornis`
 
 Intended reserve: The Reefs. Felt intention: quietly working across a reef patch,
-with deliberate grazing visits and loose company. Six adults at 40–55 cm fork
-length are proposed (1.6–2.2 WU). Size 1 is the sourced 70 cm fork-length maximum
+with deliberate grazing visits and loose company. Six dev adults at 40–55 cm fork
+length are confirmed (1.6–2.2 WU). Size 1 is the sourced 70 cm fork-length maximum
 (2.8 WU), not a proposed population of record-sized fish.
 
 Reuse the labriform `caudal-vertex` configuration: firm body, pectorals rowing at
@@ -108,7 +136,7 @@ are not a male-only trait. One adult model can serve both sexes initially.
    Actual mesh names, scale, source offsets, shader amplitudes/turn bend (source
    units), fin roots and Atlas poses must come from inspection, not guessed config.
 
-## Remaining activation gates
+## Remaining activation gates (Yellowfin unless stated)
 
 1. Inspect each GLB, derive transforms and caudal configuration, add actual verifier
    targets, and test a real reserve path with the one-fish solo fallback too.
@@ -158,4 +186,12 @@ their generated bundles, and fails there; those files are outside this patch.
 New regression coverage proves queued species do not warm missing assets, enter
 reserve manifests or become invisible residents even if a live row arrives early.
 It also protects fork-length scaling, mass units and the coral-biting overrides.
-No new models, visual motion review or physical-phone measurements are claimed.
+Unicornfish intake (`v0.39.0-dev_2`): those checks pass again with the supplied
+model and real thumbnail. Desktop 1440×900, portrait 375×812 and landscape
+844×390 Atlas checks show the whole specimen and fork-length scale; portrait
+document width equals viewport width. The dev Reefs follow view was checked with
+the six approved adults. Screenshot evidence is saved in the 2026-10-27 Codex
+visualization folder (`unicornfish-atlas-desktop.png`, `unicornfish-atlas-portrait.png`,
+`unicornfish-atlas-landscape.png`, `unicornfish-tank-follow.png`). Temporary capture
+code was removed; the shared fish runtime and loader architecture are unchanged.
+Jeremy's motion/feel approval and physical-phone measurements are not claimed.

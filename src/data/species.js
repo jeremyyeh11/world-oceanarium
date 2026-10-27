@@ -205,7 +205,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
@@ -397,16 +397,14 @@ const WHALE_SHARK_CAUDAL = {
 }
 
 export const SPECIES = [
-  // Prepared 2026-10-27; Jeremy will supply the GLBs. Follow docs/fish-queue.md:
-  // no model or reserve slot until intake, scale, motion and Atlas tile are verified.
-  // Biological lengths below are FORK lengths, not the GLB's nose-to-tail-tip bounds.
+  // Biological lengths here are FORK lengths, not nose-to-tail-tip mesh bounds.
   {
     id: 'naso-unicornis',
     name: 'Bluespine Unicornfish',
     scientificName: 'Naso unicornis',
     family: 'Acanthuridae',
     alternateNames: ['Bluespine Unicorn', 'Unicorn Tang', 'Kala'],
-    hiddenInAtlas: true,
+    atlasThumbnail: '/atlas/naso-unicornis-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -456,13 +454,13 @@ export const SPECIES = [
     atlasSummary: { biome: 'Reef', zone: 'Sunlight', diet: 'Brown algae', social: 'Small groups' },
     description: 'An olive-grey reef browser with a bony forehead horn and two blue, blade-bearing plates on each side of its tail base. It crops fleshy algae rather than eating live coral. The horn develops as the fish grows, but its function remains uncertain. Adults can live for more than half a century.',
     // FishBase maximum 70 cm FL. Intended reserve specimens: 40–55 cm FL;
-    // proposed six fish, subject to Jeremy confirming population at model intake.
+    // six development adults confirmed by Jeremy at model intake (2026-10-27).
     adultLengthRangeMeters: [0.355, 0.7],
     maxBodyLengthMeters: 0.7,
     sizeRange: [0.4 / 0.7, 0.55 / 0.7],
     mass: { coefficient: 0.0598, exponent: 2.6897 },
     swim: {
-      // Draft feel values, not measured swimming speeds. Recheck with the real asset.
+      // Authored feel values, not measured swimming speeds.
       bodyLengthWU: 2.8,
       visualTimeScale: 0.8,
       driftEnabled: false,
@@ -492,7 +490,47 @@ export const SPECIES = [
         thicket: { patrol: 0.1, hover: 0.1, peck: 0, shelter: 0 },
       },
     },
+    model: {
+      path: '/models/fish/naso-unicornis/naso-unicornis.glb',
+      // Supplied 2026-10-27; scripts/prepare-unicornfish-model.py bakes node offsets.
+      // Mouth to central caudal rim: 57.402794 source units -> 2.8 WU / 70 cm FL.
+      // Full tail-tip bounds are 59.821167; using those would undersize the fork length.
+      scale: 0.04877811358180113,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['naso_unicornis'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Labriform: firm front, rowing pectorals; tail assists turns and darts.
+        // 0.03 fork lengths in this export's source units, not the bannerfish's units.
+        amplitude: 1.722084,
+        turnStrength: 1.722084,
+        waveSpeed: 3.1,
+        waveTravel: 2.5,
+        flexStart: 0.5,
+        flexFull: 0.9,
+        burstAmplitude: 1.2,
+        response: 8,
+        speedFrequencyBoost: 0.4,
+        burstFrequencyBoost: 0.35,
+        pectoralFinFlutter: 0.45,
+        pelvicFinFlutter: 0.08,
+        finRootFrom: 'body-surface',
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
+  // Queued until Jeremy supplies its GLB; no missing model requests or reserve slot.
   {
     id: 'thunnus-albacares',
     name: 'Yellowfin Tuna',

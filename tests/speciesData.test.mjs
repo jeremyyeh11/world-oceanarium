@@ -8,7 +8,7 @@ const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
 // Prepared species must not create missing-GLB requests or invisible live residents.
 // They become eligible for actual asset/pose verification when Jeremy supplies the GLBs.
-for (const id of ['naso-unicornis', 'thunnus-albacares']) {
+for (const id of ['thunnus-albacares']) {
   const prepared = speciesById.get(id)
   assert.ok(prepared, `${id} canonical species exists`)
   assert.equal(prepared.hiddenInAtlas, true, `${id} waits for the real specimen and tile`)
@@ -28,6 +28,19 @@ for (const id of ['naso-unicornis', 'thunnus-albacares']) {
 
 const unicornfish = speciesById.get('naso-unicornis')
 const tuna = speciesById.get('thunnus-albacares')
+assert.ok(!unicornfish.hiddenInAtlas, 'supplied unicornfish is visible in Atlas')
+assert.equal(unicornfish.model.path, '/models/fish/naso-unicornis/naso-unicornis.glb')
+assert.ok(Math.abs(unicornfish.model.scale * 57.402793884277344 - unicornfish.swim.bodyLengthWU) < 1e-6, 'fork length, not tail-tip bounds, defines world scale')
+assert.equal(unicornfish.atlasDetails.maxLengthLabel, 'Fork length')
+assert.equal(unicornfish.model.proceduralAnimation.type, 'caudal-vertex')
+assert.ok(atlasWarmupUrls([unicornfish]).includes(unicornfish.model.path))
+for (const alias of [unicornfish.id, unicornfish.name, unicornfish.scientificName]) {
+  const creature = { id: 'intake-unicornfish', species: alias, alive: true, size: 0.6 }
+  assert.equal(resolveSpecies(creature), unicornfish)
+  const matchingTanks = TANKS.filter(tank => creaturesForTank([creature], tank).length)
+  assert.equal(matchingTanks.length, 1, 'unicornfish has exactly one reserve')
+  assert.equal(matchingTanks[0].id, 'the-reefs', 'unicornfish belongs in The Reefs')
+}
 assert.equal(unicornfish.schooling, false, 'reef visits retain individual control')
 assert.equal(unicornfish.group.maxSize, 6)
 for (const form of ['table', 'thicket']) assert.equal(unicornfish.reef.corals[form].peck, 0, 'an algae browser must override inherited coral-biting shares')

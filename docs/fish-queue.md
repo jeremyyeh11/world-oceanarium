@@ -6,20 +6,21 @@ No species repeats across reserves.
 
 ## Queued: species entry in `src/data/species.js`, no model
 
-### Next two: Bluespine Unicornfish and Yellowfin Tuna
+### Next: Yellowfin Tuna
 
-Prepared in `v0.39.0-dev_1` on Jeremy's request (2026-10-27). Both have researched
-Atlas fields, scale references, mass relationships and draft movement/behaviour data.
-They follow the queue convention below: hidden in Atlas, no model, no tank roster
-entry, and no creature rows. See [the preparation and GLB handoff](species-preparation.md)
+Prepared in `v0.39.0-dev_1` on Jeremy's request (2026-10-27), with researched
+Atlas fields, scale references, mass relationship and draft movement data.
+Still hidden in Atlas, with no model, tank roster entry or creature rows.
+See [the preparation and GLB handoff](species-preparation.md)
 for sources, measurement conventions, proposed populations and the 30-second reels.
 
-- **Bluespine Unicornfish** (`naso-unicornis`): The Reefs; proposed six loose-group
-  grazers at 40–55 cm fork length. Existing `caudal-wave` labriform configuration and
-  reef peck behaviour; pecks at live table/staghorn coral explicitly disabled.
 - **Yellowfin Tuna** (`thunnus-albacares`): The Open Sea; proposed four to six schooling
   adults at 120–150 cm fork length. Existing `caudal-wave` with a firm front and a
   compact tail stroke; no drift/hover, hunting system or new animation type.
+
+Bluespine Unicornfish (`naso-unicornis`) entered dev review in `v0.39.0-dev_2`:
+Jeremy's real model, Atlas entry/tile and six adults in The Reefs, 40–55 cm fork
+length. Production stocking and clean promotion await approval.
 
 ### Remoras awaiting their models
 

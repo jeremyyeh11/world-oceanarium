@@ -65,6 +65,13 @@ const DEFAULT_VIEW_POSE = {
 // A portrait phone's stage is ~360 px wide, so each species sets its own phone zoom
 // (portraitPhoneDistanceScale, a multiple of cameraDistance) to fill about 85% of it.
 const VIEW_POSES_BY_SPECIES = {
+  // Fork length frames the specimen; the caudal tips extend a little past it.
+  'naso-unicornis': {
+    maxLengthDisplayUnits: 2.7,
+    portraitPhoneDistanceScale: 0.7,
+    position: [0, -0.05, 0],
+    lookAt: [0, -0.05, 0],
+  },
   // The table coral cluster (a small bommie crowned with tables), front on and
   // turned a little, looking 30° down onto it as in Jeremy's photo (2026-10-19: "camera angled
   // a bit down from above").
@@ -230,6 +237,8 @@ const VIEW_POSES_BY_SPECIES = {
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
+  // Mouth to midpoint of the central caudal rear rim, not the longer tail tips.
+  'naso-unicornis': 57.402793884277344,
   'amblygaster-sirm': 1.8223,
   'coryphaena-hippurus': 9.788,
   'mola-alexandrini': 20.7909,

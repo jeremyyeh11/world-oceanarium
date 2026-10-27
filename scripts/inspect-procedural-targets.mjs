@@ -7,6 +7,16 @@ globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
   {
+    name: 'Bluespine Unicornfish static parts',
+    path: 'public/models/fish/naso-unicornis/naso-unicornis.glb',
+    staticMesh: true,
+    bodyMeshNames: ['naso_unicornis'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 59.8,
+    minVertices: 4400,
+  },
+  {
     name: 'Sardinella static',
     path: 'public/models/fish/sardine/sardine_static.glb',
     staticMesh: true,

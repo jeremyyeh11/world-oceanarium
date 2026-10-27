@@ -15,7 +15,7 @@ Status labels:
 
 ### Bluespine Unicornfish + Yellowfin Tuna preparation
 
-Status: `Current in development` — `v0.39.0-dev_1`, branch `codex/prepare-unicornfish-yellowfin`.
+Status: `Current in development` — `v0.39.0-dev_2`, branch `codex/prepare-unicornfish-yellowfin`.
 Jeremy (2026-10-27): prepare both species and all Atlas data before he supplies the GLBs.
 Research, model contract and reel briefs: [docs/species-preparation.md](docs/species-preparation.md).
 
@@ -23,10 +23,15 @@ Research, model contract and reel briefs: [docs/species-preparation.md](docs/spe
   proxies, lifecycle, mass relationships and draft movement/reef profiles; Sources credits.
 - [x] Queue safely: no placeholder model/URL, reserve roster change or creature-data write;
   species/loader regression, full tests, scoped lint, build and existing procedural checks pass.
-- [ ] Jeremy's GLBs: inspect, measure fork length separately from total bounds, configure the
-  existing caudal-wave path, verify normals/fin roots and tune motion in the intended reserve.
-- [ ] Atlas poses and real rendered tiles, desktop/phone review; confirm counts/sex mix,
-  then backed-up development stocking. Production stocking needs a separate go-ahead.
+- [x] Unicornfish: inspect supplied GLB, bake offsets, measure fork length, configure the
+  existing labriform caudal-wave path; verify normals, separate fin roots and root follow.
+- [x] Six dev unicornfish confirmed by Jeremy, 40–55 cm FL; backed-up insertion/readback
+  (IDs 841–846, three of each sex); prior dev rows and production rows unchanged.
+- [x] Actual tank-rendered Atlas tile, desktop/portrait/landscape framing and fork-length
+  scale; full tests, scoped lint, build and procedural asset checks pass at dev_2.
+- [ ] Unicornfish visual/feel approval: grazing, group motion, follow and responsive Atlas.
+- [ ] Yellowfin GLB: inspect/measure, configure caudal wave, verify school turns and solo
+  fallback; Atlas pose/tile and backed-up dev stocking after population confirmation.
 - [ ] Public Atlas/reserve activation and clean release after model review; preparation stays dev.
 
 ### Giant Sea Fan follow-ups

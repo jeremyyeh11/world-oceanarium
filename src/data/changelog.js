@@ -6,6 +6,33 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.40.0-dev_3',
+    date: '2026-10-27',
+    title: 'Yellowfin Tuna — in development',
+    changes: [
+      ['new', 'In this development build, 299 Yellowfin Tuna travel together in The Open Sea. Meet the species in the Atlas too.'],
+      ['fix', 'The tuna model includes its pectoral and pelvic fins, and its school draws more efficiently.'],
+      ['new', 'The development reserve’s Whale Shark is now a 9.3 m adult.'],
+    ],
+  },
+  {
+    version: 'v0.39.0',
+    date: '2026-10-27',
+    title: 'Bluespine Unicornfish',
+    changes: [
+      ['new', 'Six Bluespine Unicornfish join The Reefs, browsing algae among the rocks. Look for their forehead horns and blue tail blades.'],
+      ['new', 'Meet the unicornfish in the Atlas, with its measured size and species facts.'],
+    ],
+  },
+  {
+    version: 'v0.38.1',
+    date: '2026-10-27',
+    title: 'Looking up into the blue',
+    changes: [
+      ['fix', 'The Open Sea is viewed from lower in the water, looking up toward the swimmers.'],
+    ],
+  },
+  {
     version: 'v0.38.0',
     date: '2026-10-26',
     title: 'Fans in the current',

@@ -15,7 +15,7 @@ Status labels:
 
 ### Yellowfin Tuna model and school
 
-Status: `Current in development` — `v0.40.0-dev_2`, `species/thunnus-albacares`,
+Status: `Current in development` — `v0.40.0-dev_3`, `species/thunnus-albacares`,
 [PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168).
 Contract and stocking evidence: [docs/species-preparation.md](docs/species-preparation.md).
 
@@ -31,6 +31,12 @@ Contract and stocking evidence: [docs/species-preparation.md](docs/species-prepa
 - [x] Reduce five runtime parts to one: local browser samples improve from 18.8 FPS /
   3,139 calls to about 52–59 FPS / 547–729 calls at DPR 1. Samples vary with framing;
   this is not a guaranteed 60 FPS or physical-phone result.
+- [x] Dev_3 backfills the visible changelog (v0.38.1, v0.39.0, current dev bucket).
+  Development Whale Shark #410 is now a 9.3 m adult (size parameter 13/120);
+  before/after snapshots verify only that row changed. Production stays unchanged.
+- [ ] Review the 9.3 m adult Whale Shark's turning room before clean release; the
+  existing solo movement check reaches the front boundary. Keep motion tuning separate
+  from the requested development size change.
 - [ ] Jeremy's visual/feel acceptance, physical-phone performance review and any
   further performance work before clean-release consideration.
 - [ ] Public stocking approval and clean release remain separate decisions.

@@ -68,7 +68,7 @@ export const TANKS = [
     name: 'The Open Sea',
     tagline: 'A blue-water pursuit',
     // One or two lines shown under the tank name above the switcher.
-    description: 'Fast open-ocean hunters and their bait, from flickering sardinella to the cruising mako, with a young whale shark gliding through.',
+    description: 'Fast open-ocean hunters and their bait, from flickering sardinella to the cruising mako, with a whale shark gliding through.',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // The reserve's depth range in metres: the scale of its loading descent and the depth
@@ -106,7 +106,7 @@ export const TANKS = [
       'coryphaena-hippurus',
       'isurus-oxyrinchus',
       'thunnus-albacares',
-      // Juveniles only (see the species entry).
+      // Production retains a juvenile; development also reviews an adult.
       'rhincodon-typus',
       // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
       // queued until their models land (docs/fish-queue.md).
@@ -3003,9 +3003,8 @@ export const SPECIES = [
   },
   // Facts from FishBase, plus Norman & Stevens 2007 (males mature at about 8 m) and Meekan et al.
   // 2020 (males level off at 8–9 m, females near 14.5 m). The species is described at its true
-  // scale; the tank keeps only juveniles (`lifeStage: 'juvenile'`, see lifeStages below), a
-  // 6 m animal of the kind that makes up most feeding aggregations. An adult would be longer than
-  // the Open Sea is deep.
+  // scale; production keeps a 6 m juvenile, while development reviews a 9.3 m adult.
+  // See lifeStages below for their swimming room and model scales.
   {
     id: 'rhincodon-typus',
     name: 'Whale Shark',
@@ -3066,7 +3065,7 @@ export const SPECIES = [
       diet: 'Plankton',
       social: 'Solitary',
     },
-    description: 'The largest fish in the sea, up to 20 m: a filter-feeding shark, dark blue-grey above with a checkerboard of white spots and pale stripes, white below. It cruises slowly near the surface, straining plankton, fish eggs, and small fishes through its wide mouth, and the spots behind its gills are as unique as a fingerprint. The whale shark in the reserve is a 6 m juvenile, the size most often seen at feeding sites.',
+    description: 'The largest fish in the sea, up to 20 m: a filter-feeding shark, dark blue-grey above with a checkerboard of white spots and pale stripes, white below. It cruises slowly near the surface, straining plankton, fish eggs, and small fishes through its wide mouth, and the spots behind its gills are as unique as a fingerprint.',
     // FishBase: 20 m maximum (female, total length); males mature at about 8 m.
     adultLengthRangeMeters: [8, 20],
     maxBodyLengthMeters: 20,
@@ -3096,7 +3095,7 @@ export const SPECIES = [
       boundsYMin: -12,
       boundsZMin: -28,
       boundsZMax: -2,
-      // 1 WU = 25 cm: the 20 m maximum is 80 WU. Never drawn at this size (see lifeStages).
+      // 1 WU = 25 cm: the 20 m species maximum is 80 WU; each adult uses sizeRange.
       bodyLengthWU: 80,
       boids: {
         neighborCap: 3,
@@ -3151,7 +3150,7 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
     lifeStages: {
-      // The only stage in the tank: a 5.5–6.5 m young shark, larger than the mako (17.8 WU) and
+      // Juvenile profile retained for the production shark: 5.5–6.5 m, larger than the mako, and
       // short of the ~8 m at which males mature. It keeps the species' gait, sized to itself.
       juvenile: {
         sizeRange: [0.92, 1.08],

@@ -957,3 +957,24 @@ assert.ok(bandCorrection > 0 && bandCorrection < schoolPositionCorrection(1.5, 4
 // Height errors count against the narrower layer gap.
 assert.ok(Math.abs(formationLayerScale(raySwim.schoolFormation) - 1.25 / 0.6) < 1e-9)
 assert.equal(schoolPositionCorrection(1, 4, {}), 1, 'legacy profiles retain their correction')
+
+// A larger adult must not inherit the juvenile's compact camera-edge turns.
+// Its room contains the tuna school's room, with enough extra side clearance
+// for half of the 9.3 m body to leave view before meeting a side wall.
+{
+  const adult = { id: 'adult-whale-room', species: 'rhincodon-typus', lifeStage: 'adult', depthZone: 'epipelagic', size: 9.3 / 20 }
+  const juvenile = { ...adult, id: 'juvenile-whale-room', lifeStage: 'juvenile', size: 1 }
+  const tuna = { ...adult, id: 'tuna-room', species: 'thunnus-albacares', size: 0.6 }
+  const adultSwim = resolveSwimProfile(adult)
+  const adultRoom = swimBounds(adult.depthZone, adultSwim, adult.size)
+  const juvenileRoom = swimBounds(juvenile.depthZone, resolveSwimProfile(juvenile), juvenile.size)
+  const tunaRoom = swimBounds(tuna.depthZone, resolveSwimProfile(tuna), tuna.size)
+  assert.ok(adultRoom.zMin < tunaRoom.zMin && adultRoom.zMax > tunaRoom.zMax, 'adult can roam beyond both ends of the tuna room')
+  assert.ok(adultRoom.yMin < tunaRoom.yMin && adultRoom.yMax >= tunaRoom.yMax, 'adult has more depth without raising the surface limit')
+  for (let z = tunaRoom.zMin; z <= tunaRoom.zMax; z += 5) {
+    assert.ok(swimXRangeAtZ(adultRoom, z).xMax > swimXRangeAtZ(tunaRoom, z).xMax + creatureBodyLength(adult, adultSwim) / 2, 'adult side walls clear the tuna room by more than half its body')
+  }
+  assert.equal(juvenileRoom.wedge, null, 'adult expansion does not change juvenile room shape')
+  assert.equal(juvenileRoom.zMin, -43, 'production juvenile keeps its back boundary')
+  assert.equal(juvenileRoom.zMax, -17, 'production juvenile keeps its front boundary')
+}

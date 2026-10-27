@@ -24,10 +24,16 @@ Versioning convention notes:
 - Stocks 299 backed-up development adults, 150 females and 149 males. Public
   stocking and clean release await acceptance; live data remains separate.
 
+### Open-water movement
+- Gives the adult Whale Shark a larger camera-shaped swim wedge than the tuna
+  school: side margin 150 WU, Y -45 to 1, Z -195 to 75 after the shared offset.
+  Across-room goals use a narrower 0.7 slope to bring it back through the scene;
+  the production juvenile retains its existing swim profile.
+
 ### Presentation
 - Backfills the visitor-facing changelog with clean releases v0.38.1 and v0.39.0;
-  the popup had a separate stale list. Development builds and database-only changes
-  stay out of the visitor release history.
+  the popup had a separate stale list. Development builds also preview the upcoming
+  clean v0.40.0 bucket, without individual dev patch entries or database-only changes.
 
 ## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
 

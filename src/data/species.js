@@ -3150,6 +3150,20 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
     lifeStages: {
+      adult: {
+        swim: {
+          // The 9.3 m adult needs open water beyond the tuna school's room. Keep the
+          // walls outside even the wide view, with narrower goals so it returns across
+          // the scene instead of spending every leg at the outer edge. Existing wedge
+          // and across-goal steering; Z gets fishSwim.js's shared -15 WU offset.
+          boundsWedge: { apexZ: 10, slope: 1.4, margin: 150, goalSlope: 0.7, goalMargin: 0 },
+          boundsYMin: -45,
+          boundsYMax: 1,
+          boundsZMin: -180,
+          boundsZMax: 90,
+          goalPick: 'across',
+        },
+      },
       // Juvenile profile retained for the production shark: 5.5–6.5 m, larger than the mako, and
       // short of the ~8 m at which males mature. It keeps the species' gait, sized to itself.
       juvenile: {

@@ -13,26 +13,17 @@ Status labels:
 
 ## Current work
 
-### Bluespine Unicornfish + Yellowfin Tuna preparation
+### Yellowfin Tuna model intake
 
-Status: `Current in development` — `v0.39.0-dev_5`, branch `codex/prepare-unicornfish-yellowfin`.
-Jeremy (2026-10-27): prepare both species and all Atlas data before he supplies the GLBs.
-Research, model contract and reel briefs: [docs/species-preparation.md](docs/species-preparation.md).
+Status: `Next` — biological data, draft profile and reel brief prepared in clean `v0.39.0`;
+continuing in the separate Yellowfin Tuna chat. Unicornfish acceptance is archived below.
+Research and model contract: [docs/species-preparation.md](docs/species-preparation.md).
 
-- [x] Canonical entries, source-backed Atlas fields, documented regional/common-size
-  proxies, lifecycle, mass relationships and draft movement/reef profiles; Sources credits.
-- [x] Queue safely: no placeholder model/URL, reserve roster change or creature-data write;
-  species/loader regression, full tests, scoped lint, build and existing procedural checks pass.
-- [x] Unicornfish: inspect supplied GLB, bake offsets, measure fork length, configure the
-  existing labriform caudal-wave path; verify normals, separate fin roots and root follow.
-- [x] Six dev unicornfish confirmed by Jeremy, 40–55 cm FL; backed-up insertion/readback
-  (IDs 841–846, three of each sex); prior dev rows and production rows unchanged.
-- [x] Actual tank-rendered Atlas tile, desktop/portrait/landscape framing and fork-length
-  scale; full tests, scoped lint, build and procedural asset checks pass at dev_2.
-- [ ] Unicornfish visual/feel approval: grazing, group motion, follow and responsive Atlas.
-- [ ] Yellowfin GLB: inspect/measure, configure caudal wave, verify school turns and solo
-  fallback; Atlas pose/tile and backed-up dev stocking after population confirmation.
-- [ ] Public Atlas/reserve activation and clean release after model review; preparation stays dev.
+- [ ] Inspect/measure the supplied GLB, configure the existing caudal wave, verify school
+  turns and solo fallback; check the real formation's turning room in The Open Sea.
+- [ ] Atlas pose/tile and responsive review, then backed-up dev stocking after Jeremy
+  confirms the tuna population and sex mix. Tuna remains hidden until asset intake.
+- [ ] Separate visual/feel approval, public stocking approval and clean release for tuna.
 
 ### Atlas measurement clarity
 
@@ -923,6 +914,19 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### v0.39.0 — Bluespine Unicornfish
+
+Accepted 2026-10-27 from `v0.39.0-dev_5`, [PR #165](https://github.com/jeremyyeh11/world-oceanarium/pull/165).
+Jeremy approved its appearance/motion, clean promotion/merge and six public unicornfish.
+
+- Supplied static model uses existing caudal/pectoral motion, rock grazing and loose groups;
+  57.402794 source units map to the 70 cm maximum / 2.8 WU. Live-coral pecks remain zero.
+- Atlas biology, real rendered tile, desktop/portrait/landscape pose and Specimen scale label.
+  FL abbreviations and parenthetical notes omitted as requested; research context retained.
+- Six adults in each source, 40–55 cm, three of each sex: dev IDs 841–846, public IDs 847–852.
+  Public before/after backups confirm 503→509 rows, prior rows unchanged; dev stays at 502.
+- Yellowfin data and reel brief prepared but no GLB/roster/rows; remaining work stays active above.
 
 ### v0.38.0 — Giant Sea Fan
 

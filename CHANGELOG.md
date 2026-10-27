@@ -8,7 +8,10 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna (in development)
+## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
+
+Status: clean `v0.39.0`, accepted from `v0.39.0-dev_5`; PR #165. Jeremy approved
+the unicornfish, clean promotion/merge and six public adults on 2026-10-27.
 
 ### Species preparation
 
@@ -31,7 +34,8 @@ Versioning convention notes:
   mouth-to-fork reference maps to 70 cm at size 1; longer tail tips are excluded from scale.
 - Adds the Atlas specimen, responsive pose and rendered tank tile. Stocks six approved
   dev adults in The Reefs at 40–55 cm FL (IDs 841–846), three of each sex, after backups.
-  Production creature rows are unchanged. Motion/visual review remains a dev-release gate.
+  The accepted public population matches those sizes and sexes (IDs 847–852), with
+  before/after backups and readback; prior production rows and all dev rows are unchanged.
 
 ## v0.38.1 — Open Sea camera (2026-10-27)
 

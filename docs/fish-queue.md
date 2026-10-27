@@ -18,9 +18,9 @@ for sources, measurement conventions, proposed populations and the 30-second ree
   adults at 120–150 cm fork length. Existing `caudal-wave` with a firm front and a
   compact tail stroke; no drift/hover, hunting system or new animation type.
 
-Bluespine Unicornfish (`naso-unicornis`) entered dev review in `v0.39.0-dev_2`:
-Jeremy's real model, Atlas entry/tile and six adults in The Reefs, 40–55 cm fork
-length. Production stocking and clean promotion await approval.
+Bluespine Unicornfish (`naso-unicornis`) was accepted for clean `v0.39.0` on
+2026-10-27: Jeremy's model, Atlas entry/tile and six adults in The Reefs, 40–55 cm
+fork length, in both dev and public populations. It is no longer queued.
 
 ### Remoras awaiting their models
 

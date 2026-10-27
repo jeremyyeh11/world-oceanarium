@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Current boundary — `v0.39.0-dev_2`
+## Current boundary — clean `v0.39.0`
 
 The unicornfish GLB was supplied on 2026-10-27 and registered with the existing
 caudal-wave, reef, environment-manifest and Atlas systems. Jeremy confirmed six
@@ -17,8 +17,18 @@ sex and photo provenance have not been established. Do not infer a licence.
 Yellowfin remains hidden, with no model, thumbnail, reserve slot or creature rows.
 No new loading owner, shader architecture or database migration is needed.
 
-Swim constants describe authored feel, not measured animal speeds. Production
-stocking and clean release still require Jeremy's approval.
+Swim constants describe authored feel, not measured animal speeds. Jeremy accepted
+the unicornfish from `v0.39.0-dev_5` on 2026-10-27 and explicitly approved clean
+promotion/merge plus six public adults. Yellowfin still needs its own intake and approvals.
+
+Public unicornfish: IDs 847–852, three of each sex, size parameters
+0/0.2/0.4/0.6/0.8/1, matching the dev size distribution. The repository backup ran
+before/after the insert, with dedicated snapshots of both sources under ignored
+`.supabase-creature-backups/releases/unicorn-2026-10-27/`. Production is 503→509;
+all pre-existing rows are byte-for-byte unchanged, and dev remains unchanged at 502.
+Explicit IDs were allocated above both tables' maxima under transaction locks;
+no sequence, schema or policy changes. The supplied model is approved for this
+integration; its underlying photo licence remains unspecified, not inferred.
 
 ### Unicornfish intake record
 
@@ -66,12 +76,12 @@ Research decisions:
   (assessment 7 May 2010). Its 50 cm common length is **total length** and is not
   substituted for a measured fork length.
 - Moore, Rechelluul & Victor (2015), section 3.3.5, supplies sex-specific mean
-  fork lengths from a Palau commercial catch. Atlas labels these as regional catch
+  fork lengths from a Palau commercial catch. These are regional catch
   means. Weight is calculated at those lengths using the study's pooled relation;
   it is not an observed mean weight or a sex-specific relation.
 - Andrews et al. (2016) supersedes preliminary slow-growth/maturity estimates:
   Hawaiian median maturity is near 2 years male / 3 years female. Validated
-  longevity exceeds 50 years; the Atlas identifies it as a record, not mean survival.
+  longevity exceeds 50 years; this is a record, not mean survival.
 - Georgia Aquarium supplies visible sex differences and the uncertainty over
   horn function. Species-specific eggs per spawning batch were not established
   in the consulted sources, so that field remains explicitly Unknown.

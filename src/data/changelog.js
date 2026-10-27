@@ -1,20 +1,11 @@
 // What changed, told to visitors. CHANGELOG.md is the full engineering record
 // (constants, dev builds, measurements); this is the short version the version
 // label opens: new things to see and fixes they would notice, newest first.
+// Only clean releases belong here. Omit dev builds and database-only changes.
 // Releases that only touched tooling, code structure or data plumbing are left out.
 //
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
-  {
-    version: 'v0.40.0-dev_3',
-    date: '2026-10-27',
-    title: 'Yellowfin Tuna — in development',
-    changes: [
-      ['new', 'In this development build, 299 Yellowfin Tuna travel together in The Open Sea. Meet the species in the Atlas too.'],
-      ['fix', 'The tuna model includes its pectoral and pelvic fins, and its school draws more efficiently.'],
-      ['new', 'The development reserve’s Whale Shark is now a 9.3 m adult.'],
-    ],
-  },
   {
     version: 'v0.39.0',
     date: '2026-10-27',

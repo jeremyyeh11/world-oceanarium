@@ -24,12 +24,10 @@ Versioning convention notes:
 - Stocks 299 backed-up development adults, 150 females and 149 males. Public
   stocking and clean release await acceptance; live data remains separate.
 
-### Presentation and development data
-- Backfills the visitor-facing changelog with v0.38.1 and v0.39.0, plus the
-  explicitly labelled v0.40.0 development changes; the popup had a separate stale list.
-- In development only, Whale Shark #410 becomes a 9.3 m adult using the existing
-  adult scale and a size parameter of 13/120. Updates its individual description;
-  the production juvenile and species maximum remain unchanged.
+### Presentation
+- Backfills the visitor-facing changelog with clean releases v0.38.1 and v0.39.0;
+  the popup had a separate stale list. Development builds and database-only changes
+  stay out of the visitor release history.
 
 ## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
 

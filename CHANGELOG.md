@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.40.1 — Giants of the Open Sea (in development)
 
-Status: `v0.40.1-dev_1`, branch `fix/whale-shark-adult-and-credits`. Follow-ups from an
+Status: `v0.40.1-dev_2` (dev_1: data, credits, mako, ROADMAP; dev_2: collaborator-proof rules, code tidy, unicornfish tile), branch `fix/whale-shark-adult-and-credits`. Follow-ups from an
 audit of v0.38.0–v0.40.0 (2026-10-28).
 
 ### Creature data

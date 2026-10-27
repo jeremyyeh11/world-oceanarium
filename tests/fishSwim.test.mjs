@@ -461,6 +461,28 @@ withRegistry([], () => {
   assert.equal(threatLevelAt(self.position, sardine, sardineSwim), 0, 'once it unmounts it alarms nobody')
 })
 
+// A predatory school does not frighten itself. Neighbour separation and prey response remain.
+withRegistry([], () => {
+  const tuna = { id: 'school-tuna-a', species: 'thunnus-albacares', biome: 'ocean', size: 0.56 }
+  const mate = { ...tuna, id: 'school-tuna-b' }
+  const swim = resolveSwimProfile(tuna)
+  const school = { id: 'predatory-school', count: 2 }
+  const fish = { position: new THREE.Vector3(0, 0, -15) }
+  const forward = new THREE.Vector3(1, 0, 0)
+  updateFishRegistry(fish, tuna, swim, school, forward, 4)
+  updateFishRegistry({ position: new THREE.Vector3(-4, 0, -15) }, mate, swim, school, forward, 4)
+  assert.equal(threatLevelAt(fish.position, tuna, swim), 0, 'a tuna recognises its schoolmate')
+  const debug = { neighbors: Array.from({ length: 2 }, () => ({ pos: new THREE.Vector3(), forward: new THREE.Vector3() })), ...Object.fromEntries(['threat', 'separation', 'alignment', 'cohesion', 'result'].map(key => [key, new THREE.Vector3()])) }
+  computeBoidSteering(new THREE.Vector3(), fish, tuna, swim, school, forward, debug)
+  assert.equal(debug.threat.lengthSq(), 0, 'schoolmates do not add a predator-evasion push')
+  assert.ok(debug.separation.lengthSq() > 0, 'schoolmates still separate to avoid contact')
+  assert.ok(threatLevelAt(self.position, sardine, sardineSwim) > 0, 'tuna still alarm nearby prey')
+  updateFishRegistry(fish, tuna, swim, null, forward, 4)
+  assert.ok(threatLevelAt(fish.position, tuna, swim) > 0, 'unrelated fish keep the normal threat response')
+  unregisterFish(tuna.id)
+  unregisterFish(mate.id)
+})
+
 // --- escape arc turning -----------------------------------------------------------------
 
 // A startled fish carves its U-turn with yawToward. The ordinary rotateDirectionToward lerps, so

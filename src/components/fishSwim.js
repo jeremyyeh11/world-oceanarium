@@ -1656,6 +1656,8 @@ export function computeBoidSteering(out, fish, creature, swim, school = null, fo
   boidAvoidIds.clear()
   THREAT_ENTRIES.forEach((other, id) => {
     if (id === creature.id || other.biome !== creature.biome) return
+    // Schoolmates keep collision separation, but do not evade each other as predators.
+    if (school?.id && other.schoolId === school.id) return
     const threatPair = other.menace * params.wariness
     if (threatPair <= BOID_THREAT_MIN_PAIR) return
     boidDelta.subVectors(fish.position, other.position)
@@ -1948,8 +1950,10 @@ export function threatLevelAt(position, creature, swim, escapeOut = null) {
   if (params.wariness <= 0) return 0
   const threatRadius = boidPerceptionRadius(creature, swim, params) * BOID_THREAT_PERCEPTION_SCALE
   let level = 0
+  const schoolId = FISH_REGISTRY.get(creature.id)?.schoolId
   THREAT_ENTRIES.forEach((other, id) => {
     if (id === creature.id || other.biome !== creature.biome || other.startles === false) return
+    if (schoolId && other.schoolId === schoolId) return
     const threatPair = other.menace * params.wariness
     if (threatPair <= BOID_THREAT_MIN_PAIR || threatPair <= level) return
     if (!closestThreatApproach(threatLevelOffset, position, other)) return

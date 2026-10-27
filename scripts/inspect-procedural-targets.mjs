@@ -7,13 +7,14 @@ globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
   {
-    name: 'Yellowfin Tuna static body',
+    name: 'Yellowfin Tuna joined body and four paired fins',
     path: 'public/models/fish/thunnus-albacares/thunnus-albacares.glb',
     staticMesh: true,
     bodyMeshNames: ['thunnus_albacares'],
+    requiredJoinedParts: ['pectoral.l', 'pectoral.r', 'pelvic.l', 'pelvic.r'],
     sourceAxis: 'z',
     minBodyLength: 2.398,
-    minVertices: 3200,
+    minVertices: 3586,
   },
   {
     name: 'Bluespine Unicornfish static parts',
@@ -251,6 +252,8 @@ for (const target of targets) {
   const bodyMeshes = meshes.filter(mesh => target.bodyMeshNames?.includes(mesh.name))
   const missingBodyMeshes = (target.bodyMeshNames ?? []).filter(name => !meshNames.includes(name))
   const missingFinMeshes = (target.requiredFinMeshes ?? []).filter(name => !meshNames.includes(name))
+  const joinedParts = gltf.parser.json.meshes.flatMap(mesh => mesh.extras?.sourceParts ?? [])
+  const missingJoinedParts = (target.requiredJoinedParts ?? []).filter(name => !joinedParts.some(part => part.name === name && part.vertexCount === 96 && part.indexCount === 144))
   const missingFollowMeshes = (target.requiredFollowMeshes ?? []).filter(name => !meshNames.includes(name))
   // A follow mesh deforms in its own local frame against the body's bounds, so the two frames must
   // match: a follow part exported as a separate object with its own origin (the bannerfish's
@@ -274,6 +277,7 @@ for (const target of targets) {
     || bones.length > 0
     || missingBodyMeshes.length > 0
     || missingFinMeshes.length > 0
+    || missingJoinedParts.length > 0
     || missingFollowMeshes.length > 0
     || followFrameMismatches.length > 0
     || unexpectedMeshes.length > 0
@@ -289,6 +293,7 @@ for (const target of targets) {
     bodyMeshes: target.bodyMeshNames ?? [],
     missingBodyMeshes,
     missingFinMeshes,
+    missingJoinedParts,
     missingFollowMeshes,
     followFrameMismatches,
     unexpectedMeshes,

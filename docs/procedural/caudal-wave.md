@@ -242,14 +242,18 @@ Note the pattern: **bigger animal → lower `waveSpeed`, higher `waveTravel` and
 steering.
 
 **Yellowfin Tuna** — thunniform configuration of this same shader, not a new type.
-The 2026-10-27 supplied single mesh is centred by `prepare-yellowfin-model.py`.
+The updated 2026-10-27 source has a body and four paired fin objects.
+`prepare-yellowfin-model.py` bakes their offsets and joins them into one primitive.
 Source fork length is 2.240529418, full tip span 2.398549914. `flexStart: 0.55`,
 `flexFull: 0.92`, `amplitude: 0.100824` (0.045 fork lengths),
 `turnStrength: 0.067216`, `waveSpeed: 3`, `waveTravel: 2.4`,
 `burstAmplitude: 0.7`, response 7.5 and frequency boosts 0.32/0.24 keep the
-front firm with a compact rear stroke. Every fin is joined as supplied; no
-independent pectoral/pelvic flutter. The model uses root follow and the prepared
-forward-led heading. Live school/solo acceptance is tracked in the roadmap.
+front firm with a compact rear stroke. The paired fins (`pectoral.l/r`, `pelvic.l/r`
+in the source) retain their supplied pose on the rigid front; no independent
+flutter is needed for these stabilisers. All 3,586 vertices / 1,860 triangles and
+UVs survive the join, avoiding five draw calls per tuna in the 299-fish school.
+The model uses root follow and forward-led heading. School/solo runtime checks
+pass; visual acceptance and physical-phone performance remain in the roadmap.
 
 ## Forward-led heading
 

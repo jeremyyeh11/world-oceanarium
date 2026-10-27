@@ -11,13 +11,18 @@ Versioning convention notes:
 ## v0.40.0 — Yellowfin Tuna (in development)
 
 ### Species and Atlas
-- Adds Jeremy's supplied Yellowfin Tuna model with the existing caudal-wave shader,
-  a firm front body and compact tail stroke. Dorsal/anal fins and finlets follow the body;
-  pectorals remain joined as supplied.
-- Centres the runtime copy and calibrates world/Atlas scale from the mouth to the tail
-  fork, excluding the extended caudal tips. Preserves the original embedded texture.
-- Adds an animated Atlas specimen and list tile. Live development stocking and visual
-  acceptance are tracked separately in the roadmap; public stocking is not included.
+- Adds Jeremy's Yellowfin Tuna model, animated Atlas specimen and rendered tile,
+  calibrated from mouth to tail fork. The late caudal wave keeps the front firm.
+- Includes all four paired fins from the updated export. Joins the five source parts
+  into one runtime primitive to reduce school draw calls, preserving all geometry and
+  the original texture. Stabilising fins hold their supplied pose on the rigid front.
+
+### Development reserve
+- Adds one 299-tuna school to The Open Sea, with a size-aware cloud, broad turning
+  room, steady cruise and solo fallback. Predatory schoolmates retain separation but
+  do not evade or startle one another as threats. Other species still react to tuna.
+- Stocks 299 backed-up development adults, 150 females and 149 males. Public
+  stocking and clean release await acceptance; live data remains separate.
 
 ## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
 

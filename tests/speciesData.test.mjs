@@ -23,9 +23,11 @@ assert.ok(Math.abs(tuna.swim.bodyLengthWU * 0.25 - tuna.maxBodyLengthMeters) < 1
 for (const alias of [tuna.id, tuna.name, tuna.scientificName]) {
   assert.equal(resolveSpecies({ id: 'tuna-intake', species: alias }), tuna)
 }
-// Model intake alone does not add live residents or reserve asset dependencies.
-assert.ok(TANKS.every(tank => !tank.species.includes(tuna.id)))
-assert.ok(ENVIRONMENT_MANIFESTS.every(manifest => manifest.assets.every(asset => !asset.url.includes(tuna.id))))
+// Live tuna route to exactly one reserve; its model joins the normal loading budget.
+const tunaResident = { id: 'tuna-school-member', species: tuna.id, alive: true, size: 0.56 }
+assert.deepEqual(TANKS.filter(tank => creaturesForTank([tunaResident], tank).length).map(tank => tank.id), ['open-sea'])
+assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'open-sea').assets.some(asset => asset.url === tuna.model.path))
+assert.equal(tuna.swim.schoolMaxSize, Infinity, 'the 299 residents stay in one school')
 assert.ok(!unicornfish.hiddenInAtlas, 'supplied unicornfish is visible in Atlas')
 assert.equal(unicornfish.model.path, '/models/fish/naso-unicornis/naso-unicornis.glb')
 assert.ok(Math.abs(unicornfish.model.scale * 57.402793884277344 - unicornfish.swim.bodyLengthWU) < 1e-6, 'fork length, not tail-tip bounds, defines world scale')

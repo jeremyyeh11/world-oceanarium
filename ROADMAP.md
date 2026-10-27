@@ -13,18 +13,27 @@ Status labels:
 
 ## Current work
 
-### Yellowfin Tuna model intake
+### Yellowfin Tuna model and school
 
-Status: `Current in development` — model intake in `v0.40.0-dev_1` on
-`species/thunnus-albacares`. Unicornfish acceptance is archived below.
-Research and model contract: [docs/species-preparation.md](docs/species-preparation.md).
+Status: `Current in development` — `v0.40.0-dev_2`, `species/thunnus-albacares`,
+[PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168).
+Contract and stocking evidence: [docs/species-preparation.md](docs/species-preparation.md).
 
-- [x] Inspect/measure the supplied GLB; add the centred runtime copy and existing
-  caudal-wave configuration. Fork length 2.240529418 source units; size 1 is 9.56 WU.
-- [x] Atlas pose, runtime-rendered tile and desktop/portrait/landscape browser framing.
-- [ ] Confirm population and sex mix before backed-up dev stocking; verify school turns,
-  solo fallback and Open Sea turning room. No live rows or reserve slot added yet.
-- [ ] Separate visual/feel approval, public stocking approval and clean release for tuna.
+- [x] Import the updated source with all four paired fins; preserve every triangle,
+  UV and texture in one runtime primitive. Fork length 2.240529418; size 1 is 9.56 WU.
+- [x] Atlas specimen/tile and responsive framing; local reserve follow review.
+- [x] Random count 299, one development Open Sea school: IDs 853–1151,
+  150 females / 149 males, configured 120–150 cm FL. Both tables backed up before/after;
+  production and all pre-existing dev rows verified unchanged.
+- [x] Real-frame 299-fish / 180-second check: no boundary contacts or school collapse;
+  one brief body-envelope overlap pair in 3/181 samples. Solo fallback: 60 seconds,
+  continuous movement, no boundary contact. Full regressions and procedural checks pass.
+- [x] Reduce five runtime parts to one: local browser samples improve from 18.8 FPS /
+  3,139 calls to about 52–59 FPS / 547–729 calls at DPR 1. Samples vary with framing;
+  this is not a guaranteed 60 FPS or physical-phone result.
+- [ ] Jeremy's visual/feel acceptance, physical-phone performance review and any
+  further performance work before clean-release consideration.
+- [ ] Public stocking approval and clean release remain separate decisions.
 
 ### Atlas measurement clarity
 

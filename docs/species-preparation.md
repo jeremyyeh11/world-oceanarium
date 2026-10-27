@@ -14,14 +14,14 @@ dev adults at 40–55 cm FL; `creatures_dev` IDs 841–846, three of each sex, s
 parameters 0/0.2/0.4/0.6/0.8/1. One adult model represents both sexes; its depicted
 sex and photo provenance have not been established. Do not infer a licence.
 
-Yellowfin model intake is now in `v0.40.0-dev_1`: the supplied model, procedural
-Atlas specimen and rendered tile are registered. Reserve slot and live creature rows
-remain pending Jeremy's population/sex choice. No new loading owner, shader architecture
-or database migration is needed.
+Yellowfin is active in The Open Sea in `v0.40.0-dev_2`: the supplied model,
+Atlas specimen and one 299-fish development school. The runtime joins all five
+source parts without removing geometry. No new loading owner, motion architecture
+or database migration was added.
 
 Swim constants describe authored feel, not measured animal speeds. Jeremy accepted
 the unicornfish from `v0.39.0-dev_5` on 2026-10-27 and explicitly approved clean
-promotion/merge plus six public adults. Yellowfin still needs stocking and visual approvals.
+promotion/merge plus six public adults. Yellowfin still needs visual acceptance, public stocking approval and clean release.
 
 Public unicornfish: IDs 847–852, three of each sex, size parameters
 0/0.2/0.4/0.6/0.8/1, matching the dev size distribution. The repository backup ran
@@ -94,17 +94,19 @@ is required for the first intake; record which sex the supplied specimen depicts
 
 ## Yellowfin Tuna — `thunnus-albacares`
 
-Intended reserve: The Open Sea. Felt intention: continuous, purposeful forward
-travel in a small school. Four to six adults at 120–150 cm fork length are proposed
-(4.8–6 WU); size 1 is the sourced 239 cm fork-length maximum (9.56 WU).
+Reserve: The Open Sea. Felt intention: continuous, purposeful forward travel in
+one substantial school. Jeremy requested a random count from 200–300; the single
+draw was **299**. Adults use a configured 120–150 cm fork-length range (4.8–6 WU);
+size 1 is the sourced 239 cm maximum (9.56 WU).
 
-Reuse `caudal-vertex` with a nearly rigid front and a compact rear-body/tail stroke,
-plus existing schooling with solo fallback. Start structurally from the mahi's
-caudal setup, without its pair bond. Draft school cap is six, drift disabled, pitch
-limited to 6 degrees. The school must not stop, pivot in place, swim backwards or
-produce a large eel-like body wave. Check the entire formation and turning room
-against the real mesh before accepting the proposed bounds. Hunting/capture is
-outside this preparation; ordinary menace/wariness supplies interspecies response.
+Existing `caudal-vertex` supplies a nearly rigid front and compact tail stroke.
+The existing body-clearance school cloud uses an unlimited group cap, packing 0.3,
+gaps 0.7 lateral / 1.4 longitudinal / 0.6 vertical body lengths, drift tolerance
+0.06–0.16, and turn-rate scale 0.35. Pitch is limited to 6 degrees; hovering and
+independent timed bursts are disabled. The species-specific wedge leaves room for
+the full formation and its turns. Ordinary menace/wariness supplies interspecies
+response; members of the same school are excluded from predator threat avoidance.
+Hunting/capture is outside this implementation.
 
 Research decisions:
 
@@ -124,11 +126,15 @@ Model emphasis: fusiform body, caudal keels, crescent tail, yellow finlets and
 second dorsal/anal fins appropriate to the selected adult size. Longer yellow fins
 are not a male-only trait. One adult model can serve both sexes initially.
 
-## Yellowfin intake — `v0.40.0-dev_1`
+## Yellowfin intake — `v0.40.0-dev_2`
 
-The supplied `thunnus albacares.glb` (2026-10-27) is one static mesh with 3,202
-exported vertices / 1,668 triangles, one opaque embedded PNG, no bones, clips or
-vertex colours. All fins remain joined; there is no independent pectoral flutter.
+The updated `thunnus albacares.glb` (2026-10-27) contains a static body and four
+independent paired fins: 3,586 exported vertices / 1,860 triangles total. It has one
+opaque embedded PNG and no bones, clips or vertex colours. Intake joins the five
+parts into one primitive, preserving every vertex, triangle, normal, UV and image.
+Paired stabilising fins retain the supplied pose on the rigid front; the tail
+supplies thrust. Source-part vertex/index ranges are recorded in mesh extras and
+checked by the asset verifier, alongside the source-hash guard.
 The original is untouched. The hash-guarded `scripts/prepare-yellowfin-model.py`
 reproduces the centred runtime copy; provenance is beside the GLB.
 
@@ -147,9 +153,30 @@ attached through the shared deformation. No new motion architecture was added.
 The runtime-shader tile is a left-facing three-quarter head close-up, rendered
 alone. Browser checks at 1366x900, 390x844 and 844x390 show the complete Atlas
 specimen and scale bar without fin/tail clipping or horizontal overflow. These
-are browser viewport checks, not physical-phone testing. School/solo reserve
-paths remain to be reviewed after population confirmation. Model intake does
-not add fallback residents, reserve dependencies or database rows.
+are browser viewport checks, not physical-phone testing. The live Open Sea follow
+view is reviewed locally. The normal reserve manifest now includes the tuna model;
+no bundled fallback residents were added.
+
+Development stocking: `creatures_dev` IDs **853–1151**, 150 females / 149 males,
+all adult, ocean/epipelagic/alive. Six averaged uniform random draws supply a
+centre-weighted size parameter within 0–1; actual stocked range is **124.065–145.872
+cm FL**. Dev count 502 → 801. `npm run backup:creatures` plus separate full snapshots
+of both tables ran before and after. All 509 production rows and all 502 existing
+dev rows compare identically. Backups live in ignored `.supabase-creature-backups`.
+
+Validation: full `npm test`, procedural verifier, scoped lint (eight existing
+warnings), and build pass. `node scripts/inspect-ray-school.mjs 180 2 --verify
+--count=299 --species=thunnus-albacares` runs the actual Fish frame: no wall contacts,
+stable spread, bounded individual motion, one body-envelope brush pair in 3 of 181
+samples. Tuna use a slender body envelope; the unchanged ray run retains its wider
+wing-clearance checks. A 60-second single-fish frame check travels 148.6 WU with no
+boundary contacts, confirming the unpaired fallback.
+
+Performance: the five-part model measured 18.8 FPS / 3,139 full-frame draw calls.
+The joined model sampled roughly 52–59 FPS / 547–729 calls locally at DPR 1,
+depending on view and culling. Geometry is unchanged; these are browser samples,
+not a sustained 60 FPS guarantee or physical-phone measurement. Keep this build
+in development for visual/feel acceptance and performance review.
 
 ## Export contract for both GLBs
 
@@ -175,17 +202,11 @@ not add fallback residents, reserve dependencies or database rows.
    Actual mesh names, scale, source offsets, shader amplitudes/turn bend (source
    units), fin roots and Atlas poses must come from inspection, not guessed config.
 
-## Remaining activation gates (Yellowfin unless stated)
+## Remaining Yellowfin acceptance gates
 
-1. Inspect each GLB, derive transforms and caudal configuration, add actual verifier
-   targets, and test a real reserve path with the one-fish solo fallback too.
-2. Measure the Atlas source fork length, set desktop/portrait poses, capture actual
-   thumbnails, check honest scale and all data panels, then remove `hiddenInAtlas`.
-3. Confirm counts and sex mix with Jeremy. Add the appropriate `TANKS.species` slot
-   and development rows only after intake; back up before/after creature writes.
-   Production stocking and clean release remain separate decisions.
-4. Run species/loader regression tests, lint, build and procedural checks. Review
-   desktop and phone framing, reef clearance and school turns after assets arrive.
+1. Jeremy reviews the complete school, fin silhouette, continuous motion and follow view.
+2. Check physical-phone performance and decide whether further rendering work is needed.
+3. Obtain separate public stocking and clean-release approval.
 
 ## Documentary reel briefs (30 seconds each)
 

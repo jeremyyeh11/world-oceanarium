@@ -105,6 +105,7 @@ export const TANKS = [
       'amblygaster-sirm',
       'coryphaena-hippurus',
       'isurus-oxyrinchus',
+      'thunnus-albacares',
       // Juveniles only (see the species entry).
       'rhincodon-typus',
       // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
@@ -532,7 +533,7 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
-  // Jeremy's supplied adult model; live stocking is confirmed separately.
+  // Jeremy's supplied adult model and one 299-fish development school (2026-10-27).
   {
     id: 'thunnus-albacares',
     name: 'Yellowfin Tuna',
@@ -584,7 +585,7 @@ export const SPECIES = [
     },
     atlasSummary: { biome: 'Ocean', zone: 'Sunlight', diet: 'Fish + squid', social: 'Schooling' },
     description: 'A streamlined blue-and-silver tuna with bright yellow finlets and elongated second dorsal and anal fins in large adults. It hunts fish, squid and crustaceans in open water. Continuous forward swimming carries water over its gills, while heat-retaining blood vessels keep parts of its body warmer than the surrounding sea.',
-    // FishBase maximum 239 cm FL; proposed reserve fish 120–150 cm FL, 4.8–6 WU.
+    // FishBase maximum 239 cm FL; reserve fish 120–150 cm FL, 4.8–6 WU.
     adultLengthRangeMeters: [1.08, 2.39],
     maxBodyLengthMeters: 2.39,
     sizeRange: [1.2 / 2.39, 1.5 / 2.39],
@@ -592,9 +593,32 @@ export const SPECIES = [
     // 26–157 cm sampled. Runtime mass wants grams, so coefficient ×1000.
     mass: { coefficient: 0.02512, exponent: 2.9396 },
     swim: {
-      // Draft school, no pair bond, hovering or authored hunting. Calibrate after intake.
+      // One school, including the full 299-fish development stocking. Use the existing
+      // clearance cloud so density scales with count and the outer fish fit before turns.
       bodyLengthWU: 9.56,
-      schoolMaxSize: 6,
+      schoolMaxSize: Infinity,
+      schoolFormationWeight: 0.75,
+      schoolSoftWallBodyLengths: 0.5,
+      schoolGoalReachedBodyLengths: 5,
+      schoolStationGain: 0.2,
+      schoolStationSpeedRange: [0.85, 1.15],
+      schoolTurnRateScale: 0.35,
+      schoolFormation: {
+        spacingScale: 1,
+        packing: 0.3,
+        positionToleranceBodyLengths: [0.06, 0.16],
+        separationStart: 1.4,
+        driftStrength: 0.3,
+        radiusBodyLengths: 4,
+        heightBodyLengths: 1,
+        lateralBodyLengths: 0.7,
+        longitudinalBodyLengths: 1.4,
+        verticalBodyLengths: 0.6,
+      },
+      // Shared cruising pace; independent timed bursts would pull a large school apart.
+      burstEnabled: false,
+      turnSpeedupEnabled: false,
+      goalPick: 'across',
       schoolSpacingScale: 2.5,
       schoolMaxAvoidanceAngleDegrees: 18,
       schoolDirectionResponse: 2,
@@ -603,7 +627,7 @@ export const SPECIES = [
       maxVisualPitchDegrees: 6,
       driftEnabled: false,
       idleBLPerSec: [0.65, 0.95],
-      idleDriftBLPerSec: [0.65, 0.95],
+      idleDriftBLPerSec: [0.04, 0.08],
       snapBLPerSec: [1.0, 1.3],
       burstBLPerSec: [1.6, 2.2],
       burstInterval: [18, 30],
@@ -613,12 +637,14 @@ export const SPECIES = [
       turnRadiusBodyLengths: 1.5,
       speedMultiplier: 1,
       boundsUseSpeciesSize: false,
-      movementBoundsScale: 1.4,
-      boundsYMin: -18,
+      // The large school may leave the frame. Keep its full extent and turn
+      // room inside the open-water wedge; Z receives the shared -15 WU offset.
+      boundsWedge: { apexZ: 10, slope: 1.4, margin: 95, goalSlope: 1, goalMargin: 0 },
+      boundsYMin: -34,
       boundsYMax: 1,
-      boundsZMin: -38,
-      boundsZMax: 3,
-      boids: { neighborCap: 5, perceptionBodyLengths: 3, separationWeight: 0.3, alignmentWeight: 0.3, cohesionWeight: 0.15, maxWeight: 0.6, menace: 0.45, wariness: 0.4 },
+      boundsZMin: -120,
+      boundsZMax: 60,
+      boids: { neighborCap: 12, perceptionBodyLengths: 3, separationWeight: 3.0, alignmentWeight: 0.3, cohesionWeight: 0, maxWeight: 0.9, menace: 0.45, wariness: 0.4 },
     },
     model: {
       path: '/models/fish/thunnus-albacares/thunnus-albacares.glb',
@@ -653,7 +679,7 @@ export const SPECIES = [
         response: 7.5,
         speedFrequencyBoost: 0.32,
         burstFrequencyBoost: 0.24,
-        // All fins are joined in this export; no independent fin rowing.
+        // Paired stabilising fins are joined at intake; the front remains rigid.
         pectoralFinFlutter: 0,
         pelvicFinFlutter: 0,
       },

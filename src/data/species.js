@@ -3963,6 +3963,8 @@ export const SPECIES = [
     scientificName: 'Naso unicornis',
     family: 'Acanthuridae',
     alternateNames: ['Bluespine Unicorn', 'Unicorn Tang', 'Kala'],
+    // Tile (2026-10-28): fish 841's head in three-quarter view, facing left, rendered in the dev
+    // tank with the other fish hidden, square at 470 px (was a soft 400 px capture).
     atlasThumbnail: '/atlas/naso-unicornis-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
@@ -4186,6 +4188,8 @@ export const SPECIES = [
       idleBLPerSec: [0.65, 0.95],
       idleDriftBLPerSec: [0.04, 0.08],
       snapBLPerSec: [1.0, 1.3],
+      // Bursts are off, but the burst speed still scales the tail beat and swim sound
+      // (Fish.jsx speed01), so it stays.
       burstBLPerSec: [1.6, 2.2],
       burstInterval: [18, 30],
       burstActionDuration: 0.8,

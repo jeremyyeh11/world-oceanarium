@@ -4,7 +4,9 @@ import { createServer } from 'vite'
 
 // Exercise placement against actual triangles: steep walls must never accept a yaw fallback
 // that puts the broad face against its host, including currents aimed directly into the rock.
-const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' })
+// No dependency scan: the test only SSR-loads a module, and closing the server while the
+// browser-deps scan of index.html was still running printed a stack trace.
+const server = await createServer({ server: { middlewareMode: true }, appType: 'custom', optimizeDeps: { noDiscovery: true } })
 try {
   const { placeSeaFans, measureFan } = await server.ssrLoadModule('/src/components/seaFanPlacement.js')
   const lattice = new THREE.PlaneGeometry(0.6, 1, 8, 8).translate(0, 0.5, 0)

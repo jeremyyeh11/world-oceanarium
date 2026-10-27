@@ -13,6 +13,17 @@ Status labels:
 
 ## Current work
 
+### Open Sea wider roaming
+
+Status: `Current in development` — branch `fix/open-sea-wider-roaming` (was PR #166, `codex/open-sea-movement-boundaries`, on `v0.38.1`; refitted onto `v0.40.0`, 2026-10-28).
+
+Feel: open water with passing animals; the viewer should not see a left/right turning wall or a near-camera stop line.
+
+- [ ] Extend side boundaries beyond the visible frame, allowing animals to leave and return naturally.
+- [ ] Extend the depth range farther away and toward/past the camera, including overhead passes.
+- [ ] Preserve accepted y −16 / 22° camera framing and biological depth/surface constraints.
+- [ ] Check turning behavior and visibility on desktop, wide screens and portrait before preview acceptance.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

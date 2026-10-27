@@ -74,6 +74,13 @@ role, or no tank slot — before any motion work, not after.
 - Do not ship diagnostic visuals, wireframes, loud colors, or debug probes in final/clean builds unless explicitly requested as a dev probe.
 - If an experiment is reverted before push, summarize only the net shipped change.
 
+## Branch naming
+
+- For each new species, use `species/<scientific-name>` with the lowercase, hyphenated scientific name, e.g. `species/mola-alexandrini`.
+- If a session adds multiple species, create a separate branch for each species and do that species' work on its corresponding branch.
+- For other work, use a task-based prefix such as `fix/`, `feat/`, `ui/`, or `refactor/`, followed by a descriptive kebab-case name.
+- Do not use agent-name prefixes such as `claude/`, `codex/`, or `hermes/`.
+
 ## Versioning and changelog
 
 Visible versions use a target-release plus dev-suffix model:

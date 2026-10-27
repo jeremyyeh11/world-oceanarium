@@ -8,6 +8,36 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.40.0 — Yellowfin Tuna (2026-10-27)
+
+Accepted from `v0.40.0-dev_6`; Jeremy requested clean promotion and merge of
+[PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168) on 2026-10-27.
+
+### Species and Atlas
+- Adds Jeremy's Yellowfin Tuna model, animated Atlas specimen and rendered tile,
+  calibrated from mouth to tail fork. The late caudal wave keeps the front firm.
+- Includes all four paired fins from the updated export. Joins the five source parts
+  into one runtime primitive to reduce school draw calls, preserving all geometry and
+  the original texture. Stabilising fins hold their supplied pose on the rigid front.
+
+### Schooling
+- Supports a large tuna school in The Open Sea, with a size-aware cloud, broad turning
+  room, steady cruise and solo fallback. Predatory schoolmates retain separation but
+  do not evade or startle one another as threats. Other species still react to tuna.
+
+### Open-water movement
+- Gives the adult Whale Shark a larger camera-shaped swim wedge than the tuna
+  school: side margin 150 WU, Y -45 to 1, Z -195 to 75 after the shared offset.
+  A separate world-space spawn/goal region (X ±45, Y -8 to -2, Z -90 to -30)
+  brings it back through the scene. Goal-region solo swimmers use the existing
+  true-angle yaw/pitch arc at their configured radius, avoiding the slow lerp
+  return toward an astern goal. The production juvenile retains its swim profile.
+
+### Presentation
+- Backfills the visitor-facing changelog with clean releases v0.38.1 and v0.39.0;
+  the popup had a separate stale list. Development builds preview their upcoming
+  clean release bucket, without individual dev patch entries or database-only changes.
+
 ## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
 
 Status: clean `v0.39.0`, accepted from `v0.39.0-dev_5`; PR #165. Jeremy approved

@@ -36,6 +36,9 @@ import {
   shapeDirectionForBoundaryContacts,
   shapeSoloAgentSteeringDesired,
   swimBounds,
+  insetSwimBox,
+  pickGoalAcross,
+  pickSoloAgentTarget,
   swimXRangeAtZ,
   threatLevelAt,
   turnDirectionTowardWithBoundaryRecovery,
@@ -459,6 +462,28 @@ withRegistry([], () => {
   assert.ok(threatLevelAt(self.position, sardine, sardineSwim) > 0.75, 'the charging mako alarms the sardine')
   unregisterFish('leaving')
   assert.equal(threatLevelAt(self.position, sardine, sardineSwim), 0, 'once it unmounts it alarms nobody')
+})
+
+// A predatory school does not frighten itself. Neighbour separation and prey response remain.
+withRegistry([], () => {
+  const tuna = { id: 'school-tuna-a', species: 'thunnus-albacares', biome: 'ocean', size: 0.56 }
+  const mate = { ...tuna, id: 'school-tuna-b' }
+  const swim = resolveSwimProfile(tuna)
+  const school = { id: 'predatory-school', count: 2 }
+  const fish = { position: new THREE.Vector3(0, 0, -15) }
+  const forward = new THREE.Vector3(1, 0, 0)
+  updateFishRegistry(fish, tuna, swim, school, forward, 4)
+  updateFishRegistry({ position: new THREE.Vector3(-4, 0, -15) }, mate, swim, school, forward, 4)
+  assert.equal(threatLevelAt(fish.position, tuna, swim), 0, 'a tuna recognises its schoolmate')
+  const debug = { neighbors: Array.from({ length: 2 }, () => ({ pos: new THREE.Vector3(), forward: new THREE.Vector3() })), ...Object.fromEntries(['threat', 'separation', 'alignment', 'cohesion', 'result'].map(key => [key, new THREE.Vector3()])) }
+  computeBoidSteering(new THREE.Vector3(), fish, tuna, swim, school, forward, debug)
+  assert.equal(debug.threat.lengthSq(), 0, 'schoolmates do not add a predator-evasion push')
+  assert.ok(debug.separation.lengthSq() > 0, 'schoolmates still separate to avoid contact')
+  assert.ok(threatLevelAt(self.position, sardine, sardineSwim) > 0, 'tuna still alarm nearby prey')
+  updateFishRegistry(fish, tuna, swim, null, forward, 4)
+  assert.ok(threatLevelAt(fish.position, tuna, swim) > 0, 'unrelated fish keep the normal threat response')
+  unregisterFish(tuna.id)
+  unregisterFish(mate.id)
 })
 
 // --- escape arc turning -----------------------------------------------------------------
@@ -935,3 +960,53 @@ assert.ok(bandCorrection > 0 && bandCorrection < schoolPositionCorrection(1.5, 4
 // Height errors count against the narrower layer gap.
 assert.ok(Math.abs(formationLayerScale(raySwim.schoolFormation) - 1.25 / 0.6) < 1e-9)
 assert.equal(schoolPositionCorrection(1, 4, {}), 1, 'legacy profiles retain their correction')
+
+// A larger adult must not inherit the juvenile's compact camera-edge turns.
+// Its room contains the tuna school's room, with enough extra side clearance
+// for half of the 9.3 m body to leave view before meeting a side wall.
+{
+  const adult = { id: 'adult-whale-room', species: 'rhincodon-typus', lifeStage: 'adult', depthZone: 'epipelagic', size: 9.3 / 20 }
+  const juvenile = { ...adult, id: 'juvenile-whale-room', lifeStage: 'juvenile', size: 1 }
+  const tuna = { ...adult, id: 'tuna-room', species: 'thunnus-albacares', size: 0.6 }
+  const adultSwim = resolveSwimProfile(adult)
+  const adultRoom = swimBounds(adult.depthZone, adultSwim, adult.size)
+  const juvenileRoom = swimBounds(juvenile.depthZone, resolveSwimProfile(juvenile), juvenile.size)
+  const tunaRoom = swimBounds(tuna.depthZone, resolveSwimProfile(tuna), tuna.size)
+  assert.ok(adultRoom.zMin < tunaRoom.zMin && adultRoom.zMax > tunaRoom.zMax, 'adult can roam beyond both ends of the tuna room')
+  assert.ok(adultRoom.yMin < tunaRoom.yMin && adultRoom.yMax >= tunaRoom.yMax, 'adult has more depth without raising the surface limit')
+  for (let z = tunaRoom.zMin; z <= tunaRoom.zMax; z += 5) {
+    assert.ok(swimXRangeAtZ(adultRoom, z).xMax > swimXRangeAtZ(tunaRoom, z).xMax + creatureBodyLength(adult, adultSwim) / 2, 'adult side walls clear the tuna room by more than half its body')
+  }
+  assert.equal(juvenileRoom.wedge, null, 'adult expansion does not change juvenile room shape')
+  assert.equal(juvenileRoom.zMin, -43, 'production juvenile keeps its back boundary')
+  assert.equal(juvenileRoom.zMax, -17, 'production juvenile keeps its front boundary')
+}
+
+// Broad walls are turning space, not a request to spawn/patrol off camera.
+// Goal clipping must keep spawn and chosen goals in the inner region while
+// leaving the outer wall object and an unconfigured species unchanged.
+{
+  const adult = { id: 'visible-whale', species: 'rhincodon-typus', lifeStage: 'adult', depthZone: 'epipelagic', size: 9.3 / 20 }
+  const swim = resolveSwimProfile(adult)
+  const bounds = swimBounds(adult.depthZone, swim, adult.size)
+  const before = JSON.stringify(bounds)
+  const room = insetSwimBox(bounds, creatureBodyLength(adult, swim), 0, swim.goalBounds)
+  const rand = mulberry32(410)
+  const point = new THREE.Vector3()
+  const heading = new THREE.Vector3(1, 0, 0)
+  const from = new THREE.Vector3(0, -5, -60)
+  const insideGoal = point => Math.abs(point.x) <= swim.goalBounds.halfX
+    && point.y >= swim.goalBounds.yMin && point.y <= swim.goalBounds.yMax
+    && point.z >= swim.goalBounds.zMin && point.z <= swim.goalBounds.zMax
+  assert.ok(room.zMax > room.zMin && room.x > 0, 'the goal region has room to travel')
+  for (let i = 0; i < 100; i++) {
+    assert.ok(insideGoal(pickSoloAgentTarget(point, adult, swim, rand)), 'fresh shark starts among its visible goals')
+    pickGoalAcross(point, from, room, rand, heading)
+    assert.ok(insideGoal(point), 'roaming goals stay in the visible region')
+  }
+  assert.equal(JSON.stringify(bounds), before, 'goal clipping never moves the wide walls')
+  const legacy = insetSwimBox(bounds, 10)
+  assert.equal(legacy.zMin, bounds.zMin + 10, 'omitting goal bounds keeps legacy inset behavior')
+  const clipped = insetSwimBox(bounds, 10, 0, { halfX: 9999, yMin: -9999, yMax: 9999, zMin: -9999, zMax: 9999 })
+  assert.ok(clipped.zMin >= bounds.zMin + 10 && clipped.zMax <= bounds.zMax - 10, 'oversized goal region remains inside walls')
+}

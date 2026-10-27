@@ -2997,7 +2997,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
             goalSide.current = pickGoalAcross(
               agentCandidateTarget,
               position,
-              insetSwimBox(soloBounds, bodyLength * swim.turnRadiusBodyLengths),
+              insetSwimBox(soloBounds, bodyLength * swim.turnRadiusBodyLengths, 0, swim.goalBounds),
               agentRand.current,
               currentForward,
               goalSide.current,
@@ -3513,6 +3513,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           // separately and once each, so the arc is exactly as tight as its radius.
           const escapeTurnStep = Math.max(turnStep, maxTurnRadiansForSpeed(THREAT_STARTLE_TURN_PROFILE, bodyLength, forwardSpeed, delta))
           yawToward(desiredDirection.current, targetDesiredDirection, escapeTurnStep, startleTurnSide.current)
+          pitchToward(desiredDirection.current, targetDesiredDirection, turnStep)
+        } else if (isSoloAgent && swim.goalBounds) {
+          // Goals in a visible region often lie behind a large roaming animal.
+          // Use the existing true-angle arc so its configured turning radius is
+          // respected instead of lerp slowing the return into a long outward leg.
+          yawToward(desiredDirection.current, targetDesiredDirection, turnStep, boundaryTurnSide.current)
           pitchToward(desiredDirection.current, targetDesiredDirection, turnStep)
         } else {
           turnDirectionTowardWithBoundaryRecovery(

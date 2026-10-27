@@ -65,6 +65,14 @@ const DEFAULT_VIEW_POSE = {
 // A portrait phone's stage is ~360 px wide, so each species sets its own phone zoom
 // (portraitPhoneDistanceScale, a multiple of cameraDistance) to fill about 85% of it.
 const VIEW_POSES_BY_SPECIES = {
+  'thunnus-albacares': {
+    maxLengthDisplayUnits: 2.8,
+    cameraDistance: 6.85,
+    portraitPhoneDistanceScale: 0.98,
+    mobileDistanceScale: 0.85,
+    position: [0, 0.02, 0],
+    lookAt: [0, 0.02, 0],
+  },
   // Fork length frames the specimen; the caudal tips extend a little past it.
   'naso-unicornis': {
     maxLengthDisplayUnits: 2.7,
@@ -237,6 +245,8 @@ const VIEW_POSES_BY_SPECIES = {
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
+  // Mouth to central caudal notch (tips excluded), same reference as world scale.
+  'thunnus-albacares': 2.240529417991638,
   // Mouth to midpoint of the central caudal rear rim, not the longer tail tips.
   'naso-unicornis': 57.402793884277344,
   'amblygaster-sirm': 1.8223,

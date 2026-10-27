@@ -1,10 +1,38 @@
 // What changed, told to visitors. CHANGELOG.md is the full engineering record
 // (constants, dev builds, measurements); this is the short version the version
 // label opens: new things to see and fixes they would notice, newest first.
+// Use clean release buckets; dev builds preview the upcoming clean release here.
+// Omit individual dev patch entries and database-only changes.
 // Releases that only touched tooling, code structure or data plumbing are left out.
 //
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
+  {
+    version: 'v0.40.0',
+    date: '2026-10-27',
+    title: 'Yellowfin Tuna',
+    changes: [
+      ['new', 'Meet the Yellowfin Tuna in the Atlas, with its sweeping yellow fins, animated specimen and measured scale.'],
+      ['fix', 'The adult Whale Shark has more open water to roam, with room to turn beyond the edges of the view.'],
+    ],
+  },
+  {
+    version: 'v0.39.0',
+    date: '2026-10-27',
+    title: 'Bluespine Unicornfish',
+    changes: [
+      ['new', 'Six Bluespine Unicornfish join The Reefs, browsing algae among the rocks. Look for their forehead horns and blue tail blades.'],
+      ['new', 'Meet the unicornfish in the Atlas, with its measured size and species facts.'],
+    ],
+  },
+  {
+    version: 'v0.38.1',
+    date: '2026-10-27',
+    title: 'Looking up into the blue',
+    changes: [
+      ['fix', 'The Open Sea is viewed from lower in the water, looking up toward the swimmers.'],
+    ],
+  },
   {
     version: 'v0.38.0',
     date: '2026-10-26',

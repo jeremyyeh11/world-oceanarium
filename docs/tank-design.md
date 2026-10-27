@@ -425,3 +425,18 @@ The Open Sea is a self-contained food chain (bait → mid → apex) at one tempo
 The sunfish was pulled out into The Drift because its `drift` tempo clashes with the
 pursuit hunters — the exact case the coherence guard protects against. The remoras are
 the exception the guard allows: riders take their host's pace.
+
+## Solo roaming goals and turning room
+
+An optional `swim.goalBounds` (`halfX`, `yMin`, `yMax`, `zMin`, `zMax`) keeps a solo
+animal's initial spawn and `goalPick: 'across'` destinations in a smaller region
+while its ordinary swim bounds remain available for turns. These goal coordinates
+are world units, already in world space: do not apply the swim Z offset again.
+`insetSwimBox` intersects the region with the inset outer room. Picking a goal
+allocates only when a new destination is needed. Stored positions still resume.
+
+Goal-region solo swimmers use the existing yaw/pitch turn on their configured
+body-length radius; normalized lerp can slow almost to a halt toward an astern
+goal and send a large animal on a long off-screen detour. Unconfigured animals
+retain their current goal and turn behavior. The adult Whale Shark is the first
+use: spawn/goals X ±45, Y -8 to -2, Z -90 to -30, with much wider outer walls.

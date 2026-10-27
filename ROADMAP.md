@@ -13,17 +13,16 @@ Status labels:
 
 ## Current work
 
-### Yellowfin Tuna model intake
+### Yellowfin Tuna follow-ups
 
-Status: `Next` — biological data, draft profile and reel brief prepared in clean `v0.39.0`;
-continuing in the separate Yellowfin Tuna chat. Unicornfish acceptance is archived below.
-Research and model contract: [docs/species-preparation.md](docs/species-preparation.md).
+Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
+[PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168) ·
+[Contract and validation](docs/species-preparation.md).
 
-- [ ] Inspect/measure the supplied GLB, configure the existing caudal wave, verify school
-  turns and solo fallback; check the real formation's turning room in The Open Sea.
-- [ ] Atlas pose/tile and responsive review, then backed-up dev stocking after Jeremy
-  confirms the tuna population and sex mix. Tuna remains hidden until asset intake.
-- [ ] Separate visual/feel approval, public stocking approval and clean release for tuna.
+- [ ] Obtain separate approval for production tuna stocking; the 299-fish school
+  remains in development data. Production creature rows are unchanged by this release.
+- [ ] Measure physical-phone performance and track any resulting rendering work;
+  desktop samples and simulated movement checks are not a physical-phone benchmark.
 
 ### Atlas measurement clarity
 
@@ -914,6 +913,16 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### v0.40.0 — Yellowfin Tuna (2026-10-27)
+
+Jeremy requested clean promotion/merge of PR #168 from `v0.40.0-dev_6`.
+Shipped model with all four paired fins joined into one runtime primitive, Atlas,
+large-school behavior and solo fallback, clean visitor changelog history, and
+adult Whale Shark visible goals with broad turning space. Full validation and
+299-fish development stocking evidence are in `docs/species-preparation.md`.
+Production stocking and physical-phone measurement remain active follow-ups above.
+
 
 ### v0.39.0 — Bluespine Unicornfish
 

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
 import { SPECIES, TANKS } from '../src/data/species.js'
 import { atlasWarmupUrls } from '../src/loading/atlasWarmup.js'
 import { ENVIRONMENT_MANIFESTS } from '../src/loading/environmentManifest.js'
@@ -6,28 +7,27 @@ import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
-// Prepared species must not create missing-GLB requests or invisible live residents.
-// They become eligible for actual asset/pose verification when Jeremy supplies the GLBs.
-for (const id of ['thunnus-albacares']) {
-  const prepared = speciesById.get(id)
-  assert.ok(prepared, `${id} canonical species exists`)
-  assert.equal(prepared.hiddenInAtlas, true, `${id} waits for the real specimen and tile`)
-  assert.equal(prepared.model, undefined, `${id} does not advertise a nonexistent model`)
-  assert.deepEqual(atlasWarmupUrls([prepared]), [], `${id} causes no speculative asset requests`)
-  assert.ok(ENVIRONMENT_MANIFESTS.every(manifest => manifest.assets.every(asset => !asset.url.includes(id))), `${id} cannot block reserve loading`)
-  // Alias resolution is ready, but a future alive row cannot enter an existing reserve early.
-  for (const alias of [id, prepared.name, prepared.scientificName]) {
-    const creature = { id: `pending-${id}`, species: alias, alive: true, size: 0.6 }
-    assert.equal(resolveSpecies(creature), prepared)
-    for (const tank of TANKS) assert.deepEqual(creaturesForTank([creature], tank), [], `${id} is not stocked before intake`)
-  }
-  assert.equal(prepared.atlasDetails.maxLengthLabel, 'Fork length')
-  assert.ok(Math.abs(prepared.swim.bodyLengthWU * 0.25 - prepared.maxBodyLengthMeters) < 1e-9, `${id} biological reference and world scale agree`)
-  assert.ok(prepared.sizeRange[0] > 0 && prepared.sizeRange[1] <= 1)
-}
-
 const unicornfish = speciesById.get('naso-unicornis')
 const tuna = speciesById.get('thunnus-albacares')
+assert.ok(!tuna.hiddenInAtlas, 'the supplied tuna is available in Atlas')
+assert.equal(tuna.model.path, '/models/fish/thunnus-albacares/thunnus-albacares.glb')
+assert.equal(tuna.model.followAim, 'root', 'a static tuna has no follow bone')
+assert.ok(Math.abs(tuna.model.scale * 2.240529417991638 - tuna.swim.bodyLengthWU) < 1e-6, 'tuna uses fork length, excluding extended caudal tips')
+assert.ok(atlasWarmupUrls([tuna]).includes(tuna.model.path))
+for (const asset of [tuna.model.path, tuna.atlasThumbnail]) {
+  assert.ok(existsSync(new URL(`../public${asset}`, import.meta.url)), `tuna asset exists: ${asset}`)
+}
+assert.equal(tuna.model.proceduralAnimation.type, 'caudal-vertex')
+assert.ok(tuna.model.proceduralAnimation.flexStart >= 0.5, 'the tuna front remains rigid')
+assert.ok(Math.abs(tuna.swim.bodyLengthWU * 0.25 - tuna.maxBodyLengthMeters) < 1e-9)
+for (const alias of [tuna.id, tuna.name, tuna.scientificName]) {
+  assert.equal(resolveSpecies({ id: 'tuna-intake', species: alias }), tuna)
+}
+// Live tuna route to exactly one reserve; its model joins the normal loading budget.
+const tunaResident = { id: 'tuna-school-member', species: tuna.id, alive: true, size: 0.56 }
+assert.deepEqual(TANKS.filter(tank => creaturesForTank([tunaResident], tank).length).map(tank => tank.id), ['open-sea'])
+assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'open-sea').assets.some(asset => asset.url === tuna.model.path))
+assert.equal(tuna.swim.schoolMaxSize, Infinity, 'the 299 residents stay in one school')
 assert.ok(!unicornfish.hiddenInAtlas, 'supplied unicornfish is visible in Atlas')
 assert.equal(unicornfish.model.path, '/models/fish/naso-unicornis/naso-unicornis.glb')
 assert.ok(Math.abs(unicornfish.model.scale * 57.402793884277344 - unicornfish.swim.bodyLengthWU) < 1e-6, 'fork length, not tail-tip bounds, defines world scale')

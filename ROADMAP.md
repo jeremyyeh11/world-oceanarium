@@ -15,11 +15,11 @@ Status labels:
 
 ### Bluespine Unicornfish + Yellowfin Tuna preparation
 
-Status: `Current in development` — `v0.39.0-dev_3`, branch `codex/prepare-unicornfish-yellowfin`.
+Status: `Current in development` — `v0.39.0-dev_4`, branch `codex/prepare-unicornfish-yellowfin`.
 Jeremy (2026-10-27): prepare both species and all Atlas data before he supplies the GLBs.
 Research, model contract and reel briefs: [docs/species-preparation.md](docs/species-preparation.md).
 
-- [x] Canonical entries, source-backed Atlas fields, explicitly labelled regional/common-size
+- [x] Canonical entries, source-backed Atlas fields, documented regional/common-size
   proxies, lifecycle, mass relationships and draft movement/reef profiles; Sources credits.
 - [x] Queue safely: no placeholder model/URL, reserve roster change or creature-data write;
   species/loader regression, full tests, scoped lint, build and existing procedural checks pass.
@@ -33,6 +33,14 @@ Research, model contract and reel briefs: [docs/species-preparation.md](docs/spe
 - [ ] Yellowfin GLB: inspect/measure, configure caudal wave, verify school turns and solo
   fallback; Atlas pose/tile and backed-up dev stocking after population confirmation.
 - [ ] Public Atlas/reserve activation and clean release after model review; preparation stays dev.
+
+### Atlas measurement clarity
+
+Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
+
+- [ ] Make length conventions and regional/estimated/longevity context clear consistently
+  across the Atlas in a separate copy pass. The two new entries currently omit FL and
+  parenthetical notes at Jeremy's request; research context stays in the preparation notes.
 
 ### Giant Sea Fan follow-ups
 

@@ -178,6 +178,11 @@ dynamics; an explanatory graphic can illustrate the biology in the edit.
 
 ## Preparation validation
 
+Atlas copy review (`v0.39.0-dev_4`): Jeremy requested removing the FL abbreviation
+and all parenthetical notes from the two new entries, with a separate Atlas clarity
+pass later. The values, fork-length scale, regional/common-length proxies, estimated
+weights and longevity caveats documented here and in source comments are unchanged.
+
 `npm test`, `npm run build` and `npm run verify:procedural-fish-assets` pass.
 Application/test/tool lint passes with the existing eight warnings using
 `npx eslint src tests scripts vite.config.js --ignore-pattern '.claude/**'`.

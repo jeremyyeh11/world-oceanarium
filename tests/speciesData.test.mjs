@@ -51,8 +51,6 @@ assert.equal(tuna.reef, undefined, 'pelagic tuna must not inherit reef holds')
 // pooled relationships use fork cm and return grams. Proposed specimens are in range.
 assert.ok(Math.abs(unicornfish.mass.coefficient * 42.2 ** unicornfish.mass.exponent / 1000 - 1.4) < 0.1)
 assert.ok(Math.abs(tuna.mass.coefficient * 150 ** tuna.mass.exponent / 1000 - 63) < 1)
-assert.match(tuna.atlasDetails.averages.maleSizeMeters, /common length; sexes pooled/)
-assert.match(tuna.atlasDetails.averages.maleLifeExpectancyYears, /longevity record; sexes pooled/)
 
 const sardinella = speciesById.get('amblygaster-sirm')
 assert.ok(sardinella)

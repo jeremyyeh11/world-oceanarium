@@ -426,8 +426,8 @@ export const SPECIES = [
       sexualDimorphism: 'At the same body size, males tend to have a longer horn, larger blue tail spines and longer tail filaments.',
       // Andrews et al. 2016: radiocarbon age 54.5 ± 3 years. The preliminary 58-year
       // otolith count was revised; this is longevity, not average survival in the wild.
-      lifeSpan: 'Over 50 years (validated in Hawaii)',
-      maturityAge: 'Males about 2 years; females about 3 years (Hawaii)',
+      lifeSpan: 'Over 50 years',
+      maturityAge: 'Males about 2 years; females about 3 years',
       social: {
         schoolSize: 'Small groups; sometimes solitary',
         groupingBehaviour: 'Browses reef algae by day, often in loose groups. Adults use reef channels and slopes with water movement; juveniles occupy sheltered coastal bays.',
@@ -436,19 +436,19 @@ export const SPECIES = [
       averages: {
         // Moore, Rechelluul & Victor 2015, section 3.3.5: Palau commercial catch,
         // 22 males / 60 females. Regional catch means, not global adult means.
-        maleSizeMeters: '0.38 m FL (Palau catch mean)',
-        femaleSizeMeters: '0.42 m FL (Palau catch mean)',
+        maleSizeMeters: '0.38 m',
+        femaleSizeMeters: '0.42 m',
         // Derived at the unrounded mean lengths (38.4 / 42.2 cm FL), using the
         // report's pooled W(g) = 0.0598 * FL(cm)^2.6897; not measured mean weights.
-        maleWeightKg: 'About 1.1 kg (estimated at the Palau mean length)',
-        femaleWeightKg: 'About 1.4 kg (estimated at the Palau mean length)',
-        maleLifeExpectancyYears: 'Over 50 years (longevity record; sexes pooled)',
-        femaleLifeExpectancyYears: 'Over 50 years (longevity record; sexes pooled)',
+        maleWeightKg: 'About 1.1 kg',
+        femaleWeightKg: 'About 1.4 kg',
+        maleLifeExpectancyYears: 'Over 50 years',
+        femaleLifeExpectancyYears: 'Over 50 years',
       },
       lifecycle: {
         // Andrews et al. 2016, p. 1584: updated growth model with DeMartini et al.
         // 2014 median maturity lengths, 30.1 cm FL male / 35.5 cm FL female.
-        sexualMaturityYears: 'Males about 2 years; females about 3 years (Hawaii)',
+        sexualMaturityYears: 'Males about 2 years; females about 3 years',
         sexualSterilityYears: 'None known',
         offspringPerMatingEvent: 'Unknown',
       },
@@ -557,7 +557,7 @@ export const SPECIES = [
       sexualDimorphism: 'Sexes have similar colouring. Males tend to dominate the largest size classes; the long yellow fins develop with size rather than identifying sex.',
       // ICCAT 2024–2025 executive summary: validated ages up to 18, superseding
       // the 6–9-year maximum still given in some older species profiles.
-      lifeSpan: 'Up to 18 years (recorded in the Atlantic)',
+      lifeSpan: 'Up to 18 years',
       maturityAge: 'About 2 to 3 years; varies by population',
       social: {
         schoolSize: 'Schools of similarly sized fish',
@@ -567,19 +567,19 @@ export const SPECIES = [
       averages: {
         // FishBase common length, 150 cm FL, unsexed: a typical-size proxy,
         // not a measured male/female mean. Morita 1973 (FAO) gives ~63 kg there.
-        maleSizeMeters: '1.50 m FL (common length; sexes pooled)',
-        femaleSizeMeters: '1.50 m FL (common length; sexes pooled)',
-        maleWeightKg: 'About 63 kg (estimated at 1.50 m FL; sexes pooled)',
-        femaleWeightKg: 'About 63 kg (estimated at 1.50 m FL; sexes pooled)',
-        maleLifeExpectancyYears: 'Up to 18 years (longevity record; sexes pooled)',
-        femaleLifeExpectancyYears: 'Up to 18 years (longevity record; sexes pooled)',
+        maleSizeMeters: '1.50 m',
+        femaleSizeMeters: '1.50 m',
+        maleWeightKg: 'About 63 kg',
+        femaleWeightKg: 'About 63 kg',
+        maleLifeExpectancyYears: 'Up to 18 years',
+        femaleLifeExpectancyYears: 'Up to 18 years',
       },
       lifecycle: {
         sexualMaturityYears: 'About 2 to 3 years; varies by population',
         sexualSterilityYears: 'None known',
         // Pacicco et al. 2023: 24 females, northcentral US Gulf of Mexico;
         // observed batch range 37,956–6.2 million, not annual egg production.
-        offspringPerMatingEvent: 'About 38,000 to 6.2 million eggs per batch (Gulf of Mexico)',
+        offspringPerMatingEvent: 'About 38,000 to 6.2 million eggs per batch',
       },
     },
     atlasSummary: { biome: 'Ocean', zone: 'Sunlight', diet: 'Fish + squid', social: 'Schooling' },

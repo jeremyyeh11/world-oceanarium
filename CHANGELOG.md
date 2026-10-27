@@ -16,7 +16,8 @@ Versioning convention notes:
   fields, with study/profile credits. Regional sample means, common-length proxies, estimated
   weights and longevity records are documented; unavailable unicornfish batch fecundity stays Unknown.
 - Simplifies both new Atlas entries by removing the FL abbreviation and parenthetical notes.
-  Source context and the underlying measurement/scale conventions remain in the research notes.
+  Their scale bar says Specimen. Source context and the underlying measurement/scale
+  conventions remain in the research notes.
 - Adds draft loose-group reef grazing and pelagic schooling profiles using existing systems.
   Unicornfish cannot select live coral for peck visits. Yellowfin remains queued and hidden,
   with no model URL, reserve slot or creature rows until its GLB arrives.

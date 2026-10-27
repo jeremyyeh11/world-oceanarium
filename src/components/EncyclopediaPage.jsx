@@ -476,7 +476,7 @@ function AtlasScaleBar({ species }) {
   const speciesMeters = speciesLengthMeters(species)
   const measurementLabel = species?.atlasDetails?.maxLengthLabel
   const usesDiscWidth = measurementLabel === 'Disc width'
-  const speciesLabel = usesDiscWidth ? 'Specimen' : measurementLabel ?? 'Specimen'
+  const speciesLabel = usesDiscWidth || measurementLabel === 'Fork length' ? 'Specimen' : measurementLabel ?? 'Specimen'
   if (!Number.isFinite(speciesMeters) || speciesMeters <= 0) return null
 
   const longest = Math.max(HUMAN_SCALE_METERS, speciesMeters)

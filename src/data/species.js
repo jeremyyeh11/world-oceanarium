@@ -3153,14 +3153,16 @@ export const SPECIES = [
       adult: {
         swim: {
           // The 9.3 m adult needs open water beyond the tuna school's room. Keep the
-          // walls outside even the wide view, with narrower goals so it returns across
-          // the scene instead of spending every leg at the outer edge. Existing wedge
-          // and across-goal steering; Z gets fishSwim.js's shared -15 WU offset.
+          // walls outside even the wide view. Existing wedge and across-goal
+          // steering; Z gets fishSwim.js's shared -15 WU offset.
           boundsWedge: { apexZ: 10, slope: 1.4, margin: 150, goalSlope: 0.7, goalMargin: 0 },
           boundsYMin: -45,
           boundsYMax: 1,
           boundsZMin: -180,
           boundsZMax: 90,
+          // World-space spawn/goal region in the default Open Sea view. The much
+          // larger outer wedge remains available for its broad swimming turns.
+          goalBounds: { halfX: 45, yMin: -8, yMax: -2, zMin: -90, zMax: -30 },
           goalPick: 'across',
         },
       },

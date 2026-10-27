@@ -36,6 +36,9 @@ import {
   shapeDirectionForBoundaryContacts,
   shapeSoloAgentSteeringDesired,
   swimBounds,
+  insetSwimBox,
+  pickGoalAcross,
+  pickSoloAgentTarget,
   swimXRangeAtZ,
   threatLevelAt,
   turnDirectionTowardWithBoundaryRecovery,
@@ -977,4 +980,33 @@ assert.equal(schoolPositionCorrection(1, 4, {}), 1, 'legacy profiles retain thei
   assert.equal(juvenileRoom.wedge, null, 'adult expansion does not change juvenile room shape')
   assert.equal(juvenileRoom.zMin, -43, 'production juvenile keeps its back boundary')
   assert.equal(juvenileRoom.zMax, -17, 'production juvenile keeps its front boundary')
+}
+
+// Broad walls are turning space, not a request to spawn/patrol off camera.
+// Goal clipping must keep spawn and chosen goals in the inner region while
+// leaving the outer wall object and an unconfigured species unchanged.
+{
+  const adult = { id: 'visible-whale', species: 'rhincodon-typus', lifeStage: 'adult', depthZone: 'epipelagic', size: 9.3 / 20 }
+  const swim = resolveSwimProfile(adult)
+  const bounds = swimBounds(adult.depthZone, swim, adult.size)
+  const before = JSON.stringify(bounds)
+  const room = insetSwimBox(bounds, creatureBodyLength(adult, swim), 0, swim.goalBounds)
+  const rand = mulberry32(410)
+  const point = new THREE.Vector3()
+  const heading = new THREE.Vector3(1, 0, 0)
+  const from = new THREE.Vector3(0, -5, -60)
+  const insideGoal = point => Math.abs(point.x) <= swim.goalBounds.halfX
+    && point.y >= swim.goalBounds.yMin && point.y <= swim.goalBounds.yMax
+    && point.z >= swim.goalBounds.zMin && point.z <= swim.goalBounds.zMax
+  assert.ok(room.zMax > room.zMin && room.x > 0, 'the goal region has room to travel')
+  for (let i = 0; i < 100; i++) {
+    assert.ok(insideGoal(pickSoloAgentTarget(point, adult, swim, rand)), 'fresh shark starts among its visible goals')
+    pickGoalAcross(point, from, room, rand, heading)
+    assert.ok(insideGoal(point), 'roaming goals stay in the visible region')
+  }
+  assert.equal(JSON.stringify(bounds), before, 'goal clipping never moves the wide walls')
+  const legacy = insetSwimBox(bounds, 10)
+  assert.equal(legacy.zMin, bounds.zMin + 10, 'omitting goal bounds keeps legacy inset behavior')
+  const clipped = insetSwimBox(bounds, 10, 0, { halfX: 9999, yMin: -9999, yMax: 9999, zMin: -9999, zMax: 9999 })
+  assert.ok(clipped.zMin >= bounds.zMin + 10 && clipped.zMax <= bounds.zMax - 10, 'oversized goal region remains inside walls')
 }

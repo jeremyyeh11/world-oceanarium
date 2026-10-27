@@ -1196,7 +1196,12 @@ export function shapeSoloAgentSteeringDesired(out, position, target, forward, cr
 }
 
 export function pickSoloAgentTarget(out, creature, swim, rand, from = null) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  const outerBounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+  // A fresh solo resident starts in its goal region, with the outer room left for
+  // swimming through turns. Stored fish positions still resume unchanged.
+  const bounds = !from && swim.goalBounds
+    ? insetSwimBox(outerBounds, 0, 0, swim.goalBounds)
+    : outerBounds
   const bodyLength = creatureBodyLength(creature, swim)
   const minDistance = Math.max(1.2, bodyLength * SOLO_AGENT_MIN_TARGET_BODY_LENGTHS)
 
@@ -1275,7 +1280,7 @@ export function pickGoalAcross(out, from, room, rand, heading = null, lastSide =
 // A wedge with its own goal sides (`goalSlope`, `goalMargin`) uses those instead across: goals
 // inside the narrower view most screens show, its walls further out, beyond the widest one.
 // Allocates: only for an occasional goal pick.
-export function insetSwimBox(bounds, inset, insetY = 0) {
+export function insetSwimBox(bounds, inset, insetY = 0, goalBounds = null) {
   const inX = Math.min(inset, bounds.x)
   const inZ = Math.min(inset, (bounds.zMax - bounds.zMin) * 0.5)
   const inY = Math.min(insetY, (bounds.yMax - bounds.yMin) * 0.5)
@@ -1284,6 +1289,16 @@ export function insetSwimBox(bounds, inset, insetY = 0) {
       ? { apexZ: bounds.wedge.apexZ, slope: bounds.wedge.goalSlope, margin: bounds.wedge.goalMargin ?? 0 }
       : { ...bounds.wedge, margin: bounds.wedge.margin - inset }
     : null
+  // Optional goal region is in world coordinates, independent of the outer
+  // wall padding. Intersect it with the inset room; never move the actual walls.
+  if (goalBounds) {
+    const zMin = THREE.MathUtils.clamp(goalBounds.zMin ?? bounds.zMin + inZ, bounds.zMin + inZ, bounds.zMax - inZ)
+    const zMax = THREE.MathUtils.clamp(goalBounds.zMax ?? bounds.zMax - inZ, zMin, bounds.zMax - inZ)
+    const yMin = THREE.MathUtils.clamp(goalBounds.yMin ?? bounds.yMin + inY, bounds.yMin + inY, bounds.yMax - inY)
+    const yMax = THREE.MathUtils.clamp(goalBounds.yMax ?? bounds.yMax - inY, yMin, bounds.yMax - inY)
+    const halfX = Math.max(0, Math.min(goalBounds.halfX ?? Infinity, halfXAt(bounds, zMin) - inX, halfXAt(bounds, zMax) - inX))
+    return { box: true, wedge: null, x: halfX, xMin: -halfX, xMax: halfX, zMin, zMax, z: Math.max(Math.abs(zMin), Math.abs(zMax)), yMin, yMax }
+  }
   return {
     box: bounds.box,
     wedge,

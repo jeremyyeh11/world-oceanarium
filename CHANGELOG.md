@@ -27,8 +27,10 @@ Versioning convention notes:
 ### Open-water movement
 - Gives the adult Whale Shark a larger camera-shaped swim wedge than the tuna
   school: side margin 150 WU, Y -45 to 1, Z -195 to 75 after the shared offset.
-  Across-room goals use a narrower 0.7 slope to bring it back through the scene;
-  the production juvenile retains its existing swim profile.
+  A separate world-space spawn/goal region (X ±45, Y -8 to -2, Z -90 to -30)
+  brings it back through the scene. Goal-region solo swimmers use the existing
+  true-angle yaw/pitch arc at their configured radius, avoiding the slow lerp
+  return toward an astern goal. The production juvenile retains its swim profile.
 
 ### Presentation
 - Backfills the visitor-facing changelog with clean releases v0.38.1 and v0.39.0;

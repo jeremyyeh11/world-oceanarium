@@ -15,7 +15,7 @@ Status labels:
 
 ### Yellowfin Tuna model and school
 
-Status: `Current in development` — `v0.40.0-dev_5`, `species/thunnus-albacares`,
+Status: `Current in development` — `v0.40.0-dev_6`, `species/thunnus-albacares`,
 [PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168).
 Contract and stocking evidence: [docs/species-preparation.md](docs/species-preparation.md).
 
@@ -37,7 +37,10 @@ Contract and stocking evidence: [docs/species-preparation.md](docs/species-prepa
   before/after snapshots verify only that row changed. Production stays unchanged.
 - [x] Dev_5 expands the adult Whale Shark's swim wedge beyond the tuna school
   and picks goals across its room. Juvenile bounds stay unchanged.
-- [ ] Review the larger adult Whale Shark's roaming/return timing in the reserve.
+- [x] Dev_6 separates adult spawn/goals from its wide turning room and uses true-angle
+  return turns. Ten-minute #410 real-frame check: first visible at 0 s, centre visible
+  91.8% (16:9, within 120 WU), longest absence 16.5 s, no boundary contacts.
+  Prior dev_5: first visible 106.6 s, centre visible 10.1%. Browser feel still needs acceptance.
 - [ ] Jeremy's visual/feel acceptance, physical-phone performance review and any
   further performance work before clean-release consideration.
 - [ ] Public stocking approval and clean release remain separate decisions.

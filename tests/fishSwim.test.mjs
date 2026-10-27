@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
+import { TANKS } from '../src/data/species.js'
 import {
   SWIM_BOX,
   SWIM_BOUNDARY_CONTACT_FRONT,
@@ -74,8 +75,8 @@ assert.ok(bounds.zMin < bounds.zMax, 'depth bounds are ordered')
 assert.equal(bounds.xMin, -bounds.x, 'x bounds are symmetric about the centre line')
 assert.equal(bounds.xMax, bounds.x, 'x bounds are symmetric about the centre line')
 
-// The swim box is pushed away from the camera, so the whole z range sits behind it.
-assert.ok(bounds.zMax < 0, 'the swim volume sits behind the camera plane')
+// Open Sea now reaches through the camera plane instead of stopping the animals short.
+assert.ok(bounds.zMax > 10, 'Open Sea permits swimming beyond its resting camera')
 assert.ok(bounds.zMin < bounds.zMax, 'near edge is nearer than the far edge')
 
 // The volume is a frustum, not a box: it is wider at the near plane than at the far one.
@@ -86,8 +87,35 @@ assert.equal(bounds.x, Math.max(nearX, farX), 'bounds.x is the widest half-width
 
 // Concrete widths, so a change to the tank camera's FOV, aspect, or safe fraction has to
 // be a deliberate edit here rather than a silent reshaping of where every fish may swim.
-assert.ok(Math.abs(swimXRangeAtZ(bounds, -15).xMax - 29.181592) < 1e-5, 'half-width at z=-15 is unchanged')
-assert.ok(Math.abs(swimXRangeAtZ(bounds, 0).xMax - 12.969596) < 1e-5, 'half-width at the camera plane is unchanged')
+const defaultBounds = swimBounds('epipelagic', { bodyLengthWU: 1 }, 1)
+assert.ok(Math.abs(swimXRangeAtZ(defaultBounds, -15).xMax - 29.181592) < 1e-5, 'default half-width at z=-15 is unchanged')
+assert.ok(Math.abs(swimXRangeAtZ(defaultBounds, 0).xMax - 12.969596) < 1e-5, 'default half-width at the camera plane is unchanged')
+
+// Check the camera-space result rather than just pinning the new configuration numbers:
+// every Open Sea species can pass over the viewer, and side walls stay out of a wide frame.
+const openSea = TANKS.find(tank => tank.species.includes(sardine.species))
+for (const species of openSea.species) {
+  const creature = { species, depthZone: 'epipelagic', size: species === 'rhincodon-typus' ? 0.3 : 1 }
+  const swim = resolveSwimProfile(creature)
+  const room = swimBounds(creature.depthZone, swim, creature.size)
+  const overhead = new THREE.Vector3(0, (room.yMin + room.yMax) / 2, 20)
+  const unclamped = overhead.clone()
+  clampToSwimBounds(overhead, room)
+  assert.ok(overhead.equals(unclamped), `${species} can swim over and beyond the camera`)
+  assert.ok(room.zMin < -60, `${species} can retreat farther into open water`)
+  for (const aspect of [9 / 16, 16 / 9, 21 / 9]) {
+    const camera = new THREE.PerspectiveCamera(61, aspect, 0.1, 200)
+    camera.position.set(0, openSea.camera.y, 10)
+    camera.lookAt(0, openSea.camera.lookY, 0)
+    camera.updateMatrixWorld()
+    for (const z of [-80, -60, -40, -20, 0]) {
+      for (const y of [room.yMin, room.yMax]) {
+        const edge = new THREE.Vector3(swimXRangeAtZ(room, z).xMax, y, z).project(camera)
+        assert.ok(Math.abs(edge.x) > 1, `${species} side wall stays outside a ${aspect} frame`)
+      }
+    }
+  }
+}
 
 // A big fish earns a larger margin off every derived wall. Tested on synthetic profiles
 // because every shipped species overrides boundsYMin/boundsZMin/boundsZMax outright, which
@@ -977,9 +1005,10 @@ assert.equal(schoolPositionCorrection(1, 4, {}), 1, 'legacy profiles retain thei
   for (let z = tunaRoom.zMin; z <= tunaRoom.zMax; z += 5) {
     assert.ok(swimXRangeAtZ(adultRoom, z).xMax > swimXRangeAtZ(tunaRoom, z).xMax + creatureBodyLength(adult, adultSwim) / 2, 'adult side walls clear the tuna room by more than half its body')
   }
-  assert.equal(juvenileRoom.wedge, null, 'adult expansion does not change juvenile room shape')
-  assert.equal(juvenileRoom.zMin, -43, 'production juvenile keeps its back boundary')
-  assert.equal(juvenileRoom.zMax, -17, 'production juvenile keeps its front boundary')
+  // No live row is a juvenile since 2026-10-28; its profile takes the shared Open Sea room,
+  // while the adult keeps its own wider wedge.
+  assert.equal(juvenileRoom.wedge?.margin, 36, 'juvenile uses the shared Open Sea wedge')
+  assert.equal(adultRoom.wedge?.margin, 150, 'adult keeps its own wider wedge')
 }
 
 // Broad walls are turning space, not a request to spawn/patrol off camera.

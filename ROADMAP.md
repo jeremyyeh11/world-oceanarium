@@ -13,17 +13,6 @@ Status labels:
 
 ## Current work
 
-### Open Sea wider roaming
-
-Status: `Current in development` — branch `fix/open-sea-wider-roaming` (was PR #166, `codex/open-sea-movement-boundaries`, on `v0.38.1`; refitted onto `v0.40.0`, 2026-10-28).
-
-Feel: open water with passing animals; the viewer should not see a left/right turning wall or a near-camera stop line.
-
-- [ ] Extend side boundaries beyond the visible frame, allowing animals to leave and return naturally.
-- [ ] Extend the depth range farther away and toward/past the camera, including overhead passes.
-- [ ] Preserve accepted y −16 / 22° camera framing and biological depth/surface constraints.
-- [ ] Check turning behavior and visibility on desktop, wide screens and portrait before preview acceptance.
-
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -172,6 +161,21 @@ Review gates:
 ## Shipped, with open follow-ups
 
 Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
+
+### Open Sea wider roaming
+
+Status: shipped in clean `v0.40.2` (2026-10-28, PR #171); open items below are follow-ups. branch `fix/open-sea-wider-roaming` (was PR #166, `codex/open-sea-movement-boundaries`, on `v0.38.1`; refitted onto `v0.40.0`, 2026-10-28).
+
+Feel: open water with passing animals; the viewer should not see a left/right turning wall or a near-camera stop line.
+
+- [x] `v0.38.2-dev_1`: extend side boundaries beyond the visible frame, allowing animals to leave and return naturally; walls `36 + 1.3 × max(0, 10 − z)`, narrower across-room goals.
+- [x] Extend the world Z range to −80 through +45, farther away and past the camera at +10, including overhead passes; sharksuckers share the host room.
+- [x] Preserve accepted y −16 / 22° camera framing and biological depth/surface constraints, speeds and turning radii.
+- [x] `v0.40.2-dev_1`: refitted onto v0.40.0. The shared room goes to sardinella, mahi-mahi, mako and sharksuckers (and the whale shark's unused juvenile profile); the tuna school and the adult whale shark keep their v0.40.0 rooms.
+- [ ] Check turning behavior and visibility on desktop, wide screens and portrait before preview acceptance.
+- [ ] Sardinella on phones: in the dev_1 browser sample the bait ball was never in a phone's centre strip (0%), and on a 16:9 screen 40% of the time. Jeremy to judge; options are a narrower goal wedge for the sardinella only, or its old z range.
+- Validation `v0.40.2-dev_1` (browser, dev rows, 153 s, 492 animals, 2 samples/s): all positions finite, no console errors; some animal on a 16:9 screen 100% of samples, in a phone's centre strip 97%. Per species on 16:9 / phone / past the camera: mako 61% / 21% / 11%, mahi 62% / 12% / 24%, whale shark (adult) 77% / 30% / 12%, tuna 59% / 20% / 3%, sardinella 40% / 0% / 0%. World z reached −135 to +44. Centre sampling ignores partly visible bodies; physical-phone performance unmeasured.
+- Validation: real Fish-frame 600 s soak, 180 bait fish / 8 mahi / 1 mako / 1 juvenile whale shark, seed 2; all finite, no wall contacts visible above 1% fog transmission. At >5% transmission, any animal centre in frame in 100% of desktop/wide samples and 69% of portrait samples; big-animal centres in 98% / 99% / 46%. Centre sampling excludes partially visible bodies; physical-phone performance unmeasured.
 
 ### The Shallows: animals circling
 

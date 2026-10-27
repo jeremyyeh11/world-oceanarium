@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Current boundary — clean `v0.39.0`
+## Current boundary — clean `v0.40.0`
 
 The unicornfish GLB was supplied on 2026-10-27 and registered with the existing
 caudal-wave, reef, environment-manifest and Atlas systems. Jeremy confirmed six
@@ -14,14 +14,15 @@ dev adults at 40–55 cm FL; `creatures_dev` IDs 841–846, three of each sex, s
 parameters 0/0.2/0.4/0.6/0.8/1. One adult model represents both sexes; its depicted
 sex and photo provenance have not been established. Do not infer a licence.
 
-Yellowfin is active in The Open Sea in `v0.40.0-dev_2`: the supplied model,
+Yellowfin is included in clean `v0.40.0`, accepted from `v0.40.0-dev_6`: the supplied model,
 Atlas specimen and one 299-fish development school. The runtime joins all five
 source parts without removing geometry. No new loading owner, motion architecture
 or database migration was added.
 
 Swim constants describe authored feel, not measured animal speeds. Jeremy accepted
 the unicornfish from `v0.39.0-dev_5` on 2026-10-27 and explicitly approved clean
-promotion/merge plus six public adults. Yellowfin still needs visual acceptance, public stocking approval and clean release.
+promotion/merge plus six public adults. Jeremy requested Yellowfin clean promotion and merge on 2026-10-27.
+Public stocking still requires separate approval; its 299-fish school remains in development data.
 
 Public unicornfish: IDs 847–852, three of each sex, size parameters
 0/0.2/0.4/0.6/0.8/1, matching the dev size distribution. The repository backup ran
@@ -175,8 +176,8 @@ boundary contacts, confirming the unpaired fallback.
 Performance: the five-part model measured 18.8 FPS / 3,139 full-frame draw calls.
 The joined model sampled roughly 52–59 FPS / 547–729 calls locally at DPR 1,
 depending on view and culling. Geometry is unchanged; these are browser samples,
-not a sustained 60 FPS guarantee or physical-phone measurement. Keep this build
-in development for visual/feel acceptance and performance review.
+not a sustained 60 FPS guarantee or physical-phone measurement. Jeremy accepted
+clean promotion/merge from dev_6; physical-phone measurement remains a follow-up.
 
 ## Export contract for both GLBs
 
@@ -202,11 +203,22 @@ in development for visual/feel acceptance and performance review.
    Actual mesh names, scale, source offsets, shader amplitudes/turn bend (source
    units), fin roots and Atlas poses must come from inspection, not guessed config.
 
-## Remaining Yellowfin acceptance gates
+## Yellowfin clean release and remaining follow-ups
 
-1. Jeremy reviews the complete school, fin silhouette, continuous motion and follow view.
-2. Check physical-phone performance and decide whether further rendering work is needed.
-3. Obtain separate public stocking and clean-release approval.
+Jeremy requested clean `v0.40.0` promotion/merge from `v0.40.0-dev_6` on 2026-10-27.
+The supplied model, fin silhouette, school, solo fallback and adult Whale Shark
+visibility changes are included. No production creature writes are part of this
+merge; the Atlas entry is available, with the 299-fish tank school in development.
+Separate production stocking approval and physical-phone measurement remain open
+in `ROADMAP.md`. The source photo's licence remains unspecified, not inferred.
+
+Adult Whale Shark #410's dev_6 real-frame visibility check (10 minutes, 16:9 default
+camera, centre inside frustum and within 120 WU) starts visible at 0 s, is visible
+91.8% of samples, has a longest absence of 16.5 s and no boundary contacts. The
+prior dev_5 first pass took 106.6 s and centre visibility was 10.1%. These are
+single-shark simulation results; they do not replace live/phone visual review.
+Outer bounds remain wide; `swim.goalBounds` and the existing true-angle yaw/pitch
+arc bring it through the visible scene. Contract: `docs/tank-design.md`.
 
 ## Documentary reel briefs (30 seconds each)
 

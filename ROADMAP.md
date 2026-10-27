@@ -13,37 +13,16 @@ Status labels:
 
 ## Current work
 
-### Yellowfin Tuna model and school
+### Yellowfin Tuna follow-ups
 
-Status: `Current in development` — `v0.40.0-dev_6`, `species/thunnus-albacares`,
-[PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168).
-Contract and stocking evidence: [docs/species-preparation.md](docs/species-preparation.md).
+Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
+[PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168) ·
+[Contract and validation](docs/species-preparation.md).
 
-- [x] Import the updated source with all four paired fins; preserve every triangle,
-  UV and texture in one runtime primitive. Fork length 2.240529418; size 1 is 9.56 WU.
-- [x] Atlas specimen/tile and responsive framing; local reserve follow review.
-- [x] Random count 299, one development Open Sea school: IDs 853–1151,
-  150 females / 149 males, configured 120–150 cm FL. Both tables backed up before/after;
-  production and all pre-existing dev rows verified unchanged.
-- [x] Real-frame 299-fish / 180-second check: no boundary contacts or school collapse;
-  one brief body-envelope overlap pair in 3/181 samples. Solo fallback: 60 seconds,
-  continuous movement, no boundary contact. Full regressions and procedural checks pass.
-- [x] Reduce five runtime parts to one: local browser samples improve from 18.8 FPS /
-  3,139 calls to about 52–59 FPS / 547–729 calls at DPR 1. Samples vary with framing;
-  this is not a guaranteed 60 FPS or physical-phone result.
-- [x] Dev_5 previews the upcoming clean v0.40.0 changelog alongside v0.39.0 and
-  v0.38.1, without individual dev patch entries or database-only changes.
-  Development Whale Shark #410 is now a 9.3 m adult (size parameter 13/120);
-  before/after snapshots verify only that row changed. Production stays unchanged.
-- [x] Dev_5 expands the adult Whale Shark's swim wedge beyond the tuna school
-  and picks goals across its room. Juvenile bounds stay unchanged.
-- [x] Dev_6 separates adult spawn/goals from its wide turning room and uses true-angle
-  return turns. Ten-minute #410 real-frame check: first visible at 0 s, centre visible
-  91.8% (16:9, within 120 WU), longest absence 16.5 s, no boundary contacts.
-  Prior dev_5: first visible 106.6 s, centre visible 10.1%. Browser feel still needs acceptance.
-- [ ] Jeremy's visual/feel acceptance, physical-phone performance review and any
-  further performance work before clean-release consideration.
-- [ ] Public stocking approval and clean release remain separate decisions.
+- [ ] Obtain separate approval for production tuna stocking; the 299-fish school
+  remains in development data. Production creature rows are unchanged by this release.
+- [ ] Measure physical-phone performance and track any resulting rendering work;
+  desktop samples and simulated movement checks are not a physical-phone benchmark.
 
 ### Atlas measurement clarity
 
@@ -934,6 +913,16 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### v0.40.0 — Yellowfin Tuna (2026-10-27)
+
+Jeremy requested clean promotion/merge of PR #168 from `v0.40.0-dev_6`.
+Shipped model with all four paired fins joined into one runtime primitive, Atlas,
+large-school behavior and solo fallback, clean visitor changelog history, and
+adult Whale Shark visible goals with broad turning space. Full validation and
+299-fish development stocking evidence are in `docs/species-preparation.md`.
+Production stocking and physical-phone measurement remain active follow-ups above.
+
 
 ### v0.39.0 — Bluespine Unicornfish
 

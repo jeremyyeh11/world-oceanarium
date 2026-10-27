@@ -8,7 +8,10 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.40.0 — Yellowfin Tuna (in development)
+## v0.40.0 — Yellowfin Tuna (2026-10-27)
+
+Accepted from `v0.40.0-dev_6`; Jeremy requested clean promotion and merge of
+[PR #168](https://github.com/jeremyyeh11/world-oceanarium/pull/168) on 2026-10-27.
 
 ### Species and Atlas
 - Adds Jeremy's Yellowfin Tuna model, animated Atlas specimen and rendered tile,
@@ -17,12 +20,10 @@ Versioning convention notes:
   into one runtime primitive to reduce school draw calls, preserving all geometry and
   the original texture. Stabilising fins hold their supplied pose on the rigid front.
 
-### Development reserve
-- Adds one 299-tuna school to The Open Sea, with a size-aware cloud, broad turning
+### Schooling
+- Supports a large tuna school in The Open Sea, with a size-aware cloud, broad turning
   room, steady cruise and solo fallback. Predatory schoolmates retain separation but
   do not evade or startle one another as threats. Other species still react to tuna.
-- Stocks 299 backed-up development adults, 150 females and 149 males. Public
-  stocking and clean release await acceptance; live data remains separate.
 
 ### Open-water movement
 - Gives the adult Whale Shark a larger camera-shaped swim wedge than the tuna
@@ -34,8 +35,8 @@ Versioning convention notes:
 
 ### Presentation
 - Backfills the visitor-facing changelog with clean releases v0.38.1 and v0.39.0;
-  the popup had a separate stale list. Development builds also preview the upcoming
-  clean v0.40.0 bucket, without individual dev patch entries or database-only changes.
+  the popup had a separate stale list. Development builds preview their upcoming
+  clean release bucket, without individual dev patch entries or database-only changes.
 
 ## v0.39.0 — Bluespine Unicornfish + Yellowfin Tuna preparation (2026-10-27)
 

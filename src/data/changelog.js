@@ -12,7 +12,7 @@ export const VISITOR_CHANGELOG = [
     date: '2026-10-27',
     title: 'Yellowfin Tuna',
     changes: [
-      ['new', 'A school of Yellowfin Tuna joins The Open Sea, cruising together through the blue. Meet the species in the Atlas too.'],
+      ['new', 'Meet the Yellowfin Tuna in the Atlas, with its sweeping yellow fins, animated specimen and measured scale.'],
       ['fix', 'The adult Whale Shark has more open water to roam, with room to turn beyond the edges of the view.'],
     ],
   },

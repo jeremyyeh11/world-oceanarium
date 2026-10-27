@@ -15,7 +15,7 @@ Status labels:
 
 ### Bluespine Unicornfish + Yellowfin Tuna preparation
 
-Status: `Current in development` — `v0.39.0-dev_2`, branch `codex/prepare-unicornfish-yellowfin`.
+Status: `Current in development` — `v0.39.0-dev_3`, branch `codex/prepare-unicornfish-yellowfin`.
 Jeremy (2026-10-27): prepare both species and all Atlas data before he supplies the GLBs.
 Research, model contract and reel briefs: [docs/species-preparation.md](docs/species-preparation.md).
 

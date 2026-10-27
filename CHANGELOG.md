@@ -22,12 +22,21 @@ Versioning convention notes:
 
 ### Unicornfish model intake
 
+- Dev_3 includes the accepted v0.38.1 Open Sea camera patch from main so the review branch stays mergeable.
 - Registers Jeremy's static GLB, centres its five meshes without changing their geometry,
   and uses the existing labriform caudal wave with rowing pectorals. The 57.402794-unit
   mouth-to-fork reference maps to 70 cm at size 1; longer tail tips are excluded from scale.
 - Adds the Atlas specimen, responsive pose and rendered tank tile. Stocks six approved
   dev adults in The Reefs at 40–55 cm FL (IDs 841–846), three of each sex, after backups.
   Production creature rows are unchanged. Motion/visual review remains a dev-release gate.
+
+## v0.38.1 — Open Sea camera (2026-10-27)
+
+Status: clean `v0.38.1`, accepted from `v0.38.1-dev_2`; PR #164. Jeremy approved promotion and merge on 2026-10-27.
+
+### Presentation
+
+- Open Sea's resting camera at The Shallows' upward pitch (about 22°), lowered to y −16 so the swimmers sit above the viewer; retain Open Sea's Z position and field of view.
 
 ## v0.38.0 — Giant Sea Fan (2026-10-26)
 

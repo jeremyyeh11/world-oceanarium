@@ -12,7 +12,7 @@ Versioning convention notes:
 
 ### Presentation
 
-- Trial Open Sea's resting camera at The Shallows' upward pitch (about 22°), retaining Open Sea's position and field of view.
+- Trial Open Sea's resting camera at The Shallows' upward pitch (about 22°), lowered to y −16 so the swimmers sit above the viewer; retain Open Sea's Z position and field of view.
 
 ## v0.38.0 — Giant Sea Fan (2026-10-26)
 

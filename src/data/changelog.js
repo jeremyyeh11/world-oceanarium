@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.40.2',
+    date: '2026-10-28',
+    title: 'Room to roam',
+    changes: [
+      ['fix', 'In The Open Sea, the sardinella, mahi-mahi, mako and sharksuckers roam far past the edges of the view and swim overhead, instead of turning at a visible wall.'],
+    ],
+  },
+  {
     version: 'v0.40.1',
     date: '2026-10-28',
     title: 'Giants of the Open Sea',

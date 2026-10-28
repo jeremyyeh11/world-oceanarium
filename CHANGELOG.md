@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.40.2 — Open Sea roaming (2026-10-28)
+
+Status: clean `v0.40.2`, accepted from `v0.40.2-dev_1`, branch `fix/open-sea-wider-roaming`,
+[PR #171](https://github.com/jeremyyeh11/world-oceanarium/pull/171). Jeremy approved promotion and merge on
+2026-10-28. Refitted from Codex's PR #166 (`v0.38.2-dev_1`, branched before v0.39.0) onto v0.40.0.
+
+### Behaviour and motion
+
+- Sardinella, mahi-mahi, mako and the sharksuckers roam farther back and past the viewer,
+  including overhead passes: one shared Open Sea room (`OPEN_SEA_BOUNDS`, z -80 to +45 after
+  the shared -15 offset) with wedge-shaped side walls outside the frame and narrower
+  crossing goals that keep animals returning through the view. Camera, vertical bands,
+  speeds and turn radii unchanged.
+- Sharksuckers share the expanded host room, so detached riders can still reach their sharks.
+- The tuna school and the adult whale shark keep the rooms tuned for them in v0.40.0 (their
+  own settings override the shared room). The whale shark's base profile takes the shared
+  room, which only an unused juvenile would see.
+
 ## v0.40.1 — Giants of the Open Sea (2026-10-28)
 
 Status: clean `v0.40.1`, accepted from `v0.40.1-dev_2`, branch `fix/whale-shark-adult-and-credits`,

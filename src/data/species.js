@@ -106,7 +106,7 @@ export const TANKS = [
       'coryphaena-hippurus',
       'isurus-oxyrinchus',
       'thunnus-albacares',
-      // Production retains a juvenile; development also reviews an adult.
+      // One 9.3 m adult in production and development (prod row 411 matched dev 410, 2026-10-28).
       'rhincodon-typus',
       // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
       // queued until their models land (docs/fish-queue.md).
@@ -400,293 +400,6 @@ const WHALE_SHARK_CAUDAL = {
 }
 
 export const SPECIES = [
-  // Biological lengths here are FORK lengths, not nose-to-tail-tip mesh bounds.
-  {
-    id: 'naso-unicornis',
-    name: 'Bluespine Unicornfish',
-    scientificName: 'Naso unicornis',
-    family: 'Acanthuridae',
-    alternateNames: ['Bluespine Unicorn', 'Unicorn Tang', 'Kala'],
-    atlasThumbnail: '/atlas/naso-unicornis-thumbnail.png',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    schooling: false,
-    // Loose reef company, with individual grazing visits; not a pelagic school.
-    group: { maxSize: 6 },
-    repulser: false,
-    aggressive: false,
-    predator: false,
-    tempo: 'cruise',
-    // FishBase/IUCN: LC, assessed 2010-05-07; checked 2026-10-27.
-    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
-    atlasDetails: {
-      biome: 'Coral Reef',
-      commonDiet: 'Leafy brown algae, especially Sargassum.',
-      foundIn: 'Indo-Pacific, from the Red Sea and East Africa to Hawaii and French Polynesia, southern Japan to Australia. Shallow lagoons, channels and seaward reefs; recorded from 0 to 180 m.',
-      maxLengthLabel: 'Fork length',
-      sexualDimorphism: 'At the same body size, males tend to have a longer horn, larger blue tail spines and longer tail filaments.',
-      // Andrews et al. 2016: radiocarbon age 54.5 ± 3 years. The preliminary 58-year
-      // otolith count was revised; this is longevity, not average survival in the wild.
-      lifeSpan: 'Over 50 years',
-      maturityAge: 'Males about 2 years; females about 3 years',
-      social: {
-        schoolSize: 'Small groups; sometimes solitary',
-        groupingBehaviour: 'Browses reef algae by day, often in loose groups. Adults use reef channels and slopes with water movement; juveniles occupy sheltered coastal bays.',
-        reproduction: 'Pair spawning with external fertilisation. Eggs and larvae develop in open water, without parental care.',
-      },
-      averages: {
-        // Moore, Rechelluul & Victor 2015, section 3.3.5: Palau commercial catch,
-        // 22 males / 60 females. Regional catch means, not global adult means.
-        maleSizeMeters: '0.38 m',
-        femaleSizeMeters: '0.42 m',
-        // Derived at the unrounded mean lengths (38.4 / 42.2 cm FL), using the
-        // report's pooled W(g) = 0.0598 * FL(cm)^2.6897; not measured mean weights.
-        maleWeightKg: 'About 1.1 kg',
-        femaleWeightKg: 'About 1.4 kg',
-        maleLifeExpectancyYears: 'Over 50 years',
-        femaleLifeExpectancyYears: 'Over 50 years',
-      },
-      lifecycle: {
-        // Andrews et al. 2016, p. 1584: updated growth model with DeMartini et al.
-        // 2014 median maturity lengths, 30.1 cm FL male / 35.5 cm FL female.
-        sexualMaturityYears: 'Males about 2 years; females about 3 years',
-        sexualSterilityYears: 'None known',
-        offspringPerMatingEvent: 'Unknown',
-      },
-    },
-    atlasSummary: { biome: 'Reef', zone: 'Sunlight', diet: 'Brown algae', social: 'Small groups' },
-    description: 'An olive-grey reef browser with a bony forehead horn and two blue, blade-bearing plates on each side of its tail base. It crops fleshy algae rather than eating live coral. The horn develops as the fish grows, but its function remains uncertain. Adults can live for more than half a century.',
-    // FishBase maximum 70 cm FL. Intended reserve specimens: 40–55 cm FL;
-    // six development adults confirmed by Jeremy at model intake (2026-10-27).
-    adultLengthRangeMeters: [0.355, 0.7],
-    maxBodyLengthMeters: 0.7,
-    sizeRange: [0.4 / 0.7, 0.55 / 0.7],
-    mass: { coefficient: 0.0598, exponent: 2.6897 },
-    swim: {
-      // Authored feel values, not measured swimming speeds.
-      bodyLengthWU: 2.8,
-      visualTimeScale: 0.8,
-      driftEnabled: false,
-      idleBLPerSec: [0.6, 1.0],
-      idleDriftBLPerSec: [0.08, 0.16],
-      snapBLPerSec: [1.1, 1.5],
-      burstBLPerSec: [2.4, 3.2],
-      burstInterval: [18, 30],
-      burstActionDuration: 0.6,
-      turnActionDuration: 0.5,
-      erraticness: 0.1,
-      turnRadiusBodyLengths: 1.1,
-      speedMultiplier: 1,
-      boundsUseSpeciesSize: false,
-      ...REEF_BOUNDS,
-      boids: { neighborCap: 4, perceptionBodyLengths: 2.5, separationWeight: 0.25, alignmentWeight: 0, cohesionWeight: 0, maxWeight: 0.25, menace: 0.03, wariness: 0.3 },
-    },
-    reef: {
-      affinity: 0.85,
-      modes: { patrol: 0.35, hover: 0.15, peck: 0.45, shelter: 0.05 },
-      pecks: [1, 2],
-      hoverSeconds: [3, 7],
-      startleShelterChance: 0.3,
-      // Override BOTH forms: inherited defaults would have it bite live coral.
-      corals: {
-        table: { patrol: 0.3, hover: 0.2, peck: 0, shelter: 0.4 },
-        thicket: { patrol: 0.1, hover: 0.1, peck: 0, shelter: 0 },
-      },
-    },
-    model: {
-      path: '/models/fish/naso-unicornis/naso-unicornis.glb',
-      // Supplied 2026-10-27; scripts/prepare-unicornfish-model.py bakes node offsets.
-      // Mouth to central caudal rim: 57.402794 source units -> 2.8 WU / 70 cm FL.
-      // Full tail-tip bounds are 59.821167; using those would undersize the fork length.
-      scale: 0.04877811358180113,
-      followAim: 'root',
-      moveset: {
-        cruise: 'procedural_cruise',
-        drift: 'procedural_drift',
-        turnLeft: 'procedural_turn_left',
-        turnRight: 'procedural_turn_right',
-        burst: 'procedural_burst',
-      },
-      proceduralAnimation: {
-        type: 'caudal-vertex',
-        bodyMeshNames: ['naso_unicornis'],
-        sourceAxis: 'z',
-        lateralAxis: 'x',
-        tailAtMaxZ: true,
-        // Labriform: firm front, rowing pectorals; tail assists turns and darts.
-        // 0.03 fork lengths in this export's source units, not the bannerfish's units.
-        amplitude: 1.722084,
-        turnStrength: 1.722084,
-        waveSpeed: 3.1,
-        waveTravel: 2.5,
-        flexStart: 0.5,
-        flexFull: 0.9,
-        burstAmplitude: 1.2,
-        response: 8,
-        speedFrequencyBoost: 0.4,
-        burstFrequencyBoost: 0.35,
-        pectoralFinFlutter: 0.45,
-        pelvicFinFlutter: 0.08,
-        finRootFrom: 'body-surface',
-      },
-      debugForwardOrigin: 'head',
-      debugForwardOffsetRatio: 0.5,
-    },
-  },
-  // Jeremy's supplied adult model and one 299-fish development school (2026-10-27).
-  {
-    id: 'thunnus-albacares',
-    name: 'Yellowfin Tuna',
-    scientificName: 'Thunnus albacares',
-    family: 'Scombridae',
-    alternateNames: ['Yellowfin', 'Ahi', 'Kihada'],
-    atlasThumbnail: '/atlas/thunnus-albacares-thumbnail.png',
-    biome: 'ocean',
-    depthZone: 'epipelagic',
-    schooling: true,
-    repulser: true,
-    aggressive: false,
-    predator: true,
-    tempo: 'sprint',
-    // IUCN 2021-01-15: LC globally; this does not describe every regional stock.
-    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
-    atlasDetails: {
-      biome: 'Open Ocean',
-      commonDiet: 'Fish, squid and pelagic crustaceans.',
-      foundIn: 'Tropical and subtropical oceans worldwide, absent from the Mediterranean. Usually in the upper 250 m; deeper dives are recorded.',
-      maxLengthLabel: 'Fork length',
-      sexualDimorphism: 'Sexes have similar colouring. Males tend to dominate the largest size classes; the long yellow fins develop with size rather than identifying sex.',
-      // ICCAT 2024–2025 executive summary: validated ages up to 18, superseding
-      // the 6–9-year maximum still given in some older species profiles.
-      lifeSpan: 'Up to 18 years',
-      maturityAge: 'About 2 to 3 years; varies by population',
-      social: {
-        schoolSize: 'Schools of similarly sized fish',
-        groupingBehaviour: 'Travels in open-water schools, sometimes with other tuna species. Aggregates near floating objects and, in some regions, dolphins. Keeps swimming to drive water across its gills.',
-        reproduction: 'Separate sexes release eggs and sperm into open water. Females spawn repeatedly through the season, potentially almost daily in warm tropical waters. Eggs and larvae are pelagic, with no parental care.',
-      },
-      averages: {
-        // FishBase common length, 150 cm FL, unsexed: a typical-size proxy,
-        // not a measured male/female mean. Morita 1973 (FAO) gives ~63 kg there.
-        maleSizeMeters: '1.50 m',
-        femaleSizeMeters: '1.50 m',
-        maleWeightKg: 'About 63 kg',
-        femaleWeightKg: 'About 63 kg',
-        maleLifeExpectancyYears: 'Up to 18 years',
-        femaleLifeExpectancyYears: 'Up to 18 years',
-      },
-      lifecycle: {
-        sexualMaturityYears: 'About 2 to 3 years; varies by population',
-        sexualSterilityYears: 'None known',
-        // Pacicco et al. 2023: 24 females, northcentral US Gulf of Mexico;
-        // observed batch range 37,956–6.2 million, not annual egg production.
-        offspringPerMatingEvent: 'About 38,000 to 6.2 million eggs per batch',
-      },
-    },
-    atlasSummary: { biome: 'Ocean', zone: 'Sunlight', diet: 'Fish + squid', social: 'Schooling' },
-    description: 'A streamlined blue-and-silver tuna with bright yellow finlets and elongated second dorsal and anal fins in large adults. It hunts fish, squid and crustaceans in open water. Continuous forward swimming carries water over its gills, while heat-retaining blood vessels keep parts of its body warmer than the surrounding sea.',
-    // FishBase maximum 239 cm FL; reserve fish 120–150 cm FL, 4.8–6 WU.
-    adultLengthRangeMeters: [1.08, 2.39],
-    maxBodyLengthMeters: 2.39,
-    sizeRange: [1.2 / 2.39, 1.5 / 2.39],
-    // Morita 1973, FAO t1817e05: W(kg) = 0.00002512 * FL(cm)^2.9396,
-    // 26–157 cm sampled. Runtime mass wants grams, so coefficient ×1000.
-    mass: { coefficient: 0.02512, exponent: 2.9396 },
-    swim: {
-      // One school, including the full 299-fish development stocking. Use the existing
-      // clearance cloud so density scales with count and the outer fish fit before turns.
-      bodyLengthWU: 9.56,
-      schoolMaxSize: Infinity,
-      schoolFormationWeight: 0.75,
-      schoolSoftWallBodyLengths: 0.5,
-      schoolGoalReachedBodyLengths: 5,
-      schoolStationGain: 0.2,
-      schoolStationSpeedRange: [0.85, 1.15],
-      schoolTurnRateScale: 0.35,
-      schoolFormation: {
-        spacingScale: 1,
-        packing: 0.3,
-        positionToleranceBodyLengths: [0.06, 0.16],
-        separationStart: 1.4,
-        driftStrength: 0.3,
-        radiusBodyLengths: 4,
-        heightBodyLengths: 1,
-        lateralBodyLengths: 0.7,
-        longitudinalBodyLengths: 1.4,
-        verticalBodyLengths: 0.6,
-      },
-      // Shared cruising pace; independent timed bursts would pull a large school apart.
-      burstEnabled: false,
-      turnSpeedupEnabled: false,
-      goalPick: 'across',
-      schoolSpacingScale: 2.5,
-      schoolMaxAvoidanceAngleDegrees: 18,
-      schoolDirectionResponse: 2,
-      visualTimeScale: 0.75,
-      visualHeadingFollowsMotion: true,
-      maxVisualPitchDegrees: 6,
-      driftEnabled: false,
-      idleBLPerSec: [0.65, 0.95],
-      idleDriftBLPerSec: [0.04, 0.08],
-      snapBLPerSec: [1.0, 1.3],
-      burstBLPerSec: [1.6, 2.2],
-      burstInterval: [18, 30],
-      burstActionDuration: 0.8,
-      turnActionDuration: 0.6,
-      erraticness: 0.06,
-      turnRadiusBodyLengths: 1.5,
-      speedMultiplier: 1,
-      boundsUseSpeciesSize: false,
-      // The large school may leave the frame. Keep its full extent and turn
-      // room inside the open-water wedge; Z receives the shared -15 WU offset.
-      boundsWedge: { apexZ: 10, slope: 1.4, margin: 95, goalSlope: 1, goalMargin: 0 },
-      boundsYMin: -34,
-      boundsYMax: 1,
-      boundsZMin: -120,
-      boundsZMax: 60,
-      boids: { neighborCap: 12, perceptionBodyLengths: 3, separationWeight: 3.0, alignmentWeight: 0.3, cohesionWeight: 0, maxWeight: 0.9, menace: 0.45, wariness: 0.4 },
-    },
-    model: {
-      path: '/models/fish/thunnus-albacares/thunnus-albacares.glb',
-      doubleSided: true,
-      // Supplied 2026-10-27; prepare-yellowfin-model.py bakes/centres the root.
-      // Mouth -> central tail fork = 2.240529418 source units, not 2.398550 tail tips.
-      // Size 1 = 239 cm FL / 9.56 WU; proposed adults are 120–150 cm FL.
-      scale: 4.266848684615521,
-      followAim: 'root',
-      moveset: {
-        cruise: 'procedural_cruise',
-        drift: 'procedural_drift',
-        turnLeft: 'procedural_turn_left',
-        turnRight: 'procedural_turn_right',
-        burst: 'procedural_burst',
-      },
-      proceduralAnimation: {
-        type: 'caudal-vertex',
-        bodyMeshNames: ['thunnus_albacares'],
-        sourceAxis: 'z',
-        lateralAxis: 'x',
-        tailAtMaxZ: true,
-        // Thunniform: firm front, thrust from a compact rear-body/tail stroke.
-        // Source-space displacement: 0.045 fork lengths, stronger under burst.
-        amplitude: 0.100824,
-        turnStrength: 0.067216,
-        waveSpeed: 3.0,
-        waveTravel: 2.4,
-        flexStart: 0.55,
-        flexFull: 0.92,
-        burstAmplitude: 0.7,
-        response: 7.5,
-        speedFrequencyBoost: 0.32,
-        burstFrequencyBoost: 0.24,
-        // Paired stabilising fins are joined at intake; the front remains rigid.
-        pectoralFinFlutter: 0,
-        pelvicFinFlutter: 0,
-      },
-      debugForwardOrigin: 'head',
-      debugForwardOffsetRatio: 0.5,
-    },
-  },
   {
     id: 'amblygaster-sirm',
     legacyIds: ['sardine'],
@@ -3003,7 +2716,8 @@ export const SPECIES = [
   },
   // Facts from FishBase, plus Norman & Stevens 2007 (males mature at about 8 m) and Meekan et al.
   // 2020 (males level off at 8–9 m, females near 14.5 m). The species is described at its true
-  // scale; production keeps a 6 m juvenile, while development reviews a 9.3 m adult.
+  // scale; production and development each keep one 9.3 m adult male (production's was a 6 m
+  // juvenile until 2026-10-28).
   // See lifeStages below for their swimming room and model scales.
   {
     id: 'rhincodon-typus',
@@ -3166,8 +2880,8 @@ export const SPECIES = [
           goalPick: 'across',
         },
       },
-      // Juvenile profile retained for the production shark: 5.5–6.5 m, larger than the mako, and
-      // short of the ~8 m at which males mature. It keeps the species' gait, sized to itself.
+      // Juvenile profile: 5.5–6.5 m, larger than the mako, and short of the ~8 m at which males
+      // mature. It keeps the species' gait, sized to itself. No live row uses it since 2026-10-28.
       juvenile: {
         sizeRange: [0.92, 1.08],
         swim: {
@@ -4163,8 +3877,9 @@ export const SPECIES = [
     },
   },
   // Giant Sea Fan (Annella mollis): Jeremy's pick (2026-10-25) for a soft coral back on The Reefs.
-  // A landscape species like the Acroporas: fans stand on the table corals' bommies (landscapes.js
-  // `seaFans`, src/components/seaFanPlacement.js) and sway in the surge (utils/coralSway.js,
+  // A landscape species like the Acroporas: fans grow from rock faces on the table corals' bommies
+  // and, singly, on other reef rocks (landscapes.js `seaFans`, src/components/seaFanPlacement.js),
+  // and sway in the surge (utils/coralSway.js,
   // docs/procedural/coral-sway.md). Jeremy's model (2026-10-26): three photo-textured fans; the
   // Atlas shows all three fans on a low rock (scripts/build-sea-fan-atlas.py).
   // Facts: SeaLifeBase (IUCN Not Evaluated; Indo-West Pacific; 12-18 m on lower reef slopes and
@@ -4239,6 +3954,298 @@ export const SPECIES = [
       // The lattice is one cut-out sheet, seen from both sides.
       doubleSided: true,
       sway: SEA_FAN_SWAY,
+    },
+  },
+  {
+    // Biological lengths here are fork lengths, not nose-to-tail-tip mesh bounds.
+    id: 'naso-unicornis',
+    name: 'Bluespine Unicornfish',
+    scientificName: 'Naso unicornis',
+    family: 'Acanthuridae',
+    alternateNames: ['Bluespine Unicorn', 'Unicorn Tang', 'Kala'],
+    // Tile (2026-10-28): fish 841's head in three-quarter view, facing left, rendered in the dev
+    // tank with the other fish hidden, square at 470 px (was a soft 400 px capture).
+    atlasThumbnail: '/atlas/naso-unicornis-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    // Loose reef company, with individual grazing visits; not a pelagic school.
+    group: { maxSize: 6 },
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    tempo: 'cruise',
+    // FishBase/IUCN: LC, assessed 2010-05-07; checked 2026-10-27.
+    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      commonDiet: 'Leafy brown algae, especially Sargassum.',
+      foundIn: 'Indo-Pacific, from the Red Sea and East Africa to Hawaii and French Polynesia, southern Japan to Australia. Shallow lagoons, channels and seaward reefs; recorded from 0 to 180 m.',
+      maxLengthLabel: 'Fork length',
+      sexualDimorphism: 'At the same body size, males tend to have a longer horn, larger blue tail spines and longer tail filaments.',
+      // Andrews et al. 2016: radiocarbon age 54.5 ± 3 years. The preliminary 58-year
+      // otolith count was revised; this is longevity, not average survival in the wild.
+      lifeSpan: 'Over 50 years',
+      maturityAge: 'Males about 2 years; females about 3 years',
+      social: {
+        schoolSize: 'Small groups; sometimes solitary',
+        groupingBehaviour: 'Browses reef algae by day, often in loose groups. Adults use reef channels and slopes with water movement; juveniles occupy sheltered coastal bays.',
+        reproduction: 'Pair spawning with external fertilisation. Eggs and larvae develop in open water, without parental care.',
+      },
+      averages: {
+        // Moore, Rechelluul & Victor 2015, section 3.3.5: Palau commercial catch,
+        // 22 males / 60 females. Regional catch means, not global adult means.
+        maleSizeMeters: '0.38 m',
+        femaleSizeMeters: '0.42 m',
+        // Derived at the unrounded mean lengths (38.4 / 42.2 cm FL), using the
+        // report's pooled W(g) = 0.0598 * FL(cm)^2.6897; not measured mean weights.
+        maleWeightKg: 'About 1.1 kg',
+        femaleWeightKg: 'About 1.4 kg',
+        maleLifeExpectancyYears: 'Over 50 years',
+        femaleLifeExpectancyYears: 'Over 50 years',
+      },
+      lifecycle: {
+        // Andrews et al. 2016, p. 1584: updated growth model with DeMartini et al.
+        // 2014 median maturity lengths, 30.1 cm FL male / 35.5 cm FL female.
+        sexualMaturityYears: 'Males about 2 years; females about 3 years',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: { biome: 'Reef', zone: 'Sunlight', diet: 'Brown algae', social: 'Small groups' },
+    description: 'An olive-grey reef browser with a bony forehead horn and two blue, blade-bearing plates on each side of its tail base. It crops fleshy algae rather than eating live coral. The horn develops as the fish grows, but its function remains uncertain. Adults can live for more than half a century.',
+    // FishBase maximum 70 cm FL. Intended reserve specimens: 40–55 cm FL;
+    // six development adults confirmed by Jeremy at model intake (2026-10-27).
+    adultLengthRangeMeters: [0.355, 0.7],
+    maxBodyLengthMeters: 0.7,
+    sizeRange: [0.4 / 0.7, 0.55 / 0.7],
+    mass: { coefficient: 0.0598, exponent: 2.6897 },
+    swim: {
+      // Authored feel values, not measured swimming speeds.
+      bodyLengthWU: 2.8,
+      visualTimeScale: 0.8,
+      driftEnabled: false,
+      idleBLPerSec: [0.6, 1.0],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [1.1, 1.5],
+      burstBLPerSec: [2.4, 3.2],
+      burstInterval: [18, 30],
+      burstActionDuration: 0.6,
+      turnActionDuration: 0.5,
+      erraticness: 0.1,
+      turnRadiusBodyLengths: 1.1,
+      speedMultiplier: 1,
+      boundsUseSpeciesSize: false,
+      ...REEF_BOUNDS,
+      boids: { neighborCap: 4, perceptionBodyLengths: 2.5, separationWeight: 0.25, alignmentWeight: 0, cohesionWeight: 0, maxWeight: 0.25, menace: 0.03, wariness: 0.3 },
+    },
+    reef: {
+      affinity: 0.85,
+      modes: { patrol: 0.35, hover: 0.15, peck: 0.45, shelter: 0.05 },
+      pecks: [1, 2],
+      hoverSeconds: [3, 7],
+      startleShelterChance: 0.3,
+      // Override BOTH forms: inherited defaults would have it bite live coral.
+      corals: {
+        table: { patrol: 0.3, hover: 0.2, peck: 0, shelter: 0.4 },
+        thicket: { patrol: 0.1, hover: 0.1, peck: 0, shelter: 0 },
+      },
+    },
+    model: {
+      path: '/models/fish/naso-unicornis/naso-unicornis.glb',
+      // Supplied 2026-10-27; scripts/prepare-unicornfish-model.py bakes node offsets.
+      // Mouth to central caudal rim: 57.402794 source units -> 2.8 WU / 70 cm FL.
+      // Full tail-tip bounds are 59.821167; using those would undersize the fork length.
+      scale: 0.04877811358180113,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['naso_unicornis'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Labriform: firm front, rowing pectorals; tail assists turns and darts.
+        // 0.03 fork lengths in this export's source units, not the bannerfish's units.
+        amplitude: 1.722084,
+        turnStrength: 1.722084,
+        waveSpeed: 3.1,
+        waveTravel: 2.5,
+        flexStart: 0.5,
+        flexFull: 0.9,
+        burstAmplitude: 1.2,
+        response: 8,
+        speedFrequencyBoost: 0.4,
+        burstFrequencyBoost: 0.35,
+        pectoralFinFlutter: 0.45,
+        pelvicFinFlutter: 0.08,
+        finRootFrom: 'body-surface',
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // Jeremy's supplied adult model (2026-10-27); one 299-fish school in development and, since
+  // 2026-10-28, production.
+  {
+    id: 'thunnus-albacares',
+    name: 'Yellowfin Tuna',
+    scientificName: 'Thunnus albacares',
+    family: 'Scombridae',
+    alternateNames: ['Yellowfin', 'Ahi', 'Kihada'],
+    atlasThumbnail: '/atlas/thunnus-albacares-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: true,
+    repulser: true,
+    aggressive: false,
+    predator: true,
+    tempo: 'sprint',
+    // IUCN 2021-01-15: LC globally; this does not describe every regional stock.
+    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
+    atlasDetails: {
+      biome: 'Open Ocean',
+      commonDiet: 'Fish, squid and pelagic crustaceans.',
+      foundIn: 'Tropical and subtropical oceans worldwide, absent from the Mediterranean. Usually in the upper 250 m; deeper dives are recorded.',
+      maxLengthLabel: 'Fork length',
+      sexualDimorphism: 'Sexes have similar colouring. Males tend to dominate the largest size classes; the long yellow fins develop with size rather than identifying sex.',
+      // ICCAT 2024–2025 executive summary: validated ages up to 18, superseding
+      // the 6–9-year maximum still given in some older species profiles.
+      lifeSpan: 'Up to 18 years',
+      maturityAge: 'About 2 to 3 years; varies by population',
+      social: {
+        schoolSize: 'Schools of similarly sized fish',
+        groupingBehaviour: 'Travels in open-water schools, sometimes with other tuna species. Aggregates near floating objects and, in some regions, dolphins. Keeps swimming to drive water across its gills.',
+        reproduction: 'Separate sexes release eggs and sperm into open water. Females spawn repeatedly through the season, potentially almost daily in warm tropical waters. Eggs and larvae are pelagic, with no parental care.',
+      },
+      averages: {
+        // FishBase common length, 150 cm FL, unsexed: a typical-size proxy,
+        // not a measured male/female mean. Morita 1973 (FAO) gives ~63 kg there.
+        maleSizeMeters: '1.50 m',
+        femaleSizeMeters: '1.50 m',
+        maleWeightKg: 'About 63 kg',
+        femaleWeightKg: 'About 63 kg',
+        maleLifeExpectancyYears: 'Up to 18 years',
+        femaleLifeExpectancyYears: 'Up to 18 years',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'About 2 to 3 years; varies by population',
+        sexualSterilityYears: 'None known',
+        // Pacicco et al. 2023: 24 females, northcentral US Gulf of Mexico;
+        // observed batch range 37,956–6.2 million, not annual egg production.
+        offspringPerMatingEvent: 'About 38,000 to 6.2 million eggs per batch',
+      },
+    },
+    atlasSummary: { biome: 'Ocean', zone: 'Sunlight', diet: 'Fish + squid', social: 'Schooling' },
+    description: 'A streamlined blue-and-silver tuna with bright yellow finlets and elongated second dorsal and anal fins in large adults. It hunts fish, squid and crustaceans in open water. Continuous forward swimming carries water over its gills, while heat-retaining blood vessels keep parts of its body warmer than the surrounding sea.',
+    // FishBase maximum 239 cm FL; reserve fish 120–150 cm FL, 4.8–6 WU.
+    adultLengthRangeMeters: [1.08, 2.39],
+    maxBodyLengthMeters: 2.39,
+    sizeRange: [1.2 / 2.39, 1.5 / 2.39],
+    // Morita 1973, FAO t1817e05: W(kg) = 0.00002512 * FL(cm)^2.9396,
+    // 26–157 cm sampled. Runtime mass wants grams, so coefficient ×1000.
+    mass: { coefficient: 0.02512, exponent: 2.9396 },
+    swim: {
+      // One school, including the full 299-fish development stocking. Use the existing
+      // clearance cloud so density scales with count and the outer fish fit before turns.
+      bodyLengthWU: 9.56,
+      schoolMaxSize: Infinity,
+      schoolFormationWeight: 0.75,
+      schoolSoftWallBodyLengths: 0.5,
+      schoolGoalReachedBodyLengths: 5,
+      schoolStationGain: 0.2,
+      schoolStationSpeedRange: [0.85, 1.15],
+      schoolTurnRateScale: 0.35,
+      schoolFormation: {
+        spacingScale: 1,
+        packing: 0.3,
+        positionToleranceBodyLengths: [0.06, 0.16],
+        separationStart: 1.4,
+        driftStrength: 0.3,
+        radiusBodyLengths: 4,
+        heightBodyLengths: 1,
+        lateralBodyLengths: 0.7,
+        longitudinalBodyLengths: 1.4,
+        verticalBodyLengths: 0.6,
+      },
+      // Shared cruising pace; independent timed bursts would pull a large school apart.
+      burstEnabled: false,
+      turnSpeedupEnabled: false,
+      goalPick: 'across',
+      schoolSpacingScale: 2.5,
+      schoolMaxAvoidanceAngleDegrees: 18,
+      schoolDirectionResponse: 2,
+      visualTimeScale: 0.75,
+      visualHeadingFollowsMotion: true,
+      maxVisualPitchDegrees: 6,
+      driftEnabled: false,
+      idleBLPerSec: [0.65, 0.95],
+      idleDriftBLPerSec: [0.04, 0.08],
+      snapBLPerSec: [1.0, 1.3],
+      // Bursts are off, but the burst speed still scales the tail beat and swim sound
+      // (Fish.jsx speed01), so it stays.
+      burstBLPerSec: [1.6, 2.2],
+      burstInterval: [18, 30],
+      burstActionDuration: 0.8,
+      turnActionDuration: 0.6,
+      erraticness: 0.06,
+      turnRadiusBodyLengths: 1.5,
+      speedMultiplier: 1,
+      boundsUseSpeciesSize: false,
+      // The large school may leave the frame. Keep its full extent and turn
+      // room inside the open-water wedge; Z receives the shared -15 WU offset.
+      boundsWedge: { apexZ: 10, slope: 1.4, margin: 95, goalSlope: 1, goalMargin: 0 },
+      boundsYMin: -34,
+      boundsYMax: 1,
+      boundsZMin: -120,
+      boundsZMax: 60,
+      boids: { neighborCap: 12, perceptionBodyLengths: 3, separationWeight: 3.0, alignmentWeight: 0.3, cohesionWeight: 0, maxWeight: 0.9, menace: 0.45, wariness: 0.4 },
+    },
+    model: {
+      path: '/models/fish/thunnus-albacares/thunnus-albacares.glb',
+      doubleSided: true,
+      // Supplied 2026-10-27; prepare-yellowfin-model.py bakes/centres the root.
+      // Mouth -> central tail fork = 2.240529418 source units, not 2.398550 tail tips.
+      // Size 1 = 239 cm FL / 9.56 WU; proposed adults are 120–150 cm FL.
+      scale: 4.266848684615521,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['thunnus_albacares'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Thunniform: firm front, thrust from a compact rear-body/tail stroke.
+        // Source-space displacement: 0.045 fork lengths, stronger under burst.
+        amplitude: 0.100824,
+        turnStrength: 0.067216,
+        waveSpeed: 3.0,
+        waveTravel: 2.4,
+        flexStart: 0.55,
+        flexFull: 0.92,
+        burstAmplitude: 0.7,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        // Paired stabilising fins are joined at intake; the front remains rigid.
+        pectoralFinFlutter: 0,
+        pelvicFinFlutter: 0,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
     },
   },
 ]
@@ -4320,7 +4327,7 @@ export const CREATURES = [
     sex: index % 2 === 0 ? 'male' : 'female',
     size,
   })),
-  // Whale shark review fixture: one 6 m juvenile male in the Open Sea.
+  // Whale shark review fixture: one 9.3 m adult male in the Open Sea, matching the live rows.
   {
     id: 110,
     species: 'rhincodon-typus',
@@ -4329,8 +4336,8 @@ export const CREATURES = [
     bornAt: '2026-10-16T00:00:00Z',
     alive: true,
     sex: 'male',
-    lifeStage: 'juvenile',
-    // Mid-range: 24 WU, 6 m.
-    size: 0.5,
+    lifeStage: 'adult',
+    // sizeRange 0.4–1.0 of 20 m: (0.4 + 0.6 × 0.1083) × 20 m = 9.3 m.
+    size: 0.65 / 6,
   },
 ]

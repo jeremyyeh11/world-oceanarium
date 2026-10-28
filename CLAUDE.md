@@ -8,6 +8,9 @@ conventions, workflow, and review expectations.
 This file adds only the Claude-specific guidance below. Anything not covered here
 lives in AGENTS.md — go read it before touching the codebase.
 
+Process rules belong in AGENTS.md, not in Claude's auto-memory: other agents can't read
+that memory. Follow AGENTS.md's "Collaborator-proof rules".
+
 ---
 
 <!-- code-review-graph MCP tools -->

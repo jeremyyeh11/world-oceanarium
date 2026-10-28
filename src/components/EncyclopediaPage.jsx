@@ -482,11 +482,16 @@ function formatReferenceLength(meters) {
  * against it — a 27cm fish next to a diver reads as a sliver, which is the
  * honest answer.
  */
+// Measurements the scale bar calls "Specimen": a disc width shows as a note on the value
+// instead, and fork length stays off the Atlas at Jeremy's request (v0.39.0) until the
+// measurement copy pass in ROADMAP (Atlas measurement clarity).
+const SCALE_LABEL_AS_SPECIMEN = new Set(['Disc width', 'Fork length'])
+
 function AtlasScaleBar({ species }) {
   const speciesMeters = speciesLengthMeters(species)
   const measurementLabel = species?.atlasDetails?.maxLengthLabel
   const usesDiscWidth = measurementLabel === 'Disc width'
-  const speciesLabel = usesDiscWidth || measurementLabel === 'Fork length' ? 'Specimen' : measurementLabel ?? 'Specimen'
+  const speciesLabel = SCALE_LABEL_AS_SPECIMEN.has(measurementLabel) ? 'Specimen' : measurementLabel ?? 'Specimen'
   if (!Number.isFinite(speciesMeters) || speciesMeters <= 0) return null
 
   const longest = Math.max(HUMAN_SCALE_METERS, speciesMeters)

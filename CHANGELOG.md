@@ -8,6 +8,68 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.40.1 — Giants of the Open Sea (2026-10-28)
+
+Status: clean `v0.40.1`, accepted from `v0.40.1-dev_2`, branch `fix/whale-shark-adult-and-credits`,
+[PR #170](https://github.com/jeremyyeh11/world-oceanarium/pull/170). Jeremy approved promotion and merge
+on 2026-10-28. Follow-ups from an audit of v0.38.0–v0.40.0.
+
+### Creature data
+
+- Production whale shark (id 411) matches development's adult (id 410), on Jeremy's request:
+  `life_stage` adult, size 0.1083 (9.3 m; was a 6 m juvenile at 0.5), same description.
+  `npm run backup:creatures` before and after: 808 rows, only row 411 changed. The
+  bundled fixture (id 110) matches. The juvenile profile stays in `lifeStages`, unused.
+- The 299-fish production tuna school (ids 1152–1450, stocked 2026-10-28 on Jeremy's
+  approval; PR #169's record is included here) is now in the visitor changelog.
+
+### Credits and assets
+
+- Image credits list every photo texture. 19 entries are new: 17 show "Unknown source" and
+  two name only the photographer (Simon Ilett, humphead wrasse body; Guy Stevens, Manta
+  Trust, manta top). Generated textures (whale shark, manta belly) are not listed.
+  `SourcesModal.jsx` renders an entry with no `url` as "Unknown source".
+- The mako GLB's mouth and teeth sampled a 17 × 39 px corner of an unrelated IHC Melbourne
+  logo. That patch is now the whole texture, with the UVs remapped onto it (6,184 sampled
+  vertices, colours unchanged); 3.15 → 3.11 MB.
+
+### Presentation
+
+- The visitor changelog's v0.40.0 entry no longer claims an adult whale shark: production
+  had only the juvenile then.
+
+### Code and tests
+
+- `EncyclopediaPage.jsx`: the scale bar's "Specimen" labels are one named set
+  (`SCALE_LABEL_AS_SPECIMEN`: disc width, fork length) with the reason, not a string test.
+- Tuna: a comment says why `burstBLPerSec` stays with bursts off (it scales the tail beat
+  and swim sound). The audit had wrongly called it dead config.
+- `tests/seaFanPlacement.test.mjs` starts Vite with `optimizeDeps.noDiscovery`, so
+  `npm test` no longer prints a dependency-scan stack trace when the server closes.
+
+### Atlas
+
+- Unicornfish tile re-rendered: fish 841's head, three-quarter, facing left, other fish
+  hidden, 470 px (was a soft 400 px capture). The tuna tile is kept: its teal comes from
+  the model's photo texture, not the capture.
+- CHANGELOG v0.38.0 links PR #163, whose squash title lacks `(#163)`.
+
+### Docs
+
+- AGENTS.md "Collaborator-proof rules": AGENTS.md and the repo docs are the source of truth
+  for process; a rule learned in a session goes there in the same PR, never only into one
+  agent's private memory. Rules previously held only in Claude's memory moved in: merge
+  means promote, the `main` ruleset, parallel merges, verifying the live bundle, where
+  credits go, the Atlas tile timing, creature-row rules (explicit ids, dev snapshots,
+  descriptions, fixtures, life-stage timing), flat shading, one reserve per species. The
+  species checklist gains the Atlas averages method, texture/alpha/normals intake checks
+  and the tile render method. CLAUDE.md points at the new section.
+- ROADMAP: shipped sections leave Current work: finished ones join Released / archived,
+  ones with open items move to a new "Shipped, with open follow-ups" section. No lines lost.
+- Stale sea fan placement notes in AGENTS.md and species.js; the whale shark's comments.
+- AGENTS.md and `docs/new-species-checklist.md` gain the release rules this audit found
+  missed (see AGENTS.md, Release hygiene).
+
 ## v0.40.0 — Yellowfin Tuna (2026-10-27)
 
 Accepted from `v0.40.0-dev_6`; Jeremy requested clean promotion and merge of
@@ -77,7 +139,7 @@ Status: clean `v0.38.1`, accepted from `v0.38.1-dev_2`; PR #164. Jeremy approved
 
 ## v0.38.0 — Giant Sea Fan (2026-10-26)
 
-Status: clean `v0.38.0`, accepted from `v0.38.0-dev_8`, branch `feat/annella-mollis`. Jeremy explicitly approved promotion and merge to main. Includes the latest `v0.37.2` debug UI.
+Status: clean `v0.38.0`, accepted from `v0.38.0-dev_8`, branch `feat/annella-mollis`, [PR #163](https://github.com/jeremyyeh11/world-oceanarium/pull/163) (merged without `(#163)` in its squash title). Jeremy explicitly approved promotion and merge to main. Includes the latest `v0.37.2` debug UI.
 
 ### Species and Atlas
 

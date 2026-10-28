@@ -12,7 +12,7 @@ Prepared in `v0.39.0-dev_1` on Jeremy's request (2026-10-27), with researched
 Atlas fields, scale references, mass relationship and draft movement data.
 Still hidden in Atlas, with no model, tank roster entry or creature rows.
 See [the preparation and GLB handoff](species-preparation.md)
-for sources, measurement conventions, proposed populations and the 30-second reels.
+for sources, measurement conventions and proposed populations.
 
 - **Yellowfin Tuna** (`thunnus-albacares`): The Open Sea; proposed four to six schooling
   adults at 120–150 cm fork length. Existing `caudal-wave` with a firm front and a

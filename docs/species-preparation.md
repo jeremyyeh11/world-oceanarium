@@ -22,7 +22,13 @@ or database migration was added.
 Swim constants describe authored feel, not measured animal speeds. Jeremy accepted
 the unicornfish from `v0.39.0-dev_5` on 2026-10-27 and explicitly approved clean
 promotion/merge plus six public adults. Jeremy requested Yellowfin clean promotion and merge on 2026-10-27.
-Public stocking still requires separate approval; its 299-fish school remains in development data.
+Jeremy separately approved public stocking on 2026-10-28. Production now includes
+299 adults, IDs **1152–1450**, with the reviewed development size/sex distribution:
+150 females / 149 males, 124.065–145.872 cm FL. Production total is 509→808;
+all prior production rows and all 801 development rows are unchanged. Dedicated
+before/after snapshots are under ignored
+`.supabase-creature-backups/yellowfin-public-2026-10-28/`; the repository backup
+script also ran before/after. No Whale Shark data changed in this stocking.
 
 Public unicornfish: IDs 847–852, three of each sex, size parameters
 0/0.2/0.4/0.6/0.8/1, matching the dev size distribution. The repository backup ran
@@ -208,9 +214,10 @@ clean promotion/merge from dev_6; physical-phone measurement remains a follow-up
 Jeremy requested clean `v0.40.0` promotion/merge from `v0.40.0-dev_6` on 2026-10-27.
 The supplied model, fin silhouette, school, solo fallback and adult Whale Shark
 visibility changes are included. No production creature writes are part of this
-merge; the Atlas entry is available, with the 299-fish tank school in development.
-Separate production stocking approval and physical-phone measurement remain open
-in `ROADMAP.md`. The source photo's licence remains unspecified, not inferred.
+merge. The Atlas entry is available; the 299-fish tank school was separately added
+to production on Jeremy's approval on 2026-10-28 (see Current boundary above).
+Physical-phone measurement remains open in `ROADMAP.md`.
+The source photo's licence remains unspecified, not inferred.
 
 Adult Whale Shark #410's dev_6 real-frame visibility check (10 minutes, 16:9 default
 camera, centre inside frustum and within 120 WU) starts visible at 0 s, is visible
@@ -219,20 +226,6 @@ prior dev_5 first pass took 106.6 s and centre visibility was 10.1%. These are
 single-shark simulation results; they do not replace live/phone visual review.
 Outer bounds remain wide; `swim.goalBounds` and the existing true-angle yaw/pitch
 arc bring it through the visible scene. Contract: `docs/tank-design.md`.
-
-## Documentary reel briefs (30 seconds each)
-
-Unicornfish — **“Unicorns are real.”** 0–5 s: side silhouette/horn reveal. 5–15 s:
-orbit toward the blue tail blades. 15–25 s: observe a grazing visit. 25–30 s:
-widen to the loose reef group and reveal the name. Narration distinguishes the
-horn's uncertain purpose from the tail blades and algae diet. No fighting or coral
-destruction animation is required.
-
-Yellowfin — **“Every breath is a swim.”** 0–5 s: uninterrupted side-follow and the
-breathing hook. 5–15 s: mouth/gill/tail close views with narration about water flow.
-15–25 s: the school banks, showing yellow fins and streamlined bodies. 25–30 s:
-continue into blue water and reveal the name. Do not imply simulated gill-fluid
-dynamics; an explanatory graphic can illustrate the biology in the edit.
 
 ## Source links (consulted 2026-10-27)
 

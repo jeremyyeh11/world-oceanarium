@@ -8,12 +8,21 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.40.1',
+    date: '2026-10-28',
+    title: 'Giants of the Open Sea',
+    changes: [
+      ['new', 'A school of Yellowfin Tuna sweeps through The Open Sea.'],
+      ['new', 'The Whale Shark is now a full-grown 9.3 m adult, roaming wide open water and turning beyond the edges of the view.'],
+      ['fix', 'Image credits now list every photo the animals are textured from, including those whose source is still unknown.'],
+    ],
+  },
+  {
     version: 'v0.40.0',
     date: '2026-10-27',
     title: 'Yellowfin Tuna',
     changes: [
       ['new', 'Meet the Yellowfin Tuna in the Atlas, with its sweeping yellow fins, animated specimen and measured scale.'],
-      ['fix', 'The adult Whale Shark has more open water to roam, with room to turn beyond the edges of the view.'],
     ],
   },
   {

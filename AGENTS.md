@@ -14,6 +14,16 @@ World Oceanarium is a quiet, biologically grounded aquarium simulation, not a ge
 
 Design rule: every mechanic must answer **what it feels like to do, and why that matters**.
 
+## Collaborator-proof rules
+
+Several agents work on this repo (Claude, Codex, Hermes and others), alongside Jeremy and YK. None of them can read another agent's private memory, so a rule kept only there will be broken by the next agent.
+
+- This file and the docs it links (`docs/new-species-checklist.md`, `docs/tank-design.md`, `docs/procedural/`, ROADMAP) are the single source of truth for how work is done here.
+- When Jeremy corrects a process, or you learn a rule the next agent will need, write it here or into the doc it belongs to, in the same PR as the work. Saving it to your own memory as well is fine; saving it only there is not.
+- Your own memory may keep only what is specific to your machine or tools (local paths, workarounds), with a pointer to the rule here.
+- If your memory disagrees with this file, this file wins. Raise the conflict with Jeremy rather than following the memory.
+- Rules written here stay generic: no personal paths, vault locations or secrets (see Release hygiene, "Commit only what belongs to the codebase").
+
 ## Repository / stack
 
 - Repo: `jeremyyeh11/world-oceanarium`
@@ -45,7 +55,7 @@ Important paths:
 - `docs/reef-behavior.md` — reef fish at the rocks: `reef` profiles, the patrol/hover/peck/shelter modes and stages, site raycasts, swim volume; and the coral forms index (`table`, `thicket`; `mound`, `fan`, `host` proposed): how each mode plays at each form, and the universal rules every fish follows at every coral. A new coral is a row under an existing form unless its shape offers something none covers
 - `src/components/coralPlacement.js` — table corals on the reef rocks: which rocks get a cluster, and the foot/top/shoulder placement against the drawn rock. The coral kit and its Atlas specimen are built by `scripts/build-coral-kit.py` and `scripts/build-coral-atlas.py` (headless Blender)
 - `src/components/staghornPlacement.js` — staghorn coral in one-colour patches on the table corals' bommies, placed after the tables and clear of their plates; drawn as one `THREE.LOD` per bommie. Each patch is one `thicket` reef-site surface (Landscape.jsx `thicketReefSurfaces`). Kit and Atlas specimen from `scripts/build-staghorn-kit.py` and `scripts/build-staghorn-atlas.py`
-- `src/components/seaFanPlacement.js` — giant sea fans on the table corals' bommies, placed after the tables and before the staghorn (which keeps clear of them, `inFan`), broadside to the landscape's current; swaying via `src/utils/coralSway.js` (`docs/procedural/coral-sway.md`, which holds the model contract). Kit and Atlas specimen from `scripts/build-sea-fan-kit.py`
+- `src/components/seaFanPlacement.js` — giant sea fans growing from rock faces on the table corals' bommies and, singly, on other reef rocks, placed after the tables and before the staghorn (which keeps clear of them, `inFan`), broadside to the landscape's current; swaying via `src/utils/coralSway.js` (`docs/procedural/coral-sway.md`, which holds the model contract). Kit and Atlas specimen from `scripts/build-sea-fan-kit.py`
 - `src/version.js` — visible bottom-right version label
 - `CHANGELOG.md` — categorized release-bucket notes
 - `ROADMAP.md` — active TODOs, release blockers, and review follow-ups ordered by current work, priority, then chronology
@@ -100,6 +110,27 @@ Visible versions use a target-release plus dev-suffix model:
 - When work starts on a roadmap item, mark it `Current in development` and add subtasks when useful.
 - When an item is completed and pushed to a clean public release, remove it from active roadmap sections or archive it away.
 - Do not bump `src/version.js` for roadmap-only/doc-only edits unless asked.
+- At every clean release, in the same PR: move the released section out of `## Current work`, to `## Released / archived` when nothing in it is open, or to `## Shipped, with open follow-ups` when items remain. A shipped section never stays in Current work.
+
+## Release hygiene
+
+Each rule below was missed at least once. New rules go here too (see Collaborator-proof rules).
+
+- **Merge means promote.** When Jeremy asks to merge a `-dev_##` branch, that is his acceptance: promote to the clean version in the same PR (`src/version.js`, `package.json`, `package-lock.json`, both changelogs, ROADMAP), then merge. Never leave a `-dev_` version on `main`, and don't ask him to check on his phone first.
+- **`main` is ruleset-protected.** Changes land only by PR with a passing `Build` check, squash merge only, auto-merge off (`gh api repos/jeremyyeh11/world-oceanarium/rulesets`; the legacy branch-protection endpoint wrongly answers "not protected"). If he says merge while Build runs, finish the other work first, then check Build once and merge in the same turn.
+- **Other agents merge in parallel.** Right before choosing a `-dev_##` number or merging, `git fetch` and read `origin/main`'s `src/version.js` and CHANGELOG status line; on conflict, rebase, keep their entry and take the next free number. Merged branches get deleted, which closes any new PR on them, so start each new PR on a fresh branch from `main`.
+- **Verify the deploy by the live bundle.** Vercel's GitHub statuses are sometimes missing or wrong. After merging, fetch https://world-oceanarium-three.vercel.app, take the first `/assets/*.js`, and look for the new version string (the bundle holds every past version too, so look for the new one appearing). If there is no Production deployment for the merge SHA, or the domain still serves the old bundle 10 minutes after a successful one, ask Jeremy to redeploy or promote it in the Vercel dashboard.
+- **Credit sources where they belong.** Databases (FishBase, IUCN, Coral Trait Database) in `SOURCES`; papers, theses and species profiles that decide an Atlas value in `STUDY_CREDITS`; photos in `IMAGE_CREDITS`. Add the credit in the same commit as the value, with a comment beside the value in `species.js`.
+- **Atlas tile with the first swim.** The species' `public/atlas/<slug>-thumbnail.png` is captured in the same build that first shows it in a tank (`docs/new-species-checklist.md` section 6), never left for promotion. The prebuild check warns on `-dev_`; treat that warning as a to-do.
+
+- **Two changelogs, one truth.** A clean release updates `CHANGELOG.md` and the visitor list in `src/data/changelog.js` in the same PR. A visitor line describes what production shows: never a change that only `creatures_dev` or a dev-only life stage can show. A production data write that changes what visitors see (a new school, an animal grown or replaced) gets a visitor line in the next release bucket.
+- **Production writes are recorded in the same session.** After a `creatures` write, update ROADMAP, CHANGELOG and any species doc that states production counts before the session ends, on the same branch as the code where there is one. Never leave a doc saying a write is pending once it has happened.
+- **Every photo texture is credited when it ships.** List each image embedded in a GLB (name, size) at intake and look at each one. Each photo gets an `IMAGE_CREDITS` entry in `src/data/sources.js`: the full credit, or, with no known source, an entry with no `url` (it shows "Unknown source"; add `author` if only the photographer is known) and a ROADMAP item to find it. Never ship a photo with no entry. Generated images are not photos and are not listed.
+- **No foreign images in assets.** Logos, watermarked stock comps, screenshots and other images that are not the animal never ship inside a GLB. If a material only samples a corner of one, cut that corner out as the texture and remap the UVs (`v0.40.1`, the mako's mouth).
+- **Comments and docs follow behaviour.** When a dev build changes how something works (where it is placed, which rows production holds), update the entry's header comment in `species.js`, its AGENTS.md path line and its docs in the same commit.
+- **Append new species** at the end of `SPECIES` (and of the per-species maps in `EncyclopediaPage.jsx`). The Atlas sorts by name, so order is only for readers; a comment above an entry describes that entry only.
+- **Merge through the PR** so the squash title ends in `(#N)`, and link the PR in the CHANGELOG status line.
+- **Commit only what belongs to the codebase.** Anything else (reel and social notes, book materials, personal notes) is never committed, and neither is where it is kept: no personal folder or vault paths in the repo. Hand such material to Jeremy in chat.
 
 ## Validation
 
@@ -130,11 +161,17 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 - Never put service-role keys in frontend code, committed files, logs, final replies, or memory.
 - `creatures_dev` and `creatures` intentionally diverge. Do not sync/copy tables unless explicitly asked.
 - Clean production builds should not silently fall back to bundled creature fixtures when Supabase is empty.
-- Before direct Supabase creature writes, run `npm run backup:creatures`; verify after writes and back up again.
+- Before direct Supabase creature writes, run `npm run backup:creatures`; verify after writes and back up again. It snapshots production `creatures` only, so snapshot `creatures_dev` yourself (anon REST read) before and after a dev write.
+- Both tables share `creatures_id_seq`, which is far behind: insert with explicit ids, above that table's own `max(id)` (the same id in both tables is fine).
+- Every live row has its own `description`: one light sentence with a real detail. Write one for every new row, dev and production.
+- Bundled `CREATURES` fixtures load only when `creatures_dev` is empty, so a new species is invisible on a dev build until it has `creatures_dev` rows.
+- Older builds skip unknown species, so a new species' production rows may be written before its build is live. A new life stage or sex variant is the exception: write those rows only once the live bundle serves the build that draws them.
+- Population lives in the database, not the repo. When a tank gets slower with no code change, check the live row counts first.
 
 ## Creature / species conventions
 
 - Canonical species slugs are scientific-name slugs, e.g. `amblygaster-sirm`, `mola-alexandrini`.
+- Each reserve's roster is its own: a species lives in one reserve only. Putting a species in a second reserve is a separate call for Jeremy.
 - Keep legacy aliases working while old rows age out.
 - `1 WU = 25 cm` for real-world scale.
 - Use body-length-scaled movement and camera framing for large animals.
@@ -156,6 +193,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 ## Visual / UX taste
 
 - Preserve tank brightness/color unless specifically asked to grade/darken.
+- Jeremy's models are flat-shaded (faceted) on purpose. Never smooth them or offer to.
 - Favor readable motion and elegant presentation over visual noise.
 - Follow mode should feel smooth; avoid camera snaps, raw `lookAt()` jumps, and sudden target shifts.
 - Mobile matters: touch controls, follow mode, debug access, audio unlock, and layout should be tested conceptually for phone use.

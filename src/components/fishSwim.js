@@ -2029,7 +2029,7 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
       hasPose: false,
       quaternion: new THREE.Quaternion(),
       opacity: 1,
-      // Live caudal-wave state, published only by ride hosts (see updateFishRegistryPose).
+      // Live caudal- or disc-wave state, published only by ride hosts (see updateFishRegistryPose).
       wave: null,
     })
   }
@@ -2043,7 +2043,7 @@ export function updateFishRegistry(fish, creature, swim, school = null, forward 
  * Publish a ride host's final rendered pose for this frame: model-frame orientation (forward
  * -Z, up +Y, right +X, bank and roll included), actual travel speed, and fade opacity. Hosts
  * run their frame before everyone else, so riders read this frame's pose, not the last one.
- * `wave` is the host's live caudal-wave state ({ phase, speed01, turn, burst }), held by
+ * `wave` is the host's live caudal- or disc-wave state ({ phase, speed01, turn, burst }), held by
  * reference: its renderer updates it every frame and clamped riders follow it.
  */
 export function updateFishRegistryPose(creatureId, quaternion, speed = 0, opacity = 1, wave = null) {
@@ -2088,6 +2088,24 @@ export function caudalLateralCurve(out, tail01, config, phase, speed01, turn, bu
   out.offset = wave * stroke * flex + turn * turnStrength * flex * flex
   out.slope = stroke * (dWave * flex + wave * dFlex) + turn * turnStrength * 2 * flex * dFlex
   return out
+}
+
+/**
+ * The disc-wave body's heave at chord position `chord` (the G mask, 0 at the leading edge): how
+ * far the body under the wings drops (positive up), in the model's source units, for parts
+ * moved on the CPU (clamped riders). Mirrors discBeat, discStroke and the heave line of
+ * proceduralDiscMotion in the Fish.jsx shader; keep them in step.
+ */
+export function discBodyHeave(chord, config, phase, speed01, burst) {
+  const down = THREE.MathUtils.clamp(config.downFraction ?? 0.42, 0.05, 0.95)
+  const angle = phase - THREE.MathUtils.clamp(chord, 0, 1) * (config.waveTravel ?? 0.6)
+  const p = angle / (Math.PI * 2) - Math.floor(angle / (Math.PI * 2))
+  const t = p < down ? p / down : (p - down) / (1 - down)
+  const eased = t * t * (3 - 2 * t)
+  const beat = p < down ? 1 - 2 * eased : -1 + 2 * eased
+  const stroke = (config.amplitude ?? 0.2) * THREE.MathUtils.lerp(config.idleAmplitudeFloor ?? 0.5, 1, speed01)
+    * (1 + burst * (config.burstAmplitude ?? 0.4))
+  return -(config.heave ?? 0.06) * stroke * beat
 }
 
 // --- Ride hosts and hitchhikers (remoras) --------------------------------------------------
@@ -2262,17 +2280,18 @@ export function rideHostProfile(species) {
   // body's nose and tail along Z (host body lengths); the wave is in the model's source units,
   // so `perBodyLength` converts it. Only the plain frame is supported: source Z to the tail,
   // lateral X, no model rotation.
+  // A disc-wave host (the manta) heaves its body against its wings; its riders sit on the flat
+  // centre, where the wings do not lift, and rise and fall with the heave at their `chord`.
   const procedural = species.model?.proceduralAnimation
   const waveSpan = Array.isArray(config.waveSpan) ? config.waveSpan : null
+  const plainFrame = !(species.model?.rotation ?? []).some(Boolean)
+  const perBodyLength = (species.model?.scale ?? 1) / species.swim.bodyLengthWU
   const wave = waveSpan && procedural?.type === 'caudal-vertex' && procedural.tailAtMaxZ
-    && (procedural.sourceAxis ?? 'z') === 'z' && (procedural.lateralAxis ?? 'x') === 'x'
-    && !(species.model.rotation ?? []).some(Boolean)
-    ? {
-      config: procedural,
-      perBodyLength: (species.model.scale ?? 1) / species.swim.bodyLengthWU,
-      span: waveSpan[1] - waveSpan[0],
-    }
-    : null
+    && (procedural.sourceAxis ?? 'z') === 'z' && (procedural.lateralAxis ?? 'x') === 'x' && plainFrame
+    ? { kind: 'caudal', config: procedural, perBodyLength, span: waveSpan[1] - waveSpan[0] }
+    : procedural?.type === 'disc-wave-vertex' && plainFrame
+      ? { kind: 'disc', config: procedural, perBodyLength }
+      : null
   const anchors = (config.anchors ?? []).map((anchor, index) => {
     const at = new THREE.Vector3().fromArray(anchor.at)
     const normal = new THREE.Vector3().fromArray(anchor.normal).normalize()
@@ -2292,7 +2311,8 @@ export function rideHostProfile(species) {
       : null
     // Where along the host's wave the disc sits (0 nose .. 1 tail).
     const tail01 = waveSpan ? THREE.MathUtils.clamp((at.z - waveSpan[0]) / (waveSpan[1] - waveSpan[0]), 0, 1) : 0
-    return { index, name: anchor.name ?? `anchor-${index}`, at, normal, riderBack, quaternion, rail, fits: new Map(), tail01, wave }
+    const chord = Number.isFinite(anchor.chord) ? anchor.chord : 0
+    return { index, name: anchor.name ?? `anchor-${index}`, at, normal, riderBack, quaternion, rail, fits: new Map(), tail01, chord, wave }
   })
   const body = config.body ?? RIDE_DEFAULT_BODY
   profile = {
@@ -2582,11 +2602,18 @@ export function rideAnchorPose(outPosition, outQuaternion, host, anchor, riderBo
 /**
  * Carry a clamped rider with the host's body wave at its spot: sideways by the wave's offset
  * where its disc sits, and turned about the disc with the body's local slope, so the rider moves
- * with the skin instead of the skin sliding under it. Host-local, in place.
+ * with the skin instead of the skin sliding under it; on a disc-wave host, up and down with the
+ * body's heave. Host-local, in place.
  */
 export function rideFollowHostWave(localPosition, localQuaternion, anchor, host) {
   const { config, perBodyLength, span } = anchor.wave
   const wave = host.wave
+  if (anchor.wave.kind === 'disc') {
+    // Up and down with the body; the heave's phase changes so little over a rider's length that
+    // it does not tilt it.
+    localPosition.y += discBodyHeave(anchor.chord, config, wave.phase, wave.speed01, wave.burst) * perBodyLength * host.bodyLength
+    return
+  }
   caudalLateralCurve(rideWaveCurve, anchor.tail01, config, wave.phase, wave.speed01, wave.turn, wave.burst)
   // Source units -> WU along the body, and per tail01 -> per WU along it.
   const slope = (rideWaveCurve.slope * perBodyLength) / span

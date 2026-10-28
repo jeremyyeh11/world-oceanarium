@@ -22,6 +22,7 @@ import {
   rideApproachWaypoint,
   rideHostLocalPose,
   rideFollowHostWave,
+  discBodyHeave,
   rideHostLoad,
   rideHostProfile,
   rideSpotClear,
@@ -42,6 +43,7 @@ const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 const makoSpecies = speciesById.get('isurus-oxyrinchus')
 const molaSpecies = speciesById.get('mola-alexandrini')
 const sharksuckerSpecies = speciesById.get('echeneis-naucrates')
+const mantaSpecies = speciesById.get('mobula-birostris')
 const EPS = 1e-6
 
 function near(a, b, message, eps = EPS) {
@@ -82,6 +84,20 @@ for (const [hostName, host, from, to] of [['mako', makoHost, 0.12, 0.5], ['mola'
   assert.ok(mirrored.length <= host.anchors.length / 4, `the ${hostName} spots are uneven, not mirrored (${mirrored.length} mirrored)`)
   if (host.wave) assert.ok(host.anchors.every(a => a.tail01 >= from - 0.01 && a.tail01 <= to + 0.01), `every ${hostName} spot is ${from}-${to} along the body`)
 }
+// The giant manta's spots (fit with --from 0.39 --to 0.72): all on the belly's flat centre, where
+// the wings do not lift (the R mask is 0 within 0.62 m of the midline), and behind the lower jaw,
+// which the open-mouth morph moves from 1.0 to 0.6 m ahead of the disc's middle (scale 4: m x 4/28).
+const mantaHost = rideHostProfile(mantaSpecies)
+{
+  const M = 4 / 28
+  assert.ok(mantaHost.anchors.length >= 8, `the manta offers a spread of spots (${mantaHost.anchors.length})`)
+  assert.ok(mantaHost.anchors.every(a => a.normal.y < -0.7), 'every manta spot is on its belly')
+  assert.ok(mantaHost.anchors.some(a => a.at.x > 0) && mantaHost.anchors.some(a => a.at.x < 0), 'on both sides of the midline')
+  assert.ok(mantaHost.anchors.every(a => Math.abs(a.at.x) <= 0.62 * M), 'none out under a beating wing')
+  assert.ok(mantaHost.anchors.every(a => a.at.z >= -0.55 * M), 'none on the jaw the open mouth moves')
+  assert.ok(mantaHost.anchors.every(a => a.chord >= 0 && a.chord <= 1), 'each spot knows where it sits along the chord')
+  assert.equal(mantaHost.wave?.kind, 'disc', 'the manta carries its riders with its heave')
+}
 assert.ok(makoHost.wave, 'the mako carries its riders with its caudal wave')
 assert.equal(molaHost.wave, null, 'the Mola has no caudal wave to follow')
 assert.equal(rideHostProfile(makoSpecies), makoHost, 'host profiles are cached per species')
@@ -115,7 +131,7 @@ const riderUpOf = q => new THREE.Vector3(0, 1, 0).applyQuaternion(q)
 const riderForwardOf = q => new THREE.Vector3(0, 0, -1).applyQuaternion(q)
 const riderRightOf = q => new THREE.Vector3(1, 0, 0).applyQuaternion(q)
 
-for (const [hostName, host] of [['mako', makoHost], ['mola', molaHost]]) {
+for (const [hostName, host] of [['mako', makoHost], ['mola', molaHost], ['manta', mantaHost]]) {
   for (const anchor of host.anchors) {
     const q = anchor.quaternion
     near(q.length(), 1, `${hostName} ${anchor.name}: anchor rotation is a unit quaternion`)
@@ -214,7 +230,7 @@ function railAt(rail, s) {
 }
 let worstDiscLift = 0
 const rearGaps = new Map()
-for (const [hostName, hostSpecies] of [['mako', makoSpecies], ['mola', molaSpecies]]) {
+for (const [hostName, hostSpecies] of [['mako', makoSpecies], ['mola', molaSpecies], ['manta', mantaSpecies]]) {
   const hostProfile = rideHostProfile(hostSpecies)
   const hostLength = hostSpecies.swim.bodyLengthWU
   for (const riderSpecies of SPECIES.filter(s => hitchhikerProfile(s)?.attaches && rideHostWeight(hitchhikerProfile(s), hostProfile) > 0)) {
@@ -417,6 +433,36 @@ try {
   rideAnchorPose(pose, poseQuaternion, host, spot, riderLength, hitch)
   near(poseQuaternion.angleTo(posedQuaternion), Math.abs(Math.atan(slope)), 'a clamped rider follows the wave')
   assert.equal(molaHost.anchors[0].wave, null, 'a Mola spot has no wave to follow')
+}
+
+// On the manta a clamped rider rises and falls with the body's heave under its disc, by the
+// shader's amount (1.2 WU either way at full cruise), and is not turned by it.
+{
+  const config = mantaSpecies.model.proceduralAnimation
+  const spot = mantaHost.anchors[0]
+  const host = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), bodyLength: 28, wave: null }
+  let low = Infinity
+  let high = -Infinity
+  for (let phase = 0; phase < Math.PI * 2; phase += 0.01) {
+    const heave = discBodyHeave(spot.chord, config, phase, 1, 0) * mantaSpecies.model.scale
+    low = Math.min(low, heave)
+    high = Math.max(high, heave)
+  }
+  near(high, config.heave * config.amplitude * mantaSpecies.model.scale, 'the body rises by the heave at full cruise', 1e-3)
+  near(low, -config.heave * config.amplitude * mantaSpecies.model.scale, 'and falls by as much', 1e-3)
+  near(discBodyHeave(0, config, 0, 1, 0), -config.heave * config.amplitude, "at the top of the wings' stroke the body is lowest")
+  near(discBodyHeave(0.5, config, 0.5 * config.waveTravel, 1, 0), discBodyHeave(0, config, 0, 1, 0), 'further back along the chord the heave comes later')
+  const still = new THREE.Vector3()
+  const stillQuaternion = new THREE.Quaternion()
+  rideAnchorPose(still, stillQuaternion, host, spot, 1.2, hitchhikerProfile(speciesById.get('remora-albescens')))
+  host.wave = { phase: 2, speed01: 0.7, turn: 0.3, burst: 0 }
+  const moved = new THREE.Vector3()
+  const movedQuaternion = new THREE.Quaternion()
+  rideAnchorPose(moved, movedQuaternion, host, spot, 1.2, hitchhikerProfile(speciesById.get('remora-albescens')))
+  const heave = discBodyHeave(spot.chord, config, 2, 0.7, 0) * mantaSpecies.model.scale
+  assert.ok(Math.abs(heave) > 0.2, `the heave moves the rider visibly (${heave.toFixed(2)} WU)`)
+  nearVector(moved, still.clone().add(new THREE.Vector3(0, heave, 0)), 'the rider moves straight up or down with the body')
+  near(movedQuaternion.angleTo(stillQuaternion), 0, 'and is not turned')
 }
 
 // --- rider and host ignore each other in boids ----------------------------------------------
@@ -952,6 +998,7 @@ try {
       advanceRide(ride, pilot, loyalHitch, pilotLength, now, position, new THREE.Quaternion(), pilotSpeeds, mulberry32(Math.floor(now * 60)))
       assert.notEqual(ride.stage, 'approach', 'it never goes for a spot')
       assert.equal(ride.ownsPose, false, 'it is never carried')
+      assert.equal(rideHostLoad('manta-1'), 0, 'and never holds a spot')
       if (ride.stage !== 'escort') continue
       if (lastUntil !== null && ride.stageUntil !== lastUntil) restations += 1
       lastUntil = ride.stageUntil
@@ -1003,12 +1050,10 @@ try {
   }
 }
 
-// The giant manta is an escort-only host (`rideHost` with no anchors): the golden trevally
-// follows it, holding stations ahead of its head fins and under its body, never level with a
-// flapping wing, and nothing can clamp onto it.
+// The giant manta: the golden trevally follows it, holding stations ahead of its head fins and
+// under its body, never level with a flapping wing, and never takes one of the belly spots the
+// white suckerfish rides.
 {
-  const mantaSpecies = speciesById.get('mobula-birostris')
-  const mantaHost = rideHostProfile(mantaSpecies)
   const trevallySpecies = speciesById.get('gnathanodon-speciosus')
   const trevallyHitch = hitchhikerProfile(trevallySpecies)
   const trevallyLength = trevallySpecies.swim.bodyLengthWU * trevallySpecies.sizeRange[1]
@@ -1019,7 +1064,7 @@ try {
   const suckerSpecies = speciesById.get('remora-albescens')
   const trevallySpeeds = { idle: 0.9 * trevallyLength, burst: 2.2 * trevallyLength }
   assert.ok(mantaHost, 'the manta is a host')
-  assert.equal(mantaHost.anchors.length, 0, 'with no spots to ride')
+  assert.ok(mantaHost.anchors.length > 0, 'with spots to ride')
   assert.equal(trevallyHitch.attaches, false, 'the trevally only follows')
   assert.equal(trevallySpecies.schooling, false, 'it runs the solo-agent path the escort steering lives on')
   assert.ok(rideHostWeight(trevallyHitch, mantaHost) > 0, 'it follows the manta')
@@ -1042,7 +1087,7 @@ try {
     forEachFish((entry, id) => { if (id === 'manta-1') mantaLength = entry.bodyLength })
     near(mantaLength, 28, 'the manta is registered at its 7 m span')
     const far = new THREE.Vector3(30, -9, -40 - mantaLength * 3)
-    assert.equal(findRideHost(sucker, far, suckerSpecies.swim.bodyLengthWU, hitchhikerProfile(suckerSpecies), always), null, 'a remora finds no spot on it')
+    assert.equal(findRideHost(sucker, far, suckerSpecies.swim.bodyLengthWU, hitchhikerProfile(suckerSpecies), always)?.hostId, 'manta-1', 'the white suckerfish finds a spot on it')
     assert.equal(findEscortHost(trevally, far, trevallyHitch)?.hostId, 'manta-1', 'the trevally finds it from across the bay')
 
     // Its 0.8 weight lets it pass up the manta on some draws; sample stations as if it always joins.

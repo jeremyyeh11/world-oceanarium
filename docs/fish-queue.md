@@ -17,9 +17,9 @@ intake in [ride-hosts.md](ride-hosts.md) (`node scripts/fit-rider-model.mjs <id>
 slot and `creatures_dev` rows. Their generated stand-ins were removed in `v0.37.0-dev_2`.
 
 - **White Suckerfish** (`remora-albescens`, 30 cm, LC). Rides manta rays almost exclusively,
-  often inside the mouth and gill chambers. Best home: The Shallows, on the Giant Oceanic
-  Manta (its `rideHost` is escort-only: it needs anchors fitted to its mesh; mouth riding is a
-  separate roadmap item).
+  often inside the mouth and gill chambers. Home: The Shallows, on the Giant Oceanic Manta,
+  whose belly spots were fitted in `v0.42.0-dev_1` (branch `species/remora-albescens`); waiting
+  for Jeremy's GLB. Mouth riding is a separate roadmap item.
 - **Common Remora** (`remora-remora`, 86 cm, LC). Rides sharks first, also turtles, whales
   and large fish. Fits the open sea, on the mako and whale shark.
 - **Spearfish Remora** (`remora-brachyptera`, 50 cm, LC). Rides billfish, also sunfish:

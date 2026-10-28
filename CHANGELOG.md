@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.42.0 — White Suckerfish (in progress)
+
+Status: `v0.42.0-dev_1`, branch `species/remora-albescens`, waiting for Jeremy's model.
+
+### Behaviour and motion
+
+- The giant oceanic manta can be ridden: 11 spots fitted to its belly's flat centre
+  (`scripts/fit-ride-anchors.mjs`, which now reads only a disc-wave host's R and B masks and
+  records each spot's chord), clear of the wing beat and of the jaw its open mouth moves.
+- Riders on a disc-wave host heave with its body (`discBodyHeave`, the shader's heave on the
+  CPU, 1.2 WU either way at full cruise); the manta publishes its beat for them.
+- Golden trevally still escort the manta (tested): followers never take spots.
+
+### Species and Atlas
+
+- White Suckerfish (`remora-albescens`): held at 27–30 cm (`sizeRange` 0.9–1.0), so none falls
+  below the 27 cm floor. Still hidden: no model, on no tank.
+
 ## v0.41.0 — Golden Trevally (2026-10-29)
 
 Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,

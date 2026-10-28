@@ -1467,8 +1467,8 @@ export const SPECIES = [
       // 30 cm maximum standard length = 1.2 WU, just above the 1.08 WU tank floor.
       bodyLengthWU: 1.2,
     },
-    // Held near the maximum so individuals do not fall far below the tank's 27 cm floor.
-    sizeRange: [0.8, 1.0],
+    // 27–30 cm: held at the maximum so no individual falls below the 27 cm (1.08 WU) floor.
+    sizeRange: [0.9, 1.0],
     mass: REMORA_MASS,
     hitchhiker: {
       // Manta rays are its host; sharks and black marlin only occasionally.
@@ -3652,11 +3652,14 @@ export const SPECIES = [
     // 1.2 t at 5.8 m and 2.2 t at 7 m, under FishBase's 3 t maximum. The default relation gave
     // 5.6 t at 5.8 m.
     mass: { coefficient: 0.0063, exponent: 3 },
-    // Escort-only host (docs/ride-hosts.md): followers such as the golden trevally hold stations
-    // round it, but it has no `anchors` yet, so nothing clamps on. The white suckerfish needs
-    // spots fitted to its mesh first (scripts/fit-ride-anchors.mjs).
+    // Ride host (docs/ride-hosts.md): followers such as the golden trevally hold stations round
+    // it, and remoras (the white suckerfish) clamp to spots on its belly, fitted to its mesh by
+    // scripts/fit-ride-anchors.mjs: the flat centre within 0.62 m of the midline, where the wings
+    // do not lift, behind the lower jaw that its open mouth moves. Riders heave with the body
+    // (fishSwim.js discBodyHeave). No `waveSpan`: that is for a caudal wave.
     rideHost: {
       groups: ['ray', 'large-fish'],
+      anchors: RIDE_ANCHORS['mobula-birostris'].anchors,
       // Measured with scripts/measure-ride-anchors.mjs (scale 4, 28 WU): the disc runs from the
       // head fins at z -7.1 WU to the trailing wing edge near +6.5, ±14 WU wingtip to wingtip,
       // 2.7 WU thick at the middle. Height and length cover that plus the 1.2 WU heave of the

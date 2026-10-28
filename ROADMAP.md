@@ -13,6 +13,20 @@ Status labels:
 
 ## Current work
 
+### White Suckerfish (The Shallows)
+
+Status: `Current in development` — `v0.42.0-dev_1`, branch `species/remora-albescens`.
+[Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
+
+- [x] Fit ride spots on the giant manta's belly (11, clear of the wings and the moving jaw);
+  riders heave with its body; golden trevally still escort it (tests).
+- [x] Hold it at 27–30 cm (`sizeRange` 0.9–1.0, the 27 cm floor).
+- [ ] Jeremy's GLB: remora body plan like the sharksuckers, 30 cm, pale/white.
+- [ ] Intake: `node scripts/fit-rider-model.mjs remora-albescens`, textures and credits, Atlas
+  pose and tile, The Shallows roster slot and a Shallows swim room (it still has
+  `OPEN_SEA_RIDER_BOUNDS`), `creatures_dev` rows (backups first), live check on the manta.
+- [ ] Decide the review population with Jeremy; production rows only on his go-ahead.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -85,7 +99,7 @@ Subtasks:
 Follow-ups (`Backlog`):
 - [ ] Riders moving between anchors on the same host (real remoras relocate when disturbed).
 - [ ] Mouth and gill-chamber riding (white suckerfish in mantas, juvenile spearfish remoras) — needs hosts with open mouths first.
-- [ ] Whalesucker, white suckerfish, marlinsucker get their real hosts in week 3 (spinner dolphin, manta, billfish): each needs only a `rideHost` block.
+- [ ] Whalesucker and marlinsucker get their real hosts in week 3 (spinner dolphin, billfish): each needs only a `rideHost` block. The manta has its spots for the white suckerfish (`v0.42.0-dev_1`).
 - [x] Remoras escort a host loosely when they have no spot or have just let go (2026-09-28, `dev_10`, Jeremy's review).
 - [ ] Week 2's non-attaching followers (pilot fish, golden trevally, rainbow runner) can reuse the remoras' `escort` stage: a `hitchhiker` block that never attaches, only escorts. Pilot fish hold ahead of the snout and golden trevally off the pectorals, so they need their own station ranges.
 

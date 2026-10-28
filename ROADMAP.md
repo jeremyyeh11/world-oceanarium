@@ -13,6 +13,24 @@ Status labels:
 
 ## Current work
 
+### Golden Trevally (The Shallows)
+
+Status: `Current in development` — prepared in `v0.41.0-dev_1` (2026-10-28), branch
+`species/gnathanodon-speciosus`. [Preparation and GLB handoff](docs/species-preparation.md) ·
+[Followers and escort-only hosts](docs/ride-hosts.md).
+
+- [x] Escort-only ride hosts: a `rideHost` with no `anchors` is followed but never ridden.
+  The giant oceanic manta is one (`ray` + `large-fish`, clearance sized from its mesh).
+- [x] Hidden species entry: FishBase facts, Farrag et al. 2019 life span, follower block with
+  stations ahead of and under the manta (clear of the wing beat, tested), swim room.
+- [ ] Jeremy: model (life stage: barred young or golden adult) and count (proposed six at
+  50–75 cm TL).
+- [ ] Model intake: scale from total length, `caudal-wave` from the pilot fish's config, Atlas
+  pose and tile, roster slot in The Shallows, `creatures_dev` rows; watch the escort on the
+  real manta, wing beat included.
+- [ ] Anchors on the manta for the white suckerfish (`scripts/fit-ride-anchors.mjs`): the wings
+  flap, so only belly spots near the middle are likely to hold. `Backlog`
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

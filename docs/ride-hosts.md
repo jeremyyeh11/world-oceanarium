@@ -128,10 +128,16 @@ hitchhiker: {
 - A rider must be a solo agent (`schooling: false`).
 
 Current groups: `shark`, `ray`, `turtle`, `cetacean`, `billfish`, `sunfish`,
-`barracuda`, `large-fish`. The mako is `shark` + `large-fish`; the Mola is `sunfish` +
-`large-fish`.
+`barracuda`, `large-fish`. The mako and the whale shark are `shark` + `large-fish`; the Mola
+is `sunfish` + `large-fish`; the giant oceanic manta is `ray` + `large-fish`.
 
-## Followers (pilot fish, bannerfish)
+**Escort-only hosts.** A `rideHost` with `groups` and `body` but no `anchors` can be followed
+but not ridden: followers hold stations round it, and a remora that would ride it finds no
+spot, so it only escorts. That makes a host usable before its spots are fitted, and it is how
+the giant oceanic manta (`mobula-birostris`) takes the golden trevally. Fitting spots later
+(`scripts/fit-ride-anchors.mjs`, needed for the white suckerfish) needs no other change.
+
+## Followers (pilot fish, bannerfish, golden trevally)
 
 A follower is a `hitchhiker` with `attaches: false`. It runs the escort stage only: it
 never looks for a spot, claims no slot, adds no load, and is never carried. It needs no
@@ -173,6 +179,16 @@ hitchhiker: {
   roam for 60–120 s. That works out to about a fifth of its time following, against the
   pilot fish's three fifths. Measured in the dev tank (2026-10-11): 2–5 of 12 bannerfish
   escorting at once while 11–15 of 18 pilot fish were.
+- The Golden Trevally (`gnathanodon-speciosus`, queued for The Shallows) follows the giant
+  manta, an escort-only host. A manta is wide, flat and flapping: its clearance ellipsoid
+  (radii 0.5 × 0.15 × 0.28 of the 7 m span) covers the body, head fins and the beat's heave,
+  but not the wingtips, which flap ±4 WU outside it. So the trevally's stations sit ahead of
+  the head fins and under the front of the body (`along [-0.95, -0.4]`, `angleDegrees
+  [-120, -60]`, `radius [1.2, 1.5]`), never level with a wing: sampled, they reach 7.4 WU
+  below the manta's middle and 17.3 WU from it. Its swim room is the manta's widened by that
+  reach. `npm test` checks every station against the wing's measured leading edge and beat.
+  With a pilot-fish stand-in in the dev tank (2026-10-28, not shipped), all six followed,
+  2–6 WU below and 1–8 WU ahead of the manta's middle, a few breaking off to roam.
 
 ## Runtime
 
@@ -249,7 +265,9 @@ automatically.
 Ride state lives in `fishRuntimeStore`, so a remora clamped to the mako is still
 clamped when you come back to the tank.
 
-## Adding a host (e.g. the manta, for the white suckerfish)
+## Adding a host (e.g. spots on the manta, for the white suckerfish)
+
+For followers only, step 1 is enough: an escort-only host needs no anchors.
 
 1. Add `rideHost` with its groups and a `body` clearance ellipsoid covering the body and
    pectoral fins. `node scripts/measure-ride-anchors.mjs <glb> --scale <model.scale>

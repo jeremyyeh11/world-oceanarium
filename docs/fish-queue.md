@@ -6,21 +6,20 @@ No species repeats across reserves.
 
 ## Queued: species entry in `src/data/species.js`, no model
 
-### Next: Yellowfin Tuna
+### Next: Golden Trevally
 
-Prepared in `v0.39.0-dev_1` on Jeremy's request (2026-10-27), with researched
-Atlas fields, scale references, mass relationship and draft movement data.
-Still hidden in Atlas, with no model, tank roster entry or creature rows.
-See [the preparation and GLB handoff](species-preparation.md)
-for sources, measurement conventions and proposed populations.
+Prepared in `v0.41.0-dev_1` on Jeremy's request (2026-10-28), with researched Atlas
+fields, mass relationship, draft movement data and its follower block. Still hidden in
+Atlas, with no model, tank roster entry or creature rows. See
+[the preparation and GLB handoff](species-preparation.md).
 
-- **Yellowfin Tuna** (`thunnus-albacares`): The Open Sea; proposed four to six schooling
-  adults at 120–150 cm fork length. Existing `caudal-wave` with a firm front and a
-  compact tail stroke; no drift/hover, hunting system or new animation type.
+- **Golden Trevally** (`gnathanodon-speciosus`, 120 cm TL, LC): The Shallows, following the
+  giant manta (an escort-only host since `v0.41.0-dev_1`, [ride-hosts.md](ride-hosts.md)).
+  Proposed six fish at 50–75 cm TL. Existing `caudal-wave`, the pilot fish's carangid
+  setup; no new animation type.
 
-Bluespine Unicornfish (`naso-unicornis`) was accepted for clean `v0.39.0` on
-2026-10-27: Jeremy's model, Atlas entry/tile and six adults in The Reefs, 40–55 cm
-fork length, in both dev and public populations. It is no longer queued.
+The Yellowfin Tuna shipped in clean `v0.40.0` and the Bluespine Unicornfish in `v0.39.0`;
+neither is queued.
 
 ### Remoras awaiting their models
 
@@ -31,7 +30,8 @@ slot and `creatures_dev` rows. Their generated stand-ins were removed in `v0.37.
 
 - **White Suckerfish** (`remora-albescens`, 30 cm, LC). Rides manta rays almost exclusively,
   often inside the mouth and gill chambers. Best home: The Shallows, on the Giant Oceanic
-  Manta (needs a `rideHost` on the manta; mouth riding is a separate roadmap item).
+  Manta (its `rideHost` is escort-only: it needs anchors fitted to its mesh; mouth riding is a
+  separate roadmap item).
 - **Common Remora** (`remora-remora`, 86 cm, LC). Rides sharks first, also turtles, whales
   and large fish. Fits the open sea, on the mako and whale shark.
 - **Spearfish Remora** (`remora-brachyptera`, 50 cm, LC). Rides billfish, also sunfish:
@@ -50,8 +50,8 @@ From the October species series and the reserve plans. Check range, IUCN status 
 
 - The Shallows: golden cownose ray (*Rhinoptera steindachneri*), East Pacific green turtle,
   round stingray (*Urobatis halleri*), California sea lion (later).
-- Escorts: golden trevally, cobia, rainbow runner; barberfish and cleaner wrasse fall under
-  the size floor.
+- Escorts: cobia, rainbow runner; barberfish and cleaner wrasse fall under the size floor.
+  Cobia is absent from the eastern Pacific, so not for The Shallows.
 - Hosts: reef manta (*Mobula alfredi*, The Reefs), Mola mola, swordfish, spinner dolphin,
   dugong. Turtles, dolphins and the dugong need new motion types.
 - Deep sea and oddities: needs a deep-sea reserve first; barreleye, mantis shrimp and the

@@ -7,6 +7,29 @@ import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
+// Prepared species must not create missing-GLB requests or invisible live residents.
+// They become eligible for actual asset/pose verification when Jeremy supplies the GLBs.
+for (const id of ['gnathanodon-speciosus']) {
+  const prepared = speciesById.get(id)
+  assert.ok(prepared, `${id} canonical species exists`)
+  assert.equal(prepared.hiddenInAtlas, true, `${id} waits for the real specimen and tile`)
+  assert.equal(prepared.model, undefined, `${id} does not advertise a nonexistent model`)
+  assert.deepEqual(atlasWarmupUrls([prepared]), [], `${id} causes no speculative asset requests`)
+  assert.ok(ENVIRONMENT_MANIFESTS.every(manifest => manifest.assets.every(asset => !asset.url.includes(id))), `${id} cannot block reserve loading`)
+  // Alias resolution is ready, but a future alive row cannot enter an existing reserve early.
+  for (const alias of [id, prepared.name, prepared.scientificName]) {
+    const creature = { id: `pending-${id}`, species: alias, alive: true, size: 0.6 }
+    assert.equal(resolveSpecies(creature), prepared)
+    for (const tank of TANKS) assert.deepEqual(creaturesForTank([creature], tank), [], `${id} is not stocked before intake`)
+  }
+  assert.ok(Math.abs(prepared.swim.bodyLengthWU * 0.25 - prepared.maxBodyLengthMeters) < 1e-9, `${id} biological reference and world scale agree`)
+  assert.ok(prepared.sizeRange[0] > 0 && prepared.sizeRange[1] <= 1)
+}
+// FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
+const trevally = speciesById.get('gnathanodon-speciosus')
+assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)
+assert.ok(trevally.sizeRange[0] * trevally.swim.bodyLengthWU >= 1.08, 'proposed trevally are above the 27 cm size floor')
+
 const unicornfish = speciesById.get('naso-unicornis')
 const tuna = speciesById.get('thunnus-albacares')
 assert.ok(!tuna.hiddenInAtlas, 'the supplied tuna is available in Atlas')

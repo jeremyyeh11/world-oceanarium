@@ -8,6 +8,22 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.41.0 — Golden Trevally preparation (in development)
+
+### Behaviour and motion
+
+- Escort-only ride hosts: a `rideHost` with groups and a clearance ellipsoid but no anchors
+  can be followed but not ridden (`rideHostProfile` no longer requires anchors). The giant
+  oceanic manta is the first (`ray` + `large-fish`; radii 0.5 × 0.15 × 0.28 of its span, from
+  its mesh, covering the head fins at full heave). No follower lives in The Shallows yet, so
+  visitors see no change.
+
+### Species and Atlas
+
+- Golden Trevally (`gnathanodon-speciosus`) prepared, hidden: FishBase facts and Farrag et al.
+  2019 life span (credited), and a follower block whose stations sit ahead of and under the
+  manta, never level with a wing. No model, roster slot or rows yet.
+
 ## v0.40.2 — Open Sea roaming (2026-10-28)
 
 Status: clean `v0.40.2`, accepted from `v0.40.2-dev_1`, branch `fix/open-sea-wider-roaming`,

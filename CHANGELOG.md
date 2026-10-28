@@ -8,10 +8,11 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.40.1 — Giants of the Open Sea (in development)
+## v0.40.1 — Giants of the Open Sea (2026-10-28)
 
-Status: `v0.40.1-dev_2` (dev_1: data, credits, mako, ROADMAP; dev_2: collaborator-proof rules, code tidy, unicornfish tile), branch `fix/whale-shark-adult-and-credits`. Follow-ups from an
-audit of v0.38.0–v0.40.0 (2026-10-28).
+Status: clean `v0.40.1`, accepted from `v0.40.1-dev_2`, branch `fix/whale-shark-adult-and-credits`,
+[PR #170](https://github.com/jeremyyeh11/world-oceanarium/pull/170). Jeremy approved promotion and merge
+on 2026-10-28. Follow-ups from an audit of v0.38.0–v0.40.0.
 
 ### Creature data
 

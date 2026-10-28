@@ -701,6 +701,14 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 
 ## Released / archived
 
+### v0.40.1 — Giants of the Open Sea (2026-10-28)
+
+Clean `v0.40.1` from `v0.40.1-dev_2`, [PR #170](https://github.com/jeremyyeh11/world-oceanarium/pull/170):
+production whale shark 411 made the 9.3 m adult, complete image credits (unknown sources
+marked), the IHC Melbourne logo removed from the mako, AGENTS.md collaborator-proof rules
+and release hygiene, ROADMAP restructure, unicornfish tile re-render. Photo source hunting
+stays open above (Photo texture sources).
+
 ### v0.40.0 — Yellowfin Tuna (2026-10-27)
 
 Jeremy requested clean promotion/merge of PR #168 from `v0.40.0-dev_6`.

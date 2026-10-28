@@ -4260,7 +4260,7 @@ export const SPECIES = [
   // other large fishes, juveniles pilot them) and Farrag et al. 2019 (Arabian Gulf growth and life
   // span). Planned for The Shallows as a follower of the giant manta, the way the pilot fish
   // follows the Mola (Jeremy, 2026-10-28; docs/ride-hosts.md, Followers). Jeremy's model
-  // (2026-10-29), six adults in The Shallows (dev data).
+  // (2026-10-29), six adults in The Shallows (dev and production rows), shipped in v0.41.0.
   {
     id: 'gnathanodon-speciosus',
     name: 'Golden Trevally',

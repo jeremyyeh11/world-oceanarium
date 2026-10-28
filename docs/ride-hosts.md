@@ -179,7 +179,7 @@ hitchhiker: {
   roam for 60–120 s. That works out to about a fifth of its time following, against the
   pilot fish's three fifths. Measured in the dev tank (2026-10-11): 2–5 of 12 bannerfish
   escorting at once while 11–15 of 18 pilot fish were.
-- The Golden Trevally (`gnathanodon-speciosus`, The Shallows, six in `creatures_dev`) follows
+- The Golden Trevally (`gnathanodon-speciosus`, The Shallows, six since `v0.41.0`) follows
   the giant manta, an escort-only host. A manta is wide, flat and flapping: its clearance ellipsoid
   (radii 0.5 × 0.15 × 0.28 of the 7 m span) covers the body, head fins and the beat's heave,
   but not the wingtips, which flap ±4 WU outside it. So the trevally's stations sit ahead of

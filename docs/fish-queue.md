@@ -6,8 +6,7 @@ No species repeats across reserves.
 
 ## Queued: species entry in `src/data/species.js`, no model
 
-The Golden Trevally swims in The Shallows from `v0.41.0-dev_2` with its tile, so it has left
-the queue ([species-preparation.md](species-preparation.md)). The Yellowfin Tuna shipped in clean
+The Golden Trevally shipped in clean `v0.41.0` (six in The Shallows), so it has left the queue ([species-preparation.md](species-preparation.md)). The Yellowfin Tuna shipped in clean
 `v0.40.0` and the Bluespine Unicornfish in `v0.39.0`.
 
 ### Remoras awaiting their models

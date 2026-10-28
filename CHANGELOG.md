@@ -8,7 +8,11 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.41.0 — Golden Trevally (in development)
+## v0.41.0 — Golden Trevally (2026-10-29)
+
+Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,
+[PR #173](https://github.com/jeremyyeh11/world-oceanarium/pull/173). Jeremy approved production
+rows, promotion and merge on 2026-10-29.
 
 ### Behaviour and motion
 
@@ -30,8 +34,9 @@ Versioning convention notes:
   UVs use and remaps them (GLB 4.8 → 1.3 MB), and drops alpha blending (the photo has no alpha).
   Scale from total length (1.1995 source units = 120 cm). Atlas pose, source length and tile;
   the photo is credited in Sources (Norbert Potensky, CC BY-SA 3.0).
-- The Shallows roster gains the trevally. Six adults in `creatures_dev` (ids 1152–1157, 50–75 cm,
-  three of each sex); production has none yet.
+- The Shallows roster gains the trevally. Six adults in `creatures_dev` (ids 1152–1157) and in
+  production `creatures` (ids 1451–1456, 808 → 814 rows), 50–75 cm, three of each sex; backups
+  before and after each write.
 
 ## v0.40.2 — Open Sea roaming (2026-10-28)
 

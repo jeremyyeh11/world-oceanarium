@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.41.0',
+    date: '2026-10-29',
+    title: 'Golden Trevally',
+    changes: [
+      ['new', 'Six Golden Trevally escort the giant manta in The Shallows, keeping ahead of its head and under its body, now and then peeling off to roam the bay.'],
+      ['new', 'Meet the Golden Trevally in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.40.2',
     date: '2026-10-28',
     title: 'Room to roam',

@@ -46,7 +46,9 @@ is from total length, mouth to lower lobe tip: 1.1995 source units = 4.8 WU (for
 The photo shows a fish with bold bars, the younger look; Jeremy's call stands as six adults by
 size. Motion is the pilot fish's carangid `caudal-wave` config with amplitude and turn scaled to
 this model's units. `creatures_dev` ids 1152–1157, size parameters 0/0.2/…/1 (50–75 cm), three
-of each sex. Backups: production snapshot and before/after `creatures_dev` snapshots, 2026-10-29.
+of each sex. Production `creatures` ids 1451–1456, the same sizes and sexes, on Jeremy's
+go-ahead (2026-10-29; 808 → 814 rows). Backups before and after both writes. Shipped in clean
+`v0.41.0`.
 
 ## Current boundary — clean `v0.40.0`
 

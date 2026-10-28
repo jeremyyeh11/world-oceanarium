@@ -231,13 +231,6 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.35, -0.1, 0],
     lookAt: [0, -0.1, 0],
   },
-  // Golden trevally: a deep jack like the unicornfish, framed nose to lower tail-lobe tip.
-  'gnathanodon-speciosus': {
-    maxLengthDisplayUnits: 2.6,
-    portraitPhoneDistanceScale: 0.75,
-    position: [0, -0.05, 0],
-    lookAt: [0, -0.05, 0],
-  },
   // Giant oceanic manta: the devil ray's framing. Its disc is 1.3 times as wide as it is long
   // nose to tail, so the length shown is shorter to give the same width on stage.
   'mobula-birostris': {
@@ -248,6 +241,13 @@ const VIEW_POSES_BY_SPECIES = {
     mobileDistanceScale: 0.9,
     position: [-0.25, -0.1, 0],
     lookAt: [0, -0.1, 0],
+  },
+  // Golden trevally: a deep jack like the unicornfish, framed nose to lower tail-lobe tip.
+  'gnathanodon-speciosus': {
+    maxLengthDisplayUnits: 2.6,
+    portraitPhoneDistanceScale: 0.75,
+    position: [0, -0.05, 0],
+    lookAt: [0, -0.05, 0],
   },
 }
 
@@ -266,8 +266,6 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'echeneis-neucratoides': 5.4912,
   // Supplied pilot fish model, nose to tail tip along Z.
   'naucrates-ductor': 7.3672,
-  // Supplied golden trevally model, mouth to lower caudal-lobe tip along Z.
-  'gnathanodon-speciosus': 1.199504,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).
   'heniochus-acuminatus': 0.3199,
   // Supplied raccoon butterflyfish model, nose to tail tip along Z.
@@ -290,6 +288,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'acropora-muricata': 3.157,
   // The three fans on their rock, widest across (scripts/build-sea-fan-atlas.py prints the bounds).
   'annella-mollis': 1.711,
+  // Supplied golden trevally model, mouth to lower caudal-lobe tip along Z.
+  'gnathanodon-speciosus': 1.199504,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

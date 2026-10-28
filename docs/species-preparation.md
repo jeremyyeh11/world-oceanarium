@@ -29,13 +29,13 @@ Research decisions:
   4.7 kg, a slight underestimate since the common length is a fork length.
 - Reproduction, sexual dimorphism and eggs per spawning stay Unknown.
 
-Open for Jeremy at model intake:
+Decided by Jeremy (2026-10-28):
 
-- **Life stage.** Young fish are bright gold with bold black bars and are the classic
+- **Life stage: adults.** Young fish are bright gold with bold black bars and are the classic
   pilots, but the piloting ones are near or under the 27 cm floor. Adults turn golden-silver
-  with faded bars and a few dark blotches. The entry proposes 50–75 cm TL adults (2–3 WU);
-  a barred subadult look is a model choice.
-- **Count.** Proposed six, in `creatures_dev` first.
+  with faded bars and a few dark blotches; the model shows that look. Sizes follow the
+  entry's 50–75 cm TL (2–3 WU).
+- **Count: six,** in `creatures_dev` first.
 
 Model emphasis: deep, compressed jack body; fleshy, rubbery lips; forked tail. Measure
 `model.scale` from total length (the entry's `bodyLengthWU` is 4.8 WU = 120 cm TL). Reuse the

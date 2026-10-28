@@ -23,8 +23,8 @@ Status: `Current in development` — prepared in `v0.41.0-dev_1` (2026-10-28), b
   The giant oceanic manta is one (`ray` + `large-fish`, clearance sized from its mesh).
 - [x] Hidden species entry: FishBase facts, Farrag et al. 2019 life span, follower block with
   stations ahead of and under the manta (clear of the wing beat, tested), swim room.
-- [ ] Jeremy: model (life stage: barred young or golden adult) and count (proposed six at
-  50–75 cm TL).
+- [x] Jeremy decided: six adults (golden-silver, faded bars), 50–75 cm TL (2026-10-28).
+- [ ] Jeremy: the adult model (GLB).
 - [ ] Model intake: scale from total length, `caudal-wave` from the pilot fish's config, Atlas
   pose and tile, roster slot in The Shallows, `creatures_dev` rows; watch the escort on the
   real manta, wing beat included.

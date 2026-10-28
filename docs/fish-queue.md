@@ -15,7 +15,7 @@ Atlas, with no model, tank roster entry or creature rows. See
 
 - **Golden Trevally** (`gnathanodon-speciosus`, 120 cm TL, LC): The Shallows, following the
   giant manta (an escort-only host since `v0.41.0-dev_1`, [ride-hosts.md](ride-hosts.md)).
-  Proposed six fish at 50–75 cm TL. Existing `caudal-wave`, the pilot fish's carangid
+  Six adults at 50–75 cm TL (Jeremy, 2026-10-28). Existing `caudal-wave`, the pilot fish's carangid
   setup; no new animation type.
 
 The Yellowfin Tuna shipped in clean `v0.40.0` and the Bluespine Unicornfish in `v0.39.0`;

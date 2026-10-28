@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`)
+## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 
 Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt
 intention: small gold escorts keeping pace with something enormous, slipping ahead of its
@@ -37,9 +37,16 @@ Decided by Jeremy (2026-10-28):
   entry's 50–75 cm TL (2–3 WU).
 - **Count: six,** in `creatures_dev` first.
 
-Model emphasis: deep, compressed jack body; fleshy, rubbery lips; forked tail. Measure
-`model.scale` from total length (the entry's `bodyLengthWU` is 4.8 WU = 120 cm TL). Reuse the
-pilot fish's carangid `caudal-wave` config, scaled by source length.
+Model intake (2026-10-29, `dev_2`): Jeremy's GLB is a body and four independent paired fins
+sharing one material, flat-shaded, normals outward. Its texture is a whole 2048 × 1362 aquarium
+photo from Commons (Norbert Potensky, CC BY-SA 3.0, credited); the UVs use only the fish, so
+`scripts/prepare-golden-trevally-model.py` crops to that area plus 8 px, resizes to 1024 px
+wide and remaps the UVs (GLB 4.8 → 1.3 MB). The photo has no alpha, so BLEND is dropped. Scale
+is from total length, mouth to lower lobe tip: 1.1995 source units = 4.8 WU (fork length 0.982).
+The photo shows a fish with bold bars, the younger look; Jeremy's call stands as six adults by
+size. Motion is the pilot fish's carangid `caudal-wave` config with amplitude and turn scaled to
+this model's units. `creatures_dev` ids 1152–1157, size parameters 0/0.2/…/1 (50–75 cm), three
+of each sex. Backups: production snapshot and before/after `creatures_dev` snapshots, 2026-10-29.
 
 ## Current boundary — clean `v0.40.0`
 

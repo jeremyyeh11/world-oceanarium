@@ -456,6 +456,16 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Cut out and mapped onto the 3D model, and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    id: 'potensky-golden-trevally',
+    subject: 'Golden Trevally texture',
+    // Commons lists the uploader "Zoofoto!"; the photo's EXIF names Norbert Potensky.
+    author: 'Norbert Potensky (Zoofoto!)',
+    work: 'Goldmakrele (Gnathanodon speciosus) im Haus des Meeres, Wien',
+    url: 'https://commons.wikimedia.org/wiki/File:20081218_100609_Haus_des_Meeres.jpg',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
+  },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
   { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },

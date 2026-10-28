@@ -6,20 +6,9 @@ No species repeats across reserves.
 
 ## Queued: species entry in `src/data/species.js`, no model
 
-### Next: Golden Trevally
-
-Prepared in `v0.41.0-dev_1` on Jeremy's request (2026-10-28), with researched Atlas
-fields, mass relationship, draft movement data and its follower block. Still hidden in
-Atlas, with no model, tank roster entry or creature rows. See
-[the preparation and GLB handoff](species-preparation.md).
-
-- **Golden Trevally** (`gnathanodon-speciosus`, 120 cm TL, LC): The Shallows, following the
-  giant manta (an escort-only host since `v0.41.0-dev_1`, [ride-hosts.md](ride-hosts.md)).
-  Six adults at 50–75 cm TL (Jeremy, 2026-10-28). Existing `caudal-wave`, the pilot fish's carangid
-  setup; no new animation type.
-
-The Yellowfin Tuna shipped in clean `v0.40.0` and the Bluespine Unicornfish in `v0.39.0`;
-neither is queued.
+The Golden Trevally swims in The Shallows from `v0.41.0-dev_2` with its tile, so it has left
+the queue ([species-preparation.md](species-preparation.md)). The Yellowfin Tuna shipped in clean
+`v0.40.0` and the Bluespine Unicornfish in `v0.39.0`.
 
 ### Remoras awaiting their models
 

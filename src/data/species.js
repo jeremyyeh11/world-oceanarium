@@ -272,7 +272,7 @@ export const TANKS = [
     },
     landscape: 'shallows',
     camera: SHALLOWS_VIEW,
-    species: ['mobula-munkiana', 'mobula-birostris'],
+    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus'],
   },
 ]
 
@@ -4259,15 +4259,17 @@ export const SPECIES = [
   // Facts from FishBase (range east to the Gulf of California; adults swim close around sharks and
   // other large fishes, juveniles pilot them) and Farrag et al. 2019 (Arabian Gulf growth and life
   // span). Planned for The Shallows as a follower of the giant manta, the way the pilot fish
-  // follows the Mola (Jeremy, 2026-10-28; docs/ride-hosts.md, Followers). Queued until Jeremy
-  // supplies its GLB: no model, no reserve slot, out of the Atlas.
+  // follows the Mola (Jeremy, 2026-10-28; docs/ride-hosts.md, Followers). Jeremy's model
+  // (2026-10-29), six adults in The Shallows (dev data).
   {
     id: 'gnathanodon-speciosus',
     name: 'Golden Trevally',
     scientificName: 'Gnathanodon speciosus',
     family: 'Carangidae',
     alternateNames: ['Golden Kingfish', 'Golden Jack'],
-    hiddenInAtlas: true,
+    // Tile (2026-10-29): fish 1157's head facing left, rendered in The Shallows with the other
+    // fish hidden, square at 470 px.
+    atlasThumbnail: '/atlas/gnathanodon-speciosus-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Adults school, but each follower holds its own station round the host, so it runs the
@@ -4317,8 +4319,7 @@ export const SPECIES = [
     // FishBase: maturity at 32.5 cm to the 120 cm TL maximum.
     adultLengthRangeMeters: [0.33, 1.2],
     maxBodyLengthMeters: 1.2,
-    // Proposed reserve fish 50–75 cm TL (2–3 WU), up to the 75 cm common length; to confirm with
-    // Jeremy at model intake, with the life stage the model shows (barred young or golden adult).
+    // Adults 50–75 cm TL (2–3 WU), up to the 75 cm common length (Jeremy: six adults, 2026-10-28).
     sizeRange: [0.5 / 1.2, 0.75 / 1.2],
     // FishBase Bayesian length–weight, cm TL to grams.
     mass: { coefficient: 0.01318, exponent: 2.96 },
@@ -4384,6 +4385,44 @@ export const SPECIES = [
         // It goes looking for its host anywhere in the bay.
         rangeBodyLengths: 10,
       },
+    },
+    model: {
+      path: '/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb',
+      // Supplied 2026-10-29; scripts/prepare-golden-trevally-model.py bakes the node offsets,
+      // centres the root mid-length on the body axis and crops the photo to the fish.
+      // Mouth to lower caudal-lobe tip: 1.199504 source units -> 4.8 WU / 120 cm TL.
+      scale: 4.001654752897661,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['gnathanodon_speciosus'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Carangiform, the pilot fish's setup: a firm front and a compact rear-body stroke.
+        // Its 0.043 and 0.033 body lengths, in this model's source units.
+        amplitude: 0.0521,
+        waveSpeed: 2.8,
+        waveTravel: 3.5,
+        flexStart: 0.26,
+        flexFull: 0.84,
+        turnStrength: 0.0391,
+        burstAmplitude: 0.8,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        pectoralFinFlutter: 0.12,
+        pelvicFinFlutter: 0.06,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
     },
   },
 ]

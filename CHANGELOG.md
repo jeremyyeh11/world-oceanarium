@@ -8,21 +8,30 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.41.0 — Golden Trevally preparation (in development)
+## v0.41.0 — Golden Trevally (in development)
 
 ### Behaviour and motion
 
 - Escort-only ride hosts: a `rideHost` with groups and a clearance ellipsoid but no anchors
   can be followed but not ridden (`rideHostProfile` no longer requires anchors). The giant
   oceanic manta is the first (`ray` + `large-fish`; radii 0.5 × 0.15 × 0.28 of its span, from
-  its mesh, covering the head fins at full heave). No follower lives in The Shallows yet, so
-  visitors see no change.
+  its mesh, covering the head fins at full heave).
+- Golden trevally swim on the pilot fish's carangid `caudal-wave` (amplitude and turn scaled to
+  this model's units) and follow the manta: in the dev tank all six were escorting it within
+  30 s, holding 7–12 WU from its centre.
 
 ### Species and Atlas
 
-- Golden Trevally (`gnathanodon-speciosus`) prepared, hidden: FishBase facts and Farrag et al.
-  2019 life span (credited), and a follower block whose stations sit ahead of and under the
-  manta, never level with a wing. No model, roster slot or rows yet.
+- Golden Trevally (`gnathanodon-speciosus`): FishBase facts and Farrag et al. 2019 life span
+  (credited), and a follower block whose stations sit ahead of and under the manta, never level
+  with a wing.
+- Jeremy's model (`dev_2`): `scripts/prepare-golden-trevally-model.py` bakes the node offsets,
+  centres the root mid-length on the body axis, crops the embedded Commons photo to the part the
+  UVs use and remaps them (GLB 4.8 → 1.3 MB), and drops alpha blending (the photo has no alpha).
+  Scale from total length (1.1995 source units = 120 cm). Atlas pose, source length and tile;
+  the photo is credited in Sources (Norbert Potensky, CC BY-SA 3.0).
+- The Shallows roster gains the trevally. Six adults in `creatures_dev` (ids 1152–1157, 50–75 cm,
+  three of each sex); production has none yet.
 
 ## v0.40.2 — Open Sea roaming (2026-10-28)
 

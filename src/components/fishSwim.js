@@ -2251,9 +2251,11 @@ const rideLatchTarget = new THREE.Quaternion()
 const RIDE_MODEL_FORWARD = new THREE.Vector3(0, 0, -1)
 const RIDE_LOCAL_UP = new THREE.Vector3(0, 1, 0)
 
+// A host with no `anchors` is escort-only: followers (`attaches: false`) and remoras with no
+// room escort it, but nothing can ride it until spots are fitted to its mesh.
 export function rideHostProfile(species) {
   const config = species?.rideHost
-  if (!config?.anchors?.length || !config.groups?.length) return null
+  if (!config?.groups?.length) return null
   let profile = rideHostProfiles.get(species)
   if (profile) return profile
   // A host with a caudal wave carries its riders with it (rideFollowHostWave). `waveSpan` is the
@@ -2271,7 +2273,7 @@ export function rideHostProfile(species) {
       span: waveSpan[1] - waveSpan[0],
     }
     : null
-  const anchors = config.anchors.map((anchor, index) => {
+  const anchors = (config.anchors ?? []).map((anchor, index) => {
     const at = new THREE.Vector3().fromArray(anchor.at)
     const normal = new THREE.Vector3().fromArray(anchor.normal).normalize()
     // Rider frame on this anchor: its up (dorsal disc) faces into the host, its tail points

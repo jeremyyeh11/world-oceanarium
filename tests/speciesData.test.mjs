@@ -7,6 +7,25 @@ import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
+// FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
+const trevally = speciesById.get('gnathanodon-speciosus')
+assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)
+assert.ok(trevally.sizeRange[0] * trevally.swim.bodyLengthWU >= 1.08, 'trevally are above the 27 cm size floor')
+assert.ok(Math.abs(trevally.swim.bodyLengthWU * 0.25 - trevally.maxBodyLengthMeters) < 1e-9, 'trevally biological reference and world scale agree')
+assert.ok(!trevally.hiddenInAtlas, 'the supplied trevally is available in Atlas')
+assert.equal(trevally.model.path, '/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb')
+assert.equal(trevally.model.followAim, 'root')
+assert.ok(Math.abs(trevally.model.scale * 1.199503779411316 - trevally.swim.bodyLengthWU) < 1e-6, 'total length, mouth to lower lobe tip, defines world scale')
+assert.equal(trevally.model.proceduralAnimation.type, 'caudal-vertex')
+assert.ok(existsSync(new URL(`../public${trevally.model.path}`, import.meta.url)), 'trevally model exists')
+assert.ok(atlasWarmupUrls([trevally]).includes(trevally.model.path))
+for (const alias of [trevally.id, trevally.name, trevally.scientificName]) {
+  const creature = { id: 'intake-trevally', species: alias, alive: true, size: 0.6 }
+  assert.equal(resolveSpecies(creature), trevally)
+  assert.deepEqual(TANKS.filter(tank => creaturesForTank([creature], tank).length).map(tank => tank.id), ['the-shallows'], 'trevally live only in The Shallows')
+}
+assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === trevally.model.path))
+
 const unicornfish = speciesById.get('naso-unicornis')
 const tuna = speciesById.get('thunnus-albacares')
 assert.ok(!tuna.hiddenInAtlas, 'the supplied tuna is available in Atlas')

@@ -1003,6 +1003,95 @@ try {
   }
 }
 
+// The giant manta is an escort-only host (`rideHost` with no anchors): the golden trevally
+// follows it, holding stations ahead of its head fins and under its body, never level with a
+// flapping wing, and nothing can clamp onto it.
+{
+  const mantaSpecies = speciesById.get('mobula-birostris')
+  const mantaHost = rideHostProfile(mantaSpecies)
+  const trevallySpecies = speciesById.get('gnathanodon-speciosus')
+  const trevallyHitch = hitchhikerProfile(trevallySpecies)
+  const trevallyLength = trevallySpecies.swim.bodyLengthWU * trevallySpecies.sizeRange[1]
+  const trevallyMargin = trevallyLength * 0.2
+  const trevally = { id: 'trevally-1', species: 'gnathanodon-speciosus', biome: 'ocean', size: 1 }
+  const manta = { id: 'manta-1', species: 'mobula-birostris', biome: 'ocean', size: 1 }
+  const sucker = { id: 'white-sucker-1', species: 'remora-albescens', biome: 'ocean', size: 1 }
+  const suckerSpecies = speciesById.get('remora-albescens')
+  const trevallySpeeds = { idle: 0.9 * trevallyLength, burst: 2.2 * trevallyLength }
+  assert.ok(mantaHost, 'the manta is a host')
+  assert.equal(mantaHost.anchors.length, 0, 'with no spots to ride')
+  assert.equal(trevallyHitch.attaches, false, 'the trevally only follows')
+  assert.equal(trevallySpecies.schooling, false, 'it runs the solo-agent path the escort steering lives on')
+  assert.ok(rideHostWeight(trevallyHitch, mantaHost) > 0, 'it follows the manta')
+  // The manta's mesh at scale 4 (WU, manta frame), measured in 1 WU slices along z: the head and
+  // the front of the disc are at most 4 WU either side of the middle back to z -2, the head-fin
+  // tips at about (±1.6, -1.1, -7.1). Further out the wing's leading edge sweeps back to the
+  // wingtip at z +5, 14 WU out; the belly is at -1.37. The beat heaves the whole body 1.2 WU, and
+  // a wing drops up to 4 WU more at its tip, less toward the body.
+  const HEAVE = 1.2
+  for (const heave of [-HEAVE, HEAVE]) {
+    const tip = new THREE.Vector3(1.6, -1.1 + heave, -7.1)
+    assert.ok(bodyRadius(tip, mantaHost, 28, trevallyMargin) < 1, `the head-fin tips stay inside the clearance at full heave (${heave})`)
+  }
+  const leadingEdgeZ = x => -3.4 + (8.4 * (Math.abs(x) - 4)) / 10
+  const lowestWingY = x => -1.37 - HEAVE - 4 * Math.min(1, Math.abs(x) / 14) ** 1.6
+  try {
+    const hostPosition = new THREE.Vector3(0, -9, -40)
+    registerHost(manta, hostPosition)
+    let mantaLength = 0
+    forEachFish((entry, id) => { if (id === 'manta-1') mantaLength = entry.bodyLength })
+    near(mantaLength, 28, 'the manta is registered at its 7 m span')
+    const far = new THREE.Vector3(30, -9, -40 - mantaLength * 3)
+    assert.equal(findRideHost(sucker, far, suckerSpecies.swim.bodyLengthWU, hitchhikerProfile(suckerSpecies), always), null, 'a remora finds no spot on it')
+    assert.equal(findEscortHost(trevally, far, trevallyHitch)?.hostId, 'manta-1', 'the trevally finds it from across the bay')
+
+    // Its 0.8 weight lets it pass up the manta on some draws; sample stations as if it always joins.
+    const eagerHitch = { ...trevallyHitch, hosts: { ...trevallyHitch.hosts, ray: 1 } }
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const picked = freeRider()
+      advanceRide(picked, trevally, eagerHitch, trevallyLength, 0, far, new THREE.Quaternion(), trevallySpeeds, mulberry32(seed))
+      assert.equal(picked.stage, 'escort', `seed ${seed}: it starts following`)
+      for (const now of [0, 7, 19, 33, 52]) {
+        const local = escortStation(new THREE.Vector3(), picked.escort, mantaHost, mantaLength, trevallyLength, now)
+        assert.ok(bodyRadius(local, mantaHost, mantaLength, trevallyMargin) >= 1.05, `seed ${seed}: its station is outside the manta's clearance`)
+        assert.ok(local.y < -1.37, `seed ${seed}: its station is below the belly line (${local.y.toFixed(2)})`)
+        // Beside the head the clearance covers the body; further out the wing beats outside it.
+        if (Math.abs(local.x) <= 4) continue
+        const aheadOfWing = local.z < leadingEdgeZ(local.x) - trevallyLength / 2
+        const underWing = local.y < lowestWingY(local.x) - 0.5
+        assert.ok(aheadOfWing || underWing, `seed ${seed}: its station is clear of the wing's beat (${local.toArray().map(v => v.toFixed(1))})`)
+      }
+    }
+
+    // Following a cruising manta for two minutes from across the bay: it catches up, never
+    // enters the clearance, and stays near its host.
+    const loyalHitch = { ...eagerHitch, escort: { ...trevallyHitch.escort, leaveChance: 0 } }
+    const ride = freeRider()
+    const position = far.clone()
+    const dt = 1 / 60
+    let closest = Infinity
+    let farthest = 0
+    for (let now = 0; now < 120; now += dt) {
+      hostPosition.z -= 3 * dt
+      registerHost(manta, hostPosition, new THREE.Quaternion(), 3)
+      advanceRide(ride, trevally, loyalHitch, trevallyLength, now, position, new THREE.Quaternion(), trevallySpeeds, mulberry32(Math.floor(now * 60)))
+      assert.equal(ride.ownsPose, false, 'it is never carried')
+      if (ride.stage !== 'escort') continue
+      const toTarget = ride.target.clone().sub(position)
+      if (toTarget.lengthSq() > 0) position.addScaledVector(toTarget.normalize(), Math.min(toTarget.length(), ride.targetSpeed * dt))
+      keepRiderClearOfHost(position, ride, trevallyLength)
+      const local = position.clone().sub(hostPosition)
+      closest = Math.min(closest, bodyRadius(local, mantaHost, mantaLength))
+      if (now > 60) farthest = Math.max(farthest, local.length())
+    }
+    assert.equal(ride.stage, 'escort', 'still following after two minutes')
+    assert.ok(closest >= 1, `it never enters the clearance (closest ${closest.toFixed(3)})`)
+    assert.ok(farthest < mantaLength * 0.6, `after catching up it stays close to the manta (farthest ${farthest.toFixed(1)} WU)`)
+  } finally {
+    clearRegistry()
+  }
+}
+
 // --- tanks -------------------------------------------------------------------------------
 
 // Every rider placed in a tank either has a host there or is a documented exception waiting

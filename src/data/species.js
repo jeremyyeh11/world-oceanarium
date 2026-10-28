@@ -272,7 +272,7 @@ export const TANKS = [
     },
     landscape: 'shallows',
     camera: SHALLOWS_VIEW,
-    species: ['mobula-munkiana', 'mobula-birostris'],
+    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus'],
   },
 ]
 
@@ -3652,6 +3652,19 @@ export const SPECIES = [
     // 1.2 t at 5.8 m and 2.2 t at 7 m, under FishBase's 3 t maximum. The default relation gave
     // 5.6 t at 5.8 m.
     mass: { coefficient: 0.0063, exponent: 3 },
+    // Escort-only host (docs/ride-hosts.md): followers such as the golden trevally hold stations
+    // round it, but it has no `anchors` yet, so nothing clamps on. The white suckerfish needs
+    // spots fitted to its mesh first (scripts/fit-ride-anchors.mjs).
+    rideHost: {
+      groups: ['ray', 'large-fish'],
+      // Measured with scripts/measure-ride-anchors.mjs (scale 4, 28 WU): the disc runs from the
+      // head fins at z -7.1 WU to the trailing wing edge near +6.5, ±14 WU wingtip to wingtip,
+      // 2.7 WU thick at the middle. Height and length cover that plus the 1.2 WU heave of the
+      // beat, so with a follower's margin the head fins stay inside at full heave. The wingtips'
+      // ±4 WU flap stays outside it, so followers keep ahead and below, never level with a wing
+      // (the trevally's `escort`).
+      body: { center: [0, 0, -0.01], radii: [0.5, 0.15, 0.28] },
+    },
     // Jeremy's model (`_blender models/mobula birostris.blend`, 2026-10-25): Mirror and the
     // "open mouth" shape key baked by scripts/bake-mirror-shape-keys.py, then
     // scripts/paint-disc-wave-masks.py --span 7: 1 unit = 1 m, a 7 m disc, origin mid-disc, nose
@@ -4237,6 +4250,176 @@ export const SPECIES = [
         // Paired stabilising fins are joined at intake; the front remains rigid.
         pectoralFinFlutter: 0,
         pelvicFinFlutter: 0,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // --- Golden trevally (Carangidae) -----------------------------------------------------------
+  // Facts from FishBase (range east to the Gulf of California; adults swim close around sharks and
+  // other large fishes, juveniles pilot them) and Farrag et al. 2019 (Arabian Gulf growth and life
+  // span). Planned for The Shallows as a follower of the giant manta, the way the pilot fish
+  // follows the Mola (Jeremy, 2026-10-28; docs/ride-hosts.md, Followers). Jeremy's model
+  // (2026-10-29), six adults in The Shallows (dev and production rows), shipped in v0.41.0.
+  {
+    id: 'gnathanodon-speciosus',
+    name: 'Golden Trevally',
+    scientificName: 'Gnathanodon speciosus',
+    family: 'Carangidae',
+    alternateNames: ['Golden Kingfish', 'Golden Jack'],
+    // Tile (2026-10-29): fish 1157's head facing left, rendered in The Shallows with the other
+    // fish hidden, square at 470 px.
+    atlasThumbnail: '/atlas/gnathanodon-speciosus-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Adults school, but each follower holds its own station round the host, so it runs the
+    // solo-agent path the escort steering lives on (like the pilot fish).
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Small fishes are part of its diet, but nothing in The Shallows is its prey.
+    predator: false,
+    tempo: 'cruise',
+    // IUCN assessed 9 March 2015 (FishBase, Version 2025-2).
+    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
+    atlasDetails: {
+      biome: 'Coastal Reefs and Lagoons',
+      commonDiet: 'Crustaceans and burrowing invertebrates rooted out of the sand; small fishes.',
+      foundIn: 'Tropical Indo-Pacific from South Africa to southern Japan, and east to Baja California, the Gulf of California and Ecuador. Deep lagoons and seaward reefs, 0 to 80 m.',
+      sexualDimorphism: 'Unknown',
+      // Farrag et al. 2019 (southern Arabian Gulf): life span estimated at about 11 years from
+      // growth (L∞ 84.5 cm TL, K 0.28); no aged maximum is published.
+      lifeSpan: 'About 11 years (estimated)',
+      // FishBase Lm 32.5 cm; no age at maturity.
+      maturityAge: 'Unknown; mature at about 33 cm',
+      social: {
+        schoolSize: 'Schools',
+        groupingBehaviour: 'Adults school, and are known for swimming close around sharks and other large fishes, and for following divers. Young fish "pilot" sharks, large fishes and turtles, keeping close to them for protection; the smallest shelter among jellyfish tentacles.',
+        reproduction: 'Unknown',
+      },
+      averages: {
+        // FishBase common length (75 cm FL, unsexed) for both sexes. Weight from FishBase's
+        // Bayesian length–weight (a 0.01318, b 2.96, total length) at 75 cm: 4.7 kg, a slight
+        // underestimate since the fork length is shorter than the total length.
+        maleSizeMeters: 0.75,
+        femaleSizeMeters: 0.75,
+        maleWeightKg: 'About 5 kg',
+        femaleWeightKg: 'About 5 kg',
+        maleLifeExpectancyYears: 'About 11 years (estimated)',
+        femaleLifeExpectancyYears: 'About 11 years (estimated)',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown; mature at about 33 cm',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: { biome: 'Ocean', zone: 'Sunlight', diet: 'Invertebrates + fish', social: 'Follower' },
+    description: 'A jack up to 120 cm, bright gold with black bars when young, turning golden-silver with faded bars and a few dark blotches as it grows. It roots crustaceans and burrowing animals out of the sand with its fleshy, rubbery lips. Young fish keep close to sharks, large fishes and turtles for protection, and adults still swim close around big animals, so in the reserve a few follow the giant manta, holding stations ahead of its head and under its belly.',
+    // FishBase: maturity at 32.5 cm to the 120 cm TL maximum.
+    adultLengthRangeMeters: [0.33, 1.2],
+    maxBodyLengthMeters: 1.2,
+    // Adults 50–75 cm TL (2–3 WU), up to the 75 cm common length (Jeremy: six adults, 2026-10-28).
+    sizeRange: [0.5 / 1.2, 0.75 / 1.2],
+    // FishBase Bayesian length–weight, cm TL to grams.
+    mass: { coefficient: 0.01318, exponent: 2.96 },
+    swim: {
+      // A quick carangid cruiser that never hovers, the pilot fish's swim. While following, the
+      // escort steering slows it to the manta's pace and these only bound it.
+      visualTimeScale: 0.7,
+      driftEnabled: false,
+      idleBLPerSec: [0.9, 1.3],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [1.4, 1.9],
+      burstBLPerSec: [2.2, 3.0],
+      burstInterval: [10.0, 18.0],
+      burstActionDuration: 0.8,
+      turnActionDuration: 0.6,
+      erraticness: 0.1,
+      turnRadiusBodyLengths: 1.2,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // The manta's room (its wedge, y -14 to -4, z -80 to 15) widened by how far its stations
+      // reach: up to 7.4 WU below the manta's middle and 17.3 WU from it (sampled), in whatever
+      // direction it faces. Toward the camera it gets only 11 WU more (z +26, or +11 after the
+      // -15 offset in fishSwim.js), so a roaming fish never comes up to the lens; one following a
+      // manta that faces the camera at its own front wall waits at that wall. Free goals keep to
+      // the manta's narrower goal wedge, inside a 16:9 screen's view.
+      boundsWedge: { apexZ: 24, slope: 1.4, margin: 38, goalSlope: 0.55, goalMargin: 0 },
+      boundsYMin: -22,
+      boundsYMax: -2,
+      boundsZMin: -98,
+      boundsZMax: 26,
+      // 1 WU = 25 cm: 120 cm maximum total length = 4.8 WU.
+      bodyLengthWU: 4.8,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.0,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        menace: 0.05,
+        // Lives beside sharks: nothing big alarms it.
+        wariness: 0.05,
+      },
+    },
+    hitchhiker: {
+      // Follows rather than rides, breaking off now and then to roam before coming back.
+      attaches: false,
+      freeSeconds: [30, 70],
+      // FishBase: sharks and other large fishes; juveniles also turtles. Rays are large fishes,
+      // though no source names mantas, so they take the large-fish weight.
+      hosts: { shark: 1, 'large-fish': 0.8, ray: 0.8, turtle: 0.8 },
+      escort: {
+        // Ahead of the manta's head fins and under the front of its body, never out level with
+        // a wing: a station there would sit in the wingtip's ±4 WU flap.
+        along: [-0.95, -0.4],
+        // Below, within 30 degrees of straight down (drift adds up to 18 more).
+        angleDegrees: [-120, -60],
+        radius: [1.2, 1.5],
+        seconds: [30, 70],
+        // Then it drifts round to a new station, or (`leaveChance`) swims off for `freeSeconds`.
+        leaveChance: 0.5,
+        minSpeedBLPerSec: 0.3,
+        // It goes looking for its host anywhere in the bay.
+        rangeBodyLengths: 10,
+      },
+    },
+    model: {
+      path: '/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb',
+      // Supplied 2026-10-29; scripts/prepare-golden-trevally-model.py bakes the node offsets,
+      // centres the root mid-length on the body axis and crops the photo to the fish.
+      // Mouth to lower caudal-lobe tip: 1.199504 source units -> 4.8 WU / 120 cm TL.
+      scale: 4.001654752897661,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['gnathanodon_speciosus'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Carangiform, the pilot fish's setup: a firm front and a compact rear-body stroke.
+        // Its 0.043 and 0.033 body lengths, in this model's source units.
+        amplitude: 0.0521,
+        waveSpeed: 2.8,
+        waveTravel: 3.5,
+        flexStart: 0.26,
+        flexFull: 0.84,
+        turnStrength: 0.0391,
+        burstAmplitude: 0.8,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        pectoralFinFlutter: 0.12,
+        pelvicFinFlutter: 0.06,
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,

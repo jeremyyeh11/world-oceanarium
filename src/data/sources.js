@@ -147,6 +147,15 @@ export const STUDY_CREDITS = [
     url: 'https://www.fao.org/4/t1817e/t1817e05.htm',
   },
   {
+    id: 'farrag-2019-golden-trevally',
+    subject: 'Golden Trevally growth and estimated life span in the southern Arabian Gulf',
+    authors: 'Farrag, Al-Zaaby, Alyafei & Alshaer',
+    year: 2019,
+    title: 'Population dynamics and assessment of golden trevally (Gnathonodon speciosus, Forsskål 1775) in the southern Arabian Gulf off the United Arab Emirates',
+    venue: 'International Journal of Fisheries and Aquaculture Research 5(2)',
+    url: 'https://eajournals.org/ijfar/vol-5-issue-2-april-2019/population-dynamics-and-assessment-of-golden-trevally-gnathonodon-speciosus-forsskal-1775-in-the-southern-arabian-gulf-off-the-united-arab-emirates/',
+  },
+  {
     id: 'notarbartolo-1988-mobula',
     subject: "Munk's Devil Ray average size by sex, width–weight relationship and male maturity",
     authors: 'Notarbartolo di Sciara',
@@ -446,6 +455,16 @@ export const IMAGE_CREDITS = [
     url: 'https://commons.wikimedia.org/wiki/File:Coral_(Annella_mollis),_parque_nacional_Ras_Muhammad,_Egipto,_2022-03-28,_DD_108.jpg',
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Cut out and mapped onto the 3D model, and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'potensky-golden-trevally',
+    subject: 'Golden Trevally texture',
+    // Commons lists the uploader "Zoofoto!"; the photo's EXIF names Norbert Potensky.
+    author: 'Norbert Potensky (Zoofoto!)',
+    work: 'Goldmakrele (Gnathanodon speciosus) im Haus des Meeres, Wien',
+    url: 'https://commons.wikimedia.org/wiki/File:20081218_100609_Haus_des_Meeres.jpg',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },

@@ -7,6 +7,16 @@ globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
   {
+    name: 'Golden Trevally static parts',
+    path: 'public/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['gnathanodon_speciosus'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 1.199,
+    minVertices: 1200,
+  },
+  {
     name: 'Yellowfin Tuna joined body and four paired fins',
     path: 'public/models/fish/thunnus-albacares/thunnus-albacares.glb',
     staticMesh: true,

@@ -242,6 +242,13 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.25, -0.1, 0],
     lookAt: [0, -0.1, 0],
   },
+  // Golden trevally: a deep jack like the unicornfish, framed nose to lower tail-lobe tip.
+  'gnathanodon-speciosus': {
+    maxLengthDisplayUnits: 2.6,
+    portraitPhoneDistanceScale: 0.75,
+    position: [0, -0.05, 0],
+    lookAt: [0, -0.05, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -281,6 +288,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'acropora-muricata': 3.157,
   // The three fans on their rock, widest across (scripts/build-sea-fan-atlas.py prints the bounds).
   'annella-mollis': 1.711,
+  // Supplied golden trevally model, mouth to lower caudal-lobe tip along Z.
+  'gnathanodon-speciosus': 1.199504,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

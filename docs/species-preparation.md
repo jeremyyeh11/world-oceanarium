@@ -1,10 +1,54 @@
-# Next two species: GLB handoff
+# Species preparation: GLB handoff
 
 Prepared 2026-10-27, `v0.39.0-dev_1`, on Jeremy's request. Canonical biological and
 draft behaviour data are in `src/data/species.js`; source credits are in
 `src/data/sources.js`. This document records intake decisions and remaining gates,
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
+
+## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
+
+Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt
+intention: small gold escorts keeping pace with something enormous, slipping ahead of its
+head and under its body, now and then peeling away. Must not happen: a trevally inside a
+flapping wing, or a school milling on its own away from the manta most of the time.
+
+Prepared: hidden species entry (no model, no roster slot, no rows), FishBase facts, Farrag et
+al. 2019 life span, the `hitchhiker` follower block and its swim room. The manta gained an
+escort-only `rideHost` ([ride-hosts.md](ride-hosts.md), Followers) in the same build.
+
+Research decisions:
+
+- FishBase: range east to Baja California, the Gulf of California and Ecuador; 0–80 m;
+  120 cm TL maximum, 75 cm FL common length, 15 kg maximum; Lm 32.5 cm; LC (9 March 2015).
+  Adults "closely swim around sharks and other large fishes"; juveniles in particular
+  pilot them. No source names mantas, so the manta takes its `ray`/`large-fish` weight (0.8).
+- Farrag et al. 2019 (southern Arabian Gulf): L∞ 84.5 cm TL, K 0.28, life span estimated at
+  about 11 years. Labelled estimated; no aged maximum is published.
+- Weight at the common length from FishBase's Bayesian relation (a 0.01318, b 2.96, cm TL):
+  4.7 kg, a slight underestimate since the common length is a fork length.
+- Reproduction, sexual dimorphism and eggs per spawning stay Unknown.
+
+Decided by Jeremy (2026-10-28):
+
+- **Life stage: adults.** Young fish are bright gold with bold black bars and are the classic
+  pilots, but the piloting ones are near or under the 27 cm floor. Adults turn golden-silver
+  with faded bars and a few dark blotches; the model shows that look. Sizes follow the
+  entry's 50–75 cm TL (2–3 WU).
+- **Count: six,** in `creatures_dev` first.
+
+Model intake (2026-10-29, `dev_2`): Jeremy's GLB is a body and four independent paired fins
+sharing one material, flat-shaded, normals outward. Its texture is a whole 2048 × 1362 aquarium
+photo from Commons (Norbert Potensky, CC BY-SA 3.0, credited); the UVs use only the fish, so
+`scripts/prepare-golden-trevally-model.py` crops to that area plus 8 px, resizes to 1024 px
+wide and remaps the UVs (GLB 4.8 → 1.3 MB). The photo has no alpha, so BLEND is dropped. Scale
+is from total length, mouth to lower lobe tip: 1.1995 source units = 4.8 WU (fork length 0.982).
+The photo shows a fish with bold bars, the younger look; Jeremy's call stands as six adults by
+size. Motion is the pilot fish's carangid `caudal-wave` config with amplitude and turn scaled to
+this model's units. `creatures_dev` ids 1152–1157, size parameters 0/0.2/…/1 (50–75 cm), three
+of each sex. Production `creatures` ids 1451–1456, the same sizes and sexes, on Jeremy's
+go-ahead (2026-10-29; 808 → 814 rows). Backups before and after both writes. Shipped in clean
+`v0.41.0`.
 
 ## Current boundary — clean `v0.40.0`
 

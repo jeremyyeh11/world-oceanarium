@@ -364,6 +364,41 @@ export const STUDY_CREDITS = [
     venue: "Florent's Guide to the Tropical Reefs",
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
+  {
+    id: 'pardee-2021-bluefin-trevally',
+    subject: 'Bluefin Trevally sex-specific growth, oldest ages, maturity and length–weight relationship in Hawaii',
+    authors: 'Pardee, Wiley & Springer',
+    year: 2021,
+    title: 'Age, growth, and maturity for two highly targeted jack species: Caranx ignobilis and Caranx melampygus',
+    venue: 'Journal of Fish Biology 99: 1247–1255',
+    url: 'https://repository.library.noaa.gov/view/noaa/63122',
+  },
+  {
+    id: 'sudekum-1991-hawaiian-jacks',
+    subject: 'Bluefin Trevally spawning season, eggs per female and diet in the Northwestern Hawaiian Islands',
+    authors: 'Sudekum, Parrish, Radtke & Ralston',
+    year: 1991,
+    title: 'Life history and ecology of large jacks in undisturbed, shallow, oceanic communities',
+    venue: 'Fishery Bulletin 89: 493–513',
+    url: 'https://swfsc-publications.fisheries.noaa.gov/publications/CR/1991/9173.PDF',
+  },
+  {
+    id: 'hobson-1974-kona',
+    subject: 'Bluefin Trevally patrolling above the reef and following foraging goatfish in Kona, Hawaii',
+    authors: 'Hobson',
+    year: 1974,
+    title: 'Feeding relationships of teleostean fishes on coral reefs in Kona, Hawaii',
+    venue: 'Fishery Bulletin 72: 915–1031',
+    url: 'https://spo.nmfs.noaa.gov/sites/default/files/pdf-content/1974/724/hobson.pdf',
+  },
+  {
+    id: 'fishes-of-australia-bluefin-trevally',
+    subject: 'Bluefin Trevally colour',
+    authors: 'Dianne J. Bray',
+    title: 'Bluefin Trevally, Caranx melampygus',
+    venue: 'Fishes of Australia',
+    url: 'https://fishesofaustralia.net.au/home/species/1652',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one

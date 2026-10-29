@@ -8,6 +8,22 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.43.0 — Common Remora (in progress)
+
+Status: `v0.43.0-dev_1`, branch `species/remora-remora`, waiting for Jeremy's model.
+
+### Behaviour and motion
+
+- The skin-fit test now checks every remora on every whale shark spot as well as the mako's and
+  the Mola's: 324 rider-and-spot pairs, median disc lift 0, worst 3.6 mm (on the Mola), none on
+  the whale shark above 1.4 mm. The common remora lies on all 36 spots of its two hosts.
+
+### Species and Atlas
+
+- Common Remora (`remora-remora`): Atlas copy no longer describes the reserve's plans. Still
+  hidden: no model, on no tank. No published age, maturity or spawning data, so those fields
+  stay Unknown.
+
 ## v0.41.0 — Golden Trevally (2026-10-29)
 
 Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,

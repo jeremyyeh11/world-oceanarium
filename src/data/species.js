@@ -1383,7 +1383,7 @@ export const SPECIES = [
       diet: 'Copepods + scraps',
       social: 'Hitchhiker',
     },
-    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free — so in the reserve it should spend long stretches clamped to the mako and short ones on its own.',
+    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free, so it spends long stretches clamped to its host and short ones on its own.',
     adultLengthRangeMeters: [0.4, 0.864],
     maxBodyLengthMeters: 0.864,
     swim: {
@@ -1400,8 +1400,9 @@ export const SPECIES = [
       freeSeconds: [10, 25],
       discAheadBodyLengths: 0.29,
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
+    // In progress (branch species/remora-remora, docs/fish-queue.md): no model yet, on no tank,
+    // out of the Atlas. Its hosts are the Open Sea's mako and whale shark, whose spots it lies on
+    // (tests/fishRide.test.mjs). No age, maturity or spawning data is published for the species.
     hiddenInAtlas: true,
   },
   {

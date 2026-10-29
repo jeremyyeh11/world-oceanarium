@@ -43,7 +43,8 @@ In the order they will be added.
    Oceanic Manta (entry under [Remora entries](#remora-entries)).
 2. **Brain Coral** (*Platygyra daedalea*), The Reefs. Static hard coral, boulders on the
    bommies.
-3. **Common Remora** (`remora-remora`), The Open Sea. Rides the mako and the whale shark.
+3. **Common Remora** (`remora-remora`), The Open Sea. In progress (branch
+   `species/remora-remora`), waiting for Jeremy's GLB. Rides the mako and the whale shark.
 4. **Cauliflower Coral** (*Pocillopora*, species to choose), The Reefs. Static hard coral,
    built with the staghorn's kit script.
 5. **Bluefin Trevally** (*Caranx melampygus*), The Reefs. Escorts the humphead wrasse, on the
@@ -99,7 +100,8 @@ a tank slot and `creatures_dev` rows. Their generated stand-ins were removed in
   (its `rideHost` is escort-only: it needs anchors fitted to its mesh; mouth riding is a
   separate roadmap item).
 - **Common Remora** (`remora-remora`, 86 cm, LC). Rides sharks first, also turtles, whales and
-  large fish. Home: The Open Sea, on the mako and whale shark.
+  large fish. Home: The Open Sea, on the mako and whale shark; it lies on every spot of both
+  (tested). Waiting for Jeremy's GLB (branch `species/remora-remora`).
 - **Spearfish Remora** (`remora-brachyptera`, 50 cm, LC). Rides billfish, also sunfish. Home:
   The Reefs, on its Mola.
 - **Marlinsucker** (`remora-osteochir`, 40 cm, LC). Rides billfish only; needs a marlin,

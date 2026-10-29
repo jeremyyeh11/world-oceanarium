@@ -6,6 +6,48 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
+## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`)
+
+Reserve: The Reefs, as a follower of the humphead wrasse (fish queue, Up next item 5). Felt
+intention: a quick blue hunter shadowing a slow, heavy forager, hanging just above and behind
+it while the wrasse works the rock, ready to snatch whatever bolts. Must not happen: a trevally
+below the wrasse or inside the rock it is working, or a school milling on its own.
+
+Prepared: hidden species entry (no model, no roster slot, no rows), `hitchhiker` follower block
+(`hosts: { 'reef-forager': 1 }`, stations above and to either side, `along [-0.3, 0.9]`,
+`angleDegrees [20, 160]`, `radius [1.15, 1.5]`). The wrasse gained an escort-only `rideHost`
+in a new `reef-forager` group, so the pilot fish and bannerfish (who follow `large-fish`) do not
+start trailing it; visitors see no change. Clearance measured on both wrasse models.
+
+Size check: 117 cm FL maximum = 4.68 WU; proposed fish 45–70 cm FL = 1.8–2.8 WU, well above the
+27 cm / 1.08 WU floor.
+
+Research decisions:
+
+- FishBase: 117 cm FL maximum, 60 cm TL common length, 43.5 kg; 0–190 m; Lm 35 cm; LC (9 March
+  2015). Range Red Sea and East Africa to Ducie Island, eastern Pacific Mexico to Panama.
+- Pardee et al. 2021 (Hawaii, 194 aged): mean asymptotic FL 74.9 cm female, 69.2 cm male (growth
+  not significantly different); oldest female 24 years, male 17; A50 4.1 / 2.9 years; W (g) =
+  6.77e-6 FL (mm)^3.15, giving 7.7 / 6.0 kg at those lengths.
+- Sudekum et al. 1991: gravid April–November, peak May–July; 49,700 to 4.27 million mature eggs
+  per gravid female (32.8–64 cm SL); over 90% fish.
+- Hobson 1974 (Kona): patrols about 1 m above the reef; 16 of 24 groups of a big goatfish had a
+  jack following close behind. Wikipedia (citing Hobson 1974, Potts 1981) adds wrasses, rays and
+  sharks as hosts; no source names the humphead wrasse itself (a Maldives photo caption shows
+  bluefin hunting beside a juvenile one). Rays and sharks are left off until a Reefs one exists:
+  stations above a ray would sit level with its wings.
+
+Open for Jeremy:
+
+- **Life stage:** adults proposed (blue fins and spotted flanks; juveniles have dark fins with
+  yellow pectorals and live in sandy shallows, not following).
+- **Count:** four proposed, at 45–70 cm FL, in `creatures_dev` first (the reef has one male and
+  two female wrasses).
+- **GLB handoff:** caudal-wave contract below (nose −Z, +Y up, pectorals separate); record the
+  **fork length** separately, as the entry scales by fork length (4.68 WU at 117 cm). Supply photo
+  provenance. At intake: carangid `caudal-wave` from the golden trevally's config, Atlas pose and
+  tile, roster slot in The Reefs, and watch the escort near walls and rocks.
+
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 
 Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt

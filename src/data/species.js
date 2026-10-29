@@ -3197,6 +3197,19 @@ export const SPECIES = [
     sizeRangeBySex: { female: [0.35, 0.44] },
     // FishBase Bayesian length–weight (TL cm): a 0.01445, b 2.98; about 13 kg at 1 m, 44 kg at 1.5 m.
     mass: { coefficient: 0.01445, exponent: 2.98 },
+    // Escort-only host (docs/ride-hosts.md, Followers) for the bluefin trevally, which follows
+    // big reef foragers to catch the prey they flush. `reef-forager` is its own group, so the
+    // pilot fish and bannerfish (who follow `large-fish`) leave it alone. No `anchors`: nothing
+    // rides a wrasse.
+    rideHost: {
+      groups: ['reef-forager'],
+      // Measured with scripts/measure-ride-anchors.mjs on both models (9.16 WU, after each
+      // model's `position`): snout at z -4.58, caudal peduncle near +2.6; belly -1.0 (male) to
+      // -1.6 (female), pelvic tips -1.9; back and dorsal fin up to +2.46 on the male; body ±0.89
+      // wide, the male's pectorals ±1.95. Centre (0, 0.3, -0.6) WU, radii (1.9, 2.1, 4.4) WU:
+      // body, head and pectorals to the peduncle; the tail fin stays outside.
+      body: { center: [0, 0.033, -0.066], radii: [0.207, 0.229, 0.48] },
+    },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It roves the reef by day, so it
     // patrols more than any other resident, pausing off a face and biting shellfish and urchins
     // off the rock. Its ledge is for the night, so it shelters little. At the corals it cruises
@@ -4423,6 +4436,146 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // --- Bluefin trevally (Carangidae) ----------------------------------------------------------
+  // Facts from FishBase, Pardee et al. 2021 (Hawaii: sex-specific growth, ages and maturity),
+  // Sudekum et al. 1991 (NW Hawaiian Islands: spawning season, fecundity, diet) and Hobson 1974
+  // (Kona: patrols just above the reef; follows close behind big foraging goatfish to catch the
+  // prey they flush). Planned for The Reefs as a follower of the humphead wrasse, on the golden
+  // trevally's escort code (docs/fish-queue.md; docs/ride-hosts.md, Followers). Queued until
+  // Jeremy supplies its GLB: no model, no reserve slot, out of the Atlas.
+  {
+    id: 'caranx-melampygus',
+    name: 'Bluefin Trevally',
+    scientificName: 'Caranx melampygus',
+    family: 'Carangidae',
+    alternateNames: ['Bluefin Jack', 'Blue Trevally', 'Omilu'],
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Usually alone or a few together by day (Hobson 1974), and each follower holds its own
+    // station round the wrasse, so it runs the solo-agent path the escort steering lives on.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Over 90% fish by volume in Hawaii (Sudekum et al. 1991).
+    predator: true,
+    tempo: 'cruise',
+    // IUCN assessed 9 March 2015 (FishBase).
+    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      // Sudekum et al. 1991: over 90% fish; wrasses, goatfishes and filefishes the main
+      // families, eels too; crustaceans in about a fifth of stomachs.
+      commonDiet: 'Mostly small reef fishes, among them wrasses, goatfishes, filefishes and eels; some crustaceans.',
+      foundIn: 'Tropical Indo-Pacific from the Red Sea and East Africa to Hawaii and Ducie Island, north to the Ryukyu Islands and south to New Caledonia, and in the eastern Pacific from Mexico to Panama. Deeper lagoons and outer reefs, 0 to 190 m.',
+      // Pardee et al. 2021: females mature larger and later; growth does not differ significantly
+      // between the sexes. No colour difference is published.
+      sexualDimorphism: 'Females mature at a larger size and a year later than males. No colour difference is known.',
+      // Pardee et al. 2021 (Hawaii, 194 aged): oldest female 24 years, oldest male 17.
+      lifeSpan: 'Up to 24 years',
+      // Pardee et al. 2021, A50 from histology: females 4.1 years at 37.2 cm FL, males 2.9 years
+      // at 32.9 cm. Supersedes Sudekum et al. 1991's "about 2 years" at 35 cm SL.
+      maturityAge: 'Females about 4 years, males about 3',
+      social: {
+        schoolSize: 'Solitary or small groups',
+        // Hobson 1974 (Kona): of 24 groups of the goatfish Parupeneus chryserydros (now
+        // P. cyclostomus), 16 had a jack
+        // following close behind; "clearly, it is the jack that maintains the association".
+        groupingBehaviour: 'By day usually alone or a few together, patrolling about a metre above the reef. Often follows close behind a big forager, such as a goatfish probing the bottom, to snap up the small fish it drives out of hiding.',
+        // Sudekum et al. 1991 (NW Hawaiian Islands): gravid fish from April to November, more
+        // than half gravid in May, June and July.
+        reproduction: 'Spawns in the warm months: in Hawaii, ripe fish from April to November, most from May to July.',
+      },
+      averages: {
+        // Pardee et al. 2021 (Hawaii, Table 1): sex-specific mean asymptotic fork lengths, 74.9
+        // cm female and 69.2 cm male (the growth curves do not differ significantly). Weights
+        // from the study's relation, W (g) = 6.77e-6 FL (mm)^3.15, at those lengths: 7.7 and
+        // 6.0 kg. Life expectancy is each sex's oldest aged fish.
+        maleSizeMeters: 0.69,
+        femaleSizeMeters: 0.75,
+        maleWeightKg: 6,
+        femaleWeightKg: 7.7,
+        maleLifeExpectancyYears: 17,
+        femaleLifeExpectancyYears: 24,
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Females about 4 years, males about 3',
+        sexualSterilityYears: 'None known',
+        // Sudekum et al. 1991: mature eggs in the ovaries of 11 gravid females in July, 49,700
+        // (32.8 cm SL) to 4,270,000 (64 cm SL), rising with body weight to the 1.7 power.
+        offspringPerMatingEvent: 'About 50,000 to 4.3 million eggs, more in larger females',
+      },
+    },
+    atlasSummary: { biome: 'Reef', zone: 'Sunlight', diet: 'Fish', social: 'Follower' },
+    // Colour: Fishes of Australia (electric-blue second dorsal, anal and tail fins; blue and black
+    // spots on the sides).
+    description: 'A reef jack up to 117 cm, silvery with a bronze-blue back, its sides freckled with blue and black spots and its second dorsal, anal and tail fins electric blue. It patrols just above the reef, alone or a few together, and often trails a big fish that is rooting in the bottom, snapping up the small fish it flushes. In the reserve a few follow the humphead wrasse as it works the rocks.',
+    // Pardee et al. 2021: males mature from 32.9 cm FL; FishBase maximum 117 cm FL.
+    adultLengthRangeMeters: [0.33, 1.17],
+    maxBodyLengthMeters: 1.17,
+    // Proposed reserve fish 45–70 cm FL (1.8–2.8 WU): adults round the Hawaiian sample's sizes,
+    // below the rare fish over 80 cm. To confirm with Jeremy at model intake.
+    sizeRange: [0.45 / 1.17, 0.7 / 1.17],
+    // Pardee et al. 2021, W (g) = 6.77e-6 FL (mm)^3.15, rewritten for cm FL to grams.
+    mass: { coefficient: 0.009563, exponent: 3.15 },
+    swim: {
+      // A quick carangid cruiser that never hovers, the golden trevally's swim. While following,
+      // the escort steering slows it to the wrasse's pace and these only bound it.
+      visualTimeScale: 0.7,
+      driftEnabled: false,
+      idleBLPerSec: [0.9, 1.3],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [1.4, 1.9],
+      burstBLPerSec: [2.2, 3.0],
+      burstInterval: [10.0, 18.0],
+      burstActionDuration: 0.8,
+      turnActionDuration: 0.6,
+      erraticness: 0.1,
+      turnRadiusBodyLengths: 1.2,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // The wrasse's room. Its stations sit at most about 3 WU off the wrasse; one following it
+      // past a wall waits at the wall (to watch at intake).
+      ...REEF_BOUNDS,
+      // 1 WU = 25 cm: 117 cm maximum fork length = 4.68 WU. The model is scaled by fork length.
+      bodyLengthWU: 4.68,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.0,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        // A fish-eater, so the small reef fish give it a little room.
+        menace: 0.15,
+        wariness: 0.05,
+      },
+    },
+    hitchhiker: {
+      // Follows rather than rides, breaking off now and then to patrol on its own.
+      attaches: false,
+      freeSeconds: [30, 70],
+      // Hobson 1974: big foraging goatfish; also reported following wrasses, rays and sharks.
+      // Only `reef-forager` for now: its stations sit above the host, which on a ray would be
+      // level with the wings, so a Reefs ray or shark host needs its own check first.
+      hosts: { 'reef-forager': 1 },
+      escort: {
+        // "Follows close behind": over the wrasse's back from the head to just past the tail,
+        // weighted to the rear half.
+        along: [-0.3, 0.9],
+        // Above and to either side, never below: the wrasse works the rock with its belly near
+        // it (0 = its right, 90 above, 180 its left; drift adds up to 18 more).
+        angleDegrees: [20, 160],
+        radius: [1.15, 1.5],
+        seconds: [30, 80],
+        // Then it drifts round to a new station, or (`leaveChance`) swims off for `freeSeconds`.
+        leaveChance: 0.4,
+        minSpeedBLPerSec: 0.3,
+        // It goes looking for a wrasse anywhere on the reef.
+        rangeBodyLengths: 12,
+      },
     },
   },
 ]

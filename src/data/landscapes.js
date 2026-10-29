@@ -127,6 +127,28 @@ const STAGHORN_KIT = {
   doubleSided: true,
 }
 
+// Brain corals (Platygyra daedalea), to be baked from Jeremy's model by
+// scripts/build-brain-coral-kit.py: brain0, brain1, ... largest first, each with _hi (2400
+// triangles; 1200 under 60 cm across), _lo (700; 350) and _far (180; 90) meshes sharing its
+// brainN-color/-normal.jpg (the maze of valleys baked into the normal map). In metres, the base at
+// the origin (his object origin, the middle of the colony's underside), up +Y. Not yet supplied:
+// the reef's `brainCorals.pending` keeps it off until the kit is built.
+const BRAIN_CORAL_KIT = {
+  path: '/models/landscape/brain-corals.glb',
+  // One per source colony; extend to match the kit the script prints.
+  models: ['brain0', 'brain1'].map(name => ({
+    name,
+    color: `/models/landscape/${name}-color.jpg`,
+    normal: `/models/landscape/${name}-normal.jpg`,
+  })),
+  // As the tables: _hi within hiDetailDistance of the resting camera, _lo to loDetailDistance,
+  // _far beyond (Landscape.jsx mergeKitModels).
+  hiDetailDistance: 30,
+  loDetailDistance: 60,
+  // Merged in square chunks this many WU wide (per model), so off-screen ones are culled.
+  chunkWU: 60,
+}
+
 // Jeremy's giant sea fans (Annella mollis, `_blender models/annella mollis.glb`, 2026-10-26),
 // normalised by scripts/build-sea-fan-kit.py: fan0, fan1, ... each in metres with its holdfast at
 // the origin (his object origin, at the trunk's root) and its lattice in the XY plane, with the
@@ -414,6 +436,18 @@ export const LANDSCAPES = {
       scatter: { seed: 8501, rocks: 30, perRock: [2, 4], spacing: 6.5, maxDistance: 95 },
       sway: SEA_FAN_SWAY,
     },
+    // Brain corals (src/components/brainCoralPlacement.js) on the same bommies, placed after the
+    // tables and sea fans, clear of both, and before the staghorn, which keeps clear of them:
+    // `perCluster` colonies a bommie, about footShare of them on the sand at its foot, the rest on
+    // its ledges. `diameter` in WU at the foot (60 cm to 1.6 m: colonies commonly grow to 1 m or
+    // more, SeaLifeBase), ledgeScale times that up on the rock. `pending` keeps it off (no kit,
+    // no placement, no load) until Jeremy's model is baked into the kit.
+    brainCorals: {
+      kit: BRAIN_CORAL_KIT,
+      pending: true,
+      seed: 9103, perCluster: [2, 4], footShare: 0.3,
+      diameter: [2.4, 6.4], ledgeScale: 0.7,
+    },
   },
   // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's
   // devil rays school. Mostly open on purpose, so the school is the subject: pale rippled sand,
@@ -479,6 +513,12 @@ export const LANDSCAPES = {
 
 export function landscapeForTank(tank) {
   return tank?.landscape ? LANDSCAPES[tank.landscape] ?? null : null
+}
+
+// The landscape's brain corals, unless they wait for their kit (`pending`).
+export function brainCoralsOf(landscape) {
+  const config = landscape?.brainCorals
+  return config && !config.pending ? config : null
 }
 
 // The sand's grain: a broad swell (wavelength about 200 WU), dunes (40–60 WU), hummocks

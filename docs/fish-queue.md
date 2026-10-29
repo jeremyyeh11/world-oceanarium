@@ -41,8 +41,9 @@ In the order they will be added.
 
 1. **White Suckerfish** (`remora-albescens`), The Shallows. In progress. Rides the Giant
    Oceanic Manta (entry under [Remora entries](#remora-entries)).
-2. **Brain Coral** (*Platygyra daedalea*), The Reefs. Static hard coral, boulders on the
-   bommies.
+2. **Brain Coral** (`platygyra-daedalea`), The Reefs. In progress: everything but the model is
+   built (`v0.43.0-dev_1`, ROADMAP); waiting for Jeremy's GLB. Static hard coral, boulders on
+   the bommies, a `mound` to the reef fish.
 3. **Common Remora** (`remora-remora`), The Open Sea. Rides the mako and the whale shark.
 4. **Cauliflower Coral** (*Pocillopora*, species to choose), The Reefs. Static hard coral,
    built with the staghorn's kit script.

@@ -249,6 +249,19 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.05, 0],
     lookAt: [0, -0.05, 0],
   },
+  // Brain corals on a low rock (the model's origin is the rock's foot), framed like the other
+  // corals: turned a little and looking 25° down, so the domes' maze of valleys reads. A starting
+  // pose until Jeremy's model is in; check it on desktop and both phone orientations then.
+  'platygyra-daedalea': {
+    yawOffset: -0.3,
+    pitchDegrees: 25,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.6, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -290,6 +303,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'annella-mollis': 1.711,
   // Supplied golden trevally model, mouth to lower caudal-lobe tip along Z.
   'gnathanodon-speciosus': 1.199504,
+  // The brain corals on their rock, widest across (scripts/build-brain-coral-atlas.py prints the
+  // bounds). A placeholder until the specimen is built from Jeremy's model.
+  'platygyra-daedalea': 1.2,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

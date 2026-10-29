@@ -13,6 +13,36 @@ Status labels:
 
 ## Current work
 
+### Brain Coral
+
+Status: `Current in development` — `v0.43.0-dev_1`, branch `species/platygyra-daedalea`.
+Everything for the Brain Coral (*Platygyra daedalea*, The Reefs) except Jeremy's GLB. Off in
+every build until the kit is baked (`brainCorals.pending`, `hiddenInAtlas`).
+
+Subtasks:
+- [x] Species entry (hidden): SeaLifeBase (LC 2023; 3–30 m; colonies commonly 1 m or more; the
+  understory of Acropora patch reefs), Lapid & Chadwick 2006 (sweeper tentacles), Mangubhai &
+  Harrison 2008 (spawning), credited in `STUDY_CREDITS`.
+- [x] Placement (`src/components/brainCoralPlacement.js`): boulders on the bommies' ledges and at
+  their feet, after the tables and sea fans, before the staghorn (`inMound`); a spot that clashes
+  tries the colony smaller. Unit test `tests/brainCoralPlacement.test.mjs`.
+- [x] `mound` coral form for the reef fish: side, crown and undercut aims; per-species shares (no
+  live-coral pecks for the unicornfish and angelfish). See `docs/reef-behavior.md` (Mounds).
+- [x] Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`),
+  run end to end on a generated stand-in (two domes): 187 KB kit, 1.0 MB Atlas model.
+- [x] Measured in the tank with the stand-in kit (desktop, 2026-10-29): 23 colonies;
+  staghorn 358 → 310 colonies (−13%); reef fish visits 2 of 141 at a mound, both at a crown.
+- [ ] Jeremy's model: run the kit script, set `BRAIN_CORAL_KIT.models` to what it prints, drop
+  `pending`, check every colony's origin sits at its underside (the script prints it). `Next`
+- [ ] Then the Atlas: build the specimen, set `maxBodyLengthMeters` and the Atlas source length
+  from its printed bounds, check the pose on desktop and both phone orientations, unhide it, add
+  it to The Reefs' `landscapeSpecies`, and capture the in-tank tile. `Next`
+- [ ] Credit any photo texture in his GLB (`IMAGE_CREDITS`). `Next`
+- [ ] Only 4 of 23 stand-in colonies reach the reef fish's swim floor (y −19): most sit low under
+  the tables. Jeremy to choose: brain corals higher up the bommies, a lower swim floor, or leave
+  them as scenery the fish seldom visit. `Blocked / waiting review`
+- [ ] Phone frame rate at The Reefs with the colonies added (up to 700 triangles each at mid range, 2400 close up). `Next`
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -340,7 +370,7 @@ Subtasks:
 - [x] Measured on desktop (shares, trip success, search ms, branch clearance, tree build ms).
 - [x] Jeremy's go-ahead on `v0.31.4-dev_1` (2026-10-20: "merge").
 - [ ] Thicket flank searches find a spot about a third of the time (rock or a table is often in the way); a search that finds none goes to rock. Raise it if the thickets still read as unused. `Backlog`
-- [ ] Mound (massive, brain, encrusting), fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. `Backlog`
+- [ ] Fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. The mound form is built for the Brain Coral (`v0.43.0-dev_1`, Current work). `Backlog`
 
 ### Staghorn coral
 

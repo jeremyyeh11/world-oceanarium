@@ -7,6 +7,14 @@ import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
+// The brain coral waits for its model: hidden in the Atlas, not counted on The Reefs, and its kit
+// (landscapes.js brainCorals.pending) neither placed nor loaded. Flip these once the kit is built.
+const brainCoral = speciesById.get('platygyra-daedalea')
+assert.ok(brainCoral.hiddenInAtlas, 'the brain coral stays out of the Atlas until its model lands')
+assert.ok(!TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(brainCoral.id))
+assert.ok(!ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-reefs').assets.some(asset => asset.url.includes('brain')),
+  'a pending brain coral kit is not loaded')
+
 // FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
 const trevally = speciesById.get('gnathanodon-speciosus')
 assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)

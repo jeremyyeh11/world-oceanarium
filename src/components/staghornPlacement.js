@@ -88,7 +88,8 @@ export function inPlate(plates, point) {
 // clusters are coralClusters' (the bommies the tables crown); tables the placed tables;
 // measures are measureColony per kit model; view is the resting camera. `avoid(point, extra)`, if
 // given, says whether a point (with `extra` WU round it) is taken by a coral placed before the
-// staghorn (the sea fans, seaFanPlacement.js inFan).
+// staghorn (the sea fans, seaFanPlacement.js inFan; the brain corals, brainCoralPlacement.js
+// inMound).
 export function* placeStaghorn(landscape, clusters, tables, measures, view, avoid = null) {
   const config = landscape.staghorn
   const { kit } = config

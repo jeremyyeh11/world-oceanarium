@@ -6,13 +6,14 @@ import { environmentLoader } from '../loading/environmentRuntime'
 import { runSlicedPreparation } from '../loading/runSlicedPreparation.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { MeshBVH } from 'three-mesh-bvh'
-import { landscapeForTank, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
+import { brainCoralsOf, landscapeForTank, landscapePieces, rubblePieces, seededRandom } from '../data/landscapes'
 import { TANKS } from '../data/species'
 import { clearCoralSurfaces, clearReefSurfaces, setCoralSurfaces, setReefSurfaces } from './reefSites'
 import { clearExtraObstacles, setExtraObstacles } from './rockObstacles'
 import { coralClusters, coralRockOf, measureCoral, placeCorals } from './coralPlacement'
 import { measureColony, placeStaghorn } from './staghornPlacement'
 import { inFan, measureFan, placeSeaFans } from './seaFanPlacement'
+import { inMound, measureMound, placeBrainCorals } from './brainCoralPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 import { addSwayAttributes, applyCoralSway, useSwayClock } from '../utils/coralSway'
 import { installLodDebug, tagLodGeometry } from '../utils/lodDebug'
@@ -256,6 +257,10 @@ const CORAL_REEF_SURFACES = new WeakMap()
 const PLACED_SEA_FANS = new WeakMap()
 // The sea fans reef fish can reach, as raycast surfaces, per placement.
 const FAN_REEF_SURFACES = new WeakMap()
+// Placed brain corals per landscape, for the session.
+const PLACED_BRAIN_CORALS = new WeakMap()
+// The brain corals reef fish can reach, as raycast surfaces, per placement.
+const MOUND_REEF_SURFACES = new WeakMap()
 
 // One world-space geometry per table inside the landscape's reef reach, from its _lo mesh (700
 // triangles, 300 for the small one: plenty for a ray), with its plate for the site search to aim
@@ -536,8 +541,8 @@ function useExtraObstacles(obstacles) {
 // Table corals (landscape.corals): placed against the drawn rocks (coralPlacement.js), then
 // merged per kit model and square chunk (culled when off screen), each coral from the _hi,
 // _lo or _far mesh by its distance from the resting camera. The plates join the fish's rock
-// obstacles. Loads on its own, so the rocks never wait. The staghorn (landscape.staghorn)
-// grows on the same bommies once the tables are placed.
+// obstacles. Loads on its own, so the rocks never wait. The sea fans, brain corals and staghorn
+// grow on the same bommies once the tables are placed, in that order (AfterFans).
 function Corals({ landscape, coralRocks, sightRocks, environmentId, debugLodView }) {
   const { kit } = landscape.corals
   const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
@@ -572,9 +577,93 @@ function Corals({ landscape, coralRocks, sightRocks, environmentId, debugLodView
         <Suspense fallback={null}>
           <SeaFans landscape={landscape} clusters={clusters} tables={corals} sightRocks={sightRocks} coralRocks={coralRocks} environmentId={environmentId} debugLodView={debugLodView} />
         </Suspense>
-      ) : corals && landscape.staghorn && (
+      ) : corals && (
+        <AfterFans landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} debugLodView={debugLodView} />
+      )}
+    </>
+  )
+}
+
+// The corals placed after the tables and sea fans (`fans`, null without any), in order: the brain
+// corals (landscape.brainCorals, unless pending), then the staghorn, which keeps clear of both.
+function AfterFans({ landscape, clusters, tables, fans = null, environmentId, debugLodView }) {
+  if (brainCoralsOf(landscape)) {
+    return (
+      <Suspense fallback={null}>
+        <BrainCorals landscape={landscape} clusters={clusters} tables={tables} fans={fans} environmentId={environmentId} debugLodView={debugLodView} />
+      </Suspense>
+    )
+  }
+  return landscape.staghorn ? (
+    <Suspense fallback={null}>
+      <Staghorn landscape={landscape} clusters={clusters} tables={tables} fans={fans} environmentId={environmentId} debugLodView={debugLodView} />
+    </Suspense>
+  ) : null
+}
+
+// The brain corals inside the landscape's reef reach as raycast surfaces (reefSites.js
+// setCoralSurfaces), one per colony from its _lo mesh, with its base, crown and reach for the site
+// search to aim at its side or under its edge. Built once per placement and kept for the session.
+function moundReefSurfaces(landscape, mounds, meshes, kit) {
+  const cached = MOUND_REEF_SURFACES.get(mounds)
+  if (cached) return cached
+  const reach = landscape.reefReach
+  const geometries = []
+  const metas = []
+  for (const mound of mounds) {
+    const { base } = mound
+    if (reach && (base.x < reach.xMin || base.x > reach.xMax || base.z < reach.zMin || base.z > reach.zMax
+      || base.y < reach.yMin - 4 || base.y > reach.yMax)) continue
+    const source = meshes[`${kit.models[mound.model].name}_lo`]
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', source.attributes.position.clone())
+    geometry.setIndex(source.index.clone())
+    geometry.applyMatrix4(mound.matrix)
+    geometry.computeBoundingBox()
+    geometries.push(geometry)
+    metas.push({ form: 'mound', centre: base.clone(), top: mound.top, radius: mound.reach })
+  }
+  const result = { geometries, metas }
+  MOUND_REEF_SURFACES.set(mounds, result)
+  return result
+}
+
+// Brain corals (landscape.brainCorals): boulders on the table corals' bommies' ledges and at
+// their feet, clear of the tables and the sea fans (brainCoralPlacement.js), merged per kit model
+// and square chunk like the tables. Each colony joins the fish's rock obstacles and the reef
+// fish's site surfaces (the `mound` form). The staghorn (landscape.staghorn) is placed after
+// them, clear of them.
+function BrainCorals({ landscape, clusters, tables, fans, environmentId, debugLodView }) {
+  const { kit } = landscape.brainCorals
+  const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
+  const mounds = useSlicedPlacement(PLACED_BRAIN_CORALS, landscape, () => {
+    const measures = kit.models.map(model => measureMound(meshes[`${model.name}_lo`]))
+    return placeBrainCorals(landscape, clusters, tables, measures, landscape.view, fans && ((point, extra) => inFan(fans, point, extra)))
+  }, [kit, meshes, clusters, tables, fans], environmentId)
+
+  const { merged, obstacles } = useMemo(() => {
+    if (!mounds) return { merged: [], obstacles: [] }
+    return {
+      merged: mergeKitModels(mounds, kit, meshes, landscape.view, mound => mound.centre),
+      obstacles: mounds.map(mound => mound.obstacle),
+    }
+  }, [kit, meshes, landscape, mounds])
+
+  useExtraObstacles(obstacles)
+  const reefMounds = useMemo(() => (mounds ? moundReefSurfaces(landscape, mounds, meshes, kit) : null), [landscape, mounds, meshes, kit])
+  useLayoutEffect(() => {
+    if (!reefMounds?.geometries.length) return undefined
+    const owner = setCoralSurfaces(reefMounds.geometries, reefMounds.metas)
+    return () => clearCoralSurfaces(owner)
+  }, [reefMounds])
+  useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
+
+  return (
+    <>
+      {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
+      {mounds && landscape.staghorn && (
         <Suspense fallback={null}>
-          <Staghorn landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} debugLodView={debugLodView} />
+          <Staghorn landscape={landscape} clusters={clusters} tables={tables} fans={fans} mounds={mounds} environmentId={environmentId} debugLodView={debugLodView} />
         </Suspense>
       )}
     </>
@@ -582,16 +671,17 @@ function Corals({ landscape, coralRocks, sightRocks, environmentId, debugLodView
 }
 
 // Staghorn (landscape.staghorn): patches of one colour each on the table corals' bommies,
-// clear of their plates and of the sea fans when there are any (`fans`, placed first:
-// staghornPlacement.js), each bommie's drawn as one LOD (staghornLods). Each colony joins the
-// fish's rock obstacles.
-function Staghorn({ landscape, clusters, tables, fans = null, environmentId, debugLodView }) {
+// clear of their plates and of the sea fans and brain corals when there are any (`fans`,
+// `mounds`, placed first: staghornPlacement.js), each bommie's drawn as one LOD (staghornLods).
+// Each colony joins the fish's rock obstacles.
+function Staghorn({ landscape, clusters, tables, fans = null, mounds = null, environmentId, debugLodView }) {
   const { kit } = landscape.staghorn
   const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
   const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
     const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
-    return placeStaghorn(landscape, clusters, tables, measures, landscape.view, fans && ((point, extra) => inFan(fans, point, extra)))
-  }, [kit, meshes, clusters, tables, fans], environmentId)
+    const avoid = (fans || mounds) && ((point, extra) => Boolean((fans && inFan(fans, point, extra)) || (mounds && inMound(mounds, point, extra))))
+    return placeStaghorn(landscape, clusters, tables, measures, landscape.view, avoid)
+  }, [kit, meshes, clusters, tables, fans, mounds], environmentId)
 
   const { bommies, obstacles } = useMemo(() => {
     if (!colonies) return { bommies: [], obstacles: [] }
@@ -727,7 +817,7 @@ function fanReefSurfaces(landscape, fans, models) {
 // Giant sea fans (landscape.seaFans): on the table corals' bommies and scattered over the
 // reef's other rocks, clear of the tables (seaFanPlacement.js), merged per material and square
 // chunk, swaying in the surge. Each fan joins the fish's rock obstacles and blocks their site
-// rays. The staghorn (landscape.staghorn) is placed after them, clear of them.
+// rays. The brain corals and the staghorn are placed after them, clear of them (AfterFans).
 function SeaFans({ landscape, clusters, tables, sightRocks, coralRocks, environmentId, debugLodView }) {
   const { kit, sway } = landscape.seaFans
   const { models, materials } = useSeaFanKit(kit, sway, landscape.caustics, debugLodView)
@@ -773,11 +863,7 @@ function SeaFans({ landscape, clusters, tables, sightRocks, coralRocks, environm
   return (
     <>
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.material]} />)}
-      {fans && landscape.staghorn && (
-        <Suspense fallback={null}>
-          <Staghorn landscape={landscape} clusters={clusters} tables={tables} fans={fans} environmentId={environmentId} debugLodView={debugLodView} />
-        </Suspense>
-      )}
+      {fans && <AfterFans landscape={landscape} clusters={clusters} tables={tables} fans={fans} environmentId={environmentId} debugLodView={debugLodView} />}
     </>
   )
 }
@@ -877,6 +963,10 @@ const unsubscribeRetirement = environmentLoader.onRetire((id, current) => {
   for (const geometry of (fans && FAN_REEF_SURFACES.get(fans)?.geometries) ?? []) disposeGeometry(geometry)
   if (fans) FAN_REEF_SURFACES.delete(fans)
   PLACED_SEA_FANS.delete(landscape)
+  const mounds = PLACED_BRAIN_CORALS.get(landscape)
+  for (const geometry of (mounds && MOUND_REEF_SURFACES.get(mounds)?.geometries) ?? []) disposeGeometry(geometry)
+  if (mounds) MOUND_REEF_SURFACES.delete(mounds)
+  PLACED_BRAIN_CORALS.delete(landscape)
   BUILT_LANDSCAPES.delete(landscape)
   PLACED_CORALS.delete(landscape)
   PLACED_STAGHORN.delete(landscape)

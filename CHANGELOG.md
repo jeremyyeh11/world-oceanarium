@@ -8,6 +8,33 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.43.0 — Brain Coral (in development)
+
+Status: `v0.43.0-dev_1`, branch `species/platygyra-daedalea`. Prep, waiting for Jeremy's model:
+nothing changes for visitors until the kit is baked (`brainCorals.pending`, hidden in the Atlas).
+
+### Landscape and corals
+
+- Brain corals (*Platygyra daedalea*) as boulders on the table corals' bommies, on ledges and on
+  the sand at their feet (`src/components/brainCoralPlacement.js`): placed after the tables and
+  sea fans and before the staghorn, which keeps clear of them; held up all round, out of the
+  tables, fans and each other, trying smaller sizes where a big colony clashes. With a stand-in
+  kit: 23 colonies; staghorn 358 → 310.
+- Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`):
+  bake his colonies to three detail levels with colour and normal maps, origin at his object
+  origin; run end to end on generated domes.
+
+### Behaviour and motion
+
+- The `mound` coral form: reef fish peck and hover at a dome's side, hang over and skim across its
+  crown, and shelter under an undercut edge. The unicornfish and emperor angelfish never peck it;
+  the raccoon butterflyfish does. Off while no tank has mounds.
+
+### Species and Atlas
+
+- Brain Coral entry (hidden): SeaLifeBase, Lapid & Chadwick 2006 and Mangubhai & Harrison 2008
+  credited; a starting Atlas pose.
+
 ## v0.41.0 — Golden Trevally (2026-10-29)
 
 Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,

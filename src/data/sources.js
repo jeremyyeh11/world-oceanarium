@@ -364,6 +364,32 @@ export const STUDY_CREDITS = [
     venue: "Florent's Guide to the Tropical Reefs",
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
+  {
+    id: 'sealifebase-platygyra-daedalea',
+    subject: 'Brain Coral status, range, depth, habitat, colony size and reproduction',
+    authors: 'SeaLifeBase',
+    title: 'Platygyra daedalea (Ellis & Solander, 1786), Brain coral',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Platygyra-daedalea.html',
+  },
+  {
+    id: 'lapid-chadwick-2006-sweeper-tentacles',
+    subject: 'Brain Coral sweeper tentacles against neighbouring corals',
+    authors: 'Lapid & Chadwick',
+    year: 2006,
+    title: 'Long-term effects of competition on coral growth and sweeper tentacle development',
+    venue: 'Marine Ecology Progress Series 313: 115–123',
+    url: 'https://doi.org/10.3354/meps313115',
+  },
+  {
+    id: 'mangubhai-harrison-2008-platygyra',
+    subject: 'Brain Coral spawning season and yearly gametogenic cycle in Kenya',
+    authors: 'Mangubhai & Harrison',
+    year: 2008,
+    title: 'Gametogenesis, spawning and fecundity of Platygyra daedalea (Scleractinia) on equatorial reefs in Kenya',
+    venue: 'Coral Reefs 27: 117–122',
+    url: 'https://doi.org/10.1007/s00338-007-0297-8',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one

@@ -75,8 +75,9 @@ made each entry:
   away behind its disc, and a sampled spot can bulge or dip under it. `rideAnchorFit`
   finds the tilt and the bend of the rider's rear body that lie closest to the skin on
   average, each lifted just enough that nothing cuts in, fin lobes included. A gap under
-  the disc counts three times, so riders stay on their discs: across all 198
-  rider-and-spot pairs the median disc lift is 0 and the worst is 1.4 mm.
+  the disc counts three times, so riders stay on their discs: across all 324
+  rider-and-spot pairs on the mako, the Mola and the whale shark the median disc lift is 0 and
+  the worst is 3.6 mm (the Mola's lower right flank; none on the whale shark above 1.4 mm).
 - The bend (`rideBendProfile`) starts 30% back from the nose, behind the disc and the
   pectoral fins, and grows as the square of the distance from there. At most, the tail
   bends 15% of the rider's length toward the host. The `caudal-vertex` shader bends the

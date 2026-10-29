@@ -13,6 +13,35 @@ Status labels:
 
 ## Current work
 
+### Common Remora (The Open Sea)
+
+Status: `Current in development` — `v0.43.0-dev_1`, branch `species/remora-remora`.
+[Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
+
+Felt intention: the classic shark rider, a passenger that is almost never off its host. It
+should read as part of the mako or the whale shark, clamped for minutes at a time
+(`rideSeconds` 80–180), and only briefly free (`freeSeconds` 10–25). It must not read as a
+free-swimming fish that sometimes rides, the way the sharksuckers do.
+
+- [x] Facts and ride data in `species.js` (FishBase: 40 cm common, 86 cm max, LC; hosts
+  shark 1, turtle 0.5, cetacean 0.4, large fish 0.4). No published age, maturity or spawning
+  data (searched 2026-10-29; the only remora otolith study is on the marlinsucker), so those
+  Atlas fields stay Unknown.
+- [x] Size floor: 40–86 cm (1.59–3.46 WU), well above 27 cm.
+- [x] Hosts: it lies on every spot of the mako and of the whale shark (the skin-fit test now
+  covers the whale shark too: 18 spots, no disc lifted above 1.4 mm).
+- [x] Room on the hosts: at production sizes the mako (16.7 WU) and the whale shark (37.3 WU)
+  take 43.2 WU of riders; the seven sharksuckers use 24.1 WU, leaving about 19 WU, seven
+  mid-size common remoras (2.5 WU) at once.
+- [ ] Jeremy's GLB: remora body plan like the sharksuckers, up to 86 cm, brown, black or grey.
+- [ ] Intake ([ride-hosts.md](docs/ride-hosts.md), Remora models):
+  `node scripts/fit-rider-model.mjs remora-remora`, textures and credits, Atlas source length
+  and pose, `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, drop `hiddenInAtlas`, add to The
+  Open Sea's roster, Atlas tile with the first swim.
+- [ ] Decide the review population with Jeremy (suggested 4, spread over 40–86 cm, leaving
+  room for sharksuckers to rotate on); `creatures_dev` rows (backups first); production rows
+  only on his go-ahead.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

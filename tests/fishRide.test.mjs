@@ -214,7 +214,7 @@ function railAt(rail, s) {
 }
 let worstDiscLift = 0
 const rearGaps = new Map()
-for (const [hostName, hostSpecies] of [['mako', makoSpecies], ['mola', molaSpecies]]) {
+for (const [hostName, hostSpecies] of [['mako', makoSpecies], ['mola', molaSpecies], ['whale shark', speciesById.get('rhincodon-typus')]]) {
   const hostProfile = rideHostProfile(hostSpecies)
   const hostLength = hostSpecies.swim.bodyLengthWU
   for (const riderSpecies of SPECIES.filter(s => hitchhikerProfile(s)?.attaches && rideHostWeight(hitchhikerProfile(s), hostProfile) > 0)) {

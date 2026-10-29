@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.49.0 — Giant Clam (in progress)
+
+Status: `v0.49.0-dev_1`, branch `species/tridacna-gigas`, prepared and waiting for Jeremy's model.
+
+### Species and Atlas
+
+- Giant Clam (`tridacna-gigas`): hidden entry for The Reefs' sand (IUCN Critically Endangered,
+  Neo & Li 2024; SeaLifeBase sizes; 76-year oldest aged clam; maturity from culture). Weight stays
+  Unknown (no published length–weight relation). No model, not placed, out of the Atlas. Prep,
+  motion proposals and open decisions in `docs/species-preparation.md`.
+
 ## v0.41.0 — Golden Trevally (2026-10-29)
 
 Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,

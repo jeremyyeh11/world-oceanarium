@@ -51,8 +51,9 @@ In the order they will be added.
 6. **Leather Coral** (*Sarcophyton*, species to choose), The Reefs. Soft coral on the sea
    fan's sway shader.
 7. **Spearfish Remora** (`remora-brachyptera`), The Reefs. Rides the Mola.
-8. **Giant Clam** (*Tridacna gigas*), The Reefs. Static landscape piece in the sand between
-   bommies.
+8. **Giant Clam** (`tridacna-gigas`), The Reefs. In progress: prepared (`v0.49.0-dev_1`,
+   [species-preparation.md](species-preparation.md)); waiting for Jeremy's GLB. Static landscape
+   piece in the sand between bommies.
 9. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
    type.
 10. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.

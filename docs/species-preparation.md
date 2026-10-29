@@ -6,6 +6,108 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
+## Giant Clam — `tridacna-gigas` (prepared `v0.49.0-dev_1`)
+
+Reserve: The Reefs, as a landscape piece lying in the sand between the bommies (fish queue,
+Up next item 8). Not a creature: no `swim`, no roster slot, no creature rows, like the corals.
+
+Felt intention: something very old and very still. A great fluted shell half sunk in the sand,
+its lips parted, the mantle spread to the light in olive and gold with blue-green rings that
+shimmer as the caustics pass. It is the one thing on the reef that has been there longer than
+the visitor, and it never goes anywhere. Must not happen: a clam that snaps shut like a cartoon
+trap, chases or reacts to the camera, floats above the sand, sits on a rock top like an
+ornament, or crowds the reef (wild ones are scattered and now rare). Reference: the corals'
+landscape path (`landscapeSpecies`, a placement module, a kit script, an in-tank Atlas tile),
+not any fish.
+
+Size in world units: 80 cm common shell length = 3.2 WU, 137 cm maximum = 5.5 WU; far above
+the 1.08 WU floor and readable from the resting camera.
+
+Prepared: the hidden species entry (facts, Atlas copy, IUCN status; no model, not in The Reefs'
+`landscapeSpecies`) and its `STUDY_CREDITS`. Nothing is placed and nothing is drawn yet.
+
+Research decisions:
+
+- IUCN: **Critically Endangered**, A2acd, assessed 23 May 2024 (Neo & Li), up from Vulnerable
+  since 1996: more than 80% lost over the past century; gone or uncertain in 26 of 31 surveyed
+  localities; most surviving subpopulations under 10 clams. The Great Barrier Reef holds the
+  last large, stable populations. CITES Appendix II since 1983; proposed Endangered under the
+  US ESA (NOAA 2024).
+- SeaLifeBase: Cardiidae (subfamily Tridacninae); Myanmar to Wallis and Futuna, Japan to
+  Australia; 0–35 m; 137 cm maximum and 80 cm common shell length; 500 kg maximum published
+  weight; Lm 25–35 cm; a facultative plankton feeder living mostly on its zooxanthellae.
+- Atlas averages: size 80 cm (common length) for both, since every adult is both sexes.
+  Weight stays **Unknown**: no length–weight relation is published, and the two record
+  specimens (230 kg at 137 cm, 333 kg at 115 cm) put an 80 cm clam anywhere from about 50 to
+  115 kg with a cube law. Life expectancy: 76 years, the oldest aged clam (Mecha & Dolorosa
+  2020, via the IUCN assessment; Watanabe et al. 2004 estimate at least 60).
+- Maturity: male at 3.5–5 years in culture (Heslinga et al. 1984; mean 4 used by IUCN), female
+  function at about 10 years; wild ages unknown. Up to 500 million eggs a spawning; spawns on
+  incoming tides round the full and new moons in the austral summer (Braley 1984).
+- Density: up to 431.9 a hectare at Michaelmas Reef (Pearson & Munro 1991), about 4 per 100 m²,
+  the densest ever recorded; 0.2 a hectare at Tarawa.
+- Habitat: free-living on sand or hard reef in clear, well-lit water (IUCN); hard coral
+  communities, reef rock or bare sand in lagoons and fringing reefs, 2–20 m (NOAA). Sand
+  between bommies is true to the animal.
+
+Motion (proposed, not built). The clam is static by default; two motions are worth having later:
+
+- **Mantle breathing**: the mantle's outer edge lifting and settling a few millimetres over the
+  shell lip, very slowly. It is a config of `coral-sway` ([coral-sway.md](procedural/coral-sway.md)):
+  the same shared clock and a flex channel painted on the mantle rim (0 at the shell, 1 at the
+  rim's edge), with a long period (about 12 s), a tiny bend and no flutter. The one gap is the
+  swing direction: coral-sway swings a whole piece along one current direction, while a mantle
+  should swell along its own normals. That is a change to how `addSwayAttributes` fills `aSway`,
+  not a new architecture; it needs Jeremy's yes before it is built.
+- **Shadow flinch**: real clams see with hundreds of eyespots on the mantle edge and pull the
+  mantle in and narrow the gape when a shadow passes overhead (Wilkens 1986, via Wikipedia). It would read
+  beautifully when the Mola or the humphead wrasse swims over. No existing type covers it: it is
+  an event-driven, per-clam scalar (gape) set by fish passing above, not a periodic sway. It
+  would need its own type doc and Jeremy's approval first (AGENTS.md, "Stop and ask"). Proposed
+  as a later step, after the static clam ships.
+- Siphon jets are invisible without particles and are left out.
+
+Placement (proposed, not built). A `giantClams` block in `landscapes.js` and a small placement
+module in the style of the coral ones: clams on the sand of the swim basin's floor (y about −24;
+the basin's hills are zero inside x ±63, z −47 to −7.5), clear of every rock's footprint, the
+tables' plates and the staghorn foot patches, each sunk about a sixth of its height into the
+sand, hinge down, lips up, long axis roughly across the view so the fluting reads. At least one
+inside a 375 px phone's middle view (about ±13 WU across the centre). A clam joins the rock
+obstacle field as a low solid; it is not a coral form and gives the reef fish no new site.
+
+Open decisions for Jeremy:
+
+1. **Count.** Recommended **4**, scattered, no two within about 8 WU (2 m). Wild clams are now
+   rare (most groups under 10); the densest recorded reef would put about 13 on the basin floor,
+   which would read as a clam farm.
+2. **Sand placement.** Recommended: the open sand at the bommies' feet in the front half of the
+   basin, one near the middle of the phone view. Alternatives: only far back by the canyon
+   (calmer, less seen), or right in front of the glass (biggest, but under the camera).
+3. **Sizes.** Recommended 60–120 cm (2.4–4.8 WU), so most are adults round the 80 cm common
+   length and one is a big old clam.
+4. **Motion.** Static first. Then, if wanted: mantle breathing as a `coral-sway` config, and
+   later the shadow flinch as a new type (doc first).
+5. **GLB handoff.** One clam, open, as below. Any mantle colour variants he wants (they vary from
+   olive to golden brown and blue-green), as separate textures or materials on the same mesh.
+
+GLB contract:
+
+- One clam, open, shell and mantle as separate meshes or at least separate materials (the
+  mantle may get motion; the shell never moves). Flat-shaded is the style.
+- Origin at the shell's underside centre where it rests on the sand (the rooted-model rule: the
+  origin is the holdfast, never a computed lowest point). `+Y` up out of the gape; the long
+  axis (shell length) along `X`.
+- Any unit scale; tell us the modelled shell length, or model it at 1 unit = 1 m.
+- Textures 1024 px or less; list every embedded image so each photo is credited in
+  `IMAGE_CREDITS`. No alpha unless the mantle edge needs it.
+- If mantle breathing is wanted: vertex-paint the mantle's flex (black at the shell, white at
+  the rim's edge), as for the sea fans.
+
+When the GLB lands: a kit script and placement module, the clams in The Reefs'
+`landscapeSpecies`, an Atlas specimen (one clam on a patch of sand, three-quarter from above, the
+mantle open), `maxBodyLengthMeters` from the specimen, an EncyclopediaPage pose, unhide, and an
+in-tank Atlas tile (checklist section 6, landscape rule).
+
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 
 Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt

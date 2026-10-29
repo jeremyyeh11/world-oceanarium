@@ -364,6 +364,32 @@ export const STUDY_CREDITS = [
     venue: "Florent's Guide to the Tropical Reefs",
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
+  {
+    id: 'neo-li-2024-tridacna-gigas',
+    subject: 'Giant Clam conservation status, oldest aged clam, maturity ages, eggs per spawning, spawning timing and habitat',
+    authors: 'Neo & Li',
+    year: 2024,
+    title: 'Tridacna gigas',
+    venue: 'The IUCN Red List of Threatened Species 2024: e.T22137A119167161',
+    url: 'https://dx.doi.org/10.2305/IUCN.UK.2024-2.RLTS.T22137A119167161.en',
+  },
+  {
+    id: 'pearson-munro-1991-tridacna-gigas',
+    subject: 'Giant Clam density on an unfished reef',
+    authors: 'Pearson & Munro',
+    year: 1991,
+    title: 'Growth, mortality and recruitment rates of giant clams, Tridacna gigas and T. derasa, at Michaelmas Reef, central Great Barrier Reef, Australia',
+    venue: 'Australian Journal of Marine and Freshwater Research 42: 241–262',
+    url: 'https://www.publish.csiro.au/mf/MF9910241',
+  },
+  {
+    id: 'noaa-true-giant-clam',
+    subject: 'Giant Clam mantle colour and habitat',
+    authors: 'NOAA Fisheries',
+    title: 'True Giant Clam',
+    venue: 'Species directory',
+    url: 'https://www.fisheries.noaa.gov/species/true-giant-clam',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one

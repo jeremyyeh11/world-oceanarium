@@ -8,6 +8,19 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.48.0 — Spearfish Remora (in progress)
+
+Status: `v0.48.0-dev_1`, branch `species/remora-brachyptera`, waiting for Jeremy's model.
+
+### Species and Atlas
+
+- Spearfish Remora (`remora-brachyptera`): host range credited to Anislado-Tolentino et al. 2022
+  (billfishes and swordfish, also ocean sunfishes, blue shark and loggerhead turtles); Atlas copy
+  no longer describes the reserve's plans. Still hidden: no model, on no tank. No published age,
+  maturity or spawning data, so those fields stay Unknown.
+- Measured on The Reefs' Mola: it lies on all 12 spots at 30–50 cm (worst disc lift 2.2 mm), and
+  a full-size Mola carries five to eight at once.
+
 ## v0.41.0 — Golden Trevally (2026-10-29)
 
 Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,

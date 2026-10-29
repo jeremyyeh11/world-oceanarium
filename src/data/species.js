@@ -1589,7 +1589,9 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
-        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age data.
+        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age,
+        // maturity or fecundity study of this species is published (searched 2026-10-29), so life
+        // span, maturity and eggs stay Unknown.
         maleSizeMeters: 0.25,
         femaleSizeMeters: 0.25,
         maleWeightKg: 0.07,
@@ -1609,7 +1611,7 @@ export const SPECIES = [
       diet: 'Copepods',
       social: 'Hitchhiker',
     },
-    description: 'A slim, pale remora — whitish to pale blue in life — that rides marlins, sailfish, and swordfish, and is also recorded on ocean sunfishes. Juveniles often shelter inside the host\'s gill chamber. It can shift about its host\'s body and manage short bursts of independent swimming, so it should read as a fish that barely leaves its ride.',
+    description: 'A slim, pale remora — whitish to pale blue in life — that rides marlins, sailfish, and swordfish, and is also recorded on ocean sunfishes. Juveniles often shelter inside the host\'s gill chamber. It can shift about its host\'s body and manage short bursts of independent swimming, but it seldom leaves its ride for long.',
     adultLengthRangeMeters: [0.25, 0.5],
     maxBodyLengthMeters: 0.5,
     swim: {
@@ -1618,20 +1620,26 @@ export const SPECIES = [
       // 50 cm maximum total length = 2.0 WU.
       bodyLengthWU: 2.0,
     },
-    // Skewed above the 25 cm common length so individuals stay clear of the 27 cm tank floor.
+    // 30–50 cm (1.2–2.0 WU): skewed above the 25 cm common length so individuals stay clear of
+    // the 27 cm tank floor.
     sizeRange: [0.6, 1.0],
     mass: REMORA_MASS,
     hitchhiker: {
-      // Billfishes are its usual hosts. Sunfish (Mola), blue shark, and loggerhead records:
-      // Gulf of Tehuantepec first record, Hidrobiológica 2022,
-      // https://www.scielo.org.mx/scielo.php?pid=S0188-88972022000100071&script=sci_arttext
+      // Billfishes are its usual hosts (FishBase). Anislado-Tolentino et al. 2022 (Hidrobiológica
+      // 32: 71–74, after McEachran & Fechhelm 2005) list it in the gill cavity of swordfish, Mola
+      // sp., the sharptail mola and the blue shark, on loggerhead turtles, and occasionally free.
+      // On The Reefs' Mola it lies on all 12 spots at every size (disc lifted at most 2.2 mm) and
+      // a full-size Mola carries five at 50 cm, eight at 30 cm (docs/species-preparation.md).
       hosts: { billfish: 1, sunfish: 0.7, shark: 0.25, turtle: 0.25 },
       rideSeconds: [90, 200],
       freeSeconds: [6, 14],
+      // Its disc is 28–40% of standard length (32.6% on the Tehuantepec fish), starting behind
+      // the snout. The supplied model's measured value replaces this (scripts/fit-rider-model.mjs).
       discAheadBodyLengths: 0.3,
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
+    // In progress (branch species/remora-brachyptera, docs/fish-queue.md): no model yet, on no
+    // tank, out of the Atlas. Its host is The Reefs' Mola, whose spots it lies on
+    // (tests/fishRide.test.mjs). The facts and ride data stay for when its GLB lands.
     hiddenInAtlas: true,
   },
   {

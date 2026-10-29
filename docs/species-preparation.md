@@ -6,6 +6,64 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
+## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`)
+
+Reserve: The Reefs, riding the giant sunfish ([fish queue](fish-queue.md), Up next 7). Felt
+intention: a pale passenger that is almost part of the Mola, clamped to its flanks for minutes
+at a time and rolling with it through a sun-bask, letting go only for a short swim before it
+takes a spot again. Its ride (`rideSeconds` 90–200) is long and its time off (`freeSeconds`
+6–14) the shortest of any remora's. Must not happen: a remora roaming the reef on its own, a
+rider poking through the Mola's rowing dorsal or anal fin, or riders crowding the Mola so
+thickly it reads as spotted.
+
+Ready: the hidden species entry (no model, on no roster, no rows, out of the Atlas) with
+FishBase facts and its `hitchhiker` block. In this build:
+
+- Host range verified in Anislado-Tolentino et al. 2022 (Hidrobiológica 32: 71–74, now in
+  `STUDY_CREDITS`): billfishes and swordfish first, and in the gill cavity of *Mola* sp., the
+  sharptail mola and the blue shark, on loggerhead turtles, occasionally free. Weights
+  unchanged: billfish 1, sunfish 0.7, shark 0.25, turtle 0.25. The reserve's only host is the
+  Mola, so it accepts the Mola on 70% of its tries and escorts it on many of the rest.
+- FishBase (consulted 2026-10-29): 50 cm TL maximum, 25 cm TL common, LC (assessed 2009),
+  pelagic-oceanic, length–weight a 0.00263, b 3.17. No depth range, no maturity length, no age
+  or fecundity data; a search found no age, growth or spawning study of this species. Averages
+  stay at the common length (25 cm, 0.07 kg); life span, maturity and eggs stay Unknown.
+- Size floor: `sizeRange` 0.6–1.0 gives 30–50 cm (1.2–2.0 WU), all above 27 cm.
+- Atlas copy no longer describes how the reserve should play it (as on the common remora).
+- The Mola covers this rider with no change: `rideHost.groups` has `sunfish`; its 12 anchors
+  regenerate byte-for-byte from today's GLB with the command recorded in `rideAnchors.js`; and
+  `tests/fishRide.test.mjs` already fits every attaching rider with a sunfish weight on every
+  Mola spot. Measured for this one (stand-in straight back): it lies on all 12 spots at 30, 40
+  and 50 cm, median disc lift 0, worst 2.2 mm. A full-size Mola (13.2 WU, load 80%) carries
+  five 50 cm riders, six at 40 cm or eight at 30 cm at once, every arrival order tried (checked at
+  full size only; the reserve's Mola is size 0.88). No other rider claims Mola spots: the pilot fish,
+  bannerfish and angelfish only escort.
+- Swim room: `DRIFT_RIDER_BOUNDS`, the Mola's own box, so a rider let go anywhere the Mola
+  swims is already inside its swim volume.
+
+Open for Jeremy:
+
+- **Count.** Suggested 4, sizes spread 30–50 cm (size parameters 0, 0.33, 0.67, 1; about
+  6.4 WU of the Mola's 10 WU), so all four can ride at once with a spot spare as they rotate.
+  `creatures_dev` first (backups first); production rows only on his go-ahead.
+- **Which Mola.** Both tables hold one Mola, id 21 (male, size 0.88), in The Reefs. The riders
+  share it, unless he wants a second Mola for them, which is its own production change.
+- **The GLB.** A remora body plan like the sharksuckers': nose −Z, up +Y, origin anywhere, one
+  body mesh (a disc with its own material goes in `followBodyMeshNames`). Slim but deep-chested
+  (depth 14–17% of standard length), short rounded pectorals (*brachyptera*, "short fin"), a
+  disc of 14–17 laminae over 28–40% of standard length, dorsal fin starting just ahead of the
+  anal, an emarginate to truncate tail. Fresh colour: uniformly pale whitish grey, the tail with
+  a blackish margin (Anislado-Tolentino et al. 2022); whitish to pale blue in life. Scale it from
+  total length. Flat-shaded as always.
+- **Rider intake** once it lands ([ride-hosts.md](ride-hosts.md), Remora models): `node
+  scripts/fit-rider-model.mjs remora-brachyptera`, textures and credits, Atlas source length
+  and pose, `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, drop `hiddenInAtlas`, add it to
+  The Reefs' roster, the Atlas tile with its first swim, then `npm test` against its measured
+  top line.
+- Watch in the live tank: a rider on the Mola's upper flank lets go before a sun-bask would lift
+  it above the water. Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP,
+  Remoras).
+
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 
 Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt

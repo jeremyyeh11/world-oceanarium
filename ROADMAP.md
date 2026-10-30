@@ -15,7 +15,7 @@ Status labels:
 
 ### White Suckerfish (The Shallows)
 
-Status: `Current in development` — `v0.42.0-dev_2`, branch `species/remora-albescens`.
+Status: `Current in development` — `v0.42.0-dev_3`, branch `species/remora-albescens`.
 [Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
 
 - [x] Fit ride spots on the giant manta's belly (11, clear of the wings and the moving jaw);
@@ -31,7 +31,13 @@ Status: `Current in development` — `v0.42.0-dev_2`, branch `species/remora-alb
   Springer article figure, `art_3A10`). See Photo texture sources.
 - [x] Atlas diet: "Unknown" (was "Unknown; barely any parasitic copepods."). FishBase has no
   diet data for it; the copepod line had no source (2026-10-30).
-- [ ] Jeremy: phone review. Production rows only on his go-ahead.
+- [x] A juvenile manta (`dev_3`, Jeremy: "add one more manta, this time a juvenile"):
+  `lifeStages.juvenile`, 2.5–3.5 m, the adult model; riders fit it at 2.5 m (tests).
+  `creatures_dev` 1161 (3 m) and three more suckerfish (1162–1164, six in all; snapshots before
+  and after). Live: the adult carried three riders, the juvenile two with a third on its way;
+  the trevally split three and three.
+- [ ] Jeremy: phone review. Production rows only on his go-ahead; the juvenile manta's only once
+  the live bundle draws juveniles (AGENTS.md, a new life stage).
 
 ### Yellowfin Tuna follow-ups
 

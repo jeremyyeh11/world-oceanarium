@@ -10,8 +10,8 @@ Versioning convention notes:
 
 ## v0.42.0 — White Suckerfish (in progress)
 
-Status: `v0.42.0-dev_2`, branch `species/remora-albescens`. Three in `creatures_dev`; production
-rows wait for Jeremy's go-ahead.
+Status: `v0.42.0-dev_3`, branch `species/remora-albescens`. Six white suckerfish and a juvenile
+manta in `creatures_dev`; production rows wait for Jeremy's go-ahead.
 
 ### Behaviour and motion
 
@@ -33,7 +33,12 @@ rows wait for Jeremy's go-ahead.
   three `creatures_dev` riders (ids 1158–1160) found the manta and clamped to its belly within
   about five minutes.
 - In the Atlas, with its tile rendered in the dev tank. Its two texture photos are credited as
-  unknown sources until found.
+  unknown sources until found. Its diet is "Unknown": FishBase has no diet data for it.
+- Juvenile giant mantas (`lifeStages.juvenile`, Jeremy, 2026-10-30): the adult model at 2.5–3.5 m
+  (born 1.1–1.3 m, mature about 4.2 m; FishBase), since young mantas stay in shallow water.
+  Every rider is fitted on the smallest juvenile too (tests). `creatures_dev` 1161, 3 m; with
+  three more suckerfish (1162–1164), the riders and the trevally split between the two mantas,
+  which swim their own paths ("singly or in loose aggregations", FishBase).
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

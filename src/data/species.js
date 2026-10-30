@@ -3697,7 +3697,7 @@ export const SPECIES = [
       },
     },
     // Adults from the ~4 m maturity width to the 7 m maximum (16–28 WU). The Shallows holds one
-    // adult at full size (Jeremy, 2026-10-24), not a juvenile stage.
+    // adult at full size (Jeremy, 2026-10-24); from 2026-10-30 a juvenile too (lifeStages).
     sizeRange: [0.57, 1.0],
     // Info card weight from disc width (cm → g). No published width–weight relation; cubed and
     // fitted to FishBase's one weighed manta, a 550 cm female of 1,050 kg (Galápagos): about
@@ -3781,6 +3781,16 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.2,
+    },
+    // Juveniles (a creature's `lifeStage: 'juvenile'`; see speciesForLifeStage): the adult's model
+    // and colours at a smaller size (Jeremy, 2026-10-30). Pups are born 1.1–1.3 m across and
+    // mature at about 4.2 m (FishBase), and the young stay in shallow water for their first years,
+    // which is The Shallows. 2.5–3.5 m: big enough that a 30 cm white suckerfish still lies on the
+    // flat of its belly (tests/fishRide.test.mjs fits every rider at the smallest size).
+    lifeStages: {
+      juvenile: {
+        sizeRange: [0.36, 0.5],
+      },
     },
   },
   // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since

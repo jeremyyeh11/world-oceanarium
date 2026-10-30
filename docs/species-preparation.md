@@ -6,6 +6,72 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
+## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`)
+
+Reserve: The Shallows (ROADMAP projected roster, Jeremy, 2026-10-23). Range check: East
+Pacific green turtles graze the Gulf of California's bays (Bahía de los Ángeles, Seminoff
+et al. 2003), so the Sea of Cortez bay fits. No other reserve has a turtle.
+
+Felt intention: **powerful, unhurried flight.** A stable shell carried by long
+fore-flipper strokes, a surge on each downstroke, then a long glide. It fits the animal:
+cheloniid turtles fly underwater on stiff fore-flippers and spend much of their travel
+gliding. Must not happen: continuous anxious flapping, a dog paddle with the hind
+flippers, a shell rocking with every beat, or a turtle hovering in place. Reference
+species: the giant manta (a slow solo cruiser in the same bay, the same tempo) for
+behaviour only; its motion type does not fit (see below).
+
+Prepared: hidden species entry (no model, no roster slot, no rows), Atlas copy, Averages
+and Lifecycle, a draft swim block, a draft escort-only `rideHost` (`turtle`), five study
+credits, a data test. The motion contract is a proposal only:
+[foil-flap.md](procedural/foil-flap.md).
+
+Research decisions:
+
+- **Name and status.** The slug stays the species, `chelonia-mydas`; the entry is the East
+  Pacific form ("black turtle", *C. m. agassizii* in older works). IUCN: the East Pacific
+  subpopulation is **Vulnerable** (update of 11 December 2023; MTSG list); the species
+  went from Endangered to Least Concern globally in October 2025. The entry shows VU, the
+  population a visitor sees.
+- **Length.** Straight shell length throughout, the measure that has weights: females
+  77.9 cm (Cutzi et al. 2023, n 100; 85.7 cm curved, n 1500), breeding males 67.5 cm and
+  45.7 kg (Delgado-Trejo et al. 2024, n 132). Maximum 100 cm at the Baja foraging ground
+  (Seminoff et al. 2003): 4 WU. Proposed reserve adults 65–90 cm (2.6–3.6 WU).
+- **Weight.** Shell length cubed, coefficient 0.15, from Seminoff et al. 2003's mean turtle
+  (74.3 cm, 61.5 kg); it gives 46 kg for the weighed males, so the female 71 kg is labelled
+  estimated.
+- **Ages.** Maturity about 18 years (males) and 28 (females), Michoacán females earlier
+  (about 17) than island nesters (about 30) (Turner Tomaszewicz et al. 2022). Oldest aged
+  turtle 50 years (same study, unsexed), so life expectancy reads "At least 50 years";
+  NOAA's species estimate of 70+ is noted, not shown.
+- **Reproduction.** About 70 eggs a clutch, 2.5–3 clutches a season, back every 3–5 years
+  (Cutzi et al. 2023; Alvarado-Díaz et al. 2003); about two months' incubation and
+  temperature-set sex ratio (NOAA). Mating groups average three males per female.
+- **Diet.** Seaweed and seagrass, with more animal food than other green turtles (NOAA,
+  USFWS). Not a predator in the tank.
+- **Ride host.** `turtle` group, no anchors, a guessed clearance ellipsoid from the males'
+  shell proportions. No Shallows remora rides turtles, but the golden trevally follows
+  turtles (weight 0.8): once turtles live in The Shallows, some trevally will escort them
+  instead of the manta. Its stations were tuned for the manta's size; check them against
+  a 1 m turtle at intake.
+
+Open decisions for Jeremy:
+
+1. **Motion type.** Approve a new `foil-flap-vertex` type (recommended), or a
+   `mask-fin-row` variant? The case is in [foil-flap.md](procedural/foil-flap.md): the
+   turtle needs a mirrored shoulder stroke, a blade twist, a stroke-and-glide clock and a
+   speed surge, none of which mask-fin-row has. Nothing is built until you say.
+2. **Count and life stage.** Proposed: two or three adults, 65–90 cm shell, solitary, one
+   of them a male (long tail). Juveniles (smaller, at the foraging grounds too) would be a
+   later model. How many, and which sexes?
+3. **GLB handoff.** One mesh for export (shell, head, four flippers), nose at `-Z`, `+Y`
+   up, origin mid-shell, 1 unit = 1 m at a noted straight shell length, rest pose with the
+   fore-flippers level and slightly swept back, 8–10 spanwise loops per fore-flipper. Keep
+   the flippers as separate objects named `flipper.fore.l/r`, `flipper.hind.l/r` in the
+   `.blend` and a paint script joins and paints them? Full contract in foil-flap.md.
+4. **Behaviour.** Real turtles surface to breathe and rest on the bottom. Should ours come
+   up to the surface now and then (a signature behaviour, later build), and stay low over
+   the sand the rest of the time? The draft swim room is the manta's for now.
+
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 
 Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt

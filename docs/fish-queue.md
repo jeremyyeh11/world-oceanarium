@@ -53,8 +53,9 @@ In the order they will be added.
 7. **Spearfish Remora** (`remora-brachyptera`), The Reefs. Rides the Mola.
 8. **Giant Clam** (*Tridacna gigas*), The Reefs. Static landscape piece in the sand between
    bommies.
-9. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
-   type.
+9. **East Pacific Green Turtle** (`chelonia-mydas`), The Shallows. Needs a new flipper motion
+   type. Prepared hidden; waiting on Jeremy's call on the `foil-flap` proposal and his GLB
+   ([species-preparation.md](species-preparation.md)).
 10. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
 11. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
 12. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.

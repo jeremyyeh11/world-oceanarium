@@ -8,6 +8,21 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.50.0 — East Pacific Green Turtle preparation (in development)
+
+### Species and Atlas
+
+- East Pacific Green Turtle (`chelonia-mydas`) prepared, hidden: IUCN Vulnerable (East
+  Pacific subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity
+  ages and the oldest aged turtle (credited), a draft escort-only `rideHost` (`turtle`).
+  No model, roster slot or rows, so visitors see no change.
+
+### Behaviour and motion
+
+- `foil-flap` firmed up into a contract proposal for the turtle's flippers (stroke, twist,
+  glides, speed surge, computed masks), with why `mask-fin-row` does not cover it. Not
+  implemented; waiting on Jeremy.
+
 ## v0.41.0 — Golden Trevally (2026-10-29)
 
 Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,

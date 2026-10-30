@@ -4425,6 +4425,133 @@ export const SPECIES = [
       debugForwardOffsetRatio: 0.5,
     },
   },
+  // --- East Pacific green turtle (Cheloniidae) -----------------------------------------------
+  // The green turtle's East Pacific subpopulation ("black turtle", C. m. agassizii of older
+  // works), planned for The Shallows (ROADMAP, Jeremy 2026-10-23). Facts from the Colola nesting
+  // studies (Cutzi et al. 2023, Delgado-Trejo et al. 2024, Alvarado-Díaz et al. 2003), Turner
+  // Tomaszewicz et al. 2022 (ages), Seminoff et al. 2003 (Baja foraging ground), NOAA Fisheries
+  // and USFWS. Needs a new flipper motion type (docs/procedural/foil-flap.md, proposed). Queued
+  // until Jeremy supplies its GLB: no model, no reserve slot, out of the Atlas.
+  {
+    id: 'chelonia-mydas',
+    name: 'East Pacific Green Turtle',
+    scientificName: 'Chelonia mydas',
+    family: 'Cheloniidae',
+    alternateNames: ['Black Turtle', 'Pacific Green Turtle', 'Green Sea Turtle'],
+    hiddenInAtlas: true,
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Solitary, though many share one foraging bay.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Mainly seaweed and seagrass (NOAA, USFWS).
+    predator: false,
+    tempo: 'cruise',
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // East Pacific subpopulation: Vulnerable (IUCN update of 11 December 2023; IUCN-SSC Marine
+      // Turtle Specialist Group list). The species as a whole went from Endangered to Least
+      // Concern in October 2025. Bycatch and the take of turtles and eggs are the threats.
+      code: 'VU',
+      label: 'Vulnerable',
+    },
+    atlasDetails: {
+      biome: 'Coastal Bays and Seagrass Beds',
+      commonDiet: 'Seaweeds and seagrasses; East Pacific turtles also take more animal food than green turtles elsewhere.',
+      foundIn: 'Eastern Pacific from California to Chile, including the Gulf of California and the Galápagos; strays north to Alaska. Nests mainly on the Michoacán coast of Mexico and in the Galápagos, and grazes in shallow bays and lagoons.',
+      maxLengthLabel: 'Shell length',
+      // Delgado-Trejo et al. 2024 (132 breeding males, Colola): 70.5 cm curved shell, tail 42 cm,
+      // against the females' 85.7 cm (Cutzi et al. 2023).
+      sexualDimorphism: 'Females grow larger: at the Michoacán nesting beach females average 86 cm along the curve of the shell, breeding males 70 cm. Adult males have a long, thick tail reaching well past the shell, tipped with a claw, and larger curved claws on the front flippers.',
+      // Turner Tomaszewicz et al. 2022: aged 5–50 years by bone growth layers (65 stranded turtles).
+      // NOAA estimates the species' life span at 70 years or more.
+      lifeSpan: 'At least 50 years',
+      // Turner Tomaszewicz et al. 2022: males 17.7 ± 5.5 years, females 28.0 ± 8.2; Michoacán
+      // females about 17, island nesters about 30.
+      maturityAge: 'About 18 years (males), 28 (females)',
+      social: {
+        schoolSize: 'Solitary',
+        groupingBehaviour: 'Solitary, though many graze the same bays. Off the Michoacán nesting beach males crowd round females in mating groups, up to 17 males to one female and about three males for every female overall.',
+        // Cutzi et al. 2023: 69.3 eggs a clutch, remigration most often 3–5 years; Alvarado-Díaz
+        // et al. 2003: 2.5 observed, 3.1 estimated clutches a season; NOAA: nests at night, about
+        // two months' incubation, sand temperature shifts the hatchlings' sex ratio.
+        reproduction: 'Females come ashore at night to bury clutches of about 70 eggs, two or three clutches a season, usually returning to nest every 3 to 5 years. The eggs hatch after about two months, and the warmth of the sand decides how many hatchlings are female.',
+      },
+      averages: {
+        // Straight shell length, the length this entry uses throughout. Males 67.5 cm (Delgado-
+        // Trejo et al. 2024, n 132), weighed 45.7 kg; females 77.9 cm (Cutzi et al. 2023, n 100),
+        // weight from `mass` below: 71 kg. Ages: the oldest aged turtle, unsexed.
+        maleSizeMeters: 0.675,
+        femaleSizeMeters: 0.78,
+        maleWeightKg: 'About 46 kg',
+        femaleWeightKg: 'About 70 kg (estimated)',
+        maleLifeExpectancyYears: 'At least 50 years',
+        femaleLifeExpectancyYears: 'At least 50 years',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'About 18 years (males), 28 (females)',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'About 70 eggs a clutch',
+      },
+    },
+    atlasSummary: { biome: 'Ocean', zone: 'Sunlight', diet: 'Seaweed + seagrass', social: 'Solitary' },
+    description: 'The East Pacific form of the green turtle, called the black turtle in Mexico for its dark shell, which is smaller, more domed and narrower over the hind flippers than other green turtles\'. It flies through the water on its long front flippers, gliding between strokes, and grazes seaweed and seagrass in shallow bays such as the Gulf of California. Bycatch and the take of turtles and eggs leave it Vulnerable, though green turtles worldwide have recovered to Least Concern.',
+    // Straight shell length: the smallest breeding male (61.1 cm, Delgado-Trejo et al. 2024) to
+    // the largest turtle at the Baja foraging ground (100 cm, Seminoff et al. 2003).
+    adultLengthRangeMeters: [0.61, 1.0],
+    maxBodyLengthMeters: 1.0,
+    // Proposed adults 65–90 cm straight shell (2.6–3.6 WU); count and life stage to confirm with
+    // Jeremy at model intake (docs/species-preparation.md).
+    sizeRange: [0.65, 0.9],
+    // Shell length (cm) cubed to grams: Seminoff et al. 2003's mean turtle (74.3 cm, 61.5 kg)
+    // gives 0.15, which matches the weighed Colola males (67.5 cm, 45.7 kg; 46 kg from this).
+    mass: { coefficient: 0.15, exponent: 3 },
+    swim: {
+      // DRAFT until the motion type lands: an unhurried cruiser. foil-flap's strokes and glides
+      // are expected to pulse this speed (impulse-and-decay), so tune both together.
+      visualTimeScale: 0.6,
+      driftEnabled: false,
+      burstEnabled: false,
+      idleBLPerSec: [0.3, 0.5],
+      idleDriftBLPerSec: [0.05, 0.1],
+      snapBLPerSec: [0.6, 0.8],
+      burstBLPerSec: [1.0, 1.4],
+      burstInterval: [20.0, 40.0],
+      erraticness: 0.05,
+      turnRadiusBodyLengths: 1.0,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // The manta's room for now; the bay's sand and surface (breathing) are open decisions.
+      boundsWedge: { apexZ: 24, slope: 1.4, margin: 20, goalSlope: 0.55, goalMargin: 0 },
+      boundsYMin: -22,
+      boundsYMax: -2,
+      boundsZMin: -80,
+      boundsZMax: 15,
+      // 1 WU = 25 cm: 100 cm maximum straight shell length = 4 WU.
+      bodyLengthWU: 4,
+      boids: {
+        neighborCap: 3,
+        perceptionBodyLengths: 1.5,
+        separationWeight: 0.1,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.1,
+        menace: 0.3,
+        startles: false,
+        wariness: 0.1,
+      },
+    },
+    // Draft, escort-only (docs/ride-hosts.md): remoras and followers that take turtles (the
+    // golden trevally in The Shallows, turtle 0.8) can find it; anchors wait for the GLB
+    // (scripts/fit-ride-anchors.mjs). The clearance is a guess from the Colola males' shell
+    // (width 0.81, height 0.37 of shell length) plus the head; measure it off the mesh at intake.
+    // The fore-flippers stay outside it, like the manta's wings.
+    rideHost: {
+      groups: ['turtle'],
+      body: { center: [0, 0, -0.05], radii: [0.42, 0.2, 0.62] },
+    },
+  },
 ]
 
 export const CREATURES = [

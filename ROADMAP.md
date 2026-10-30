@@ -24,8 +24,7 @@ waiting for Jeremy's GLB. [Prep](docs/species-preparation.md) · [Ride hosts](do
 - [x] Size floor: 30–50 cm (1.2–2.0 WU), above 27 cm.
 - [x] Host: the Mola's 12 spots regenerate unchanged from its GLB, and the rider lies on all of
   them (worst disc lift 2.2 mm); a full-size Mola carries 5–8 at once.
-- [ ] Jeremy: count (suggested 4, 30–50 cm), and whether they share the reserve's one Mola
-  (id 21).
+- [x] Jeremy (2026-10-30): four, 30–50 cm, sharing the reserve's one Mola (id 21).
 - [ ] Jeremy's GLB: remora body plan, up to 50 cm, pale whitish grey, tail with a dark margin.
 - [ ] Intake: `node scripts/fit-rider-model.mjs remora-brachyptera`, textures and credits,
   Atlas source length, pose and tile, `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, drop

@@ -41,13 +41,16 @@ FishBase facts and its `hitchhiker` block. In this build:
 - Swim room: `DRIFT_RIDER_BOUNDS`, the Mola's own box, so a rider let go anywhere the Mola
   swims is already inside its swim volume.
 
+Decided by Jeremy (2026-10-30):
+
+- **Count: four,** sizes spread 30–50 cm (size parameters 0, 0.33, 0.67, 1; about 6.4 WU of
+  the Mola's 10 WU), so all four can ride at once with a spot spare as they rotate.
+  `creatures_dev` rows once the model is in (backups first); production rows only on his
+  go-ahead.
+- **Host: the reserve's one Mola,** id 21 (male, size 0.88) in both tables. No second Mola.
+
 Open for Jeremy:
 
-- **Count.** Suggested 4, sizes spread 30–50 cm (size parameters 0, 0.33, 0.67, 1; about
-  6.4 WU of the Mola's 10 WU), so all four can ride at once with a spot spare as they rotate.
-  `creatures_dev` first (backups first); production rows only on his go-ahead.
-- **Which Mola.** Both tables hold one Mola, id 21 (male, size 0.88), in The Reefs. The riders
-  share it, unless he wants a second Mola for them, which is its own production change.
 - **The GLB.** A remora body plan like the sharksuckers': nose −Z, up +Y, origin anywhere, one
   body mesh (a disc with its own material goes in `followBodyMeshNames`). Slim but deep-chested
   (depth 14–17% of standard length), short rounded pectorals (*brachyptera*, "short fin"), a

@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.42.0',
+    date: '2026-10-30',
+    title: 'White Suckerfish',
+    changes: [
+      ['new', 'Twelve White Suckerfish ride the giant manta in The Shallows, clamped to its pale belly and heaving with its wingbeat, now and then letting go for a short swim.'],
+      ['new', 'Meet the White Suckerfish in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.41.0',
     date: '2026-10-29',
     title: 'Golden Trevally',

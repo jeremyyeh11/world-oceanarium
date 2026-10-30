@@ -118,6 +118,7 @@ const REMORAS = [
 const SUPPLIED_REMORA_SOURCE_LENGTHS = {
   'echeneis-naucrates': 6.6014,
   'echeneis-neucratoides': 5.4912,
+  'remora-albescens': 0.2996,
 }
 for (const [id, maxMeters, iucn] of REMORAS) {
   const remora = speciesById.get(id)
@@ -148,5 +149,13 @@ for (const [id, maxMeters, iucn] of REMORAS) {
 // Standard-length maxima are labelled as such, like the sardinella's.
 assert.equal(speciesById.get('remora-albescens').atlasDetails.maxLengthLabel, 'Standard length')
 assert.equal(speciesById.get('remora-osteochir').atlasDetails.maxLengthLabel, 'Standard length')
+
+// Juvenile giant mantas: the adult model, between birth (1.1–1.3 m) and maturity (about 4 m).
+{
+  const manta = speciesById.get('mobula-birostris')
+  const [small, large] = manta.lifeStages.juvenile.sizeRange.map(size => size * manta.swim.bodyLengthWU * 0.25)
+  assert.ok(small > 1.3 && large < manta.adultLengthRangeMeters[0], 'juvenile mantas sit between birth and adult sizes')
+  assert.equal(manta.lifeStages.juvenile.model, undefined, 'a juvenile manta keeps the adult model')
+}
 
 console.log('species data correction tests passed')

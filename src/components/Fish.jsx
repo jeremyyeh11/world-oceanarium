@@ -1090,7 +1090,8 @@ void proceduralDiscMotion(inout vec3 value) {
   float side = value.x < 0.0 ? -1.0 : 1.0;
   value.x -= side * min(lift * lift / (2.0 * reach), 0.5 * reach);
   value.y += lift;
-  // The body heaves a little against the wings: it rises as they press down.
+  // The body heaves a little against the wings: it rises as they press down. Riders on a
+  // manta heave with it through fishSwim.js discBodyHeave; keep the two in step.
   float rootSlope;
   float rootBeat = discBeat(uDiscPhase - clamp(mask.g, 0.0, 1.0) * uDiscWaveTravel, rootSlope);
   value.y -= uDiscHeave * discStroke() * rootBeat;
@@ -2140,6 +2141,14 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         out.turn = waveTurn
         out.burst = waveBurst
       }
+    } else if (curveConfig?.type === 'disc-wave-vertex' && waveOutRef?.current) {
+      // The beat the shader just received: a ride host's riders heave with the body under them.
+      const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
+      const out = waveOutRef.current
+      out.phase = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
+      out.speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      out.turn = curveDeformTurnRef.current * (1 + whip01 * CAUDAL_WHIP_BEND_GAIN)
+      out.burst = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1) + whip01 * CAUDAL_WHIP_EXTRA_BURST
     }
   })
 

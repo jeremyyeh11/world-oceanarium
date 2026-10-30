@@ -35,7 +35,7 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
 Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
-  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 17 entries), and the link and
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 18 entries), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).
@@ -85,7 +85,7 @@ Subtasks:
 Follow-ups (`Backlog`):
 - [ ] Riders moving between anchors on the same host (real remoras relocate when disturbed).
 - [ ] Mouth and gill-chamber riding (white suckerfish in mantas, juvenile spearfish remoras) — needs hosts with open mouths first.
-- [ ] Whalesucker, white suckerfish, marlinsucker get their real hosts in week 3 (spinner dolphin, manta, billfish): each needs only a `rideHost` block.
+- [ ] Whalesucker and marlinsucker get their real hosts in week 3 (spinner dolphin, billfish): each needs only a `rideHost` block. The manta has its spots for the white suckerfish (`v0.42.0-dev_1`).
 - [x] Remoras escort a host loosely when they have no spot or have just let go (2026-09-28, `dev_10`, Jeremy's review).
 - [ ] Week 2's non-attaching followers (pilot fish, golden trevally, rainbow runner) can reuse the remoras' `escort` stage: a `hitchhiker` block that never attaches, only escorts. Pilot fish hold ahead of the snout and golden trevally off the pectorals, so they need their own station ranges.
 
@@ -162,26 +162,38 @@ Review gates:
 
 Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
 
-### Golden Trevally (The Shallows)
+### White Suckerfish (The Shallows)
 
-Status: shipped in clean `v0.41.0` (2026-10-29, PR #173), from `v0.41.0-dev_2`, branch
-`species/gnathanodon-speciosus`; open items below are follow-ups.
-[Preparation and GLB handoff](docs/species-preparation.md) ·
-[Followers and escort-only hosts](docs/ride-hosts.md).
+Status: shipped in clean `v0.42.0` (2026-10-30, PR #174), from `v0.42.0-dev_3`, branch
+`species/remora-albescens`; open items below are follow-ups.
+[Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
 
-- [x] Escort-only ride hosts: a `rideHost` with no `anchors` is followed but never ridden.
-  The giant oceanic manta is one (`ray` + `large-fish`, clearance sized from its mesh).
-- [x] Species entry: FishBase facts, Farrag et al. 2019 life span, follower block with
-  stations ahead of and under the manta (clear of the wing beat, tested), swim room.
-- [x] Jeremy decided: six adults, 50–75 cm TL (2026-10-28).
-- [x] Model intake (`v0.41.0-dev_2`): `scripts/prepare-golden-trevally-model.py` centres the root
-  and crops the Commons photo to the fish (4.8 → 1.3 MB, credited); scale from total length;
-  the pilot fish's `caudal-wave` config; Atlas pose, source length and tile; roster slot in The
-  Shallows; six `creatures_dev` rows (ids 1152–1157, sizes 0–1, three of each sex). In the dev
-  tank all six were escorting the manta within 30 s, 7–12 WU from its centre.
-- [x] Jeremy accepted `dev_2` (2026-10-29). Production `creatures` ids 1451–1456 (808 → 814 rows).
-- [ ] Anchors on the manta for the white suckerfish (`scripts/fit-ride-anchors.mjs`): the wings
-  flap, so only belly spots near the middle are likely to hold. `Backlog`
+- [x] Fit ride spots on the giant manta's belly (11, clear of the wings and the moving jaw);
+  riders heave with its body; golden trevally still escort it (tests).
+- [x] Hold it at 27–30 cm (`sizeRange` 0.9–1.0, the 27 cm floor).
+- [x] Jeremy's GLB (2026-10-30): 30 cm, white, separate fins, opaque textures, normals outward.
+- [x] Intake (`dev_2`): `fit-rider-model.mjs`, Atlas framing and tile, The Shallows roster slot
+  and the manta's room (`SHALLOWS_MANTA_FOLLOWER_BOUNDS`), verifier target.
+- [x] Review population: 3 (Jeremy, 2026-10-30). `creatures_dev` ids 1158–1160 (sizes 0, 0.5, 1;
+  snapshots before and after). Live check: all three clamped to the manta's belly within about
+  five minutes; a free rider sometimes gives up the chase and tries again.
+- [ ] Find the two texture photos' sources (`unknown-white-suckerfish`; the disc photo is a
+  Springer article figure, `art_3A10`). See Photo texture sources.
+- [x] Atlas diet: "Unknown" (was "Unknown; barely any parasitic copepods."). FishBase has no
+  diet data for it; the copepod line had no source (2026-10-30).
+- [x] A juvenile manta (`dev_3`, Jeremy: "add one more manta, this time a juvenile"):
+  `lifeStages.juvenile`, 2.5–3.5 m, the adult model; riders fit it at 2.5 m (tests).
+  `creatures_dev` 1161 (3 m) and three more suckerfish (1162–1164, six in all; snapshots before
+  and after). Live: the adult carried three riders, the juvenile two with a third on its way;
+  the trevally split three and three.
+- [x] Twelve white suckerfish (Jeremy, 2026-10-30): `creatures_dev` 1165–1170 added (snapshots
+  before and after). Live: 10 of 12 clamped by three minutes, five on each manta, the last two
+  docking.
+- [x] Jeremy accepted `dev_3` (2026-10-30: "write production rows, and merge clean"). Production
+  `creatures` 1457–1459 and 1461–1469, the twelve dev suckerfish (814 → 826 rows; backups before
+  and after).
+- [ ] The juvenile manta's production row (id 1460, as dev 1161, 3 m, male) once the live bundle
+  serves `v0.42.0` (AGENTS.md, a new life stage).
 
 ### Open Sea wider roaming
 
@@ -223,7 +235,7 @@ Subtasks:
 - [x] Jeremy's model (2026-10-25, `_blender models/mobula birostris.blend`): mirror and the `open mouth` shape key baked by `scripts/bake-mirror-shape-keys.py` (on a copy, with his tail and wing edits moved from the key into the basis), masks by `scripts/paint-disc-wave-masks.py --span 7`; 593 KB, JPEG textures, opaque. Top texture is Guy Stevens' photo (© Manta Trust), used by Jeremy's call (he will take it down if asked); the eye texture's source (`Mantaraya_Oceanica_-_Mobula_Birostris1`) is unknown; the belly is a generated image.
 - [x] Model wired (`dev_1`): `disc-wave-vertex`, `waveSpeed` 1.6 (about 3–4 s per beat), wingtip lift 1.0 m; verifier target. His export was inside out (every face pointing in: the Atlas showed the belly through the back); `paint-disc-wave-masks.py` now turns an inside-out mesh's faces out.
 - [x] Atlas data (`dev_1`): maturity widths by sex and life span from the Florida Museum, gestation from NOAA, birth size and weight from FishBase; sizes by sex, weights and ages Unknown where nothing is measured (CHANGELOG v0.37.0). Info-card `mass` fitted to FishBase's one weighed manta (550 cm, 1,050 kg): 1.2 t at 5.8 m, was 5.6 t.
-- [ ] `rideHost` (`groups: ['ray']`) for the white suckerfish: no use while no remora lives in The Shallows (no species repeat across reserves); revisit if the manta ever joins a reserve with riders.
+- [x] `rideHost` for the white suckerfish: 11 belly spots, shipped in `v0.42.0` with the suckerfish in The Shallows.
 - [x] Swim bounds (`dev_1`): x ±12, y −12 to −6 (the school's middle), z −20 to −65; centre on a 375 px phone's screen in 80 of 80 samples. The school parts round it (`giveWaySlot`, `startles: false`): after spawn, 1 ray inside its wings in 4 of 65 samples (was 4–13 rays in every sample).
 - [x] `creatures_dev` row 840 (size 0.6, 5.8 m), Atlas pose (2.3 units, 30° down) and tile, `dev_1`.
 - [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it, feeding passes). Shipped before a phone review, on his call.
@@ -736,6 +748,27 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### Golden Trevally (The Shallows)
+
+Status: shipped in clean `v0.41.0` (2026-10-29, PR #173), from `v0.41.0-dev_2`, branch
+`species/gnathanodon-speciosus`; open items below are follow-ups.
+[Preparation and GLB handoff](docs/species-preparation.md) ·
+[Followers and escort-only hosts](docs/ride-hosts.md).
+
+- [x] Escort-only ride hosts: a `rideHost` with no `anchors` is followed but never ridden.
+  The giant oceanic manta is one (`ray` + `large-fish`, clearance sized from its mesh).
+- [x] Species entry: FishBase facts, Farrag et al. 2019 life span, follower block with
+  stations ahead of and under the manta (clear of the wing beat, tested), swim room.
+- [x] Jeremy decided: six adults, 50–75 cm TL (2026-10-28).
+- [x] Model intake (`v0.41.0-dev_2`): `scripts/prepare-golden-trevally-model.py` centres the root
+  and crops the Commons photo to the fish (4.8 → 1.3 MB, credited); scale from total length;
+  the pilot fish's `caudal-wave` config; Atlas pose, source length and tile; roster slot in The
+  Shallows; six `creatures_dev` rows (ids 1152–1157, sizes 0–1, three of each sex). In the dev
+  tank all six were escorting the manta within 30 s, 7–12 WU from its centre.
+- [x] Jeremy accepted `dev_2` (2026-10-29). Production `creatures` ids 1451–1456 (808 → 814 rows).
+- [x] Anchors on the manta for the white suckerfish (`scripts/fit-ride-anchors.mjs`): 11 belly
+  spots clear of the wings and jaw, shipped in `v0.42.0`.
 
 ### v0.40.1 — Giants of the Open Sea (2026-10-28)
 

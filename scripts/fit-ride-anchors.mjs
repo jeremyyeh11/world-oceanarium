@@ -18,7 +18,8 @@
 //      the rider, and samples a rail: the skin's height along that normal at steps along the
 //      body, so the ride system can lay a rider along the skin (rideAnchorFit in fishSwim.js);
 //   4. records `waveSpan`, the body's nose and tail along Z, so riders can follow the host's
-//      caudal wave at their spot.
+//      caudal wave at their spot. On a disc-wave host (the manta) it records each spot's
+//      `chord` instead, the G mask under it, which sets when the body's heave reaches it.
 import fs from 'node:fs'
 import path from 'node:path'
 import * as THREE from 'three'
@@ -70,6 +71,10 @@ const from = option('from', 0.12)
 const to = option('to', 0.5)
 const seed = option('seed', 1)
 const bodyMeshNames = species.model.proceduralAnimation?.bodyMeshNames ?? []
+// On a disc-wave host the masks are R (body to wingtip) and B (tail); G is only the position
+// along the chord, painted everywhere, so it marks nothing that moves on its own.
+const discWave = species.model.proceduralAnimation?.type === 'disc-wave-vertex'
+const MASK_CHANNELS = discWave ? ['getX', 'getZ'] : ['getX', 'getY', 'getZ']
 const bodyLength = species.swim.bodyLengthWU
 
 const data = fs.readFileSync(path.join('public', species.model.path))
@@ -101,7 +106,8 @@ for (const mesh of bodies) {
   const faceCount = index ? index.count / 3 : position.count / 3
   const vertexIndex = i => (index ? index.getX(i) : i)
   const vertex = i => new THREE.Vector3().fromBufferAttribute(position, vertexIndex(i)).applyMatrix4(mesh.matrixWorld)
-  const masked = i => mask && Math.max(mask.getX(vertexIndex(i)), mask.getY(vertexIndex(i)), mask.getZ(vertexIndex(i))) > MAX_MASK
+  const masked = i => mask && Math.max(...MASK_CHANNELS.map(channel => mask[channel](vertexIndex(i)))) > MAX_MASK
+  const chord = i => (mask ? mask.getY(vertexIndex(i)) : 0)
   for (let f = 0; f < faceCount; f += 1) {
     if (masked(f * 3) || masked(f * 3 + 1) || masked(f * 3 + 2)) {
       maskedFaces += 1
@@ -112,7 +118,7 @@ for (const mesh of bodies) {
     const c = vertex(f * 3 + 2)
     const cross = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a))
     const area = cross.length() / 2
-    if (area > 1e-9) triangles.push({ a, b, c, area, normal: cross.normalize() })
+    if (area > 1e-9) triangles.push({ a, b, c, area, normal: cross.normalize(), chords: [chord(f * 3), chord(f * 3 + 1), chord(f * 3 + 2)] })
   }
 }
 const box = new THREE.Box3()
@@ -193,7 +199,8 @@ function samplePoint() {
   const point = t.a.clone()
     .addScaledVector(new THREE.Vector3().subVectors(t.b, t.a), u)
     .addScaledVector(new THREE.Vector3().subVectors(t.c, t.a), v)
-  return { point, normal: t.normal.clone() }
+  const chord = t.chords[0] + (t.chords[1] - t.chords[0]) * u + (t.chords[2] - t.chords[0]) * v
+  return { point, normal: t.normal.clone(), chord }
 }
 
 // Rail: skin height along the normal at steps along the body (the rider's back direction).
@@ -217,7 +224,7 @@ let rejectedThin = 0
 let rejectedFins = 0
 let rejectedRise = 0
 for (let attempt = 0; attempt < count * 400 && kept.length < count; attempt += 1) {
-  const { point, normal: faceNormal } = samplePoint()
+  const { point, normal: faceNormal, chord } = samplePoint()
   if (kept.some(anchor => anchor.point.distanceTo(point) < MIN_SPACING * bodyLength)) continue
   if (thicknessBehind(point, faceNormal) < MIN_THICKNESS * bodyLength) {
     rejectedThin += 1
@@ -246,7 +253,7 @@ for (let attempt = 0; attempt < count * 400 && kept.length < count; attempt += 1
     rejectedRise += 1
     continue
   }
-  kept.push({ point, normal, rail })
+  kept.push({ point, normal, rail, chord })
 }
 
 function regionName(normal) {
@@ -257,11 +264,12 @@ function regionName(normal) {
 
 // Front to back, so indices read along the body.
 kept.sort((a, b) => a.point.z - b.point.z)
-const anchors = kept.map(({ point, normal, rail }) => {
+const anchors = kept.map(({ point, normal, rail, chord }) => {
   return {
     name: `${regionName(normal)}-${Math.round(tail01At(point.z) * 100)}`,
     at: point.toArray().map(v => Number((v / bodyLength).toFixed(4))),
     normal: normal.toArray().map(v => Number(v.toFixed(3))),
+    ...(discWave ? { chord: Number(chord.toFixed(3)) } : {}),
     rail,
   }
 })
@@ -287,7 +295,8 @@ for (const [id, host] of Object.entries(all).sort(([a], [b]) => a.localeCompare(
   lines.push(`    waveSpan: ${fmt(host.waveSpan)},`)
   lines.push('    anchors: [')
   for (const anchor of host.anchors) {
-    lines.push(`      { name: '${anchor.name}', at: ${fmt(anchor.at)}, normal: ${fmt(anchor.normal)}, rail: ${fmt(anchor.rail)} },`)
+    const chord = anchor.chord === undefined ? '' : `, chord: ${anchor.chord}`
+    lines.push(`      { name: '${anchor.name}', at: ${fmt(anchor.at)}, normal: ${fmt(anchor.normal)}${chord}, rail: ${fmt(anchor.rail)} },`)
   }
   lines.push('    ],')
   lines.push('  },')

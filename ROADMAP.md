@@ -29,7 +29,8 @@ Status: `Current in development` — `v0.42.0-dev_2`, branch `species/remora-alb
   five minutes; a free rider sometimes gives up the chase and tries again.
 - [ ] Find the two texture photos' sources (`unknown-white-suckerfish`; the disc photo is a
   Springer article figure, `art_3A10`). See Photo texture sources.
-- [ ] Check the Atlas diet copy ("Unknown; barely any parasitic copepods.") against its source.
+- [x] Atlas diet: "Unknown" (was "Unknown; barely any parasitic copepods."). FishBase has no
+  diet data for it; the copepod line had no source (2026-10-30).
 - [ ] Jeremy: phone review. Production rows only on his go-ahead.
 
 ### Yellowfin Tuna follow-ups

@@ -1440,7 +1440,9 @@ export const SPECIES = [
       label: 'Least Concern',
     },
     atlasDetails: {
-      commonDiet: 'Unknown; barely any parasitic copepods.',
+      // FishBase (checked 2026-10-30) has no food items or diet composition for it, only a
+      // modelled trophic level, so no copepod claim.
+      commonDiet: 'Unknown',
       foundIn: 'Warm seas worldwide, oceanic, to 200 m.',
       maxLengthLabel: 'Standard length',
       sexualDimorphism: 'Unknown',

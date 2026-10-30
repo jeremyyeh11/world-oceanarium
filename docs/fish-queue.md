@@ -6,7 +6,8 @@ No species repeats across reserves.
 
 ## Queued: species entry in `src/data/species.js`, no model
 
-The Golden Trevally shipped in clean `v0.41.0` (six in The Shallows), so it has left the queue ([species-preparation.md](species-preparation.md)). The Yellowfin Tuna shipped in clean
+The White Suckerfish swims in The Shallows on the giant manta from `v0.42.0-dev_2` (branch
+`species/remora-albescens`), so it has left the queue. The Golden Trevally shipped in clean `v0.41.0` (six in The Shallows), so it has left the queue ([species-preparation.md](species-preparation.md)). The Yellowfin Tuna shipped in clean
 `v0.40.0` and the Bluespine Unicornfish in `v0.39.0`.
 
 ### Remoras awaiting their models
@@ -16,10 +17,6 @@ model, are on no tank and are out of the Atlas. They need Jeremy's GLB, then the
 intake in [ride-hosts.md](ride-hosts.md) (`node scripts/fit-rider-model.mjs <id>`), a tank
 slot and `creatures_dev` rows. Their generated stand-ins were removed in `v0.37.0-dev_2`.
 
-- **White Suckerfish** (`remora-albescens`, 30 cm, LC). Rides manta rays almost exclusively,
-  often inside the mouth and gill chambers. Home: The Shallows, on the Giant Oceanic Manta,
-  whose belly spots were fitted in `v0.42.0-dev_1` (branch `species/remora-albescens`); waiting
-  for Jeremy's GLB. Mouth riding is a separate roadmap item.
 - **Common Remora** (`remora-remora`, 86 cm, LC). Rides sharks first, also turtles, whales
   and large fish. Fits the open sea, on the mako and whale shark.
 - **Spearfish Remora** (`remora-brachyptera`, 50 cm, LC). Rides billfish, also sunfish:

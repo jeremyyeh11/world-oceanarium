@@ -10,7 +10,8 @@ Versioning convention notes:
 
 ## v0.42.0 — White Suckerfish (in progress)
 
-Status: `v0.42.0-dev_1`, branch `species/remora-albescens`, waiting for Jeremy's model.
+Status: `v0.42.0-dev_2`, branch `species/remora-albescens`. Three in `creatures_dev`; production
+rows wait for Jeremy's go-ahead.
 
 ### Behaviour and motion
 
@@ -23,8 +24,16 @@ Status: `v0.42.0-dev_1`, branch `species/remora-albescens`, waiting for Jeremy's
 
 ### Species and Atlas
 
-- White Suckerfish (`remora-albescens`): held at 27–30 cm (`sizeRange` 0.9–1.0), so none falls
-  below the 27 cm floor. Still hidden: no model, on no tank.
+- White Suckerfish (`remora-albescens`): Jeremy's model (2026-10-30), rig-free with separate
+  pectoral and pelvic fins and a rigid disc, fitted by `scripts/fit-rider-model.mjs` (0.2996
+  source units to 1.2 WU, disc 31% of its length ahead of the root). Held at 27–30 cm
+  (`sizeRange` 0.9–1.0), so none falls below the 27 cm floor.
+- It lives in The Shallows on the giant manta, in the manta's widened room
+  (`SHALLOWS_MANTA_FOLLOWER_BOUNDS`, now shared with the golden trevally). In the dev tank all
+  three `creatures_dev` riders (ids 1158–1160) found the manta and clamped to its belly within
+  about five minutes.
+- In the Atlas, with its tile rendered in the dev tank. Its two texture photos are credited as
+  unknown sources until found.
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

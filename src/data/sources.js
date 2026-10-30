@@ -485,6 +485,9 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
   { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
   { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
+  // ROADMAP (v0.42.0): a side photo of a live fish, and an underside specimen photo for the disc
+  // (embedded as `art_3A10`, a Springer article-figure file name).
+  { id: 'unknown-white-suckerfish', subject: 'White Suckerfish textures (two photos)' },
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },

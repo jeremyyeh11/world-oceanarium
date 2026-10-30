@@ -15,17 +15,22 @@ Status labels:
 
 ### White Suckerfish (The Shallows)
 
-Status: `Current in development` — `v0.42.0-dev_1`, branch `species/remora-albescens`.
+Status: `Current in development` — `v0.42.0-dev_2`, branch `species/remora-albescens`.
 [Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
 
 - [x] Fit ride spots on the giant manta's belly (11, clear of the wings and the moving jaw);
   riders heave with its body; golden trevally still escort it (tests).
 - [x] Hold it at 27–30 cm (`sizeRange` 0.9–1.0, the 27 cm floor).
-- [ ] Jeremy's GLB: remora body plan like the sharksuckers, 30 cm, pale/white.
-- [ ] Intake: `node scripts/fit-rider-model.mjs remora-albescens`, textures and credits, Atlas
-  pose and tile, The Shallows roster slot and a Shallows swim room (it still has
-  `OPEN_SEA_RIDER_BOUNDS`), `creatures_dev` rows (backups first), live check on the manta.
-- [ ] Decide the review population with Jeremy; production rows only on his go-ahead.
+- [x] Jeremy's GLB (2026-10-30): 30 cm, white, separate fins, opaque textures, normals outward.
+- [x] Intake (`dev_2`): `fit-rider-model.mjs`, Atlas framing and tile, The Shallows roster slot
+  and the manta's room (`SHALLOWS_MANTA_FOLLOWER_BOUNDS`), verifier target.
+- [x] Review population: 3 (Jeremy, 2026-10-30). `creatures_dev` ids 1158–1160 (sizes 0, 0.5, 1;
+  snapshots before and after). Live check: all three clamped to the manta's belly within about
+  five minutes; a free rider sometimes gives up the chase and tries again.
+- [ ] Find the two texture photos' sources (`unknown-white-suckerfish`; the disc photo is a
+  Springer article figure, `art_3A10`). See Photo texture sources.
+- [ ] Check the Atlas diet copy ("Unknown; barely any parasitic copepods.") against its source.
+- [ ] Jeremy: phone review. Production rows only on his go-ahead.
 
 ### Yellowfin Tuna follow-ups
 
@@ -49,7 +54,7 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
 Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
-  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 17 entries), and the link and
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 18 entries), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).

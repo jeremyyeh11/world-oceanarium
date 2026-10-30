@@ -64,6 +64,10 @@ const REEF_DEFAULTS = {
     // at least three times as much as branching coral (Kerry & Bellwood 2012, at the grouper in
     // species.js), and none of the tank's fish live in one.
     thicket: { patrol: 0.1, hover: 0.1, peck: 0.05, shelter: 0 },
+    // Brain corals (landscapes.js `brainCorals`): boulders of live coral, passed, hung by and
+    // tucked under like rock, seldom pecked. Large reef fishes use them far less than tables
+    // (Kerry & Bellwood 2012, at the grouper in species.js).
+    mound: { patrol: 0.15, hover: 0.15, peck: 0.05, shelter: 0.1 },
   },
 }
 
@@ -98,6 +102,19 @@ const CORAL_FORMS = {
     // Hanging over the crown (plankton pickers) or beside the flank (lying in wait).
     hover: { aim: 'flank', crown: { share: 0.6, standoffBodyLengths: [0.7, 1.2] } },
     // Skimming over the crown.
+    patrol: { aim: 'crown', passOver: true },
+  },
+  // A boulder of coral (brain, massive): a solid dome like rock, a crown, an overhang at its base
+  // where the colony is undercut. Most sit low on the bommies, with their sides below the reef
+  // fish's swim volume (REEF_BOUNDS boundsYMin): the crown is what most fish can reach.
+  mound: {
+    // Under the dome's undercut edge, with coral overhead; a dome with none sends the search to rock.
+    shelter: { aim: 'overhang', requireCover: true, minEnclosure: 0.25 },
+    // At the dome's grooved side, nose-close, as at a rock face.
+    peck: { aim: 'surface' },
+    // Hanging over the dome (damselfish over a coral head) or beside its side.
+    hover: { aim: 'surface', crown: { share: 0.6, standoffBodyLengths: [0.8, 1.4] } },
+    // Skimming over the dome.
     patrol: { aim: 'crown', passOver: true },
   },
 }
@@ -245,7 +262,7 @@ export function createReefState() {
     // and how many searches in a row have come up empty.
     retryMode: null,
     failedSearches: 0,
-    // 'rock' or a coral form ('table', 'thicket'): what the current site is on, and what the
+    // 'rock' or a coral form ('table', 'thicket', 'mound'): what the current site is on, and what the
     // retried search must ask for (null = choose again); and where on it (the search's `aim`).
     siteKind: 'rock',
     siteAim: null,

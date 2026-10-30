@@ -212,7 +212,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -2246,8 +2246,8 @@ export const SPECIES = [
     mass: { coefficient: 0.02291, exponent: 3 },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It feeds on the reef, not over
     // it, so it pecks more than the bannerfish and holds close; resting by day, it shelters
-    // more too. Polyps are part of its diet, so it picks at both coral forms; at 0.8 WU it is
-    // small enough to slip in among the staghorn.
+    // more too. Polyps are part of its diet, so it picks at every hard coral form; at 0.8 WU it
+    // is small enough to slip in among the staghorn.
     reef: {
       affinity: 0.85,
       modes: { patrol: 0.2, hover: 0.25, peck: 0.35, shelter: 0.2 },
@@ -2255,6 +2255,7 @@ export const SPECIES = [
       corals: {
         table: { peck: 0.4, shelter: 0.4, hover: 0.3 },
         thicket: { peck: 0.3, shelter: 0.25, hover: 0.25 },
+        mound: { peck: 0.2 },
       },
     },
     model: {
@@ -2414,8 +2415,8 @@ export const SPECIES = [
       pecks: [1, 3],
       // Rich coral is its home ground (FishBase): it nibbles along the table corals' rims and
       // tucks under them as well as at the rock. Its sponges and tunicates grow on rock, not on
-      // living staghorn: it only hangs by and cruises past the thickets.
-      corals: { table: { peck: 0.65, shelter: 0.5 }, thicket: { hover: 0.25, patrol: 0.2, peck: 0 } },
+      // living staghorn: it only hangs by and cruises past the thickets, and the brain corals.
+      corals: { table: { peck: 0.65, shelter: 0.5 }, thicket: { hover: 0.25, patrol: 0.2, peck: 0 }, mound: { peck: 0 } },
     },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
@@ -2491,8 +2492,8 @@ export const SPECIES = [
           shelterSeconds: [15, 35],
           // Under a table coral's plate is as good a hole as any. Small enough to slip in among
           // staghorn branches too, though juveniles are mostly found under ledges and in holes
-          // (Fishes of Australia, SURG), so less often.
-          corals: { table: { shelter: 0.55 }, thicket: { shelter: 0.3, hover: 0.25, peck: 0 } },
+          // (Fishes of Australia, SURG), so less often. A brain coral's undercut edge is a ledge.
+          corals: { table: { shelter: 0.55 }, thicket: { shelter: 0.3, hover: 0.25, peck: 0 }, mound: { shelter: 0.2, peck: 0 } },
         },
         // 8–14 cm against the species' 40 cm (bodyLengthWU 1.6): 0.32–0.56 WU, under the 1.08 WU
         // sardinella floor, as a real juvenile is.
@@ -4052,10 +4053,11 @@ export const SPECIES = [
       pecks: [1, 2],
       hoverSeconds: [3, 7],
       startleShelterChance: 0.3,
-      // Override BOTH forms: inherited defaults would have it bite live coral.
+      // Override EVERY form: inherited defaults would have it bite live coral.
       corals: {
         table: { patrol: 0.3, hover: 0.2, peck: 0, shelter: 0.4 },
         thicket: { patrol: 0.1, hover: 0.1, peck: 0, shelter: 0 },
+        mound: { patrol: 0.15, hover: 0.1, peck: 0, shelter: 0.1 },
       },
     },
     model: {
@@ -4423,6 +4425,89 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // Brain Coral (Platygyra daedalea): the next coral for The Reefs (docs/fish-queue.md), a
+  // massive hard coral. A landscape species like the Acroporas: boulders on the table corals'
+  // bommies, on their ledges and at their feet (landscapes.js `brainCorals`,
+  // src/components/brainCoralPlacement.js), and a `mound` to the reef fish (docs/reef-behavior.md,
+  // Coral forms). Jeremy's model (2026-10-30): four photo-textured boulders, baked by
+  // scripts/build-brain-coral-kit.py; the Atlas shows three of them on a low rock
+  // (scripts/build-brain-coral-atlas.py).
+  // Facts: SeaLifeBase (IUCN LC, assessed 27 October 2023, earlier 2014; Indo-Pacific, 36°N to
+  // 34°S; 3-30 m, most reef environments, especially back reef margins; the dominant understory
+  // coral on Acropora patch reefs; colonies commonly 1 m or more; valleys 2-3 cm long and 0.5-0.6
+  // cm wide; hermaphrodite, gametes spawned through the mouth), Wikipedia (range; dome or
+  // boulder, sometimes flat or encrusting; colour varies, valleys and walls often contrasting;
+  // polyps feed at night), Lapid & Chadwick 2006 (sweeper tentacles up to 90 mm), Mangubhai &
+  // Harrison 2008 (Kenya: one gametogenic cycle a year in 84% of colonies; the major spawning in
+  // February and March, a minor one in August to October in colonies with two cycles).
+  {
+    id: 'platygyra-daedalea',
+    name: 'Brain Coral',
+    scientificName: 'Platygyra daedalea',
+    family: 'Merulinidae',
+    alternateNames: ['Lesser Valley Coral'],
+    // Tile (2026-10-30): an in-tank close-up of the blue and brown colony on the sand by its rock,
+    // rendered with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/platygyra-daedalea-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 October 2023 (SeaLifeBase); Least Concern in 2014 too (DeVantier et al.).
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the Red Sea and East Africa to Japan and the central Pacific, in most reef environments and especially back reef slopes, 3 to 30 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each boulder is one colony of polyps sharing a single skeleton, lined up along winding valleys that give it the look of a brain. It grows among other corals as the understory of Acropora patch reefs, and keeps its neighbours at bay with sweeper tentacles up to 9 cm long that sting the corals beside it.',
+        // Mangubhai & Harrison 2008 (Kenya); spawned through the mouth (SeaLifeBase).
+        reproduction: 'Each colony makes both eggs and sperm, once a year in most colonies, and releases them through its polyps\' mouths to meet those of other colonies. In Kenya it spawns mainly in February and March. The larvae drift in the plankton, then settle and found new colonies.',
+      },
+      averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published
+        // (colonies commonly grow to 1 m across or more, SeaLifeBase).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A hard coral that grows into domes and boulders a metre or more across, its polyps lined up along winding valleys like the folds of a brain. It is the understory of many Indo-Pacific reefs, and stings neighbouring corals with long sweeper tentacles to keep its space.',
+    // The Atlas's biggest colony across, for the scale comparison: the orange one at 0.8 of the
+    // kit's 1.55 m (colonies commonly reach 1 m or more, SeaLifeBase).
+    maxBodyLengthMeters: 1.2,
+    model: {
+      path: '/models/fish/platygyra-daedalea/platygyra-daedalea.glb',
+      // Three of the kit's colonies (orange, blue and brown, pale) on a low limestone rock, 2.6 m
+      // across (scripts/build-brain-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
     },
   },
 ]

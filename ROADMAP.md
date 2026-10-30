@@ -13,6 +13,45 @@ Status labels:
 
 ## Current work
 
+### Brain Coral
+
+Status: `Current in development` — `v0.43.0-dev_2`, branch `species/platygyra-daedalea`,
+[PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). Jeremy's model is in
+(2026-10-30): the brain corals are on The Reefs and in the Atlas.
+
+Subtasks:
+- [x] Species entry (hidden): SeaLifeBase (LC 2023; 3–30 m; colonies commonly 1 m or more; the
+  understory of Acropora patch reefs), Lapid & Chadwick 2006 (sweeper tentacles), Mangubhai &
+  Harrison 2008 (spawning), credited in `STUDY_CREDITS`.
+- [x] Placement (`src/components/brainCoralPlacement.js`): boulders on the bommies' ledges and at
+  their feet, after the tables and sea fans, before the staghorn (`inMound`); a spot that clashes
+  tries the colony smaller. Unit test `tests/brainCoralPlacement.test.mjs`.
+- [x] `mound` coral form for the reef fish: side, crown and undercut aims; per-species shares (no
+  live-coral pecks for the unicornfish and angelfish). See `docs/reef-behavior.md` (Mounds).
+- [x] Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`),
+  run end to end on a generated stand-in (two domes): 187 KB kit, 1.0 MB Atlas model.
+- [x] Measured in the tank with the stand-in kit (desktop, 2026-10-29): 23 colonies;
+  staghorn 358 → 310 colonies (−13%); reef fish visits 2 of 141 at a mound, both at a crown.
+- [x] Jeremy's model (`dev_2`): four photo-textured boulders, 1.4–1.6 m, 256–768 triangles, each
+  with 0.22–0.52 m of underside below its origin (his ground line). Kit: 96 KB GLB and eight
+  1024 px maps. Placement keeps the underside in rock or sand and never turns a colony over
+  (Jeremy: "dont flip the bottom side up"). In the tank: 24 colonies, 33 cm to 1.2 m, all four
+  colours.
+- [x] Atlas (`dev_2`): three colonies on a 2.6 m rock (2.0 MB model), checked on desktop, 375 px
+  portrait and landscape phone; in-tank tile; unhidden and on The Reefs' `landscapeSpecies`.
+- [ ] Texture licences: the four photos are not openly licensed. Two carry a
+  "CoralsOfTheWorld.org" watermark (their terms: unaltered, personal, non-commercial use only);
+  one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated); the orange
+  colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
+  the UVs and never reach the baked maps. Jeremy to decide (permission, other photos, or his own
+  paint) before the clean release. `Blocked / waiting review`
+- [ ] The pale colony (brain3) has a deep crease on one side that reads as a dark notch up close.
+  It is in the source mesh, not the bake. Jeremy to fix in Blender or leave. `Blocked / waiting review`
+- [ ] Only 3–4 of the colonies reach the reef fish's swim floor (y −19): most sit low under the
+  tables. Jeremy to choose: brain corals higher up the bommies, a lower swim floor, or leave them
+  as scenery the fish seldom visit. `Blocked / waiting review`
+- [ ] Phone frame rate at The Reefs with the colonies added (light: 46–768 triangles a colony). `Next`
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -340,7 +379,7 @@ Subtasks:
 - [x] Measured on desktop (shares, trip success, search ms, branch clearance, tree build ms).
 - [x] Jeremy's go-ahead on `v0.31.4-dev_1` (2026-10-20: "merge").
 - [ ] Thicket flank searches find a spot about a third of the time (rock or a table is often in the way); a search that finds none goes to rock. Raise it if the thickets still read as unused. `Backlog`
-- [ ] Mound (massive, brain, encrusting), fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. `Backlog`
+- [ ] Fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. The mound form is built for the Brain Coral (`v0.43.0-dev_1`, Current work). `Backlog`
 
 ### Staghorn coral
 

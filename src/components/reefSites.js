@@ -41,6 +41,10 @@ const CROWN_PITCH_SIN = Math.sin(THREE.MathUtils.degToRad(12))
 // A shelter in a thicket is kept only where the ray met a branch within this share of its
 // colony's reach: it slipped in past the outer branches.
 const INSIDE_REACH = 0.65
+// A shelter under a mound's undercut edge aims at the lowest this share of its height; a crown
+// site lies within this share of its reach from its middle (its top, not its steep sides).
+const MOUND_OVERHANG_SHARE = 0.3
+const MOUND_CROWN_SPREAD = 0.45
 // Directions spread evenly over the sphere (unit), for the room round a spot at a thicket: its
 // branch tips are thin enough to slip between the eight level rays of roomToTurn, and one came
 // within 0.09 body lengths of a fish hanging over a crown (2026-10-20).
@@ -72,10 +76,12 @@ const nearMeshes = []
 
 // The surface sets share the queries: the tank's rocks (Landscape, as the rock kit loads) and
 // each coral form's set, published once its placement finishes: the table corals
-// (coralPlacement.js) and the staghorn thickets (staghornPlacement.js). Every ray meets them all,
+// (coralPlacement.js), the staghorn thickets (staghornPlacement.js), the sea fans
+// (seaFanPlacement.js) and the brain corals (brainCoralPlacement.js). Every ray meets them all,
 // since coral is as solid to a fish as rock; a site search can ask for one kind (`query.kind`:
-// 'rock' or a coral form, 'table' or 'thicket'). Each mesh keeps its kind, and a coral its facts
-// (`metas`: a table's plate, a thicket's outline), so searches can aim under, at or over it.
+// 'rock' or a coral form, 'table', 'thicket' or 'mound'). Each mesh keeps its kind, and a coral
+// its facts (`metas`: a table's plate, a thicket's outline, a mound's dome), so searches can aim
+// under, at or over it.
 let rockSet = null
 const coralSets = new Set()
 // The surface mesh the last castReefRay hit (null for a miss).
@@ -134,6 +140,8 @@ export function setReefSurfaces(geometries, view = null) {
 //   'thicket'  { centre (Vector3, the middle of the patch at its base), top (the crown's highest
 //              y), radius (the branches' horizontal reach from the centre), colonies: [{ x, y, z
 //              (the middle of its base), top (its crown's y), reach }] }
+//   'mound'    { centre (Vector3, the middle of its base), top (the dome's highest y), radius
+//              (its horizontal reach from the centre) }
 // Each call adds a set, cleared on its own by the owner it returns.
 export function setCoralSurfaces(geometries, metas) {
   const owner = { meshes: geometries.map((geometry, i) => surfaceMesh(geometry, metas[i].form)), metas }
@@ -285,14 +293,16 @@ function boxDistance(box, point) {
  *   force       search even if another fish already did this frame (spawning)
  *   viewBias    share of tries that come at the rock from the resting camera's side and keep
  *               only a rest point the camera can see (0 = ignore the view)
- *   kind        'rock', or a coral form ('table', 'thicket'): only surfaces of that kind (default:
+ *   kind        'rock', or a coral form ('table', 'thicket', 'mound'): only surfaces of that kind (default:
  *               any)
  *   aim         at a table: 'under' aims the ray below its plate, at the stalk or the rock behind
  *               it (hiding under the table, or between two tiers), 'rim' at the plate's edge.
  *               At a thicket: 'flank' at its side, the site facing the thicket's outline rather
  *               than one branch's facet; 'crown' straight down onto its top from above, the fish
  *               hanging level over it; 'inside' at its middle, kept only where the ray slipped in
- *               past the outer branches (sheltering among them)
+ *               past the outer branches (sheltering among them). At a mound: 'surface' at its
+ *               side between its foot and crown, 'overhang' low at its foot, under the dome's
+ *               undercut edge
  *   passOver    the entry point is the rest point itself (a patrol that passes right over it)
  *   requireCover  keep only rest points with a surface straight overhead within enclosureReach
  */
@@ -343,6 +353,7 @@ export function findReefSite(out, query) {
     const meta = metas[index]
     const thicket = kinds[index] === 'thicket'
     const plate = kinds[index] === 'table' ? meta : null
+    const mound = kinds[index] === 'mound' ? meta : null
     let colony = null
     box.getCenter(aim)
     box.getSize(half).multiplyScalar(0.5)
@@ -381,6 +392,23 @@ export function findReefSite(out, query) {
       aim.x = colony.x
       aim.z = colony.z
       half.set(colony.reach * 0.25, half.y, colony.reach * 0.25)
+    } else if (mound) {
+      // At the dome's middle: its side above the foot, or low at the foot for the undercut; or
+      // anywhere over its crown (only the rest point above it must be in the swim volume).
+      const height = mound.top - mound.centre.y
+      if (query.aim === 'crown') {
+        yLow = mound.centre.y
+        yHigh = mound.top
+      } else if (query.aim === 'overhang') {
+        yLow = Math.max(yLow, mound.centre.y + height * 0.02)
+        yHigh = Math.min(yHigh, mound.centre.y + height * MOUND_OVERHANG_SHARE)
+      } else {
+        yLow = Math.max(yLow, mound.centre.y + height * 0.25)
+        yHigh = Math.min(yHigh, mound.top - height * 0.1)
+      }
+      aim.x = mound.centre.x
+      aim.z = mound.centre.z
+      half.set(mound.radius * 0.3, half.y, mound.radius * 0.3)
     }
     if (yHigh <= yLow) continue
     let angle = rand() * Math.PI * 2
@@ -388,7 +416,7 @@ export function findReefSite(out, query) {
     const fromView = viewBias > 0 && rand() < viewBias
     // Under a table or at a thicket the ray keeps aiming at the middle; only its approach turns
     // toward the viewer.
-    const keepAim = (plate && query.aim === 'under') || thicket
+    const keepAim = (plate && query.aim === 'under') || thicket || mound
     if (fromView) {
       if (!keepAim) {
         aim.x = THREE.MathUtils.clamp(viewpoint.position.x, box.min.x, box.max.x)
@@ -405,25 +433,29 @@ export function findReefSite(out, query) {
     aim.x += (rand() * 2 - 1) * half.x * 0.5
     aim.z += (rand() * 2 - 1) * half.z * 0.5
     aim.y = yLow + rand() * (yHigh - yLow)
-    const crown = thicket && query.aim === 'crown'
+    const crown = (thicket || mound) && query.aim === 'crown'
     let far
     if (crown) {
-      // Straight down onto the colony's crown, from clear water above the patch, anywhere within
-      // its middle.
-      const spread = Math.sqrt(rand()) * colony.reach * CROWN_SPREAD
+      // Straight down onto the colony's crown, from clear water above the patch (or dome),
+      // anywhere within its middle.
+      const middle = mound ? mound.centre : colony
+      const spread = Math.sqrt(rand()) * (mound ? mound.radius * MOUND_CROWN_SPREAD : colony.reach * CROWN_SPREAD)
       const around = rand() * Math.PI * 2
-      origin.set(colony.x + Math.cos(around) * spread, meta.top + standoff + clearance + 0.5, colony.z + Math.sin(around) * spread)
+      origin.set(middle.x + Math.cos(around) * spread, meta.top + standoff + clearance + 0.5, middle.z + Math.sin(around) * spread)
       rayDirection.copy(DOWN)
-      far = origin.y - colony.y + 0.5
+      far = origin.y - middle.y + 0.5
     } else {
       // A thicket's side is aimed nearly level, so the ray meets it at the height asked for.
-      rayDirection.set(Math.cos(angle), (rand() * 2 - 1) * (thicket ? 0.15 : 0.3), Math.sin(angle)).normalize()
-      const lead = Math.max(half.x, half.z) + entryDistance + standoff + (thicket ? meta.radius * 2 : 0)
+      rayDirection.set(Math.cos(angle), (rand() * 2 - 1) * (thicket || mound ? 0.15 : 0.3), Math.sin(angle)).normalize()
+      const lead = Math.max(half.x, half.z) + entryDistance + standoff + (thicket ? meta.radius * 2 : mound ? meta.radius : 0)
       origin.copy(aim).addScaledVector(rayDirection, lead)
       rayDirection.negate()
       far = lead + Math.max(half.x, half.z)
     }
     if (castReefRay(origin, rayDirection, far, facePoint, faceNormal) < 0) continue
+    // This mound, not rock or another coral in front of it; over its crown the fish hangs level.
+    if (mound && lastHitMesh !== surfaces.meshes[index]) continue
+    if (mound && crown) faceNormal.copy(UP)
     if (thicket) {
       // This thicket's branches, not rock, a table or another thicket in front of it.
       if (lastHitMesh !== surfaces.meshes[index]) continue

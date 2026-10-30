@@ -221,8 +221,8 @@ Forms:
   tiers. Implemented (`v0.30.1`).
 - `thicket` (branching corals; Staghorn Coral): a patch of colonies, a crown of branch tips,
   flanks, narrow gaps inside. Implemented (`v0.31.4`).
-- `mound` (massive, brain and encrusting corals): a solid surface like rock, an overhang at the
-  base. Proposed; no model yet.
+- `mound` (massive, brain and encrusting corals; Brain Coral): a solid dome like rock, a crown,
+  an overhang at the base. Implemented (`v0.43.0-dev_1`); on The Reefs since `v0.43.0-dev_2`.
 - `fan` (gorgonians, sea whips, soft corals; Giant Sea Fan): a flat, bendy lattice. Solid since
   `v0.38.0-dev_1` (its surfaces block the site rays, `form: 'fan'`, and it is in the obstacle
   field), but no mode visits it yet: `fan` is not in `CORAL_FORMS`. Proposed: hover and patrol
@@ -235,14 +235,17 @@ The four modes at each form (`CORAL_FORMS` in reefBehavior.js; `aim` is the site
 
 - shelter: under a table's plate or between two tiers (`under`, with a surface straight overhead,
   `requireCover`, and enclosure 0.25 against a rock nook's 0.35); in among a thicket's branches
-  (`inside`, fish up to 0.8 WU, enclosure 0.4); a mound's overhang (proposed).
-- peck: along a table's rim (`rim`); a thicket's outer branches (`flank`); a mound's surface
-  (proposed).
+  (`inside`, fish up to 0.8 WU, enclosure 0.4); under a mound's undercut edge (`overhang`, with
+  coral overhead, enclosure 0.25).
+- peck: along a table's rim (`rim`); a thicket's outer branches (`flank`); a mound's side
+  (`surface`).
 - hover: beside a table's rim (`rim`); over a thicket's crown, 0.7 to 1.2 body lengths above the
   tips, level and 12° nose-down, looking across it (`crown`, 60% of thicket hovers), or beside its
-  flank (`flank`).
-- patrol: past a table's rim (`rim`); right over a thicket's crown (`crown` with `passOver`: the
-  pass point rises up to 1.5 WU until it clears the colonies' padded steering shapes).
+  flank (`flank`); over a mound's crown, 0.8 to 1.4 body lengths up (`crown`, 60% of mound
+  hovers), or beside its side (`surface`).
+- patrol: past a table's rim (`rim`); right over a thicket's or a mound's crown (`crown` with
+  `passOver`: the pass point rises up to 1.5 WU until it clears the colonies' padded steering
+  shapes).
 
 Universal rules, every fish at every form:
 
@@ -341,6 +344,32 @@ Measured on desktop (2026-10-20, `v0.31.4-dev_1`, 42 reef fish, after a 2-minute
 - Searches (80 each, against the real patches): a crown 1.5 to 1.7 ms median and 6 ms worst,
   finding a spot 58 to 64% of the time; a flank peck 1.1 and 2.6 ms, 39%; a shelter inside 1.3
   and 5.6 ms, 11%. A rock shelter in the same session took 2.9 and 8.4 ms.
+
+### Mounds
+
+Each brain coral (brainCoralPlacement.js) is one mound to the fish: Landscape.jsx
+`moundReefSurfaces` publishes its `_lo` mesh (350 to 700 triangles) for each colony inside
+`reefReach`, with its base, crown height and reach. A mound search aims at the dome's middle and
+keeps only a hit on that dome (not rock or another coral in front of it):
+
+- `surface`: a nearly level ray at its side, between a quarter of its height and just under its
+  crown; the face is the dome's own facet (a smooth dome, unlike a branch's).
+- `crown`: straight down onto its top from clear water, within 0.45 of its reach from the middle;
+  the face is taken as pointing straight up, as over a thicket.
+- `overhang`: a level ray at its lowest 30%, kept only with coral (the dome's undercut edge)
+  straight overhead. A dome with no undercut finds nothing and the shelter goes to rock.
+
+Defaults (`REEF_DEFAULTS.corals.mound`): patrol 0.15, hover 0.15, peck 0.05, shelter 0.1. Large
+reef fishes use massive corals far less than tables (Kerry & Bellwood 2012). The unicornfish and
+both emperor angelfish stages never peck live coral (peck 0); the juvenile angelfish shelters
+under the undercut (0.2); the raccoon butterflyfish, which eats polyps, pecks it (0.2).
+
+Measured on desktop with a stand-in kit (two generated domes, 2026-10-29, `v0.43.0-dev_1`): 23
+colonies on The Reefs, but only 4 with their crowns above the reef fish's swim floor (REEF_BOUNDS
+`boundsYMin` -19): most sit low on the bommies, under the tables, and their sides are out of the
+fish's reach. Over 60 s, 2 of 141 visits went to a mound (an emperor angelfish hovering over a
+crown, a humphead wrasse skimming one), both at the crown. Raising the colonies or the swim floor
+is Jeremy's call once his model is in (ROADMAP, Brain Coral).
 
 ## Swim volume
 

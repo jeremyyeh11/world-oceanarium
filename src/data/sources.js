@@ -364,6 +364,32 @@ export const STUDY_CREDITS = [
     venue: "Florent's Guide to the Tropical Reefs",
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
+  {
+    id: 'sealifebase-platygyra-daedalea',
+    subject: 'Brain Coral status, range, depth, habitat, colony size and reproduction',
+    authors: 'SeaLifeBase',
+    title: 'Platygyra daedalea (Ellis & Solander, 1786), Brain coral',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Platygyra-daedalea.html',
+  },
+  {
+    id: 'lapid-chadwick-2006-sweeper-tentacles',
+    subject: 'Brain Coral sweeper tentacles against neighbouring corals',
+    authors: 'Lapid & Chadwick',
+    year: 2006,
+    title: 'Long-term effects of competition on coral growth and sweeper tentacle development',
+    venue: 'Marine Ecology Progress Series 313: 115–123',
+    url: 'https://doi.org/10.3354/meps313115',
+  },
+  {
+    id: 'mangubhai-harrison-2008-platygyra',
+    subject: 'Brain Coral spawning season and yearly gametogenic cycle in Kenya',
+    authors: 'Mangubhai & Harrison',
+    year: 2008,
+    title: 'Gametogenesis, spawning and fecundity of Platygyra daedalea (Scleractinia) on equatorial reefs in Kenya',
+    venue: 'Coral Reefs 27: 117–122',
+    url: 'https://doi.org/10.1007/s00338-007-0297-8',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one
@@ -488,4 +514,20 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },
+  // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
+  // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
+  // (v0.43.0): none is openly licensed; Jeremy to decide before the clean release.
+  // The photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth Images
+  // Kwajalein"; the page states no licence. Shown with `url` and no `licence`.
+  {
+    id: 'kwajalein-brain-coral',
+    subject: 'Brain Coral texture (pale colony)',
+    author: 'In-Depth Images Kwajalein',
+    work: 'Platygyra cf. daedalea (k01-100711), Kwajalein Underwater',
+    url: 'https://underwaterkwaj.com/uw-misc/coral/merulinidae/Platygyra-cf-daedalea.htm',
+    changes: 'Mapped onto the 3D model and resized.',
+  },
+  // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
+  { id: 'coralsoftheworld-brain-coral', subject: 'Brain Coral textures (blue-and-brown and brown colonies, two photos)', author: 'Corals of the World' },
+  { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
 ]

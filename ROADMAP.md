@@ -36,6 +36,9 @@ Status: `Current in development` — `v0.42.0-dev_3`, branch `species/remora-alb
   `creatures_dev` 1161 (3 m) and three more suckerfish (1162–1164, six in all; snapshots before
   and after). Live: the adult carried three riders, the juvenile two with a third on its way;
   the trevally split three and three.
+- [x] Twelve white suckerfish (Jeremy, 2026-10-30): `creatures_dev` 1165–1170 added (snapshots
+  before and after). Live: 10 of 12 clamped by three minutes, five on each manta, the last two
+  docking.
 - [ ] Jeremy: phone review. Production rows only on his go-ahead; the juvenile manta's only once
   the live bundle draws juveniles (AGENTS.md, a new life stage).
 

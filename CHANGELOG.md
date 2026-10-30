@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.42.0 — White Suckerfish (in progress)
 
-Status: `v0.42.0-dev_3`, branch `species/remora-albescens`. Six white suckerfish and a juvenile
+Status: `v0.42.0-dev_3`, branch `species/remora-albescens`. Twelve white suckerfish and a juvenile
 manta in `creatures_dev`; production rows wait for Jeremy's go-ahead.
 
 ### Behaviour and motion

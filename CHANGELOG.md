@@ -37,7 +37,7 @@ the model; `dev_2` adds Jeremy's four colonies.
 
 - Brain Coral entry: SeaLifeBase, Lapid & Chadwick 2006 and Mangubhai & Harrison 2008 credited.
   Atlas specimen of three colonies on a low rock, Atlas pose and in-tank tile; on The Reefs'
-  species count. The four photo textures are credited in Sources (licences open, see ROADMAP).
+  species count. The four photo textures are credited in Sources (not openly licensed; used on Jeremy's call).
 - Sources: an image credit with a known page but no stated licence reads "licence not stated".
 
 ## v0.41.0 — Golden Trevally (2026-10-29)

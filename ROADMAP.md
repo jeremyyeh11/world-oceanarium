@@ -39,12 +39,12 @@ Subtasks:
   colours.
 - [x] Atlas (`dev_2`): three colonies on a 2.6 m rock (2.0 MB model), checked on desktop, 375 px
   portrait and landscape phone; in-tank tile; unhidden and on The Reefs' `landscapeSpecies`.
-- [ ] Texture licences: the four photos are not openly licensed. Two carry a
+- [x] Texture licences: the four photos are not openly licensed. Two carry a
   "CoralsOfTheWorld.org" watermark (their terms: unaltered, personal, non-commercial use only);
   one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated); the orange
   colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
-  the UVs and never reach the baked maps. Jeremy to decide (permission, other photos, or his own
-  paint) before the clean release. `Blocked / waiting review`
+  the UVs and never reach the baked maps. Jeremy (2026-10-30): keep them, credited; "if anyone
+  wants me to take down, i will".
 - [ ] The pale colony (brain3) has a deep crease on one side that reads as a dark notch up close.
   It is in the source mesh, not the bake. Jeremy to fix in Blender or leave. `Blocked / waiting review`
 - [ ] Only 3–4 of the colonies reach the reef fish's swim floor (y −19): most sit low under the

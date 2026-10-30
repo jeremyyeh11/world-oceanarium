@@ -516,7 +516,7 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },
   // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
   // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
-  // (v0.43.0): none is openly licensed; Jeremy to decide before the clean release.
+  // (v0.43.0): none is openly licensed; used on Jeremy's call (2026-10-30), taken down on request.
   // The photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth Images
   // Kwajalein"; the page states no licence. Shown with `url` and no `licence`.
   {

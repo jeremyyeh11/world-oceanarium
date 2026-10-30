@@ -116,6 +116,8 @@ Visible versions use a target-release plus dev-suffix model:
 
 Each rule below was missed at least once. New rules go here too (see Collaborator-proof rules).
 
+To check a range of releases against these rules, use the audit procedure in `.claude/skills/audit/SKILL.md` (any agent can follow it). Run it only when Jeremy asks for an audit, as the first task of a fresh session.
+
 - **Merge means promote.** When Jeremy asks to merge a `-dev_##` branch, that is his acceptance: promote to the clean version in the same PR (`src/version.js`, `package.json`, `package-lock.json`, both changelogs, ROADMAP), then merge. Never leave a `-dev_` version on `main`, and don't ask him to check on his phone first.
 - **`main` is ruleset-protected.** Changes land only by PR with a passing `Build` check, squash merge only, auto-merge off (`gh api repos/jeremyyeh11/world-oceanarium/rulesets`; the legacy branch-protection endpoint wrongly answers "not protected"). If he says merge while Build runs, finish the other work first, then check Build once and merge in the same turn.
 - **Other agents merge in parallel.** Right before choosing a `-dev_##` number or merging, `git fetch` and read `origin/main`'s `src/version.js` and CHANGELOG status line; on conflict, rebase, keep their entry and take the next free number. Merged branches get deleted, which closes any new PR on them, so start each new PR on a fresh branch from `main`.

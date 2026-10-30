@@ -26,6 +26,28 @@ for (const alias of [trevally.id, trevally.name, trevally.scientificName]) {
 }
 assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === trevally.model.path))
 
+// The East Pacific green turtle is prepared hidden: no model requests, no reserve slot before
+// intake, and its draft escort-only rideHost has no spots to ride yet.
+{
+  const turtle = speciesById.get('chelonia-mydas')
+  assert.ok(turtle, 'chelonia-mydas canonical species exists')
+  assert.equal(turtle.hiddenInAtlas, true, 'the turtle waits for its specimen and tile')
+  assert.equal(turtle.model, undefined, 'the turtle does not advertise a nonexistent model')
+  assert.deepEqual(atlasWarmupUrls([turtle]), [], 'the turtle causes no speculative asset requests')
+  assert.ok(ENVIRONMENT_MANIFESTS.every(manifest => manifest.assets.every(asset => !asset.url.includes('chelonia-mydas'))), 'the turtle cannot block reserve loading')
+  for (const alias of [turtle.id, turtle.name, turtle.scientificName]) {
+    const creature = { id: 'pending-turtle', species: alias, alive: true, size: 0.8 }
+    assert.equal(resolveSpecies(creature), turtle)
+    for (const tank of TANKS) assert.deepEqual(creaturesForTank([creature], tank), [], 'the turtle is not stocked before intake')
+  }
+  assert.ok(Math.abs(turtle.swim.bodyLengthWU * 0.25 - turtle.maxBodyLengthMeters) < 1e-9, 'turtle biological reference and world scale agree')
+  assert.ok(turtle.sizeRange[0] * turtle.swim.bodyLengthWU >= 1.08, 'proposed turtles are above the 27 cm size floor')
+  // Shell length cubed: the weighed Colola males, 67.5 cm and 45.7 kg (Delgado-Trejo et al. 2024).
+  assert.ok(Math.abs(turtle.mass.coefficient * 67.5 ** turtle.mass.exponent / 1000 - 45.7) < 1.5)
+  assert.deepEqual(turtle.rideHost.groups, ['turtle'])
+  assert.equal(turtle.rideHost.anchors, undefined, 'anchors wait for the GLB')
+}
+
 const unicornfish = speciesById.get('naso-unicornis')
 const tuna = speciesById.get('thunnus-albacares')
 assert.ok(!tuna.hiddenInAtlas, 'the supplied tuna is available in Atlas')

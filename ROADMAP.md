@@ -13,6 +13,15 @@ Status labels:
 
 ## Current work
 
+### East Pacific Green Turtle (The Shallows)
+
+Status: `Current in development` — prepared hidden in `v0.50.0-dev_1` (branch `species/chelonia-mydas`); waiting on Jeremy. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
+
+- [x] Research, Atlas copy, Averages and Lifecycle; hidden entry, draft swim and escort-only `rideHost` (`turtle`); study credits; data test.
+- [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
+- [ ] Jeremy: approve the motion type (new `foil-flap-vertex` recommended), count and life stage, GLB handoff, surfacing behaviour.
+- [ ] Jeremy's GLB; mask paint script; implement `foil-flap-vertex`; anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -143,7 +152,7 @@ Subtasks:
 - [x] Add stop-and-ask instructions for new motion architectures to AGENTS.md and the new-species checklist, so an unwritten type surfaces in conversation rather than only at the gate.
 - [x] Close the gaps a live agent test exposed (comb jelly / ctenophore prompt): require the world-unit size check before motion design, require naming the closest existing type and why it was rejected, require naming which layer produces thrust, and point the type docs back at the checklist's biological prerequisites.
 - [ ] Validate each `Proposed` doc against its first real asset and promote it to `Implemented`. `Backlog`
-- [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. `Backlog`
+- [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. Proposal (`v0.50.0-dev_1`, East Pacific green turtle): keep them separate; the turtle also needs a mirrored shoulder stroke, a stroke-and-glide clock and a speed surge ([`foil-flap.md`](docs/procedural/foil-flap.md)). Jeremy to confirm. `Next`
 - [ ] Prototype the `limb-step` gait before committing to an architecture; foot-planting may not fit the GPU vertex path at all. `Backlog`
 
 Known runtime work the docs assume but that does not exist yet:

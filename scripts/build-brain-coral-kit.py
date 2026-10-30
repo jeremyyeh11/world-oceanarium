@@ -5,9 +5,11 @@
 #     --python scripts/build-brain-coral-kit.py -- <source.glb> public/models/landscape
 #
 # Model contract: each colony is one mesh object (several colonies in one GLB are fine), in
-# metres, dome up (+Y in glTF), with its object origin at the middle of its underside: the point
+# metres, dome up (+Y in glTF), with its object origin on its ground line, in the middle: the point
 # that sits on the rock or sand (docs/new-species-checklist.md: a coral's origin is its root, never
-# a computed lowest point). Any materials: photo textures, vertex colour or plain colours all bake.
+# a computed lowest point). Mesh below the origin is the buried underside: placement sinks it into
+# rock or sand (src/components/brainCoralPlacement.js). Any materials: photo textures, vertex colour
+# or plain colours all bake.
 #
 # Like the table corals (scripts/build-coral-kit.py), each colony is welded, moved so its origin
 # is at (0, 0, 0), decimated to a close-up mesh (brainN_hi) and unwrapped; the full-detail source is
@@ -31,12 +33,13 @@ os.makedirs(out_dir, exist_ok=True)
 sources = sorted([o for o in scene.objects if o.type == 'MESH'], key=lambda o: -max(o.dimensions))
 print('SOURCES', [(o.name, tuple(round(d, 3) for d in o.dimensions), len(o.data.polygons)) for o in sources])
 
-# Triangle targets and map size per colony, by its width (m): a dome is simple in outline, its
-# detail is in the normal map.
-def plan(width):
-    if width > 0.6:
-        return {'hi': 2400, 'lo': 700, 'far': 180, 'tex': 1024}
-    return {'hi': 1200, 'lo': 350, 'far': 90, 'tex': 512}
+# Triangle targets and map size per colony, by its width (m) and its own triangle count: a dome is
+# simple in outline, its detail is in the maps. A source lighter than the cap keeps its triangles
+# at _hi (Jeremy's 2026-10-30 colonies are 256 to 768).
+def plan(width, tris):
+    hi = min(tris, 2400 if width > 0.6 else 1200)
+    return {'hi': hi, 'lo': max(60, round(hi * 0.45)), 'far': max(40, round(hi * 0.18)),
+            'tex': 1024 if width > 0.6 else 512}
 
 def tri_count(me):
     return sum(len(p.vertices) - 2 for p in me.polygons)
@@ -92,11 +95,11 @@ for index, src_obj in enumerate(sources):
     weld(src_obj)
     low = min(v.co.z for v in src_obj.data.vertices)
     width = max(src_obj.dimensions[0], src_obj.dimensions[1])
-    # His origin should sit at the underside: say so if the mesh hangs far below it.
-    print('ORIGIN', src_obj.name, 'lowest point', round(low, 3), 'm below origin' if low < 0 else 'm above origin',
-          'width', round(width, 3), 'height', round(src_obj.dimensions[2], 3))
+    # His origin is the ground line: what hangs below it gets buried.
+    print('ORIGIN', src_obj.name, 'buried below origin', round(max(0.0, -low), 3), 'm; width', round(width, 3),
+          'height above origin', round(max(v.co.z for v in src_obj.data.vertices), 3))
 
-    p = plan(width)
+    p = plan(width, tri_count(src_obj.data))
     hi = decimated(src_obj, p['hi'], f'brain{index}_hi')
     # Fresh UVs on the close-up mesh for the bake.
     while hi.data.uv_layers:

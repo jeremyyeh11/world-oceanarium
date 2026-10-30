@@ -222,8 +222,7 @@ Forms:
 - `thicket` (branching corals; Staghorn Coral): a patch of colonies, a crown of branch tips,
   flanks, narrow gaps inside. Implemented (`v0.31.4`).
 - `mound` (massive, brain and encrusting corals; Brain Coral): a solid dome like rock, a crown,
-  an overhang at the base. Implemented (`v0.43.0-dev_1`), waiting for the brain coral's model:
-  The Reefs' `brainCorals.pending` keeps it off, so no tank has a mound yet.
+  an overhang at the base. Implemented (`v0.43.0-dev_1`); on The Reefs since `v0.43.0-dev_2`.
 - `fan` (gorgonians, sea whips, soft corals; Giant Sea Fan): a flat, bendy lattice. Solid since
   `v0.38.0-dev_1` (its surfaces block the site rays, `form: 'fan'`, and it is in the obstacle
   field), but no mode visits it yet: `fan` is not in `CORAL_FORMS`. Proposed: hover and patrol

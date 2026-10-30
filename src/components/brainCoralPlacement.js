@@ -28,10 +28,16 @@ const ATTEMPTS_PER_COLONY = 100
 // Least share of up in a ledge a colony may sit on (about 50° from level at most).
 const MIN_LEDGE_UP = 0.65
 // How far a colony leans with its ledge (share of the ledge's tilt), and its largest lean (17°).
+// A colony has an up (Jeremy, 2026-10-30: "dont flip the bottom side up"): it is only ever spun
+// about its own vertical and leant this little, never laid on its side or turned over.
 const LEAN_SHARE = 0.5
 const MAX_LEAN = 0.3
-// The base sinks this share of the colony's height into the rock or sand.
-const SINK = 0.06
+// The ground line sinks this share of the colony's height into the rock or sand.
+const SINK = 0.03
+// Points over the buried underside, and the share of them that must be in rock or under the sand:
+// none of it may show below a thin ledge or hang in the water at a ledge's edge.
+const BURIED_COUNT = 16
+const BURIED_HIDDEN = 0.85
 // Points on the dome tested against the rock, sand, tables, fans and other colonies, and how many
 // may touch the rock or the sand. Points below BASE_SHARE of its height are its base.
 const SAMPLE_COUNT = 32
@@ -53,26 +59,35 @@ const SPACING = 0.95
 const MOUND_CLEAR = 0.2
 const YIELD_EVERY = 20
 
-// Colony facts of a kit model from its _lo mesh (model metres, base at the origin, the
-// object origin in the source model): height, horizontal reach about the base, the base's own
-// radius, and points spread over the dome above its base.
+// Colony facts of a kit model from its _lo mesh (model metres, the object origin of the source
+// model at (0, 0, 0): the ground line, where the colony meets the rock or sand; +Y up): height of
+// the dome above the ground line, horizontal reach about the origin, the radius at the ground
+// line, points spread over the dome above its base and points over the underside below the
+// ground line. Jeremy's colonies (2026-10-30) are whole rounded boulders whose lower 0.2 to 0.5 m
+// sits under their origin: that part is meant to be buried.
 export function measureMound(geometry) {
   geometry.computeBoundingBox()
   const height = geometry.boundingBox.max.y
+  const depth = Math.max(0, -geometry.boundingBox.min.y)
   const position = geometry.attributes.position
   let radius = 0
   let footRadius = 0
   const above = []
+  const below = []
   for (let i = 0; i < position.count; i++) {
     const y = position.getY(i)
     const r = Math.hypot(position.getX(i), position.getZ(i))
-    radius = Math.max(radius, r)
-    if (y < height * 0.1) footRadius = Math.max(footRadius, r)
+    if (y >= 0) radius = Math.max(radius, r)
+    if (Math.abs(y) < height * 0.1) footRadius = Math.max(footRadius, r)
     if (y > height * BASE_SHARE) above.push(i)
+    if (y < -height * BASE_SHARE) below.push(i)
   }
-  const samples = []
-  for (let k = 0; k < SAMPLE_COUNT && above.length; k++) samples.push(new THREE.Vector3().fromBufferAttribute(position, above[Math.floor(k * above.length / SAMPLE_COUNT)]))
-  return { height, radius, footRadius: footRadius || radius * 0.8, samples }
+  const spread = (list, count) => {
+    const points = []
+    for (let k = 0; k < count && list.length; k++) points.push(new THREE.Vector3().fromBufferAttribute(position, list[Math.floor(k * list.length / count)]))
+    return points
+  }
+  return { height, depth, radius, footRadius: footRadius || radius * 0.8, samples: spread(above, SAMPLE_COUNT), buried: spread(below, BURIED_COUNT) }
 }
 
 // Whether a point is in a placed colony's dome, or within MOUND_CLEAR plus `extra` WU of it, for
@@ -127,6 +142,12 @@ export function* placeBrainCorals(landscape, clusters, tables, measures, view, a
         if (point.y < sandHeight(landscape, point.x, point.z) && ++sand > SAND_ALLOWED) return false
         if (rocks.inside(point) && ++inside > INSIDE_ALLOWED) return false
       }
+      let hidden = 0
+      for (const sample of shape.buried) {
+        point.copy(sample).applyMatrix4(matrix)
+        if (point.y < sandHeight(landscape, point.x, point.z) || rocks.inside(point)) hidden++
+      }
+      if (hidden < shape.buried.length * BURIED_HIDDEN) return false
       let supported = 0
       for (let k = 0; k < RIM_POINTS; k++) {
         const a = k * Math.PI * 2 / RIM_POINTS

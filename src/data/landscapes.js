@@ -127,16 +127,15 @@ const STAGHORN_KIT = {
   doubleSided: true,
 }
 
-// Brain corals (Platygyra daedalea), to be baked from Jeremy's model by
-// scripts/build-brain-coral-kit.py: brain0, brain1, ... largest first, each with _hi (2400
-// triangles; 1200 under 60 cm across), _lo (700; 350) and _far (180; 90) meshes sharing its
-// brainN-color/-normal.jpg (the maze of valleys baked into the normal map). In metres, the base at
-// the origin (his object origin, the middle of the colony's underside), up +Y. Not yet supplied:
-// the reef's `brainCorals.pending` keeps it off until the kit is built.
+// Jeremy's brain corals (Platygyra daedalea, `_blender models/platygyra daedalea.glb`, 2026-10-30),
+// baked by scripts/build-brain-coral-kit.py: four photo-textured boulders about 1.4-1.6 m across,
+// each with _hi (his own 256-768 triangles), _lo (114-346) and _far (46-138) meshes sharing its
+// 1024 px brainN-color/-normal.jpg. In metres, up +Y, origin at his object origin: the ground
+// line, with 0.22-0.52 m of rounded underside below it to be buried. 0: blue and brown, 0.70 m
+// above ground; 1: orange, 0.72 m; 2: brown, 0.64 m; 3: pale yellow-green, 0.71 m.
 const BRAIN_CORAL_KIT = {
   path: '/models/landscape/brain-corals.glb',
-  // One per source colony; extend to match the kit the script prints.
-  models: ['brain0', 'brain1'].map(name => ({
+  models: ['brain0', 'brain1', 'brain2', 'brain3'].map(name => ({
     name,
     color: `/models/landscape/${name}-color.jpg`,
     normal: `/models/landscape/${name}-normal.jpg`,
@@ -440,11 +439,10 @@ export const LANDSCAPES = {
     // tables and sea fans, clear of both, and before the staghorn, which keeps clear of them:
     // `perCluster` colonies a bommie, about footShare of them on the sand at its foot, the rest on
     // its ledges. `diameter` in WU at the foot (60 cm to 1.6 m: colonies commonly grow to 1 m or
-    // more, SeaLifeBase), ledgeScale times that up on the rock. `pending` keeps it off (no kit,
-    // no placement, no load) until Jeremy's model is baked into the kit.
+    // more, SeaLifeBase), ledgeScale times that up on the rock. `pending: true` would keep it off
+    // (no kit, no placement, no load), as it was until Jeremy's model was baked.
     brainCorals: {
       kit: BRAIN_CORAL_KIT,
-      pending: true,
       seed: 9103, perCluster: [2, 4], footShare: 0.3,
       diameter: [2.4, 6.4], ledgeScale: 0.7,
     },

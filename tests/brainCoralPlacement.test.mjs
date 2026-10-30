@@ -31,7 +31,7 @@ try {
   let onTop = 0
   let onSand = 0
   for (const [i, mound] of mounds.entries()) {
-    const sunk = mound.height * 0.06
+    const sunk = mound.height * 0.03
     if (Math.abs(mound.base.y - (4 - sunk)) < 0.01) onTop++
     else if (Math.abs(mound.base.y + sunk) < 0.01) onSand++
     else assert.fail(`colony ${i} sits on rock or sand, not at y ${mound.base.y}`)
@@ -50,6 +50,27 @@ try {
   assert.ok(onTop > 0 && onSand > 0, `on the top (${onTop}) and the sand (${onSand})`)
   assert.ok(inMound(mounds, mounds[0].centre), 'a colony holds its own middle')
   assert.ok(!inMound(mounds, new THREE.Vector3(100, 0, 100)), 'and nothing far off')
+  // Every colony stays upright: never laid over or turned bottom side up (Jeremy, 2026-10-30).
+  for (const mound of mounds) {
+    const up = new THREE.Vector3(0, 1, 0).transformDirection(mound.matrix)
+    assert.ok(up.y > Math.cos(0.31), 'a colony leans at most 17°')
+  }
+
+  // Jeremy's colonies are whole boulders with their underside below the origin, to be buried. On a
+  // thin slab (0.3 WU) a buried 0.2 m of a 1.6 WU colony would show underneath: none may stand there.
+  const boulder = new THREE.SphereGeometry(0.5, 32, 16).translate(0, 0.2, 0)
+  const boulderShape = measureMound(boulder)
+  assert.ok(boulderShape.buried.length > 0 && Math.abs(boulderShape.depth - 0.3) < 1e-6, 'measures the buried underside')
+  const thinSlab = new THREE.BoxGeometry(10, 0.3, 10).translate(0, 4, 0)
+  const thin = placeBrainCorals({ ...landscape, brainCorals: { ...landscape.brainCorals, footShare: 0 } }, [{ geometries: [thinSlab], seed: 2 }], [], [boulderShape], null)
+  do { step = thin.next() } while (!step.done)
+  for (const mound of step.value) {
+    for (const sample of boulderShape.buried) {
+      const point = sample.clone().applyMatrix4(mound.matrix)
+      const inSlab = Math.abs(point.x) < 5 && Math.abs(point.z) < 5 && point.y > 3.85 && point.y < 4.15
+      assert.ok(inSlab || point.y < 0, 'the buried underside stays in the rock or under the sand')
+    }
+  }
 
   // The fish's side: a dome surface on a slab of rock.
   const slab = new THREE.BoxGeometry(40, 1, 40).translate(0, -0.5, 0)

@@ -10,16 +10,19 @@ Versioning convention notes:
 
 ## v0.43.0 — Brain Coral (in development)
 
-Status: `v0.43.0-dev_1`, branch `species/platygyra-daedalea`. Prep, waiting for Jeremy's model:
-nothing changes for visitors until the kit is baked (`brainCorals.pending`, hidden in the Atlas).
+Status: `v0.43.0-dev_2`, branch `species/platygyra-daedalea`,
+[PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). `dev_1` built everything but
+the model; `dev_2` adds Jeremy's four colonies.
 
 ### Landscape and corals
 
 - Brain corals (*Platygyra daedalea*) as boulders on the table corals' bommies, on ledges and on
   the sand at their feet (`src/components/brainCoralPlacement.js`): placed after the tables and
   sea fans and before the staghorn, which keeps clear of them; held up all round, out of the
-  tables, fans and each other, trying smaller sizes where a big colony clashes. With a stand-in
-  kit: 23 colonies; staghorn 358 → 310.
+  tables, fans and each other, trying smaller sizes where a big colony clashes. Jeremy's colonies
+  (`dev_2`): their rounded undersides below his origins stay buried in rock or sand, and none is
+  ever turned over. 24 colonies, 33 cm to 1.2 m; staghorn 358 → about 310 (measured with a
+  stand-in kit).
 - Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`):
   bake his colonies to three detail levels with colour and normal maps, origin at his object
   origin; run end to end on generated domes.
@@ -32,8 +35,10 @@ nothing changes for visitors until the kit is baked (`brainCorals.pending`, hidd
 
 ### Species and Atlas
 
-- Brain Coral entry (hidden): SeaLifeBase, Lapid & Chadwick 2006 and Mangubhai & Harrison 2008
-  credited; a starting Atlas pose.
+- Brain Coral entry: SeaLifeBase, Lapid & Chadwick 2006 and Mangubhai & Harrison 2008 credited.
+  Atlas specimen of three colonies on a low rock, Atlas pose and in-tank tile; on The Reefs'
+  species count. The four photo textures are credited in Sources (licences open, see ROADMAP).
+- Sources: an image credit with a known page but no stated licence reads "licence not stated".
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

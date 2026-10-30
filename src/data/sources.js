@@ -514,4 +514,20 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },
+  // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
+  // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
+  // (v0.43.0): none is openly licensed; Jeremy to decide before the clean release.
+  // The photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth Images
+  // Kwajalein"; the page states no licence. Shown with `url` and no `licence`.
+  {
+    id: 'kwajalein-brain-coral',
+    subject: 'Brain Coral texture (pale colony)',
+    author: 'In-Depth Images Kwajalein',
+    work: 'Platygyra cf. daedalea (k01-100711), Kwajalein Underwater',
+    url: 'https://underwaterkwaj.com/uw-misc/coral/merulinidae/Platygyra-cf-daedalea.htm',
+    changes: 'Mapped onto the 3D model and resized.',
+  },
+  // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
+  { id: 'coralsoftheworld-brain-coral', subject: 'Brain Coral textures (blue-and-brown and brown colonies, two photos)', author: 'Corals of the World' },
+  { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
 ]

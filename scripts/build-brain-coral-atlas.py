@@ -74,8 +74,9 @@ for o in src.values():
     bpy.data.objects.remove(o, do_unlink=True)
 scene.collection.objects.link(rock)
 rock.name = rock.data.name = 'rock'
-# A low rock about 1.4 m across, 0.8 m deep and 0.32 m tall: the colonies' seat, not a bommie.
-size = (1.4, 0.8, 0.32)
+# A low rock about 2.6 m across, 1.6 m deep and 0.6 m tall: the colonies' seat, not a bommie,
+# deep enough to bury their undersides.
+size = (2.6, 1.6, 0.6)
 dims = rock.dimensions
 rock.rotation_euler = (0, 0, 0.15)
 rock.scale = (size[0] / dims.x, size[1] / dims.y, size[2] / dims.z)
@@ -114,11 +115,17 @@ for o in kit.values():
         bpy.data.objects.remove(o, do_unlink=True)
 
 tree = BVHTree.FromObject(rock, bpy.context.evaluated_depsgraph_get())
-# (x, depth, scale, turn about Z): the big one on top, a little behind the middle; the next on the
-# front-right shoulder. The kit's colonies keep their own sizes.
-PLACES = [(0.0, 0.08, 1.0, 0.0), (0.45, -0.22, 1.0, 0.8)]
+# (kit colony, x, depth, scale, turn about Z): three colours, as on a reef where neighbouring
+# colonies differ. The orange (brain1, his most detailed) big on top, a little behind the middle;
+# the blue and brown (brain0) smaller on the front-left shoulder; the pale one (brain3) smallest on
+# the front right. Turned only about the vertical: a colony has an up (Jeremy, 2026-10-30).
+PLACES = [(1, 0.05, 0.15, 0.8, 0.0), (0, -0.62, -0.18, 0.5, 0.9), (3, 0.66, -0.2, 0.42, -0.6)]
+by_name = {o.name: o for o in colonies}
+shown = []
 bases = []
-for colony, (x, y, scale, turn) in zip(colonies, PLACES):
+for model, x, y, scale, turn in PLACES:
+    colony = by_name[f'brain{model}']
+    shown.append(colony)
     # Down onto the rock, stepping in toward its middle until the ray meets it.
     hit = None
     while hit is None:
@@ -129,10 +136,21 @@ for colony, (x, y, scale, turn) in zip(colonies, PLACES):
     colony.rotation_euler = (0, 0, turn)
     colony.scale = (scale, scale, scale)
     bases.append(tuple(round(v, 3) for v in base))
-shown = colonies[:len(PLACES)]
-for o in colonies[len(PLACES):]:
-    bpy.data.objects.remove(o, do_unlink=True)
+for o in colonies:
+    if o not in shown:
+        bpy.data.objects.remove(o, do_unlink=True)
 update()
+# The buried undersides must stay inside the rock: count kit vertices below the rock's surface
+# that come out under it or beside it.
+depsgraph = bpy.context.evaluated_depsgraph_get()
+for o in shown:
+    showing = 0
+    below = [o.matrix_world @ v.co for v in o.data.vertices if v.co.z < 0]
+    for p in below:
+        hit = tree.ray_cast(p, Vector((0, 0, 1)))
+        if hit[0] is None or hit[1].z <= 0:
+            showing += 1
+    print('BURIED', o.name, 'underside vertices', len(below), 'outside the rock', showing)
 
 lo, hi = world_bounds([rock] + shown)
 print('BOUNDS', tuple(round(v, 3) for v in lo), tuple(round(v, 3) for v in hi),

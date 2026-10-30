@@ -212,7 +212,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -4431,10 +4431,9 @@ export const SPECIES = [
   // massive hard coral. A landscape species like the Acroporas: boulders on the table corals'
   // bommies, on their ledges and at their feet (landscapes.js `brainCorals`,
   // src/components/brainCoralPlacement.js), and a `mound` to the reef fish (docs/reef-behavior.md,
-  // Coral forms). Waiting for Jeremy's model: hidden in the Atlas, not in The Reefs'
-  // landscapeSpecies, and `brainCorals.pending` keeps it out of the tank. Once his GLB is baked
-  // (scripts/build-brain-coral-kit.py, then scripts/build-brain-coral-atlas.py), unhide it, add it
-  // to landscapeSpecies, set maxBodyLengthMeters from the Atlas specimen and capture the tile.
+  // Coral forms). Jeremy's model (2026-10-30): four photo-textured boulders, baked by
+  // scripts/build-brain-coral-kit.py; the Atlas shows three of them on a low rock
+  // (scripts/build-brain-coral-atlas.py).
   // Facts: SeaLifeBase (IUCN LC, assessed 27 October 2023, earlier 2014; Indo-Pacific, 36°N to
   // 34°S; 3-30 m, most reef environments, especially back reef margins; the dominant understory
   // coral on Acropora patch reefs; colonies commonly 1 m or more; valleys 2-3 cm long and 0.5-0.6
@@ -4449,6 +4448,9 @@ export const SPECIES = [
     scientificName: 'Platygyra daedalea',
     family: 'Merulinidae',
     alternateNames: ['Lesser Valley Coral'],
+    // Tile (2026-10-30): an in-tank close-up of the blue and brown colony on the sand by its rock,
+    // rendered with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/platygyra-daedalea-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -4498,16 +4500,15 @@ export const SPECIES = [
       social: 'Colonial',
     },
     description: 'A hard coral that grows into domes and boulders a metre or more across, its polyps lined up along winding valleys like the folds of a brain. It is the understory of many Indo-Pacific reefs, and stings neighbouring corals with long sweeper tentacles to keep its space.',
-    // Colonies commonly reach 1 m (SeaLifeBase); set to the Atlas specimen's width once built.
-    maxBodyLengthMeters: 1,
+    // The Atlas's biggest colony across, for the scale comparison: the orange one at 0.8 of the
+    // kit's 1.55 m (colonies commonly reach 1 m or more, SeaLifeBase).
+    maxBodyLengthMeters: 1.2,
     model: {
       path: '/models/fish/platygyra-daedalea/platygyra-daedalea.glb',
-      // The kit's colonies on a low limestone rock (scripts/build-brain-coral-atlas.py), the rock's
-      // foot at the origin. 1 raw = 1 m -> 4 WU.
+      // Three of the kit's colonies (orange, blue and brown, pale) on a low limestone rock, 2.6 m
+      // across (scripts/build-brain-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
       scale: 4,
     },
-    // Queued (docs/fish-queue.md): no model yet, so out of the Atlas.
-    hiddenInAtlas: true,
   },
 ]
 

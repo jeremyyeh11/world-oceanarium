@@ -364,6 +364,15 @@ export const STUDY_CREDITS = [
     venue: "Florent's Guide to the Tropical Reefs",
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
+  {
+    id: 'anislado-tolentino-2022-spearfish-remora',
+    subject: 'Spearfish Remora hosts beyond billfishes: ocean sunfishes, blue shark, loggerhead turtle',
+    authors: 'Anislado-Tolentino, Rosales-Vásquez, Irigoyen-Solis, Del Moral-Flores & Wakida-Kusunoki',
+    year: 2022,
+    title: 'First record of the spearfish remora Remora brachyptera (Carangiformes: Echeneidae) in the Gulf of Tehuantepec, Mexico',
+    venue: 'Hidrobiológica 32: 71–74',
+    url: 'https://doi.org/10.24275/uam/izt/dcbs/hidro/2022v32n1/Anislado',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one

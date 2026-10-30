@@ -13,6 +13,24 @@ Status labels:
 
 ## Current work
 
+### Spearfish Remora (The Reefs)
+
+Status: `Blocked / waiting review` — `v0.48.0-dev_1`, branch `species/remora-brachyptera`,
+waiting for Jeremy's GLB. [Prep](docs/species-preparation.md) · [Ride hosts](docs/ride-hosts.md)
+· [Fish queue](docs/fish-queue.md).
+
+- [x] Facts and ride data in `species.js`; host range credited (Anislado-Tolentino et al.
+  2022); no age, maturity or fecundity data published, so those Atlas fields stay Unknown.
+- [x] Size floor: 30–50 cm (1.2–2.0 WU), above 27 cm.
+- [x] Host: the Mola's 12 spots regenerate unchanged from its GLB, and the rider lies on all of
+  them (worst disc lift 2.2 mm); a full-size Mola carries 5–8 at once.
+- [x] Jeremy (2026-10-30): four, 30–50 cm, sharing the reserve's one Mola (id 21).
+- [ ] Jeremy's GLB: remora body plan, up to 50 cm, pale whitish grey, tail with a dark margin.
+- [ ] Intake: `node scripts/fit-rider-model.mjs remora-brachyptera`, textures and credits,
+  Atlas source length, pose and tile, `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, drop
+  `hiddenInAtlas`, add to The Reefs' roster, `creatures_dev` rows (backups first), live check on
+  the Mola through a sun-bask. Production rows only on his go-ahead.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

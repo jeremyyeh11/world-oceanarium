@@ -8,10 +8,11 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.42.0 — White Suckerfish (in progress)
+## v0.42.0 — White Suckerfish (2026-10-30)
 
-Status: `v0.42.0-dev_3`, branch `species/remora-albescens`. Twelve white suckerfish and a juvenile
-manta in `creatures_dev`; production rows wait for Jeremy's go-ahead.
+Status: clean `v0.42.0`, accepted from `v0.42.0-dev_3`, branch `species/remora-albescens`,
+[PR #174](https://github.com/jeremyyeh11/world-oceanarium/pull/174). Jeremy approved production
+rows, promotion and merge on 2026-10-30.
 
 ### Behaviour and motion
 
@@ -39,6 +40,11 @@ manta in `creatures_dev`; production rows wait for Jeremy's go-ahead.
   Every rider is fitted on the smallest juvenile too (tests). `creatures_dev` 1161, 3 m; with
   three more suckerfish (1162–1164), the riders and the trevally split between the two mantas,
   which swim their own paths ("singly or in loose aggregations", FishBase).
+- Twelve white suckerfish in `creatures_dev` (1158–1160, 1162–1170; live, 10 of 12 clamped by
+  three minutes, five on each manta) and in production `creatures` (1457–1459, 1461–1469,
+  814 → 826 rows), 27–30 cm, six of each sex; backups before and after each write. The
+  juvenile manta's production row waits until the live bundle serves `v0.42.0` (a new life
+  stage).
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

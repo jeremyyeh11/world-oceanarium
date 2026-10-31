@@ -26,13 +26,17 @@ for (const alias of [trevally.id, trevally.name, trevally.scientificName]) {
 }
 assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === trevally.model.path))
 
-// The East Pacific green turtle is prepared hidden: no model requests, no reserve slot before
-// intake, and its draft escort-only rideHost has no spots to ride yet.
+// The East Pacific green turtle is prepared hidden: a generated foil-flap stand-in but no
+// requests for it, no reserve slot before intake, and its draft escort-only rideHost has no
+// spots to ride yet.
 {
   const turtle = speciesById.get('chelonia-mydas')
   assert.ok(turtle, 'chelonia-mydas canonical species exists')
   assert.equal(turtle.hiddenInAtlas, true, 'the turtle waits for its specimen and tile')
-  assert.equal(turtle.model, undefined, 'the turtle does not advertise a nonexistent model')
+  assert.equal(turtle.model.path, '/models/fish/chelonia-mydas/chelonia-mydas_placeholder.glb')
+  assert.ok(existsSync(new URL(`../public${turtle.model.path}`, import.meta.url)), 'the turtle stand-in exists')
+  assert.equal(turtle.model.proceduralAnimation.type, 'foil-flap-vertex')
+  assert.ok(Math.abs(turtle.model.scale * 1 - turtle.swim.bodyLengthWU) < 1e-9, 'the 1 m stand-in shell is the body length')
   assert.deepEqual(atlasWarmupUrls([turtle]), [], 'the turtle causes no speculative asset requests')
   assert.ok(ENVIRONMENT_MANIFESTS.every(manifest => manifest.assets.every(asset => !asset.url.includes('chelonia-mydas'))), 'the turtle cannot block reserve loading')
   for (const alias of [turtle.id, turtle.name, turtle.scientificName]) {

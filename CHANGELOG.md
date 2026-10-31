@@ -19,9 +19,12 @@ Versioning convention notes:
 
 ### Behaviour and motion
 
-- `foil-flap` firmed up into a contract proposal for the turtle's flippers (stroke, twist,
-  glides, speed surge, computed masks), with why `mask-fin-row` does not cover it. Not
-  implemented; waiting on Jeremy.
+- New procedural motion type `foil-flap-vertex` for the turtle's flippers, approved by Jeremy:
+  both fore-flippers stroke down and back from the shoulders, each blade twisting ahead of the
+  stroke, in groups of a few beats with glides between; the hind flippers steer. The tank and
+  the Atlas share one stroke-and-glide clock. Built on a generated stand-in model until
+  Jeremy's; the speed surge on each downstroke comes with the turtles' move into The Shallows.
+- Turtles will surface to breathe now and then (Jeremy); built with their swim room.
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

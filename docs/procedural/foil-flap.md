@@ -1,16 +1,21 @@
 # foil-flap
 
-Shader type: `foil-flap-vertex` (proposed) · Status: **Proposed — not implemented; contract awaiting Jeremy's approval**
+Shader type: `foil-flap-vertex` · Status: **Implemented on a generated stand-in (approved 2026-10-31); waiting for the first model**
 
 Paired appendages beating as hydrofoils on a rigid body. Thrust comes from the
 downstroke of a stiff, twisting blade — flight underwater, not rowing.
 
 Read [README.md](README.md) first for the rules shared by every type.
 
-> No runtime code exists. This contract was firmed up for the first asset, the East
-> Pacific green turtle (`chelonia-mydas`, prepared hidden in `v0.50.0-dev_1`; see
-> [species-preparation.md](../species-preparation.md)). Nothing below is built until Jeremy
-> confirms the approach (AGENTS.md: stop and ask before a new motion architecture).
+> Jeremy approved this type for the East Pacific green turtle (`chelonia-mydas`) on
+> 2026-10-31. Built in `v0.50.0-dev_2` on a generated stand-in
+> (`scripts/build-turtle-placeholder.mjs`, 698 vertices, 1 m shell) and checked in the Atlas
+> locally; the turtle stays hidden until his model lands (see
+> [species-preparation.md](../species-preparation.md)). Code: `foilFlap()` GLSL and
+> `foilFlapRig()` in `src/components/Fish.jsx`; the stroke-group and glide clock in
+> `src/utils/foilFlap.js`, shared by the tank and the Atlas specimen; tests in
+> `tests/foilFlap.test.mjs`. The speed surge (impulse-and-decay) is not built yet: it touches
+> shared movement and waits for the turtles to reach The Shallows.
 
 ## Animals
 
@@ -90,7 +95,7 @@ Glides matter as much as strokes. A turtle that flaps continuously reads anxious
 - Hind flippers paddling at cruise, reading as a swimming dog.
 - A turtle that speeds along at constant velocity while its flippers beat.
 
-## Blender contract (proposed)
+## Blender contract
 
 **Objects.** One body mesh in the export: shell (carapace and plastron), head and neck,
 and all four flippers joined. Fore-flipper roots sit in the shoulder, which barely moves,
@@ -121,26 +126,39 @@ spanwise loops. The shell needs no density at all.
 **Normals.** Outward. Recalculate Outside before export; past exports have come in
 inside out.
 
-## Vertex paint channels (proposed)
+## Vertex paint channels
 
 Painted into `COLOR_1`, exposed as `color_1`. `COLOR_0` stays white.
 
 | Channel | Means | Ramp |
 | --- | --- | --- |
-| R | Fore-flipper stroke weight | `0` in the shoulder ring → `1` at the tip |
-| G | Fore-flipper twist weight | `0` at the shoulder → `1` at the tip; may rise faster than R so the outer blade carries most of the twist |
-| B | Hind-flipper rudder weight | `0` at the hip → `1` at the tip |
+| R | Fore-flipper stroke weight | `0` in the shoulder ring → `1` where the flipper leaves the shell, then `1` to the tip |
+| G | Fore-flipper twist weight | a hair above `0` (0.002) in the shoulder ring → `1` at the tip, linear along the span |
+| B | Hind-flipper rudder weight | a hair above `0` in the hip ring → `1` halfway out, then `1` to the tip |
 | A | Unused | Side comes from the sign of raw X |
 
 Black (all three `0`) is rigid: shell, head and neck.
+
+**Why R finishes at the shell margin.** The flipper must turn as a stiff blade. Every vertex
+turns by its own weight, so wherever R ramps the blade bends, and the edges across the bend
+stretch. On the stand-in, an R ramp over the first third of the span stretched those edges by
+45% at cruise. Ramped inside the shell instead, outside edges change at most 2.2% at cruise and
+6.1% at full burst in a turn (that much is the twist, which is meant to vary along the blade).
+The bend happens out of sight.
+
+**The pivots are read from the paint** (`foilFlapRig()`, right side, mirrored for the left):
+the shoulder is the middle of the fore-flipper vertices with `0 < G < 0.1`, the span axis runs
+from there to the middle of those with `G > 0.9`, and the hip is the middle of those with
+`0 < B < 0.15`. That is why the root rings carry a hair of G and B rather than `0`. Config
+`foreRoot`, `foreSpanAxis` and `hindRoot` override.
 
 **Computed, not hand-painted.** As with the devil ray, the masks are pure geometry: a
 proposed `scripts/paint-foil-flap-masks.py` (headless Blender, modelled on
 `paint-disc-wave-masks.py`) joins the four flipper objects to the body, paints R and G as
 ramps along each fore-flipper's span from its shoulder, B along each hind flipper, writes
-white `COLOR_0`, measures the shoulder and hip roots and the span axes, and prints them as
-config. Blender's vertex paint cannot paint one channel alone, so hand painting would need
-packing anyway.
+white `COLOR_0`, and prints the shoulder and hip roots it finds to check against the runtime's.
+Blender's vertex paint cannot paint one channel alone, so hand painting would need packing
+anyway. The stand-in generator computes the same masks.
 
 ## How the deformation should work
 
@@ -158,64 +176,80 @@ Per vertex, side `s = sign(x)`, in the rest frame:
    figure-eight a flying flipper traces.
 4. **Hind rudder** about the hip by `turn · rudderRadians · ease(B)` (yaw) plus a small
    trailing trim that follows the stroke with a lag, never driving.
-5. **Glide** blends 1–3 toward a held pose (`glidePose`: flippers swept back along the
-   shell, slightly down) by `glideBlend`.
+5. **Glide** blends 1–3 toward a held pose (`glideBackRadians`, `glideDownRadians`:
+   flippers swept back along the shell, slightly down) by the glide blend.
+
+Steps 1–3 use the fore-flipper weights (twist by G, stroke and sweep by R); step 4 uses B.
+A vertex's side comes from its rest position, so normals turn with their vertex.
 
 `envelope` is the README's asymmetric drive envelope: the downstroke over
-`downstrokeFraction` of the beat (about 0.35–0.4), the recovery over the rest, each
+`downFraction` of the beat (about 0.35–0.4), the recovery over the rest, each
 smoothstep-eased. `ease` is the shared zero-slope quintic.
 
 ## Clock, glides and locomotion coupling
 
 The beat clock follows the integrated clock rule (README). On top of it a small CPU state
-machine, per creature, from its own seeded stream:
+machine (`src/utils/foilFlap.js`), per creature, from its own seeded stream:
 
-- **Stroke group:** `strokesPerGroup` beats (2–3 at cruise), then a **glide** of
-  `glideSeconds` with `glideBlend` easing to 1 and back over about half a beat. The clock
-  holds still during the glide, so the next group starts from the top of a stroke.
+- **Stroke group:** `strokesPerGroup` beats, then a **glide** of `glideSeconds` with the glide
+  blend easing to 1 and back (`glideResponse`). The group ends at the bottom of its last
+  downstroke, the flippers already down and back, and the clock holds there through the
+  glide, so the next group starts with the recovery. The clock starts at a random point in a
+  group, so turtles never stroke in step; the shared per-creature phase offset is not added,
+  as it would move the hold off the bottom of the stroke.
 - **Speed:** faster swimming shortens glides and adds strokes; a burst strokes
   continuously at `burstAmplitude` with no glide. Idle drift is mostly glide.
+- **Atlas:** the specimen runs the same machine at `speed01` 0.42, so it glides as in the tank
+  rather than looping on elapsed time.
 - **Turns:** amplitude biased between sides by `turn`, and the hind rudders angle; the
   shell banks only through the existing integrator.
-- **Impulse-and-decay:** each downstroke adds a forward impulse, decaying through the
-  recovery and the glide, so speed surges with the pose. This is the one shared-movement
-  touch, gated to this type and frame-time measured, as the README requires. Uniforms
-  carry `strokePhase` and `glideBlend` only; no per-frame allocation.
+- **Impulse-and-decay (not built yet):** each downstroke adds a forward impulse, decaying
+  through the recovery and the glide, so speed surges with the pose. This is the one
+  shared-movement touch, gated to this type and frame-time measured, as the README requires.
+  Built when the turtles reach The Shallows. Uniforms carry the clock and the glide blend
+  only; no per-frame allocation.
 
-## Config keys (proposed)
+## Config keys
 
-| Key | Proposed start | Meaning |
+The orientation is fixed by the contract (nose `-Z`, `+Y` up), so there is no axis remap.
+
+| Key | Default | Meaning |
 | --- | --- | --- |
 | `type` | — | `'foil-flap-vertex'` |
 | `bodyMeshNames` | — | The single body mesh |
-| `forwardAxis`, `upAxis` | `'-z'`, `'y'` | Shared axis remap (as mask-fin-row's balistiform variant) |
-| `foreRoot`, `hindRoot` | from the paint script | Right-side shoulder and hip pivots `[x, y, z]`; left mirrored |
-| `foreSpanAxis` | from the paint script | Right fore-flipper span direction at rest |
-| `waveSpeed` | `0.6` | Base beats per second |
-| `strokeRadians` | `0.7` | Peak stroke rotation (about ±40°) |
+| `foreRoot`, `foreSpanAxis`, `hindRoot` | read from the paint | Overrides for the right-side shoulder, span direction and hip; left mirrored |
+| `waveSpeed` | `3.4` | Clock radians per second (one beat per 2π): about one beat every 1.8 s at cruise |
+| `beatRateRange` | none | A stable per-turtle cadence multiplier, as disc-wave's |
+| `strokeRadians` | `0.7` | Peak stroke rotation either side of level (about ±40°) at full speed |
 | `strokeAxisSweep` | `0.35` | Tilt of the stroke axis so the tip moves down and back |
-| `downstrokeFraction` | `0.38` | Share of the beat spent on the power stroke |
-| `twistRadians` | `0.5` | Peak blade pitch |
+| `downFraction` | `0.38` | Share of the beat spent on the power stroke |
+| `twistRadians` | `0.5` | Peak blade pitch, at the stroke's fastest |
 | `twistLead` | `0.6` | Phase lead of twist over stroke (radians) |
 | `sweepRadians`, `sweepLead` | `0.15`, `1.2` | Fore–aft tip sweep for the figure-eight |
-| `strokesPerGroup` | `[2, 3]` | Beats per stroke group at cruise |
-| `glideSeconds` | `[1.5, 4]` | Glide length at cruise; longer at idle, none in a burst |
-| `glidePose` | `0.8` | How far the glide pose sweeps the flippers back (0 rest, 1 flat along the shell) |
+| `strokesPerGroup` | `[2, 3]` | Beats per stroke group; `speedExtraStrokes` (2) more at full speed |
+| `glideSeconds` | `[1.5, 4]` | Glide length; ×1.5 at rest, shrinking with speed (`speedGlideCut` 1.1); none in a burst |
+| `glideBackRadians`, `glideDownRadians` | `0.9`, `0.2` | The glide pose: flippers swept back along the shell and a little below level |
+| `glideResponse` | `3` | How fast the pose eases into and out of a glide (per second) |
 | `rudderRadians` | `0.35` | Hind-flipper yaw at full turn |
+| `trimRadians` | `0.08` | Hind-flipper trailing pitch, following the stroke late |
 | `turnStrength` | `0.3` | Stroke amplitude bias between sides per unit `turn` |
 | `burstAmplitude` | `0.3` | Extra stroke under burst |
+| `idleAmplitudeFloor` | `0.6` | Share of the full stroke kept at rest |
 | `response` | `2.5` | Turn damping |
 | `speedFrequencyBoost`, `burstFrequencyBoost` | `0.3`, `0.4` | Cadence gain |
-| `strokeImpulse` | `0.35` | Forward impulse per downstroke, in body lengths per second |
 
-Every value is a starting point for the first tuning pass, not a measurement. Tuning goes
-in a tuning row here once the turtle ships.
+Not built yet: `strokeImpulse`, the forward impulse per downstroke (impulse-and-decay). Every
+value is a starting point for the first tuning pass, not a measurement. Tuning goes in a tuning
+row here once the turtle ships.
 
-## Verifier entry (proposed)
+## Verifier entry
+
+The stand-in's entry in `scripts/inspect-procedural-targets.mjs` checks the one body mesh and
+its `color_1` with a 600-vertex floor. Jeremy's model replaces it with:
 
 ```js
 {
-  name: 'East Pacific Green Turtle foil-flap static',
+  name: 'East Pacific Green Turtle foil-flap',
   path: 'public/models/fish/chelonia-mydas/chelonia-mydas.glb',
   staticMesh: true,
   bodyMeshNames: ['<body>'],
@@ -226,6 +260,21 @@ in a tuning row here once the turtle ships.
 ```
 
 ## Review gates
+
+Checked on the stand-in (2026-10-31), from `tests/foilFlap.test.mjs` and a JS port of the
+shader run over the stand-in's vertices, and the beat in the Atlas locally. The rest waits for
+Jeremy's model and the reserve.
+
+- Glide share: idle 0.45, cruise 0.37, fast 0.18; none in a burst.
+- The downstroke takes 38% of the beat by construction (`downFraction`). The tip drops from
+  +0.26 to −0.31 m and moves 0.30 m back over it, then comes forward on the recovery.
+- Left and right match to 1e-6 with no turn.
+- Mid-downstroke the leading edge sits below the trailing edge, and above it mid-recovery.
+- The shell does not move.
+- Outside the shell, flipper edges change at most 2.2% at cruise and 6.1% at full burst in a
+  turn.
+
+The gates:
 
 - The turtle surges on the downstroke and glides between stroke groups; at cruise it
   glides for a good share of the time (aim for at least a third, measured).
@@ -242,11 +291,12 @@ in a tuning row here once the turtle ships.
 - Atlas specimen moves through the same path as the tank.
 - No runtime or WebGL errors; phone frame time measured with the turtles in The Shallows.
 
-## Open questions for Jeremy
+## Decisions and open questions
 
-1. Approve a separate `foil-flap-vertex` type (recommended), or fold it into
-   `mask-fin-row` as a variant despite the four mechanisms above?
-2. Flippers kept as separate objects in the `.blend` for the paint script to join (as
+1. Separate type or a mask-fin-row variant: **separate**, Jeremy, 2026-10-31 ("ok use foil
+   flap").
+2. Open: flippers kept as separate objects in the `.blend` for the paint script to join (as
    proposed), or joined and painted by hand?
-3. First pass with glides and the speed surge, or the beat alone first and the surge as a
-   second build?
+3. Glides were built first, in the clock and the shader. The speed surge waits for the turtles
+   to reach The Shallows, where it can be tuned against the swim speed and its frame cost
+   measured.

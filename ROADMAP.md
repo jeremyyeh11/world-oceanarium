@@ -15,12 +15,15 @@ Status labels:
 
 ### East Pacific Green Turtle (The Shallows)
 
-Status: `Current in development` — prepared hidden in `v0.50.0-dev_1` (branch `species/chelonia-mydas`); waiting on Jeremy. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
+Status: `Current in development` — prepared hidden in `v0.50.0-dev_1`, `foil-flap` built on a generated stand-in in `dev_2` (branch `species/chelonia-mydas`); waiting on Jeremy's GLB. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
 
 - [x] Research, Atlas copy, Averages and Lifecycle; hidden entry, draft swim and escort-only `rideHost` (`turtle`); study credits; data test.
 - [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
-- [ ] Jeremy: approve the motion type (new `foil-flap-vertex` recommended), count and life stage, GLB handoff, surfacing behaviour.
-- [ ] Jeremy's GLB; mask paint script; implement `foil-flap-vertex`; anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
+- [x] Jeremy approved `foil-flap-vertex` and surfacing to breathe now and then (2026-10-31).
+- [x] `foil-flap-vertex` (`dev_2`): shader in `Fish.jsx` with pivots read from the paint, stroke-group and glide clock in `src/utils/foilFlap.js` (tank and Atlas), on a generated stand-in (`scripts/build-turtle-placeholder.mjs`, 698 vertices, 1 m shell), verifier target, clock tests. Checked: glide share idle 0.45, cruise 0.37, fast 0.18; symmetric; tip down and back on the downstroke; twist leads; shell still; flipper edges outside the shell within 2.2% at cruise, 6.1% at full burst in a turn. Seen in the Atlas locally (un-hidden for the check only).
+- [ ] Jeremy: count and life stage; GLB handoff (flippers as separate objects for a paint script, or painted by hand).
+- [ ] Jeremy's GLB; `scripts/paint-foil-flap-masks.py`; swap out the stand-in; retune the Atlas pose; anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
+- [ ] In The Shallows: swim room low over the sand, surfacing to breathe, the downstroke speed surge (impulse-and-decay, frame time measured), Atlas tile, rows.
 
 ### Yellowfin Tuna follow-ups
 
@@ -140,8 +143,8 @@ Status: `Current in development` — hub and the two implemented type contracts 
 Reference:
 - Gate: [`scripts/verify-procedural-docs.mjs`](scripts/verify-procedural-docs.mjs) — doc coverage for every shipping procedural type.
 - Hub: [`docs/procedural/README.md`](docs/procedural/README.md) — shared asset contract, runtime drivers, motion primitives, creature/type index.
-- Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md).
-- Proposed: [`bell-pulse.md`](docs/procedural/bell-pulse.md), [`foil-flap.md`](docs/procedural/foil-flap.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`limb-step.md`](docs/procedural/limb-step.md), [`pleopod-beat.md`](docs/procedural/pleopod-beat.md).
+- Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`foil-flap.md`](docs/procedural/foil-flap.md) (on a stand-in).
+- Proposed: [`bell-pulse.md`](docs/procedural/bell-pulse.md), [`limb-step.md`](docs/procedural/limb-step.md), [`pleopod-beat.md`](docs/procedural/pleopod-beat.md).
 - Superseded: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md) kept as the `v0.14.0`–`v0.15.3` review record.
 
 Subtasks:
@@ -152,7 +155,7 @@ Subtasks:
 - [x] Add stop-and-ask instructions for new motion architectures to AGENTS.md and the new-species checklist, so an unwritten type surfaces in conversation rather than only at the gate.
 - [x] Close the gaps a live agent test exposed (comb jelly / ctenophore prompt): require the world-unit size check before motion design, require naming the closest existing type and why it was rejected, require naming which layer produces thrust, and point the type docs back at the checklist's biological prerequisites.
 - [ ] Validate each `Proposed` doc against its first real asset and promote it to `Implemented`. `Backlog`
-- [ ] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. Proposal (`v0.50.0-dev_1`, East Pacific green turtle): keep them separate; the turtle also needs a mirrored shoulder stroke, a stroke-and-glide clock and a speed surge ([`foil-flap.md`](docs/procedural/foil-flap.md)). Jeremy to confirm. `Next`
+- [x] Decide whether `foil-flap` merges into `mask-fin-row` once a turtle exists — both are root-pivoted rotation from a painted weight, and the only real difference is span-axis twist. Kept separate (Jeremy, 2026-10-31): the turtle also needs a mirrored shoulder stroke, a stroke-and-glide clock and a speed surge ([`foil-flap.md`](docs/procedural/foil-flap.md)).
 - [ ] Prototype the `limb-step` gait before committing to an architecture; foot-planting may not fit the GPU vertex path at all. `Backlog`
 
 Known runtime work the docs assume but that does not exist yet:

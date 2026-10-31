@@ -107,6 +107,16 @@ const targets = [
     minVertices: 1300,
   },
   {
+    // Generated stand-in (scripts/build-turtle-placeholder.mjs) until Jeremy's model; his raises
+    // the floor to the contract's 2000.
+    name: 'East Pacific Green Turtle foil-flap stand-in',
+    path: 'public/models/fish/chelonia-mydas/chelonia-mydas_placeholder.glb',
+    staticMesh: true,
+    bodyMeshNames: ['turtle-placeholder'],
+    requiredBodyAttributes: ['color_1'],
+    minVertices: 600,
+  },
+  {
     name: 'Whale Shark static parts',
     path: 'public/models/fish/rhincodon-typus/rhincodon-typus.glb',
     staticMesh: true,

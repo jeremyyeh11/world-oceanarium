@@ -4430,8 +4430,9 @@ export const SPECIES = [
   // works), planned for The Shallows (ROADMAP, Jeremy 2026-10-23). Facts from the Colola nesting
   // studies (Cutzi et al. 2023, Delgado-Trejo et al. 2024, Alvarado-Díaz et al. 2003), Turner
   // Tomaszewicz et al. 2022 (ages), Seminoff et al. 2003 (Baja foraging ground), NOAA Fisheries
-  // and USFWS. Needs a new flipper motion type (docs/procedural/foil-flap.md, proposed). Queued
-  // until Jeremy supplies its GLB: no model, no reserve slot, out of the Atlas.
+  // and USFWS. Swims on foil-flap (docs/procedural/foil-flap.md, approved 2026-10-31), for now on
+  // a generated stand-in (scripts/build-turtle-placeholder.mjs). Queued until Jeremy supplies its
+  // GLB: no reserve slot, out of the Atlas.
   {
     id: 'chelonia-mydas',
     name: 'East Pacific Green Turtle',
@@ -4508,8 +4509,8 @@ export const SPECIES = [
     // gives 0.15, which matches the weighed Colola males (67.5 cm, 45.7 kg; 46 kg from this).
     mass: { coefficient: 0.15, exponent: 3 },
     swim: {
-      // DRAFT until the motion type lands: an unhurried cruiser. foil-flap's strokes and glides
-      // are expected to pulse this speed (impulse-and-decay), so tune both together.
+      // DRAFT until the turtles reach the reserve: an unhurried cruiser. foil-flap's strokes are
+      // to pulse this speed (impulse-and-decay, not built yet), so tune both together.
       visualTimeScale: 0.6,
       driftEnabled: false,
       burstEnabled: false,
@@ -4522,7 +4523,8 @@ export const SPECIES = [
       turnRadiusBodyLengths: 1.0,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
-      // The manta's room for now; the bay's sand and surface (breathing) are open decisions.
+      // The manta's room for now. Jeremy (2026-10-31): low over the sand, up to breathe now and
+      // then; neither is built yet (docs/species-preparation.md).
       boundsWedge: { apexZ: 24, slope: 1.4, margin: 20, goalSlope: 0.55, goalMargin: 0 },
       boundsYMin: -22,
       boundsYMax: -2,
@@ -4540,6 +4542,50 @@ export const SPECIES = [
         menace: 0.3,
         startles: false,
         wariness: 0.1,
+      },
+    },
+    model: {
+      // Generated stand-in to the foil-flap contract, until Jeremy's model: 1 m shell along Z.
+      path: '/models/fish/chelonia-mydas/chelonia-mydas_placeholder.glb',
+      // 1 m = 4 WU, so the 1 m stand-in shell is the 4 WU body length.
+      scale: 4,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      // foil-flap (docs/procedural/foil-flap.md): the fore-flippers stroke down and back from the
+      // shoulders, twisting ahead of the stroke, in groups of a few beats with glides between; the
+      // hind flippers steer. Pivots are read from the paint. First-pass values, not measurements.
+      proceduralAnimation: {
+        type: 'foil-flap-vertex',
+        bodyMeshNames: ['turtle-placeholder'],
+        // One beat about every 1.8 s at cruise (green turtles stroke at about 0.5 Hz).
+        waveSpeed: 3.4,
+        beatRateRange: [0.85, 1.15],
+        strokeRadians: 0.7,
+        strokeAxisSweep: 0.35,
+        downFraction: 0.38,
+        twistRadians: 0.5,
+        twistLead: 0.6,
+        sweepRadians: 0.15,
+        sweepLead: 1.2,
+        strokesPerGroup: [2, 3],
+        glideSeconds: [1.5, 4],
+        glideBackRadians: 0.9,
+        glideDownRadians: 0.2,
+        glideResponse: 3,
+        rudderRadians: 0.35,
+        trimRadians: 0.08,
+        turnStrength: 0.3,
+        burstAmplitude: 0.3,
+        idleAmplitudeFloor: 0.6,
+        response: 2.5,
+        speedFrequencyBoost: 0.3,
+        burstFrequencyBoost: 0.4,
       },
     },
     // Draft, escort-only (docs/ride-hosts.md): remoras and followers that take turtles (the

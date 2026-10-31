@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`)
+## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`)
 
 Reserve: The Shallows (ROADMAP projected roster, Jeremy, 2026-10-23). Range check: East
 Pacific green turtles graze the Gulf of California's bays (Bahía de los Ángeles, Seminoff
@@ -20,10 +20,13 @@ flippers, a shell rocking with every beat, or a turtle hovering in place. Refere
 species: the giant manta (a slow solo cruiser in the same bay, the same tempo) for
 behaviour only; its motion type does not fit (see below).
 
-Prepared: hidden species entry (no model, no roster slot, no rows), Atlas copy, Averages
-and Lifecycle, a draft swim block, a draft escort-only `rideHost` (`turtle`), five study
-credits, a data test. The motion contract is a proposal only:
-[foil-flap.md](procedural/foil-flap.md).
+Prepared: hidden species entry (no roster slot, no rows), Atlas copy, Averages and
+Lifecycle, a draft swim block, a draft escort-only `rideHost` (`turtle`), five study
+credits, a data test (`dev_1`). Jeremy approved the motion type on 2026-10-31, and `dev_2`
+built it: [foil-flap.md](procedural/foil-flap.md) on a generated stand-in model
+(`scripts/build-turtle-placeholder.mjs`), checked in the Atlas locally with the turtle
+un-hidden for the check only. Its Atlas pose and length are set on the stand-in and need
+retuning with Jeremy's model.
 
 Research decisions:
 
@@ -54,23 +57,30 @@ Research decisions:
   instead of the manta. Its stations were tuned for the manta's size; check them against
   a 1 m turtle at intake.
 
+Decided (Jeremy, 2026-10-31):
+
+- **Motion type: `foil-flap-vertex`**, a new type, not a mask-fin-row variant ("ok use foil
+  flap"). Built on the stand-in in `dev_2`; the speed surge waits for the reserve.
+- **Behaviour: breathe once in a while.** Surfacing is built when the turtles reach The
+  Shallows, with their swim room. Proposed shape, to tune there: now and then (every few
+  minutes, compressed from a real turtle's longer dives) a turtle leaves the low water over
+  the sand, rises at its cruise pace to the surface, holds its head at the surface for a few
+  seconds, then glides back down. It stays low over the sand the rest of the time. The
+  manta's feeding passes are the scheduling precedent (`proceduralAnimation.feeding` in
+  Fish.jsx). The draft swim room is the manta's until then.
+
 Open decisions for Jeremy:
 
-1. **Motion type.** Approve a new `foil-flap-vertex` type (recommended), or a
-   `mask-fin-row` variant? The case is in [foil-flap.md](procedural/foil-flap.md): the
-   turtle needs a mirrored shoulder stroke, a blade twist, a stroke-and-glide clock and a
-   speed surge, none of which mask-fin-row has. Nothing is built until you say.
-2. **Count and life stage.** Proposed: two or three adults, 65–90 cm shell, solitary, one
+1. **Count and life stage.** Proposed: two or three adults, 65–90 cm shell, solitary, one
    of them a male (long tail). Juveniles (smaller, at the foraging grounds too) would be a
    later model. How many, and which sexes?
-3. **GLB handoff.** One mesh for export (shell, head, four flippers), nose at `-Z`, `+Y`
+2. **GLB handoff.** One mesh for export (shell, head, four flippers), nose at `-Z`, `+Y`
    up, origin mid-shell, 1 unit = 1 m at a noted straight shell length, rest pose with the
    fore-flippers level and slightly swept back, 8–10 spanwise loops per fore-flipper. Keep
    the flippers as separate objects named `flipper.fore.l/r`, `flipper.hind.l/r` in the
-   `.blend` and a paint script joins and paints them? Full contract in foil-flap.md.
-4. **Behaviour.** Real turtles surface to breathe and rest on the bottom. Should ours come
-   up to the surface now and then (a signature behaviour, later build), and stay low over
-   the sand the rest of the time? The draft swim room is the manta's for now.
+   `.blend` and a paint script joins and paints them? Full contract in foil-flap.md; one
+   lesson from the stand-in: the stroke weight must reach full strength where the flipper
+   leaves the shell, so the bend stays hidden inside it.
 
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 

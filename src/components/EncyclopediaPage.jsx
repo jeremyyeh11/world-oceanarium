@@ -7,6 +7,9 @@ import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
 import { speciesForLifeStage, speciesForSex } from '../utils/speciesLookup'
 import { addSwayAttributes, applyCoralSway, useSwayClock } from '../utils/coralSway'
+import { advanceFoilFlap, createFoilFlapState } from '../utils/foilFlap'
+import { hashString } from '../utils/hash'
+import { mulberry32 } from './fishSwim'
 import Environment from './Environment'
 import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
@@ -249,6 +252,16 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.05, 0],
     lookAt: [0, -0.05, 0],
   },
+  // Turtle: seen from above and ahead like the rays, so the flipper strokes read. Set on the
+  // generated stand-in; retune with Jeremy's model.
+  'chelonia-mydas': {
+    pitchDegrees: 30,
+    cameraDistance: 6.8,
+    maxLengthDisplayUnits: 2.2,
+    portraitPhoneDistanceScale: 0.95,
+    position: [0, -0.1, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -290,6 +303,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'annella-mollis': 1.711,
   // Supplied golden trevally model, mouth to lower caudal-lobe tip along Z.
   'gnathanodon-speciosus': 1.199504,
+  // Generated turtle stand-in (scripts/build-turtle-placeholder.mjs), nose to tail tip along Z;
+  // the shell is 1 long.
+  'chelonia-mydas': 1.376,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -661,6 +677,9 @@ function ModelAsset({ species, adultSpecies = species, pose, companion = null })
     () => prepareProceduralFinFollow(scene, proceduralAnimation),
     [scene, proceduralAnimation],
   )
+  // foil-flap strokes in groups and glides between, as in the tank, so the specimen runs the
+  // same integrated clock rather than elapsed time.
+  const foilFlapRef = useRef(null)
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
@@ -737,6 +756,16 @@ function ModelAsset({ species, adultSpecies = species, pose, companion = null })
     if (proceduralAnimation) {
       // Atlas is an in-place gallery pose, but its static specimens should still
       // breathe through the same species-shaped procedural material as the tank.
+      if (proceduralAnimation.type === 'foil-flap-vertex') {
+        if (!foilFlapRef.current) {
+          const rand = mulberry32(hashString(`${species?.id}:atlas-foil-flap`))
+          foilFlapRef.current = { rand, state: createFoilFlapState(proceduralAnimation, rand) }
+        }
+        const { rand, state } = foilFlapRef.current
+        advanceFoilFlap(state, proceduralAnimation, delta * animationSpeed, { speed01: 0.42, rand })
+        updateProceduralVertexMaterials(proceduralMaterials, { phase: state.clock, speed01: 0.42, glide: state.glide })
+        return
+      }
       const phase = (_.clock.getElapsedTime() * (proceduralAnimation.waveSpeed ?? 1) + animationOffset) * animationSpeed
       updateProceduralVertexMaterials(proceduralMaterials, {
         phase,

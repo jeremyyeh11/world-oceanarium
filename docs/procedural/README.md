@@ -24,7 +24,7 @@ that type's doc.
 | [caudal-wave](caudal-wave.md) | Travelling body/tail undulation | Sardinella, Mahi-mahi, Shortfin Mako; eels and sea snakes as a config variant | Implemented |
 | [mask-fin-row](mask-fin-row.md) | Rigid body, painted fins rowing from fixed roots | Giant Sunfish; Clown Triggerfish (balistiform variant: rippling fins) | Implemented |
 | [bell-pulse](bell-pulse.md) | Contract-and-glide jet propulsion | Jellyfish, salps | Proposed |
-| [foil-flap](foil-flap.md) | Paired oscillating foils on a rigid body | East Pacific green turtle (first asset, prepared); penguins, sea lions | Proposed (contract awaiting Jeremy) |
+| [foil-flap](foil-flap.md) | Paired oscillating foils on a rigid body | East Pacific green turtle (first asset, on a generated stand-in); penguins, sea lions | Implemented (stand-in, 2026-10-31) |
 | [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Munk's Devil Ray (mobuliform); skates, stingrays, cuttlefish proposed | Implemented (mobuliform) |
 | [limb-step](limb-step.md) | Limb cycling under a rigid carapace | Crabs, walking lobsters | Proposed |
 | [pleopod-beat](pleopod-beat.md) | Metachronal swimmeret wave | Prawns, shrimp, krill | Proposed |
@@ -167,7 +167,7 @@ root point by an angle scaled by its painted weight, rather than translating it.
 Translation makes an appendage shear and stretch; rotation gives a real tip arc.
 Ease the weight with a zero-slope curve (quintic `w³(w(6w−15)+10)`) so the
 attachment has no kink — never a hard dead-zone cutoff, which hinges visibly. Used
-by mask-fin-row, and proposed for foil-flap and limb-step.
+by mask-fin-row and foil-flap, and proposed for limb-step.
 
 **Asymmetric drive envelope.** A fast power stroke over ~25–30% of the cycle, a slow
 elastic recovery over the rest, each smoothstep-eased. Anything that pushes against

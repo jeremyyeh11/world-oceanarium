@@ -27,6 +27,16 @@ Versioning convention notes:
   Jeremy's; the speed surge on each downstroke comes with the turtles' move into The Shallows.
 - Turtles will surface to breathe now and then (Jeremy); built with their swim room.
 
+## v0.44.1 — Natural creature edges
+
+Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, branch `feat/remove-creature-cyan-rim`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge.
+
+### Lighting
+
+- Remove the artificial additive cyan backlight rim shared by creature GLBs and instanced sardines. Viewing an animal from below no longer paints a blue edge onto it.
+- Preserve backlit silhouette shading, dorsal/ventral/front lighting, light pools, fish-caster shadows, natural material reflectivity, caustics, debug selection/leader outlines and the water's physical underside reflections. No scene-wide grade, material/normal/asset/data/movement changes.
+- The separately identified reversed belly-shadow smoothstep is deliberately unchanged in this narrowly scoped patch.
+
 ## v0.44.0 — Common Remora (2026-11-01)
 
 Status: clean `v0.44.0`, accepted from `v0.43.0-dev_3` (renumbered: Brain Coral took `v0.43.0`),

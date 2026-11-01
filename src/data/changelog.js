@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.43.0',
+    date: '2026-11-01',
+    title: 'Brain Coral',
+    changes: [
+      ['new', 'Brain corals grow on the bommies of The Reefs, rounded boulders in blue, brown, orange and pale green, where reef fish hover, skim the crowns and the butterflyfish nibble.'],
+      ['new', 'Meet the Brain Coral in the Atlas, with three colonies on a rock and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.42.0',
     date: '2026-10-30',
     title: 'White Suckerfish',

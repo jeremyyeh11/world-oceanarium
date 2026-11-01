@@ -7,6 +7,17 @@ import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
+// The brain coral's model is in: in the Atlas, counted on The Reefs, and its kit loaded with the
+// reserve.
+const brainCoral = speciesById.get('platygyra-daedalea')
+assert.ok(!brainCoral.hiddenInAtlas, 'the brain coral is in the Atlas')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(brainCoral.id))
+const reefAssets = ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-reefs').assets.map(asset => asset.url)
+for (const url of ['/models/landscape/brain-corals.glb', '/models/landscape/brain3-normal.jpg', brainCoral.model.path]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `brain coral asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/brain-corals.glb'), 'the brain coral kit loads with The Reefs')
+
 // FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
 const trevally = speciesById.get('gnathanodon-speciosus')
 assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)

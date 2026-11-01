@@ -8,6 +8,45 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.43.0 — Brain Coral (2026-11-01)
+
+Status: clean `v0.43.0`, accepted from `v0.43.0-dev_4`, branch `species/platygyra-daedalea`,
+[PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). Jeremy approved promotion and
+merge on 2026-11-01. `dev_1` built everything but the model; `dev_2` adds Jeremy's four
+colonies; `dev_3` lets reef fish down to the low ones; `dev_4` fixes a black facet on the pale
+colony.
+
+### Landscape and corals
+
+- Brain corals (*Platygyra daedalea*) as boulders on the table corals' bommies, on ledges and on
+  the sand at their feet (`src/components/brainCoralPlacement.js`): placed after the tables and
+  sea fans and before the staghorn, which keeps clear of them; held up all round, out of the
+  tables, fans and each other, trying smaller sizes where a big colony clashes. Jeremy's colonies
+  (`dev_2`): their rounded undersides below his origins stay buried in rock or sand, and none is
+  ever turned over. 24 colonies, 33 cm to 1.2 m; staghorn 358 → about 310 (measured with a
+  stand-in kit).
+- Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`):
+  bake his colonies to three detail levels with colour and normal maps, origin at his object
+  origin; run end to end on generated domes.
+- No black facet on the pale colony seen from mid-distance (`dev_4`): the kit's reduced meshes keep
+  to the baked texture.
+
+### Behaviour and motion
+
+- The `mound` coral form: reef fish peck and hover at a dome's side, hang over and skim across its
+  crown, and shelter under an undercut edge. The unicornfish and emperor angelfish never peck it;
+  the raccoon butterflyfish does. Off while no tank has mounds.
+- Reef fish visiting a brain coral may swim below their usual floor, down to the sand, so they
+  reach the low colonies (`dev_3`): pecks at a colony now happen (9 of 26 tries, from none) and
+  time at the colonies rises by half, with no fewer fish in clear view.
+
+### Species and Atlas
+
+- Brain Coral entry: SeaLifeBase, Lapid & Chadwick 2006 and Mangubhai & Harrison 2008 credited.
+  Atlas specimen of three colonies on a low rock, Atlas pose and in-tank tile; on The Reefs'
+  species count. The four photo textures are credited in Sources (not openly licensed; used on Jeremy's call).
+- Sources: an image credit with a known page but no stated licence reads "licence not stated".
+
 ## v0.42.0 — White Suckerfish (2026-10-30)
 
 Status: clean `v0.42.0`, accepted from `v0.42.0-dev_3`, branch `species/remora-albescens`,

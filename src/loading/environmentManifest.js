@@ -1,5 +1,5 @@
 import { SPECIES, TANKS } from '../data/species.js'
-import { landscapeForTank } from '../data/landscapes.js'
+import { brainCoralsOf, landscapeForTank } from '../data/landscapes.js'
 
 // Keys identify source assets, not instances. A fish used by several tanks/Atlas loads once.
 export function assetDefinition(kind, url) {
@@ -30,7 +30,7 @@ export function createEnvironmentManifests(tanks = TANKS, species = SPECIES, lan
     if (landscape?.kit) {
       add('gltf', landscape.kit.path)
       for (const url of Object.values(landscape.kit.textures)) add('texture', url)
-      for (const coral of [landscape.corals, landscape.staghorn]) if (coral) {
+      for (const coral of [landscape.corals, landscape.staghorn, brainCoralsOf(landscape)]) if (coral) {
         add('gltf', coral.kit.path)
         for (const model of coral.kit.models) for (const url of [model.color, model.normal]) add('texture', url)
       }

@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.43.0 — Common Remora (in progress)
 
-Status: `v0.43.0-dev_2`, branch `species/remora-remora`, in review with four in `creatures_dev`.
+Status: `v0.43.0-dev_3`, branch `species/remora-remora`, in review with four in `creatures_dev`.
 
 ### Behaviour and motion
 
@@ -29,8 +29,8 @@ Status: `v0.43.0-dev_2`, branch `species/remora-remora`, in review with four in 
   and is turned right side out, its photos cropped and BLEND dropped
   (`scripts/prepare-common-remora-model.py`, 5.2 MB to 1.4 MB). Both photo textures credited:
   the body from P. Béarez's FishBase specimen photo (all rights reserved, used on Jeremy's
-  call), the disc from M. M. Khan's (CC BY 3.0). Atlas copy no longer describes the reserve's
-  plans. No published age, maturity or spawning data, so those fields stay Unknown.
+  call), the disc from M. M. Khan's (CC BY 3.0). Atlas tile rendered in the dev tank. Atlas
+  copy no longer describes the reserve's plans. No published age, maturity or spawning data, so those fields stay Unknown.
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

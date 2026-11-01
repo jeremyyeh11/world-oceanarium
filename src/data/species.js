@@ -1339,6 +1339,8 @@ export const SPECIES = [
     scientificName: 'Remora remora',
     family: 'Echeneidae',
     alternateNames: ['Shark sucker', 'Remora'],
+    // Rendered in the dev tank (2026-11-01): the head and its big disc, three-quarter from above.
+    atlasThumbnail: '/atlas/remora-remora-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,

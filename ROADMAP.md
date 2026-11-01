@@ -15,7 +15,7 @@ Status labels:
 
 ### Common Remora (The Open Sea)
 
-Status: `Current in development` — `v0.43.0-dev_2`, branch `species/remora-remora`.
+Status: `Current in development` — `v0.43.0-dev_3`, branch `species/remora-remora`.
 [Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
 
 Felt intention: the classic shark rider, a passenger that is almost never off its host. It
@@ -43,8 +43,8 @@ free-swimming fish that sometimes rides, the way the sharksuckers do.
   the holder objects. The disc is M. M. Khan's photo (CC BY 3.0).
 - [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
   after).
-- [ ] Atlas tile (`public/atlas/remora-remora-thumbnail.png`) with the first swim.
-- [ ] Jeremy's review on the preview: riding the mako and whale shark, Atlas framing.
+- [x] Atlas tile (`public/atlas/remora-remora-thumbnail.png`, `v0.43.0-dev_3`).
+- [x] Jeremy's review on the preview (2026-11-01: "looks good").
 - [ ] Production rows only on his go-ahead.
 
 ### Yellowfin Tuna follow-ups

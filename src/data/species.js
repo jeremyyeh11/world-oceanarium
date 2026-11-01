@@ -108,10 +108,11 @@ export const TANKS = [
       'thunnus-albacares',
       // One 9.3 m adult in production and development (prod row 411 matched dev 410, 2026-10-28).
       'rhincodon-typus',
-      // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
-      // queued until their models land (docs/fish-queue.md).
+      // Remoras: the two sharksuckers and the common remora ride the mako and the whale shark.
+      // The other remoras are queued until their models land (docs/fish-queue.md).
       'echeneis-naucrates',
       'echeneis-neucratoides',
+      'remora-remora',
     ],
   },
   {
@@ -212,7 +213,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -348,7 +349,13 @@ const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZ
 // are in reach too. The sand climbs above the y -19 floor from z +2 (to -18.1 at z +6); fish are
 // kept above it (rockObstacles.js liftAboveSeabed), so the floor follows the dunes there. A
 // superset of the Mola's volume, so a cleaner following it still reaches every station.
-const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
+// On a trip to a brain coral the floor drops to the sand (moundBoundsYMin, Fish.jsx
+// reefVisitBounds): most domes sit low on the bommies, tops at y -19 to -23.7, so from -19 fish
+// could only pass over the few highest and never reached a side to peck or an undercut to shelter
+// under (0 of about 90 tries, 2026-11-01). Lowering the floor for every trip instead (to -22)
+// barely raised brain coral visits (2.8% to 3.2% of reef fish time) and hid more fish behind the
+// foreground rocks from the resting camera (58% to 49% in clear view).
+const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, moundBoundsYMin: -24, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
 // The humphead wrasse's labriform swim, shared by Jeremy's male and female models: the
 // bannerfish's tuning (a stiff body that cruises on its pectorals and keeps its tail for bursts),
 // slower for a 1 to 1.5 m fish. `amplitude` is in source units, so each model sets its own.
@@ -1123,8 +1130,8 @@ export const SPECIES = [
     },
   },
   // --- Remoras (Echeneidae) ------------------------------------------------------------------
-  // Facts from FishBase species summaries unless noted. The two sharksuckers have Jeremy's models;
-  // the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
+  // Facts from FishBase species summaries unless noted. The two sharksuckers and the common
+  // remora have Jeremy's models; the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
   // from each species' documented host range (1 = its usual host, lower = recorded but
   // occasional); host groups are declared by host species in `rideHost.groups`.
   {
@@ -1353,6 +1360,8 @@ export const SPECIES = [
     scientificName: 'Remora remora',
     family: 'Echeneidae',
     alternateNames: ['Shark sucker', 'Remora'],
+    // Rendered in the dev tank (2026-11-01): the head and its big disc, three-quarter from above.
+    atlasThumbnail: '/atlas/remora-remora-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -1398,7 +1407,7 @@ export const SPECIES = [
       diet: 'Copepods + scraps',
       social: 'Hitchhiker',
     },
-    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free — so in the reserve it should spend long stretches clamped to the mako and short ones on its own.',
+    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free, so it spends long stretches clamped to its host and short ones on its own.',
     adultLengthRangeMeters: [0.4, 0.864],
     maxBodyLengthMeters: 0.864,
     swim: {
@@ -1413,11 +1422,45 @@ export const SPECIES = [
       hosts: { shark: 1, turtle: 0.5, cetacean: 0.4, 'large-fish': 0.4 },
       rideSeconds: [80, 180],
       freeSeconds: [10, 25],
-      discAheadBodyLengths: 0.29,
+      // Measured from the supplied GLB by scripts/fit-rider-model.mjs. Its disc is the largest
+      // of the remoras, 35% of the body length, so the disc top sits higher above the root
+      // than on the sharksuckers.
+      discAheadBodyLengths: 0.2746,
+      dorsalClearanceBodyLengths: 0.0794,
+      backProfile: [[-0.2229, 0.0451], [-0.2129, 0.0382], [-0.2029, 0.0329], [-0.1929, 0.0291], [-0.1829, 0.0271], [-0.1729, 0.02], [-0.1329, 0.0223], [-0.0929, 0.0215], [-0.0029, 0.0127], [0.0871, 0.0069], [0.1371, 0.0004], [0.1671, 0.0005], [0.1771, 0.0045], [0.2471, -0.0004], [0.3071, 0.0044], [0.3271, -0.0024], [0.3971, -0.0092], [0.4071, -0.0095], [0.4671, -0.0047], [0.4771, -0.0013], [0.5171, 0.0215], [0.5271, 0.0288], [0.5371, 0.0396], [0.5471, 0.0488], [0.5571, 0.0547], [0.5671, 0.0576], [0.5771, 0.0577], [0.6071, 0.0489], [0.6171, 0.045], [0.6671, 0.0226], [0.6771, 0.0189], [0.7271, 0.0097], [0.7371, 0.0099], [0.7671, 0.0131]],
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
-    hiddenInAtlas: true,
+    model: {
+      path: '/models/fish/remora-remora/remora-remora.glb',
+      // Supplied 2026-11-01; scripts/prepare-common-remora-model.py turns it right side out
+      // (every part came in with its faces inward) and crops both photos to the fish.
+      // Source length 0.8604 -> 3.456 WU; the root is recentred mid-length on the body axis.
+      scale: 4.0166,
+      position: [0, -0.1008, -0.3329],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        // Rig-free: the body, the suction disc as its second material split, and four
+        // separate pectoral and pelvic fins that flutter about their roots.
+        bodyMeshNames: ['remora_remora_1'],
+        followBodyMeshNames: ['remora_remora_2'],
+        // The stand-ins' 0.07 and 0.03 body lengths, in this model's source units (0.8604).
+        amplitude: 0.0602,
+        turnStrength: 0.0258,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+    // Its hosts are the Open Sea's mako and whale shark, whose spots it lies on
+    // (tests/fishRide.test.mjs). No age, maturity or spawning data is published for the species.
   },
   {
     id: 'remora-albescens',
@@ -2298,8 +2341,8 @@ export const SPECIES = [
     mass: { coefficient: 0.02291, exponent: 3 },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It feeds on the reef, not over
     // it, so it pecks more than the bannerfish and holds close; resting by day, it shelters
-    // more too. Polyps are part of its diet, so it picks at both coral forms; at 0.8 WU it is
-    // small enough to slip in among the staghorn.
+    // more too. Polyps are part of its diet, so it picks at every hard coral form; at 0.8 WU it
+    // is small enough to slip in among the staghorn.
     reef: {
       affinity: 0.85,
       modes: { patrol: 0.2, hover: 0.25, peck: 0.35, shelter: 0.2 },
@@ -2307,6 +2350,7 @@ export const SPECIES = [
       corals: {
         table: { peck: 0.4, shelter: 0.4, hover: 0.3 },
         thicket: { peck: 0.3, shelter: 0.25, hover: 0.25 },
+        mound: { peck: 0.2 },
       },
     },
     model: {
@@ -2466,8 +2510,8 @@ export const SPECIES = [
       pecks: [1, 3],
       // Rich coral is its home ground (FishBase): it nibbles along the table corals' rims and
       // tucks under them as well as at the rock. Its sponges and tunicates grow on rock, not on
-      // living staghorn: it only hangs by and cruises past the thickets.
-      corals: { table: { peck: 0.65, shelter: 0.5 }, thicket: { hover: 0.25, patrol: 0.2, peck: 0 } },
+      // living staghorn: it only hangs by and cruises past the thickets, and the brain corals.
+      corals: { table: { peck: 0.65, shelter: 0.5 }, thicket: { hover: 0.25, patrol: 0.2, peck: 0 }, mound: { peck: 0 } },
     },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
@@ -2543,8 +2587,8 @@ export const SPECIES = [
           shelterSeconds: [15, 35],
           // Under a table coral's plate is as good a hole as any. Small enough to slip in among
           // staghorn branches too, though juveniles are mostly found under ledges and in holes
-          // (Fishes of Australia, SURG), so less often.
-          corals: { table: { shelter: 0.55 }, thicket: { shelter: 0.3, hover: 0.25, peck: 0 } },
+          // (Fishes of Australia, SURG), so less often. A brain coral's undercut edge is a ledge.
+          corals: { table: { shelter: 0.55 }, thicket: { shelter: 0.3, hover: 0.25, peck: 0 }, mound: { shelter: 0.2, peck: 0 } },
         },
         // 8–14 cm against the species' 40 cm (bodyLengthWU 1.6): 0.32–0.56 WU, under the 1.08 WU
         // sardinella floor, as a real juvenile is.
@@ -4117,10 +4161,11 @@ export const SPECIES = [
       pecks: [1, 2],
       hoverSeconds: [3, 7],
       startleShelterChance: 0.3,
-      // Override BOTH forms: inherited defaults would have it bite live coral.
+      // Override EVERY form: inherited defaults would have it bite live coral.
       corals: {
         table: { patrol: 0.3, hover: 0.2, peck: 0, shelter: 0.4 },
         thicket: { patrol: 0.1, hover: 0.1, peck: 0, shelter: 0 },
+        mound: { patrol: 0.15, hover: 0.1, peck: 0, shelter: 0.1 },
       },
     },
     model: {
@@ -4477,6 +4522,89 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // Brain Coral (Platygyra daedalea): the next coral for The Reefs (docs/fish-queue.md), a
+  // massive hard coral. A landscape species like the Acroporas: boulders on the table corals'
+  // bommies, on their ledges and at their feet (landscapes.js `brainCorals`,
+  // src/components/brainCoralPlacement.js), and a `mound` to the reef fish (docs/reef-behavior.md,
+  // Coral forms). Jeremy's model (2026-10-30): four photo-textured boulders, baked by
+  // scripts/build-brain-coral-kit.py; the Atlas shows three of them on a low rock
+  // (scripts/build-brain-coral-atlas.py).
+  // Facts: SeaLifeBase (IUCN LC, assessed 27 October 2023, earlier 2014; Indo-Pacific, 36°N to
+  // 34°S; 3-30 m, most reef environments, especially back reef margins; the dominant understory
+  // coral on Acropora patch reefs; colonies commonly 1 m or more; valleys 2-3 cm long and 0.5-0.6
+  // cm wide; hermaphrodite, gametes spawned through the mouth), Wikipedia (range; dome or
+  // boulder, sometimes flat or encrusting; colour varies, valleys and walls often contrasting;
+  // polyps feed at night), Lapid & Chadwick 2006 (sweeper tentacles up to 90 mm), Mangubhai &
+  // Harrison 2008 (Kenya: one gametogenic cycle a year in 84% of colonies; the major spawning in
+  // February and March, a minor one in August to October in colonies with two cycles).
+  {
+    id: 'platygyra-daedalea',
+    name: 'Brain Coral',
+    scientificName: 'Platygyra daedalea',
+    family: 'Merulinidae',
+    alternateNames: ['Lesser Valley Coral'],
+    // Tile (2026-10-30): an in-tank close-up of the blue and brown colony on the sand by its rock,
+    // rendered with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/platygyra-daedalea-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 October 2023 (SeaLifeBase); Least Concern in 2014 too (DeVantier et al.).
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the Red Sea and East Africa to Japan and the central Pacific, in most reef environments and especially back reef slopes, 3 to 30 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each boulder is one colony of polyps sharing a single skeleton, lined up along winding valleys that give it the look of a brain. It grows among other corals as the understory of Acropora patch reefs, and keeps its neighbours at bay with sweeper tentacles up to 9 cm long that sting the corals beside it.',
+        // Mangubhai & Harrison 2008 (Kenya); spawned through the mouth (SeaLifeBase).
+        reproduction: 'Each colony makes both eggs and sperm, once a year in most colonies, and releases them through its polyps\' mouths to meet those of other colonies. In Kenya it spawns mainly in February and March. The larvae drift in the plankton, then settle and found new colonies.',
+      },
+      averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published
+        // (colonies commonly grow to 1 m across or more, SeaLifeBase).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A hard coral that grows into domes and boulders a metre or more across, its polyps lined up along winding valleys like the folds of a brain. It is the understory of many Indo-Pacific reefs, and stings neighbouring corals with long sweeper tentacles to keep its space.',
+    // The Atlas's biggest colony across, for the scale comparison: the orange one at 0.8 of the
+    // kit's 1.55 m (colonies commonly reach 1 m or more, SeaLifeBase).
+    maxBodyLengthMeters: 1.2,
+    model: {
+      path: '/models/fish/platygyra-daedalea/platygyra-daedalea.glb',
+      // Three of the kit's colonies (orange, blue and brown, pale) on a low limestone rock, 2.6 m
+      // across (scripts/build-brain-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
     },
   },
   // --- East Pacific green turtle (Cheloniidae) -----------------------------------------------

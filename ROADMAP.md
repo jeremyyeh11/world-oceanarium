@@ -176,6 +176,54 @@ Review gates:
 
 Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
 
+### Brain Coral
+
+Status: shipped in clean `v0.43.0` (2026-11-01, PR #177), from `v0.43.0-dev_4`, branch
+`species/platygyra-daedalea`; open items below are follow-ups.
+
+Subtasks:
+- [x] Species entry (hidden): SeaLifeBase (LC 2023; 3–30 m; colonies commonly 1 m or more; the
+  understory of Acropora patch reefs), Lapid & Chadwick 2006 (sweeper tentacles), Mangubhai &
+  Harrison 2008 (spawning), credited in `STUDY_CREDITS`.
+- [x] Placement (`src/components/brainCoralPlacement.js`): boulders on the bommies' ledges and at
+  their feet, after the tables and sea fans, before the staghorn (`inMound`); a spot that clashes
+  tries the colony smaller. Unit test `tests/brainCoralPlacement.test.mjs`.
+- [x] `mound` coral form for the reef fish: side, crown and undercut aims; per-species shares (no
+  live-coral pecks for the unicornfish and angelfish). See `docs/reef-behavior.md` (Mounds).
+- [x] Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`),
+  run end to end on a generated stand-in (two domes): 187 KB kit, 1.0 MB Atlas model.
+- [x] Measured in the tank with the stand-in kit (desktop, 2026-10-29): 23 colonies;
+  staghorn 358 → 310 colonies (−13%); reef fish visits 2 of 141 at a mound, both at a crown.
+- [x] Jeremy's model (`dev_2`): four photo-textured boulders, 1.4–1.6 m, 256–768 triangles, each
+  with 0.22–0.52 m of underside below its origin (his ground line). Kit: 96 KB GLB and eight
+  1024 px maps. Placement keeps the underside in rock or sand and never turns a colony over
+  (Jeremy: "dont flip the bottom side up"). In the tank: 24 colonies, 33 cm to 1.2 m, all four
+  colours.
+- [x] Atlas (`dev_2`): three colonies on a 2.6 m rock (2.0 MB model), checked on desktop, 375 px
+  portrait and landscape phone; in-tank tile; unhidden and on The Reefs' `landscapeSpecies`.
+- [x] Texture licences: the four photos are not openly licensed. Two carry a
+  "CoralsOfTheWorld.org" watermark (their terms: unaltered, personal, non-commercial use only);
+  one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated); the orange
+  colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
+  the UVs and never reach the baked maps. Jeremy (2026-10-30): keep them, credited; "if anyone
+  wants me to take down, i will".
+- [x] Black facet on the pale colony (`dev_4`): not Jeremy's mesh (closed, no sharp or inward
+  faces) but the kit script. Reducing `_hi` to `_lo` and `_far` collapsed edges across UV island
+  seams, leaving a triangle whose UVs spanned the unbaked gap between islands. The script now
+  keeps seam vertices out of the reduction, fills the gaps with the neighbouring colour (48 px
+  margin) and counts black triangles per level: 0 on all twelve meshes.
+- [x] Fish reach the low colonies (`dev_3`): on a trip to a brain coral the reef fish's floor
+  drops from y −19 to the sand (−24); every other trip keeps −19. Jeremy (2026-10-31): "maybe we
+  allow fish swim lower?". Measured in one session, dip off/on in alternating 2.5 min blocks
+  (desktop, 2026-11-01, 71 reef fish): time at a brain coral 2.8% → 4.2%, colonies visited 4 → 6
+  a block, pecks at a colony 0 of 31 → 9 of 26 found; time below −19 1.2%; fish in clear view
+  57% both ways; no stuck fish, jumps under 1 a minute. Rejected on the way: the floor at −22 for
+  every trip (visits 2.8% → 3.2%, clear view 58% → 49%) and double the mound shares (twice the
+  trips, all brief pass-overs, time unchanged).
+- [ ] Shelters under a colony never find a spot (0 of about 50 tries; the search goes on to rock):
+  Jeremy's domes sit buried with no undercut. Drop the mound shelter share or leave it. `Backlog`
+- [ ] Phone frame rate at The Reefs with the colonies added (light: 46–768 triangles a colony). `Next`
+
 ### White Suckerfish (The Shallows)
 
 Status: shipped in clean `v0.42.0` (2026-10-30, PR #174), from `v0.42.0-dev_3`, branch
@@ -368,7 +416,7 @@ Subtasks:
 - [x] Measured on desktop (shares, trip success, search ms, branch clearance, tree build ms).
 - [x] Jeremy's go-ahead on `v0.31.4-dev_1` (2026-10-20: "merge").
 - [ ] Thicket flank searches find a spot about a third of the time (rock or a table is often in the way); a search that finds none goes to rock. Raise it if the thickets still read as unused. `Backlog`
-- [ ] Mound (massive, brain, encrusting), fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. `Backlog`
+- [ ] Fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. The mound form is built for the Brain Coral (`v0.43.0-dev_1`, Current work). `Backlog`
 
 ### Staghorn coral
 
@@ -764,6 +812,42 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### Common Remora (The Open Sea)
+
+Status: shipped in clean `v0.44.0` (2026-11-01, PR #176), from `v0.43.0-dev_3`, branch
+`species/remora-remora`.
+[Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
+
+Felt intention: the classic shark rider, a passenger that is almost never off its host. It
+should read as part of the mako or the whale shark, clamped for minutes at a time
+(`rideSeconds` 80–180), and only briefly free (`freeSeconds` 10–25). It must not read as a
+free-swimming fish that sometimes rides, the way the sharksuckers do.
+
+- [x] Facts and ride data in `species.js` (FishBase: 40 cm common, 86 cm max, LC; hosts
+  shark 1, turtle 0.5, cetacean 0.4, large fish 0.4). No published age, maturity or spawning
+  data (searched 2026-10-29; the only remora otolith study is on the marlinsucker), so those
+  Atlas fields stay Unknown.
+- [x] Size floor: 40–86 cm (1.59–3.46 WU), well above 27 cm.
+- [x] Hosts: it lies on every spot of the mako and of the whale shark (the skin-fit test now
+  covers the whale shark too: 18 spots, no disc lifted above 1.4 mm).
+- [x] Room on the hosts: at production sizes the mako (16.7 WU) and the whale shark (37.3 WU)
+  take 43.2 WU of riders; the seven sharksuckers use 24.1 WU, leaving about 19 WU, seven
+  mid-size common remoras (2.5 WU) at once.
+- [x] Jeremy's GLB (2026-11-01): turned right side out (every part came in with its faces
+  inward), photos cropped to the fish, BLEND dropped (`scripts/prepare-common-remora-model.py`);
+  5.2 MB to 1.4 MB.
+- [x] Intake: rider fit (disc 35% of the length), stroke in model units, Atlas source length
+  and framing, verifier target, test lists, The Open Sea's roster, out of hiding.
+- [x] Photo credits: the body texture is Jeremy's recolour of P. Béarez's FishBase specimen
+  photo, which FishBase marks all rights reserved; used on Jeremy's call, to be taken down if
+  the holder objects. The disc is M. M. Khan's photo (CC BY 3.0).
+- [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
+  after).
+- [x] Atlas tile (`public/atlas/remora-remora-thumbnail.png`, `v0.43.0-dev_3`).
+- [x] Jeremy's review on the preview (2026-11-01: "looks good").
+- [x] Four in production `creatures` (ids 1470–1473, as dev; 827 → 831 rows, backups before and
+  after), on Jeremy's go-ahead (2026-11-01).
 
 ### Golden Trevally (The Shallows)
 

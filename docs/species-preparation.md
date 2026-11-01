@@ -106,6 +106,108 @@ minute. On: none in 9.0 fish-minutes, startles included.
 Open for Jeremy: feel review on the phone, then production rows (eight, the same sizes and sexes)
 and promotion.
 
+## Cauliflower Coral — `pocillopora-meandrina` (prepared `v0.45.0-dev_1`, model `dev_2`, shipped `v0.45.0`)
+
+Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
+(fish queue, Up next item 4). Jeremy picked *P. meandrina* over *P. damicornis* (2026-11-01):
+it is the coral actually called cauliflower coral, its stubby round bushes read apart from the
+staghorn's long antlers, and *P. damicornis* was split into several species in 2014, so many of
+its published facts belong to look-alikes.
+
+Felt intention: small, tough, bright knots of coral on the most exposed tops and shoulders of
+the bommies, each its own little bush, with fish dipping into them. Why: it is the coral of
+wave-swept reef crests, often the first to settle bare rock, and stays small. Must not happen:
+a carpet or a thicket of interlocking colonies (that is the staghorn), a colony bigger than a
+reef fish's reach, or bushes in the sheltered sand between bommies.
+
+Prepared: hidden species entry (no model, on no tank, no landscape placement, out of the Atlas),
+SeaLifeBase and the NMFS 2019 status review credited in `STUDY_CREDITS`, and a test that keeps it
+hidden and off every tank.
+
+Size check: colonies commonly 20–40 cm across, most stopping near 40 cm = 0.8–1.6 WU. Below the
+27 cm / 1.08 WU swimming floor at the small end, but corals are landscape, not creatures; the
+brain corals run 33 cm to 1.2 m.
+
+Research decisions:
+
+- SeaLifeBase: Endangered (27 October 2023, A3ce), shallow reefs, commonest on exposed reef
+  fronts. Its 0–98 m depth is not used; the status review's "the surface to at least 34 m" is.
+- NMFS 2019: range from the western Indian Ocean to the eastern Pacific (95 of 133 Indo-Pacific
+  ecoregions); commonest under 5 m on reef crests and upper slopes; bushes 20–40 cm, light brown
+  or cream, also green or pink; determinate growth and a short life for a coral (no age given);
+  first to colonise lava, storm-cleared reef and pipes; hermaphrodite broadcast spawner 1–3 days
+  after the full moon just after sunrise in late spring or early summer; eggs carry zooxanthellae
+  (Hirose et al. 2001); crabs and shrimp in colonies over about 10 cm ward off crown-of-thorns
+  starfish (Glynn 1976). Its growth rates (10–31 cm a year in Hawaii and Johnston Atoll, quoted
+  from Jokiel & Tyler 1992) are implausibly high for a bush that stops near 40 cm (possibly mm),
+  so they are not used until checked against the paper.
+- Size, weight, age, maturity and eggs per spawning stay Unknown: no figure is published.
+- Wikipedia says its larvae develop inside the polyp (brooding). The status review and its
+  spawning studies say broadcast spawner; the entry follows them.
+- Reef behaviour: a new row under the existing `thicket` form (branching coral), no new form.
+  Its colonies are small and set apart, so a thicket's `inside` shelter suits only the smallest
+  fish; check at intake whether the shares need trimming for it.
+
+Decided by Jeremy (2026-11-01):
+
+- **Colony count: 2–4 colonies a bommie** on the nine table bommies (about 20–35 in all) at
+  20–45 cm (0.8–1.8 WU), more on the most exposed tops.
+- **Placement: bommie tops and upper shoulders only** (its wave-swept crest habitat), never on
+  the sand, singly or in loose twos and threes rather than patches. Order: after the tables, sea fans and brain corals, before the staghorn, which keeps
+  clear of them (as for the brain corals). Last measured counts: 130 tables in 9 clusters,
+  25 scattered sea fans plus 3–6 a bommie, 24 brain corals, staghorn about 310 (358 before the
+  brain corals). The cauliflower colonies will take staghorn spots on the same tops; re-measure
+  every coral at intake and say what each lost.
+
+Model intake (2026-11-01, `dev_2`): Jeremy's GLB holds three colonies modelled with displacement
+over a photo projected from view (his style): two pink (one photo) and one cream, origins at the
+foot, normals outward, no alpha, 55,000 to 290,000 triangles each, at 3.6, 5.6 and 8.1 m across.
+`scripts/build-cauliflower-coral-kit.py` is a copy of the brain coral's kit script, not the
+staghorn's (the brain coral's keeps his object origin and fixes the seam fault): it scales the set
+so the biggest is 45 cm (20, 31 and 45 cm), bakes each colony's colour and normal maps onto a
+6,000 / 6,000 / 3,000 triangle `_hi`, and decimates `_lo` and `_far` to 40% and 16%. Two changes
+from the brain coral's: a wider UV angle limit, and no seam protection, since on these lobes
+nearly every vertex is a seam vertex and the protection froze the decimation (the 48 px EXTEND
+margin covers the seams; the dark grooves count as a few "black" triangles). Kit 1.0 MB plus six
+maps (1.1 MB). The pink photo is Dwayne Meadows' NOAA photo (public domain), embedded as a 563 px
+thumbnail; the cream is Peterwchen's Kauaʻi tidepool photo (CC BY-SA 4.0); both credited in
+`IMAGE_CREDITS`.
+
+Placement (`src/components/cauliflowerCoralPlacement.js`): 2 to 4 a bommie, groups of 1 to 3 within
+40 cm, on ledges in the upper 55% of the bommie only, 20 to 45 cm drawn (a clash tries 75%), sunk
+to the neck so the pink colony's short stalk is in the rock. Measured in the dev tank (desktop,
+2026-11-01): 20 colonies on the nine table bommies (1 to 3 each, 15 to 35 cm); tables 130, sea fans
+25 and brain corals 26 unchanged; staghorn 298 → 275 (−23, −8%). From the resting view 1 of the 13
+colonies in frame has a clear line of sight, against 2 of 17 brain corals: corals there are seen
+past other reef, and the diver and follow cameras see them close.
+
+Atlas (`dev_2`): the three colonies at true size on a 1.1 m rock (2.3 MB,
+`scripts/build-cauliflower-coral-atlas.py`), checked on desktop, 375 px portrait (no horizontal
+overflow) and 844 × 390 landscape; tile from an in-tank close-up of two cream colonies. Unhidden and
+on The Reefs' `landscapeSpecies` (14 species). No creature rows: a coral is landscape.
+
+Front colonies (`dev_4`, 2026-11-01; Jeremy: "i dont like that thyere all hidden away, put some of
+them on the front as well, if not add more"): after the top and shoulder groups, each bommie whose
+middle is in the resting frame gets `front` (3 to 4) more colonies on ledges on its camera side,
+from 10% of its height up, each kept only if the resting camera sees at least one of three points
+on its head (in frame, no drawn rock and no table plate within 3.5 m on the way). A first try
+asking for two of three points added only 1 colony (5 of the 9 bommies are in frame; most spots
+that fit were seen by none). The loosened count is not measured: the dev tank would not finish
+loading in a browser with no window open. Unit test: a camera in front of the test bommie gets its
+three front colonies, all on the camera side.
+
+`dev_5` (Jeremy on `dev_4`, his desktop screenshot of the default view: "i still dont see any"):
+the front colonies now start from the camera. Rays go through the lower part of the resting frame
+(92% of its half width, from 92% below the middle to 40% above it); a colony stands on the first
+rock ledge a ray meets, on any drawn rock 6 to 60 WU away, so its spot is in view by
+construction, and is kept if two of its three sight points are seen (a table plate can still hide
+it). `front: [12, 16]` in the whole view. A colony on a bommie joins that bommie's thicket; one
+off every bommie is a thicket of its own. Not measured in the tank: the dev tank again would not
+finish loading in the session's browser.
+
+Open for Jeremy: the look in the tank on his phone (the front colonies first), the tile (a
+recapture is easy), and whether the cream colony's sharper lobes need softening at the source.
+
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 
 Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt

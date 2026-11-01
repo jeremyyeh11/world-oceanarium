@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.45.0',
+    date: '2026-11-01',
+    title: 'Cauliflower Coral',
+    changes: [
+      ['new', 'Cauliflower corals grow on the rocks of The Reefs, small knobbly bushes in pink and cream on the bommie tops and the ledges right in front of you, where reef fish hover and pick.'],
+      ['new', 'Meet the Cauliflower Coral in the Atlas, an endangered reef builder, with three colonies on a rock and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.44.1',
     date: '2026-11-01',
     title: 'Natural creature edges',

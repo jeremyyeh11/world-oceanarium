@@ -220,6 +220,10 @@ join round one host. `findEscortHost` counts each host's current followers from 
 (every rider registers the host it steers by, `rideHostId`) and passes a full host over for the
 next nearest. Only joining is capped: a fish already following stays when a spell ends.
 
+`escort.quietTail` (optional, default off) stops idle bursts and snap turns while the fish is
+escorting; a startle still fires. The escort sets the follower's speed, so those strokes whipped
+the tail with no dash to match, and the bluefin (the only user) read as darting round the wrasse.
+
 ## Runtime
 
 Stages: `free` → `approach` → `dock` → `latch` → `attached` → `release` → `free`, with

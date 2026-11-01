@@ -1183,6 +1183,13 @@ try {
     const uncapped = { ...bluefinHitch, escort: { ...bluefinHitch.escort, maxPerHost: Infinity } }
     assert.equal(findEscortHost(bluefin('b-5'), start, uncapped)?.hostId, 'w1', 'uncapped, it would pile onto the nearest')
     assert.equal(findEscortHost(bluefin('b-2'), start, bluefinHitch)?.hostId, 'w1', 'one already round it does not count itself')
+
+    // Only the bluefin keeps a quiet tail while escorting; other followers burst and snap as before.
+    assert.equal(bluefinHitch.escort.quietTail, true, 'the bluefin plays no burst or snap strokes while following')
+    for (const id of ['gnathanodon-speciosus', 'naucrates-ductor']) {
+      const profile = hitchhikerProfile(speciesById.get(id))
+      if (profile) assert.equal(profile.escort.quietTail, false, `${id} keeps its tail strokes`)
+    }
   } finally {
     clearRegistry()
   }

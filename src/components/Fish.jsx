@@ -4161,9 +4161,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       // A startle cuts through any turn animation or cooldown in progress: escaping comes first. So
       // does the flinch as a school's alarm wave reaches this fish, as an ordinary burst.
       const reflex = startled || alarmFlinch
+      // A quiet-tailed follower keeps to its cruise beat while escorting: the escort sets its speed,
+      // so an idle burst or snap turn would whip the tail without the dash to go with it.
+      const quietEscort = Boolean(hitchhiker?.escort.quietTail) && ride.stage === 'escort'
       if (riding) {
         playAnimation(resolveMoveAnimation(model, ride.stage === 'dock' ? 'cruise' : 'drift'))
-      } else if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
+      } else if (reflex || (!quietEscort && previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
         if (swim.turnSpeedupEnabled !== false && !reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration

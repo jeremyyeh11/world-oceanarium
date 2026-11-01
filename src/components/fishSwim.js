@@ -2473,6 +2473,8 @@ export function hitchhikerProfile(species) {
     // Most fish (any kind) it will join round one host; a full host is passed over for the
     // next nearest, so followers spread over several hosts. Unset, no limit.
     maxPerHost: escort.maxPerHost ?? Infinity,
+    // No idle burst or snap-turn strokes while escorting (startles still fire). Unset, they play.
+    quietTail: escort.quietTail === true,
   }
   hitchhikerProfiles.set(species, profile)
   return profile

@@ -15,6 +15,9 @@ Versioning convention notes:
 - Escort cap: a follower's `escort.maxPerHost` limits how many fish it joins round one host,
   counted from the registry; a full host is passed over for the next nearest. Unset, no limit,
   so every existing follower behaves as before.
+- Quiet escort tail: a follower's `escort.quietTail` drops idle bursts and snap turns while it
+  escorts (the escort sets its speed, so they whipped the tail without the dash). Only the bluefin
+  uses it; startles and roaming bursts are unchanged.
 - The humphead wrasse is an escort-only host in a new `reef-forager` group (clearance measured on
   both sex models); the pilot fish and bannerfish do not follow it.
 
@@ -27,6 +30,8 @@ Versioning convention notes:
   Eight adults follow the three wrasses, two or three each, above and beside them. Dev rows only.
 - Bluefin fins: Jeremy's re-export sets the pelvic and pectoral fins into the body (the pelvics
   hung just below the belly before); Atlas tile recaptured.
+- Bluefin size: 35–45 cm fork length (was 45–70), so they trail the wrasses at about the
+  proportions seen in photos rather than matching the females' length.
 
 ## v0.44.1 — Natural creature edges
 

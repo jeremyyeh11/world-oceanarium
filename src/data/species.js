@@ -4699,9 +4699,10 @@ export const SPECIES = [
     // Pardee et al. 2021: males mature from 32.9 cm FL; FishBase maximum 117 cm FL.
     adultLengthRangeMeters: [0.33, 1.17],
     maxBodyLengthMeters: 1.17,
-    // Eight adults at 45–70 cm FL (1.8–2.8 WU), two or three per wrasse (Jeremy, 2026-11-01):
-    // round the Hawaiian sample's sizes, below the rare fish over 80 cm.
-    sizeRange: [0.45 / 1.17, 0.7 / 1.17],
+    // Eight adults at 35–45 cm FL (1.4–1.8 WU), two or three per wrasse (Jeremy, 2026-11-01).
+    // At 45–70 cm they looked nearly as long as the 0.8–1 m females; photos of bluefin trailing
+    // a humphead show them at roughly 40–50% of its length. Still adults: males mature from 32.9.
+    sizeRange: [0.35 / 1.17, 0.45 / 1.17],
     // Pardee et al. 2021, W (g) = 6.77e-6 FL (mm)^3.15, rewritten for cm FL to grams.
     mass: { coefficient: 0.009563, exponent: 3.15 },
     swim: {
@@ -4758,6 +4759,9 @@ export const SPECIES = [
         // Low, so two or three of the eight stay with each wrasse (Jeremy, 2026-11-01).
         leaveChance: 0.2,
         minSpeedBLPerSec: 0.3,
+        // No burst or snap-turn tail strokes while following: the escort holds its speed, so they
+        // whipped the tail without the dash and read as darting (Jeremy, 2026-11-01).
+        quietTail: true,
         // It goes looking for a wrasse anywhere on the reef.
         rangeBodyLengths: 12,
         // Two or three per wrasse (Jeremy, 2026-11-01): a wrasse with three already is passed

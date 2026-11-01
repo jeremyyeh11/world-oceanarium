@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`)
+## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`)
 
 Reserve: The Reefs, as a follower of the humphead wrasse (fish queue, Up next item 5). Felt
 intention: a quick blue hunter shadowing a slow, heavy forager, hanging just above and behind
@@ -19,8 +19,8 @@ Prepared: hidden species entry (no model, no roster slot, no rows), `hitchhiker`
 in a new `reef-forager` group, so the pilot fish and bannerfish (who follow `large-fish`) do not
 start trailing it; visitors see no change. Clearance measured on both wrasse models.
 
-Size check: 117 cm FL maximum = 4.68 WU; proposed fish 45–70 cm FL = 1.8–2.8 WU, well above the
-27 cm / 1.08 WU floor.
+Size check: 117 cm FL maximum = 4.68 WU; fish 35–45 cm FL = 1.4–1.8 WU (45–70 cm until `dev_5`),
+above the 27 cm / 1.08 WU floor.
 
 Research decisions:
 
@@ -42,7 +42,7 @@ Decided by Jeremy (2026-11-01):
 - **Life stage: adults.** Silver with a blue-bronze back, electric-blue fins and spotted flanks.
   Juveniles (dark fins, yellow pectorals) live in sandy shallows and do not follow.
 - **Count: eight,** two or three per wrasse (the reef has one male and two females), at 45–70 cm
-  FL, in `creatures_dev` first. With so many following, `leaveChance` is 0.2, so most are with a
+  FL (35–45 cm since `dev_5`, below), in `creatures_dev` first. With so many following, `leaveChance` is 0.2, so most are with a
   wrasse at any moment. The escort picks the nearest wrasse, not the least crowded one, so at
   intake watch that they spread over all three rather than piling onto one.
 
@@ -81,6 +81,27 @@ below its middle for a moment while closing in.
 Atlas tile: fish 1182's head facing left, rendered from a little below in The Reefs with the other
 fish hidden, 470 px. Atlas checked at desktop, 375 × 812 and 844 × 390 browser viewports: the whole
 fish and the 1.17 m scale bar show. These are browser viewport checks, not a physical phone.
+
+Feel review (2026-11-01, `dev_5`), from Jeremy's tank screenshots beside photos of bluefin
+trailing humpheads:
+
+- **Too big.** At 45–70 cm FL a bluefin was nearly as long as the 0.8–1 m females; in the photos
+  the trevally is roughly 40–50% of the wrasse. Now 35–45 cm FL (1.4–1.8 WU), still adult (males
+  mature from 32.9 cm FL). The rows keep their size parameters, so no database write. Live in the
+  dev tank: wrasses 5.61, 3.70 and 3.41 WU (1.40, 0.93 and 0.85 m), so a bluefin's fork length is
+  25–32% of the male's length and 38–53% of a female's.
+- **Darting.** While escorting, the escort sets the follower's speed, but idle bursts (every
+  10–18 s) and snap turns still played their tail strokes, so the tail whipped with no dash to
+  match. `escort.quietTail` ([ride-hosts.md](ride-hosts.md)) drops them while escorting; startles
+  still fire, and roaming on its own it bursts as before. Steering is unchanged.
+- **Tremble.** They steer toward a station fixed in the wrasse's body frame, so the wrasse's own
+  occasional tremble reaches them through that target, amplified at side stations. That belongs to
+  the wrasse, not to this species, and is left for its own fix.
+
+Measured in the dev tank (2026-11-01, desktop browser), the quiet tail switched off and on in
+alternating 50 s blocks after a dropped 25 s warm-up, all eight escorting most of the time. Off:
+164 strokes (43 bursts, 121 snap turns) in 9.3 escorting fish-minutes, about 18 per fish per
+minute. On: none in 9.0 fish-minutes, startles included.
 
 Open for Jeremy: feel review on the phone, then production rows (eight, the same sizes and sexes)
 and promotion.

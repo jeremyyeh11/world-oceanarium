@@ -13,9 +13,26 @@ Status labels:
 
 ## Current work
 
+### Humphead Wrasse: gentle giant (`v0.46.1`)
+
+Status: `Current in development` — `v0.46.1-dev_1` (2026-11-01), branch `fix/humphead-gentle-giant`,
+cut from the Bluefin Trevally branch; Jeremy will merge both together after `v0.46.0`. Jeremy: the
+humpheads looked jittery, "bursting every few seconds"; make them a gentle giant.
+
+- [x] Speeds in each fish's own body lengths (`swim.speedFollowsSize`, wrasse only), slower cruise,
+  no turn sprint, bursts every 60–120 s at about a third of the old speed, a softer tail stroke,
+  slower turns at the rock. Dev tank, 150 s each on a fresh load (desktop browser, about 25 fps
+  in the hidden pane), the three wrasses (1.40, 0.93, 0.85 m): tail actions 4.0 → 0.5 per wrasse
+  per minute (12 bursts and 18 turn sprints → 4 soft bursts); time above 0.55 own body lengths a
+  second 12 / 67 / 86% → 7 / 3 / 5%; peak 3.05 / 3.71 / 4.18 → 0.83 / 0.75 / 0.81 own body
+  lengths a second.
+- [ ] Jeremy: feel review on the phone.
+- [ ] The occasional tremble Jeremy sees (wrasse and, through their stations, the bluefin):
+  not this change; find its cause separately. `Backlog`
+
 ### Bluefin Trevally (The Reefs)
 
-Status: `Current in development` — model in `v0.46.0-dev_3` (2026-11-01), branch
+Status: `Current in development` — `v0.46.0-dev_5` (2026-11-01), branch
 `species/caranx-melampygus`, [PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179).
 [Preparation and intake](docs/species-preparation.md) · [Followers](docs/ride-hosts.md).
 
@@ -23,8 +40,10 @@ Status: `Current in development` — model in `v0.46.0-dev_3` (2026-11-01), bran
   adults, eight, two or three per wrasse (`dev_2`).
 - [x] Model intake, Atlas pose and tile, roster slot, `escort.maxPerHost`, eight `creatures_dev`
   rows (ids 1175–1182) (`dev_3`).
-- [ ] Jeremy: feel review on the phone.
-- [ ] Production rows (eight, the same sizes and sexes) on Jeremy's go-ahead, then promotion.
+- [x] Jeremy's re-exported fins (`dev_4`); smaller (35–45 cm FL) and a quiet tail while escorting
+  (`dev_5`) after his feel review. He accepted `dev_5` ("looks good").
+- [ ] Promotion and merge once `v0.45` (Cauliflower Coral) lands, with production rows: six, not
+  eight (Jeremy, 2026-11-01). `Next`
 
 ### Yellowfin Tuna follow-ups
 

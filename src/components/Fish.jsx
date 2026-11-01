@@ -2395,7 +2395,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   )
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
-    const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
+    // Speeds are body lengths of the species' largest fish, so a small adult swims as fast as a big
+    // one; with `speedFollowsSize` they are this fish's own body lengths instead.
+    const speedLengthWU = swim.speedFollowsSize ? creatureBodyLength(creature, swim) : swim.bodyLengthWU
+    const velocityScale = speedLengthWU * swim.visualTimeScale * swim.speedMultiplier
     return {
       idleSpeed: randomRangeFromPair(rand, swim.idleBLPerSec, DEFAULT_SWIM.idleBLPerSec) * velocityScale,
       idleDrift: randomRangeFromPair(rand, swim.idleDriftBLPerSec, DEFAULT_SWIM.idleDriftBLPerSec) * velocityScale,

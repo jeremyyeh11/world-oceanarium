@@ -369,10 +369,11 @@ const HUMPHEAD_WRASSE_SWIM = {
   flexStart: 0.5,
   flexFull: 0.9,
   turnStrength: 0.6,
-  burstAmplitude: 1.1,
+  // A soft push rather than a whip (was 1.1 and 0.3 until v0.46.1).
+  burstAmplitude: 0.6,
   response: 6,
   speedFrequencyBoost: 0.3,
-  burstFrequencyBoost: 0.3,
+  burstFrequencyBoost: 0.15,
   // Its pectorals are the engine at cruise, so they row harder than the grouper's.
   pectoralFinFlutter: 0.4,
   pelvicFinFlutter: 0.06,
@@ -3254,18 +3255,24 @@ export const SPECIES = [
     adultLengthRangeMeters: [0.65, 2.29],
     maxBodyLengthMeters: 2.29,
     swim: {
-      // Starting values until the model lands: a labriform cruiser that rows on its pectorals,
-      // slow and heavy, keeping its tail for rare bursts.
+      // A gentle giant (Jeremy, 2026-11-01: it looked jittery, bursting every few seconds): a
+      // labriform cruiser rowing slowly on its pectorals, turning without speeding up, and only
+      // now and then a soft push of the tail. Speeds are in each fish's own body lengths
+      // (`speedFollowsSize`); in the largest's, the 0.85 m females cruised at up to 0.8 of their
+      // length a second and burst at 4.
+      speedFollowsSize: true,
       visualTimeScale: 0.75,
       driftEnabled: false,
-      idleBLPerSec: [0.2, 0.4],
+      idleBLPerSec: [0.25, 0.35],
       idleDriftBLPerSec: [0.04, 0.08],
-      snapBLPerSec: [0.6, 0.9],
-      burstBLPerSec: [2.0, 3.0],
-      burstInterval: [20.0, 40.0],
-      burstActionDuration: 0.6,
+      // Snap speed now only sets how briskly it leaves the rock when startled there.
+      snapBLPerSec: [0.4, 0.5],
+      turnSpeedupEnabled: false,
+      burstBLPerSec: [0.9, 1.2],
+      burstInterval: [60.0, 120.0],
+      burstActionDuration: 1.0,
       turnActionDuration: 0.8,
-      erraticness: 0.08,
+      erraticness: 0.03,
       // Pectoral rowing turns a wrasse tightly for its length.
       turnRadiusBodyLengths: 1.0,
       speedMultiplier: 1.0,
@@ -3316,7 +3323,8 @@ export const SPECIES = [
       pecks: [1, 2],
       hoverSeconds: [4, 10],
       hoverStandoffBodyLengths: [0.6, 0.9],
-      turnDegreesPerSecond: 60,
+      // Turns slowly at the rock (60 until v0.46.1).
+      turnDegreesPerSecond: 40,
       startleShelterChance: 0.2,
       corals: { table: { patrol: 0.3, hover: 0.25, shelter: 0.15 }, thicket: { patrol: 0.2, peck: 0.1 } },
     },

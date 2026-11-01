@@ -15,7 +15,8 @@ Versioning convention notes:
 - East Pacific Green Turtle (`chelonia-mydas`) prepared, hidden: IUCN Vulnerable (East
   Pacific subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity
   ages and the oldest aged turtle (credited), a draft escort-only `rideHost` (`turtle`).
-  No model, roster slot or rows, so visitors see no change.
+  Three adults planned, one male (Jeremy). No roster slot or rows yet, so visitors see no
+  change.
 
 ### Behaviour and motion
 
@@ -25,6 +26,44 @@ Versioning convention notes:
   the Atlas share one stroke-and-glide clock. Built on a generated stand-in model until
   Jeremy's; the speed surge on each downstroke comes with the turtles' move into The Shallows.
 - Turtles will surface to breathe now and then (Jeremy); built with their swim room.
+
+## v0.42.0 — White Suckerfish (2026-10-30)
+
+Status: clean `v0.42.0`, accepted from `v0.42.0-dev_3`, branch `species/remora-albescens`,
+[PR #174](https://github.com/jeremyyeh11/world-oceanarium/pull/174). Jeremy approved production
+rows, promotion and merge on 2026-10-30.
+
+### Behaviour and motion
+
+- The giant oceanic manta can be ridden: 11 spots fitted to its belly's flat centre
+  (`scripts/fit-ride-anchors.mjs`, which now reads only a disc-wave host's R and B masks and
+  records each spot's chord), clear of the wing beat and of the jaw its open mouth moves.
+- Riders on a disc-wave host heave with its body (`discBodyHeave`, the shader's heave on the
+  CPU, 1.2 WU either way at full cruise); the manta publishes its beat for them.
+- Golden trevally still escort the manta (tested): followers never take spots.
+
+### Species and Atlas
+
+- White Suckerfish (`remora-albescens`): Jeremy's model (2026-10-30), rig-free with separate
+  pectoral and pelvic fins and a rigid disc, fitted by `scripts/fit-rider-model.mjs` (0.2996
+  source units to 1.2 WU, disc 31% of its length ahead of the root). Held at 27–30 cm
+  (`sizeRange` 0.9–1.0), so none falls below the 27 cm floor.
+- It lives in The Shallows on the giant manta, in the manta's widened room
+  (`SHALLOWS_MANTA_FOLLOWER_BOUNDS`, now shared with the golden trevally). In the dev tank all
+  three `creatures_dev` riders (ids 1158–1160) found the manta and clamped to its belly within
+  about five minutes.
+- In the Atlas, with its tile rendered in the dev tank. Its two texture photos are credited as
+  unknown sources until found. Its diet is "Unknown": FishBase has no diet data for it.
+- Juvenile giant mantas (`lifeStages.juvenile`, Jeremy, 2026-10-30): the adult model at 2.5–3.5 m
+  (born 1.1–1.3 m, mature about 4.2 m; FishBase), since young mantas stay in shallow water.
+  Every rider is fitted on the smallest juvenile too (tests). `creatures_dev` 1161, 3 m; with
+  three more suckerfish (1162–1164), the riders and the trevally split between the two mantas,
+  which swim their own paths ("singly or in loose aggregations", FishBase).
+- Twelve white suckerfish in `creatures_dev` (1158–1160, 1162–1170; live, 10 of 12 clamped by
+  three minutes, five on each manta) and in production `creatures` (1457–1459, 1461–1469,
+  814 → 826 rows), 27–30 cm, six of each sex; backups before and after each write. The
+  juvenile manta followed once the live bundle served `v0.42.0` (a new life stage): production
+  `creatures` 1460, as dev 1161 (3 m, male), 826 → 827 rows (2026-11-01).
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

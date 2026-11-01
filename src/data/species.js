@@ -272,7 +272,7 @@ export const TANKS = [
     },
     landscape: 'shallows',
     camera: SHALLOWS_VIEW,
-    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus'],
+    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus', 'remora-albescens'],
   },
 ]
 
@@ -320,6 +320,21 @@ const OPEN_SEA_BOUNDS = {
 }
 // Riders share their host's swim volume, so every anchor on it stays reachable.
 const OPEN_SEA_RIDER_BOUNDS = { ...OPEN_SEA_BOUNDS, boundsYMin: -14 }
+// The giant manta's room in The Shallows (its wedge, y -14 to -4, z -80 to 15) widened by how far
+// the golden trevally's stations reach: up to 7.4 WU below the manta's middle and 17.3 WU from it
+// (sampled), in whatever direction it faces. Toward the camera it gets only 11 WU more (z +26, or
+// +11 after the -15 offset in fishSwim.js), so a roaming fish never comes up to the lens; one
+// following a manta that faces the camera at its own front wall waits at that wall. Free goals
+// keep to the manta's narrower goal wedge, inside a 16:9 screen's view. Shared by its followers
+// and riders.
+const SHALLOWS_MANTA_FOLLOWER_BOUNDS = {
+  boundsUseSpeciesSize: false,
+  boundsWedge: { apexZ: 24, slope: 1.4, margin: 38, goalSlope: 0.55, goalMargin: 0 },
+  boundsYMin: -22,
+  boundsYMax: -2,
+  boundsZMin: -98,
+  boundsZMax: 26,
+}
 const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZMin: -25, boundsZMax: 0 }
 // Reef fish reach down, back and forward to the rocks of The Reefs (landscapes.js): to y -19,
 // above the basin's highest dune crest (-20.5), back to z -52, the canyon's front faces, and
@@ -1410,6 +1425,8 @@ export const SPECIES = [
     scientificName: 'Remora albescens',
     family: 'Echeneidae',
     alternateNames: ['White remora'],
+    // Rendered in the dev tank (2026-10-30): a free swimmer, other fish hidden.
+    atlasThumbnail: '/atlas/remora-albescens-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -1423,7 +1440,9 @@ export const SPECIES = [
       label: 'Least Concern',
     },
     atlasDetails: {
-      commonDiet: 'Unknown; barely any parasitic copepods.',
+      // FishBase (checked 2026-10-30) has no food items or diet composition for it, only a
+      // modelled trophic level, so no copepod claim.
+      commonDiet: 'Unknown',
       foundIn: 'Warm seas worldwide, oceanic, to 200 m.',
       maxLengthLabel: 'Standard length',
       sexualDimorphism: 'Unknown',
@@ -1463,24 +1482,57 @@ export const SPECIES = [
     maxBodyLengthMeters: 0.3,
     swim: {
       ...REMORA_SWIM,
-      ...OPEN_SEA_RIDER_BOUNDS,
+      // The manta's room in The Shallows, widened round it as the golden trevally's is, so a
+      // rider that lets go is never walled off from its host's belly.
+      ...SHALLOWS_MANTA_FOLLOWER_BOUNDS,
       // 30 cm maximum standard length = 1.2 WU, just above the 1.08 WU tank floor.
       bodyLengthWU: 1.2,
     },
-    // Held near the maximum so individuals do not fall far below the tank's 27 cm floor.
-    sizeRange: [0.8, 1.0],
+    // 27–30 cm: held at the maximum so no individual falls below the 27 cm (1.08 WU) floor.
+    sizeRange: [0.9, 1.0],
     mass: REMORA_MASS,
     hitchhiker: {
       // Manta rays are its host; sharks and black marlin only occasionally.
       hosts: { ray: 1, shark: 0.3, billfish: 0.3 },
       rideSeconds: [120, 240],
       freeSeconds: [8, 18],
-      // Its disc is 34–40% of standard length, starting just behind the snout.
-      discAheadBodyLengths: 0.285,
+      // Measured from the supplied GLB by scripts/fit-rider-model.mjs: the disc centre is 31%
+      // of the body length ahead of the recentred root, and the profile keeps the second dorsal
+      // and the upper tail lobe clear while the disc stays seated on the host's skin.
+      discAheadBodyLengths: 0.3099,
+      dorsalClearanceBodyLengths: 0.0647,
+      backProfile: [[-0.1876, 0.0414], [-0.1776, 0.037], [-0.1676, 0.0355], [-0.1576, 0.0324], [-0.1176, 0.0185], [-0.1076, 0.0129], [-0.0876, 0.0072], [-0.0776, 0.0051], [-0.0376, 0.0049], [0.0024, 0.0006], [0.0424, 0.0027], [0.0924, 0.0071], [0.1224, 0.0142], [0.2124, 0.0173], [0.2724, 0.0174], [0.3124, 0.0158], [0.3524, 0.0089], [0.4024, -0.0045], [0.4624, -0.0268], [0.4924, -0.0084], [0.5224, -0.0013], [0.5624, 0.0158], [0.6024, 0.0289], [0.6124, 0.0303], [0.6624, 0.0334], [0.7224, 0.0395], [0.7324, 0.0378], [0.7624, 0.0288], [0.7724, 0.02], [0.7924, -0.0165], [0.8024, -0.037]],
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
-    hiddenInAtlas: true,
+    // Jeremy's model (2026-10-30): rig-free, 1 unit = 1 m, nose -Z, separate pectoral and pelvic
+    // fins. The body's second material split is the rigid suction disc. Both textures are opaque,
+    // so no alphaBlend despite the GLB's BLEND materials.
+    model: {
+      path: '/models/fish/remora-albescens/remora-albescens.glb',
+      // Source length 0.2996 -> 1.2 WU (scripts/fit-rider-model.mjs); the root is recentred
+      // mid-length on the body axis, the frame the host-skin fit assumes.
+      scale: 4.0059,
+      position: [-0.0765, 0.0116, 3.4241],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        bodyMeshNames: ['white_remora_1'],
+        followBodyMeshNames: ['white_remora_2'],
+        // The whitefin's stroke (0.07 and 0.03 of its length) on a 0.2996-unit source.
+        amplitude: 0.021,
+        turnStrength: 0.009,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
   {
     id: 'remora-australis',
@@ -3645,18 +3697,21 @@ export const SPECIES = [
       },
     },
     // Adults from the ~4 m maturity width to the 7 m maximum (16–28 WU). The Shallows holds one
-    // adult at full size (Jeremy, 2026-10-24), not a juvenile stage.
+    // adult at full size (Jeremy, 2026-10-24); from 2026-10-30 a juvenile too (lifeStages).
     sizeRange: [0.57, 1.0],
     // Info card weight from disc width (cm → g). No published width–weight relation; cubed and
     // fitted to FishBase's one weighed manta, a 550 cm female of 1,050 kg (Galápagos): about
     // 1.2 t at 5.8 m and 2.2 t at 7 m, under FishBase's 3 t maximum. The default relation gave
     // 5.6 t at 5.8 m.
     mass: { coefficient: 0.0063, exponent: 3 },
-    // Escort-only host (docs/ride-hosts.md): followers such as the golden trevally hold stations
-    // round it, but it has no `anchors` yet, so nothing clamps on. The white suckerfish needs
-    // spots fitted to its mesh first (scripts/fit-ride-anchors.mjs).
+    // Ride host (docs/ride-hosts.md): followers such as the golden trevally hold stations round
+    // it, and remoras (the white suckerfish) clamp to spots on its belly, fitted to its mesh by
+    // scripts/fit-ride-anchors.mjs: the flat centre within 0.62 m of the midline, where the wings
+    // do not lift, behind the lower jaw that its open mouth moves. Riders heave with the body
+    // (fishSwim.js discBodyHeave). No `waveSpan`: that is for a caudal wave.
     rideHost: {
       groups: ['ray', 'large-fish'],
+      anchors: RIDE_ANCHORS['mobula-birostris'].anchors,
       // Measured with scripts/measure-ride-anchors.mjs (scale 4, 28 WU): the disc runs from the
       // head fins at z -7.1 WU to the trailing wing edge near +6.5, ±14 WU wingtip to wingtip,
       // 2.7 WU thick at the middle. Height and length cover that plus the 1.2 WU heave of the
@@ -3726,6 +3781,16 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.2,
+    },
+    // Juveniles (a creature's `lifeStage: 'juvenile'`; see speciesForLifeStage): the adult's model
+    // and colours at a smaller size (Jeremy, 2026-10-30). Pups are born 1.1–1.3 m across and
+    // mature at about 4.2 m (FishBase), and the young stay in shallow water for their first years,
+    // which is The Shallows. 2.5–3.5 m: big enough that a 30 cm white suckerfish still lies on the
+    // flat of its belly (tests/fishRide.test.mjs fits every rider at the smallest size).
+    lifeStages: {
+      juvenile: {
+        sizeRange: [0.36, 0.5],
+      },
     },
   },
   // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since
@@ -4338,18 +4403,7 @@ export const SPECIES = [
       erraticness: 0.1,
       turnRadiusBodyLengths: 1.2,
       speedMultiplier: 1.0,
-      boundsUseSpeciesSize: false,
-      // The manta's room (its wedge, y -14 to -4, z -80 to 15) widened by how far its stations
-      // reach: up to 7.4 WU below the manta's middle and 17.3 WU from it (sampled), in whatever
-      // direction it faces. Toward the camera it gets only 11 WU more (z +26, or +11 after the
-      // -15 offset in fishSwim.js), so a roaming fish never comes up to the lens; one following a
-      // manta that faces the camera at its own front wall waits at that wall. Free goals keep to
-      // the manta's narrower goal wedge, inside a 16:9 screen's view.
-      boundsWedge: { apexZ: 24, slope: 1.4, margin: 38, goalSlope: 0.55, goalMargin: 0 },
-      boundsYMin: -22,
-      boundsYMax: -2,
-      boundsZMin: -98,
-      boundsZMax: 26,
+      ...SHALLOWS_MANTA_FOLLOWER_BOUNDS,
       // 1 WU = 25 cm: 120 cm maximum total length = 4.8 WU.
       bodyLengthWU: 4.8,
       boids: {

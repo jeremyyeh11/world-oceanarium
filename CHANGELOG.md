@@ -25,6 +25,8 @@ Versioning convention notes:
   credited). Jeremy's model, scaled by fork length, its Commons photo (Diego Delso, CC BY-SA 4.0,
   credited) cropped to the fish; the golden trevally's carangid `caudal-wave`; Atlas pose and tile.
   Eight adults follow the three wrasses, two or three each, above and beside them. Dev rows only.
+- Bluefin fins: Jeremy's re-export sets the pelvic and pectoral fins into the body (the pelvics
+  hung just below the belly before); Atlas tile recaptured.
 
 ## v0.44.1 — Natural creature edges
 

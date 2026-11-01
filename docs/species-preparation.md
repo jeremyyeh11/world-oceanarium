@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`)
+## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`)
 
 Reserve: The Reefs, as a follower of the humphead wrasse (fish queue, Up next item 5). Felt
 intention: a quick blue hunter shadowing a slow, heavy forager, hanging just above and behind
@@ -58,6 +58,14 @@ the fork length, snout (vertex 14) to the deepest point of the fork (vertex 310)
 units = 4.68 WU; the upper lobe reaches 0.85897 (5.2 WU). The root sits halfway along the fork
 length on the body axis; the Atlas uses the same fork reference. Motion is the golden trevally's
 carangid `caudal-wave` config with amplitude and turn scaled to this model's units.
+
+Fin fix (2026-11-01, `dev_4`): in that export both pelvic roots hung about 0.009 source units
+(about 1.3 cm on a full-size fish) below the belly, visibly detached. Jeremy re-exported
+(SHA-256 `57792a36…`) with only the fin objects moved: pelvics raised 0.011, pectorals each
+0.015 toward the body. Mesh, texture, landmarks and scale are byte-for-byte the same. Measured
+by casting from each fin's root vertices to the body: pelvic roots now 0.002 inside the belly,
+pectoral roots 0.004–0.034 inside. The Atlas tile was recaptured, since the old one showed the
+gap.
 
 `creatures_dev` ids 1175–1182, eight adults, size parameters 0/0.14/…/1 (45–70 cm FL), four of
 each sex. Dev snapshots before and after (824 → 832, no existing row changed) and the production

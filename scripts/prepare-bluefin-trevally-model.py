@@ -12,7 +12,7 @@ import struct
 
 from PIL import Image
 
-SOURCE_SHA256 = 'e08edff351b92c0208dcd1e874f05f1bf88540eaab7b1a3e9f842667648212c6'
+SOURCE_SHA256 = '57792a3618396bc68f5025c8319323e658d1532cc0c7fcd03e75ecf223dd8723'
 ROOT = Path(__file__).resolve().parents[1]
 # The texture is a 1920 x 1280 underwater photo (Diego Delso, Commons, CC BY-SA 4.0); the UVs
 # use only the fish in its middle. Keep that rectangle plus a small margin, at most this wide.

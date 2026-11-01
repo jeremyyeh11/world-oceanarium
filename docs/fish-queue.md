@@ -66,7 +66,9 @@ In the order they will be added.
 17. **Koi** (*Cyprinus rubrofuscus*, domestic).
 
 Corals crowd the bommie tops: each coral release checks how many of every coral still fit
-(placement order matters; the sea fans go before the staghorn).
+(placement order matters; the sea fans go before the staghorn). The leather coral is the last
+coral for now (Jeremy, 2026-11-01): its intake sets the final balance, with room on the bommies
+for every coral ([species-preparation.md](species-preparation.md)).
 
 ## Not yet in order
 

@@ -68,21 +68,33 @@ Corals on the bommies now (last measured, from the cauliflower prep): 130 tables
 corals). The cauliflower coral (draft PR #183, 2–4 colonies a bommie on tops and upper shoulders)
 will take more staghorn spots if it lands first.
 
+Decided by Jeremy (2026-11-01, "go with your suggestion"; the cauliflower coral comes on its own
+branch; the leather coral is the last coral for now):
+
+- **Colony count: 1–3 toadstools a bommie** on the nine table bommies (about 10–25 in all) at
+  30–80 cm (1.2–3.2 WU), with a few loners on low rocks in the sand between bommies.
+- **Placement: low ledges, the foot of the rock and rubble beside it,** in one-colour patches,
+  leaving the exposed tops to the tables, staghorn and cauliflower (it is a coral of calm flats
+  and lagoons, also turbid water). The foot placement costs mostly the staghorn's foot patches
+  (`footShare` 0.35) and the brain corals' sand spots.
+- **Order: tables, sea fans, brain corals, cauliflower, leather coral, then the staghorn,** which
+  keeps clear of the leather corals as it does of the brain corals. The cauliflower is on its own
+  branch (PR #183): whichever model lands first, the leather corals go after the brain corals and
+  the cauliflower slots in before them.
+- **Space for all.** Jeremy wants the bommies populated with room for every coral. With no more
+  corals after this one, the intake fixes the final balance: measure every coral's count before
+  and after the leather corals (and, if it landed, after the cauliflower), per bommie as well as
+  in all. Gate: every table bommie still shows all its corals; the staghorn still crowns each
+  bommie; no coral falls by more than about a fifth from its count before the leather corals.
+  Where one does, trim the leather count first, then the cauliflower's, and report every coral's
+  before and after.
+- **Reef fish: solid but unvisited at first,** as the sea fans are (site rays and obstacle field,
+  no mode visits it). A toadstool is a cap on a stalk like a small table, but the `table` form
+  includes pecking, which a toxic coral must not get; a no-peck `table` row or a new form is a
+  later call.
+
 Open for Jeremy:
 
-- **Colony count.** Suggested: 1–3 toadstools a bommie on the nine table bommies (about 10–25 in
-  all) at 30–80 cm (1.2–3.2 WU), with a few loners on low rocks in the sand between bommies.
-- **Placement on the bommies.** Suggested: low ledges, the foot of the rock and rubble beside it,
-  in one-colour patches, leaving the exposed tops to the tables, staghorn and cauliflower (it is
-  a coral of calm flats and lagoons, also turbid water). Order: after the tables, sea fans, brain
-  corals and cauliflower, before the staghorn, which keeps clear of it as it does of the brain
-  corals. Each coral release re-measures every coral's count and says what each lost; the foot
-  placement costs mostly the staghorn's foot patches (`footShare` 0.35) and the brain corals'
-  sand spots.
-- **Reef fish.** A toadstool is a cap on a stalk like a small table (shelter under the cap, hover
-  at the rim), but the `table` form includes pecking, which a toxic coral must not get. Options:
-  solid but unvisited at first, as the sea fans are; a `table` row with a per-coral no-peck flag;
-  or a new form. Suggested: solid and unvisited first.
 - **GLB handoff.** 2–3 toadstools of different shapes and one colour each (a smooth young cap, a
   wide one with a deeply folded rim, one in between), each its own top-level object; upright,
   +Z up; origin at the centre of the stalk's base (the holdfast, which sinks into rock or sand);

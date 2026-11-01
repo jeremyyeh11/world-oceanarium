@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Cauliflower Coral — `pocillopora-meandrina` (prepared `v0.45.0-dev_1`, model `dev_2`)
+## Cauliflower Coral — `pocillopora-meandrina` (prepared `v0.45.0-dev_1`, model `dev_2`, shipped `v0.45.0`)
 
 Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
 (fish queue, Up next item 4). Jeremy picked *P. meandrina* over *P. damicornis* (2026-11-01):

@@ -10,11 +10,10 @@ Versioning convention notes:
 
 ## v0.45.0 — Cauliflower Coral
 
-Status: in development, `v0.45.0-dev_5`, branch `species/pocillopora-meandrina`,
-[PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183). `dev_1` prepared the species
-entry ahead of the model; `dev_2` adds Jeremy's colonies in the tank; `dev_3` the Atlas specimen and tile;
-`dev_4` puts colonies on the bommies' fronts, where the resting camera sees them; `dev_5` places
-those from the camera, since `dev_4` still showed none.
+Status: clean `v0.45.0` (2026-11-01), accepted from `v0.45.0-dev_5`, branch
+`species/pocillopora-meandrina`, [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183). Jeremy: "merge". `dev_1` prepared the species
+entry ahead of the model; `dev_2` added Jeremy's colonies in the tank; `dev_3` the Atlas specimen
+and tile; `dev_4` and `dev_5` put colonies in the resting view.
 
 ### Landscape and corals
 

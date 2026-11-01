@@ -4697,8 +4697,8 @@ export const SPECIES = [
     // Pardee et al. 2021: males mature from 32.9 cm FL; FishBase maximum 117 cm FL.
     adultLengthRangeMeters: [0.33, 1.17],
     maxBodyLengthMeters: 1.17,
-    // Proposed reserve fish 45–70 cm FL (1.8–2.8 WU): adults round the Hawaiian sample's sizes,
-    // below the rare fish over 80 cm. To confirm with Jeremy at model intake.
+    // Eight adults at 45–70 cm FL (1.8–2.8 WU), two or three per wrasse (Jeremy, 2026-11-01):
+    // round the Hawaiian sample's sizes, below the rare fish over 80 cm.
     sizeRange: [0.45 / 1.17, 0.7 / 1.17],
     // Pardee et al. 2021, W (g) = 6.77e-6 FL (mm)^3.15, rewritten for cm FL to grams.
     mass: { coefficient: 0.009563, exponent: 3.15 },
@@ -4753,7 +4753,8 @@ export const SPECIES = [
         radius: [1.15, 1.5],
         seconds: [30, 80],
         // Then it drifts round to a new station, or (`leaveChance`) swims off for `freeSeconds`.
-        leaveChance: 0.4,
+        // Low, so two or three of the eight stay with each wrasse (Jeremy, 2026-11-01).
+        leaveChance: 0.2,
         minSpeedBLPerSec: 0.3,
         // It goes looking for a wrasse anywhere on the reef.
         rangeBodyLengths: 12,

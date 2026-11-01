@@ -37,12 +37,17 @@ Research decisions:
   bluefin hunting beside a juvenile one). Rays and sharks are left off until a Reefs one exists:
   stations above a ray would sit level with its wings.
 
+Decided by Jeremy (2026-11-01):
+
+- **Life stage: adults.** Silver with a blue-bronze back, electric-blue fins and spotted flanks.
+  Juveniles (dark fins, yellow pectorals) live in sandy shallows and do not follow.
+- **Count: eight,** two or three per wrasse (the reef has one male and two females), at 45–70 cm
+  FL, in `creatures_dev` first. With so many following, `leaveChance` is 0.2, so most are with a
+  wrasse at any moment. The escort picks the nearest wrasse, not the least crowded one, so at
+  intake watch that they spread over all three rather than piling onto one.
+
 Open for Jeremy:
 
-- **Life stage:** adults proposed (blue fins and spotted flanks; juveniles have dark fins with
-  yellow pectorals and live in sandy shallows, not following).
-- **Count:** four proposed, at 45–70 cm FL, in `creatures_dev` first (the reef has one male and
-  two female wrasses).
 - **GLB handoff:** caudal-wave contract below (nose −Z, +Y up, pectorals separate); record the
   **fork length** separately, as the entry scales by fork length (4.68 WU at 117 cm). Supply photo
   provenance. At intake: carangid `caudal-wave` from the golden trevally's config, Atlas pose and

@@ -52,16 +52,15 @@ Decided by Jeremy (2026-11-01):
 
 - **Colony count: 2–4 colonies a bommie** on the nine table bommies (about 20–35 in all) at
   20–45 cm (0.8–1.8 WU), more on the most exposed tops.
-
-Open for Jeremy:
-
-- **Placement and coral crowding:** proposed on the bommie tops and upper shoulders only (its
-  wave-swept crest habitat), never on the sand, singly or in loose twos and threes rather than
-  patches. Order: after the tables, sea fans and brain corals, before the staghorn, which keeps
+- **Placement: bommie tops and upper shoulders only** (its wave-swept crest habitat), never on
+  the sand, singly or in loose twos and threes rather than patches. Order: after the tables, sea fans and brain corals, before the staghorn, which keeps
   clear of them (as for the brain corals). Last measured counts: 130 tables in 9 clusters,
   25 scattered sea fans plus 3–6 a bommie, 24 brain corals, staghorn about 310 (358 before the
   brain corals). The cauliflower colonies will take staghorn spots on the same tops; re-measure
   every coral at intake and say what each lost.
+
+Open for Jeremy:
+
 - **GLB handoff:** several colonies (2–3 colours: cream, light brown, pink or green), each its own
   object, upright, origin at the middle of its base (the holdfast, which sinks into rock), 1 unit
   = 1 m at true size (20–45 cm), photo textures listed with their sources. The staghorn's kit

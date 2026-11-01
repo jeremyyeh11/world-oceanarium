@@ -129,6 +129,7 @@ const REMORAS = [
 const SUPPLIED_REMORA_SOURCE_LENGTHS = {
   'echeneis-naucrates': 6.6014,
   'echeneis-neucratoides': 5.4912,
+  'remora-remora': 0.8604,
   'remora-albescens': 0.2996,
 }
 for (const [id, maxMeters, iucn] of REMORAS) {

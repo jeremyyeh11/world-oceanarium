@@ -165,6 +165,8 @@ const VIEW_POSES_BY_SPECIES = {
   // the fish fills about 85% of the stage's width.
   'echeneis-naucrates': { maxLengthDisplayUnits: 3.7, portraitPhoneDistanceScale: 0.9 },
   'echeneis-neucratoides': { maxLengthDisplayUnits: 1.85 },
+  // Common remora: 0.86 m, framed on the whitefin's and pilot fish's scale (about 2.4 a metre).
+  'remora-remora': { maxLengthDisplayUnits: 2.1 },
   // White suckerfish: 0.3 m standard length, a touch above the 0.25 m bannerfish's framing.
   'remora-albescens': { maxLengthDisplayUnits: 1.2 },
   // Pilot fish: 0.7 m, framed a touch shorter than the 0.75 m whitefin sharksucker.
@@ -278,6 +280,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'echeneis-naucrates': 6.6014,
   // Supplied Whitefin Sharksucker model (scripts/fit-rider-model.mjs).
   'echeneis-neucratoides': 5.4912,
+  // Supplied Common Remora model (scripts/fit-rider-model.mjs).
+  'remora-remora': 0.8604,
   // Supplied White Suckerfish model (scripts/fit-rider-model.mjs).
   'remora-albescens': 0.2996,
   // Supplied pilot fish model, nose to tail tip along Z.

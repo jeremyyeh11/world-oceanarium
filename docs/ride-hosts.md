@@ -78,8 +78,11 @@ made each entry:
   away behind its disc, and a sampled spot can bulge or dip under it. `rideAnchorFit`
   finds the tilt and the bend of the rider's rear body that lie closest to the skin on
   average, each lifted just enough that nothing cuts in, fin lobes included. A gap under
-  the disc counts three times, so riders stay on their discs: across all 198
-  rider-and-spot pairs the median disc lift is 0 and the worst is 1.4 mm.
+  the disc counts three times, so riders stay on their discs: across all 456
+  rider-and-spot pairs on the mako, the Mola, the manta (adult and smallest juvenile) and the
+  whale shark the median disc lift is 0. The worst, 13.5 mm, is a sharksucker-sized rider on
+  the juvenile manta's belly, which no sharksucker reaches (they live in The Open Sea); the
+  common remora sits flush on all 36 spots of its two hosts.
 - The bend (`rideBendProfile`) starts 30% back from the nose, behind the disc and the
   pectoral fins, and grows as the square of the distance from there. At most, the tail
   bends 15% of the rider's length toward the host. The `caudal-vertex` shader bends the
@@ -316,8 +319,10 @@ For followers only, step 1 is enough: an escort-only host needs no anchors.
 
 ## Remora models
 
-The two sharksuckers and the white suckerfish (`v0.42.0`, on the giant manta) have
-models. The other remoras keep their species entries
+The two sharksuckers, the white suckerfish (`v0.42.0`, on the giant manta) and the common
+remora (`v0.44.0`, on the mako and the whale shark) have models. The common remora's export
+came in inside out (every part with its faces inward) and is turned right side out by
+`scripts/prepare-common-remora-model.py` before the fit. The other remoras keep their species entries
 (facts, `hitchhiker` data) but no model, on no tank and out of the Atlas, until their GLBs
 arrive; they are listed in [fish-queue.md](fish-queue.md). The generated stand-ins they
 used to render were removed in `v0.37.0-dev_2`.

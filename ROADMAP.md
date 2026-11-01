@@ -799,6 +799,42 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 
 ## Released / archived
 
+### Common Remora (The Open Sea)
+
+Status: shipped in clean `v0.44.0` (2026-11-01, PR #176), from `v0.43.0-dev_3`, branch
+`species/remora-remora`.
+[Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
+
+Felt intention: the classic shark rider, a passenger that is almost never off its host. It
+should read as part of the mako or the whale shark, clamped for minutes at a time
+(`rideSeconds` 80–180), and only briefly free (`freeSeconds` 10–25). It must not read as a
+free-swimming fish that sometimes rides, the way the sharksuckers do.
+
+- [x] Facts and ride data in `species.js` (FishBase: 40 cm common, 86 cm max, LC; hosts
+  shark 1, turtle 0.5, cetacean 0.4, large fish 0.4). No published age, maturity or spawning
+  data (searched 2026-10-29; the only remora otolith study is on the marlinsucker), so those
+  Atlas fields stay Unknown.
+- [x] Size floor: 40–86 cm (1.59–3.46 WU), well above 27 cm.
+- [x] Hosts: it lies on every spot of the mako and of the whale shark (the skin-fit test now
+  covers the whale shark too: 18 spots, no disc lifted above 1.4 mm).
+- [x] Room on the hosts: at production sizes the mako (16.7 WU) and the whale shark (37.3 WU)
+  take 43.2 WU of riders; the seven sharksuckers use 24.1 WU, leaving about 19 WU, seven
+  mid-size common remoras (2.5 WU) at once.
+- [x] Jeremy's GLB (2026-11-01): turned right side out (every part came in with its faces
+  inward), photos cropped to the fish, BLEND dropped (`scripts/prepare-common-remora-model.py`);
+  5.2 MB to 1.4 MB.
+- [x] Intake: rider fit (disc 35% of the length), stroke in model units, Atlas source length
+  and framing, verifier target, test lists, The Open Sea's roster, out of hiding.
+- [x] Photo credits: the body texture is Jeremy's recolour of P. Béarez's FishBase specimen
+  photo, which FishBase marks all rights reserved; used on Jeremy's call, to be taken down if
+  the holder objects. The disc is M. M. Khan's photo (CC BY 3.0).
+- [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
+  after).
+- [x] Atlas tile (`public/atlas/remora-remora-thumbnail.png`, `v0.43.0-dev_3`).
+- [x] Jeremy's review on the preview (2026-11-01: "looks good").
+- [x] Four in production `creatures` (ids 1470–1473, as dev; 827 → 831 rows, backups before and
+  after), on Jeremy's go-ahead (2026-11-01).
+
 ### Golden Trevally (The Shallows)
 
 Status: shipped in clean `v0.41.0` (2026-10-29, PR #173), from `v0.41.0-dev_2`, branch

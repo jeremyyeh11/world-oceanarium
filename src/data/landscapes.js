@@ -129,7 +129,7 @@ const STAGHORN_KIT = {
 
 // Jeremy's brain corals (Platygyra daedalea, `_blender models/platygyra daedalea.glb`, 2026-10-30),
 // baked by scripts/build-brain-coral-kit.py: four photo-textured boulders about 1.4-1.6 m across,
-// each with _hi (his own 256-768 triangles), _lo (114-346) and _far (46-138) meshes sharing its
+// each with _hi (his own 256-768 triangles), _lo (118-346) and _far (116-216) meshes sharing its
 // 1024 px brainN-color/-normal.jpg. In metres, up +Y, origin at his object origin: the ground
 // line, with 0.22-0.52 m of rounded underside below it to be buried. 0: blue and brown, 0.70 m
 // above ground; 1: orange, 0.72 m; 2: brown, 0.64 m; 3: pale yellow-green, 0.71 m.

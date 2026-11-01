@@ -52,6 +52,41 @@ def weld(obj):
     bm.to_mesh(obj.data)
     bm.free()
 
+# Collapsing an edge across a UV island's seam leaves a triangle whose UVs span the gap between
+# islands, which the bake leaves black (a black facet on brain3_lo and _far, 2026-11-01). The
+# close-up mesh keeps its seam vertices in this group, which the decimation leaves alone.
+SEAM_GROUP = 'uv_seams'
+
+def mark_seams(obj):
+    select_only([obj], obj)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.seams_from_islands()
+    bpy.ops.object.mode_set(mode='OBJECT')
+    seam_verts = {v for e in obj.data.edges if e.use_seam for v in e.vertices}
+    group = obj.vertex_groups.new(name=SEAM_GROUP)
+    group.add(list(seam_verts), 1.0, 'REPLACE')
+    return len(seam_verts)
+
+# Triangles of `obj` whose UVs land on near-black texels of the baked colour map (`px`, RGBA
+# floats, `w` by `h`; sampled at each triangle's centre and halfway to each corner): the check for
+# the seam fault above.
+def black_triangles(obj, px, w, h):
+    uv = obj.data.uv_layers.active.data
+    def lum(u, v):
+        x = min(w - 1, max(0, int(u * w))); y = min(h - 1, max(0, int(v * h)))
+        i = (y * w + x) * 4
+        return (px[i] + px[i + 1] + px[i + 2]) / 3
+    count = 0
+    obj.data.calc_loop_triangles()
+    for tri in obj.data.loop_triangles:
+        corners = [uv[l].uv for l in tri.loops]
+        cu = sum(c[0] for c in corners) / 3; cv = sum(c[1] for c in corners) / 3
+        samples = [lum(cu, cv)] + [lum((cu + c[0]) / 2, (cv + c[1]) / 2) for c in corners]
+        if sum(samples) / len(samples) < 0.03:
+            count += 1
+    return count
+
 def decimated(obj, target, name):
     copy = obj.copy()
     copy.data = obj.data.copy()
@@ -62,6 +97,10 @@ def decimated(obj, target, name):
     if target < base:
         mod = copy.modifiers.new('decimate', 'DECIMATE')
         mod.ratio = target / base
+        if SEAM_GROUP in copy.vertex_groups:
+            mod.vertex_group = SEAM_GROUP
+            mod.invert_vertex_group = True
+            mod.vertex_group_factor = 10
         depsgraph = bpy.context.evaluated_depsgraph_get()
         mesh = bpy.data.meshes.new_from_object(copy.evaluated_get(depsgraph))
         copy.modifiers.clear()
@@ -78,7 +117,10 @@ def select_only(objs, active):
 scene.render.engine = 'CYCLES'
 scene.cycles.device = 'CPU'
 scene.cycles.samples = 4
-scene.render.bake.margin = 8
+# Wide enough to fill the gaps between the islands, so a triangle that still spans one shows the
+# neighbouring colour, never black.
+scene.render.bake.margin = 48
+scene.render.bake.margin_type = 'EXTEND'
 scene.render.bake.use_selected_to_active = True
 scene.render.bake.cage_extrusion = 0.015
 scene.render.bake.max_ray_distance = 0.04
@@ -111,6 +153,7 @@ for index, src_obj in enumerate(sources):
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.006, area_weight=1.0, scale_to_bounds=True)
     bpy.ops.object.mode_set(mode='OBJECT')
+    print('SEAMS', hi.name, mark_seams(hi), 'seam vertices')
 
     # One bake target material holding the image being written.
     mat = bpy.data.materials.new(f'brain{index}_bake')
@@ -131,6 +174,8 @@ for index, src_obj in enumerate(sources):
             bpy.ops.object.bake(type='DIFFUSE', pass_filter={'COLOR'}, use_selected_to_active=True)
         else:
             bpy.ops.object.bake(type='NORMAL', normal_space='TANGENT', use_selected_to_active=True)
+        if kind == 'color':
+            color_px = img.pixels[:]
         path = os.path.join(out_dir, f'brain{index}-{kind}.jpg')
         img.file_format = 'JPEG'
         img.save(filepath=path, quality=88)
@@ -140,7 +185,10 @@ for index, src_obj in enumerate(sources):
     far = decimated(hi, p['far'], f'brain{index}_far')
     for o in (hi, lo, far):
         o.data.materials.clear()
-        print('LOD', o.name, tri_count(o.data), 'dims', tuple(round(d, 3) for d in o.dimensions))
+        print('LOD', o.name, tri_count(o.data), 'dims', tuple(round(d, 3) for d in o.dimensions),
+              'black triangles', black_triangles(o, color_px, p['tex'], p['tex']))
+        while o.vertex_groups:
+            o.vertex_groups.remove(o.vertex_groups[0])
         exported.append(o)
 
 for o in list(scene.objects):

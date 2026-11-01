@@ -15,7 +15,7 @@ Status labels:
 
 ### Brain Coral
 
-Status: `Current in development` — `v0.43.0-dev_3`, branch `species/platygyra-daedalea`,
+Status: `Current in development` — `v0.43.0-dev_4`, branch `species/platygyra-daedalea`,
 [PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). Jeremy's model is in
 (2026-10-30): the brain corals are on The Reefs and in the Atlas.
 
@@ -45,8 +45,11 @@ Subtasks:
   colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
   the UVs and never reach the baked maps. Jeremy (2026-10-30): keep them, credited; "if anyone
   wants me to take down, i will".
-- [ ] The pale colony (brain3) has a deep crease on one side that reads as a dark notch up close.
-  It is in the source mesh, not the bake. Jeremy to fix in Blender or leave. `Blocked / waiting review`
+- [x] Black facet on the pale colony (`dev_4`): not Jeremy's mesh (closed, no sharp or inward
+  faces) but the kit script. Reducing `_hi` to `_lo` and `_far` collapsed edges across UV island
+  seams, leaving a triangle whose UVs spanned the unbaked gap between islands. The script now
+  keeps seam vertices out of the reduction, fills the gaps with the neighbouring colour (48 px
+  margin) and counts black triangles per level: 0 on all twelve meshes.
 - [x] Fish reach the low colonies (`dev_3`): on a trip to a brain coral the reef fish's floor
   drops from y −19 to the sand (−24); every other trip keeps −19. Jeremy (2026-10-31): "maybe we
   allow fish swim lower?". Measured in one session, dip off/on in alternating 2.5 min blocks

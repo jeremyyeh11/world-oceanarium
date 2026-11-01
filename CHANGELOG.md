@@ -10,9 +10,10 @@ Versioning convention notes:
 
 ## v0.43.0 — Brain Coral (in development)
 
-Status: `v0.43.0-dev_3`, branch `species/platygyra-daedalea`,
+Status: `v0.43.0-dev_4`, branch `species/platygyra-daedalea`,
 [PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). `dev_1` built everything but
-the model; `dev_2` adds Jeremy's four colonies; `dev_3` lets reef fish down to the low ones.
+the model; `dev_2` adds Jeremy's four colonies; `dev_3` lets reef fish down to the low ones;
+`dev_4` fixes a black facet on the pale colony.
 
 ### Landscape and corals
 
@@ -26,6 +27,8 @@ the model; `dev_2` adds Jeremy's four colonies; `dev_3` lets reef fish down to t
 - Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`):
   bake his colonies to three detail levels with colour and normal maps, origin at his object
   origin; run end to end on generated domes.
+- No black facet on the pale colony seen from mid-distance (`dev_4`): the kit's reduced meshes keep
+  to the baked texture.
 
 ### Behaviour and motion
 

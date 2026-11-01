@@ -68,12 +68,16 @@ Decided (Jeremy, 2026-10-31):
   seconds, then glides back down. It stays low over the sand the rest of the time. The
   manta's feeding passes are the scheduling precedent (`proceduralAnimation.feeding` in
   Fish.jsx). The draft swim room is the manta's until then.
+- **Count and life stage: three adults, one male and two females** (Jeremy, 2026-11-01).
+  Solitary, each swimming on its own. Rows at intake, inside `sizeRange` 65–90 cm: the
+  male near the breeding males' 67.5 cm, the females near their 78 cm. No juveniles.
+  Nothing written to `creatures_dev` or `creatures` yet.
 
 Open decisions for Jeremy:
 
-1. **Count and life stage.** Proposed: two or three adults, 65–90 cm shell, solitary, one
-   of them a male (long tail). Juveniles (smaller, at the foraging grounds too) would be a
-   later model. How many, and which sexes?
+1. **Male model.** Adult males have a long, thick tail reaching well past the shell and
+   larger curved fore-flipper claws. A male variant GLB (the mahi-mahi precedent), or one
+   model for all three?
 2. **GLB handoff.** One mesh for export (shell, head, four flippers), nose at `-Z`, `+Y`
    up, origin mid-shell, 1 unit = 1 m at a noted straight shell length, rest pose with the
    fore-flippers level and slightly swept back, 8–10 spanwise loops per fore-flipper. Keep

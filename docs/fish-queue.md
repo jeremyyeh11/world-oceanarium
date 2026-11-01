@@ -54,8 +54,8 @@ In the order they will be added.
 8. **Giant Clam** (*Tridacna gigas*), The Reefs. Static landscape piece in the sand between
    bommies.
 9. **East Pacific Green Turtle** (`chelonia-mydas`), The Shallows. Prepared hidden; its
-   flipper motion (`foil-flap`) is built on a stand-in. Waiting on Jeremy's GLB, count and
-   life stage ([species-preparation.md](species-preparation.md)).
+   flipper motion (`foil-flap`) is built on a stand-in. Three adults, one male. Waiting on
+   Jeremy's GLB ([species-preparation.md](species-preparation.md)).
 10. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
 11. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
 12. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.

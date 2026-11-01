@@ -21,7 +21,8 @@ Status: `Current in development` — prepared hidden in `v0.50.0-dev_1`, `foil-f
 - [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
 - [x] Jeremy approved `foil-flap-vertex` and surfacing to breathe now and then (2026-10-31).
 - [x] `foil-flap-vertex` (`dev_2`): shader in `Fish.jsx` with pivots read from the paint, stroke-group and glide clock in `src/utils/foilFlap.js` (tank and Atlas), on a generated stand-in (`scripts/build-turtle-placeholder.mjs`, 698 vertices, 1 m shell), verifier target, clock tests. Checked: glide share idle 0.45, cruise 0.37, fast 0.18; symmetric; tip down and back on the downstroke; twist leads; shell still; flipper edges outside the shell within 2.2% at cruise, 6.1% at full burst in a turn. Seen in the Atlas locally (un-hidden for the check only).
-- [ ] Jeremy: count and life stage; GLB handoff (flippers as separate objects for a paint script, or painted by hand).
+- [x] Count and life stage: three adults, one male and two females (Jeremy, 2026-11-01).
+- [ ] Jeremy: a male variant model (long tail) or one model for all three; GLB handoff (flippers as separate objects for a paint script, or painted by hand).
 - [ ] Jeremy's GLB; `scripts/paint-foil-flap-masks.py`; swap out the stand-in; retune the Atlas pose; anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
 - [ ] In The Shallows: swim room low over the sand, surfacing to breathe, the downstroke speed surge (impulse-and-decay, frame time measured), Atlas tile, rows.
 

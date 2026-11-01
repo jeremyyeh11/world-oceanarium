@@ -4502,8 +4502,8 @@ export const SPECIES = [
     // the largest turtle at the Baja foraging ground (100 cm, Seminoff et al. 2003).
     adultLengthRangeMeters: [0.61, 1.0],
     maxBodyLengthMeters: 1.0,
-    // Proposed adults 65–90 cm straight shell (2.6–3.6 WU); count and life stage to confirm with
-    // Jeremy at model intake (docs/species-preparation.md).
+    // Adults 65–90 cm straight shell (2.6–3.6 WU). Jeremy chose three adults, one male and two
+    // females (2026-11-01); rows wait for model intake (docs/species-preparation.md).
     sizeRange: [0.65, 0.9],
     // Shell length (cm) cubed to grams: Seminoff et al. 2003's mean turtle (74.3 cm, 61.5 kg)
     // gives 0.15, which matches the weighed Colola males (67.5 cm, 45.7 kg; 46 kg from this).

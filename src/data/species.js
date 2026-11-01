@@ -108,10 +108,11 @@ export const TANKS = [
       'thunnus-albacares',
       // One 9.3 m adult in production and development (prod row 411 matched dev 410, 2026-10-28).
       'rhincodon-typus',
-      // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
-      // queued until their models land (docs/fish-queue.md).
+      // Remoras: the two sharksuckers and the common remora ride the mako and the whale shark.
+      // The other remoras are queued until their models land (docs/fish-queue.md).
       'echeneis-naucrates',
       'echeneis-neucratoides',
+      'remora-remora',
     ],
   },
   {
@@ -212,7 +213,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -272,7 +273,7 @@ export const TANKS = [
     },
     landscape: 'shallows',
     camera: SHALLOWS_VIEW,
-    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus'],
+    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus', 'remora-albescens'],
   },
 ]
 
@@ -320,6 +321,21 @@ const OPEN_SEA_BOUNDS = {
 }
 // Riders share their host's swim volume, so every anchor on it stays reachable.
 const OPEN_SEA_RIDER_BOUNDS = { ...OPEN_SEA_BOUNDS, boundsYMin: -14 }
+// The giant manta's room in The Shallows (its wedge, y -14 to -4, z -80 to 15) widened by how far
+// the golden trevally's stations reach: up to 7.4 WU below the manta's middle and 17.3 WU from it
+// (sampled), in whatever direction it faces. Toward the camera it gets only 11 WU more (z +26, or
+// +11 after the -15 offset in fishSwim.js), so a roaming fish never comes up to the lens; one
+// following a manta that faces the camera at its own front wall waits at that wall. Free goals
+// keep to the manta's narrower goal wedge, inside a 16:9 screen's view. Shared by its followers
+// and riders.
+const SHALLOWS_MANTA_FOLLOWER_BOUNDS = {
+  boundsUseSpeciesSize: false,
+  boundsWedge: { apexZ: 24, slope: 1.4, margin: 38, goalSlope: 0.55, goalMargin: 0 },
+  boundsYMin: -22,
+  boundsYMax: -2,
+  boundsZMin: -98,
+  boundsZMax: 26,
+}
 const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZMin: -25, boundsZMax: 0 }
 // Reef fish reach down, back and forward to the rocks of The Reefs (landscapes.js): to y -19,
 // above the basin's highest dune crest (-20.5), back to z -52, the canyon's front faces, and
@@ -333,7 +349,13 @@ const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZ
 // are in reach too. The sand climbs above the y -19 floor from z +2 (to -18.1 at z +6); fish are
 // kept above it (rockObstacles.js liftAboveSeabed), so the floor follows the dunes there. A
 // superset of the Mola's volume, so a cleaner following it still reaches every station.
-const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
+// On a trip to a brain coral the floor drops to the sand (moundBoundsYMin, Fish.jsx
+// reefVisitBounds): most domes sit low on the bommies, tops at y -19 to -23.7, so from -19 fish
+// could only pass over the few highest and never reached a side to peck or an undercut to shelter
+// under (0 of about 90 tries, 2026-11-01). Lowering the floor for every trip instead (to -22)
+// barely raised brain coral visits (2.8% to 3.2% of reef fish time) and hid more fish behind the
+// foreground rocks from the resting camera (58% to 49% in clear view).
+const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, moundBoundsYMin: -24, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
 // The humphead wrasse's labriform swim, shared by Jeremy's male and female models: the
 // bannerfish's tuning (a stiff body that cruises on its pectorals and keeps its tail for bursts),
 // slower for a 1 to 1.5 m fish. `amplitude` is in source units, so each model sets its own.
@@ -1108,8 +1130,8 @@ export const SPECIES = [
     },
   },
   // --- Remoras (Echeneidae) ------------------------------------------------------------------
-  // Facts from FishBase species summaries unless noted. The two sharksuckers have Jeremy's models;
-  // the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
+  // Facts from FishBase species summaries unless noted. The two sharksuckers and the common
+  // remora have Jeremy's models; the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
   // from each species' documented host range (1 = its usual host, lower = recorded but
   // occasional); host groups are declared by host species in `rideHost.groups`.
   {
@@ -1338,6 +1360,8 @@ export const SPECIES = [
     scientificName: 'Remora remora',
     family: 'Echeneidae',
     alternateNames: ['Shark sucker', 'Remora'],
+    // Rendered in the dev tank (2026-11-01): the head and its big disc, three-quarter from above.
+    atlasThumbnail: '/atlas/remora-remora-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -1383,7 +1407,7 @@ export const SPECIES = [
       diet: 'Copepods + scraps',
       social: 'Hitchhiker',
     },
-    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free — so in the reserve it should spend long stretches clamped to the mako and short ones on its own.',
+    description: 'The classic shark rider. Most stay under 40 cm, though the largest reach 86 cm, and the body is brown, black, or grey. It picks parasitic copepods off its host and takes scraps and plankton, and is only sometimes found swimming free, so it spends long stretches clamped to its host and short ones on its own.',
     adultLengthRangeMeters: [0.4, 0.864],
     maxBodyLengthMeters: 0.864,
     swim: {
@@ -1398,11 +1422,45 @@ export const SPECIES = [
       hosts: { shark: 1, turtle: 0.5, cetacean: 0.4, 'large-fish': 0.4 },
       rideSeconds: [80, 180],
       freeSeconds: [10, 25],
-      discAheadBodyLengths: 0.29,
+      // Measured from the supplied GLB by scripts/fit-rider-model.mjs. Its disc is the largest
+      // of the remoras, 35% of the body length, so the disc top sits higher above the root
+      // than on the sharksuckers.
+      discAheadBodyLengths: 0.2746,
+      dorsalClearanceBodyLengths: 0.0794,
+      backProfile: [[-0.2229, 0.0451], [-0.2129, 0.0382], [-0.2029, 0.0329], [-0.1929, 0.0291], [-0.1829, 0.0271], [-0.1729, 0.02], [-0.1329, 0.0223], [-0.0929, 0.0215], [-0.0029, 0.0127], [0.0871, 0.0069], [0.1371, 0.0004], [0.1671, 0.0005], [0.1771, 0.0045], [0.2471, -0.0004], [0.3071, 0.0044], [0.3271, -0.0024], [0.3971, -0.0092], [0.4071, -0.0095], [0.4671, -0.0047], [0.4771, -0.0013], [0.5171, 0.0215], [0.5271, 0.0288], [0.5371, 0.0396], [0.5471, 0.0488], [0.5571, 0.0547], [0.5671, 0.0576], [0.5771, 0.0577], [0.6071, 0.0489], [0.6171, 0.045], [0.6671, 0.0226], [0.6771, 0.0189], [0.7271, 0.0097], [0.7371, 0.0099], [0.7671, 0.0131]],
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
-    hiddenInAtlas: true,
+    model: {
+      path: '/models/fish/remora-remora/remora-remora.glb',
+      // Supplied 2026-11-01; scripts/prepare-common-remora-model.py turns it right side out
+      // (every part came in with its faces inward) and crops both photos to the fish.
+      // Source length 0.8604 -> 3.456 WU; the root is recentred mid-length on the body axis.
+      scale: 4.0166,
+      position: [0, -0.1008, -0.3329],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        // Rig-free: the body, the suction disc as its second material split, and four
+        // separate pectoral and pelvic fins that flutter about their roots.
+        bodyMeshNames: ['remora_remora_1'],
+        followBodyMeshNames: ['remora_remora_2'],
+        // The stand-ins' 0.07 and 0.03 body lengths, in this model's source units (0.8604).
+        amplitude: 0.0602,
+        turnStrength: 0.0258,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+    // Its hosts are the Open Sea's mako and whale shark, whose spots it lies on
+    // (tests/fishRide.test.mjs). No age, maturity or spawning data is published for the species.
   },
   {
     id: 'remora-albescens',
@@ -1410,6 +1468,8 @@ export const SPECIES = [
     scientificName: 'Remora albescens',
     family: 'Echeneidae',
     alternateNames: ['White remora'],
+    // Rendered in the dev tank (2026-10-30): a free swimmer, other fish hidden.
+    atlasThumbnail: '/atlas/remora-albescens-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -1423,7 +1483,9 @@ export const SPECIES = [
       label: 'Least Concern',
     },
     atlasDetails: {
-      commonDiet: 'Unknown; barely any parasitic copepods.',
+      // FishBase (checked 2026-10-30) has no food items or diet composition for it, only a
+      // modelled trophic level, so no copepod claim.
+      commonDiet: 'Unknown',
       foundIn: 'Warm seas worldwide, oceanic, to 200 m.',
       maxLengthLabel: 'Standard length',
       sexualDimorphism: 'Unknown',
@@ -1463,24 +1525,57 @@ export const SPECIES = [
     maxBodyLengthMeters: 0.3,
     swim: {
       ...REMORA_SWIM,
-      ...OPEN_SEA_RIDER_BOUNDS,
+      // The manta's room in The Shallows, widened round it as the golden trevally's is, so a
+      // rider that lets go is never walled off from its host's belly.
+      ...SHALLOWS_MANTA_FOLLOWER_BOUNDS,
       // 30 cm maximum standard length = 1.2 WU, just above the 1.08 WU tank floor.
       bodyLengthWU: 1.2,
     },
-    // Held near the maximum so individuals do not fall far below the tank's 27 cm floor.
-    sizeRange: [0.8, 1.0],
+    // 27–30 cm: held at the maximum so no individual falls below the 27 cm (1.08 WU) floor.
+    sizeRange: [0.9, 1.0],
     mass: REMORA_MASS,
     hitchhiker: {
       // Manta rays are its host; sharks and black marlin only occasionally.
       hosts: { ray: 1, shark: 0.3, billfish: 0.3 },
       rideSeconds: [120, 240],
       freeSeconds: [8, 18],
-      // Its disc is 34–40% of standard length, starting just behind the snout.
-      discAheadBodyLengths: 0.285,
+      // Measured from the supplied GLB by scripts/fit-rider-model.mjs: the disc centre is 31%
+      // of the body length ahead of the recentred root, and the profile keeps the second dorsal
+      // and the upper tail lobe clear while the disc stays seated on the host's skin.
+      discAheadBodyLengths: 0.3099,
+      dorsalClearanceBodyLengths: 0.0647,
+      backProfile: [[-0.1876, 0.0414], [-0.1776, 0.037], [-0.1676, 0.0355], [-0.1576, 0.0324], [-0.1176, 0.0185], [-0.1076, 0.0129], [-0.0876, 0.0072], [-0.0776, 0.0051], [-0.0376, 0.0049], [0.0024, 0.0006], [0.0424, 0.0027], [0.0924, 0.0071], [0.1224, 0.0142], [0.2124, 0.0173], [0.2724, 0.0174], [0.3124, 0.0158], [0.3524, 0.0089], [0.4024, -0.0045], [0.4624, -0.0268], [0.4924, -0.0084], [0.5224, -0.0013], [0.5624, 0.0158], [0.6024, 0.0289], [0.6124, 0.0303], [0.6624, 0.0334], [0.7224, 0.0395], [0.7324, 0.0378], [0.7624, 0.0288], [0.7724, 0.02], [0.7924, -0.0165], [0.8024, -0.037]],
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
-    hiddenInAtlas: true,
+    // Jeremy's model (2026-10-30): rig-free, 1 unit = 1 m, nose -Z, separate pectoral and pelvic
+    // fins. The body's second material split is the rigid suction disc. Both textures are opaque,
+    // so no alphaBlend despite the GLB's BLEND materials.
+    model: {
+      path: '/models/fish/remora-albescens/remora-albescens.glb',
+      // Source length 0.2996 -> 1.2 WU (scripts/fit-rider-model.mjs); the root is recentred
+      // mid-length on the body axis, the frame the host-skin fit assumes.
+      scale: 4.0059,
+      position: [-0.0765, 0.0116, 3.4241],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        bodyMeshNames: ['white_remora_1'],
+        followBodyMeshNames: ['white_remora_2'],
+        // The whitefin's stroke (0.07 and 0.03 of its length) on a 0.2996-unit source.
+        amplitude: 0.021,
+        turnStrength: 0.009,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
   {
     id: 'remora-australis',
@@ -2246,8 +2341,8 @@ export const SPECIES = [
     mass: { coefficient: 0.02291, exponent: 3 },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It feeds on the reef, not over
     // it, so it pecks more than the bannerfish and holds close; resting by day, it shelters
-    // more too. Polyps are part of its diet, so it picks at both coral forms; at 0.8 WU it is
-    // small enough to slip in among the staghorn.
+    // more too. Polyps are part of its diet, so it picks at every hard coral form; at 0.8 WU it
+    // is small enough to slip in among the staghorn.
     reef: {
       affinity: 0.85,
       modes: { patrol: 0.2, hover: 0.25, peck: 0.35, shelter: 0.2 },
@@ -2255,6 +2350,7 @@ export const SPECIES = [
       corals: {
         table: { peck: 0.4, shelter: 0.4, hover: 0.3 },
         thicket: { peck: 0.3, shelter: 0.25, hover: 0.25 },
+        mound: { peck: 0.2 },
       },
     },
     model: {
@@ -2414,8 +2510,8 @@ export const SPECIES = [
       pecks: [1, 3],
       // Rich coral is its home ground (FishBase): it nibbles along the table corals' rims and
       // tucks under them as well as at the rock. Its sponges and tunicates grow on rock, not on
-      // living staghorn: it only hangs by and cruises past the thickets.
-      corals: { table: { peck: 0.65, shelter: 0.5 }, thicket: { hover: 0.25, patrol: 0.2, peck: 0 } },
+      // living staghorn: it only hangs by and cruises past the thickets, and the brain corals.
+      corals: { table: { peck: 0.65, shelter: 0.5 }, thicket: { hover: 0.25, patrol: 0.2, peck: 0 }, mound: { peck: 0 } },
     },
     hitchhiker: {
       // A cleaner like the bannerfish, joining the sunfish a little less readily.
@@ -2491,8 +2587,8 @@ export const SPECIES = [
           shelterSeconds: [15, 35],
           // Under a table coral's plate is as good a hole as any. Small enough to slip in among
           // staghorn branches too, though juveniles are mostly found under ledges and in holes
-          // (Fishes of Australia, SURG), so less often.
-          corals: { table: { shelter: 0.55 }, thicket: { shelter: 0.3, hover: 0.25, peck: 0 } },
+          // (Fishes of Australia, SURG), so less often. A brain coral's undercut edge is a ledge.
+          corals: { table: { shelter: 0.55 }, thicket: { shelter: 0.3, hover: 0.25, peck: 0 }, mound: { shelter: 0.2, peck: 0 } },
         },
         // 8–14 cm against the species' 40 cm (bodyLengthWU 1.6): 0.32–0.56 WU, under the 1.08 WU
         // sardinella floor, as a real juvenile is.
@@ -3645,18 +3741,21 @@ export const SPECIES = [
       },
     },
     // Adults from the ~4 m maturity width to the 7 m maximum (16–28 WU). The Shallows holds one
-    // adult at full size (Jeremy, 2026-10-24), not a juvenile stage.
+    // adult at full size (Jeremy, 2026-10-24); from 2026-10-30 a juvenile too (lifeStages).
     sizeRange: [0.57, 1.0],
     // Info card weight from disc width (cm → g). No published width–weight relation; cubed and
     // fitted to FishBase's one weighed manta, a 550 cm female of 1,050 kg (Galápagos): about
     // 1.2 t at 5.8 m and 2.2 t at 7 m, under FishBase's 3 t maximum. The default relation gave
     // 5.6 t at 5.8 m.
     mass: { coefficient: 0.0063, exponent: 3 },
-    // Escort-only host (docs/ride-hosts.md): followers such as the golden trevally hold stations
-    // round it, but it has no `anchors` yet, so nothing clamps on. The white suckerfish needs
-    // spots fitted to its mesh first (scripts/fit-ride-anchors.mjs).
+    // Ride host (docs/ride-hosts.md): followers such as the golden trevally hold stations round
+    // it, and remoras (the white suckerfish) clamp to spots on its belly, fitted to its mesh by
+    // scripts/fit-ride-anchors.mjs: the flat centre within 0.62 m of the midline, where the wings
+    // do not lift, behind the lower jaw that its open mouth moves. Riders heave with the body
+    // (fishSwim.js discBodyHeave). No `waveSpan`: that is for a caudal wave.
     rideHost: {
       groups: ['ray', 'large-fish'],
+      anchors: RIDE_ANCHORS['mobula-birostris'].anchors,
       // Measured with scripts/measure-ride-anchors.mjs (scale 4, 28 WU): the disc runs from the
       // head fins at z -7.1 WU to the trailing wing edge near +6.5, ±14 WU wingtip to wingtip,
       // 2.7 WU thick at the middle. Height and length cover that plus the 1.2 WU heave of the
@@ -3726,6 +3825,16 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.2,
+    },
+    // Juveniles (a creature's `lifeStage: 'juvenile'`; see speciesForLifeStage): the adult's model
+    // and colours at a smaller size (Jeremy, 2026-10-30). Pups are born 1.1–1.3 m across and
+    // mature at about 4.2 m (FishBase), and the young stay in shallow water for their first years,
+    // which is The Shallows. 2.5–3.5 m: big enough that a 30 cm white suckerfish still lies on the
+    // flat of its belly (tests/fishRide.test.mjs fits every rider at the smallest size).
+    lifeStages: {
+      juvenile: {
+        sizeRange: [0.36, 0.5],
+      },
     },
   },
   // A coral for The Reefs' landscape (Jeremy, 2026-10-19: "they need an atlas entry, since
@@ -4052,10 +4161,11 @@ export const SPECIES = [
       pecks: [1, 2],
       hoverSeconds: [3, 7],
       startleShelterChance: 0.3,
-      // Override BOTH forms: inherited defaults would have it bite live coral.
+      // Override EVERY form: inherited defaults would have it bite live coral.
       corals: {
         table: { patrol: 0.3, hover: 0.2, peck: 0, shelter: 0.4 },
         thicket: { patrol: 0.1, hover: 0.1, peck: 0, shelter: 0 },
+        mound: { patrol: 0.15, hover: 0.1, peck: 0, shelter: 0.1 },
       },
     },
     model: {
@@ -4338,18 +4448,7 @@ export const SPECIES = [
       erraticness: 0.1,
       turnRadiusBodyLengths: 1.2,
       speedMultiplier: 1.0,
-      boundsUseSpeciesSize: false,
-      // The manta's room (its wedge, y -14 to -4, z -80 to 15) widened by how far its stations
-      // reach: up to 7.4 WU below the manta's middle and 17.3 WU from it (sampled), in whatever
-      // direction it faces. Toward the camera it gets only 11 WU more (z +26, or +11 after the
-      // -15 offset in fishSwim.js), so a roaming fish never comes up to the lens; one following a
-      // manta that faces the camera at its own front wall waits at that wall. Free goals keep to
-      // the manta's narrower goal wedge, inside a 16:9 screen's view.
-      boundsWedge: { apexZ: 24, slope: 1.4, margin: 38, goalSlope: 0.55, goalMargin: 0 },
-      boundsYMin: -22,
-      boundsYMax: -2,
-      boundsZMin: -98,
-      boundsZMax: 26,
+      ...SHALLOWS_MANTA_FOLLOWER_BOUNDS,
       // 1 WU = 25 cm: 120 cm maximum total length = 4.8 WU.
       bodyLengthWU: 4.8,
       boids: {
@@ -4423,6 +4522,89 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // Brain Coral (Platygyra daedalea): the next coral for The Reefs (docs/fish-queue.md), a
+  // massive hard coral. A landscape species like the Acroporas: boulders on the table corals'
+  // bommies, on their ledges and at their feet (landscapes.js `brainCorals`,
+  // src/components/brainCoralPlacement.js), and a `mound` to the reef fish (docs/reef-behavior.md,
+  // Coral forms). Jeremy's model (2026-10-30): four photo-textured boulders, baked by
+  // scripts/build-brain-coral-kit.py; the Atlas shows three of them on a low rock
+  // (scripts/build-brain-coral-atlas.py).
+  // Facts: SeaLifeBase (IUCN LC, assessed 27 October 2023, earlier 2014; Indo-Pacific, 36°N to
+  // 34°S; 3-30 m, most reef environments, especially back reef margins; the dominant understory
+  // coral on Acropora patch reefs; colonies commonly 1 m or more; valleys 2-3 cm long and 0.5-0.6
+  // cm wide; hermaphrodite, gametes spawned through the mouth), Wikipedia (range; dome or
+  // boulder, sometimes flat or encrusting; colour varies, valleys and walls often contrasting;
+  // polyps feed at night), Lapid & Chadwick 2006 (sweeper tentacles up to 90 mm), Mangubhai &
+  // Harrison 2008 (Kenya: one gametogenic cycle a year in 84% of colonies; the major spawning in
+  // February and March, a minor one in August to October in colonies with two cycles).
+  {
+    id: 'platygyra-daedalea',
+    name: 'Brain Coral',
+    scientificName: 'Platygyra daedalea',
+    family: 'Merulinidae',
+    alternateNames: ['Lesser Valley Coral'],
+    // Tile (2026-10-30): an in-tank close-up of the blue and brown colony on the sand by its rock,
+    // rendered with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/platygyra-daedalea-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 October 2023 (SeaLifeBase); Least Concern in 2014 too (DeVantier et al.).
+      code: 'LC',
+      label: 'Least Concern',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the Red Sea and East Africa to Japan and the central Pacific, in most reef environments and especially back reef slopes, 3 to 30 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each boulder is one colony of polyps sharing a single skeleton, lined up along winding valleys that give it the look of a brain. It grows among other corals as the understory of Acropora patch reefs, and keeps its neighbours at bay with sweeper tentacles up to 9 cm long that sting the corals beside it.',
+        // Mangubhai & Harrison 2008 (Kenya); spawned through the mouth (SeaLifeBase).
+        reproduction: 'Each colony makes both eggs and sperm, once a year in most colonies, and releases them through its polyps\' mouths to meet those of other colonies. In Kenya it spawns mainly in February and March. The larvae drift in the plankton, then settle and found new colonies.',
+      },
+      averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published
+        // (colonies commonly grow to 1 m across or more, SeaLifeBase).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A hard coral that grows into domes and boulders a metre or more across, its polyps lined up along winding valleys like the folds of a brain. It is the understory of many Indo-Pacific reefs, and stings neighbouring corals with long sweeper tentacles to keep its space.',
+    // The Atlas's biggest colony across, for the scale comparison: the orange one at 0.8 of the
+    // kit's 1.55 m (colonies commonly reach 1 m or more, SeaLifeBase).
+    maxBodyLengthMeters: 1.2,
+    model: {
+      path: '/models/fish/platygyra-daedalea/platygyra-daedalea.glb',
+      // Three of the kit's colonies (orange, blue and brown, pale) on a low limestone rock, 2.6 m
+      // across (scripts/build-brain-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
     },
   },
   // Giant Clam (Tridacna gigas): queued for The Reefs (docs/fish-queue.md), a static landscape

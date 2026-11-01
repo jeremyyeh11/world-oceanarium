@@ -75,8 +75,10 @@ config and shader as the devil ray; no new motion architecture. What changes is 
   (16–28 WU; Jeremy, 2026-10-24), with no juvenile stage.
 - **Cephalic fins.** Larger than the devil ray's; rolled while cruising, as before. `A` stays
   unused until unrolling to feed is planned.
-- **Riders.** A `rideHost` block (`groups: ['ray']`) lets the white suckerfish ride it, on
-  the belly first; mouth and gill-chamber riding is a separate roadmap item.
+- **Riders.** A `rideHost` block (`groups: ['ray', 'large-fish']`) lets the white suckerfish
+  ride it on the belly's flat centre (R 0), where riders heave with the body
+  (`fishSwim.js discBodyHeave` mirrors the shader's heave; keep them in step). Mouth and
+  gill-chamber riding is a separate roadmap item. See `docs/ride-hosts.md`.
 
 Blender contract: the devil ray's, with these differences:
 

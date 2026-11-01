@@ -7,6 +7,17 @@ import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
+// The brain coral's model is in: in the Atlas, counted on The Reefs, and its kit loaded with the
+// reserve.
+const brainCoral = speciesById.get('platygyra-daedalea')
+assert.ok(!brainCoral.hiddenInAtlas, 'the brain coral is in the Atlas')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(brainCoral.id))
+const reefAssets = ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-reefs').assets.map(asset => asset.url)
+for (const url of ['/models/landscape/brain-corals.glb', '/models/landscape/brain3-normal.jpg', brainCoral.model.path]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `brain coral asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/brain-corals.glb'), 'the brain coral kit loads with The Reefs')
+
 // FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
 const trevally = speciesById.get('gnathanodon-speciosus')
 assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)
@@ -118,6 +129,8 @@ const REMORAS = [
 const SUPPLIED_REMORA_SOURCE_LENGTHS = {
   'echeneis-naucrates': 6.6014,
   'echeneis-neucratoides': 5.4912,
+  'remora-remora': 0.8604,
+  'remora-albescens': 0.2996,
 }
 for (const [id, maxMeters, iucn] of REMORAS) {
   const remora = speciesById.get(id)
@@ -148,5 +161,13 @@ for (const [id, maxMeters, iucn] of REMORAS) {
 // Standard-length maxima are labelled as such, like the sardinella's.
 assert.equal(speciesById.get('remora-albescens').atlasDetails.maxLengthLabel, 'Standard length')
 assert.equal(speciesById.get('remora-osteochir').atlasDetails.maxLengthLabel, 'Standard length')
+
+// Juvenile giant mantas: the adult model, between birth (1.1–1.3 m) and maturity (about 4 m).
+{
+  const manta = speciesById.get('mobula-birostris')
+  const [small, large] = manta.lifeStages.juvenile.sizeRange.map(size => size * manta.swim.bodyLengthWU * 0.25)
+  assert.ok(small > 1.3 && large < manta.adultLengthRangeMeters[0], 'juvenile mantas sit between birth and adult sizes')
+  assert.equal(manta.lifeStages.juvenile.model, undefined, 'a juvenile manta keeps the adult model')
+}
 
 console.log('species data correction tests passed')

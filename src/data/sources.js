@@ -365,6 +365,32 @@ export const STUDY_CREDITS = [
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
   {
+    id: 'sealifebase-platygyra-daedalea',
+    subject: 'Brain Coral status, range, depth, habitat, colony size and reproduction',
+    authors: 'SeaLifeBase',
+    title: 'Platygyra daedalea (Ellis & Solander, 1786), Brain coral',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Platygyra-daedalea.html',
+  },
+  {
+    id: 'lapid-chadwick-2006-sweeper-tentacles',
+    subject: 'Brain Coral sweeper tentacles against neighbouring corals',
+    authors: 'Lapid & Chadwick',
+    year: 2006,
+    title: 'Long-term effects of competition on coral growth and sweeper tentacle development',
+    venue: 'Marine Ecology Progress Series 313: 115–123',
+    url: 'https://doi.org/10.3354/meps313115',
+  },
+  {
+    id: 'mangubhai-harrison-2008-platygyra',
+    subject: 'Brain Coral spawning season and yearly gametogenic cycle in Kenya',
+    authors: 'Mangubhai & Harrison',
+    year: 2008,
+    title: 'Gametogenesis, spawning and fecundity of Platygyra daedalea (Scleractinia) on equatorial reefs in Kenya',
+    venue: 'Coral Reefs 27: 117–122',
+    url: 'https://doi.org/10.1007/s00338-007-0297-8',
+  },
+  {
     id: 'neo-li-2024-tridacna-gigas',
     subject: 'Giant Clam conservation status, oldest aged clam, maturity ages, eggs per spawning, spawning timing and habitat',
     authors: 'Neo & Li',
@@ -492,6 +518,26 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    // FishBase marks the photo all rights reserved; used on Jeremy's call (2026-11-01), to be
+    // taken down if the holder objects. FishBase names P. Béarez as its contributor.
+    id: 'bearez-common-remora',
+    subject: 'Common Remora body texture',
+    author: 'P. Béarez',
+    work: 'Remora remora, Salango, Manabí, Ecuador (FishBase)',
+    url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species',
+    licence: { name: 'all rights reserved', url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species' },
+    changes: 'Recoloured from the preserved specimen to the living fish\'s dark brown, mapped onto the 3D model, cropped to the fish and resized.',
+  },
+  {
+    id: 'khan-common-remora-disc',
+    subject: 'Common Remora suction disc texture',
+    author: 'Mohammad Moazzam Khan',
+    work: 'Remora remora, Pakistan (FishBase)',
+    url: 'https://commons.wikimedia.org/wiki/File:Remora_remora_1.jpg',
+    licence: { name: 'CC BY 3.0', url: 'https://creativecommons.org/licenses/by/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the disc and resized.',
+  },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
   { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },
@@ -511,7 +557,26 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
   { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
   { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
+  // ROADMAP (v0.42.0): a side photo of a live fish, and an underside specimen photo for the disc
+  // (embedded as `art_3A10`, a Springer article-figure file name).
+  { id: 'unknown-white-suckerfish', subject: 'White Suckerfish textures (two photos)' },
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },
+  // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
+  // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
+  // (v0.43.0): none is openly licensed; used on Jeremy's call (2026-10-30), taken down on request.
+  // The photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth Images
+  // Kwajalein"; the page states no licence. Shown with `url` and no `licence`.
+  {
+    id: 'kwajalein-brain-coral',
+    subject: 'Brain Coral texture (pale colony)',
+    author: 'In-Depth Images Kwajalein',
+    work: 'Platygyra cf. daedalea (k01-100711), Kwajalein Underwater',
+    url: 'https://underwaterkwaj.com/uw-misc/coral/merulinidae/Platygyra-cf-daedalea.htm',
+    changes: 'Mapped onto the 3D model and resized.',
+  },
+  // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
+  { id: 'coralsoftheworld-brain-coral', subject: 'Brain Coral textures (blue-and-brown and brown colonies, two photos)', author: 'Corals of the World' },
+  { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
 ]

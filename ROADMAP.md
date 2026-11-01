@@ -13,6 +13,23 @@ Status labels:
 
 ## Current work
 
+### Giant Clam
+
+Status: `Blocked / waiting review` — `v0.49.0-dev_1`, branch `species/tridacna-gigas`. Prepared
+for The Reefs' sand; waiting for Jeremy's decisions and GLB.
+[Prep, proposals and GLB contract](docs/species-preparation.md).
+
+Subtasks:
+- [x] Hidden species entry (no model, no rows, not in `landscapeSpecies`): IUCN CR 2024 (Neo & Li),
+  SeaLifeBase, NOAA, Pearson & Munro 1991, credited in `STUDY_CREDITS`. Weight stays Unknown.
+- [ ] Jeremy: count (4 recommended), sand placement, sizes (60–120 cm), motion (static first).
+  `Blocked / waiting review`
+- [ ] Jeremy's GLB (one open clam, shell and mantle separate, origin under the shell). `Next`
+- [ ] Then: kit script, placement module (`giantClams` in landscapes.js), obstacle field, Atlas
+  specimen and pose, unhide, `landscapeSpecies`, in-tank tile, photo credits. `Next`
+- [ ] Mantle breathing as a `coral-sway` config (needs a per-vertex swing direction) and the shadow
+  flinch (new type doc first): only on Jeremy's yes. `Backlog`
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -35,7 +52,7 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
 Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
-  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 17 entries), and the link and
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 18 entries), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).
@@ -85,7 +102,7 @@ Subtasks:
 Follow-ups (`Backlog`):
 - [ ] Riders moving between anchors on the same host (real remoras relocate when disturbed).
 - [ ] Mouth and gill-chamber riding (white suckerfish in mantas, juvenile spearfish remoras) — needs hosts with open mouths first.
-- [ ] Whalesucker, white suckerfish, marlinsucker get their real hosts in week 3 (spinner dolphin, manta, billfish): each needs only a `rideHost` block.
+- [ ] Whalesucker and marlinsucker get their real hosts in week 3 (spinner dolphin, billfish): each needs only a `rideHost` block. The manta has its spots for the white suckerfish (`v0.42.0-dev_1`).
 - [x] Remoras escort a host loosely when they have no spot or have just let go (2026-09-28, `dev_10`, Jeremy's review).
 - [ ] Week 2's non-attaching followers (pilot fish, golden trevally, rainbow runner) can reuse the remoras' `escort` stage: a `hitchhiker` block that never attaches, only escorts. Pilot fish hold ahead of the snout and golden trevally off the pectorals, so they need their own station ranges.
 
@@ -162,26 +179,88 @@ Review gates:
 
 Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
 
-### Golden Trevally (The Shallows)
+### Brain Coral
 
-Status: shipped in clean `v0.41.0` (2026-10-29, PR #173), from `v0.41.0-dev_2`, branch
-`species/gnathanodon-speciosus`; open items below are follow-ups.
-[Preparation and GLB handoff](docs/species-preparation.md) ·
-[Followers and escort-only hosts](docs/ride-hosts.md).
+Status: shipped in clean `v0.43.0` (2026-11-01, PR #177), from `v0.43.0-dev_4`, branch
+`species/platygyra-daedalea`; open items below are follow-ups.
 
-- [x] Escort-only ride hosts: a `rideHost` with no `anchors` is followed but never ridden.
-  The giant oceanic manta is one (`ray` + `large-fish`, clearance sized from its mesh).
-- [x] Species entry: FishBase facts, Farrag et al. 2019 life span, follower block with
-  stations ahead of and under the manta (clear of the wing beat, tested), swim room.
-- [x] Jeremy decided: six adults, 50–75 cm TL (2026-10-28).
-- [x] Model intake (`v0.41.0-dev_2`): `scripts/prepare-golden-trevally-model.py` centres the root
-  and crops the Commons photo to the fish (4.8 → 1.3 MB, credited); scale from total length;
-  the pilot fish's `caudal-wave` config; Atlas pose, source length and tile; roster slot in The
-  Shallows; six `creatures_dev` rows (ids 1152–1157, sizes 0–1, three of each sex). In the dev
-  tank all six were escorting the manta within 30 s, 7–12 WU from its centre.
-- [x] Jeremy accepted `dev_2` (2026-10-29). Production `creatures` ids 1451–1456 (808 → 814 rows).
-- [ ] Anchors on the manta for the white suckerfish (`scripts/fit-ride-anchors.mjs`): the wings
-  flap, so only belly spots near the middle are likely to hold. `Backlog`
+Subtasks:
+- [x] Species entry (hidden): SeaLifeBase (LC 2023; 3–30 m; colonies commonly 1 m or more; the
+  understory of Acropora patch reefs), Lapid & Chadwick 2006 (sweeper tentacles), Mangubhai &
+  Harrison 2008 (spawning), credited in `STUDY_CREDITS`.
+- [x] Placement (`src/components/brainCoralPlacement.js`): boulders on the bommies' ledges and at
+  their feet, after the tables and sea fans, before the staghorn (`inMound`); a spot that clashes
+  tries the colony smaller. Unit test `tests/brainCoralPlacement.test.mjs`.
+- [x] `mound` coral form for the reef fish: side, crown and undercut aims; per-species shares (no
+  live-coral pecks for the unicornfish and angelfish). See `docs/reef-behavior.md` (Mounds).
+- [x] Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`),
+  run end to end on a generated stand-in (two domes): 187 KB kit, 1.0 MB Atlas model.
+- [x] Measured in the tank with the stand-in kit (desktop, 2026-10-29): 23 colonies;
+  staghorn 358 → 310 colonies (−13%); reef fish visits 2 of 141 at a mound, both at a crown.
+- [x] Jeremy's model (`dev_2`): four photo-textured boulders, 1.4–1.6 m, 256–768 triangles, each
+  with 0.22–0.52 m of underside below its origin (his ground line). Kit: 96 KB GLB and eight
+  1024 px maps. Placement keeps the underside in rock or sand and never turns a colony over
+  (Jeremy: "dont flip the bottom side up"). In the tank: 24 colonies, 33 cm to 1.2 m, all four
+  colours.
+- [x] Atlas (`dev_2`): three colonies on a 2.6 m rock (2.0 MB model), checked on desktop, 375 px
+  portrait and landscape phone; in-tank tile; unhidden and on The Reefs' `landscapeSpecies`.
+- [x] Texture licences: the four photos are not openly licensed. Two carry a
+  "CoralsOfTheWorld.org" watermark (their terms: unaltered, personal, non-commercial use only);
+  one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated); the orange
+  colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
+  the UVs and never reach the baked maps. Jeremy (2026-10-30): keep them, credited; "if anyone
+  wants me to take down, i will".
+- [x] Black facet on the pale colony (`dev_4`): not Jeremy's mesh (closed, no sharp or inward
+  faces) but the kit script. Reducing `_hi` to `_lo` and `_far` collapsed edges across UV island
+  seams, leaving a triangle whose UVs spanned the unbaked gap between islands. The script now
+  keeps seam vertices out of the reduction, fills the gaps with the neighbouring colour (48 px
+  margin) and counts black triangles per level: 0 on all twelve meshes.
+- [x] Fish reach the low colonies (`dev_3`): on a trip to a brain coral the reef fish's floor
+  drops from y −19 to the sand (−24); every other trip keeps −19. Jeremy (2026-10-31): "maybe we
+  allow fish swim lower?". Measured in one session, dip off/on in alternating 2.5 min blocks
+  (desktop, 2026-11-01, 71 reef fish): time at a brain coral 2.8% → 4.2%, colonies visited 4 → 6
+  a block, pecks at a colony 0 of 31 → 9 of 26 found; time below −19 1.2%; fish in clear view
+  57% both ways; no stuck fish, jumps under 1 a minute. Rejected on the way: the floor at −22 for
+  every trip (visits 2.8% → 3.2%, clear view 58% → 49%) and double the mound shares (twice the
+  trips, all brief pass-overs, time unchanged).
+- [ ] Shelters under a colony never find a spot (0 of about 50 tries; the search goes on to rock):
+  Jeremy's domes sit buried with no undercut. Drop the mound shelter share or leave it. `Backlog`
+- [ ] Phone frame rate at The Reefs with the colonies added (light: 46–768 triangles a colony). `Next`
+
+### White Suckerfish (The Shallows)
+
+Status: shipped in clean `v0.42.0` (2026-10-30, PR #174), from `v0.42.0-dev_3`, branch
+`species/remora-albescens`; open items below are follow-ups.
+[Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
+
+- [x] Fit ride spots on the giant manta's belly (11, clear of the wings and the moving jaw);
+  riders heave with its body; golden trevally still escort it (tests).
+- [x] Hold it at 27–30 cm (`sizeRange` 0.9–1.0, the 27 cm floor).
+- [x] Jeremy's GLB (2026-10-30): 30 cm, white, separate fins, opaque textures, normals outward.
+- [x] Intake (`dev_2`): `fit-rider-model.mjs`, Atlas framing and tile, The Shallows roster slot
+  and the manta's room (`SHALLOWS_MANTA_FOLLOWER_BOUNDS`), verifier target.
+- [x] Review population: 3 (Jeremy, 2026-10-30). `creatures_dev` ids 1158–1160 (sizes 0, 0.5, 1;
+  snapshots before and after). Live check: all three clamped to the manta's belly within about
+  five minutes; a free rider sometimes gives up the chase and tries again.
+- [ ] Find the two texture photos' sources (`unknown-white-suckerfish`; the disc photo is a
+  Springer article figure, `art_3A10`). See Photo texture sources.
+- [x] Atlas diet: "Unknown" (was "Unknown; barely any parasitic copepods."). FishBase has no
+  diet data for it; the copepod line had no source (2026-10-30).
+- [x] A juvenile manta (`dev_3`, Jeremy: "add one more manta, this time a juvenile"):
+  `lifeStages.juvenile`, 2.5–3.5 m, the adult model; riders fit it at 2.5 m (tests).
+  `creatures_dev` 1161 (3 m) and three more suckerfish (1162–1164, six in all; snapshots before
+  and after). Live: the adult carried three riders, the juvenile two with a third on its way;
+  the trevally split three and three.
+- [x] Twelve white suckerfish (Jeremy, 2026-10-30): `creatures_dev` 1165–1170 added (snapshots
+  before and after). Live: 10 of 12 clamped by three minutes, five on each manta, the last two
+  docking.
+- [x] Jeremy accepted `dev_3` (2026-10-30: "write production rows, and merge clean"). Production
+  `creatures` 1457–1459 and 1461–1469, the twelve dev suckerfish (814 → 826 rows; backups before
+  and after).
+- [x] The juvenile manta's production row: `creatures` 1460, as dev 1161 (3 m, male), written
+  2026-11-01 once the live bundle served `v0.42.0` (826 → 827 rows; backups before and after).
+- [ ] Visitor changelog line for the juvenile manta in the next release bucket (a production
+  write visitors can see).
 
 ### Open Sea wider roaming
 
@@ -213,7 +292,7 @@ Subtasks:
 
 ### Giant Oceanic Manta
 
-Status: shipped in clean `v0.37.0` (2026-10-25, branch `feat/mobula-birostris`, #161). The Shallows' one big animal, on the devil ray's mobuliform disc-wave, with feeding passes; one manta in prod (id 682) and dev (id 840). Open items below are follow-ups.
+Status: shipped in clean `v0.37.0` (2026-10-25, branch `feat/mobula-birostris`, #161). The Shallows' one big animal, on the devil ray's mobuliform disc-wave, with feeding passes; one adult manta in prod (id 682) and dev (id 840); from `v0.42.0` a juvenile too (prod 1460, dev 1161). Open items below are follow-ups.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula birostris`) from FishBase and the Sharks and Rays profile: EN (2019, A2bcd+3d), CITES II; at least 7 m disc width (FishBase's 910 cm is an older record), maturity at 3.8–4.6 m, one pup about 1.2 m across; alone or in loose groups. Range checked: tagged mantas move between the Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of California (Environmental Biology of Fishes 2024, doi 10.1007/s10641-024-01622-2).
@@ -223,7 +302,7 @@ Subtasks:
 - [x] Jeremy's model (2026-10-25, `_blender models/mobula birostris.blend`): mirror and the `open mouth` shape key baked by `scripts/bake-mirror-shape-keys.py` (on a copy, with his tail and wing edits moved from the key into the basis), masks by `scripts/paint-disc-wave-masks.py --span 7`; 593 KB, JPEG textures, opaque. Top texture is Guy Stevens' photo (© Manta Trust), used by Jeremy's call (he will take it down if asked); the eye texture's source (`Mantaraya_Oceanica_-_Mobula_Birostris1`) is unknown; the belly is a generated image.
 - [x] Model wired (`dev_1`): `disc-wave-vertex`, `waveSpeed` 1.6 (about 3–4 s per beat), wingtip lift 1.0 m; verifier target. His export was inside out (every face pointing in: the Atlas showed the belly through the back); `paint-disc-wave-masks.py` now turns an inside-out mesh's faces out.
 - [x] Atlas data (`dev_1`): maturity widths by sex and life span from the Florida Museum, gestation from NOAA, birth size and weight from FishBase; sizes by sex, weights and ages Unknown where nothing is measured (CHANGELOG v0.37.0). Info-card `mass` fitted to FishBase's one weighed manta (550 cm, 1,050 kg): 1.2 t at 5.8 m, was 5.6 t.
-- [ ] `rideHost` (`groups: ['ray']`) for the white suckerfish: no use while no remora lives in The Shallows (no species repeat across reserves); revisit if the manta ever joins a reserve with riders.
+- [x] `rideHost` for the white suckerfish: 11 belly spots, shipped in `v0.42.0` with the suckerfish in The Shallows.
 - [x] Swim bounds (`dev_1`): x ±12, y −12 to −6 (the school's middle), z −20 to −65; centre on a 375 px phone's screen in 80 of 80 samples. The school parts round it (`giveWaySlot`, `startles: false`): after spawn, 1 ray inside its wings in 4 of 65 samples (was 4–13 rays in every sample).
 - [x] `creatures_dev` row 840 (size 0.6, 5.8 m), Atlas pose (2.3 units, 30° down) and tile, `dev_1`.
 - [ ] Jeremy: review on a phone (wingbeat, size against the school, the school opening round it, feeding passes). Shipped before a phone review, on his call.
@@ -340,7 +419,7 @@ Subtasks:
 - [x] Measured on desktop (shares, trip success, search ms, branch clearance, tree build ms).
 - [x] Jeremy's go-ahead on `v0.31.4-dev_1` (2026-10-20: "merge").
 - [ ] Thicket flank searches find a spot about a third of the time (rock or a table is often in the way); a search that finds none goes to rock. Raise it if the thickets still read as unused. `Backlog`
-- [ ] Mound (massive, brain, encrusting), fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. `Backlog`
+- [ ] Fan (gorgonians, soft corals) and host (anemones) forms, when a model arrives. The mound form is built for the Brain Coral (`v0.43.0-dev_1`, Current work). `Backlog`
 
 ### Staghorn coral
 
@@ -736,6 +815,63 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### Common Remora (The Open Sea)
+
+Status: shipped in clean `v0.44.0` (2026-11-01, PR #176), from `v0.43.0-dev_3`, branch
+`species/remora-remora`.
+[Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
+
+Felt intention: the classic shark rider, a passenger that is almost never off its host. It
+should read as part of the mako or the whale shark, clamped for minutes at a time
+(`rideSeconds` 80–180), and only briefly free (`freeSeconds` 10–25). It must not read as a
+free-swimming fish that sometimes rides, the way the sharksuckers do.
+
+- [x] Facts and ride data in `species.js` (FishBase: 40 cm common, 86 cm max, LC; hosts
+  shark 1, turtle 0.5, cetacean 0.4, large fish 0.4). No published age, maturity or spawning
+  data (searched 2026-10-29; the only remora otolith study is on the marlinsucker), so those
+  Atlas fields stay Unknown.
+- [x] Size floor: 40–86 cm (1.59–3.46 WU), well above 27 cm.
+- [x] Hosts: it lies on every spot of the mako and of the whale shark (the skin-fit test now
+  covers the whale shark too: 18 spots, no disc lifted above 1.4 mm).
+- [x] Room on the hosts: at production sizes the mako (16.7 WU) and the whale shark (37.3 WU)
+  take 43.2 WU of riders; the seven sharksuckers use 24.1 WU, leaving about 19 WU, seven
+  mid-size common remoras (2.5 WU) at once.
+- [x] Jeremy's GLB (2026-11-01): turned right side out (every part came in with its faces
+  inward), photos cropped to the fish, BLEND dropped (`scripts/prepare-common-remora-model.py`);
+  5.2 MB to 1.4 MB.
+- [x] Intake: rider fit (disc 35% of the length), stroke in model units, Atlas source length
+  and framing, verifier target, test lists, The Open Sea's roster, out of hiding.
+- [x] Photo credits: the body texture is Jeremy's recolour of P. Béarez's FishBase specimen
+  photo, which FishBase marks all rights reserved; used on Jeremy's call, to be taken down if
+  the holder objects. The disc is M. M. Khan's photo (CC BY 3.0).
+- [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
+  after).
+- [x] Atlas tile (`public/atlas/remora-remora-thumbnail.png`, `v0.43.0-dev_3`).
+- [x] Jeremy's review on the preview (2026-11-01: "looks good").
+- [x] Four in production `creatures` (ids 1470–1473, as dev; 827 → 831 rows, backups before and
+  after), on Jeremy's go-ahead (2026-11-01).
+
+### Golden Trevally (The Shallows)
+
+Status: shipped in clean `v0.41.0` (2026-10-29, PR #173), from `v0.41.0-dev_2`, branch
+`species/gnathanodon-speciosus`; open items below are follow-ups.
+[Preparation and GLB handoff](docs/species-preparation.md) ·
+[Followers and escort-only hosts](docs/ride-hosts.md).
+
+- [x] Escort-only ride hosts: a `rideHost` with no `anchors` is followed but never ridden.
+  The giant oceanic manta is one (`ray` + `large-fish`, clearance sized from its mesh).
+- [x] Species entry: FishBase facts, Farrag et al. 2019 life span, follower block with
+  stations ahead of and under the manta (clear of the wing beat, tested), swim room.
+- [x] Jeremy decided: six adults, 50–75 cm TL (2026-10-28).
+- [x] Model intake (`v0.41.0-dev_2`): `scripts/prepare-golden-trevally-model.py` centres the root
+  and crops the Commons photo to the fish (4.8 → 1.3 MB, credited); scale from total length;
+  the pilot fish's `caudal-wave` config; Atlas pose, source length and tile; roster slot in The
+  Shallows; six `creatures_dev` rows (ids 1152–1157, sizes 0–1, three of each sex). In the dev
+  tank all six were escorting the manta within 30 s, 7–12 WU from its centre.
+- [x] Jeremy accepted `dev_2` (2026-10-29). Production `creatures` ids 1451–1456 (808 → 814 rows).
+- [x] Anchors on the manta for the white suckerfish (`scripts/fit-ride-anchors.mjs`): 11 belly
+  spots clear of the wings and jaw, shipped in `v0.42.0`.
 
 ### v0.40.1 — Giants of the Open Sea (2026-10-28)
 

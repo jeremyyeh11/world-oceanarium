@@ -145,6 +145,17 @@ const targets = [
     minVertices: 1000,
   },
   {
+    name: 'White Suckerfish static parts',
+    path: 'public/models/fish/remora-albescens/remora-albescens.glb',
+    staticMesh: true,
+    bodyMeshNames: ['white_remora_1'],
+    requiredFollowMeshes: ['white_remora_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.25,
+    minVertices: 1000,
+  },
+  {
     name: 'Pilot Fish static parts',
     path: 'public/models/fish/naucrates-ductor/naucrates-ductor.glb',
     staticMesh: true,

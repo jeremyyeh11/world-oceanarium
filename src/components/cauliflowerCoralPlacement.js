@@ -23,10 +23,12 @@ import { inMound } from './brainCoralPlacement'
 // colony smaller (SHRINKS) before giving up.
 //
 // The tops are mostly under the table plates, so from the resting camera hardly any colony showed
-// (1 of 13 in frame). Jeremy (2026-11-01): put some on the front as well. So a bommie in frame
-// then gets `front` more colonies on ledges on its camera side, lower down (from FRONT_SHARE of its
-// height), each kept only if the resting camera sees most of its head (SIGHT_POINTS: in frame,
-// with no rock or table plate between). Two seen of three let only 1 through (2026-11-01).
+// (1 of 13 in frame). Jeremy (2026-11-01): put some on the front as well, if not add more. A pass
+// that tried spots on each bommie's camera side and kept those the camera saw (`dev_4`) still
+// showed none on his screen. So the front colonies now start from the camera: rays through the
+// lower part of the resting frame, and a colony on the first rock ledge a ray meets (any drawn
+// rock, FRONT_RANGE away), which is in view by construction; it is still kept only if the camera
+// sees most of its head (SIGHT_POINTS: no rock or table plate between).
 
 const UP = new THREE.Vector3(0, 1, 0)
 const DOWN = new THREE.Vector3(0, -1, 0)
@@ -61,13 +63,16 @@ const SHRINKS = [1, 0.75]
 // Least distance between two colonies' feet, in shares of their summed radii: a loose group, each
 // colony its own bush.
 const SPACING = 1
-// Lowest a front colony stands: this share of the way from the rock's foot to its top.
-const FRONT_SHARE = 0.1
+// Candidate rays a front colony gets; the part of the resting frame they go through (share of the
+// half width; lowest and highest share of the half height, so mostly the lower part, where the
+// rock is); and how near and far from the camera a front colony stands, in WU.
+const FRONT_ATTEMPTS = 120
+const FRONT_FRAME = [0.92, -0.92, 0.4]
+const FRONT_RANGE = [6, 60]
 // Points on a front colony's head tested for sight from the resting camera (shares of its reach
-// across the view and of its height up), and how many must be seen (one: a colony half behind a
-// rock still reads).
+// across the view and of its height up), and how many must be seen.
 const SIGHT_POINTS = [[-0.5, 0.5], [0, 0.85], [0.5, 0.5]]
-const MIN_SEEN = 1
+const MIN_SEEN = 2
 // The resting camera's half frame (fov 42, 16:9), a little inside its edges.
 const FRAME_TAN_Y = Math.tan(THREE.MathUtils.degToRad(19))
 const FRAME_TAN_X = FRAME_TAN_Y * 16 / 9
@@ -115,15 +120,15 @@ export function inBush(bushes, point, extra = 0) {
 }
 
 // Placed cauliflower corals: [{ model, matrix, site, base, reach, height, centre, top, obstacle }],
-// with `site` the index of the cluster it grows in, `base` its foot at the ground line, `centre`
-// the middle of its head and `obstacle` a piece box for rockObstacles.js. A generator, like
-// placeCorals: it yields every few candidate spots and returns the colonies when done. clusters are
-// coralClusters' (the bommies the tables crown); tables the placed tables; measures are measureBush
-// per kit model; view is the resting camera. `avoid(point, extra)`, if given, says whether a point
-// (with `extra` WU round it) is taken by a coral placed before the cauliflower corals other than
-// the tables (the sea fans and the brain corals). sightRocks, if given with a view, are every drawn
-// rock (the landscape's merged chunks), for the front colonies' sight test; without them there
-// are no front colonies.
+// with `site` the index of the cluster it grows in (a front colony off every cluster has its own,
+// from clusters.length up), `base` its foot at the ground line, `centre` the middle of its head and
+// `obstacle` a piece box for rockObstacles.js. A generator, like placeCorals: it yields every few
+// candidate spots and returns the colonies when done. clusters are coralClusters' (the bommies the
+// tables crown); tables the placed tables; measures are measureBush per kit model; view is the
+// resting camera. `avoid(point, extra)`, if given, says whether a point (with `extra` WU round it)
+// is taken by a coral placed before the cauliflower corals other than the tables (the sea fans and
+// the brain corals). sightRocks, if given with a view, are every drawn rock (the landscape's merged
+// chunks), for the front colonies; without them there are none.
 export function* placeCauliflowerCorals(landscape, clusters, tables, measures, view, avoid = null, sightRocks = null) {
   const config = landscape.cauliflowerCorals
   const plates = tables.map(table => table.plate)
@@ -133,6 +138,7 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
   const point = new THREE.Vector3()
   const lean = new THREE.Vector3()
   const axis = new THREE.Vector3()
+  const toEye = new THREE.Vector3()
   let sight = null
   if (view && sightRocks?.length && config.front) {
     const eye = new THREE.Vector3(view.x ?? 0, view.y ?? 0, view.z ?? 0)
@@ -140,7 +146,6 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
     const right = new THREE.Vector3().crossVectors(forward, UP).normalize()
     sight = { eye, forward, right, up: new THREE.Vector3().crossVectors(right, forward), rocks: rockCaster(sightRocks) }
   }
-  const toEye = new THREE.Vector3()
   // Whether `target` is in the resting camera's frame.
   const inFrame = target => {
     toEye.copy(target).sub(sight.eye)
@@ -167,81 +172,81 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
     }
     return count
   }
+  // Whether a colony placed by `matrix` (the ground line at `ground`) on `rocks` is clear: its head
+  // out of the tables, the corals placed before it, the other bushes, the sand and (bar a few
+  // points) the rock; and its foot held up all round, rock just under most of its rim.
+  const fits = (rocks, shape, matrix) => {
+    let inside = 0
+    for (const sample of shape.samples) {
+      point.copy(sample).applyMatrix4(matrix)
+      if (inTable(tableFeet, plates, point) || avoid?.(point) || inMound(placed, point)) return false
+      if (point.y < sandHeight(landscape, point.x, point.z)) return false
+      if (rocks.inside(point) && ++inside > INSIDE_ALLOWED) return false
+    }
+    let supported = 0
+    for (let k = 0; k < RIM_POINTS; k++) {
+      const a = k * Math.PI * 2 / RIM_POINTS
+      point.set(Math.cos(a) * shape.footRadius * 0.85, shape.ground, Math.sin(a) * shape.footRadius * 0.85).applyMatrix4(matrix)
+      point.y -= RIM_DEPTH
+      if (rocks.inside(point)) supported++
+    }
+    return supported >= RIM_SUPPORTED
+  }
+  // The spot's biggest colony that fits on `rocks` at (x, z) on `ledge`, or null.
+  const colonyAt = (rocks, rand, site, x, z, ledge) => {
+    const model = Math.floor(rand() * measures.length)
+    const shape = measures[model]
+    const diameter = config.diameter[0] + rand() * (config.diameter[1] - config.diameter[0])
+    lean.copy(UP).lerp(ledge.normal, LEAN_SHARE).normalize()
+    const tilt = Math.min(lean.angleTo(UP), MAX_LEAN)
+    axis.crossVectors(UP, lean)
+    const rotation = new THREE.Quaternion()
+    if (axis.lengthSq() > 1e-8) rotation.setFromAxisAngle(axis.normalize(), tilt)
+    rotation.multiply(new THREE.Quaternion().setFromAxisAngle(UP, rand() * Math.PI * 2))
+    for (const shrink of SHRINKS) {
+      const scale = diameter * shrink / (2 * shape.radius)
+      const height = (shape.height - shape.ground) * scale
+      const reach = shape.radius * scale
+      const base = new THREE.Vector3(x, ledge.y, z)
+      if (base.y + height > landscape.maxTop) continue
+      if (placed.some(other => Math.abs(other.base.y - base.y) < Math.max(other.height, height)
+        && Math.hypot(other.base.x - base.x, other.base.z - base.z) < (other.reach + reach) * SPACING)) continue
+      // The model's ground line on the ledge: its stalk below that is in the rock.
+      const position = new THREE.Vector3(0, -shape.ground * scale, 0).applyQuaternion(rotation).add(base)
+      const matrix = new THREE.Matrix4().compose(position, rotation, new THREE.Vector3(scale, scale, scale))
+      if (!fits(rocks, shape, matrix)) continue
+      return {
+        model,
+        matrix,
+        site,
+        base,
+        reach,
+        height,
+        centre: new THREE.Vector3(base.x, base.y + height / 2, base.z),
+        top: base.y + height,
+        // The colony as an obstacle box: its head, a little inside its full spread.
+        obstacle: { x: base.x, z: base.z, y: base.y, height, width: reach * 1.8, depth: reach * 1.8, yaw: 0 },
+      }
+    }
+    return null
+  }
+  const clusterBounds = clusters.map(cluster => boundsOf(cluster.geometries))
   for (const [site, cluster] of clusters.entries()) {
     const rocks = rockCaster(cluster.geometries)
-    const bounds = boundsOf(cluster.geometries)
+    const bounds = clusterBounds[site]
     const centre = bounds.getCenter(new THREE.Vector3())
     const size = bounds.getSize(new THREE.Vector3())
     const floor = bounds.min.y + size.y * UPPER_SHARE
     const rand = seededRandom(config.seed * 7919 + cluster.seed)
-    const pick = ([min, max]) => min + rand() * (max - min)
     const facing = view ? Math.atan2(view.z - centre.z, view.x - centre.x) : Math.PI / 2
-    // Whether a colony placed by `matrix` (the ground line at `ground`) is clear: its head out of
-    // the tables, the corals placed before it, the other bushes, the sand and (bar a few points)
-    // the rock; and its foot held up all round, rock just under most of its rim.
-    const fits = (shape, matrix) => {
-      let inside = 0
-      for (const sample of shape.samples) {
-        point.copy(sample).applyMatrix4(matrix)
-        if (inTable(tableFeet, plates, point) || avoid?.(point) || inMound(placed, point)) return false
-        if (point.y < sandHeight(landscape, point.x, point.z)) return false
-        if (rocks.inside(point) && ++inside > INSIDE_ALLOWED) return false
-      }
-      let supported = 0
-      for (let k = 0; k < RIM_POINTS; k++) {
-        const a = k * Math.PI * 2 / RIM_POINTS
-        point.set(Math.cos(a) * shape.footRadius * 0.85, shape.ground, Math.sin(a) * shape.footRadius * 0.85).applyMatrix4(matrix)
-        point.y -= RIM_DEPTH
-        if (rocks.inside(point)) supported++
-      }
-      return supported >= RIM_SUPPORTED
-    }
-    // A ledge in the upper part of the bommie (above `low`) straight under (x, z), or null.
-    const ledgeAt = (x, z, low = floor) => {
+    // A ledge in the upper part of the bommie straight under (x, z), or null.
+    const ledgeAt = (x, z) => {
       origin.set(x, bounds.max.y + 2, z)
-      const hit = rocks.nearest(origin, DOWN, bounds.max.y + 2 - low)
-      if (!hit || hit.point.y < low || hit.normal.y < MIN_LEDGE_UP) return null
+      const hit = rocks.nearest(origin, DOWN, bounds.max.y + 2 - floor)
+      if (!hit || hit.point.y < floor || hit.normal.y < MIN_LEDGE_UP) return null
       return { y: hit.point.y, normal: hit.normal.clone().normalize() }
     }
-    // The spot's biggest colony that fits at (x, z) on `ledge`, or null.
-    const colonyAt = (x, z, ledge) => {
-      const model = Math.floor(rand() * measures.length)
-      const shape = measures[model]
-      const diameter = pick(config.diameter)
-      lean.copy(UP).lerp(ledge.normal, LEAN_SHARE).normalize()
-      const tilt = Math.min(lean.angleTo(UP), MAX_LEAN)
-      axis.crossVectors(UP, lean)
-      const rotation = new THREE.Quaternion()
-      if (axis.lengthSq() > 1e-8) rotation.setFromAxisAngle(axis.normalize(), tilt)
-      rotation.multiply(new THREE.Quaternion().setFromAxisAngle(UP, rand() * Math.PI * 2))
-      for (const shrink of SHRINKS) {
-        const scale = diameter * shrink / (2 * shape.radius)
-        const height = (shape.height - shape.ground) * scale
-        const reach = shape.radius * scale
-        const base = new THREE.Vector3(x, ledge.y, z)
-        if (base.y + height > landscape.maxTop) continue
-        if (placed.some(other => Math.abs(other.base.y - base.y) < Math.max(other.height, height)
-          && Math.hypot(other.base.x - base.x, other.base.z - base.z) < (other.reach + reach) * SPACING)) continue
-        // The model's ground line on the ledge: its stalk below that is in the rock.
-        const position = new THREE.Vector3(0, -shape.ground * scale, 0).applyQuaternion(rotation).add(base)
-        const matrix = new THREE.Matrix4().compose(position, rotation, new THREE.Vector3(scale, scale, scale))
-        if (!fits(shape, matrix)) continue
-        return {
-          model,
-          matrix,
-          site,
-          base,
-          reach,
-          height,
-          centre: new THREE.Vector3(base.x, base.y + height / 2, base.z),
-          top: base.y + height,
-          // The colony as an obstacle box: its head, a little inside its full spread.
-          obstacle: { x: base.x, z: base.z, y: base.y, height, width: reach * 1.8, depth: reach * 1.8, yaw: 0 },
-        }
-      }
-      return null
-    }
-    const count = Math.round(pick(config.perCluster))
+    const count = Math.round(config.perCluster[0] + rand() * (config.perCluster[1] - config.perCluster[0]))
     let kept = 0
     for (let attempt = 0; attempt < count * ATTEMPTS_PER_COLONY && kept < count; attempt++) {
       if (attempt % YIELD_EVERY === YIELD_EVERY - 1) yield
@@ -252,7 +257,7 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
       const z = centre.z + Math.sin(angle) * out * size.z / 2
       const ledge = ledgeAt(x, z)
       if (!ledge) continue
-      const first = colonyAt(x, z, ledge)
+      const first = colonyAt(rocks, rand, site, x, z, ledge)
       if (!first) continue
       placed.push(first)
       kept++
@@ -266,30 +271,34 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
         const mz = first.base.z + Math.sin(a) * r
         const near = ledgeAt(mx, mz)
         if (!near) continue
-        const colony = colonyAt(mx, mz, near)
+        const colony = colonyAt(rocks, rand, site, mx, mz, near)
         if (!colony) continue
         placed.push(colony)
         kept++
         member++
       }
     }
-    // Then the front: colonies on the camera side, lower down, that the resting camera sees.
-    if (!sight || !inFrame(centre)) continue
-    const front = Math.round(pick(config.front))
-    const low = bounds.min.y + size.y * FRONT_SHARE
-    for (let attempt = 0, shown = 0; attempt < front * ATTEMPTS_PER_COLONY && shown < front; attempt++) {
-      if (attempt % YIELD_EVERY === YIELD_EVERY - 1) yield
-      const angle = facing + (rand() * 2 - 1) * 1.1
-      const out = 0.5 + rand() * 0.45
-      const x = centre.x + Math.cos(angle) * out * size.x / 2
-      const z = centre.z + Math.sin(angle) * out * size.z / 2
-      const ledge = ledgeAt(x, z, low)
-      if (!ledge) continue
-      const colony = colonyAt(x, z, ledge)
-      if (!colony || seen(colony) < MIN_SEEN) continue
-      placed.push(colony)
-      shown++
-    }
+  }
+  if (!sight) return placed
+  // Then the front: `front` colonies on the first ledges the resting camera's rays meet.
+  const rand = seededRandom(config.seed * 31 + 3)
+  const front = Math.round(config.front[0] + rand() * (config.front[1] - config.front[0]))
+  const direction = new THREE.Vector3()
+  for (let attempt = 0, shown = 0; attempt < front * FRONT_ATTEMPTS && shown < front; attempt++) {
+    if (attempt % YIELD_EVERY === YIELD_EVERY - 1) yield
+    const across = (rand() * 2 - 1) * FRONT_FRAME[0]
+    const up = FRONT_FRAME[1] + rand() * (FRONT_FRAME[2] - FRONT_FRAME[1])
+    direction.copy(sight.forward).addScaledVector(sight.right, across * FRAME_TAN_X).addScaledVector(sight.up, up * FRAME_TAN_Y).normalize()
+    const hit = sight.rocks.nearest(sight.eye, direction, FRONT_RANGE[1])
+    if (!hit || hit.distance < FRONT_RANGE[0] || hit.normal.y < MIN_LEDGE_UP || hit.normal.dot(direction) > 0) continue
+    // One thicket with the bommie it stands on, for the reef fish, or one of its own.
+    let site = clusters.length + shown
+    for (const [i, bounds] of clusterBounds.entries()) if (bounds.distanceToPoint(hit.point) < 1) site = i
+    const ledge = { y: hit.point.y, normal: hit.normal.clone().normalize() }
+    const colony = colonyAt(sight.rocks, rand, site, hit.point.x, hit.point.z, ledge)
+    if (!colony || seen(colony) < MIN_SEEN) continue
+    placed.push(colony)
+    shown++
   }
   return placed
 }

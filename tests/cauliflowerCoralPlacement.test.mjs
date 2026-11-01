@@ -53,8 +53,8 @@ try {
   }
   assert.ok(inBush(bushes, bushes[0].centre), 'a colony holds its own middle')
   assert.ok(!inBush(bushes, new THREE.Vector3(100, 0, 100)), 'and nothing far off')
-  // The front: with a resting camera at +z and the drawn rocks, a bommie in frame gets `front`
-  // more colonies on its camera side, lower down (here the shelf), each seen by the camera.
+  // The front: with a resting camera at +z and the drawn rocks, `front` more colonies on the first
+  // ledges its rays meet (here the shelf in front of the bommie), each seen by the camera.
   const view = { x: 0, y: 6, z: 40, lookX: 0, lookY: 3, lookZ: 0 }
   const fronted = { ...landscape, cauliflowerCorals: { ...landscape.cauliflowerCorals, perCluster: [2, 2], front: [3, 3] } }
   const frontRun = placeCauliflowerCorals(fronted, [{ geometries: [rock], seed: 1 }], [table], [shape], view, null, [rock])

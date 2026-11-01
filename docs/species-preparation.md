@@ -96,6 +96,15 @@ that fit were seen by none). The loosened count is not measured: the dev tank wo
 loading in a browser with no window open. Unit test: a camera in front of the test bommie gets its
 three front colonies, all on the camera side.
 
+`dev_5` (Jeremy on `dev_4`, his desktop screenshot of the default view: "i still dont see any"):
+the front colonies now start from the camera. Rays go through the lower part of the resting frame
+(92% of its half width, from 92% below the middle to 40% above it); a colony stands on the first
+rock ledge a ray meets, on any drawn rock 6 to 60 WU away, so its spot is in view by
+construction, and is kept if two of its three sight points are seen (a table plate can still hide
+it). `front: [12, 16]` in the whole view. A colony on a bommie joins that bommie's thicket; one
+off every bommie is a thicket of its own. Not measured in the tank: the dev tank again would not
+finish loading in the session's browser.
+
 Open for Jeremy: the look in the tank on his phone (the front colonies first), the tile (a
 recapture is easy), and whether the cream colony's sharper lobes need softening at the source.
 

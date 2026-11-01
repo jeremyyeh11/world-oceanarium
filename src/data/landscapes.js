@@ -472,11 +472,11 @@ export const LANDSCAPES = {
     // which keeps clear of them (Jeremy, 2026-11-01): `perCluster` colonies a bommie, on its top
     // and upper shoulders only, singly or in loose twos and threes. `diameter` in WU (20 to 45 cm:
     // colonies are commonly 20 to 40 cm across, most stopping near 40 cm, NMFS 2019). Then `front`
-    // more on the camera side of each bommie in frame, lower down, where the resting camera sees
-    // them (Jeremy, 2026-11-01: not all hidden away).
+    // more in the resting view, on the first rock ledges the camera's rays meet (Jeremy, 2026-11-01:
+    // not all hidden away).
     cauliflowerCorals: {
       kit: CAULIFLOWER_CORAL_KIT,
-      seed: 9419, perCluster: [2, 4], front: [3, 4],
+      seed: 9419, perCluster: [2, 4], front: [12, 16],
       diameter: [0.8, 1.8],
     },
   },

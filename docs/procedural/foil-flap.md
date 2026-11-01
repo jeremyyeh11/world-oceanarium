@@ -101,9 +101,10 @@ Glides matter as much as strokes. A turtle that flaps continuously reads anxious
 and all four flippers joined. Fore-flipper roots sit in the shoulder, which barely moves,
 so the flippers *could* be independent objects; but the twist needs per-vertex control
 along the blade, which whole-object rotation cannot give. Join them and let the paint
-separate them. In the `.blend` Jeremy may keep the flippers as separate objects named
-`flipper.fore.l`, `flipper.fore.r`, `flipper.hind.l`, `flipper.hind.r`: the intake script
-joins and paints them (below).
+separate them. Jeremy keeps the flippers as separate objects named `flipper.fore.l`,
+`flipper.fore.r`, `flipper.hind.l`, `flipper.hind.r` in the `.blend` (decided 2026-11-01),
+with the shell, head and neck (and the male's tail) as one more object: the intake script
+joins and paints them (below) and exports the single body mesh.
 
 **Orientation.** Nose at `-Z`, `+Y` up (the renderer turns local `-Z` to the heading),
 transforms applied. Origin at world `0`, at the centre of the shell (the follow point).
@@ -295,8 +296,9 @@ The gates:
 
 1. Separate type or a mask-fin-row variant: **separate**, Jeremy, 2026-10-31 ("ok use foil
    flap").
-2. Open: flippers kept as separate objects in the `.blend` for the paint script to join (as
-   proposed), or joined and painted by hand?
+2. Flippers: **separate named objects in the `.blend`, joined and painted by the intake
+   script** (`scripts/paint-foil-flap-masks.py`, written with the first model), Jeremy,
+   2026-11-01.
 3. Glides were built first, in the clock and the shader. The speed surge waits for the turtles
    to reach The Shallows, where it can be tuned against the swim speed and its frame cost
    measured.

@@ -78,16 +78,17 @@ Decided (Jeremy, 2026-10-31):
   `model.sexVariants.male`, as the humphead wrasse's female is. Both follow the same
   foil-flap contract; the tail is left unpainted, so it stays rigid with the shell. The
   male's rows are written only once the live bundle serves the build that draws him.
+- **Handoff: flippers as named objects** (Jeremy, 2026-11-01). In each `.blend` the four
+  flippers stay separate objects named `flipper.fore.l/r`, `flipper.hind.l/r`, beside one
+  object for the shell, head and neck (and the male's tail). An intake script
+  (`scripts/paint-foil-flap-masks.py`, written with the first model) joins them, paints the
+  masks and exports the GLB. Nose at `-Z`, `+Y` up, origin mid-shell, 1 unit = 1 m at a
+  noted straight shell length, rest pose with the fore-flippers level and slightly swept
+  back, 8–10 spanwise loops per fore-flipper. Full contract in foil-flap.md. The stand-in's
+  lesson is the script's job: the stroke weight reaches full strength where the flipper
+  leaves the shell, so the bend stays hidden inside it.
 
-Open decisions for Jeremy:
-
-1. **GLB handoff.** One mesh for export (shell, head, four flippers), nose at `-Z`, `+Y`
-   up, origin mid-shell, 1 unit = 1 m at a noted straight shell length, rest pose with the
-   fore-flippers level and slightly swept back, 8–10 spanwise loops per fore-flipper. Keep
-   the flippers as separate objects named `flipper.fore.l/r`, `flipper.hind.l/r` in the
-   `.blend` and a paint script joins and paints them? Full contract in foil-flap.md; one
-   lesson from the stand-in: the stroke weight must reach full strength where the flipper
-   leaves the shell, so the bend stays hidden inside it.
+No decisions are open. Next: Jeremy's female and male `.blend` files.
 
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 

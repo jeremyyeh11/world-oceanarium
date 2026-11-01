@@ -53,7 +53,7 @@ In the order they will be added.
    bommies.
 6. **East Pacific Green Turtle** (`chelonia-mydas`), The Shallows. Prepared hidden; its
    flipper motion (`foil-flap`) is built on a stand-in. Three adults, one male. Waiting on
-   Jeremy's female and male GLBs ([species-preparation.md](species-preparation.md)).
+   Jeremy's female and male models ([species-preparation.md](species-preparation.md)).
 7. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
 8. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
 9. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.

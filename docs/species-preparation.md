@@ -48,11 +48,13 @@ Research decisions:
   Its colonies are small and set apart, so a thicket's `inside` shelter suits only the smallest
   fish; check at intake whether the shares need trimming for it.
 
+Decided by Jeremy (2026-11-01):
+
+- **Colony count: 2–4 colonies a bommie** on the nine table bommies (about 20–35 in all) at
+  20–45 cm (0.8–1.8 WU), more on the most exposed tops.
+
 Open for Jeremy:
 
-- **Colony count:** proposed about 2–4 colonies a bommie on the nine table bommies (about 20–35 in
-  all) at 20–45 cm (0.8–1.8 WU), more on the most exposed tops. Fewer reads as accents; more
-  starts to compete with the staghorn.
 - **Placement and coral crowding:** proposed on the bommie tops and upper shoulders only (its
   wave-swept crest habitat), never on the sand, singly or in loose twos and threes rather than
   patches. Order: after the tables, sea fans and brain corals, before the staghorn, which keeps

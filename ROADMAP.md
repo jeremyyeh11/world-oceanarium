@@ -13,19 +13,6 @@ Status labels:
 
 ## Current work
 
-### Natural creature edges
-
-Status: `Current in development` — `v0.44.1-dev_1`, branch `feat/remove-creature-cyan-rim`, issue #185. Jeremy requested removal of the artificial cyan rim, with a patch-level version increment. No merge authorized.
-
-Feel: an animal lit by the water around it, not a neon outline when seen from below.
-
-- [x] Remove only the shared additive cyan backlight rim, for GLBs and instanced sardines.
-- [x] Preserve natural PBR/material sheen, body/silhouette shading, caustics, debug outlines, scene brightness, faceted normals and physical water reflections.
-- [x] Shader regressions for actual GLB/instanced helpers and retained debug outline; full local tests/lint/build/procedural gates passed. Frozen-frame Open Sea underside comparison confirms the removed rim, with natural sheen retained. Desktop runtime and mobile-layout smoke captured; not physical-phone approval.
-- [ ] Publish review build and verify exact-head CI/deployment; Jeremy visual acceptance remains open.
-- Separate backlog: make the reversed belly-shadow smoothstep defined; not part of this rim-only patch.
-
-
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -172,6 +159,19 @@ Review gates:
 - [ ] Jeremy confirms the type split and the per-doc template before the first new-type implementation starts.
 
 ## Shipped, with open follow-ups
+
+### Natural creature edges — v0.44.1
+
+Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge. Branch `feat/remove-creature-cyan-rim`.
+
+Feel: an animal lit by the water around it, not a neon outline when seen from below.
+
+- [x] Remove only the shared additive cyan backlight rim, for GLBs and instanced sardines.
+- [x] Preserve natural PBR/material sheen, body/silhouette shading, caustics, debug outlines, scene brightness, faceted normals and physical water reflections.
+- [x] Actual GLB/instanced shader regressions, retained debug-outline test, full local gates, frozen-frame underside comparison and mobile-layout smoke. Reviewed dev-head CI/Vercel passed; clean promotion/main gates recorded in PR #186.
+- [x] Jeremy accepted the iteration and authorized release. No physical-phone performance claim.
+- [ ] Backlog: make the reversed belly-shadow smoothstep defined; deliberately outside this rim-only patch.
+
 
 Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
 

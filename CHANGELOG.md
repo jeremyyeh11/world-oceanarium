@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.44.1 — Natural creature edges
 
-Status: review `v0.44.1-dev_1`, branch `feat/remove-creature-cyan-rim`, issue #185. Small patch requested by Jeremy; not approved for merge.
+Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, branch `feat/remove-creature-cyan-rim`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge.
 
 ### Lighting
 

@@ -5,7 +5,7 @@
 //   - top light:   dorsal surfaces catch the sun, bellies fall into shade; strongest high in
 //                  the column and inside a light pool
 //   - back light:  a fish seen from below sits against the bright surface, so its
-//                  camera-facing side drops toward silhouette and its edges glow
+//                  camera-facing side drops toward silhouette (no artificial edge glow)
 //   - front light: a fish in the front of the tank catches light from the viewing side
 // Runs on the lit colour before tone mapping and fog, so distant fish still fade into the
 // water haze. Shared by the GLB fish materials and the instanced sardine LODs so a sardine
@@ -132,8 +132,8 @@ vec3 fishSituationalLight(vec3 lit, vec3 albedo, vec3 worldPos, vec3 viewNormal,
   float facing = max(dot(worldNormal, -viewDir), 0.0);
   float back = smoothstep(0.04, 0.42, viewDir.y) * mix(0.55, 1.0, nearSurface);
   lit *= 1.0 - back * 0.7 * facing;
-  float rim = pow(1.0 - facing, 2.2);
-  lit += vec3(0.42, 0.86, 1.1) * rim * back * (0.35 + 0.65 * sun) * (0.5 + 0.5 * dorsal);
+  // Preserve backlit silhouette shading; edge highlights come from the material and scene
+  // lights, not an additive camera-angle-driven cyan rim.
 
   // Gallery light enters from the viewing side (+z). The swim volume spans roughly
   // z -22..-8, so the front half of it is lit; tied to the tank rather than the camera so a

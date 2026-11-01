@@ -390,6 +390,33 @@ export const STUDY_CREDITS = [
     venue: 'Coral Reefs 27: 117–122',
     url: 'https://doi.org/10.1007/s00338-007-0297-8',
   },
+  {
+    id: 'benayahu-loya-1986-sarcophyton',
+    subject: 'Leather Coral sexes, maturity ages, egg development, eggs per polyp and yearly spawning',
+    authors: 'Benayahu & Loya',
+    year: 1986,
+    title: 'Sexual reproduction of a soft coral: synchronous and brief annual spawning of Sarcophyton glaucum (Quoy & Gaimard, 1833)',
+    venue: 'The Biological Bulletin 170: 32–42',
+    url: 'https://doi.org/10.2307/1541378',
+  },
+  {
+    id: 'schleyer-2004-sarcophyton',
+    subject: 'Leather Coral reproduction and hermaphrodite colonies in South Africa',
+    authors: 'Schleyer, Kruger & Benayahu',
+    year: 2004,
+    title: 'Reproduction and the unusual condition of hermaphroditism in Sarcophyton glaucum (Octocorallia, Alcyoniidae) in KwaZulu-Natal, South Africa',
+    venue: 'Hydrobiologia 530/531: 399–409',
+    url: 'https://doi.org/10.1007/s10750-004-2683-3',
+  },
+  {
+    id: 'chao-2017-sarcophyton',
+    subject: 'Leather Coral toxins against fish and stony corals',
+    authors: 'Chao et al.',
+    year: 2017,
+    title: 'Isoprenoids from the soft coral Sarcophyton glaucum',
+    venue: 'Marine Drugs 15(7): 202',
+    url: 'https://doi.org/10.3390/md15070202',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one

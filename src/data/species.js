@@ -4607,6 +4607,86 @@ export const SPECIES = [
       scale: 4,
     },
   },
+  // Leather Coral (Sarcophyton glaucum): Jeremy's pick (2026-11-01) for the soft coral after the
+  // cauliflower coral on The Reefs (docs/fish-queue.md), a toadstool that will lean in the surge
+  // on the sea fans' sway shader (docs/procedural/coral-sway.md). Prepared ahead of its model
+  // (docs/species-preparation.md): no model, on no tank, no landscape placement, out of the Atlas.
+  // Facts: WoRMS (family Sarcophytidae; records from Mozambique and Madagascar to Fiji and Samoa),
+  // SeaLifeBase (IUCN Not Evaluated, Red List 2025-2; intertidal to considerable depths, reef
+  // flats and turbid near-shore reefs as well as offshore), Coral Trait Database (colony width
+  // 80 cm; 3-30 m at Eilat; eight tentacles a polyp; colony contracts; zooxanthellate, clade C;
+  // suspension feeder; larvae swim 14 days), Benayahu & Loya 1986 (northern Red Sea: separate
+  // sexes 1:1; males mature at 6-7 years, females after 10; eggs ripen over 22-23 months, so a
+  // female holds two batches; most colonies spawn on one night a year, 9 July in 1980; about 35
+  // eggs a polyp, via the Coral Trait Database; slow growth, long life), Schleyer et al. 2004
+  // (KwaZulu-Natal: gonochoric broadcast spawner, but 9% of colonies hermaphrodite), Chao et al.
+  // 2017 (sarcophine is toxic to fish, after Ne'eman et al. 1974; sarcophytoxide competes with
+  // stony corals for space, after Fleury et al. 2006).
+  {
+    id: 'sarcophyton-glaucum',
+    name: 'Leather Coral',
+    scientificName: 'Sarcophyton glaucum',
+    family: 'Sarcophytidae',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // SeaLifeBase, after the Red List 2025-2: never assessed.
+      code: 'NE',
+      label: 'Not Evaluated',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch from the water.',
+      foundIn: 'The Indo-Pacific, from the Red Sea and East Africa to the western Pacific, on reef flats, in lagoons and on seaward slopes, from the shallows to about 30 m deep.',
+      // Benayahu & Loya 1986: separate sexes, 1:1. Schleyer et al. 2004 found 9% of colonies at
+      // KwaZulu-Natal carrying both.
+      sexualDimorphism: 'None visible: each colony is male or female, in equal numbers.',
+      // "Long life span" (Benayahu & Loya 1986), but no age is published.
+      lifeSpan: 'Unknown',
+      maturityAge: 'Males 6 to 7 years; females over 10 years',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each toadstool is one colony of tiny eight-tentacled polyps on a fleshy, leathery body stiffened with chalky spicules, with no hard skeleton. Disturbed, it draws in its polyps and shrinks. Its tissue is laced with toxins: sarcophine poisons fish, and another compound helps it hold its ground against stony corals.',
+        reproduction: 'Each colony is male or female. Once a year, on a single summer night, most colonies release their eggs and sperm together. A female\'s eggs take nearly two years to ripen, so she always carries two batches. The larvae swim for about two weeks before settling.',
+      },
+      averages: {
+        // Colonies are male or female, but no average colony size, weight or age is published (the
+        // largest recorded is 80 cm across, Coral Trait Database).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        // Benayahu & Loya 1986: the smallest males with testes (11 cm³) were 6-7 years old; females
+        // matured at 61 cm³ or more, over 10 years old.
+        sexualMaturityYears: 'Males 6 to 7 years; females over 10 years',
+        sexualSterilityYears: 'None known',
+        // 35 eggs a polyp (Benayahu & Loya 1986, via the Coral Trait Database); one spawning a year.
+        offspringPerMatingEvent: 'About 35 eggs per polyp',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A soft coral shaped like a toadstool: a smooth stalk under a wide, folded cap up to 80 cm across, furred with tiny polyps it pulls in when disturbed. Its leathery tissue is laced with sarcophine, a toxin that keeps fish from eating it, and its colonies, male or female, spawn together on one night a year.',
+    // The largest recorded colony, 80 cm across (Coral Trait Database).
+    maxBodyLengthMeters: 0.8,
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts stay for
+    // when its GLB lands.
+    hiddenInAtlas: true,
+  },
 ]
 
 export const CREATURES = [

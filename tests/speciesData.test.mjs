@@ -18,6 +18,12 @@ for (const url of ['/models/landscape/brain-corals.glb', '/models/landscape/brai
 }
 assert.ok(reefAssets.includes('/models/landscape/brain-corals.glb'), 'the brain coral kit loads with The Reefs')
 
+// The leather coral is prepared ahead of its model: out of the Atlas and on no tank.
+const leatherCoral = speciesById.get('sarcophyton-glaucum')
+assert.equal(leatherCoral.hiddenInAtlas, true, 'the leather coral stays out of the Atlas until its model lands')
+assert.equal(leatherCoral.model, undefined, 'the leather coral has no model yet')
+assert.ok(TANKS.every(tank => !tank.species.includes(leatherCoral.id) && !(tank.landscapeSpecies ?? []).includes(leatherCoral.id)), 'the leather coral is on no tank')
+
 // FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
 const trevally = speciesById.get('gnathanodon-speciosus')
 assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)

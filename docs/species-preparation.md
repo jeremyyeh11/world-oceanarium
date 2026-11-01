@@ -6,6 +6,94 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
+## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`)
+
+Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
+(fish queue, Up next item 6), swaying on the sea fans' `coral-sway` shader. Jeremy picked
+*S. glaucum*, the toadstool leather coral, over *S. trocheliophorum* (2026-11-01): it has the
+classic mushroom silhouette (smooth stalk, wide folded cap) and by far the best-studied biology;
+the elephant-ear species would have left most of the Atlas Unknown.
+
+Felt intention: a few fat, fleshy toadstools that lean slowly with the surge, their caps
+rocking together like one thick body, not a lattice. Why: it is a soft coral with no hard
+skeleton, a leathery body stiffened only by spicules, that grows slowly and lives long on calm
+reef flats, lagoons and the lower flanks of reefs. Must not happen: wobbling like jelly,
+fluttering like the fan's rim, swinging further than the fans beside it, or moving out of step
+with the surge that moves them.
+
+Prepared: hidden species entry (no model, on no tank, no landscape placement, out of the Atlas),
+Benayahu & Loya 1986, Schleyer et al. 2004 and Chao et al. 2017 credited in `STUDY_CREDITS`, and
+a test that keeps it hidden and off every tank.
+
+Size check: colonies up to 80 cm across (Coral Trait Database) = 3.2 WU, above the 27 cm /
+1.08 WU floor even at a young 30 cm (1.2 WU).
+
+Research decisions:
+
+- WoRMS: family Sarcophytidae (no longer Alcyoniidae); records from Mozambique and Madagascar to
+  Fiji and Samoa. SeaLifeBase lists only New Caledonia, Taiwan, the Ryukyus and Palau, which is
+  narrower than the studies (Red Sea, KwaZulu-Natal), so `foundIn` follows the studies.
+- IUCN: Not Evaluated (SeaLifeBase, Red List 2025-2). No *Sarcophyton* has been assessed.
+- Depth: 3–30 m in the Eilat population (Coral Trait Database, median 16.5 m); SeaLifeBase adds
+  the intertidal. The Reefs' drawn 0–10 m sits inside that.
+- Benayahu & Loya 1986 decide sex, maturity, spawning and eggs: separate sexes 1:1; males mature
+  at 6–7 years, females after 10; eggs ripen over 22–23 months, so a female holds two batches;
+  most colonies spawn on one summer night (9 July 1980); about 35 eggs a polyp; larvae swim
+  14 days. Schleyer et al. 2004 found 9% of KwaZulu-Natal colonies carrying both sexes, noted in
+  a comment only.
+- Size, weight and life span stay Unknown: no average or age is published ("long life span").
+  Colour is left out of the copy: only aquarium-trade sources describe it (tan, cream, brown,
+  yellowish or greenish).
+- Toxins (Chao et al. 2017): sarcophine is toxic to fish, sarcophytoxide fights stony corals for
+  space. Reef fish should therefore never peck it.
+
+Sway config the GLB will need (proposed, tune at intake):
+
+- **No vertex-paint channels.** `coral-sway` bakes `aSwayFlex` (distance from the holdfast over
+  the colony's reach) and `aSway` at placement (`addSwayAttributes`), so the model needs none;
+  `COLOR_0` stays white or absent. The `flex²` falloff keeps the stalk nearly still and moves the
+  cap's rim most, which is the lean wanted.
+- **Swing direction: the current itself,** horizontal. A fan swings along its face normal, which
+  placement points down the current; a toadstool has no face, so its placement script passes the
+  landscape's `current` (x, z) straight to `addSwayAttributes`. Phase from position along the
+  current as for the fans, so a fan and a toadstool side by side lean together.
+- **A `LEATHER_CORAL_SWAY` beside `SEA_FAN_SWAY`:** the same `period` 7 (one surge for the whole
+  reef), `bend` about 0.03 (half the fans': a thick, rubbery body), `flutter` about 0.1 (a fleshy
+  cap barely ripples). Different `flutter` compiles one more shader program, nothing per frame.
+- `coral-sway.md` holds only the sea fan's Blender contract; the toadstool contract below joins
+  it at intake.
+
+Corals on the bommies now (last measured, from the cauliflower prep): 130 tables in 9 clusters,
+25 scattered sea fans plus 3–6 a bommie, 24 brain corals, staghorn about 310 (358 before the brain
+corals). The cauliflower coral (draft PR #183, 2–4 colonies a bommie on tops and upper shoulders)
+will take more staghorn spots if it lands first.
+
+Open for Jeremy:
+
+- **Colony count.** Suggested: 1–3 toadstools a bommie on the nine table bommies (about 10–25 in
+  all) at 30–80 cm (1.2–3.2 WU), with a few loners on low rocks in the sand between bommies.
+- **Placement on the bommies.** Suggested: low ledges, the foot of the rock and rubble beside it,
+  in one-colour patches, leaving the exposed tops to the tables, staghorn and cauliflower (it is
+  a coral of calm flats and lagoons, also turbid water). Order: after the tables, sea fans, brain
+  corals and cauliflower, before the staghorn, which keeps clear of it as it does of the brain
+  corals. Each coral release re-measures every coral's count and says what each lost; the foot
+  placement costs mostly the staghorn's foot patches (`footShare` 0.35) and the brain corals'
+  sand spots.
+- **Reef fish.** A toadstool is a cap on a stalk like a small table (shelter under the cap, hover
+  at the rim), but the `table` form includes pecking, which a toxic coral must not get. Options:
+  solid but unvisited at first, as the sea fans are; a `table` row with a per-coral no-peck flag;
+  or a new form. Suggested: solid and unvisited first.
+- **GLB handoff.** 2–3 toadstools of different shapes and one colour each (a smooth young cap, a
+  wide one with a deeply folded rim, one in between), each its own top-level object; upright,
+  +Z up; origin at the centre of the stalk's base (the holdfast, which sinks into rock or sand);
+  1 unit = 1 m at true size (30–80 cm across). Faceted, about 1,000–2,500 triangles each, with at
+  least 4 rings up the stalk and 6 or more rings out across the cap so the lean bends rather than
+  shears. Polyps painted in the texture, not modelled. Opaque photo or painted texture (no
+  alpha), each photo's source listed for `IMAGE_CREDITS`. No bones, clips, shape keys or
+  vertex paint. A kit script on the brain corals' pattern (`scripts/build-brain-coral-kit.py`)
+  and a placement module beside `brainCoralPlacement.js` are written at intake; Atlas: the
+  toadstools on a low rock, swaying (`prepareAtlasSway`); tile from an in-tank close-up.
+
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 
 Reserve: The Shallows, as a follower of the giant manta (Jeremy, 2026-10-28). Felt

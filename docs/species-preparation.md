@@ -72,13 +72,16 @@ Decided (Jeremy, 2026-10-31):
   Solitary, each swimming on its own. Rows at intake, inside `sizeRange` 65–90 cm: the
   male near the breeding males' 67.5 cm, the females near their 78 cm. No juveniles.
   Nothing written to `creatures_dev` or `creatures` yet.
+- **Male variant model** (Jeremy, 2026-11-01): the male gets his own GLB with the long,
+  thick tail reaching well past the shell and the larger curved fore-flipper claws. The
+  female model is the base (`chelonia-mydas.glb`), the male `chelonia-mydas-male.glb` in
+  `model.sexVariants.male`, as the humphead wrasse's female is. Both follow the same
+  foil-flap contract; the tail is left unpainted, so it stays rigid with the shell. The
+  male's rows are written only once the live bundle serves the build that draws him.
 
 Open decisions for Jeremy:
 
-1. **Male model.** Adult males have a long, thick tail reaching well past the shell and
-   larger curved fore-flipper claws. A male variant GLB (the mahi-mahi precedent), or one
-   model for all three?
-2. **GLB handoff.** One mesh for export (shell, head, four flippers), nose at `-Z`, `+Y`
+1. **GLB handoff.** One mesh for export (shell, head, four flippers), nose at `-Z`, `+Y`
    up, origin mid-shell, 1 unit = 1 m at a noted straight shell length, rest pose with the
    fore-flippers level and slightly swept back, 8–10 spanwise loops per fore-flipper. Keep
    the flippers as separate objects named `flipper.fore.l/r`, `flipper.hind.l/r` in the

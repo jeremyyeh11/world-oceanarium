@@ -15,8 +15,8 @@ Versioning convention notes:
 - East Pacific Green Turtle (`chelonia-mydas`) prepared, hidden: IUCN Vulnerable (East
   Pacific subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity
   ages and the oldest aged turtle (credited), a draft escort-only `rideHost` (`turtle`).
-  Three adults planned, one male (Jeremy). No roster slot or rows yet, so visitors see no
-  change.
+  Three adults planned, one male on his own long-tailed model (Jeremy). No roster slot or
+  rows yet, so visitors see no change.
 
 ### Behaviour and motion
 

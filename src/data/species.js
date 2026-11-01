@@ -4557,7 +4557,8 @@ export const SPECIES = [
     adultLengthRangeMeters: [0.61, 1.0],
     maxBodyLengthMeters: 1.0,
     // Adults 65–90 cm straight shell (2.6–3.6 WU). Jeremy chose three adults, one male and two
-    // females (2026-11-01); rows wait for model intake (docs/species-preparation.md).
+    // females, the male on his own long-tailed model (2026-11-01); rows wait for model intake
+    // (docs/species-preparation.md).
     sizeRange: [0.65, 0.9],
     // Shell length (cm) cubed to grams: Seminoff et al. 2003's mean turtle (74.3 cm, 61.5 kg)
     // gives 0.15, which matches the weighed Colola males (67.5 cm, 45.7 kg; 46 kg from this).

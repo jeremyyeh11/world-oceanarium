@@ -160,6 +160,19 @@ Review gates:
 
 ## Shipped, with open follow-ups
 
+### Natural creature edges — v0.44.1
+
+Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge. Branch `feat/remove-creature-cyan-rim`.
+
+Feel: an animal lit by the water around it, not a neon outline when seen from below.
+
+- [x] Remove only the shared additive cyan backlight rim, for GLBs and instanced sardines.
+- [x] Preserve natural PBR/material sheen, body/silhouette shading, caustics, debug outlines, scene brightness, faceted normals and physical water reflections.
+- [x] Actual GLB/instanced shader regressions, retained debug-outline test, full local gates, frozen-frame underside comparison and mobile-layout smoke. Reviewed dev-head CI/Vercel passed; clean promotion/main gates recorded in PR #186.
+- [x] Jeremy accepted the iteration and authorized release. No physical-phone performance claim.
+- [ ] Backlog: make the reversed belly-shadow smoothstep defined; deliberately outside this rim-only patch.
+
+
 Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
 
 ### Brain Coral

@@ -34,12 +34,13 @@ h.jsx = (type, props, ...children) => {
   return object
 }
 const result = await build({
-  stdin: { contents: `export {default as Fish, applyModelMaterialSettings} from './src/components/Fish.jsx'; export {getSardineLod0Stats} from './src/components/sardineInstanceRegistry.js'; export {pruneFishRuntime} from './src/components/fishRuntimeStore.js';`, resolveDir: resolve('.') },
+  stdin: { contents: `export {default as Fish, applyModelMaterialSettings} from './src/components/Fish.jsx'; export {getSardineLod0Stats} from './src/components/sardineInstanceRegistry.js'; export {addSardineWiggleMaterial} from './src/components/SardineInstancedLayer.jsx'; export {pruneFishRuntime} from './src/components/fishRuntimeStore.js';`, resolveDir: resolve('.') },
   bundle: true, write: false, format: 'esm', platform: 'node', jsxFactory: '__debugJSX', jsxFragment: '__debugFragment',
   banner: { js: `const __debugJSX=globalThis.${key}.jsx; const __debugFragment=Symbol('fragment');` },
   define: { 'import.meta.env.DEV': 'false' },
   plugins: [{ name: 'frame-dependencies', setup(b) {
     b.onLoad({ filter: /components[\\/]Fish\.jsx$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')) + '\nexport { applyModelMaterialSettings };', loader: 'jsx' }))
+    b.onLoad({ filter: /components[\\/]SardineInstancedLayer\.jsx$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')) + '\nexport { addSardineWiggleMaterial };', loader: 'jsx' }))
     b.onResolve({ filter: /^three(\/.*)?$/ }, args => ({ path: pathToFileURL(require.resolve(args.path)).href, external: true }))
     b.onResolve({ filter: /^(react|@react-three\/fiber|@react-three\/drei)$|\/hooks\/(useEnvironmentLoading|useOceanAudio)$|^\.\/WaterSurface$/ }, args => ({ path: args.path, namespace: 'stub' }))
     b.onLoad({ filter: /.*/, namespace: 'stub' }, args => {
@@ -68,7 +69,24 @@ for (const colour of [null, '#454545', null, '#ff4fd8', null, '#454545', null]) 
   const shader = { vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader, uniforms: {} }
   mesh.material.onBeforeCompile(shader, {})
   assert.equal(shader.fragmentShader.includes('float debugLevel'), Boolean(colour), 'normal shader restored on every off path')
+  assert.doesNotMatch(shader.fragmentShader, /lit \+= vec3\(0\.42, 0\.86, 1\.1\)/, 'ordinary GLB shader never adds the artificial cyan backlight rim')
+  assert.match(shader.fragmentShader, /lit \*= 1\.0 - back \* 0\.7 \* facing/, 'backlit silhouette shading remains')
+  assert.equal(shader.uniforms.uRimIntensity.value, 0, 'ordinary GLB has no debug selection rim')
 }
+// Same shared lighting on actual instanced sardine material; no glow at an LOD swap.
+const instanced = runtime.addSardineWiggleMaterial(original)
+const instancedShader = { vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader, uniforms: {} }
+instanced.onBeforeCompile(instancedShader, {})
+assert.doesNotMatch(instancedShader.fragmentShader, /lit \+= vec3\(0\.42, 0\.86, 1\.1\)/, 'instanced sardines also lose the artificial rim')
+assert.match(instancedShader.fragmentShader, /lit \*= 1\.0 - back \* 0\.7 \* facing/)
+assert.match(instancedShader.vertexShader, /uSardineWiggleTime/, 'sardine wiggle is retained')
+instanced.dispose()
+// The separate explicit debug outline is not part of this removal.
+allocated.push(...runtime.applyModelMaterialSettings(modelRoot, { color: '#57c7e8', intensity: 1.65, power: 3.1 }))
+const selectedShader = { vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader, uniforms: {} }
+mesh.material.onBeforeCompile(selectedShader, {})
+assert.equal(selectedShader.uniforms.uRimIntensity.value, 1.65)
+assert.match(selectedShader.fragmentShader, /gl_FragColor.rgb \+= uRimColor \* rimAmount \* uRimIntensity/)
 allocated.forEach(material => material.dispose()); original.dispose(); mesh.geometry.dispose()
 const camera = new THREE.PerspectiveCamera(61, 16 / 9, 0.1, 200)
 camera.position.set(0, -8, 80)

@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.44.0',
+    date: '2026-11-01',
+    title: 'Common Remora',
+    changes: [
+      ['new', 'Four Common Remoras ride the mako and the whale shark in The Open Sea, dark brown shark riders with the biggest suction disc of any remora, clamped on for minutes at a time.'],
+      ['new', 'Meet the Common Remora in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.43.0',
     date: '2026-11-01',
     title: 'Brain Coral',

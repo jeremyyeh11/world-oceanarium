@@ -232,7 +232,7 @@ let worstDiscLift = 0
 const rearGaps = new Map()
 // The juvenile manta (lifeStages.juvenile) at its smallest: the same spots, a shorter host.
 const juvenileMantaSpecies = { ...mantaSpecies, swim: { ...mantaSpecies.swim, bodyLengthWU: mantaSpecies.swim.bodyLengthWU * mantaSpecies.lifeStages.juvenile.sizeRange[0] } }
-for (const [hostName, hostSpecies] of [['mako', makoSpecies], ['mola', molaSpecies], ['manta', mantaSpecies], ['juvenile manta', juvenileMantaSpecies]]) {
+for (const [hostName, hostSpecies] of [['mako', makoSpecies], ['mola', molaSpecies], ['manta', mantaSpecies], ['juvenile manta', juvenileMantaSpecies], ['whale shark', speciesById.get('rhincodon-typus')]]) {
   const hostProfile = rideHostProfile(hostSpecies)
   const hostLength = hostSpecies.swim.bodyLengthWU
   for (const riderSpecies of SPECIES.filter(s => hitchhikerProfile(s)?.attaches && rideHostWeight(hitchhikerProfile(s), hostProfile) > 0)) {

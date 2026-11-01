@@ -16,14 +16,14 @@ Status labels:
 ### Giant Clam
 
 Status: `Blocked / waiting review` — `v0.49.0-dev_1`, branch `species/tridacna-gigas`. Prepared
-for The Reefs' sand; waiting for Jeremy's decisions and GLB.
+for The Reefs' sand; layout decided; waiting for Jeremy's GLB.
 [Prep, proposals and GLB contract](docs/species-preparation.md).
 
 Subtasks:
 - [x] Hidden species entry (no model, no rows, not in `landscapeSpecies`): IUCN CR 2024 (Neo & Li),
   SeaLifeBase, NOAA, Pearson & Munro 1991, credited in `STUDY_CREDITS`. Weight stays Unknown.
-- [ ] Jeremy: count (4 recommended), sand placement, sizes (60–120 cm), motion (static first).
-  `Blocked / waiting review`
+- [x] Jeremy's decisions (2026-11-01): 4 clams, on the open sand at the bommies' feet in the
+  front half of the basin with one mid-phone view, 60–120 cm, static first.
 - [ ] Jeremy's GLB (one open clam, shell and mantle separate, origin under the shell). `Next`
 - [ ] Then: kit script, placement module (`giantClams` in landscapes.js), obstacle field, Atlas
   specimen and pose, unhide, `landscapeSpecies`, in-tank tile, photo credits. `Next`

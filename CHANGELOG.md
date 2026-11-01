@@ -16,8 +16,9 @@ Status: `v0.49.0-dev_1`, branch `species/tridacna-gigas`, prepared and waiting f
 
 - Giant Clam (`tridacna-gigas`): hidden entry for The Reefs' sand (IUCN Critically Endangered,
   Neo & Li 2024; SeaLifeBase sizes; 76-year oldest aged clam; maturity from culture). Weight stays
-  Unknown (no published length–weight relation). No model, not placed, out of the Atlas. Prep,
-  motion proposals and open decisions in `docs/species-preparation.md`.
+  Unknown (no published length–weight relation). No model, not placed, out of the Atlas. Layout
+  decided by Jeremy: 4 static clams, 60–120 cm, on the front-half sand at the bommies' feet. Prep,
+  motion proposals and the GLB contract in `docs/species-preparation.md`.
 
 ## v0.44.0 — Common Remora (2026-11-01)
 

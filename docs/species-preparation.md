@@ -75,20 +75,22 @@ sand, hinge down, lips up, long axis roughly across the view so the fluting read
 inside a 375 px phone's middle view (about ±13 WU across the centre). A clam joins the rock
 obstacle field as a low solid; it is not a coral form and gives the reef fish no new site.
 
-Open decisions for Jeremy:
+Decided by Jeremy (2026-11-01, taking the recommendations):
 
-1. **Count.** Recommended **4**, scattered, no two within about 8 WU (2 m). Wild clams are now
-   rare (most groups under 10); the densest recorded reef would put about 13 on the basin floor,
-   which would read as a clam farm.
-2. **Sand placement.** Recommended: the open sand at the bommies' feet in the front half of the
-   basin, one near the middle of the phone view. Alternatives: only far back by the canyon
-   (calmer, less seen), or right in front of the glass (biggest, but under the camera).
-3. **Sizes.** Recommended 60–120 cm (2.4–4.8 WU), so most are adults round the 80 cm common
-   length and one is a big old clam.
-4. **Motion.** Static first. Then, if wanted: mantle breathing as a `coral-sway` config, and
-   later the shadow flinch as a new type (doc first).
-5. **GLB handoff.** One clam, open, as below. Any mantle colour variants he wants (they vary from
-   olive to golden brown and blue-green), as separate textures or materials on the same mesh.
+1. **Count: 4,** scattered, no two within about 8 WU (2 m). Wild clams are now rare (most groups
+   under 10); the densest recorded reef would put about 13 on the basin floor, which would read
+   as a clam farm.
+2. **Placement: open sand at the bommies' feet in the front half of the basin,** one near the
+   middle of a 375 px phone's view (about ±13 WU across the centre). Not far back by the canyon,
+   not right in front of the glass.
+3. **Sizes: 60–120 cm** (2.4–4.8 WU), so most are adults round the 80 cm common length and one
+   is a big old clam.
+4. **Motion: static first.** Mantle breathing (a `coral-sway` config) and the shadow flinch (a
+   new type, doc first) stay proposals, each only on his later yes.
+
+Still open: the **GLB handoff**. One clam, open, as below, plus any mantle colour variants he
+wants (they vary from olive to golden brown and blue-green), as separate textures or materials on
+the same mesh.
 
 GLB contract:
 

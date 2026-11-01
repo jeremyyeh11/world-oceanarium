@@ -4610,8 +4610,8 @@ export const SPECIES = [
   // Giant Clam (Tridacna gigas): queued for The Reefs (docs/fish-queue.md), a static landscape
   // piece lying in the sand between the bommies. Prepared before Jeremy's model
   // (docs/species-preparation.md): no model, no `swim`, no roster slot, no creature rows, not in
-  // The Reefs' landscapeSpecies, hidden in the Atlas. Its placement, count and any mantle motion
-  // are open decisions for Jeremy.
+  // The Reefs' landscapeSpecies, hidden in the Atlas. Jeremy (2026-11-01): 4 clams of 60-120 cm on
+  // the open sand at the bommies' feet in the front half of the basin, one mid-phone view, static.
   // Facts: the IUCN assessment (Neo & Li 2024: CR A2acd; free-living on sand or hard reef in clear
   // water; aged to 76 years, Mecha & Dolorosa 2020; male phase at about 4 years in culture,
   // Heslinga et al. 1984, female phase about 10; up to 500 million eggs a spawning; spawns on

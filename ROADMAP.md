@@ -15,7 +15,7 @@ Status labels:
 
 ### Common Remora (The Open Sea)
 
-Status: `Current in development` — `v0.43.0-dev_1`, branch `species/remora-remora`.
+Status: `Current in development` — `v0.43.0-dev_2`, branch `species/remora-remora`.
 [Ride hosts](docs/ride-hosts.md) · [Fish queue](docs/fish-queue.md).
 
 Felt intention: the classic shark rider, a passenger that is almost never off its host. It
@@ -33,14 +33,19 @@ free-swimming fish that sometimes rides, the way the sharksuckers do.
 - [x] Room on the hosts: at production sizes the mako (16.7 WU) and the whale shark (37.3 WU)
   take 43.2 WU of riders; the seven sharksuckers use 24.1 WU, leaving about 19 WU, seven
   mid-size common remoras (2.5 WU) at once.
-- [ ] Jeremy's GLB: remora body plan like the sharksuckers, up to 86 cm, brown, black or grey.
-- [ ] Intake ([ride-hosts.md](docs/ride-hosts.md), Remora models):
-  `node scripts/fit-rider-model.mjs remora-remora`, textures and credits, Atlas source length
-  and pose, `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, drop `hiddenInAtlas`, add to The
-  Open Sea's roster, Atlas tile with the first swim.
-- [ ] Decide the review population with Jeremy (suggested 4, spread over 40–86 cm, leaving
-  room for sharksuckers to rotate on); `creatures_dev` rows (backups first); production rows
-  only on his go-ahead.
+- [x] Jeremy's GLB (2026-11-01): turned right side out (every part came in with its faces
+  inward), photos cropped to the fish, BLEND dropped (`scripts/prepare-common-remora-model.py`);
+  5.2 MB to 1.4 MB.
+- [x] Intake: rider fit (disc 35% of the length), stroke in model units, Atlas source length
+  and framing, verifier target, test lists, The Open Sea's roster, out of hiding.
+- [x] Photo credits: the body texture is Jeremy's recolour of P. Béarez's FishBase specimen
+  photo, which FishBase marks all rights reserved; used on Jeremy's call, to be taken down if
+  the holder objects. The disc is M. M. Khan's photo (CC BY 3.0).
+- [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
+  after).
+- [ ] Atlas tile (`public/atlas/remora-remora-thumbnail.png`) with the first swim.
+- [ ] Jeremy's review on the preview: riding the mako and whale shark, Atlas framing.
+- [ ] Production rows only on his go-ahead.
 
 ### Yellowfin Tuna follow-ups
 

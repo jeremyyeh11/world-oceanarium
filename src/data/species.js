@@ -108,10 +108,11 @@ export const TANKS = [
       'thunnus-albacares',
       // One 9.3 m adult in production and development (prod row 411 matched dev 410, 2026-10-28).
       'rhincodon-typus',
-      // Remoras: the two sharksuckers ride the mako and the whale shark. The other remoras are
-      // queued until their models land (docs/fish-queue.md).
+      // Remoras: the two sharksuckers and the common remora ride the mako and the whale shark.
+      // The other remoras are queued until their models land (docs/fish-queue.md).
       'echeneis-naucrates',
       'echeneis-neucratoides',
+      'remora-remora',
     ],
   },
   {
@@ -1108,8 +1109,8 @@ export const SPECIES = [
     },
   },
   // --- Remoras (Echeneidae) ------------------------------------------------------------------
-  // Facts from FishBase species summaries unless noted. The two sharksuckers have Jeremy's models;
-  // the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
+  // Facts from FishBase species summaries unless noted. The two sharksuckers and the common
+  // remora have Jeremy's models; the rest are queued with no model (docs/fish-queue.md). `hitchhiker.hosts` weights come
   // from each species' documented host range (1 = its usual host, lower = recorded but
   // occasional); host groups are declared by host species in `rideHost.groups`.
   {
@@ -1398,12 +1399,45 @@ export const SPECIES = [
       hosts: { shark: 1, turtle: 0.5, cetacean: 0.4, 'large-fish': 0.4 },
       rideSeconds: [80, 180],
       freeSeconds: [10, 25],
-      discAheadBodyLengths: 0.29,
+      // Measured from the supplied GLB by scripts/fit-rider-model.mjs. Its disc is the largest
+      // of the remoras, 35% of the body length, so the disc top sits higher above the root
+      // than on the sharksuckers.
+      discAheadBodyLengths: 0.2746,
+      dorsalClearanceBodyLengths: 0.0794,
+      backProfile: [[-0.2229, 0.0451], [-0.2129, 0.0382], [-0.2029, 0.0329], [-0.1929, 0.0291], [-0.1829, 0.0271], [-0.1729, 0.02], [-0.1329, 0.0223], [-0.0929, 0.0215], [-0.0029, 0.0127], [0.0871, 0.0069], [0.1371, 0.0004], [0.1671, 0.0005], [0.1771, 0.0045], [0.2471, -0.0004], [0.3071, 0.0044], [0.3271, -0.0024], [0.3971, -0.0092], [0.4071, -0.0095], [0.4671, -0.0047], [0.4771, -0.0013], [0.5171, 0.0215], [0.5271, 0.0288], [0.5371, 0.0396], [0.5471, 0.0488], [0.5571, 0.0547], [0.5671, 0.0576], [0.5771, 0.0577], [0.6071, 0.0489], [0.6171, 0.045], [0.6671, 0.0226], [0.6771, 0.0189], [0.7271, 0.0097], [0.7371, 0.0099], [0.7671, 0.0131]],
     },
-    // In progress (branch species/remora-remora, docs/fish-queue.md): no model yet, on no tank,
-    // out of the Atlas. Its hosts are the Open Sea's mako and whale shark, whose spots it lies on
+    model: {
+      path: '/models/fish/remora-remora/remora-remora.glb',
+      // Supplied 2026-11-01; scripts/prepare-common-remora-model.py turns it right side out
+      // (every part came in with its faces inward) and crops both photos to the fish.
+      // Source length 0.8604 -> 3.456 WU; the root is recentred mid-length on the body axis.
+      scale: 4.0166,
+      position: [0, -0.1008, -0.3329],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        // Rig-free: the body, the suction disc as its second material split, and four
+        // separate pectoral and pelvic fins that flutter about their roots.
+        bodyMeshNames: ['remora_remora_1'],
+        followBodyMeshNames: ['remora_remora_2'],
+        // The stand-ins' 0.07 and 0.03 body lengths, in this model's source units (0.8604).
+        amplitude: 0.0602,
+        turnStrength: 0.0258,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+    // Its hosts are the Open Sea's mako and whale shark, whose spots it lies on
     // (tests/fishRide.test.mjs). No age, maturity or spawning data is published for the species.
-    hiddenInAtlas: true,
   },
   {
     id: 'remora-albescens',

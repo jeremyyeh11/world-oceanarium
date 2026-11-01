@@ -466,6 +466,26 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    // FishBase marks the photo all rights reserved; used on Jeremy's call (2026-11-01), to be
+    // taken down if the holder objects. FishBase names P. Béarez as its contributor.
+    id: 'bearez-common-remora',
+    subject: 'Common Remora body texture',
+    author: 'P. Béarez',
+    work: 'Remora remora, Salango, Manabí, Ecuador (FishBase)',
+    url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species',
+    licence: { name: 'all rights reserved', url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species' },
+    changes: 'Recoloured from the preserved specimen to the living fish\'s dark brown, mapped onto the 3D model, cropped to the fish and resized.',
+  },
+  {
+    id: 'khan-common-remora-disc',
+    subject: 'Common Remora suction disc texture',
+    author: 'Mohammad Moazzam Khan',
+    work: 'Remora remora, Pakistan (FishBase)',
+    url: 'https://commons.wikimedia.org/wiki/File:Remora_remora_1.jpg',
+    licence: { name: 'CC BY 3.0', url: 'https://creativecommons.org/licenses/by/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the disc and resized.',
+  },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
   { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },

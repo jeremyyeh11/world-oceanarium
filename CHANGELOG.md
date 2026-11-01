@@ -10,9 +10,14 @@ Versioning convention notes:
 
 ## v0.43.0 — Common Remora (in progress)
 
-Status: `v0.43.0-dev_1`, branch `species/remora-remora`, waiting for Jeremy's model.
+Status: `v0.43.0-dev_2`, branch `species/remora-remora`, in review with four in `creatures_dev`.
 
 ### Behaviour and motion
+
+- Common remoras ride the mako and the whale shark: Jeremy's model measured by
+  `scripts/fit-rider-model.mjs` (disc 35% of the length, the largest of the remoras; back
+  profile laid against every host spot), swimming on the remoras' `caudal-vertex` stroke in this
+  model's units, with four separate fins fluttering about their roots.
 
 - The skin-fit test now checks every remora on every whale shark spot as well as the mako's and
   the Mola's: 324 rider-and-spot pairs, median disc lift 0, worst 3.6 mm (on the Mola), none on
@@ -20,9 +25,12 @@ Status: `v0.43.0-dev_1`, branch `species/remora-remora`, waiting for Jeremy's mo
 
 ### Species and Atlas
 
-- Common Remora (`remora-remora`): Atlas copy no longer describes the reserve's plans. Still
-  hidden: no model, on no tank. No published age, maturity or spawning data, so those fields
-  stay Unknown.
+- Common Remora (`remora-remora`): in The Open Sea and the Atlas. The export came in inside out
+  and is turned right side out, its photos cropped and BLEND dropped
+  (`scripts/prepare-common-remora-model.py`, 5.2 MB to 1.4 MB). Both photo textures credited:
+  the body from P. Béarez's FishBase specimen photo (all rights reserved, used on Jeremy's
+  call), the disc from M. M. Khan's (CC BY 3.0). Atlas copy no longer describes the reserve's
+  plans. No published age, maturity or spawning data, so those fields stay Unknown.
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

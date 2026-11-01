@@ -301,7 +301,9 @@ For followers only, step 1 is enough: an escort-only host needs no anchors.
 
 ## Remora models
 
-Only the two sharksuckers have models. The other remoras keep their species entries
+The two sharksuckers and the common remora have models. The common remora's export came in
+inside out (every part with its faces inward) and is turned right side out by
+`scripts/prepare-common-remora-model.py` before the fit. The other remoras keep their species entries
 (facts, `hitchhiker` data) but no model, on no tank and out of the Atlas, until their GLBs
 arrive; they are listed in [fish-queue.md](fish-queue.md). The generated stand-ins they
 used to render were removed in `v0.37.0-dev_2`.

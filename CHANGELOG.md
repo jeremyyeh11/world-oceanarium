@@ -43,8 +43,8 @@ rows, promotion and merge on 2026-10-30.
 - Twelve white suckerfish in `creatures_dev` (1158–1160, 1162–1170; live, 10 of 12 clamped by
   three minutes, five on each manta) and in production `creatures` (1457–1459, 1461–1469,
   814 → 826 rows), 27–30 cm, six of each sex; backups before and after each write. The
-  juvenile manta's production row waits until the live bundle serves `v0.42.0` (a new life
-  stage).
+  juvenile manta followed once the live bundle served `v0.42.0` (a new life stage): production
+  `creatures` 1460, as dev 1161 (3 m, male), 826 → 827 rows (2026-11-01).
 
 ## v0.41.0 — Golden Trevally (2026-10-29)
 

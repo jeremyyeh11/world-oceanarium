@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.44.1',
+    date: '2026-11-01',
+    title: 'Natural creature edges',
+    changes: [
+      ['fix', 'Remove the artificial blue edge glow when looking up at animals, keeping their natural reflections and shading.'],
+    ],
+  },
+  {
     version: 'v0.44.0',
     date: '2026-11-01',
     title: 'Common Remora',

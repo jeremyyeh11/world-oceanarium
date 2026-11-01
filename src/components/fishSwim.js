@@ -738,6 +738,17 @@ function randomXInSwimBoundsAtZ(rand, bounds, z, minT = 0, maxT = 1) {
 // so after its first frame this is a lookup. Frozen, because every caller shares the object.
 const swimBoundsCache = new WeakMap()
 
+// The same swim volume with its floor at `yMin` (a reef fish visiting a brain coral, below its
+// usual floor: Fish.jsx reefVisitBounds). Cached, so it is one object per volume and floor.
+const loweredFloorCache = new WeakMap()
+export function lowerSwimFloor(bounds, yMin) {
+  const cached = loweredFloorCache.get(bounds)
+  if (cached && cached.yMin === yMin) return cached
+  const lowered = Object.freeze({ ...bounds, yMin })
+  loweredFloorCache.set(bounds, lowered)
+  return lowered
+}
+
 export function swimBounds(depthZone, swim = DEFAULT_SWIM, size = 1) {
   const cached = swimBoundsCache.get(swim)
   if (cached && cached.depthZone === depthZone && cached.size === size) return cached.bounds
@@ -1143,8 +1154,7 @@ export function pickMolaSunBaskExitTarget(out, creature, swim, from, forward) {
   return out
 }
 
-export function shapeSoloAgentSteeringDesired(out, position, target, forward, creature, swim) {
-  const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+export function shapeSoloAgentSteeringDesired(out, position, target, forward, creature, swim, bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)) {
   const bodyLength = creatureBodyLength(creature, swim)
   out.subVectors(target, position)
   if (out.lengthSq() < 0.0001) out.copy(forward)

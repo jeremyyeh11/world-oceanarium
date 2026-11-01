@@ -362,8 +362,9 @@ export function startReefBehavior(reef, profile, ctx) {
   const radius = profile.homeRadiusBodyLengths * bodyLength * (roaming ? 2 : 1)
   const found = findReefSite(reef.site, {
     force: ctx.force,
-    region: ctx.region,
-    contains: ctx.contains,
+    // A brain coral's site may lie below the usual floor (Fish.jsx reefVisitBounds).
+    region: kind === 'mound' && ctx.moundRegion ? ctx.moundRegion : ctx.region,
+    contains: kind === 'mound' && ctx.moundContains ? ctx.moundContains : ctx.contains,
     // The steering keeps a fish outside the rocks' and tables' padded shapes, so a line-up point
     // inside one is never reached (measured 2026-10-19: 10 of 13 such trips were given up).
     reachable: point => !insideRock(point, bodyLength),

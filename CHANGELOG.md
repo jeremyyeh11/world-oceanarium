@@ -10,9 +10,9 @@ Versioning convention notes:
 
 ## v0.43.0 — Brain Coral (in development)
 
-Status: `v0.43.0-dev_2`, branch `species/platygyra-daedalea`,
+Status: `v0.43.0-dev_3`, branch `species/platygyra-daedalea`,
 [PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). `dev_1` built everything but
-the model; `dev_2` adds Jeremy's four colonies.
+the model; `dev_2` adds Jeremy's four colonies; `dev_3` lets reef fish down to the low ones.
 
 ### Landscape and corals
 
@@ -32,6 +32,9 @@ the model; `dev_2` adds Jeremy's four colonies.
 - The `mound` coral form: reef fish peck and hover at a dome's side, hang over and skim across its
   crown, and shelter under an undercut edge. The unicornfish and emperor angelfish never peck it;
   the raccoon butterflyfish does. Off while no tank has mounds.
+- Reef fish visiting a brain coral may swim below their usual floor, down to the sand, so they
+  reach the low colonies (`dev_3`): pecks at a colony now happen (9 of 26 tries, from none) and
+  time at the colonies rises by half, with no fewer fish in clear view.
 
 ### Species and Atlas
 

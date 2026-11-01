@@ -364,12 +364,20 @@ reef fishes use massive corals far less than tables (Kerry & Bellwood 2012). The
 both emperor angelfish stages never peck live coral (peck 0); the juvenile angelfish shelters
 under the undercut (0.2); the raccoon butterflyfish, which eats polyps, pecks it (0.2).
 
-Measured on desktop with a stand-in kit (two generated domes, 2026-10-29, `v0.43.0-dev_1`): 23
-colonies on The Reefs, but only 4 with their crowns above the reef fish's swim floor (REEF_BOUNDS
-`boundsYMin` -19): most sit low on the bommies, under the tables, and their sides are out of the
-fish's reach. Over 60 s, 2 of 141 visits went to a mound (an emperor angelfish hovering over a
-crown, a humphead wrasse skimming one), both at the crown. Raising the colonies or the swim floor
-is Jeremy's call once his model is in (ROADMAP, Brain Coral).
+Most colonies sit low on the bommies, tops at y -19 to -23.7, under the reef fish's swim floor
+(REEF_BOUNDS `boundsYMin` -19). So on a trip to a mound the floor drops to the sand
+(`moundBoundsYMin` -24): startReefBehavior searches a mound with the lowered volume
+(`ctx.moundRegion`, `ctx.moundContains`), and Fish.jsx `reefVisitBounds` clamps and steers the
+fish with it until the trip ends; every other trip keeps -19, and a fish coming away from a low
+colony is eased back up (`limitClampCorrection`).
+
+Measured on desktop (2026-11-01, `v0.43.0-dev_3`, 71 reef fish, dip off and on in alternating
+2.5 min blocks): time at a mound 2.8% → 4.2% of reef fish time, colonies visited 4 → 6 a block,
+pecks at a mound 0 of 31 → 9 of 26 found; 1.2% of time below -19; fish in clear view from the
+resting camera 57% either way; no stuck fish. Shelters still find nothing (0 of about 50): the
+domes sit buried, with no undercut. Rejected: the floor at -22 for every trip (mound time 2.8% →
+3.2%, clear view 58% → 49%), and doubling the mound shares (twice the trips, all brief
+pass-overs).
 
 ## Swim volume
 

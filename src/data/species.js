@@ -333,7 +333,13 @@ const DRIFT_RIDER_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -14, boundsZ
 // are in reach too. The sand climbs above the y -19 floor from z +2 (to -18.1 at z +6); fish are
 // kept above it (rockObstacles.js liftAboveSeabed), so the floor follows the dunes there. A
 // superset of the Mola's volume, so a cleaner following it still reaches every station.
-const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
+// On a trip to a brain coral the floor drops to the sand (moundBoundsYMin, Fish.jsx
+// reefVisitBounds): most domes sit low on the bommies, tops at y -19 to -23.7, so from -19 fish
+// could only pass over the few highest and never reached a side to peck or an undercut to shelter
+// under (0 of about 90 tries, 2026-11-01). Lowering the floor for every trip instead (to -22)
+// barely raised brain coral visits (2.8% to 3.2% of reef fish time) and hid more fish behind the
+// foreground rocks from the resting camera (58% to 49% in clear view).
+const REEF_BOUNDS = { movementBoundsScale: 1.35, boundsYMin: -19, moundBoundsYMin: -24, boundsZMin: -37, boundsZMax: 23, boundsHalfX: 58 }
 // The humphead wrasse's labriform swim, shared by Jeremy's male and female models: the
 // bannerfish's tuning (a stiff body that cruises on its pectorals and keeps its tail for bursts),
 // slower for a 1 to 1.5 m fish. `amplitude` is in source units, so each model sets its own.

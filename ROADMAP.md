@@ -15,7 +15,7 @@ Status labels:
 
 ### Brain Coral
 
-Status: `Current in development` — `v0.43.0-dev_2`, branch `species/platygyra-daedalea`,
+Status: `Current in development` — `v0.43.0-dev_3`, branch `species/platygyra-daedalea`,
 [PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). Jeremy's model is in
 (2026-10-30): the brain corals are on The Reefs and in the Atlas.
 
@@ -47,9 +47,16 @@ Subtasks:
   wants me to take down, i will".
 - [ ] The pale colony (brain3) has a deep crease on one side that reads as a dark notch up close.
   It is in the source mesh, not the bake. Jeremy to fix in Blender or leave. `Blocked / waiting review`
-- [ ] Only 3–4 of the colonies reach the reef fish's swim floor (y −19): most sit low under the
-  tables. Jeremy to choose: brain corals higher up the bommies, a lower swim floor, or leave them
-  as scenery the fish seldom visit. `Blocked / waiting review`
+- [x] Fish reach the low colonies (`dev_3`): on a trip to a brain coral the reef fish's floor
+  drops from y −19 to the sand (−24); every other trip keeps −19. Jeremy (2026-10-31): "maybe we
+  allow fish swim lower?". Measured in one session, dip off/on in alternating 2.5 min blocks
+  (desktop, 2026-11-01, 71 reef fish): time at a brain coral 2.8% → 4.2%, colonies visited 4 → 6
+  a block, pecks at a colony 0 of 31 → 9 of 26 found; time below −19 1.2%; fish in clear view
+  57% both ways; no stuck fish, jumps under 1 a minute. Rejected on the way: the floor at −22 for
+  every trip (visits 2.8% → 3.2%, clear view 58% → 49%) and double the mound shares (twice the
+  trips, all brief pass-overs, time unchanged).
+- [ ] Shelters under a colony never find a spot (0 of about 50 tries; the search goes on to rock):
+  Jeremy's domes sit buried with no undercut. Drop the mound shelter share or leave it. `Backlog`
 - [ ] Phone frame rate at The Reefs with the colonies added (light: 46–768 triangles a colony). `Next`
 
 ### Yellowfin Tuna follow-ups

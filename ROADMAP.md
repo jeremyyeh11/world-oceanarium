@@ -13,6 +13,26 @@ Status labels:
 
 ## Current work
 
+### Cauliflower Coral
+
+Status: `Current in development` — `v0.45.0-dev_3`, branch `species/pocillopora-meandrina`,
+[PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183).
+[Prep and intake record](docs/species-preparation.md).
+
+Subtasks:
+- [x] Species entry: SeaLifeBase (EN 2023) and the NMFS 2019 status review, credited in
+  `STUDY_CREDITS` (`dev_1`).
+- [x] Kit (`scripts/build-cauliflower-coral-kit.py`): Jeremy's three colonies at true size, 20, 31
+  and 45 cm; photo credits in `IMAGE_CREDITS` (`dev_2`).
+- [x] Placement (`src/components/cauliflowerCoralPlacement.js`): bommie tops and upper shoulders,
+  loose groups, after the brain corals, before the staghorn (`inBush`); a `thicket` to the reef
+  fish. Unit test `tests/cauliflowerCoralPlacement.test.mjs`. In the tank: 20 colonies; staghorn
+  298 → 275.
+- [x] Atlas specimen, tile, unhidden, on The Reefs' `landscapeSpecies`; desktop, 375 px portrait and
+  landscape phone checked.
+- [ ] Jeremy's look on his phone (Vercel preview); tile recapture if he wants a different colony.
+- [ ] Measure reef fish visits at the bushes (thicket shares now cover staghorn and cauliflower).
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

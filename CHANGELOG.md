@@ -8,6 +8,32 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.45.0 — Cauliflower Coral
+
+Status: in development, `v0.45.0-dev_3`, branch `species/pocillopora-meandrina`,
+[PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183). `dev_1` prepared the species
+entry ahead of the model; `dev_2` adds Jeremy's colonies in the tank; `dev_3` the Atlas specimen and tile.
+
+### Landscape and corals
+
+- Cauliflower corals (*Pocillopora meandrina*) as small bushes on the table corals' bommies' tops
+  and upper shoulders, singly or in loose twos and threes (`src/components/cauliflowerCoralPlacement.js`),
+  placed after the tables, sea fans and brain corals and before the staghorn, which keeps clear of
+  them. A colony's stalk is buried in the rock. 20 colonies, 15 to 35 cm; staghorn 298 → 275.
+- Kit and Atlas scripts (`scripts/build-cauliflower-coral-kit.py`, a copy of the brain coral's,
+  and `scripts/build-cauliflower-coral-atlas.py`): Jeremy's three displaced, photo-projected
+  colonies scaled to true size (20, 31 and 45 cm), baked to three detail levels.
+
+### Behaviour and motion
+
+- Each bommie's cauliflower corals are one `thicket` to the reef fish, beside the staghorn patches.
+
+### Atlas
+
+- Cauliflower Coral (Endangered): SeaLifeBase and the NMFS 2019 status review; three colonies on a
+  small rock; in-tank tile. Photo credits: Dwayne Meadows (NOAA, public domain) and Peterwchen
+  (CC BY-SA 4.0).
+
 ## v0.44.1 — Natural creature edges
 
 Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, branch `feat/remove-creature-cyan-rim`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge.

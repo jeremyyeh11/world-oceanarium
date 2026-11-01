@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Cauliflower Coral — `pocillopora-meandrina` (prepared `v0.45.0-dev_1`)
+## Cauliflower Coral — `pocillopora-meandrina` (prepared `v0.45.0-dev_1`, model `dev_2`)
 
 Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
 (fish queue, Up next item 4). Jeremy picked *P. meandrina* over *P. damicornis* (2026-11-01):
@@ -59,16 +59,35 @@ Decided by Jeremy (2026-11-01):
   brain corals). The cauliflower colonies will take staghorn spots on the same tops; re-measure
   every coral at intake and say what each lost.
 
-Open for Jeremy:
+Model intake (2026-11-01, `dev_2`): Jeremy's GLB holds three colonies modelled with displacement
+over a photo projected from view (his style): two pink (one photo) and one cream, origins at the
+foot, normals outward, no alpha, 55,000 to 290,000 triangles each, at 3.6, 5.6 and 8.1 m across.
+`scripts/build-cauliflower-coral-kit.py` is a copy of the brain coral's kit script, not the
+staghorn's (the brain coral's keeps his object origin and fixes the seam fault): it scales the set
+so the biggest is 45 cm (20, 31 and 45 cm), bakes each colony's colour and normal maps onto a
+6,000 / 6,000 / 3,000 triangle `_hi`, and decimates `_lo` and `_far` to 40% and 16%. Two changes
+from the brain coral's: a wider UV angle limit, and no seam protection, since on these lobes
+nearly every vertex is a seam vertex and the protection froze the decimation (the 48 px EXTEND
+margin covers the seams; the dark grooves count as a few "black" triangles). Kit 1.0 MB plus six
+maps (1.1 MB). The pink photo is Dwayne Meadows' NOAA photo (public domain), embedded as a 563 px
+thumbnail; the cream is Peterwchen's Kauaʻi tidepool photo (CC BY-SA 4.0); both credited in
+`IMAGE_CREDITS`.
 
-- **GLB handoff:** several colonies (2–3 colours: cream, light brown, pink or green), each its own
-  object, upright, origin at the middle of its base (the holdfast, which sinks into rock), 1 unit
-  = 1 m at true size (20–45 cm), photo textures listed with their sources. The staghorn's kit
-  script (`scripts/build-staghorn-kit.py`) keeps a big and a small colony per colour by source
-  object name and bakes one shared colour and normal map per colour; a copy for this coral needs
-  the new names in `KEEP`/`COLOURS` and smaller triangle budgets (its branches are thick and
-  short). Atlas: a few colonies on a low rock, as for the other corals; tile from an in-tank
-  close-up.
+Placement (`src/components/cauliflowerCoralPlacement.js`): 2 to 4 a bommie, groups of 1 to 3 within
+40 cm, on ledges in the upper 55% of the bommie only, 20 to 45 cm drawn (a clash tries 75%), sunk
+to the neck so the pink colony's short stalk is in the rock. Measured in the dev tank (desktop,
+2026-11-01): 20 colonies on the nine table bommies (1 to 3 each, 15 to 35 cm); tables 130, sea fans
+25 and brain corals 26 unchanged; staghorn 298 → 275 (−23, −8%). From the resting view 1 of the 13
+colonies in frame has a clear line of sight, against 2 of 17 brain corals: corals there are seen
+past other reef, and the diver and follow cameras see them close.
+
+Atlas (`dev_2`): the three colonies at true size on a 1.1 m rock (2.3 MB,
+`scripts/build-cauliflower-coral-atlas.py`), checked on desktop, 375 px portrait (no horizontal
+overflow) and 844 × 390 landscape; tile from an in-tank close-up of two cream colonies. Unhidden and
+on The Reefs' `landscapeSpecies` (14 species). No creature rows: a coral is landscape.
+
+Open for Jeremy: the look in the tank on his phone, the tile (a recapture is easy), and whether the
+cream colony's sharper lobes need softening at the source.
 
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 

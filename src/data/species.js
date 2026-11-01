@@ -213,7 +213,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -4608,9 +4608,12 @@ export const SPECIES = [
     },
   },
   // Cauliflower Coral (Pocillopora meandrina): Jeremy's pick (2026-11-01) for the next coral on The
-  // Reefs (docs/fish-queue.md), a small branching hard coral, a `thicket` to the reef fish
-  // (docs/reef-behavior.md, Coral forms). Prepared ahead of its model (docs/species-preparation.md):
-  // no model, on no tank, no landscape placement, out of the Atlas.
+  // Reefs (docs/fish-queue.md), a small branching hard coral. A landscape species like the other
+  // corals: small bushes on the table corals' bommies' tops and upper shoulders, singly or in loose
+  // groups (landscapes.js `cauliflowerCorals`, src/components/cauliflowerCoralPlacement.js), a
+  // `thicket` to the reef fish (docs/reef-behavior.md, Coral forms). Jeremy's model (2026-11-01):
+  // three displaced, photo-projected bushes, baked by scripts/build-cauliflower-coral-kit.py; the
+  // Atlas shows all three on a small rock (scripts/build-cauliflower-coral-atlas.py).
   // Facts: SeaLifeBase (IUCN EN, assessed 27 October 2023, A3ce; shallow reefs, exposed reef
   // fronts), NMFS 2019 status review (western Indian Ocean to the eastern Pacific, 95 of 133
   // Indo-Pacific ecoregions; the surface to at least 34 m, commonest under 5 m on reef crests and
@@ -4625,6 +4628,9 @@ export const SPECIES = [
     name: 'Cauliflower Coral',
     scientificName: 'Pocillopora meandrina',
     family: 'Pocilloporidae',
+    // Tile (2026-11-01): an in-tank close-up of two cream colonies on their ledge, rendered square at
+    // 940 px with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/pocillopora-meandrina-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -4677,11 +4683,15 @@ export const SPECIES = [
       social: 'Colonial',
     },
     description: 'A hard coral that grows into small, round bushes of stubby, warty branches, cream, brown, green or pink, rarely more than 40 cm across. It thrives on wave-swept reef crests, is often the first coral back after a storm, and shelters guard crabs that fend off coral-eating starfish. Bleaching and the decline of reefs have made it Endangered.',
-    // Typical colonies stop growing at about 40 cm across (NMFS 2019); a few grow larger.
-    maxBodyLengthMeters: 0.4,
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts stay for
-    // when its GLB lands.
-    hiddenInAtlas: true,
+    // The Atlas's biggest colony across, for the scale comparison: the cream one at 45 cm (typical
+    // colonies stop growing at about 40 cm, NMFS 2019; a few grow larger).
+    maxBodyLengthMeters: 0.45,
+    model: {
+      path: '/models/fish/pocillopora-meandrina/pocillopora-meandrina.glb',
+      // The kit's three colonies at true size on a low limestone rock, 1.1 m across
+      // (scripts/build-cauliflower-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+    },
   },
 ]
 

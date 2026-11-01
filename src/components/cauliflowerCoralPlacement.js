@@ -54,7 +54,7 @@ const GROUP_WEIGHTS = [0.4, 0.35, 0.25]
 const SHRINKS = [1, 0.75]
 // Least distance between two colonies' feet, in shares of their summed radii: a loose group, each
 // colony its own bush.
-const SPACING = 0.9
+const SPACING = 1
 const YIELD_EVERY = 20
 
 // Colony facts of a kit model from its _lo mesh (model metres, the object origin of the source

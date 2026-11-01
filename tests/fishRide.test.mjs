@@ -1139,6 +1139,55 @@ try {
   }
 }
 
+// The humphead wrasse is an escort-only host in its own `reef-forager` group: the bluefin
+// trevally follows it, holding stations above and beside it (never below, where the wrasse
+// works the rock), and no more than three to a wrasse. The Reefs' other followers ignore it.
+{
+  const wrasseSpecies = speciesById.get('crassilabrus-undulatus')
+  const wrasseHost = rideHostProfile(wrasseSpecies)
+  const bluefinSpecies = speciesById.get('caranx-melampygus')
+  const bluefinHitch = hitchhikerProfile(bluefinSpecies)
+  const bluefinLength = bluefinSpecies.swim.bodyLengthWU * bluefinSpecies.sizeRange[1]
+  const bluefinSpeeds = { idle: 0.9 * bluefinLength, burst: 2.2 * bluefinLength }
+  assert.ok(wrasseHost, 'the wrasse is a host')
+  assert.equal(wrasseHost.anchors.length, 0, 'with no spots to ride')
+  assert.equal(bluefinHitch.attaches, false, 'the bluefin trevally only follows')
+  assert.equal(rideHostWeight(bluefinHitch, wrasseHost), 1, 'it follows the wrasse')
+  for (const id of ['naucrates-ductor', 'heniochus-acuminatus']) {
+    assert.equal(rideHostWeight(hitchhikerProfile(speciesById.get(id)), wrasseHost), 0, `${id} leaves the wrasse alone`)
+  }
+  const wrasse = id => ({ id, species: 'crassilabrus-undulatus', biome: 'ocean', size: 0.6, sex: 'male' })
+  const bluefin = id => ({ id, species: 'caranx-melampygus', biome: 'ocean', size: 1 })
+  const bluefinSwim = resolveSwimProfile(bluefin('b-swim'))
+  try {
+    registerHost(wrasse('w1'), new THREE.Vector3(0, -12, -10))
+    let wrasseLength = 0
+    forEachFish((entry, id) => { if (id === 'w1') wrasseLength = entry.bodyLength })
+    const start = new THREE.Vector3(6, -10, -10)
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const picked = freeRider()
+      advanceRide(picked, bluefin('b-1'), bluefinHitch, bluefinLength, 0, start, new THREE.Quaternion(), bluefinSpeeds, mulberry32(seed))
+      assert.equal(picked.stage, 'escort', `seed ${seed}: it starts following`)
+      for (const now of [0, 9, 23, 41, 66]) {
+        const local = escortStation(new THREE.Vector3(), picked.escort, wrasseHost, wrasseLength, bluefinLength, now)
+        assert.ok(bodyRadius(local, wrasseHost, wrasseLength) >= 1.05, `seed ${seed}: its station is outside the wrasse's clearance`)
+        assert.ok(local.y > 0, `seed ${seed}: its station is above the wrasse's middle (${local.y.toFixed(2)})`)
+      }
+    }
+
+    // Three wrasses, three trevally already round the nearest: a fourth goes to the next one.
+    registerHost(wrasse('w2'), new THREE.Vector3(30, -12, -10))
+    registerHost(wrasse('w3'), new THREE.Vector3(-40, -12, -10))
+    for (const id of ['b-2', 'b-3', 'b-4']) updateFishRegistry({ position: new THREE.Vector3(2, -10, -10) }, bluefin(id), bluefinSwim, null, null, 0, 'w1')
+    assert.equal(findEscortHost(bluefin('b-5'), start, bluefinHitch)?.hostId, 'w2', 'a full wrasse is passed over for the next nearest')
+    const uncapped = { ...bluefinHitch, escort: { ...bluefinHitch.escort, maxPerHost: Infinity } }
+    assert.equal(findEscortHost(bluefin('b-5'), start, uncapped)?.hostId, 'w1', 'uncapped, it would pile onto the nearest')
+    assert.equal(findEscortHost(bluefin('b-2'), start, bluefinHitch)?.hostId, 'w1', 'one already round it does not count itself')
+  } finally {
+    clearRegistry()
+  }
+}
+
 // --- tanks -------------------------------------------------------------------------------
 
 // Every rider placed in a tank either has a host there or is a documented exception waiting

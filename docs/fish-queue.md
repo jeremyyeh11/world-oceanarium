@@ -44,8 +44,8 @@ In the order they will be added.
 
 1. **Cauliflower Coral** (*Pocillopora*, species to choose), The Reefs. Static hard coral,
    built with the staghorn's kit script.
-2. **Bluefin Trevally** (*Caranx melampygus*), The Reefs. Escorts the humphead wrasse, on the
-   golden trevally's escort code.
+2. **Bluefin Trevally** (`caranx-melampygus`), The Reefs. In progress (`v0.46.0-dev_3`, eight in
+   `creatures_dev`). Escorts the humphead wrasse, on the golden trevally's escort code.
 3. **Leather Coral** (*Sarcophyton*, species to choose), The Reefs. Soft coral on the sea
    fan's sway shader.
 4. **Spearfish Remora** (`remora-brachyptera`), The Reefs. Rides the Mola.

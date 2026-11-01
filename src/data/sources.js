@@ -547,6 +547,15 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY 3.0', url: 'https://creativecommons.org/licenses/by/3.0/' },
     changes: 'Mapped onto the 3D model, cropped to the disc and resized.',
   },
+  {
+    id: 'delso-bluefin-trevally',
+    subject: 'Bluefin Trevally texture',
+    author: 'Diego Delso, delso.photo',
+    work: 'Bluefin trevally (Caranx melampygus), Jeddah, Saudi Arabia',
+    url: 'https://commons.wikimedia.org/wiki/File:Jurel_de_aleta_azul_(Caranx_melampygus),_Yeda,_Arabia_Saudita,_2025-05-23,_DD_22.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
+  },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
   { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },

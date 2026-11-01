@@ -207,6 +207,19 @@ hitchhiker: {
   With Jeremy's model (`v0.41.0-dev_2`, 2026-10-29), all six were escorting within 30 s of
   the tank loading, 7–12 WU from the manta's centre.
 
+- The Bluefin Trevally (`caranx-melampygus`, The Reefs, eight in `creatures_dev` since
+  `v0.46.0-dev_3`) follows the humphead wrasse, an escort-only host in its own `reef-forager`
+  group, so the pilot fish and bannerfish (who follow `large-fish`) leave the wrasse alone. Its
+  stations sit above and to either side of the wrasse, from over its head to just past its tail
+  (`along [-0.3, 0.9]`, `angleDegrees [20, 160]`, `radius [1.15, 1.5]`), never below, where the
+  wrasse works the rock: Hobson (1974) saw bluefin trevally following close behind big foraging
+  goatfish to catch the prey they flush. `maxPerHost: 3` spreads the eight over the three wrasses.
+
+`escort.maxPerHost` (optional, unset = no limit) is the most fish of any kind a follower will
+join round one host. `findEscortHost` counts each host's current followers from the registry
+(every rider registers the host it steers by, `rideHostId`) and passes a full host over for the
+next nearest. Only joining is capped: a fish already following stays when a spell ends.
+
 ## Runtime
 
 Stages: `free` → `approach` → `dock` → `latch` → `attached` → `release` → `free`, with

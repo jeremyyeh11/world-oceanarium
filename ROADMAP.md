@@ -13,6 +13,19 @@ Status labels:
 
 ## Current work
 
+### Bluefin Trevally (The Reefs)
+
+Status: `Current in development` — model in `v0.46.0-dev_3` (2026-11-01), branch
+`species/caranx-melampygus`, [PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179).
+[Preparation and intake](docs/species-preparation.md) · [Followers](docs/ride-hosts.md).
+
+- [x] Hidden prep entry, wrasse as an escort-only `reef-forager` host (`dev_1`); Jeremy's calls:
+  adults, eight, two or three per wrasse (`dev_2`).
+- [x] Model intake, Atlas pose and tile, roster slot, `escort.maxPerHost`, eight `creatures_dev`
+  rows (ids 1175–1182) (`dev_3`).
+- [ ] Jeremy: feel review on the phone.
+- [ ] Production rows (eight, the same sizes and sexes) on Jeremy's go-ahead, then promotion.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

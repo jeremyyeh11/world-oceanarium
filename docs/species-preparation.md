@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`)
+## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`)
 
 Reserve: The Reefs, as a follower of the humphead wrasse (fish queue, Up next item 5). Felt
 intention: a quick blue hunter shadowing a slow, heavy forager, hanging just above and behind
@@ -46,12 +46,36 @@ Decided by Jeremy (2026-11-01):
   wrasse at any moment. The escort picks the nearest wrasse, not the least crowded one, so at
   intake watch that they spread over all three rather than piling onto one.
 
-Open for Jeremy:
+Model intake (2026-11-01, `dev_3`): Jeremy's GLB (4.2 MB, SHA-256 `e08edff3…`) is a body and
+four independent paired fins with node rotations, sharing one material; flat-shaded, 91% of
+normals outward, positive volume. Nose −Z, +Y up. Its texture is a whole 1920 × 1280 photo, Diego
+Delso's bluefin trevally off Jeddah (Commons, CC BY-SA 4.0, credited); the UVs use only the fish,
+so `scripts/prepare-bluefin-trevally-model.py` crops to that area plus 8 px, resizes to 1024 px
+wide as a JPEG and remaps the UVs (GLB 4.2 → 0.24 MB). The photo has no alpha, so BLEND is
+dropped. The fins keep their rotations; their offsets follow the new root, and they are renamed
+`pectoral.l/.r`, `pelvic.l/.r` (the 146-vertex pair are the long sickle pectorals). Scale is from
+the fork length, snout (vertex 14) to the deepest point of the fork (vertex 310): 0.773418 source
+units = 4.68 WU; the upper lobe reaches 0.85897 (5.2 WU). The root sits halfway along the fork
+length on the body axis; the Atlas uses the same fork reference. Motion is the golden trevally's
+carangid `caudal-wave` config with amplitude and turn scaled to this model's units.
 
-- **GLB handoff:** caudal-wave contract below (nose −Z, +Y up, pectorals separate); record the
-  **fork length** separately, as the entry scales by fork length (4.68 WU at 117 cm). Supply photo
-  provenance. At intake: carangid `caudal-wave` from the golden trevally's config, Atlas pose and
-  tile, roster slot in The Reefs, and watch the escort near walls and rocks.
+`creatures_dev` ids 1175–1182, eight adults, size parameters 0/0.14/…/1 (45–70 cm FL), four of
+each sex. Dev snapshots before and after (824 → 832, no existing row changed) and the production
+backup before and after (831, unchanged). No production rows yet.
+
+Spread: with each follower taking the nearest wrasse, 4, 3 and 1 followed the three wrasses, the
+last soon none. `escort.maxPerHost` (new, [ride-hosts.md](ride-hosts.md)) caps a host at three, so
+a fourth goes on to the next nearest. Measured in the dev tank (2026-11-01): all eight escorting
+within about 25 s of loading, 3 / 2 / 3 across the wrasses for the 30 s sampled, usually 2–10 WU
+from their wrasse's centre (up to 17 while catching up after a burst), very occasionally dipping
+below its middle for a moment while closing in.
+
+Atlas tile: fish 1182's head facing left, rendered from a little below in The Reefs with the other
+fish hidden, 470 px. Atlas checked at desktop, 375 × 812 and 844 × 390 browser viewports: the whole
+fish and the 1.17 m scale bar show. These are browser viewport checks, not a physical phone.
+
+Open for Jeremy: feel review on the phone, then production rows (eight, the same sizes and sexes)
+and promotion.
 
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 

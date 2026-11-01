@@ -8,6 +8,24 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.46.0 — Bluefin Trevally (in development)
+
+### Behaviour and motion
+
+- Escort cap: a follower's `escort.maxPerHost` limits how many fish it joins round one host,
+  counted from the registry; a full host is passed over for the next nearest. Unset, no limit,
+  so every existing follower behaves as before.
+- The humphead wrasse is an escort-only host in a new `reef-forager` group (clearance measured on
+  both sex models); the pilot fish and bannerfish do not follow it.
+
+### Species and Atlas
+
+- Bluefin Trevally (`caranx-melampygus`) in The Reefs: FishBase facts, Pardee et al. 2021 sizes,
+  ages and maturity, Sudekum et al. 1991 spawning and eggs, Hobson 1974 following behaviour (all
+  credited). Jeremy's model, scaled by fork length, its Commons photo (Diego Delso, CC BY-SA 4.0,
+  credited) cropped to the fish; the golden trevally's carangid `caudal-wave`; Atlas pose and tile.
+  Eight adults follow the three wrasses, two or three each, above and beside them. Dev rows only.
+
 ## v0.44.1 — Natural creature edges
 
 Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, branch `feat/remove-creature-cyan-rim`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge.

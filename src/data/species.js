@@ -209,7 +209,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis', 'caranx-melampygus'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
@@ -4625,15 +4625,17 @@ export const SPECIES = [
   // Sudekum et al. 1991 (NW Hawaiian Islands: spawning season, fecundity, diet) and Hobson 1974
   // (Kona: patrols just above the reef; follows close behind big foraging goatfish to catch the
   // prey they flush). Planned for The Reefs as a follower of the humphead wrasse, on the golden
-  // trevally's escort code (docs/fish-queue.md; docs/ride-hosts.md, Followers). Queued until
-  // Jeremy supplies its GLB: no model, no reserve slot, out of the Atlas.
+  // trevally's escort code (docs/fish-queue.md; docs/ride-hosts.md, Followers). Jeremy's model
+  // (2026-11-01), eight adults in The Reefs (dev data).
   {
     id: 'caranx-melampygus',
     name: 'Bluefin Trevally',
     scientificName: 'Caranx melampygus',
     family: 'Carangidae',
     alternateNames: ['Bluefin Jack', 'Blue Trevally', 'Omilu'],
-    hiddenInAtlas: true,
+    // Tile (2026-11-01): fish 1182's head facing left, rendered from a little below in The Reefs
+    // with the other fish hidden, square at 470 px.
+    atlasThumbnail: '/atlas/caranx-melampygus-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Usually alone or a few together by day (Hobson 1974), and each follower holds its own
@@ -4758,7 +4760,50 @@ export const SPECIES = [
         minSpeedBLPerSec: 0.3,
         // It goes looking for a wrasse anywhere on the reef.
         rangeBodyLengths: 12,
+        // Two or three per wrasse (Jeremy, 2026-11-01): a wrasse with three already is passed
+        // over for the next nearest. Uncapped, most piled onto the nearest one or two.
+        maxPerHost: 3,
       },
+    },
+    model: {
+      path: '/models/fish/caranx-melampygus/caranx-melampygus.glb',
+      // Supplied 2026-11-01; scripts/prepare-bluefin-trevally-model.py bakes the body's node
+      // offset, centres the root halfway along the fork length on the body axis and crops the
+      // photo to the fish (GLB 4.2 MB -> 0.24 MB). Snout to fork notch: 0.773418 source units ->
+      // 4.68 WU / 117 cm FL; the upper caudal lobe reaches 0.85897 (5.2 WU).
+      scale: 6.0510623944802475,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['caranx_melampygus'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Carangiform, the golden trevally's setup: a firm front and a compact rear-body stroke.
+        // Its 0.043 and 0.033 body lengths, of this model's 0.859 source units snout to tail tip.
+        amplitude: 0.0369,
+        waveSpeed: 2.8,
+        waveTravel: 3.5,
+        flexStart: 0.26,
+        flexFull: 0.84,
+        turnStrength: 0.0283,
+        burstAmplitude: 0.8,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        // The long sickle pectorals row little at cruise; jacks swim on the tail.
+        pectoralFinFlutter: 0.1,
+        pelvicFinFlutter: 0.06,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
     },
   },
 ]

@@ -30,7 +30,7 @@ export function createEnvironmentManifests(tanks = TANKS, species = SPECIES, lan
     if (landscape?.kit) {
       add('gltf', landscape.kit.path)
       for (const url of Object.values(landscape.kit.textures)) add('texture', url)
-      for (const coral of [landscape.corals, landscape.staghorn, brainCoralsOf(landscape)]) if (coral) {
+      for (const coral of [landscape.corals, landscape.staghorn, brainCoralsOf(landscape), landscape.cauliflowerCorals]) if (coral) {
         add('gltf', coral.kit.path)
         for (const model of coral.kit.models) for (const url of [model.color, model.normal]) add('texture', url)
       }

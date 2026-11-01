@@ -192,8 +192,10 @@ Status: shipped in clean `v0.42.0` (2026-10-30, PR #174), from `v0.42.0-dev_3`, 
 - [x] Jeremy accepted `dev_3` (2026-10-30: "write production rows, and merge clean"). Production
   `creatures` 1457–1459 and 1461–1469, the twelve dev suckerfish (814 → 826 rows; backups before
   and after).
-- [ ] The juvenile manta's production row (id 1460, as dev 1161, 3 m, male) once the live bundle
-  serves `v0.42.0` (AGENTS.md, a new life stage).
+- [x] The juvenile manta's production row: `creatures` 1460, as dev 1161 (3 m, male), written
+  2026-11-01 once the live bundle served `v0.42.0` (826 → 827 rows; backups before and after).
+- [ ] Visitor changelog line for the juvenile manta in the next release bucket (a production
+  write visitors can see).
 
 ### Open Sea wider roaming
 
@@ -225,7 +227,7 @@ Subtasks:
 
 ### Giant Oceanic Manta
 
-Status: shipped in clean `v0.37.0` (2026-10-25, branch `feat/mobula-birostris`, #161). The Shallows' one big animal, on the devil ray's mobuliform disc-wave, with feeding passes; one manta in prod (id 682) and dev (id 840). Open items below are follow-ups.
+Status: shipped in clean `v0.37.0` (2026-10-25, branch `feat/mobula-birostris`, #161). The Shallows' one big animal, on the devil ray's mobuliform disc-wave, with feeding passes; one adult manta in prod (id 682) and dev (id 840); from `v0.42.0` a juvenile too (prod 1460, dev 1161). Open items below are follow-ups.
 
 Subtasks:
 - [x] Species data and Atlas copy (`Mobula birostris`) from FishBase and the Sharks and Rays profile: EN (2019, A2bcd+3d), CITES II; at least 7 m disc width (FishBase's 910 cm is an older record), maturity at 3.8–4.6 m, one pup about 1.2 m across; alone or in loose groups. Range checked: tagged mantas move between the Revillagigedo Islands, Bahía de Banderas and Isla Cerralvo in the southern Gulf of California (Environmental Biology of Fishes 2024, doi 10.1007/s10641-024-01622-2).

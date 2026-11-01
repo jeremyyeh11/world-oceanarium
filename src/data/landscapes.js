@@ -148,6 +148,27 @@ const BRAIN_CORAL_KIT = {
   chunkWU: 60,
 }
 
+// Jeremy's cauliflower corals (Pocillopora meandrina, `_blender models/pocillopora meandrina.glb`,
+// 2026-11-01), baked by scripts/build-cauliflower-coral-kit.py at true size from his displaced,
+// photo-projected bushes: 0, cream (Peterwchen's Kauaʻi tidepool photo), 45 cm across, 26 cm tall;
+// 1, pink (Dwayne Meadows' NOAA photo), 31 cm, 25 cm tall, on a short stalk; 2, pink, 20 cm, 13 cm
+// tall. _hi 6,000 / 6,000 / 3,000 triangles, _lo and _far 40% and 16% of that, sharing their
+// 1024 px (2: 512 px) cauliflowerN-color/-normal.jpg. In metres, up +Y, origin at his object origin:
+// the foot.
+const CAULIFLOWER_CORAL_KIT = {
+  path: '/models/landscape/cauliflower-corals.glb',
+  models: ['cauliflower0', 'cauliflower1', 'cauliflower2'].map(name => ({
+    name,
+    color: `/models/landscape/${name}-color.jpg`,
+    normal: `/models/landscape/${name}-normal.jpg`,
+  })),
+  // As the brain corals: _hi within hiDetailDistance of the resting camera, _lo to
+  // loDetailDistance, _far beyond (Landscape.jsx mergeKitModels).
+  hiDetailDistance: 30,
+  loDetailDistance: 60,
+  chunkWU: 60,
+}
+
 // Jeremy's giant sea fans (Annella mollis, `_blender models/annella mollis.glb`, 2026-10-26),
 // normalised by scripts/build-sea-fan-kit.py: fan0, fan1, ... each in metres with its holdfast at
 // the origin (his object origin, at the trunk's root) and its lattice in the XY plane, with the
@@ -445,6 +466,16 @@ export const LANDSCAPES = {
       kit: BRAIN_CORAL_KIT,
       seed: 9103, perCluster: [2, 4], footShare: 0.3,
       diameter: [2.4, 6.4], ledgeScale: 0.7,
+    },
+    // Cauliflower corals (src/components/cauliflowerCoralPlacement.js) on the same bommies, placed
+    // after the tables, sea fans and brain corals, clear of them all, and before the staghorn,
+    // which keeps clear of them (Jeremy, 2026-11-01): `perCluster` colonies a bommie, on its top
+    // and upper shoulders only, singly or in loose twos and threes. `diameter` in WU (20 to 45 cm:
+    // colonies are commonly 20 to 40 cm across, most stopping near 40 cm, NMFS 2019).
+    cauliflowerCorals: {
+      kit: CAULIFLOWER_CORAL_KIT,
+      seed: 9419, perCluster: [2, 4],
+      diameter: [0.8, 1.8],
     },
   },
   // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's

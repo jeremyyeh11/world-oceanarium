@@ -510,6 +510,24 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
   {
+    id: 'meadows-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (pink colonies)',
+    author: 'Dwayne Meadows, NOAA/NMFS/OPR',
+    work: 'Pocillopora meandrina, Northwestern Hawaiian Islands (NOAA Photo Library, reef0752)',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina.jpg',
+    licence: { name: 'Public domain (NOAA)', url: 'https://commons.wikimedia.org/wiki/Template:PD-USGov-NOAA' },
+    changes: 'Mapped onto the 3D models, baked into new textures, and resized.',
+  },
+  {
+    id: 'peterwchen-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (cream colony)',
+    author: 'Peterwchen',
+    work: 'Pocillopora meandrina in a tidepool, Kēʻē Beach, Kauaʻi',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina-tidepool.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
+  },
+  {
     // FishBase marks the photo all rights reserved; used on Jeremy's call (2026-11-01), to be
     // taken down if the holder objects. FishBase names P. Béarez as its contributor.
     id: 'bearez-common-remora',

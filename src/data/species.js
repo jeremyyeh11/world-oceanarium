@@ -4570,6 +4570,82 @@ export const SPECIES = [
       scale: 4,
     },
   },
+  // Cauliflower Coral (Pocillopora meandrina): Jeremy's pick (2026-11-01) for the next coral on The
+  // Reefs (docs/fish-queue.md), a small branching hard coral, a `thicket` to the reef fish
+  // (docs/reef-behavior.md, Coral forms). Prepared ahead of its model (docs/species-preparation.md):
+  // no model, on no tank, no landscape placement, out of the Atlas.
+  // Facts: SeaLifeBase (IUCN EN, assessed 27 October 2023, A3ce; shallow reefs, exposed reef
+  // fronts), NMFS 2019 status review (western Indian Ocean to the eastern Pacific, 95 of 133
+  // Indo-Pacific ecoregions; the surface to at least 34 m, commonest under 5 m on reef crests and
+  // upper slopes; bushes commonly 20-40 cm across, light brown or cream, also green or pink;
+  // determinate growth, most colonies stopping near 40 cm, short-lived for a coral; often the
+  // first coral on bare rock; hermaphrodite broadcast spawner, 1-3 days after the full moon
+  // shortly after sunrise in late spring or early summer; eggs seeded with zooxanthellae, Hirose
+  // et al. 2001; also fragmentation; crabs and shrimp in colonies over about 10 cm ward off
+  // crown-of-thorns starfish, Glynn 1976), Wikipedia (polyps extended mostly at night).
+  {
+    id: 'pocillopora-meandrina',
+    name: 'Cauliflower Coral',
+    scientificName: 'Pocillopora meandrina',
+    family: 'Pocilloporidae',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 October 2023 (A3ce, SeaLifeBase): projected declines as reefs warm and degrade.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the western Indian Ocean to Hawaii and the eastern Pacific, most common on wave-swept reef crests and upper slopes, from the surface to at least 34 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      // Short-lived for a coral (NMFS 2019, after Brown 2004 and Coles & Brown 2007), but no age
+      // is published.
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each bush is one colony of tiny polyps on a shared skeleton of stubby, warty branches. It is often the first coral to settle bare rock after a storm, a lava flow or bleaching, and grows fast, but most colonies stop at about 40 cm across. Once a colony is about 10 cm across, guard crabs and shrimp move in between its branches and drive off coral-eating starfish.',
+        // NMFS 2019 (Stimson 1978, Schmidt-Roach et al. 2012; zooxanthellae in the eggs, Hirose et
+        // al. 2001; fragmentation, Glynn & Colley 2008).
+        reproduction: 'Each colony makes both eggs and sperm. In late spring, one to three days after the full moon, the colonies spawn together just after sunrise, unusual for a coral. Its eggs already carry the algae that feed the adult, so its drifting larvae can make food from sunlight. Broken branches also grow into new colonies.',
+      },
+      averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published (adult
+        // colonies are commonly 20 to 40 cm across, NMFS 2019).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A hard coral that grows into small, round bushes of stubby, warty branches, cream, brown, green or pink, rarely more than 40 cm across. It thrives on wave-swept reef crests, is often the first coral back after a storm, and shelters guard crabs that fend off coral-eating starfish. Bleaching and the decline of reefs have made it Endangered.',
+    // Typical colonies stop growing at about 40 cm across (NMFS 2019); a few grow larger.
+    maxBodyLengthMeters: 0.4,
+    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts stay for
+    // when its GLB lands.
+    hiddenInAtlas: true,
+  },
 ]
 
 export const CREATURES = [

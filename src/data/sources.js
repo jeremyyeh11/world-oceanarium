@@ -390,6 +390,23 @@ export const STUDY_CREDITS = [
     venue: 'Coral Reefs 27: 117–122',
     url: 'https://doi.org/10.1007/s00338-007-0297-8',
   },
+  {
+    id: 'sealifebase-pocillopora-meandrina',
+    subject: 'Cauliflower Coral status and habitat',
+    authors: 'SeaLifeBase',
+    title: 'Pocillopora meandrina Dana, 1846',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Pocillopora-meandrina.html',
+  },
+  {
+    id: 'nmfs-2019-pocillopora-meandrina',
+    subject: 'Cauliflower Coral range, depth, colony size and growth, spawning, and the crabs that guard it',
+    authors: 'National Marine Fisheries Service',
+    year: 2019,
+    title: 'Pocillopora meandrina: Status Review Report',
+    venue: 'NOAA Pacific Islands Regional Office',
+    url: 'https://www.fisheries.noaa.gov/s3/dam-migration/pocillopora_meandrina_status_review_report_2019.pdf',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one

@@ -391,6 +391,23 @@ export const STUDY_CREDITS = [
     url: 'https://doi.org/10.1007/s00338-007-0297-8',
   },
   {
+    id: 'sealifebase-pocillopora-meandrina',
+    subject: 'Cauliflower Coral status and habitat',
+    authors: 'SeaLifeBase',
+    title: 'Pocillopora meandrina Dana, 1846',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Pocillopora-meandrina.html',
+  },
+  {
+    id: 'nmfs-2019-pocillopora-meandrina',
+    subject: 'Cauliflower Coral range, depth, colony size and growth, spawning, and the crabs that guard it',
+    authors: 'National Marine Fisheries Service',
+    year: 2019,
+    title: 'Pocillopora meandrina: Status Review Report',
+    venue: 'NOAA Pacific Islands Regional Office',
+    url: 'https://www.fisheries.noaa.gov/s3/dam-migration/pocillopora_meandrina_status_review_report_2019.pdf',
+  },
+  {
     id: 'benayahu-loya-1986-sarcophyton',
     subject: 'Leather Coral sexes, maturity ages, egg development, eggs per polyp and yearly spawning',
     authors: 'Benayahu & Loya',
@@ -518,6 +535,24 @@ export const IMAGE_CREDITS = [
     url: 'https://commons.wikimedia.org/wiki/File:20081218_100609_Haus_des_Meeres.jpg',
     licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'meadows-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (pink colonies)',
+    author: 'Dwayne Meadows, NOAA/NMFS/OPR',
+    work: 'Pocillopora meandrina, Northwestern Hawaiian Islands (NOAA Photo Library, reef0752)',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina.jpg',
+    licence: { name: 'Public domain (NOAA)', url: 'https://commons.wikimedia.org/wiki/Template:PD-USGov-NOAA' },
+    changes: 'Mapped onto the 3D models, baked into new textures, and resized.',
+  },
+  {
+    id: 'peterwchen-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (cream colony)',
+    author: 'Peterwchen',
+    work: 'Pocillopora meandrina in a tidepool, Kēʻē Beach, Kauaʻi',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina-tidepool.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
   },
   {
     // FishBase marks the photo all rights reserved; used on Jeremy's call (2026-11-01), to be

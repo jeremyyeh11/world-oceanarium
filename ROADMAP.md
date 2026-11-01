@@ -15,7 +15,7 @@ Status labels:
 
 ### Cauliflower Coral
 
-Status: `Current in development` — `v0.45.0-dev_3`, branch `species/pocillopora-meandrina`,
+Status: `Current in development` — `v0.45.0-dev_4`, branch `species/pocillopora-meandrina`,
 [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183).
 [Prep and intake record](docs/species-preparation.md).
 
@@ -30,6 +30,9 @@ Subtasks:
   298 → 275.
 - [x] Atlas specimen, tile, unhidden, on The Reefs' `landscapeSpecies`; desktop, 375 px portrait and
   landscape phone checked.
+- [x] Colonies on the front (`dev_4`, Jeremy: "i dont like that thyere all hidden away"): 3 to 4
+  more on the camera side of each bommie in frame, lower down, each seen by the resting camera.
+  Count in the tank not measured (the dev tank would not load with no window open).
 - [ ] Jeremy's look on his phone (Vercel preview); tile recapture if he wants a different colony.
 - [ ] Measure reef fish visits at the bushes (thicket shares now cover staghorn and cauliflower).
 

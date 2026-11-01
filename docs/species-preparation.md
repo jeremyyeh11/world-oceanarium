@@ -86,8 +86,18 @@ Atlas (`dev_2`): the three colonies at true size on a 1.1 m rock (2.3 MB,
 overflow) and 844 × 390 landscape; tile from an in-tank close-up of two cream colonies. Unhidden and
 on The Reefs' `landscapeSpecies` (14 species). No creature rows: a coral is landscape.
 
-Open for Jeremy: the look in the tank on his phone, the tile (a recapture is easy), and whether the
-cream colony's sharper lobes need softening at the source.
+Front colonies (`dev_4`, 2026-11-01; Jeremy: "i dont like that thyere all hidden away, put some of
+them on the front as well, if not add more"): after the top and shoulder groups, each bommie whose
+middle is in the resting frame gets `front` (3 to 4) more colonies on ledges on its camera side,
+from 10% of its height up, each kept only if the resting camera sees at least one of three points
+on its head (in frame, no drawn rock and no table plate within 3.5 m on the way). A first try
+asking for two of three points added only 1 colony (5 of the 9 bommies are in frame; most spots
+that fit were seen by none). The loosened count is not measured: the dev tank would not finish
+loading in a browser with no window open. Unit test: a camera in front of the test bommie gets its
+three front colonies, all on the camera side.
+
+Open for Jeremy: the look in the tank on his phone (the front colonies first), the tile (a
+recapture is easy), and whether the cream colony's sharper lobes need softening at the source.
 
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 

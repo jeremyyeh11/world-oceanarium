@@ -21,6 +21,12 @@ import { inMound } from './brainCoralPlacement'
 // of the rock (a little contact reads as grown onto it), out of every table (plate and stalk), the
 // sea fans, the brain corals and the other bushes, and under water. A spot that clashes tries the
 // colony smaller (SHRINKS) before giving up.
+//
+// The tops are mostly under the table plates, so from the resting camera hardly any colony showed
+// (1 of 13 in frame). Jeremy (2026-11-01): put some on the front as well. So a bommie in frame
+// then gets `front` more colonies on ledges on its camera side, lower down (from FRONT_SHARE of its
+// height), each kept only if the resting camera sees most of its head (SIGHT_POINTS: in frame,
+// with no rock or table plate between). Two seen of three let only 1 through (2026-11-01).
 
 const UP = new THREE.Vector3(0, 1, 0)
 const DOWN = new THREE.Vector3(0, -1, 0)
@@ -55,6 +61,19 @@ const SHRINKS = [1, 0.75]
 // Least distance between two colonies' feet, in shares of their summed radii: a loose group, each
 // colony its own bush.
 const SPACING = 1
+// Lowest a front colony stands: this share of the way from the rock's foot to its top.
+const FRONT_SHARE = 0.1
+// Points on a front colony's head tested for sight from the resting camera (shares of its reach
+// across the view and of its height up), and how many must be seen (one: a colony half behind a
+// rock still reads).
+const SIGHT_POINTS = [[-0.5, 0.5], [0, 0.85], [0.5, 0.5]]
+const MIN_SEEN = 1
+// The resting camera's half frame (fov 42, 16:9), a little inside its edges.
+const FRAME_TAN_Y = Math.tan(THREE.MathUtils.degToRad(19))
+const FRAME_TAN_X = FRAME_TAN_Y * 16 / 9
+// How far from a colony a table plate between it and the camera is looked for, in WU, and the step.
+const PLATE_LOOK = 14
+const PLATE_STEP = 0.5
 const YIELD_EVERY = 20
 
 // Colony facts of a kit model from its _lo mesh (model metres, the object origin of the source
@@ -102,8 +121,10 @@ export function inBush(bushes, point, extra = 0) {
 // coralClusters' (the bommies the tables crown); tables the placed tables; measures are measureBush
 // per kit model; view is the resting camera. `avoid(point, extra)`, if given, says whether a point
 // (with `extra` WU round it) is taken by a coral placed before the cauliflower corals other than
-// the tables (the sea fans and the brain corals).
-export function* placeCauliflowerCorals(landscape, clusters, tables, measures, view, avoid = null) {
+// the tables (the sea fans and the brain corals). sightRocks, if given with a view, are every drawn
+// rock (the landscape's merged chunks), for the front colonies' sight test; without them there
+// are no front colonies.
+export function* placeCauliflowerCorals(landscape, clusters, tables, measures, view, avoid = null, sightRocks = null) {
   const config = landscape.cauliflowerCorals
   const plates = tables.map(table => table.plate)
   const tableFeet = tables.map(table => ({ plate: table.plate, foot: new THREE.Vector3().setFromMatrixPosition(table.matrix) }))
@@ -112,6 +133,40 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
   const point = new THREE.Vector3()
   const lean = new THREE.Vector3()
   const axis = new THREE.Vector3()
+  let sight = null
+  if (view && sightRocks?.length && config.front) {
+    const eye = new THREE.Vector3(view.x ?? 0, view.y ?? 0, view.z ?? 0)
+    const forward = new THREE.Vector3(view.lookX ?? eye.x, view.lookY ?? eye.y, view.lookZ ?? 0).sub(eye).normalize()
+    const right = new THREE.Vector3().crossVectors(forward, UP).normalize()
+    sight = { eye, forward, right, up: new THREE.Vector3().crossVectors(right, forward), rocks: rockCaster(sightRocks) }
+  }
+  const toEye = new THREE.Vector3()
+  // Whether `target` is in the resting camera's frame.
+  const inFrame = target => {
+    toEye.copy(target).sub(sight.eye)
+    const depth = toEye.dot(sight.forward)
+    return depth > 0 && Math.abs(toEye.dot(sight.right)) <= depth * FRAME_TAN_X && Math.abs(toEye.dot(sight.up)) <= depth * FRAME_TAN_Y
+  }
+  // How many of a colony's SIGHT_POINTS the resting camera sees: in frame, no rock between, and no
+  // table plate within PLATE_LOOK of the colony on the way.
+  const seen = colony => {
+    let count = 0
+    for (const [across, up] of SIGHT_POINTS) {
+      point.copy(colony.base).addScaledVector(sight.right, across * colony.reach)
+      point.y += up * colony.height
+      if (!inFrame(point)) continue
+      toEye.copy(sight.eye).sub(point)
+      const distance = toEye.length()
+      toEye.divideScalar(distance)
+      if (sight.rocks.nearest(point, toEye, distance - 0.3)) continue
+      let blocked = false
+      for (let d = PLATE_STEP; d < Math.min(PLATE_LOOK, distance) && !blocked; d += PLATE_STEP) {
+        blocked = inTable(tableFeet, plates, origin.copy(point).addScaledVector(toEye, d))
+      }
+      if (!blocked) count++
+    }
+    return count
+  }
   for (const [site, cluster] of clusters.entries()) {
     const rocks = rockCaster(cluster.geometries)
     const bounds = boundsOf(cluster.geometries)
@@ -141,11 +196,11 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
       }
       return supported >= RIM_SUPPORTED
     }
-    // A ledge in the upper part of the bommie straight under (x, z), or null.
-    const ledgeAt = (x, z) => {
+    // A ledge in the upper part of the bommie (above `low`) straight under (x, z), or null.
+    const ledgeAt = (x, z, low = floor) => {
       origin.set(x, bounds.max.y + 2, z)
-      const hit = rocks.nearest(origin, DOWN, bounds.max.y + 2 - floor)
-      if (!hit || hit.point.y < floor || hit.normal.y < MIN_LEDGE_UP) return null
+      const hit = rocks.nearest(origin, DOWN, bounds.max.y + 2 - low)
+      if (!hit || hit.point.y < low || hit.normal.y < MIN_LEDGE_UP) return null
       return { y: hit.point.y, normal: hit.normal.clone().normalize() }
     }
     // The spot's biggest colony that fits at (x, z) on `ledge`, or null.
@@ -217,6 +272,23 @@ export function* placeCauliflowerCorals(landscape, clusters, tables, measures, v
         kept++
         member++
       }
+    }
+    // Then the front: colonies on the camera side, lower down, that the resting camera sees.
+    if (!sight || !inFrame(centre)) continue
+    const front = Math.round(pick(config.front))
+    const low = bounds.min.y + size.y * FRONT_SHARE
+    for (let attempt = 0, shown = 0; attempt < front * ATTEMPTS_PER_COLONY && shown < front; attempt++) {
+      if (attempt % YIELD_EVERY === YIELD_EVERY - 1) yield
+      const angle = facing + (rand() * 2 - 1) * 1.1
+      const out = 0.5 + rand() * 0.45
+      const x = centre.x + Math.cos(angle) * out * size.x / 2
+      const z = centre.z + Math.sin(angle) * out * size.z / 2
+      const ledge = ledgeAt(x, z, low)
+      if (!ledge) continue
+      const colony = colonyAt(x, z, ledge)
+      if (!colony || seen(colony) < MIN_SEEN) continue
+      placed.push(colony)
+      shown++
     }
   }
   return placed

@@ -53,5 +53,20 @@ try {
   }
   assert.ok(inBush(bushes, bushes[0].centre), 'a colony holds its own middle')
   assert.ok(!inBush(bushes, new THREE.Vector3(100, 0, 100)), 'and nothing far off')
-  console.log(`cauliflower coral placement: ${bushes.length} colonies, all on the bommie's top, passed`)
+  // The front: with a resting camera at +z and the drawn rocks, a bommie in frame gets `front`
+  // more colonies on its camera side, lower down (here the shelf), each seen by the camera.
+  const view = { x: 0, y: 6, z: 40, lookX: 0, lookY: 3, lookZ: 0 }
+  const fronted = { ...landscape, cauliflowerCorals: { ...landscape.cauliflowerCorals, perCluster: [2, 2], front: [3, 3] } }
+  const frontRun = placeCauliflowerCorals(fronted, [{ geometries: [rock], seed: 1 }], [table], [shape], view, null, [rock])
+  do { step = frontRun.next() } while (!step.done)
+  const front = step.value.slice(2)
+  assert.equal(front.length, 3, `places the front colonies: ${front.length}`)
+  for (const colony of front) {
+    assert.ok(colony.base.z > 0, `a front colony is on the camera side, not at z ${colony.base.z.toFixed(2)}`)
+    assert.ok(colony.base.y < 4 + 1e-6 && colony.base.y > 0.4, 'on the rock, above the sand')
+  }
+  const noView = placeCauliflowerCorals(fronted, [{ geometries: [rock], seed: 1 }], [table], [shape], null)
+  do { step = noView.next() } while (!step.done)
+  assert.equal(step.value.length, 2, 'no front colonies without a view')
+  console.log(`cauliflower coral placement: ${bushes.length} colonies, all on the bommie's top, and ${front.length} on the front, passed`)
 } finally { await server.close() }

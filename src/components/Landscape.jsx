@@ -583,7 +583,7 @@ function Corals({ landscape, coralRocks, sightRocks, environmentId, debugLodView
           <SeaFans landscape={landscape} clusters={clusters} tables={corals} sightRocks={sightRocks} coralRocks={coralRocks} environmentId={environmentId} debugLodView={debugLodView} />
         </Suspense>
       ) : corals && (
-        <AfterFans landscape={landscape} clusters={clusters} tables={corals} environmentId={environmentId} debugLodView={debugLodView} />
+        <AfterFans landscape={landscape} clusters={clusters} tables={corals} sightRocks={sightRocks} environmentId={environmentId} debugLodView={debugLodView} />
       )}
     </>
   )
@@ -591,11 +591,11 @@ function Corals({ landscape, coralRocks, sightRocks, environmentId, debugLodView
 
 // The corals placed after the tables and sea fans (`fans`, null without any), in order: the brain
 // corals (landscape.brainCorals, unless pending), then the staghorn, which keeps clear of both.
-function AfterFans({ landscape, clusters, tables, fans = null, environmentId, debugLodView }) {
+function AfterFans({ landscape, clusters, tables, fans = null, sightRocks, environmentId, debugLodView }) {
   if (brainCoralsOf(landscape)) {
     return (
       <Suspense fallback={null}>
-        <BrainCorals landscape={landscape} clusters={clusters} tables={tables} fans={fans} environmentId={environmentId} debugLodView={debugLodView} />
+        <BrainCorals landscape={landscape} clusters={clusters} tables={tables} fans={fans} sightRocks={sightRocks} environmentId={environmentId} debugLodView={debugLodView} />
       </Suspense>
     )
   }
@@ -638,7 +638,7 @@ function moundReefSurfaces(landscape, mounds, meshes, kit) {
 // and square chunk like the tables. Each colony joins the fish's rock obstacles and the reef
 // fish's site surfaces (the `mound` form). The staghorn (landscape.staghorn) is placed after
 // them, clear of them.
-function BrainCorals({ landscape, clusters, tables, fans, environmentId, debugLodView }) {
+function BrainCorals({ landscape, clusters, tables, fans, sightRocks, environmentId, debugLodView }) {
   const { kit } = landscape.brainCorals
   const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
   const mounds = useSlicedPlacement(PLACED_BRAIN_CORALS, landscape, () => {
@@ -668,7 +668,7 @@ function BrainCorals({ landscape, clusters, tables, fans, environmentId, debugLo
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
       {mounds && (landscape.cauliflowerCorals ? (
         <Suspense fallback={null}>
-          <CauliflowerCorals landscape={landscape} clusters={clusters} tables={tables} fans={fans} mounds={mounds} environmentId={environmentId} debugLodView={debugLodView} />
+          <CauliflowerCorals landscape={landscape} clusters={clusters} tables={tables} fans={fans} mounds={mounds} sightRocks={sightRocks} environmentId={environmentId} debugLodView={debugLodView} />
         </Suspense>
       ) : landscape.staghorn && (
         <Suspense fallback={null}>
@@ -737,14 +737,14 @@ function bushReefSurfaces(landscape, bushes, meshes, kit) {
 // corals (cauliflowerCoralPlacement.js), merged per kit model and square chunk like the tables.
 // Each colony joins the fish's rock obstacles, and each bommie's bushes the reef fish's site
 // surfaces (a `thicket`). The staghorn (landscape.staghorn) is placed after them, clear of them.
-function CauliflowerCorals({ landscape, clusters, tables, fans, mounds, environmentId, debugLodView }) {
+function CauliflowerCorals({ landscape, clusters, tables, fans, mounds, sightRocks, environmentId, debugLodView }) {
   const { kit } = landscape.cauliflowerCorals
   const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
   const bushes = useSlicedPlacement(PLACED_CAULIFLOWER_CORALS, landscape, () => {
     const measures = kit.models.map(model => measureBush(meshes[`${model.name}_lo`]))
     const avoid = (point, extra) => Boolean((fans && inFan(fans, point, extra)) || inMound(mounds, point, extra))
-    return placeCauliflowerCorals(landscape, clusters, tables, measures, landscape.view, avoid)
-  }, [kit, meshes, clusters, tables, fans, mounds], environmentId)
+    return placeCauliflowerCorals(landscape, clusters, tables, measures, landscape.view, avoid, sightRocks)
+  }, [kit, meshes, clusters, tables, fans, mounds, sightRocks], environmentId)
 
   const { merged, obstacles } = useMemo(() => {
     if (!bushes) return { merged: [], obstacles: [] }
@@ -969,7 +969,7 @@ function SeaFans({ landscape, clusters, tables, sightRocks, coralRocks, environm
   return (
     <>
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.material]} />)}
-      {fans && <AfterFans landscape={landscape} clusters={clusters} tables={tables} fans={fans} environmentId={environmentId} debugLodView={debugLodView} />}
+      {fans && <AfterFans landscape={landscape} clusters={clusters} tables={tables} fans={fans} sightRocks={sightRocks} environmentId={environmentId} debugLodView={debugLodView} />}
     </>
   )
 }

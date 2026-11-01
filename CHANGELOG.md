@@ -10,9 +10,10 @@ Versioning convention notes:
 
 ## v0.45.0 — Cauliflower Coral
 
-Status: in development, `v0.45.0-dev_3`, branch `species/pocillopora-meandrina`,
+Status: in development, `v0.45.0-dev_4`, branch `species/pocillopora-meandrina`,
 [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183). `dev_1` prepared the species
-entry ahead of the model; `dev_2` adds Jeremy's colonies in the tank; `dev_3` the Atlas specimen and tile.
+entry ahead of the model; `dev_2` adds Jeremy's colonies in the tank; `dev_3` the Atlas specimen and tile;
+`dev_4` puts colonies on the bommies' fronts, where the resting camera sees them.
 
 ### Landscape and corals
 
@@ -20,6 +21,10 @@ entry ahead of the model; `dev_2` adds Jeremy's colonies in the tank; `dev_3` th
   and upper shoulders, singly or in loose twos and threes (`src/components/cauliflowerCoralPlacement.js`),
   placed after the tables, sea fans and brain corals and before the staghorn, which keeps clear of
   them. A colony's stalk is buried in the rock. 20 colonies, 15 to 35 cm; staghorn 298 → 275.
+- Colonies on the front (`dev_4`, Jeremy: "i dont like that thyere all hidden away"): from the
+  resting view only 1 of the 13 colonies in frame showed, the rest under the table plates. Each
+  bommie in frame now gets 3 to 4 more on its camera side, lower down, each kept only if the
+  resting camera sees part of its head (no rock or table plate between).
 - Kit and Atlas scripts (`scripts/build-cauliflower-coral-kit.py`, a copy of the brain coral's,
   and `scripts/build-cauliflower-coral-atlas.py`): Jeremy's three displaced, photo-projected
   colonies scaled to true size (20, 31 and 45 cm), baked to three detail levels.

@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`)
+## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`)
 
 Reserve: The Reefs, riding the giant sunfish ([fish queue](fish-queue.md), Up next 7). Felt
 intention: a pale passenger that is almost part of the Mola, clamped to its flanks for minutes
@@ -49,20 +49,32 @@ Decided by Jeremy (2026-10-30):
   go-ahead.
 - **Host: the reserve's one Mola,** id 21 (male, size 0.88) in both tables. No second Mola.
 
+Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md), Remora models):
+
+- Rig-free, nose −Z. GLTFLoader splits the body by material: `mexican-fish_(1)` (body with
+  dorsal, anal and caudal fins) and `mexican-fish_(1)_1` (the suction disc, in
+  `followBodyMeshNames`). The short pectorals and the pelvics are separate objects
+  (`pectorall/r`, `pelvicl/r`) and flutter on their own.
+- `scripts/fit-rider-model.mjs`: source length 3.5093 → 2 WU (scale 0.5699); the disc runs 25%
+  of total length (about 29% of standard length, inside the 28–40% in life), its centre 0.3134
+  body lengths ahead of the root; the second dorsal stands about 2 cm proud of the disc line.
+  `npm test` fits that measured top line on every Mola spot.
+- Stroke: the sharksuckers' 0.07 and 0.03 body lengths (amplitude 0.246, turn 0.105 source
+  units); fin flutter 0.08 / 0.04, as on the whitefin.
+- Textures: two embedded photos (570×215 and 570×304 px, about 550 KB), solid alpha, so the
+  model renders opaque; normals outward on 97% of the body. Neither matches the paper's
+  greyscale figure; credited as "Unknown source" (`unknown-spearfish-remora`) until Jeremy
+  names the source.
+- Atlas: framed at 1.45 display units, between the bannerfish and the pilot fish; checked at
+  375 px and on desktop.
+
 Open for Jeremy:
 
-- **The GLB.** A remora body plan like the sharksuckers': nose −Z, up +Y, origin anywhere, one
-  body mesh (a disc with its own material goes in `followBodyMeshNames`). Slim but deep-chested
-  (depth 14–17% of standard length), short rounded pectorals (*brachyptera*, "short fin"), a
-  disc of 14–17 laminae over 28–40% of standard length, dorsal fin starting just ahead of the
-  anal, an emarginate to truncate tail. Fresh colour: uniformly pale whitish grey, the tail with
-  a blackish margin (Anislado-Tolentino et al. 2022); whitish to pale blue in life. Scale it from
-  total length. Flat-shaded as always.
-- **Rider intake** once it lands ([ride-hosts.md](ride-hosts.md), Remora models): `node
-  scripts/fit-rider-model.mjs remora-brachyptera`, textures and credits, Atlas source length
-  and pose, `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, drop `hiddenInAtlas`, add it to
-  The Reefs' roster, the Atlas tile with its first swim, then `npm test` against its measured
-  top line.
+- **`creatures_dev` rows:** four, ids 1183–1186 (above the dev table's max 1182), sizes 0,
+  0.33, 0.67, 1, alternating sex, each with its own description. Backups were taken
+  2026-11-01 before the write was attempted; the write needs his go-ahead. Then the live check on
+  the Mola and the Atlas tile from its first swim.
+- **Texture source:** where the two photos came from.
 - Watch in the live tank: a rider on the Mola's upper flank lets go before a sun-bask would lift
   it above the water. Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP,
   Remoras).

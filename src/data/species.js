@@ -208,7 +208,7 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis', 'remora-brachyptera'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
@@ -1633,14 +1633,44 @@ export const SPECIES = [
       hosts: { billfish: 1, sunfish: 0.7, shark: 0.25, turtle: 0.25 },
       rideSeconds: [90, 200],
       freeSeconds: [6, 14],
-      // Its disc is 28–40% of standard length (32.6% on the Tehuantepec fish), starting behind
-      // the snout. The supplied model's measured value replaces this (scripts/fit-rider-model.mjs).
-      discAheadBodyLengths: 0.3,
+      // Measured off the supplied model by scripts/fit-rider-model.mjs. Its disc runs 25% of the
+      // total length (about 29% of standard length; 28–40% in life, 32.6% on the Tehuantepec
+      // fish). The second dorsal fin stands about 2 cm proud of the line from the disc to the
+      // tail, so the rider pivots on its disc until it clears the host's skin.
+      discAheadBodyLengths: 0.3134,
+      dorsalClearanceBodyLengths: 0.0633,
+      backProfile: [[-0.1841, 0.0405], [-0.1741, 0.0258], [-0.1641, 0.0195], [-0.1541, 0.0168], [-0.1241, 0.014], [-0.1141, 0.0109], [-0.0641, 0.0054], [-0.0141, 0.0052], [0.0459, 0.0016], [0.1059, 0.0002], [0.1259, 0.002], [0.2359, -0.0007], [0.3159, -0.0012], [0.3259, -0.0021], [0.4159, -0.0378], [0.4659, -0.0407], [0.4759, -0.0385], [0.4959, -0.0309], [0.5559, -0.0026], [0.5959, 0.0123], [0.6259, 0.0265], [0.6359, 0.0327], [0.6459, 0.0405], [0.6859, 0.0309], [0.7559, 0.0193], [0.7659, 0.0188], [0.7959, 0.0215], [0.8059, 0.0782]],
     },
-    // In progress (branch species/remora-brachyptera, docs/fish-queue.md): no model yet, on no
-    // tank, out of the Atlas. Its host is The Reefs' Mola, whose spots it lies on
-    // (tests/fishRide.test.mjs). The facts and ride data stay for when its GLB lands.
-    hiddenInAtlas: true,
+    model: {
+      path: '/models/fish/remora-brachyptera/remora-brachyptera.glb',
+      // Source length 3.5093 -> 2 WU. The root is recentred mid-length on the body axis, the
+      // frame the ride fit uses (scripts/fit-rider-model.mjs).
+      scale: 0.5699,
+      position: [0, -0.0268, -0.1529],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        // The supplied GLB is rig-free. GLTFLoader splits the body by material: the main mesh
+        // carries the dorsal, anal and caudal fins, `_1` is the rigid suction disc. The short
+        // pectorals and the pelvics are separate objects.
+        bodyMeshNames: ['mexican-fish_(1)'],
+        followBodyMeshNames: ['mexican-fish_(1)_1'],
+        // The sharksuckers' stroke, 0.07 and 0.03 body lengths, in this model's source units.
+        amplitude: 0.246,
+        turnStrength: 0.105,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
   {
     id: 'remora-osteochir',

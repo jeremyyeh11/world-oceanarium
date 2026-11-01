@@ -494,6 +494,7 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
   { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
   { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
+  { id: 'unknown-spearfish-remora', subject: 'Spearfish Remora textures (two photos)' },
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },

@@ -10,9 +10,14 @@ Versioning convention notes:
 
 ## v0.48.0 — Spearfish Remora (in progress)
 
-Status: `v0.48.0-dev_1`, branch `species/remora-brachyptera`, waiting for Jeremy's model.
+Status: `v0.48.0-dev_2`, branch `species/remora-brachyptera`, model in, not yet in a tank.
 
 ### Species and Atlas
+
+- `v0.48.0-dev_2`: Jeremy's model. Fitted as a rider (disc 25% of total length, second dorsal
+  about 2 cm proud of the disc line), it swims with the sharksuckers' caudal wave and paired-fin
+  flutter. It is in the Atlas and on The Reefs' roster; no creature rows yet, so no tank shows
+  it. Its two photo textures are credited as "Unknown source" until their source is found.
 
 - Spearfish Remora (`remora-brachyptera`): host range credited to Anislado-Tolentino et al. 2022
   (billfishes and swordfish, also ocean sunfishes, blue shark and loggerhead turtles); Atlas copy

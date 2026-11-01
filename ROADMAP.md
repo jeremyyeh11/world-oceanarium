@@ -15,9 +15,10 @@ Status labels:
 
 ### Spearfish Remora (The Reefs)
 
-Status: `Blocked / waiting review` — `v0.48.0-dev_1`, branch `species/remora-brachyptera`,
-waiting for Jeremy's GLB. [Prep](docs/species-preparation.md) · [Ride hosts](docs/ride-hosts.md)
-· [Fish queue](docs/fish-queue.md).
+Status: `Blocked / waiting review` — `v0.48.0-dev_2`, branch `species/remora-brachyptera`,
+model in; waiting for Jeremy's go-ahead on the `creatures_dev` rows.
+[Prep](docs/species-preparation.md) · [Ride hosts](docs/ride-hosts.md) ·
+[Fish queue](docs/fish-queue.md).
 
 - [x] Facts and ride data in `species.js`; host range credited (Anislado-Tolentino et al.
   2022); no age, maturity or fecundity data published, so those Atlas fields stay Unknown.
@@ -25,11 +26,17 @@ waiting for Jeremy's GLB. [Prep](docs/species-preparation.md) · [Ride hosts](do
 - [x] Host: the Mola's 12 spots regenerate unchanged from its GLB, and the rider lies on all of
   them (worst disc lift 2.2 mm); a full-size Mola carries 5–8 at once.
 - [x] Jeremy (2026-10-30): four, 30–50 cm, sharing the reserve's one Mola (id 21).
-- [ ] Jeremy's GLB: remora body plan, up to 50 cm, pale whitish grey, tail with a dark margin.
-- [ ] Intake: `node scripts/fit-rider-model.mjs remora-brachyptera`, textures and credits,
-  Atlas source length, pose and tile, `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, drop
-  `hiddenInAtlas`, add to The Reefs' roster, `creatures_dev` rows (backups first), live check on
-  the Mola through a sun-bask. Production rows only on his go-ahead.
+- [x] Jeremy's GLB (`v0.48.0-dev_2`): rig-free body, separate suction disc and four paired
+  fins, two opaque photo textures.
+- [x] Intake (`v0.48.0-dev_2`): fitted with `scripts/fit-rider-model.mjs` (source length
+  3.5093, disc 25% of total length), Atlas source length and framing,
+  `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, out of hiding, on The Reefs' roster;
+  `npm test` fits its measured top line on every Mola spot.
+- [ ] Textures credited as "Unknown source" (`unknown-spearfish-remora`): find the two photos'
+  source (see Photo texture sources).
+- [ ] Four `creatures_dev` rows (ids 1183–1186, sizes 0, 0.33, 0.67, 1; backups taken
+  2026-11-01), then a live check on the Mola through a sun-bask and the Atlas tile from its
+  first swim. Production rows only on his go-ahead.
 
 ### Yellowfin Tuna follow-ups
 
@@ -53,7 +60,7 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
 Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
-  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 17 entries), and the link and
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 18 entries), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).

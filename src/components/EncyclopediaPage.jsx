@@ -165,6 +165,8 @@ const VIEW_POSES_BY_SPECIES = {
   // the fish fills about 85% of the stage's width.
   'echeneis-naucrates': { maxLengthDisplayUnits: 3.7, portraitPhoneDistanceScale: 0.9 },
   'echeneis-neucratoides': { maxLengthDisplayUnits: 1.85 },
+  // Spearfish remora: 0.5 m, between the bannerfish (0.25 m) and the pilot fish (0.7 m).
+  'remora-brachyptera': { maxLengthDisplayUnits: 1.45 },
   // Pilot fish: 0.7 m, framed a touch shorter than the 0.75 m whitefin sharksucker.
   'naucrates-ductor': { maxLengthDisplayUnits: 1.75 },
   // Longfin bannerfish: 0.25 m, the sardinella's size and camera. Its banner trails another 0.6
@@ -264,6 +266,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'echeneis-naucrates': 6.6014,
   // Supplied Whitefin Sharksucker model (scripts/fit-rider-model.mjs).
   'echeneis-neucratoides': 5.4912,
+  // Supplied Spearfish Remora model (scripts/fit-rider-model.mjs).
+  'remora-brachyptera': 3.5093,
   // Supplied pilot fish model, nose to tail tip along Z.
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).

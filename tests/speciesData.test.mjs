@@ -53,6 +53,24 @@ for (const alias of [trevally.id, trevally.name, trevally.scientificName]) {
 }
 assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === trevally.model.path))
 
+// Bluefin trevally: scaled by fork length (Pardee et al. 2021's relation is cm FL to grams).
+const bluefin = speciesById.get('caranx-melampygus')
+assert.ok(Math.abs(bluefin.mass.coefficient * 74.9 ** bluefin.mass.exponent / 1000 - 7.7) < 0.1, 'about 7.7 kg at the 74.9 cm female mean')
+assert.ok(bluefin.sizeRange[0] * bluefin.swim.bodyLengthWU >= 1.08, 'bluefin trevally are above the 27 cm size floor')
+assert.ok(Math.abs(bluefin.swim.bodyLengthWU * 0.25 - bluefin.maxBodyLengthMeters) < 1e-9, 'bluefin biological reference and world scale agree')
+assert.ok(!bluefin.hiddenInAtlas, 'the supplied bluefin trevally is available in Atlas')
+assert.ok(Math.abs(bluefin.model.scale * 0.7734179049730301 - bluefin.swim.bodyLengthWU) < 1e-6, 'fork length, snout to fork notch, defines world scale')
+assert.equal(bluefin.model.proceduralAnimation.type, 'caudal-vertex')
+for (const asset of [bluefin.model.path, bluefin.atlasThumbnail]) {
+  assert.ok(existsSync(new URL(`../public${asset}`, import.meta.url)), `bluefin asset exists: ${asset}`)
+}
+for (const alias of [bluefin.id, bluefin.name, bluefin.scientificName]) {
+  const creature = { id: 'intake-bluefin', species: alias, alive: true, size: 0.6 }
+  assert.equal(resolveSpecies(creature), bluefin)
+  assert.deepEqual(TANKS.filter(tank => creaturesForTank([creature], tank).length).map(tank => tank.id), ['the-reefs'], 'bluefin trevally live only in The Reefs')
+}
+assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-reefs').assets.some(asset => asset.url === bluefin.model.path))
+
 const unicornfish = speciesById.get('naso-unicornis')
 const tuna = speciesById.get('thunnus-albacares')
 assert.ok(!tuna.hiddenInAtlas, 'the supplied tuna is available in Atlas')
@@ -184,6 +202,16 @@ assert.equal(speciesById.get('remora-osteochir').atlasDetails.maxLengthLabel, 'S
   const [small, large] = manta.lifeStages.juvenile.sizeRange.map(size => size * manta.swim.bodyLengthWU * 0.25)
   assert.ok(small > 1.3 && large < manta.adultLengthRangeMeters[0], 'juvenile mantas sit between birth and adult sizes')
   assert.equal(manta.lifeStages.juvenile.model, undefined, 'a juvenile manta keeps the adult model')
+}
+
+// Humphead wrasse, a gentle giant (v0.46.1): speeds in each fish's own length, no turn sprint,
+// rare soft bursts.
+{
+  const wrasse = speciesById.get('crassilabrus-undulatus')
+  assert.equal(wrasse.swim.speedFollowsSize, true, 'wrasse speeds follow each fish\'s own length')
+  assert.equal(wrasse.swim.turnSpeedupEnabled, false, 'the wrasse turns without speeding up')
+  assert.ok(wrasse.swim.burstInterval[0] >= 60 && wrasse.swim.burstBLPerSec[1] <= 1.2, 'wrasse bursts are rare and soft')
+  assert.ok(SPECIES.filter(species => species.swim?.speedFollowsSize).every(species => species.id === 'crassilabrus-undulatus'), 'only the wrasse opts in so far')
 }
 
 console.log('species data correction tests passed')

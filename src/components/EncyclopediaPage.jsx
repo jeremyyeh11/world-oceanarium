@@ -253,6 +253,14 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.05, 0],
     lookAt: [0, -0.05, 0],
   },
+  // Bluefin trevally: scaled by fork length, so the tail lobes reach a tenth past it; framed a
+  // little shorter so the whole fish fits.
+  'caranx-melampygus': {
+    maxLengthDisplayUnits: 2.4,
+    portraitPhoneDistanceScale: 0.75,
+    position: [0, -0.05, 0],
+    lookAt: [0, -0.05, 0],
+  },
   // Three brain corals on a low rock (the model's origin is the rock's foot), framed like the
   // other corals: turned a little and looking 25° down, so the domes' maze of valleys reads.
   'platygyra-daedalea': {
@@ -322,6 +330,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'annella-mollis': 1.711,
   // Supplied golden trevally model, mouth to lower caudal-lobe tip along Z.
   'gnathanodon-speciosus': 1.199504,
+  // Supplied bluefin trevally model, snout to caudal fork notch along Z (the tail lobes extend
+  // past it), the same fork length its scale uses.
+  'caranx-melampygus': 0.773418,
   // The brain corals on their rock, widest across (scripts/build-brain-coral-atlas.py prints the
   // bounds: the rock, 2.6 m).
   'platygyra-daedalea': 2.6,

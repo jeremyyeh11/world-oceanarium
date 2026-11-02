@@ -38,31 +38,30 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 24. **Brain Coral** (`platygyra-daedalea`): `v0.43.0` (#177), The Reefs.
 25. **Common Remora** (`remora-remora`): `v0.44.0` (#176), The Open Sea.
 26. **Cauliflower Coral** (`pocillopora-meandrina`): `v0.45.0` (#183), The Reefs.
+27. **Bluefin Trevally** (`caranx-melampygus`): `v0.46.0` (#179), The Reefs.
 
 ## Up next
 
 In the order they will be added.
 
-1. **Bluefin Trevally** (*Caranx melampygus*), The Reefs. Escorts the humphead wrasse, on the
-   golden trevally's escort code.
-2. **Leather Coral** (*Sarcophyton*, species to choose), The Reefs. Soft coral on the sea
+1. **Leather Coral** (*Sarcophyton*, species to choose), The Reefs. Soft coral on the sea
    fan's sway shader.
-3. **Spearfish Remora** (`remora-brachyptera`), The Reefs. Rides the Mola.
-4. **Giant Clam** (*Tridacna gigas*), The Reefs. Static landscape piece in the sand between
+2. **Spearfish Remora** (`remora-brachyptera`), The Reefs. Rides the Mola.
+3. **Giant Clam** (*Tridacna gigas*), The Reefs. Static landscape piece in the sand between
    bommies.
-5. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
+4. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
    type.
-6. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
-7. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
-8. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.
-9. **Reef Manta** (*Mobula alfredi*), The Reefs.
-10. **Toadfish** (species to choose).
-11. **Scrawled Filefish** (*Aluterus scriptus*).
-12. **Coelacanth** (*Latimeria*, species to choose).
-13. **Butterfly Ray** (*Gymnura*, species to choose).
-14. **Oceanic Whitetip Shark** (*Carcharhinus longimanus*).
-15. **Goliath Grouper** (*Epinephelus itajara*).
-16. **Koi** (*Cyprinus rubrofuscus*, domestic).
+5. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
+6. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
+7. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.
+8. **Reef Manta** (*Mobula alfredi*), The Reefs.
+9. **Toadfish** (species to choose).
+10. **Scrawled Filefish** (*Aluterus scriptus*).
+11. **Coelacanth** (*Latimeria*, species to choose).
+12. **Butterfly Ray** (*Gymnura*, species to choose).
+13. **Oceanic Whitetip Shark** (*Carcharhinus longimanus*).
+14. **Goliath Grouper** (*Epinephelus itajara*).
+15. **Koi** (*Cyprinus rubrofuscus*, domestic).
 
 Corals crowd the bommie tops: each coral release checks how many of every coral still fit
 (placement order matters; the sea fans go before the staghorn). The leather coral is the last

@@ -106,6 +106,108 @@ Open for Jeremy:
   and a placement module beside `brainCoralPlacement.js` are written at intake; Atlas: the
   toadstools on a low rock, swaying (`prepareAtlasSway`); tile from an in-tank close-up.
 
+## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`, shipped `v0.46.0`)
+
+Reserve: The Reefs, as a follower of the humphead wrasse (fish queue, Up next item 5). Felt
+intention: a quick blue hunter shadowing a slow, heavy forager, hanging just above and behind
+it while the wrasse works the rock, ready to snatch whatever bolts. Must not happen: a trevally
+below the wrasse or inside the rock it is working, or a school milling on its own.
+
+Prepared: hidden species entry (no model, no roster slot, no rows), `hitchhiker` follower block
+(`hosts: { 'reef-forager': 1 }`, stations above and to either side, `along [-0.3, 0.9]`,
+`angleDegrees [20, 160]`, `radius [1.15, 1.5]`). The wrasse gained an escort-only `rideHost`
+in a new `reef-forager` group, so the pilot fish and bannerfish (who follow `large-fish`) do not
+start trailing it; visitors see no change. Clearance measured on both wrasse models.
+
+Size check: 117 cm FL maximum = 4.68 WU; fish 35–45 cm FL = 1.4–1.8 WU (45–70 cm until `dev_5`),
+above the 27 cm / 1.08 WU floor.
+
+Research decisions:
+
+- FishBase: 117 cm FL maximum, 60 cm TL common length, 43.5 kg; 0–190 m; Lm 35 cm; LC (9 March
+  2015). Range Red Sea and East Africa to Ducie Island, eastern Pacific Mexico to Panama.
+- Pardee et al. 2021 (Hawaii, 194 aged): mean asymptotic FL 74.9 cm female, 69.2 cm male (growth
+  not significantly different); oldest female 24 years, male 17; A50 4.1 / 2.9 years; W (g) =
+  6.77e-6 FL (mm)^3.15, giving 7.7 / 6.0 kg at those lengths.
+- Sudekum et al. 1991: gravid April–November, peak May–July; 49,700 to 4.27 million mature eggs
+  per gravid female (32.8–64 cm SL); over 90% fish.
+- Hobson 1974 (Kona): patrols about 1 m above the reef; 16 of 24 groups of a big goatfish had a
+  jack following close behind. Wikipedia (citing Hobson 1974, Potts 1981) adds wrasses, rays and
+  sharks as hosts; no source names the humphead wrasse itself (a Maldives photo caption shows
+  bluefin hunting beside a juvenile one). Rays and sharks are left off until a Reefs one exists:
+  stations above a ray would sit level with its wings.
+
+Decided by Jeremy (2026-11-01):
+
+- **Life stage: adults.** Silver with a blue-bronze back, electric-blue fins and spotted flanks.
+  Juveniles (dark fins, yellow pectorals) live in sandy shallows and do not follow.
+- **Count: eight** (six in production, below), two or three per wrasse (the reef has one male and two females), at 45–70 cm
+  FL (35–45 cm since `dev_5`, below), in `creatures_dev` first. With so many following, `leaveChance` is 0.2, so most are with a
+  wrasse at any moment. The escort picks the nearest wrasse, not the least crowded one, so at
+  intake watch that they spread over all three rather than piling onto one.
+
+Model intake (2026-11-01, `dev_3`): Jeremy's GLB (4.2 MB, SHA-256 `e08edff3…`) is a body and
+four independent paired fins with node rotations, sharing one material; flat-shaded, 91% of
+normals outward, positive volume. Nose −Z, +Y up. Its texture is a whole 1920 × 1280 photo, Diego
+Delso's bluefin trevally off Jeddah (Commons, CC BY-SA 4.0, credited); the UVs use only the fish,
+so `scripts/prepare-bluefin-trevally-model.py` crops to that area plus 8 px, resizes to 1024 px
+wide as a JPEG and remaps the UVs (GLB 4.2 → 0.24 MB). The photo has no alpha, so BLEND is
+dropped. The fins keep their rotations; their offsets follow the new root, and they are renamed
+`pectoral.l/.r`, `pelvic.l/.r` (the 146-vertex pair are the long sickle pectorals). Scale is from
+the fork length, snout (vertex 14) to the deepest point of the fork (vertex 310): 0.773418 source
+units = 4.68 WU; the upper lobe reaches 0.85897 (5.2 WU). The root sits halfway along the fork
+length on the body axis; the Atlas uses the same fork reference. Motion is the golden trevally's
+carangid `caudal-wave` config with amplitude and turn scaled to this model's units.
+
+Fin fix (2026-11-01, `dev_4`): in that export both pelvic roots hung about 0.009 source units
+(about 1.3 cm on a full-size fish) below the belly, visibly detached. Jeremy re-exported
+(SHA-256 `57792a36…`) with only the fin objects moved: pelvics raised 0.011, pectorals each
+0.015 toward the body. Mesh, texture, landmarks and scale are byte-for-byte the same. Measured
+by casting from each fin's root vertices to the body: pelvic roots now 0.002 inside the belly,
+pectoral roots 0.004–0.034 inside. The Atlas tile was recaptured, since the old one showed the
+gap.
+
+`creatures_dev` ids 1175–1182, eight adults, size parameters 0/0.14/…/1 (45–70 cm FL), four of
+each sex. Dev snapshots before and after (824 → 832, no existing row changed) and the production
+backup before and after (831, unchanged). No production rows yet.
+
+Spread: with each follower taking the nearest wrasse, 4, 3 and 1 followed the three wrasses, the
+last soon none. `escort.maxPerHost` (new, [ride-hosts.md](ride-hosts.md)) caps a host at three, so
+a fourth goes on to the next nearest. Measured in the dev tank (2026-11-01): all eight escorting
+within about 25 s of loading, 3 / 2 / 3 across the wrasses for the 30 s sampled, usually 2–10 WU
+from their wrasse's centre (up to 17 while catching up after a burst), very occasionally dipping
+below its middle for a moment while closing in.
+
+Atlas tile: fish 1182's head facing left, rendered from a little below in The Reefs with the other
+fish hidden, 470 px. Atlas checked at desktop, 375 × 812 and 844 × 390 browser viewports: the whole
+fish and the 1.17 m scale bar show. These are browser viewport checks, not a physical phone.
+
+Feel review (2026-11-01, `dev_5`), from Jeremy's tank screenshots beside photos of bluefin
+trailing humpheads:
+
+- **Too big.** At 45–70 cm FL a bluefin was nearly as long as the 0.8–1 m females; in the photos
+  the trevally is roughly 40–50% of the wrasse. Now 35–45 cm FL (1.4–1.8 WU), still adult (males
+  mature from 32.9 cm FL). The rows keep their size parameters, so no database write. Live in the
+  dev tank: wrasses 5.61, 3.70 and 3.41 WU (1.40, 0.93 and 0.85 m), so a bluefin's fork length is
+  25–32% of the male's length and 38–53% of a female's.
+- **Darting.** While escorting, the escort sets the follower's speed, but idle bursts (every
+  10–18 s) and snap turns still played their tail strokes, so the tail whipped with no dash to
+  match. `escort.quietTail` ([ride-hosts.md](ride-hosts.md)) drops them while escorting; startles
+  still fire, and roaming on its own it bursts as before. Steering is unchanged.
+- **Tremble.** They steer toward a station fixed in the wrasse's body frame, so the wrasse's own
+  occasional tremble reaches them through that target, amplified at side stations. That belongs to
+  the wrasse, not to this species, and is left for its own fix.
+
+Measured in the dev tank (2026-11-01, desktop browser), the quiet tail switched off and on in
+alternating 50 s blocks after a dropped 25 s warm-up, all eight escorting most of the time. Off:
+164 strokes (43 bursts, 121 snap turns) in 9.3 escorting fish-minutes, about 18 per fish per
+minute. On: none in 9.0 fish-minutes, startles included.
+
+Production (2026-11-02, Jeremy: "write 6 instead" of eight): `creatures` ids 1474–1479, six
+adults, size parameters 0/0.2/…/1 (35–45 cm FL), three of each sex, each with its own
+description. Production backup before and after (831 → 837, no existing row changed).
+Accepted from `dev_5` and shipped in clean `v0.46.0` ([PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179)).
+
 ## Cauliflower Coral — `pocillopora-meandrina` (prepared `v0.45.0-dev_1`, model `dev_2`, shipped `v0.45.0`)
 
 Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals

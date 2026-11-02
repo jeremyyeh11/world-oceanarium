@@ -443,6 +443,33 @@ export const STUDY_CREDITS = [
     url: 'https://www.fisheries.noaa.gov/s3/dam-migration/pocillopora_meandrina_status_review_report_2019.pdf',
   },
   {
+    id: 'benayahu-loya-1986-sarcophyton',
+    subject: 'Leather Coral sexes, maturity ages, egg development, eggs per polyp and yearly spawning',
+    authors: 'Benayahu & Loya',
+    year: 1986,
+    title: 'Sexual reproduction of a soft coral: synchronous and brief annual spawning of Sarcophyton glaucum (Quoy & Gaimard, 1833)',
+    venue: 'The Biological Bulletin 170: 32–42',
+    url: 'https://doi.org/10.2307/1541378',
+  },
+  {
+    id: 'schleyer-2004-sarcophyton',
+    subject: 'Leather Coral reproduction and hermaphrodite colonies in South Africa',
+    authors: 'Schleyer, Kruger & Benayahu',
+    year: 2004,
+    title: 'Reproduction and the unusual condition of hermaphroditism in Sarcophyton glaucum (Octocorallia, Alcyoniidae) in KwaZulu-Natal, South Africa',
+    venue: 'Hydrobiologia 530/531: 399–409',
+    url: 'https://doi.org/10.1007/s10750-004-2683-3',
+  },
+  {
+    id: 'chao-2017-sarcophyton',
+    subject: 'Leather Coral toxins against fish and stony corals',
+    authors: 'Chao et al.',
+    year: 2017,
+    title: 'Isoprenoids from the soft coral Sarcophyton glaucum',
+    venue: 'Marine Drugs 15(7): 202',
+    url: 'https://doi.org/10.3390/md15070202',
+  },
+  {
     id: 'neo-li-2024-tridacna-gigas',
     subject: 'Giant Clam conservation status, oldest aged clam, maturity ages, eggs per spawning, spawning timing and habitat',
     authors: 'Neo & Li',
@@ -658,4 +685,33 @@ export const IMAGE_CREDITS = [
   // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
   { id: 'coralsoftheworld-brain-coral', subject: 'Brain Coral textures (blue-and-brown and brown colonies, two photos)', author: 'Corals of the World' },
   { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
+  {
+    id: 'delso-leather-coral',
+    subject: 'Leather Coral texture (peach caps)',
+    author: 'Diego Delso, delso.photo',
+    work: 'Toadstool leather coral (Sarcophyton glaucum), Red Sea, Egypt',
+    url: 'https://commons.wikimedia.org/wiki/File:Coral_(Sarcophyton_glaucum),_mar_Rojo,_Egipto,_2023-04-14,_DD_73.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'vasenin-leather-coral',
+    subject: 'Leather Coral texture (stalks and cap undersides)',
+    author: 'Alexander Vasenin',
+    work: 'Sarcophyton glaucum soft coral at Shaab Angosh reef (Red Sea, Egypt)',
+    url: 'https://commons.wikimedia.org/wiki/File:Sarcophyton_glaucum_at_Shaab_Angosh_reef.JPG',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Used without permission (Jeremy, 2026-11-02: take it down if asked); the photographer's terms
+    // ask for permission first. ROADMAP has the follow-up.
+    id: 'burdick-leather-coral',
+    subject: 'Leather Coral texture (grey caps)',
+    author: 'David Burdick',
+    work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
+    url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',
+    licence: { name: 'all rights reserved', url: 'https://www.guamreeflife.com/index.php/image-copyright-appropriate-usage/' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
 ]

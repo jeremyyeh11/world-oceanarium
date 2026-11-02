@@ -124,6 +124,134 @@ When the GLB lands: a kit script and placement module, the clams in The Reefs'
 mantle open), `maxBodyLengthMeters` from the specimen, an EncyclopediaPage pose, unhide, and an
 in-tank Atlas tile (checklist section 6, landscape rule).
 
+## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`, model `dev_2`, sway `dev_3`–`dev_7`, shipped `v0.47.0`)
+
+Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
+(fish queue, Up next item 6), swaying on the sea fans' `coral-sway` shader. Jeremy picked
+*S. glaucum*, the toadstool leather coral, over *S. trocheliophorum* (2026-11-01): it has the
+classic mushroom silhouette (smooth stalk, wide folded cap) and by far the best-studied biology;
+the elephant-ear species would have left most of the Atlas Unknown.
+
+Felt intention: a few fat, fleshy toadstools that lean slowly with the surge, their caps
+rocking together like one thick body, not a lattice. Why: it is a soft coral with no hard
+skeleton, a leathery body stiffened only by spicules, that grows slowly and lives long on calm
+reef flats, lagoons and the lower flanks of reefs. Must not happen: wobbling like jelly,
+fluttering like the fan's rim, swinging further than the fans beside it, or moving out of step
+with the surge that moves them.
+
+Prepared: hidden species entry (no model, on no tank, no landscape placement, out of the Atlas),
+Benayahu & Loya 1986, Schleyer et al. 2004 and Chao et al. 2017 credited in `STUDY_CREDITS`, and
+a test that keeps it hidden and off every tank.
+
+Size check: colonies up to 80 cm across (Coral Trait Database) = 3.2 WU, above the 27 cm /
+1.08 WU floor even at a young 30 cm (1.2 WU).
+
+Research decisions:
+
+- WoRMS: family Sarcophytidae (no longer Alcyoniidae); records from Mozambique and Madagascar to
+  Fiji and Samoa. SeaLifeBase lists only New Caledonia, Taiwan, the Ryukyus and Palau, which is
+  narrower than the studies (Red Sea, KwaZulu-Natal), so `foundIn` follows the studies.
+- IUCN: Not Evaluated (SeaLifeBase, Red List 2025-2). No *Sarcophyton* has been assessed.
+- Depth: 3–30 m in the Eilat population (Coral Trait Database, median 16.5 m); SeaLifeBase adds
+  the intertidal. The Reefs' drawn 0–10 m sits inside that.
+- Benayahu & Loya 1986 decide sex, maturity, spawning and eggs: separate sexes 1:1; males mature
+  at 6–7 years, females after 10; eggs ripen over 22–23 months, so a female holds two batches;
+  most colonies spawn on one summer night (9 July 1980); about 35 eggs a polyp; larvae swim
+  14 days. Schleyer et al. 2004 found 9% of KwaZulu-Natal colonies carrying both sexes, noted in
+  a comment only.
+- Size, weight and life span stay Unknown: no average or age is published ("long life span").
+  Colour is left out of the copy: only aquarium-trade sources describe it (tan, cream, brown,
+  yellowish or greenish).
+- Toxins (Chao et al. 2017): sarcophine is toxic to fish, sarcophytoxide fights stony corals for
+  space. Reef fish should therefore never peck it.
+
+Sway config the GLB will need (proposed, tune at intake):
+
+- **No vertex-paint channels.** `coral-sway` bakes `aSwayFlex` (distance from the holdfast over
+  the colony's reach) and `aSway` at placement (`addSwayAttributes`), so the model needs none;
+  `COLOR_0` stays white or absent. The `flex²` falloff keeps the stalk nearly still and moves the
+  cap's rim most, which is the lean wanted.
+- **Swing direction: the current itself,** horizontal. A fan swings along its face normal, which
+  placement points down the current; a toadstool has no face, so its placement script passes the
+  landscape's `current` (x, z) straight to `addSwayAttributes`. Phase from position along the
+  current as for the fans, so a fan and a toadstool side by side lean together.
+- **A `LEATHER_CORAL_SWAY` beside `SEA_FAN_SWAY`:** the same `period` 7 (one surge for the whole
+  reef), `bend` about 0.03 (half the fans': a thick, rubbery body), `flutter` about 0.1 (a fleshy
+  cap barely ripples). Different `flutter` compiles one more shader program, nothing per frame.
+  Shipped in `dev_2` as proposed; Jeremy found it "not obvious enough", so `dev_3` swings 0.15 of
+  the height with `flutter` 0.2 (see coral-sway.md).
+- `coral-sway.md` holds only the sea fan's Blender contract; the toadstool contract below joins
+  it at intake.
+
+Corals on the bommies now (last measured at the cauliflower coral's intake, below): 130 tables in
+9 clusters, 25 scattered sea fans plus 3–6 a bommie, 26 brain corals, 20 cauliflower colonies on
+tops and upper shoulders (plus front colonies, not counted), staghorn 275 (298 before the
+cauliflower, 358 before the brain corals).
+
+Decided by Jeremy (2026-11-01, "go with your suggestion"; the cauliflower coral comes on its own
+branch; the leather coral is the last coral for now):
+
+- **Colony count: 1–3 toadstools a bommie** on the nine table bommies (about 10–25 in all) at
+  30–80 cm (1.2–3.2 WU), with a few loners on low rocks in the sand between bommies.
+- **Placement: low ledges, the foot of the rock and rubble beside it,** in one-colour patches,
+  leaving the exposed tops to the tables, staghorn and cauliflower (it is a coral of calm flats
+  and lagoons, also turbid water). The foot placement costs mostly the staghorn's foot patches
+  (`footShare` 0.35) and the brain corals' sand spots.
+- **Order: tables, sea fans, brain corals, cauliflower, leather coral, then the staghorn,** which
+  keeps clear of the leather corals as it does of the brain corals. The cauliflower is on its own
+  branch (PR #183): whichever model lands first, the leather corals go after the brain corals and
+  the cauliflower slots in before them.
+- **Space for all.** Jeremy wants the bommies populated with room for every coral. With no more
+  corals after this one, the intake fixes the final balance: measure every coral's count before
+  and after the leather corals (and, if it landed, after the cauliflower), per bommie as well as
+  in all. Gate: every table bommie still shows all its corals; the staghorn still crowns each
+  bommie; no coral falls by more than about a fifth from its count before the leather corals.
+  Where one does, trim the leather count first, then the cauliflower's, and report every coral's
+  before and after.
+- **Reef fish: solid but unvisited at first,** as the sea fans are (site rays and obstacle field,
+  no mode visits it). A toadstool is a cap on a stalk like a small table, but the `table` form
+  includes pecking, which a toxic coral must not get; a no-peck `table` row or a new form is a
+  later call.
+
+Model (`dev_2`, Jeremy's `sarcophyton glaucum.glb`, 2026-11-02): four toadstools, each one object
+(cap or two heads joined to the stalk) with its origin at the stalk's foot, polyps withdrawn and
+painted, caps from Diego Delso's (peach) and David Burdick's (grey) photos, stalks and undersides
+from Alexander Vasenin's. 878 to 2,748 triangles, 49 to 66 cm tall. He chose joined colonies over
+mix-and-match caps and stems, and cut the two heaviest from 5,552 and 4,048 triangles. Burdick's
+photo is all rights reserved and used without permission on Jeremy's call ("just use it, i'll
+takedown if necessary"): credited as such, with a ROADMAP item to ask him.
+
+Kit (`scripts/build-leather-coral-kit.py`): nothing decimated or baked; each photo cut to its used
+part and scaled to 1024 px (61 MB of PNGs to a 1.2 MB GLB), every face moved onto one UV map (his
+stalks sampled a second), every material opaque (his export was Blend). Atlas specimen
+(`scripts/build-leather-coral-atlas.py`): all four on a 1.5 m rock, swaying from their feet. Tile:
+the classic peach toadstool rendered in Blender from the specimen, as the sea fan's was, since the
+dev tank would not load in the preview over Remote Control.
+
+Placement (`src/components/leatherCoralPlacement.js`, landscapes.js `leatherCorals`): 1 to 3 a
+bommie, one colour (grey, peach; the two-headed one counts as either), within 0.6 rad of one side,
+most often the camera's; ledges in the lower half of the bommie (at least 70% up-facing) or the sand
+within 1.5 m of its foot (40%); 35 to 75 cm tall (1.4 to 3 WU), up to 9° lean, foot sunk 4%; foot
+supported all round (7 of 8 points), stalk and cap clear of rock, sand, tables, fans, brain and
+cauliflower corals and each other (the cap touching nothing), shrinking to 80% then 60% before
+giving up. The staghorn keeps clear of them (`inToadstool`: a cylinder of the cap's reach plus its
+swing and 5 cm). Reef fish: the `toadstool` form, solid but unvisited (docs/reef-behavior.md).
+
+Space check, one full load of the dev tank (`dev_2`, desktop): 15 toadstools on all 9 bommies (1 to
+3 each, 22 to 72 cm). Tables 130, brain corals 26 and cauliflower corals 29 (20 on the tops plus
+the front ones) as read; the sea fans (25 when last measured) were not read. All four are placed
+before the toadstools, so they cannot change. Staghorn 243, against 275 at
+the cauliflower intake (measured before its front colonies): at most 32 fewer (−12%), inside the
+fifth Jeremy allowed. The same-session count without the toadstools was not taken (the preview
+hung on reload), and the tank was not checked by eye.
+
+Sway (`dev_3`–`dev_7`, Jeremy on his phone): stronger, then in the cap with the stalk still
+(`flexFrom`), then circling in the level plane (`orbit`), then half as fast (14 s), then, after
+reference videos, far smaller: `bend` 0.08 (docs/procedural/coral-sway.md has the steps).
+Accepted ("looks good. lets merge") and shipped in `v0.47.0`.
+
+Still open: Burdick's permission (ROADMAP).
+
 ## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`, shipped `v0.46.0`)
 
 Reserve: The Reefs, as a follower of the humphead wrasse (fish queue, Up next item 5). Felt

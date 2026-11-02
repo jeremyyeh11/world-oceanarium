@@ -105,6 +105,20 @@ GLB contract:
 - If mantle breathing is wanted: vertex-paint the mantle's flex (black at the shell, white at
   the rim's edge), as for the sea fans.
 
+Texture sources (Jeremy, 2026-11-02):
+
+- **Mantle:** Bernard Dupont, "Giant Clam (Tridacna gigas)", Fukui, Bunaken Island, Sulawesi,
+  2009, CC BY-SA 2.0
+  ([Commons](https://commons.wikimedia.org/wiki/File:Giant_Clam_(Tridacna_gigas)_(6058446919).jpg)).
+  Credit it in `IMAGE_CREDITS` when the GLB ships, with the same-licence `changes` line.
+- **Shell:** not chosen yet. The free front-on candidate is Charles J. Sharp's wild clam at
+  Michaelmas Cay, CC BY-SA 4.0
+  ([Commons](https://commons.wikimedia.org/wiki/File:Giant_clam_(Tridacna_gigas)_Michaelmas_Cay.jpg)).
+  Two better-looking shots turned out to be paid stock, so they are out unless licensed: the
+  earth.org header is Nature Picture Library image 00662327, and Lady Musgrave Experience's
+  pair of clams matches Getty/Stockbyte #78432838. An AI image generated from either counts
+  as a derivative too.
+
 When the GLB lands: a kit script and placement module, the clams in The Reefs'
 `landscapeSpecies`, an Atlas specimen (one clam on a patch of sand, three-quarter from above, the
 mantle open), `maxBodyLengthMeters` from the specimen, an EncyclopediaPage pose, unhide, and an

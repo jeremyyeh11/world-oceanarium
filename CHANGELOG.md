@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.46.2 — Landing species count
+
+Status: clean `v0.46.2` (2026-11-02), accepted from `v0.46.2-dev_1`, branch
+`fix/landing-species-count`, [PR #189](https://github.com/jeremyyeh11/world-oceanarium/pull/189). Jeremy: "Yes, merge".
+
+### Interface
+
+- The landing gate's species count is the union of the tanks' counts (each tank's species on
+  this build's roster plus its landscape corals), so creature rows written ahead of a release
+  or kept for a hidden stand-in no longer inflate it. It now always agrees with the reserve
+  cards.
+
 ## v0.46.1 — Gentle humphead
 
 Status: clean `v0.46.1` (2026-11-02), accepted from `v0.46.1-dev_1`, branch

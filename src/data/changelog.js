@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.46.2',
+    date: '2026-11-02',
+    title: 'Landing species count',
+    changes: [
+      ['fix', 'The species count on the welcome screen now matches the reserves, counting only the animals you can actually visit.'],
+    ],
+  },
+  {
     version: 'v0.46.1',
     date: '2026-11-02',
     title: 'Gentle humphead',

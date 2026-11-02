@@ -490,17 +490,16 @@ export default function App() {
     atlasWarmupStarted.current = true
     warmAtlasSources(atlasWarmupUrls())
   }, [bootFilesIn])
-  // Every species in the tanks: those with creature rows, and those that live in a tank's
-  // landscape (`landscapeSpecies`, the corals), which have no rows.
-  const tankSpeciesCount = new Set([
-    ...creatureData.creatures.map(creature => creature.species),
-    ...TANKS.flatMap(tank => tank.landscapeSpecies ?? []),
-  ]).size
-  // Same union as above, per tank: its live species plus its landscape species.
-  const speciesCountByTank = new Map(TANKS.map(tank => [tank.id, new Set([
+  // Per tank: its live species on this build's roster (`creaturesForTank`), plus those that live in
+  // its landscape (`landscapeSpecies`, the corals), which have no rows.
+  const speciesByTank = new Map(TANKS.map(tank => [tank.id, new Set([
     ...creaturesForTank(creatureData.creatures, tank).map(creature => creature.species),
     ...(tank.landscapeSpecies ?? []),
-  ]).size]))
+  ])]))
+  const speciesCountByTank = new Map([...speciesByTank].map(([id, species]) => [id, species.size]))
+  // The landing count is the union of the tanks, so rows for species no tank on this build shows
+  // yet (one written ahead of its release, a hidden stand-in) are not counted.
+  const tankSpeciesCount = new Set([...speciesByTank.values()].flatMap(species => [...species])).size
 
   // The selector reports its ranking on mount (under the landing gate) and whenever
   // its columns change. The first ranking warms the likeliest tank as a normal request,

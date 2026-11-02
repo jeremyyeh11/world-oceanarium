@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.47.2 — Brain coral photo permission
+
+Status: clean `v0.47.2` (2026-11-03), accepted from `v0.47.2-dev_1`, branch
+`claude/brain-coral-permission`, [PR #191](https://github.com/jeremyyeh11/world-oceanarium/pull/191). Jeremy: "merge".
+
+### Sources
+
+- Brain Coral texture (pale colony): Scott Johnson of In-Depth Images Kwajalein gave permission
+  by email (2026-11-02), so its credit reads "used with permission" instead of no licence.
+
 ## v0.47.1 — Remora photo permission
 
 Status: clean `v0.47.1` (2026-11-02), accepted from `v0.47.1-dev_1`, branch

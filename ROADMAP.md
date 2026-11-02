@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Clam
 
-Status: `Blocked / waiting review` — `v0.49.0-dev_2`, branch `species/tridacna-gigas`,
+Status: `Blocked / waiting review` — `v0.49.0-dev_3`, branch `species/tridacna-gigas`,
 [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180). Jeremy's model in The Reefs and the Atlas;
 waiting for his phone review.
 [Prep, proposals and GLB contract](docs/species-preparation.md).
@@ -28,10 +28,11 @@ Subtasks:
 - [x] Jeremy's GLB (2026-11-02): one open clam, shell and mantle on separate materials, 1.11 m.
 - [x] `dev_2`: kit script, placement module (`giantClams` in landscapes.js), rock obstacles, Atlas
   specimen and pose, unhidden, `landscapeSpecies`, in-tank tile, photo credits.
-- [ ] Jeremy: review on a phone. Open question: no spot on the front-half sand at the coral
-  bommies' feet is visible from the resting camera (nearer rocks and tables hide it), so no clam
-  shows in the resting view yet. Options: let the in-view clam lie by any rock, not only a coral
-  bommie; allow the back half; or keep them as finds for the diver camera. `Next`
+- [x] A clam in the resting view (`dev_3`, Jeremy: "By any rock"): the first lies by any rock the
+  camera sees, left of centre on desktop.
+- [ ] Jeremy: review on a phone. No clam fits the phone's middle yet: table plates on the bommie in
+  front of the outcrop hide that sand. Options if wanted: a smaller clam allowed there, or the
+  in-view clam on a low rock ledge. `Next`
 - [x] Texture sources (Jeremy, 2026-11-02): mantle from Bernard Dupont's Commons photo
   (CC BY-SA 2.0); shell from Andrew Green's Reef Life Survey photo, used without permission on
   Jeremy's call, to be taken down if asked.

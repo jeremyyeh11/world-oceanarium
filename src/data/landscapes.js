@@ -538,9 +538,11 @@ export const LANDSCAPES = {
     // every coral before them, and before the staghorn, which keeps clear of them (Jeremy,
     // 2026-11-01): `count` clams on the open sand at the feet of the bommies whose middle is in
     // front of z `zMin` (the front half of the basin), one a bommie, `spacing` WU apart (8 WU, 2 m),
-    // the first in a 375 px phone's view: its middle within `phoneWidth` of the 16:9 frame's middle
-    // across (a portrait phone shows 0.26 of it either way), with nothing in the way and its line of
-    // sight kept clear of the staghorn; failing that, within `viewWidth` (the desktop frame).
+    // the first by any rock where the resting camera sees it (Jeremy, 2026-11-02: the bommies' feet
+    // are hidden from it): in a 375 px phone's view, its middle within `phoneWidth` of the 16:9
+    // frame's middle across (a portrait phone shows 0.26 of it either way), with nothing in the way
+    // and its line of sight kept clear of the staghorn; failing that, within `viewWidth` (the
+    // desktop frame).
     // `length` is the shell's in WU (60 cm to 1.2 m: most adults round the 80 cm common length,
     // SeaLifeBase).
     giantClams: {

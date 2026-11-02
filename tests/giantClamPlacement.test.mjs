@@ -2,10 +2,10 @@ import assert from 'node:assert/strict'
 import * as THREE from 'three'
 import { createServer } from 'vite'
 
-// Giant clams against real triangles: one clam by each bommie in front of zMin (none by one behind
-// it), on the sand off the bommie's foot, never in it, level, broadside to the camera, at least
-// `spacing` apart, the first in the phone's view; inClam keeps later corals out of them. No
-// dependency scan, as in seaFanPlacement.test.mjs.
+// Giant clams against real triangles: the first in the phone's view by a rock, then one by each
+// bommie in front of zMin (none by one behind it), on the sand off the bommie's foot, never in it,
+// level, broadside to the camera, at least `spacing` apart; inClam keeps later corals out of them
+// and out of the first one's line of sight. No dependency scan, as in seaFanPlacement.test.mjs.
 const server = await createServer({ server: { middlewareMode: true }, appType: 'custom', optimizeDeps: { noDiscovery: true } })
 try {
   const { placeGiantClams, measureClam, inClam } = await server.ssrLoadModule('/src/components/giantClamPlacement.js')
@@ -33,8 +33,9 @@ try {
   let step
   do { step = generator.next() } while (!step.done)
   const clams = step.value
-  assert.equal(clams.length, 2, `one clam by each front bommie: ${clams.length}`)
-  assert.deepEqual(clams.map(clam => clam.site).sort(), [0, 1], 'none by the bommie behind zMin')
+  assert.equal(clams.length, 3, `one in view, then one by each front bommie: ${clams.length}`)
+  assert.equal(clams[0].site, -1, 'the first by any rock')
+  assert.deepEqual(clams.slice(1).map(clam => clam.site).sort(), [0, 1], 'none by the bommie behind zMin')
   // The resting camera's 16:9 frame, as placement measures it.
   const camera = new THREE.PerspectiveCamera(42, 16 / 9, 0.1, 1000)
   camera.position.set(view.x, view.y, view.z)
@@ -42,9 +43,13 @@ try {
   camera.updateMatrixWorld()
   const ndc = clams[0].centre.clone().project(camera)
   assert.ok(Math.abs(ndc.x) <= 0.18 + 1e-6 && ndc.y > -0.75, `the first is in the phone's view: (${ndc.x.toFixed(2)}, ${ndc.y.toFixed(2)})`)
-  assert.ok(clams[0].base.z > -6, 'in front of its bommie, where the camera sees it')
+  const nearest = Math.min(...clusters.map(cluster => {
+    const box = new THREE.Box3().setFromBufferAttribute(cluster.geometries[0].attributes.position)
+    return box.distanceToPoint(clams[0].base.clone().setY(1))
+  }))
+  assert.ok(nearest >= 1 && nearest <= 10, `by a rock, 25 cm to 2.5 m off it: ${nearest.toFixed(2)} WU`)
   const line = clams[0].sight
-  assert.ok(line && !clams[1].sight, 'only the phone-view clam keeps a line of sight')
+  assert.ok(line && clams.slice(1).every(clam => !clam.sight), 'only the phone-view clam keeps a line of sight')
   assert.ok(inClam(clams, line.from.clone().addScaledVector(line.direction, line.length * 0.6)), 'later corals keep out of its line of sight')
   assert.ok(line.direction.z > 0, 'which runs toward the camera')
   for (const [i, clam] of clams.entries()) {
@@ -65,7 +70,9 @@ try {
     const toEye = new THREE.Vector3(view.x - clam.base.x, 0, view.z - clam.base.z).normalize()
     assert.ok(Math.abs(clam.axis.dot(toEye)) < Math.sin(0.7) + 1e-6, `clam ${i} shows its fluted side to the camera`)
   }
-  assert.ok(Math.hypot(clams[0].base.x - clams[1].base.x, clams[0].base.z - clams[1].base.z) >= 8, 'clams lie at least 2 m apart')
+  for (const [i, a] of clams.entries()) {
+    for (const b of clams.slice(i + 1)) assert.ok(Math.hypot(a.base.x - b.base.x, a.base.z - b.base.z) >= 8, 'clams lie at least 2 m apart')
+  }
   assert.ok(inClam(clams, clams[0].centre), 'a clam holds its own space')
   assert.ok(!inClam(clams, new THREE.Vector3(100, 0, 100)), 'and nothing far off')
   console.log(`giant clam placement: ${clams.length} clams on the sand, the first in the phone's view, passed`)

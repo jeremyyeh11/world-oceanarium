@@ -135,11 +135,12 @@ Model in (`v0.49.0-dev_2`, Jeremy's GLB of 2026-11-02, 1.11 m, about 10,300 tria
 photos cut to their used part and shrunk under 1024 px; opaque; the Reef Life Survey watermark
 filled; the shell's length turned onto X). `scripts/build-giant-clam-atlas.py` writes the Atlas
 specimen, the clam on a 1.7 m oval of sand. `src/components/giantClamPlacement.js` places them
-after the leather corals and before the staghorn (`inClam`). The first clam is tried in a phone's
-view and then the desktop frame, its whole line of sight to the resting camera clear of rock,
-tables and corals; in The Reefs neither fits (the front-half sand at the coral bommies' feet is
-behind nearer rocks and table plates from the resting camera), so all four lie off the frame or
-behind rock. That is the open question for Jeremy's review (ROADMAP).
+after the leather corals and before the staghorn (`inClam`). The sand at the coral bommies'
+feet is hidden from the resting camera, so since `dev_3` (Jeremy: "By any rock") the first clam
+lies by any rock on the sand the camera's rays meet, in a phone's view if it can, else in the
+desktop frame, its whole line of sight clear of rock, tables and corals and kept clear of the
+staghorn. In The Reefs it lies low between the left-hand pillars, left of a phone's frame: table
+plates on the bommie in front of the outcrop hide the sand in the phone's middle.
 
 ## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`, model `dev_2`, sway `dev_3`–`dev_7`, shipped `v0.47.0`)
 

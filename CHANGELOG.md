@@ -10,8 +10,9 @@ Versioning convention notes:
 
 ## v0.49.0 — Giant Clam (in progress)
 
-Status: `v0.49.0-dev_2`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
-waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas.
+Status: `v0.49.0-dev_3`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
+waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas;
+`dev_3` a clam in the resting view, by any rock.
 
 ### Species and Atlas
 
@@ -29,11 +30,14 @@ waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's mode
 - Giant clams (`src/components/giantClamPlacement.js`): 4 static clams of 60 cm to 1.2 m on the
   open sand off the feet of the front-half bommies (one a bommie, 2 m apart), level with the sand,
   fluted side to the resting camera, placed after the leather corals and before the staghorn,
-  which keeps clear of them (`inClam`). The first is placed in a phone's view with its line of
-  sight kept clear, or failing that in the desktop frame. One dev-tank load: no spot met either
-  view test (the front-half sand at the coral bommies' feet is behind nearer rocks from the
-  resting camera), so the four lie where the rest of the rules put them. Each joins the fish's rock
-  obstacles.
+  which keeps clear of them (`inClam`). Each joins the fish's rock obstacles.
+- A clam in the resting view (`dev_3`): the sand at the coral bommies' feet is hidden from the
+  resting camera, so the first clam lies by any rock (Jeremy, 2026-11-02: "By any rock") on the
+  sand the camera's rays meet, in a phone's view if it can, else in the desktop frame, its whole
+  line of sight clear of rock, tables and corals and kept clear of the staghorn. One dev-tank load:
+  it lies low between the left-hand pillars, left of a phone's frame (table plates on the bommie in
+  front hide the sand in the phone's middle); the other three lie by the front bommies, out of
+  frame or behind rock.
 
 ## v0.47.0 — Leather Coral
 

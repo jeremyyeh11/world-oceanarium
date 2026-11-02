@@ -13,10 +13,11 @@ import { inTable } from './seaFanPlacement'
 // So each clam lies on the sand just off a bommie's foot (within SAND_REACH of its rock, but not
 // against it), no two on one bommie and at least `spacing` WU apart: wild clams are scattered and
 // now rare (most surviving groups under ten). Only the bommies whose middle is in front of `zMin`
-// take one. The first is placed in the phone's view: within `phoneWidth` of the middle of the
-// resting camera's frame across, with no rock or coral between the camera and its gape, a line the
-// corals placed after it keep clear too (`sight`, inClam); failing that, anywhere in the desktop
-// frame (`viewWidth`), so the resting view always shows one. A clam lies level on the sand, leant
+// take one. The first is placed where the resting camera sees it, by any rock (Jeremy,
+// 2026-11-02: the sand at the coral bommies' feet is hidden from that camera): within `phoneWidth`
+// of the middle of its frame across, failing that anywhere in the desktop frame (`viewWidth`),
+// with no rock or coral between the camera and its gape, a line the corals placed after it keep
+// clear too (`sight`, inClam). A clam lies level on the sand, leant
 // with it a little, its underside sunk a few centimetres, turned so its fluted side (the shell's
 // length, the model's X) is mostly broadside to the resting camera. It is kept only if its underside
 // rests on the sand all round (none of it floats over a dip), and its shell and mantle stay out of
@@ -64,8 +65,14 @@ const FRAME_HIGH = 0.4
 // The tank's stage (TankView.jsx): the resting camera draws a 16:9 frame, which a portrait phone
 // crops to its middle (a 375 by 812 px phone shows 0.26 of its half-width either way).
 const STAGE_ASPECT = 16 / 9
-// Spots for a clam in view are tried this far beyond the frame's edge either way, in radians.
-const BEARING_MARGIN = 0.03
+// Spots for a clam in view: how many of the camera's rays are tried, how far along each the sand
+// is looked for (WU) and in what steps, and how many level rays look for the rock's foot round it.
+const VIEW_ATTEMPTS = 2400
+const VIEW_DISTANCE = 110
+const VIEW_STEP = 0.5
+const FOOT_RAYS = 8
+// A clam by no bommie in particular: its own rock test is the drawn rocks' (fits, allRocks).
+const NO_ROCK = { inside: () => false }
 const YIELD_EVERY = 20
 
 // Clam facts of the kit model from its parts' geometries (model metres, the rest point at
@@ -156,8 +163,6 @@ export function* placeGiantClams(landscape, clusters, tables, measures, view, av
   const pick = ([min, max]) => min + rand() * (max - min)
   const allRocks = sightRocks?.length ? rockCaster(sightRocks) : null
   const eye = new THREE.Vector3(view?.x ?? 0, view?.y ?? 0, view?.z ?? 0)
-  // The resting camera's line of sight, level.
-  const sight = new THREE.Vector3((view?.lookX ?? eye.x) - eye.x, 0, (view?.lookZ ?? 0) - eye.z).normalize()
   // The resting camera as the tank draws it (a 16:9 stage), for where a clam lands in its frame.
   const camera = new THREE.PerspectiveCamera(view?.fov ?? 42, STAGE_ASPECT, 0.1, 1000)
   camera.position.copy(eye)
@@ -218,108 +223,135 @@ export function* placeGiantClams(landscape, clusters, tables, measures, view, av
     const length = far - SIGHT_SKIP
     for (let t = SIGHT_STEP; t <= length; t += SIGHT_STEP) {
       point.copy(from).addScaledVector(direction, t)
-      if (inTable(tableFeet, plates, point) || avoid?.(point, SIGHT_RADIUS * 0.5)) return null
+      if (inTable(tableFeet, plates, point) || avoid?.(point)) return null
     }
     return { from, direction, length }
   }
 
-  // How far either way of the line of sight a share of the frame's half-width reaches, in radians.
-  const halfWidth = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect)
-  const spreadOf = width => Math.atan(Math.tan(halfWidth) * width) + BEARING_MARGIN
+  // Lays one clam at `origin` on the sand (at sandY), by the rock `rocks` stands for (`site` its
+  // cluster, or -1), drawing its size, lean and turn; with `width`, only where the resting camera
+  // sees it (viewSight). True once placed.
+  const lay = (origin, sandY, site, rocks, width) => {
+    const model = Math.floor(rand() * measures.length)
+    const shape = measures[model]
+    const drawn = pick(config.length)
+    // Leaning with the sand a little; turned broadside to the camera, within FACING_JITTER.
+    sandNormal(landscape, origin.x, origin.z, normal)
+    lean.copy(UP).lerp(normal, LEAN_SHARE).normalize()
+    const tilt = Math.min(lean.angleTo(UP), MAX_LEAN)
+    leanAxis.crossVectors(UP, lean)
+    const rotation = new THREE.Quaternion()
+    if (leanAxis.lengthSq() > 1e-8) rotation.setFromAxisAngle(leanAxis.normalize(), tilt)
+    // The shell's length (local X) across the line to the camera, either way round: turning by
+    // the camera's bearing (atan2(x, z)) takes X to (cos, 0, -sin), square to that line.
+    const toEye = Math.atan2(eye.x - origin.x, eye.z - origin.z)
+    const yaw = toEye + (rand() * 2 - 1) * FACING_JITTER + (rand() < 0.5 ? Math.PI : 0)
+    rotation.multiply(new THREE.Quaternion().setFromAxisAngle(UP, yaw))
+    for (const shrink of SHRINKS) {
+      // Never under the smallest length asked for.
+      if (drawn * shrink < config.length[0]) break
+      const scale = drawn * shrink / shape.length
+      const clam = { length: shape.length * scale, width: shape.width * scale, height: shape.height * scale }
+      const base = new THREE.Vector3(origin.x, sandY - clam.height * SINK, origin.z)
+      if (base.y + clam.height > landscape.maxTop) continue
+      if (placed.some(other => Math.hypot(other.base.x - base.x, other.base.z - base.z) < config.spacing)) continue
+      const seen = width ? viewSight(base, clam.height, width) : null
+      if (width && !seen) continue
+      const matrix = new THREE.Matrix4().compose(base, rotation, new THREE.Vector3(scale, scale, scale))
+      if (!fits(shape, matrix, rocks)) continue
+      const axis = new THREE.Vector3(1, 0, 0).applyQuaternion(rotation).setY(0).normalize()
+      placed.push({
+        model,
+        matrix,
+        site,
+        base,
+        axis,
+        ...clam,
+        reach: clam.length / 2,
+        centre: new THREE.Vector3(base.x, base.y + clam.height / 2, base.z),
+        top: base.y + clam.height,
+        sight: seen,
+        // The clam as an obstacle box: its shell, a little inside its full spread, turned with it
+        // (rockObstacles.js: width along the yawed x).
+        obstacle: { x: base.x, z: base.z, y: base.y, height: clam.height, width: clam.length * 0.9, depth: clam.width * 0.9, yaw: Math.atan2(-axis.z, axis.x) },
+      })
+      used.add(site)
+      return true
+    }
+    return false
+  }
 
-  // Tries to lay one clam by this bommie: true once placed, false when its attempts run out. With
-  // `width`, the clam must be in the resting camera's view, within that share of the frame's
-  // half-width (viewSight), and spots are tried along the camera's lines of sight. Yields every few
-  // attempts.
-  function* tryClam(entry, width = null) {
+  // Tries to lay one clam by this bommie, round it, most often on the side facing the camera:
+  // true once placed, false when its attempts run out. Yields every few attempts.
+  function* tryClam(entry) {
     const { cluster, centre, size } = entry
     const rocks = rockCaster(cluster.geometries)
     const facing = Math.atan2(eye.z - centre.z, eye.x - centre.x)
     for (let attempt = 0; attempt < ATTEMPTS_PER_CLAM; attempt++) {
       if (attempt % YIELD_EVERY === YIELD_EVERY - 1) yield
-      if (width) {
-        // Along a line of sight inside the frame's width: the rock's foot that way (a level ray
-        // just over the sand), then back toward the camera onto the open sand before it.
-        const bearing = Math.atan2(sight.x, sight.z) + (rand() * 2 - 1) * spreadOf(width)
-        ray.set(Math.sin(bearing), 0, Math.cos(bearing))
-        point.set(eye.x, sandHeight(landscape, centre.x, centre.z) + 0.5, eye.z)
-        const face = rocks.nearest(point, ray, Math.hypot(centre.x - eye.x, centre.z - eye.z) + size.x + size.z)
-        if (!face) continue
-        const distance = Math.hypot(face.point.x - eye.x, face.point.z - eye.z) - NEAR - rand() * SAND_REACH * 0.6
-        origin.set(eye.x + ray.x * distance, 0, eye.z + ray.z * distance)
-      } else {
-        // Round the rock, most often on the side facing the camera, out beyond its foot.
-        const angle = facing + (rand() * 2 - 1) * (rand() < 0.75 ? 1.1 : Math.PI)
-        const reach = 1 + rand() * 0.5
-        origin.set(centre.x + Math.cos(angle) * reach * size.x / 2, 0, centre.z + Math.sin(angle) * reach * size.z / 2)
-      }
+      const angle = facing + (rand() * 2 - 1) * (rand() < 0.75 ? 1.1 : Math.PI)
+      const reach = 1 + rand() * 0.5
+      origin.set(centre.x + Math.cos(angle) * reach * size.x / 2, 0, centre.z + Math.sin(angle) * reach * size.z / 2)
       const sandY = sandHeight(landscape, origin.x, origin.z)
       // Open sand: no rock over it, the bommie's foot within SAND_REACH but not right against it.
       if (rocks.inside(point.set(origin.x, sandY + 0.3, origin.z)) || allRocks?.inside(point)) continue
       inward.set(centre.x - origin.x, 0, centre.z - origin.z).normalize()
       const foot = rocks.nearest(point.set(origin.x, sandY + 0.5, origin.z), inward, SAND_REACH)
       if (!foot || foot.point.distanceTo(point) < NEAR) continue
-      const model = Math.floor(rand() * measures.length)
-      const shape = measures[model]
-      const drawn = pick(config.length)
-      // Leaning with the sand a little; turned broadside to the camera, within FACING_JITTER.
-      sandNormal(landscape, origin.x, origin.z, normal)
-      lean.copy(UP).lerp(normal, LEAN_SHARE).normalize()
-      const tilt = Math.min(lean.angleTo(UP), MAX_LEAN)
-      leanAxis.crossVectors(UP, lean)
-      const rotation = new THREE.Quaternion()
-      if (leanAxis.lengthSq() > 1e-8) rotation.setFromAxisAngle(leanAxis.normalize(), tilt)
-      // The shell's length (local X) across the line to the camera, either way round: turning by
-      // the camera's bearing (atan2(x, z)) takes X to (cos, 0, -sin), square to that line.
-      const toEye = Math.atan2(eye.x - origin.x, eye.z - origin.z)
-      const yaw = toEye + (rand() * 2 - 1) * FACING_JITTER + (rand() < 0.5 ? Math.PI : 0)
-      rotation.multiply(new THREE.Quaternion().setFromAxisAngle(UP, yaw))
-      for (const shrink of SHRINKS) {
-        // Never under the smallest length asked for.
-        if (drawn * shrink < config.length[0]) break
-        const scale = drawn * shrink / shape.length
-        const clam = { length: shape.length * scale, width: shape.width * scale, height: shape.height * scale }
-        const base = new THREE.Vector3(origin.x, sandY - clam.height * SINK, origin.z)
-        if (base.y + clam.height > landscape.maxTop) continue
-        if (placed.some(other => Math.hypot(other.base.x - base.x, other.base.z - base.z) < config.spacing)) continue
-        const seen = width ? viewSight(base, clam.height, width) : null
-        if (width && !seen) continue
-        const matrix = new THREE.Matrix4().compose(base, rotation, new THREE.Vector3(scale, scale, scale))
-        if (!fits(shape, matrix, rocks)) continue
-        const axis = new THREE.Vector3(1, 0, 0).applyQuaternion(rotation).setY(0).normalize()
-        const result = {
-          model,
-          matrix,
-          site: entry.site,
-          base,
-          axis,
-          ...clam,
-          reach: clam.length / 2,
-          centre: new THREE.Vector3(base.x, base.y + clam.height / 2, base.z),
-          top: base.y + clam.height,
-          sight: seen,
-          // The clam as an obstacle box: its shell, a little inside its full spread, turned with it
-          // (rockObstacles.js: width along the yawed x).
-          obstacle: { x: base.x, z: base.z, y: base.y, height: clam.height, width: clam.length * 0.9, depth: clam.width * 0.9, yaw: Math.atan2(-axis.z, axis.x) },
-        }
-        placed.push(result)
-        used.add(entry.site)
-        return true
-      }
+      if (lay(origin, sandY, entry.site, rocks, null)) return true
     }
     return false
   }
 
-  // The phone-view clam first, by the nearest bommie near the line of sight that has room for it;
-  // failing that (the sand there can be hidden behind a nearer rock), one in the desktop frame
-  // (`viewWidth`) instead, so the resting view always shows a clam; then the rest.
-  for (const width of [config.phoneWidth, config.viewWidth]) {
-    for (const entry of sites) {
-      toClam.set(entry.centre.x - eye.x, 0, entry.centre.z - eye.z)
-      if (toClam.angleTo(sight) > spreadOf(width) + Math.max(entry.size.x, entry.size.z) / toClam.length()) continue
-      if (yield* tryClam(entry, width)) break
+  // Tries to lay one clam the resting camera sees, by any rock (Jeremy, 2026-11-02: the sand at the
+  // coral bommies' feet is hidden from it): spots are the sand the camera's rays meet inside `width`
+  // of the frame's half-width and clear of its bottom edge, with no rock before them, on open sand
+  // in front of zMin with a rock's foot within SAND_REACH round it but not right against it. True
+  // once placed. Yields every few attempts.
+  function* tryInView(width) {
+    for (let attempt = 0; attempt < VIEW_ATTEMPTS; attempt++) {
+      if (attempt % YIELD_EVERY === YIELD_EVERY - 1) yield
+      const x = (rand() * 2 - 1) * width
+      // The lower half of the frame: the upper half looks over the sand into open water.
+      const y = -FRAME_LOW + rand() * FRAME_LOW
+      const direction = new THREE.Vector3(x, y, 0.5).unproject(camera).sub(eye).normalize()
+      if (direction.y > -0.02) continue
+      // Down the ray to the sand, then a few halvings to pin where it meets it.
+      let near = 0
+      let far = 0
+      for (let t = VIEW_STEP; t <= VIEW_DISTANCE; t += VIEW_STEP) {
+        point.copy(eye).addScaledVector(direction, t)
+        if (point.y <= sandHeight(landscape, point.x, point.z)) { near = t - VIEW_STEP; far = t; break }
+      }
+      if (!far) continue
+      for (let k = 0; k < 6; k++) {
+        const t = (near + far) / 2
+        point.copy(eye).addScaledVector(direction, t)
+        if (point.y <= sandHeight(landscape, point.x, point.z)) far = t
+        else near = t
+      }
+      if (allRocks?.nearest(eye, direction, far - 0.5)) continue
+      origin.copy(eye).addScaledVector(direction, far).setY(0)
+      if (origin.z < config.zMin) continue
+      const sandY = sandHeight(landscape, origin.x, origin.z)
+      if (allRocks?.inside(point.set(origin.x, sandY + 0.3, origin.z))) continue
+      // By a rock: the nearest rock face round it, level, just over the sand.
+      let foot = Infinity
+      for (let k = 0; k < FOOT_RAYS; k++) {
+        const a = k * Math.PI * 2 / FOOT_RAYS
+        const hit = allRocks?.nearest(point.set(origin.x, sandY + 0.5, origin.z), ray.set(Math.cos(a), 0, Math.sin(a)), SAND_REACH)
+        if (hit) foot = Math.min(foot, hit.point.distanceTo(point))
+      }
+      if (foot < NEAR || foot === Infinity) continue
+      if (lay(origin, sandY, -1, NO_ROCK, width)) return true
     }
-    if (placed.length) break
+    return false
+  }
+
+  // The phone-view clam first; failing that, one in the desktop frame (`viewWidth`), so the resting
+  // view always shows a clam; then the rest, by the front bommies.
+  for (const width of [config.phoneWidth, config.viewWidth]) {
+    if (yield* tryInView(width)) break
   }
   for (const entry of sites) {
     if (placed.length >= config.count) break

@@ -590,14 +590,14 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
   },
   {
-    // FishBase marks the photo all rights reserved; used on Jeremy's call (2026-11-01), to be
-    // taken down if the holder objects. FishBase names P. Béarez as its contributor.
+    // FishBase marks the photo all rights reserved; Philippe Béarez gave Jeremy permission to use
+    // it by email (2026-11-02). No public page records it, so the licence has no link.
     id: 'bearez-common-remora',
     subject: 'Common Remora body texture',
     author: 'P. Béarez',
     work: 'Remora remora, Salango, Manabí, Ecuador (FishBase)',
     url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species',
-    licence: { name: 'all rights reserved', url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species' },
+    licence: { name: 'used with permission' },
     changes: 'Recoloured from the preserved specimen to the living fish\'s dark brown, mapped onto the 3D model, cropped to the fish and resized.',
   },
   {

@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`, tank `dev_3`, credit `dev_4`)
+## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`, tank `dev_3`, credit `dev_4`, shipped `v0.48.0`)
 
 Reserve: The Reefs, riding the giant sunfish ([fish queue](fish-queue.md), Up next 7). Felt
 intention: a pale passenger that is almost part of the Mola, clamped to its flanks for minutes
@@ -69,11 +69,13 @@ Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md),
 - Atlas: framed at 1.45 display units, between the bannerfish and the pilot fish; checked at
   375 px and on desktop.
 
-Open for Jeremy:
+Shipped in clean `v0.48.0` (2026-11-03, Jeremy: "merge"): production `creatures` ids 1480–1483,
+the same four as dev (837 → 841 rows, backed up before and after).
 
-- **Review `dev_3` on a phone:** the four riders on the Mola and the new Atlas tile.
-- **Texture licence:** Mexican Fish.com states none, so all rights stay with John Snow. Keep the
-  photos as they are, or ask him for permission.
+Open:
+
+- **Texture licence:** Mexican Fish.com states none, so all rights stay with John Snow; the
+  credit reads "licence not stated". Jeremy's permission request is drafted in his Gmail.
 - Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP, Remoras).
 
 Tank (`dev_3`, 2026-11-02):

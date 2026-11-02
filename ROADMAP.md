@@ -877,6 +877,15 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 
 ## Released / archived
 
+### Landing species count
+
+Status: shipped in clean `v0.46.2` (2026-11-02, [PR #189](https://github.com/jeremyyeh11/world-oceanarium/pull/189)), from
+`v0.46.2-dev_1`, branch `fix/landing-species-count`. Jeremy: the landing page counted more
+species than the reserves hold; it should reflect only the current version's roster.
+
+- [x] The landing count is the union of the per-tank counts (roster-filtered rows plus landscape
+  corals), so rows written ahead of a release or kept for hidden stand-ins are not counted.
+
 ### Bluefin Trevally (The Reefs)
 
 Status: shipped in clean `v0.46.0` (2026-11-02, PR #179), from `v0.46.0-dev_5`, branch

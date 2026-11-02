@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.47.0',
+    date: '2026-11-02',
+    title: 'Leather Coral',
+    changes: [
+      ['new', 'Leather corals grow at the feet of the rocks in The Reefs, fleshy grey and peach toadstools whose caps rock slowly in the surge. Their tissue is toxic, so the reef fish leave them alone.'],
+      ['new', 'Meet the Leather Coral in the Atlas, four toadstools swaying on their rock.'],
+    ],
+  },
+  {
     version: 'v0.46.2',
     date: '2026-11-02',
     title: 'Landing species count',

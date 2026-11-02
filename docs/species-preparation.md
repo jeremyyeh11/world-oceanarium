@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`, model `dev_2`)
+## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`, model `dev_2`, sway `dev_3`–`dev_7`, shipped `v0.47.0`)
 
 Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
 (fish queue, Up next item 6), swaying on the sea fans' `coral-sway` shader. Jeremy picked
@@ -127,8 +127,12 @@ the cauliflower intake (measured before its front colonies): at most 32 fewer (�
 fifth Jeremy allowed. The same-session count without the toadstools was not taken (the preview
 hung on reload), and the tank was not checked by eye.
 
-Open for Jeremy: the look on his phone (do the toadstools read, sway gently, sit on the rock and
-not float), the tile, and Burdick's permission.
+Sway (`dev_3`–`dev_7`, Jeremy on his phone): stronger, then in the cap with the stalk still
+(`flexFrom`), then circling in the level plane (`orbit`), then half as fast (14 s), then, after
+reference videos, far smaller: `bend` 0.08 (docs/procedural/coral-sway.md has the steps).
+Accepted ("looks good. lets merge") and shipped in `v0.47.0`.
+
+Still open: Burdick's permission (ROADMAP).
 
 ## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`, shipped `v0.46.0`)
 

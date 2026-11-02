@@ -10,7 +10,8 @@ Versioning convention notes:
 
 ## v0.47.2 — Brain coral photo permission
 
-Status: in development, `v0.47.2-dev_1`, branch `claude/brain-coral-permission`.
+Status: clean `v0.47.2` (2026-11-03), accepted from `v0.47.2-dev_1`, branch
+`claude/brain-coral-permission`, [PR #191](https://github.com/jeremyyeh11/world-oceanarium/pull/191). Jeremy: "merge".
 
 ### Sources
 

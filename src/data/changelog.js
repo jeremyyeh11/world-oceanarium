@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.47.2',
+    date: '2026-11-03',
+    title: 'Brain coral photo permission',
+    changes: [
+      ['fix', "The pale Brain Coral's photo credit in Sources now reads \"used with permission\": Scott Johnson of In-Depth Images Kwajalein kindly said yes."],
+    ],
+  },
+  {
     version: 'v0.47.1',
     date: '2026-11-02',
     title: 'Remora photo permission',

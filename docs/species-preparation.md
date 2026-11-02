@@ -111,8 +111,14 @@ Texture sources (Jeremy, 2026-11-02):
   2009, CC BY-SA 2.0
   ([Commons](https://commons.wikimedia.org/wiki/File:Giant_Clam_(Tridacna_gigas)_(6058446919).jpg)).
   Credit it in `IMAGE_CREDITS` when the GLB ships, with the same-licence `changes` line.
-- **Shell:** not chosen yet. The free front-on candidate is Charles J. Sharp's wild clam at
-  Michaelmas Cay, CC BY-SA 4.0
+- **Shell:** Andrew Green's wild clam in the Coral Sea, Queensland, on Reef Life Survey's
+  [*Tridacna gigas* page](https://reeflifesurvey.com/species/tridacna-gigas/) (photo 2 of 2,
+  1000×666). Copyright stays with the photographer; usage requests go through Reef Life
+  Survey's contact form. Used without permission on Jeremy's call (2026-11-02), to be taken
+  down if asked, like the leather coral's grey caps. Crop out the `reeflifesurvey.com`
+  watermark (bottom right) so it never reaches the texture. Credit it in `IMAGE_CREDITS` with
+  `licence: { name: 'all rights reserved' }`. The free fallback is Charles J. Sharp's wild clam
+  at Michaelmas Cay, CC BY-SA 4.0
   ([Commons](https://commons.wikimedia.org/wiki/File:Giant_clam_(Tridacna_gigas)_Michaelmas_Cay.jpg)).
   Two better-looking shots turned out to be paid stock, so they are out unless licensed: the
   earth.org header is Nature Picture Library image 00662327, and Lady Musgrave Experience's

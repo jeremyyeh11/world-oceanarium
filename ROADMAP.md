@@ -27,6 +27,11 @@ Subtasks:
 - [ ] Jeremy's GLB (one open clam, shell and mantle separate, origin under the shell). `Next`
 - [ ] Then: kit script, placement module (`giantClams` in landscapes.js), obstacle field, Atlas
   specimen and pose, unhide, `landscapeSpecies`, in-tank tile, photo credits. `Next`
+- [x] Texture sources (Jeremy, 2026-11-02): mantle from Bernard Dupont's Commons photo
+  (CC BY-SA 2.0); shell from Andrew Green's Reef Life Survey photo, used without permission on
+  Jeremy's call, to be taken down if asked.
+- [ ] Ask Andrew Green, through Reef Life Survey's contact form, for permission to use his photo
+  for the shell.
 - [ ] Mantle breathing as a `coral-sway` config (needs a per-vertex swing direction) and the shadow
   flinch (new type doc first): only on Jeremy's yes. `Backlog`
 

@@ -63,6 +63,7 @@ import {
   clampToSurfaceCeiling,
   clampToSwimBounds,
   clampToSwimBoundsWithContacts,
+  lowerSwimFloor,
   BODY_CLEARANCE_MIN_LENGTH,
   computeBoidSteering,
   creatureBodyLength,
@@ -466,6 +467,14 @@ function limitClampCorrection(position, unclamped, from, delta, returnSpeed = CL
   const c = clampOffset.lengthSq() - limit * limit
   const t = (-b + Math.sqrt(Math.max(0, b * b - a * c))) / a
   position.copy(unclamped).addScaledVector(clampCorrection, THREE.MathUtils.clamp(t, 0, 1))
+}
+
+// The swim volume for this frame: on a trip to a brain coral the floor drops to the swim
+// profile's `moundBoundsYMin`, since most domes sit below the usual floor (species.js
+// REEF_BOUNDS); every other trip keeps the usual floor.
+function reefVisitBounds(bounds, swim, behavior, reef) {
+  if (swim.moundBoundsYMin === undefined || behavior?.type !== 'reef' || reef.stage === 'idle' || reef.siteKind !== 'mound') return bounds
+  return lowerSwimFloor(bounds, swim.moundBoundsYMin)
 }
 
 // Whether a point lies inside a swim volume (its x range narrows toward the camera unless the
@@ -1090,7 +1099,8 @@ void proceduralDiscMotion(inout vec3 value) {
   float side = value.x < 0.0 ? -1.0 : 1.0;
   value.x -= side * min(lift * lift / (2.0 * reach), 0.5 * reach);
   value.y += lift;
-  // The body heaves a little against the wings: it rises as they press down.
+  // The body heaves a little against the wings: it rises as they press down. Riders on a
+  // manta heave with it through fishSwim.js discBodyHeave; keep the two in step.
   float rootSlope;
   float rootBeat = discBeat(uDiscPhase - clamp(mask.g, 0.0, 1.0) * uDiscWaveTravel, rootSlope);
   value.y -= uDiscHeave * discStroke() * rootBeat;
@@ -2140,6 +2150,14 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         out.turn = waveTurn
         out.burst = waveBurst
       }
+    } else if (curveConfig?.type === 'disc-wave-vertex' && waveOutRef?.current) {
+      // The beat the shader just received: a ride host's riders heave with the body under them.
+      const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
+      const out = waveOutRef.current
+      out.phase = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
+      out.speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      out.turn = curveDeformTurnRef.current * (1 + whip01 * CAUDAL_WHIP_BEND_GAIN)
+      out.burst = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1) + whip01 * CAUDAL_WHIP_EXTRA_BURST
     }
   })
 
@@ -2377,7 +2395,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   )
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
-    const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
+    // Speeds are body lengths of the species' largest fish, so a small adult swims as fast as a big
+    // one; with `speedFollowsSize` they are this fish's own body lengths instead.
+    const speedLengthWU = swim.speedFollowsSize ? creatureBodyLength(creature, swim) : swim.bodyLengthWU
+    const velocityScale = speedLengthWU * swim.visualTimeScale * swim.speedMultiplier
     return {
       idleSpeed: randomRangeFromPair(rand, swim.idleBLPerSec, DEFAULT_SWIM.idleBLPerSec) * velocityScale,
       idleDrift: randomRangeFromPair(rand, swim.idleDriftBLPerSec, DEFAULT_SWIM.idleDriftBLPerSec) * velocityScale,
@@ -2928,11 +2949,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // To the reef: by its mate if it has one, else round its own home.
         const leader = pairFollow ? getFishEntry(pairFollow.leaderId) : null
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        const moundBounds = swim.moundBoundsYMin === undefined ? null : lowerSwimFloor(bounds, swim.moundBoundsYMin)
         const cruiseSpeed = motion.idleSpeed * organicMotion.speedScale
         const result = startReefBehavior(reefRef.current, reefConfig, {
           bodyLength,
           region: bounds,
           contains: point => pointInSwimBounds(point, bounds, bodyLength),
+          // A brain coral's site may lie below the floor (reefVisitBounds).
+          moundRegion: moundBounds,
+          moundContains: moundBounds && (point => pointInSwimBounds(point, moundBounds, bodyLength)),
           position,
           rand: agentRand.current,
           now,
@@ -3107,7 +3132,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (tangent.lengthSq() < 0.0001) tangent.set(0, 0, -1)
       tangent.normalize()
 
-      const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+      const bounds = reefVisitBounds(swimBounds(creature.depthZone, swim, creature.size ?? 1), swim, agentBehavior.current, reefRef.current)
       const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * (swim.schoolSoftWallBodyLengths ?? SCHOOL_SOFT_WALL_BODY_LENGTHS))
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
@@ -3355,11 +3380,11 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           agentMoveDirection.normalize()
           // Boundary shaping via a projected lookahead point.
           agentCandidateTarget.copy(fish.position).addScaledVector(agentMoveDirection, bodyLength * 6)
-          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentCandidateTarget, tangent, creature, swim)
+          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentCandidateTarget, tangent, creature, swim, bounds)
         } else if (agentHasTarget.current) {
           // Solo agent: steer toward the personal roaming/authored target (boundary-shaped for
           // non-mola species).
-          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
+          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim, bounds)
         } else {
           // Between targets: hold the current heading and let boids/clamps shape it.
           agentMoveDirection.copy(tangent)
@@ -4139,9 +4164,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       // A startle cuts through any turn animation or cooldown in progress: escaping comes first. So
       // does the flinch as a school's alarm wave reaches this fish, as an ordinary burst.
       const reflex = startled || alarmFlinch
+      // A quiet-tailed follower keeps to its cruise beat while escorting: the escort sets its speed,
+      // so an idle burst or snap turn would whip the tail without the dash to go with it.
+      const quietEscort = Boolean(hitchhiker?.escort.quietTail) && ride.stage === 'escort'
       if (riding) {
         playAnimation(resolveMoveAnimation(model, ride.stage === 'dock' ? 'cruise' : 'drift'))
-      } else if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
+      } else if (reflex || (!quietEscort && previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
         if (swim.turnSpeedupEnabled !== false && !reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration

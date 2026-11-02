@@ -60,7 +60,10 @@ made each entry:
      Mola's pectoral just ahead or the mako's welded pelvics just behind.
 
    Nothing is mirrored, so the spots are as uneven as the mesh. The mako has 18 spots on
-   both flanks and the belly; the Mola has 12.
+   both flanks and the belly; the Mola has 12; the giant manta 11, all on its belly.
+   On a disc-wave host (the manta) only the R (body to wingtip) and B (tail) masks count as
+   moving parts: G is the position along the chord, painted everywhere. Each spot records
+   that G as `chord`, which times the body's heave under it (see Runtime).
 3. Each point's normal is averaged over a small cross of rays, and its rail is sampled.
 
 - `at` is the point on the host's surface where the rider's disc sits. It is in host
@@ -75,8 +78,11 @@ made each entry:
   away behind its disc, and a sampled spot can bulge or dip under it. `rideAnchorFit`
   finds the tilt and the bend of the rider's rear body that lie closest to the skin on
   average, each lifted just enough that nothing cuts in, fin lobes included. A gap under
-  the disc counts three times, so riders stay on their discs: across all 198
-  rider-and-spot pairs the median disc lift is 0 and the worst is 1.4 mm.
+  the disc counts three times, so riders stay on their discs: across all 456
+  rider-and-spot pairs on the mako, the Mola, the manta (adult and smallest juvenile) and the
+  whale shark the median disc lift is 0. The worst, 13.5 mm, is a sharksucker-sized rider on
+  the juvenile manta's belly, which no sharksucker reaches (they live in The Open Sea); the
+  common remora sits flush on all 36 spots of its two hosts.
 - The bend (`rideBendProfile`) starts 30% back from the nose, behind the disc and the
   pectoral fins, and grows as the square of the distance from there. At most, the tail
   bends 15% of the rider's length toward the host. The `caudal-vertex` shader bends the
@@ -85,7 +91,7 @@ made each entry:
   full-size sharksucker's tail reaches the skin on 14 of the 18 spots. On the other four
   the belly curves away more sharply than 15% allows.
 - `waveSpan` lets riders follow a host's caudal wave (see Runtime). The generator writes
-  it; hosts without a `caudal-vertex` wave (the Mola) ignore it.
+  it; hosts without a `caudal-vertex` wave (the Mola, the manta) ignore it.
 - Capacity: a host carries riders up to `loadRatio` (default 0.8) of its own length laid
   end to end. A 4.2 m mako takes three 1.1 m sharksuckers, or about ten white
   suckerfish. One rider per spot, and a spot is free only if its rider would clear the
@@ -133,9 +139,18 @@ is `sunfish` + `large-fish`; the giant oceanic manta is `ray` + `large-fish`.
 
 **Escort-only hosts.** A `rideHost` with `groups` and `body` but no `anchors` can be followed
 but not ridden: followers hold stations round it, and a remora that would ride it finds no
-spot, so it only escorts. That makes a host usable before its spots are fitted, and it is how
-the giant oceanic manta (`mobula-birostris`) takes the golden trevally. Fitting spots later
-(`scripts/fit-ride-anchors.mjs`, needed for the white suckerfish) needs no other change.
+spot, so it only escorts. That makes a host usable before its spots are fitted. The giant
+oceanic manta (`mobula-birostris`) was one from `v0.41.0`, followed by the golden trevally;
+`v0.42.0-dev_1` fitted its spots for the white suckerfish, and the trevally escort it as before
+(followers never look at spots).
+
+**The giant manta's spots** (`node scripts/fit-ride-anchors.mjs mobula-birostris --from 0.39
+--to 0.72`): 11 on the belly's flat centre, within 0.62 m of the midline (the R mask is 0
+there, so the wings, which flap ±4 WU at the tips, never lift under a rider), and from 0.53 m
+ahead of the disc's middle to 1.1 m behind it. Further forward the lower jaw moves with the
+open-mouth morph (1.0 to 0.6 m ahead of the middle, up to 20 cm). The fractions run over the
+unmasked body's length, z −1.79 to 1.87 m. Mouth and gill-chamber riding stays a separate
+roadmap item.
 
 ## Followers (pilot fish, bannerfish, golden trevally)
 
@@ -191,6 +206,23 @@ hitchhiker: {
   2–6 WU below and 1–8 WU ahead of the manta's middle, a few breaking off to roam.
   With Jeremy's model (`v0.41.0-dev_2`, 2026-10-29), all six were escorting within 30 s of
   the tank loading, 7–12 WU from the manta's centre.
+
+- The Bluefin Trevally (`caranx-melampygus`, The Reefs, six in production since `v0.46.0`,
+  eight in `creatures_dev`) follows the humphead wrasse, an escort-only host in its own `reef-forager`
+  group, so the pilot fish and bannerfish (who follow `large-fish`) leave the wrasse alone. Its
+  stations sit above and to either side of the wrasse, from over its head to just past its tail
+  (`along [-0.3, 0.9]`, `angleDegrees [20, 160]`, `radius [1.15, 1.5]`), never below, where the
+  wrasse works the rock: Hobson (1974) saw bluefin trevally following close behind big foraging
+  goatfish to catch the prey they flush. `maxPerHost: 3` spreads the eight over the three wrasses.
+
+`escort.maxPerHost` (optional, unset = no limit) is the most fish of any kind a follower will
+join round one host. `findEscortHost` counts each host's current followers from the registry
+(every rider registers the host it steers by, `rideHostId`) and passes a full host over for the
+next nearest. Only joining is capped: a fish already following stays when a spell ends.
+
+`escort.quietTail` (optional, default off) stops idle bursts and snap turns while the fish is
+escorting; a startle still fires. The escort sets the follower's speed, so those strokes whipped
+the tail with no dash to match, and the bluefin (the only user) read as darting round the wrasse.
 
 ## Runtime
 
@@ -248,7 +280,11 @@ Stages: `free` → `approach` → `dock` → `latch` → `attached` → `release
   along the surface normal. From then on the rider's pose is the host's published pose composed with
   the anchor. On a host with a caudal wave, the rider also moves with the body under its
   disc (`rideFollowHostWave`): sideways by the wave's offset there, and turned about the
-  disc with the body's local slope. The host's renderer publishes its live wave state
+  disc with the body's local slope. On a disc-wave host (the manta) the body heaves against
+  the wings, 1.2 WU either way at full cruise, and a rider rises and falls with it by the
+  heave at its spot's `chord` (`discBodyHeave`, the shader's formula on the CPU); its spots
+  are where the wings do not lift, and the heave's phase barely changes over a rider's
+  length, so it is not tilted. The host's renderer publishes its live wave state
   (phase, speed, turn, burst) with its pose, and `caudalLateralCurve` repeats the
   shader's formula on the CPU. The rider leaves the steer → boids → integrate pipeline
   entirely, the same way the Mola sun-bask hold does. Its tail settles to a slow beat, it
@@ -267,7 +303,7 @@ automatically.
 Ride state lives in `fishRuntimeStore`, so a remora clamped to the mako is still
 clamped when you come back to the tank.
 
-## Adding a host (e.g. spots on the manta, for the white suckerfish)
+## Adding a host
 
 For followers only, step 1 is enough: an escort-only host needs no anchors.
 
@@ -300,7 +336,11 @@ For followers only, step 1 is enough: an escort-only host needs no anchors.
 
 ## Remora models
 
-The two sharksuckers and the Spearfish Remora have models. The other remoras keep their species entries
+The two sharksuckers, the white suckerfish (`v0.42.0`, on the giant manta), the common
+remora (`v0.44.0`, on the mako and the whale shark) and the Spearfish Remora (`v0.48.0`, on
+The Reefs' Mola) have models. The common remora's export
+came in inside out (every part with its faces inward) and is turned right side out by
+`scripts/prepare-common-remora-model.py` before the fit. The other remoras keep their species entries
 (facts, `hitchhiker` data) but no model, on no tank and out of the Atlas, until their GLBs
 arrive; they are listed in [fish-queue.md](fish-queue.md). The generated stand-ins they
 used to render were removed in `v0.37.0-dev_2`.

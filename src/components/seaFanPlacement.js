@@ -122,7 +122,8 @@ export function inFan(fans, point, extra = 0) {
 }
 
 // Whether a point is in a table's plate or near its stalk (from its foot up to its plate).
-function inTable(tables, plates, point) {
+// tables: [{ plate, foot }]; plates: their plates. Also used by brainCoralPlacement.js.
+export function inTable(tables, plates, point) {
   if (inPlate(plates, point)) return true
   for (const table of tables) {
     const { plate } = table

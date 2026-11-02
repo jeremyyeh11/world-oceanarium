@@ -365,6 +365,111 @@ export const STUDY_CREDITS = [
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
   {
+    id: 'sealifebase-platygyra-daedalea',
+    subject: 'Brain Coral status, range, depth, habitat, colony size and reproduction',
+    authors: 'SeaLifeBase',
+    title: 'Platygyra daedalea (Ellis & Solander, 1786), Brain coral',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Platygyra-daedalea.html',
+  },
+  {
+    id: 'lapid-chadwick-2006-sweeper-tentacles',
+    subject: 'Brain Coral sweeper tentacles against neighbouring corals',
+    authors: 'Lapid & Chadwick',
+    year: 2006,
+    title: 'Long-term effects of competition on coral growth and sweeper tentacle development',
+    venue: 'Marine Ecology Progress Series 313: 115–123',
+    url: 'https://doi.org/10.3354/meps313115',
+  },
+  {
+    id: 'mangubhai-harrison-2008-platygyra',
+    subject: 'Brain Coral spawning season and yearly gametogenic cycle in Kenya',
+    authors: 'Mangubhai & Harrison',
+    year: 2008,
+    title: 'Gametogenesis, spawning and fecundity of Platygyra daedalea (Scleractinia) on equatorial reefs in Kenya',
+    venue: 'Coral Reefs 27: 117–122',
+    url: 'https://doi.org/10.1007/s00338-007-0297-8',
+  },
+  {
+    id: 'pardee-2021-bluefin-trevally',
+    subject: 'Bluefin Trevally sex-specific growth, oldest ages, maturity and length–weight relationship in Hawaii',
+    authors: 'Pardee, Wiley & Springer',
+    year: 2021,
+    title: 'Age, growth, and maturity for two highly targeted jack species: Caranx ignobilis and Caranx melampygus',
+    venue: 'Journal of Fish Biology 99: 1247–1255',
+    url: 'https://repository.library.noaa.gov/view/noaa/63122',
+  },
+  {
+    id: 'sudekum-1991-hawaiian-jacks',
+    subject: 'Bluefin Trevally spawning season, eggs per female and diet in the Northwestern Hawaiian Islands',
+    authors: 'Sudekum, Parrish, Radtke & Ralston',
+    year: 1991,
+    title: 'Life history and ecology of large jacks in undisturbed, shallow, oceanic communities',
+    venue: 'Fishery Bulletin 89: 493–513',
+    url: 'https://swfsc-publications.fisheries.noaa.gov/publications/CR/1991/9173.PDF',
+  },
+  {
+    id: 'hobson-1974-kona',
+    subject: 'Bluefin Trevally patrolling above the reef and following foraging goatfish in Kona, Hawaii',
+    authors: 'Hobson',
+    year: 1974,
+    title: 'Feeding relationships of teleostean fishes on coral reefs in Kona, Hawaii',
+    venue: 'Fishery Bulletin 72: 915–1031',
+    url: 'https://spo.nmfs.noaa.gov/sites/default/files/pdf-content/1974/724/hobson.pdf',
+  },
+  {
+    id: 'fishes-of-australia-bluefin-trevally',
+    subject: 'Bluefin Trevally colour',
+    authors: 'Dianne J. Bray',
+    title: 'Bluefin Trevally, Caranx melampygus',
+    venue: 'Fishes of Australia',
+    url: 'https://fishesofaustralia.net.au/home/species/1652',
+  },
+  {
+    id: 'sealifebase-pocillopora-meandrina',
+    subject: 'Cauliflower Coral status and habitat',
+    authors: 'SeaLifeBase',
+    title: 'Pocillopora meandrina Dana, 1846',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Pocillopora-meandrina.html',
+  },
+  {
+    id: 'nmfs-2019-pocillopora-meandrina',
+    subject: 'Cauliflower Coral range, depth, colony size and growth, spawning, and the crabs that guard it',
+    authors: 'National Marine Fisheries Service',
+    year: 2019,
+    title: 'Pocillopora meandrina: Status Review Report',
+    venue: 'NOAA Pacific Islands Regional Office',
+    url: 'https://www.fisheries.noaa.gov/s3/dam-migration/pocillopora_meandrina_status_review_report_2019.pdf',
+  },
+  {
+    id: 'benayahu-loya-1986-sarcophyton',
+    subject: 'Leather Coral sexes, maturity ages, egg development, eggs per polyp and yearly spawning',
+    authors: 'Benayahu & Loya',
+    year: 1986,
+    title: 'Sexual reproduction of a soft coral: synchronous and brief annual spawning of Sarcophyton glaucum (Quoy & Gaimard, 1833)',
+    venue: 'The Biological Bulletin 170: 32–42',
+    url: 'https://doi.org/10.2307/1541378',
+  },
+  {
+    id: 'schleyer-2004-sarcophyton',
+    subject: 'Leather Coral reproduction and hermaphrodite colonies in South Africa',
+    authors: 'Schleyer, Kruger & Benayahu',
+    year: 2004,
+    title: 'Reproduction and the unusual condition of hermaphroditism in Sarcophyton glaucum (Octocorallia, Alcyoniidae) in KwaZulu-Natal, South Africa',
+    venue: 'Hydrobiologia 530/531: 399–409',
+    url: 'https://doi.org/10.1007/s10750-004-2683-3',
+  },
+  {
+    id: 'chao-2017-sarcophyton',
+    subject: 'Leather Coral toxins against fish and stony corals',
+    authors: 'Chao et al.',
+    year: 2017,
+    title: 'Isoprenoids from the soft coral Sarcophyton glaucum',
+    venue: 'Marine Drugs 15(7): 202',
+    url: 'https://doi.org/10.3390/md15070202',
+  },
+  {
     id: 'anislado-tolentino-2022-spearfish-remora',
     subject: 'Spearfish Remora hosts beyond billfishes: ocean sunfishes, blue shark, loggerhead turtle',
     authors: 'Anislado-Tolentino, Rosales-Vásquez, Irigoyen-Solis, Del Moral-Flores & Wakida-Kusunoki',
@@ -382,7 +487,7 @@ export const STUDY_CREDITS = [
 // Every photo texture gets an entry. One whose source is not known has no `url`
 // and shows "Unknown source" (with `author` when only the photographer is known);
 // replace it with the full credit once the source is found. A found source that
-// states no licence has no `licence` and shows "no licence stated". Generated images
+// states no licence has no `licence` and shows "licence not stated". Generated images
 // are not photographs and are not listed.
 export const IMAGE_CREDITS = [
   {
@@ -477,6 +582,53 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
   {
+    id: 'meadows-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (pink colonies)',
+    author: 'Dwayne Meadows, NOAA/NMFS/OPR',
+    work: 'Pocillopora meandrina, Northwestern Hawaiian Islands (NOAA Photo Library, reef0752)',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina.jpg',
+    licence: { name: 'Public domain (NOAA)', url: 'https://commons.wikimedia.org/wiki/Template:PD-USGov-NOAA' },
+    changes: 'Mapped onto the 3D models, baked into new textures, and resized.',
+  },
+  {
+    id: 'peterwchen-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (cream colony)',
+    author: 'Peterwchen',
+    work: 'Pocillopora meandrina in a tidepool, Kēʻē Beach, Kauaʻi',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina-tidepool.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // FishBase marks the photo all rights reserved; Philippe Béarez gave Jeremy permission to use
+    // it by email (2026-11-02). No public page records it, so the licence has no link.
+    id: 'bearez-common-remora',
+    subject: 'Common Remora body texture',
+    author: 'P. Béarez',
+    work: 'Remora remora, Salango, Manabí, Ecuador (FishBase)',
+    url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species',
+    licence: { name: 'used with permission' },
+    changes: 'Recoloured from the preserved specimen to the living fish\'s dark brown, mapped onto the 3D model, cropped to the fish and resized.',
+  },
+  {
+    id: 'khan-common-remora-disc',
+    subject: 'Common Remora suction disc texture',
+    author: 'Mohammad Moazzam Khan',
+    work: 'Remora remora, Pakistan (FishBase)',
+    url: 'https://commons.wikimedia.org/wiki/File:Remora_remora_1.jpg',
+    licence: { name: 'CC BY 3.0', url: 'https://creativecommons.org/licenses/by/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the disc and resized.',
+  },
+  {
+    id: 'delso-bluefin-trevally',
+    subject: 'Bluefin Trevally texture',
+    author: 'Diego Delso, delso.photo',
+    work: 'Bluefin trevally (Caranx melampygus), Jeddah, Saudi Arabia',
+    url: 'https://commons.wikimedia.org/wiki/File:Jurel_de_aleta_azul_(Caranx_melampygus),_Yeda,_Arabia_Saudita,_2025-05-23,_DD_22.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
+  },
+  {
     // Jeremy named the page (2026-11-02): photos 3 and 5 there, at the same 570×215 and 570×304
     // px. The site states no licence, so all rights stay with the photographer.
     id: 'snow-spearfish-remora',
@@ -505,7 +657,57 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
   { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
   { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
+  // ROADMAP (v0.42.0): a side photo of a live fish, and an underside specimen photo for the disc
+  // (embedded as `art_3A10`, a Springer article-figure file name).
+  { id: 'unknown-white-suckerfish', subject: 'White Suckerfish textures (two photos)' },
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },
+  // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
+  // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
+  // (v0.43.0): none is openly licensed; used on Jeremy's call (2026-10-30), taken down on request.
+  // The pale colony's photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth
+  // Images Kwajalein"; Scott Johnson gave Jeremy permission by email for the team (2026-11-02).
+  // No public page records it, so the licence has no link.
+  {
+    id: 'kwajalein-brain-coral',
+    subject: 'Brain Coral texture (pale colony)',
+    author: 'In-Depth Images Kwajalein',
+    work: 'Platygyra cf. daedalea (k01-100711), Kwajalein Underwater',
+    url: 'https://underwaterkwaj.com/uw-misc/coral/merulinidae/Platygyra-cf-daedalea.htm',
+    licence: { name: 'used with permission' },
+    changes: 'Mapped onto the 3D model and resized.',
+  },
+  // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
+  { id: 'coralsoftheworld-brain-coral', subject: 'Brain Coral textures (blue-and-brown and brown colonies, two photos)', author: 'Corals of the World' },
+  { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
+  {
+    id: 'delso-leather-coral',
+    subject: 'Leather Coral texture (peach caps)',
+    author: 'Diego Delso, delso.photo',
+    work: 'Toadstool leather coral (Sarcophyton glaucum), Red Sea, Egypt',
+    url: 'https://commons.wikimedia.org/wiki/File:Coral_(Sarcophyton_glaucum),_mar_Rojo,_Egipto,_2023-04-14,_DD_73.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'vasenin-leather-coral',
+    subject: 'Leather Coral texture (stalks and cap undersides)',
+    author: 'Alexander Vasenin',
+    work: 'Sarcophyton glaucum soft coral at Shaab Angosh reef (Red Sea, Egypt)',
+    url: 'https://commons.wikimedia.org/wiki/File:Sarcophyton_glaucum_at_Shaab_Angosh_reef.JPG',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Used without permission (Jeremy, 2026-11-02: take it down if asked); the photographer's terms
+    // ask for permission first. ROADMAP has the follow-up.
+    id: 'burdick-leather-coral',
+    subject: 'Leather Coral texture (grey caps)',
+    author: 'David Burdick',
+    work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
+    url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',
+    licence: { name: 'all rights reserved', url: 'https://www.guamreeflife.com/index.php/image-copyright-appropriate-usage/' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
 ]

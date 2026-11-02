@@ -7,6 +7,16 @@ globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
   {
+    name: 'Bluefin Trevally static parts',
+    path: 'public/models/fish/caranx-melampygus/caranx-melampygus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['caranx_melampygus'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.858,
+    minVertices: 1800,
+  },
+  {
     name: 'Golden Trevally static parts',
     path: 'public/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb',
     staticMesh: true,
@@ -142,6 +152,28 @@ const targets = [
     requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
     sourceAxis: 'z',
     minBodyLength: 5,
+    minVertices: 1000,
+  },
+  {
+    name: 'Common Remora static parts',
+    path: 'public/models/fish/remora-remora/remora-remora.glb',
+    staticMesh: true,
+    bodyMeshNames: ['remora_remora_1'],
+    requiredFollowMeshes: ['remora_remora_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.8,
+    minVertices: 1000,
+  },
+  {
+    name: 'White Suckerfish static parts',
+    path: 'public/models/fish/remora-albescens/remora-albescens.glb',
+    staticMesh: true,
+    bodyMeshNames: ['white_remora_1'],
+    requiredFollowMeshes: ['white_remora_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.25,
     minVertices: 1000,
   },
   {

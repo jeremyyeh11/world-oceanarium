@@ -8,6 +8,100 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.47.2',
+    date: '2026-11-03',
+    title: 'Brain coral photo permission',
+    changes: [
+      ['fix', "The pale Brain Coral's photo credit in Sources now reads \"used with permission\": Scott Johnson of In-Depth Images Kwajalein kindly said yes."],
+    ],
+  },
+  {
+    version: 'v0.47.1',
+    date: '2026-11-02',
+    title: 'Remora photo permission',
+    changes: [
+      ['fix', 'The Common Remora\'s photo credit in Sources now reads "used with permission": its photographer, Philippe Béarez, kindly said yes.'],
+    ],
+  },
+  {
+    version: 'v0.47.0',
+    date: '2026-11-02',
+    title: 'Leather Coral',
+    changes: [
+      ['new', 'Leather corals grow at the feet of the rocks in The Reefs, fleshy grey and peach toadstools whose caps rock slowly in the surge. Their tissue is toxic, so the reef fish leave them alone.'],
+      ['new', 'Meet the Leather Coral in the Atlas, four toadstools swaying on their rock.'],
+    ],
+  },
+  {
+    version: 'v0.46.2',
+    date: '2026-11-02',
+    title: 'Landing species count',
+    changes: [
+      ['fix', 'The species count on the welcome screen now matches the reserves, counting only the animals you can actually visit.'],
+    ],
+  },
+  {
+    version: 'v0.46.1',
+    date: '2026-11-02',
+    title: 'Gentle humphead',
+    changes: [
+      ['fix', 'The humphead wrasses in The Reefs swim like the gentle giants they are, a slow, steady cruise with only an occasional soft burst, instead of darting every few seconds.'],
+    ],
+  },
+  {
+    version: 'v0.46.0',
+    date: '2026-11-02',
+    title: 'Bluefin Trevally',
+    changes: [
+      ['new', 'Six Bluefin Trevally follow the humphead wrasses in The Reefs, silver hunters with electric-blue fins that stay close, waiting to snatch whatever the big wrasses flush from the rock.'],
+      ['new', 'Meet the Bluefin Trevally in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.45.0',
+    date: '2026-11-01',
+    title: 'Cauliflower Coral',
+    changes: [
+      ['new', 'Cauliflower corals grow on the rocks of The Reefs, small knobbly bushes in pink and cream on the bommie tops and the ledges right in front of you, where reef fish hover and pick.'],
+      ['new', 'Meet the Cauliflower Coral in the Atlas, an endangered reef builder, with three colonies on a rock and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.44.1',
+    date: '2026-11-01',
+    title: 'Natural creature edges',
+    changes: [
+      ['fix', 'Remove the artificial blue edge glow when looking up at animals, keeping their natural reflections and shading.'],
+    ],
+  },
+  {
+    version: 'v0.44.0',
+    date: '2026-11-01',
+    title: 'Common Remora',
+    changes: [
+      ['new', 'Four Common Remoras ride the mako and the whale shark in The Open Sea, dark brown shark riders with the biggest suction disc of any remora, clamped on for minutes at a time.'],
+      ['new', 'Meet the Common Remora in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.43.0',
+    date: '2026-11-01',
+    title: 'Brain Coral',
+    changes: [
+      ['new', 'Brain corals grow on the bommies of The Reefs, rounded boulders in blue, brown, orange and pale green, where reef fish hover, skim the crowns and the butterflyfish nibble.'],
+      ['new', 'Meet the Brain Coral in the Atlas, with three colonies on a rock and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.42.0',
+    date: '2026-10-30',
+    title: 'White Suckerfish',
+    changes: [
+      ['new', 'Twelve White Suckerfish ride the giant manta in The Shallows, clamped to its pale belly and heaving with its wingbeat, now and then letting go for a short swim.'],
+      ['new', 'Meet the White Suckerfish in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.41.0',
     date: '2026-10-29',
     title: 'Golden Trevally',

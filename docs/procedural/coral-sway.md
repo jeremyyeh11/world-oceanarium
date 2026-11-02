@@ -100,7 +100,7 @@ pink leaning out left and right, after Jeremy's sketch) from it:
 The second species on this type: toadstools of *Sarcophyton glaucum* on The Reefs
 (`src/components/leatherCoralPlacement.js`). Felt intention: a few fat, fleshy toadstools that
 lean slowly with the surge, the cap rocking on its stalk as one thick body. Must not wobble like
-jelly, flutter like a fan's rim, or swing further than the fans beside it.
+jelly or flutter like a fan's rim, and must not look still (`dev_2` did).
 
 - Swing direction: the landscape's current (`leatherCorals.current`, the fans' value), horizontal.
   A toadstool has no face, so every colony swings the same way; `phase` comes from its position
@@ -110,8 +110,11 @@ jelly, flutter like a fan's rim, or swing further than the fans beside it.
   moves most. `flex` is straight-line distance from the foot, so the rim swings a little more
   than the middle of the cap: at this `bend` it reads as a soft cap, not a wobble. If it ever
   reads wobbly, measure flex by height only (an option on `addSwayAttributes`).
-- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 7 (the fans' surge), `bend` 0.03 (half
-  the fans'), `flutter` 0.1.
+- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 7 (the fans' surge), `bend` 0.15,
+  `flutter` 0.2. `bend` is a share of the colony's own height, and a toadstool is about a
+  twentieth of a fan's height: `dev_2`'s 0.03 (half the fans') swung a 50 cm toadstool 1.5 cm,
+  which Jeremy found "not obvious enough"; since `dev_3`, 0.15 swings it about 7.5 cm (0.3 WU,
+  close to a fan's rim swing in world units).
 
 ### Blender contract: leather coral
 

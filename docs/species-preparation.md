@@ -60,6 +60,8 @@ Sway config the GLB will need (proposed, tune at intake):
 - **A `LEATHER_CORAL_SWAY` beside `SEA_FAN_SWAY`:** the same `period` 7 (one surge for the whole
   reef), `bend` about 0.03 (half the fans': a thick, rubbery body), `flutter` about 0.1 (a fleshy
   cap barely ripples). Different `flutter` compiles one more shader program, nothing per frame.
+  Shipped in `dev_2` as proposed; Jeremy found it "not obvious enough", so `dev_3` swings 0.15 of
+  the height with `flutter` 0.2 (see coral-sway.md).
 - `coral-sway.md` holds only the sea fan's Blender contract; the toadstool contract below joins
   it at intake.
 

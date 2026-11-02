@@ -198,4 +198,14 @@ assert.equal(speciesById.get('remora-osteochir').atlasDetails.maxLengthLabel, 'S
   assert.equal(manta.lifeStages.juvenile.model, undefined, 'a juvenile manta keeps the adult model')
 }
 
+// Humphead wrasse, a gentle giant (v0.46.1): speeds in each fish's own length, no turn sprint,
+// rare soft bursts.
+{
+  const wrasse = speciesById.get('crassilabrus-undulatus')
+  assert.equal(wrasse.swim.speedFollowsSize, true, 'wrasse speeds follow each fish\'s own length')
+  assert.equal(wrasse.swim.turnSpeedupEnabled, false, 'the wrasse turns without speeding up')
+  assert.ok(wrasse.swim.burstInterval[0] >= 60 && wrasse.swim.burstBLPerSec[1] <= 1.2, 'wrasse bursts are rare and soft')
+  assert.ok(SPECIES.filter(species => species.swim?.speedFollowsSize).every(species => species.id === 'crassilabrus-undulatus'), 'only the wrasse opts in so far')
+}
+
 console.log('species data correction tests passed')

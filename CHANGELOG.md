@@ -8,6 +8,18 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.46.1 — Gentle humphead
+
+Status: clean `v0.46.1` (2026-11-02), accepted from `v0.46.1-dev_1`, branch
+`fix/humphead-gentle-giant`, [PR #187](https://github.com/jeremyyeh11/world-oceanarium/pull/187). Jeremy: "Yes, both" (merge `v0.46.0`, then this).
+
+### Behaviour and motion
+
+- Humphead wrasse as a gentle giant: speeds in each fish's own body lengths (`speedFollowsSize`,
+  new and opt-in), so the 0.85–0.93 m females no longer cruise and burst at the 2.29 m record's
+  pace; a slower cruise, no sprint on turns, a soft burst every 60–120 s instead of a hard one
+  every 20–40, a gentler tail stroke and slower turns at the rock. Only the wrasse changes.
+
 ## v0.46.0 — Bluefin Trevally
 
 Status: clean `v0.46.0` (2026-11-02), accepted from `v0.46.0-dev_5`, branch

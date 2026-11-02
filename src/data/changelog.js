@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.46.1',
+    date: '2026-11-02',
+    title: 'Gentle humphead',
+    changes: [
+      ['fix', 'The humphead wrasses in The Reefs swim like the gentle giants they are, a slow, steady cruise with only an occasional soft burst, instead of darting every few seconds.'],
+    ],
+  },
+  {
     version: 'v0.46.0',
     date: '2026-11-02',
     title: 'Bluefin Trevally',

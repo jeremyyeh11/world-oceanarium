@@ -186,6 +186,28 @@ const SEA_FAN_KIT = {
 // with a faster `flutter` toward the rim.
 export const SEA_FAN_SWAY = { period: 7, bend: 0.06, flutter: 0.25 }
 
+// Jeremy's leather corals (Sarcophyton glaucum, `_blender models/sarcophyton glaucum.glb`,
+// 2026-11-02), normalised by scripts/build-leather-coral-kit.py: leather0, leather1, ... tallest
+// first, each a cap (or two heads) joined to its stalk, in metres with its holdfast at the origin
+// (his object origin, at the bottom of the stalk), with opaque photo materials (Diego Delso's and
+// David Burdick's caps, Alexander Vasenin's stalks and undersides). 0: grey cap, leaning, 66 cm
+// tall; 1: two heads, grey and peach, 61 cm; 2: peach, 53 cm; 3: peach, the classic toadstool,
+// 49 cm. 878 to 2,748 triangles. `colours` groups them into one-colour patches (placement).
+const LEATHER_CORAL_KIT = {
+  path: '/models/landscape/leather-corals.glb',
+  models: [
+    { name: 'leather0', colours: ['grey'] },
+    { name: 'leather1', colours: ['grey', 'peach'] },
+    { name: 'leather2', colours: ['peach'] },
+    { name: 'leather3', colours: ['peach'] },
+  ],
+  chunkWU: 60,
+}
+
+// How the leather corals sway: the sea fans' surge (the same period, so the whole reef moves to
+// one swell), but a thick, rubbery toadstool leans half as far and its fleshy cap barely ripples.
+export const LEATHER_CORAL_SWAY = { period: 7, bend: 0.03, flutter: 0.1 }
+
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
@@ -478,6 +500,18 @@ export const LANDSCAPES = {
       kit: CAULIFLOWER_CORAL_KIT,
       seed: 9419, perCluster: [2, 4], front: [12, 16],
       diameter: [0.8, 1.8],
+    },
+    // Leather corals (src/components/leatherCoralPlacement.js) on the same bommies, placed after
+    // the cauliflower corals, clear of every coral before them, and before the staghorn, which
+    // keeps clear of them (Jeremy, 2026-11-01): `perCluster` toadstools a bommie, one patch of one
+    // colour within `patchSpread` radians round the rock, on its ledges in the lower `lowShare` of
+    // its height and about footShare of them on the sand and rubble at its foot. `height` in WU
+    // (35 to 75 cm; colonies reach 80 cm across, Coral Trait Database). They sway along `current`
+    // (the sea fans'), `sway` LEATHER_CORAL_SWAY.
+    leatherCorals: {
+      kit: LEATHER_CORAL_KIT,
+      seed: 9551, perCluster: [1, 3], patchSpread: 0.6, lowShare: 0.5, footShare: 0.4,
+      height: [1.4, 3], current: [0.16, 1], sway: LEATHER_CORAL_SWAY,
     },
   },
   // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's

@@ -95,6 +95,51 @@ pink leaning out left and right, after Jeremy's sketch) from it:
 9. **Budget: up to 3000 triangles a fan** (the yellow fan's branches are 4,646; fine for three
    models). No bones, animation clips or shape keys.
 
+## Leather coral (since `v0.47.0-dev_2`)
+
+The second species on this type: toadstools of *Sarcophyton glaucum* on The Reefs
+(`src/components/leatherCoralPlacement.js`). Felt intention: a few fat, fleshy toadstools that
+lean slowly with the surge, the cap rocking on its stalk as one thick body. Must not wobble like
+jelly, flutter like a fan's rim, or swing further than the fans beside it.
+
+- Swing direction: the landscape's current (`leatherCorals.current`, the fans' value), horizontal.
+  A toadstool has no face, so every colony swings the same way; `phase` comes from its position
+  along the current, as a fan's, so a fan and a toadstool side by side lean together.
+- `reach` (flex 1) is the distance from the stalk's foot to the cap's rim
+  (`hypot(cap reach, height)`), so the foot stays still, the stalk bends a little and the rim
+  moves most. `flex` is straight-line distance from the foot, so the rim swings a little more
+  than the middle of the cap: at this `bend` it reads as a soft cap, not a wobble. If it ever
+  reads wobbly, measure flex by height only (an option on `addSwayAttributes`).
+- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 7 (the fans' surge), `bend` 0.03 (half
+  the fans'), `flutter` 0.1.
+
+### Blender contract: leather coral
+
+Jeremy's source: `_blender models/sarcophyton glaucum.glb`. Build the kit, then the Atlas specimen:
+
+```
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
+  --python scripts/build-leather-coral-kit.py -- "<path>/sarcophyton glaucum.glb" public/models/landscape <preview-dir>
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
+  --python scripts/build-leather-coral-atlas.py -- public/models/landscape \
+  public/models/fish/sarcophyton-glaucum/sarcophyton-glaucum.glb <preview-dir>
+```
+
+1. **Real size, metres.** Toadstools 30 to 80 cm tall or across (colonies reach 80 cm).
+2. **One object per colony,** its cap (or two or three heads on one stalk) joined to its stalk:
+   one object, one origin, so it bends as one animal. Several colonies in one file; they need not
+   be welded.
+3. **The origin at the bottom of the stalk, in the middle** (where it meets the rock): the sway
+   bends from it. Up +Z in Blender.
+4. **Polyps withdrawn:** a smooth stalk and a folded cap of a few big folds, the polyps a speckle in
+   the texture, never geometry.
+5. **The cap's underside and the stalk are bare** (polyps grow on top only): Solidify's material
+   offset puts the stalk's material on the underside and rim.
+6. **Photo textures, any UV maps.** The script cuts each photo to the part its faces use, scales it
+   to 1024 px at most, moves every face onto one UV map and makes every material opaque (an export
+   set to Blend draws the far side through the near). Credit each photo in IMAGE_CREDITS.
+7. **Budget: up to 3,000 triangles a colony.** No bones, clips, shape keys or vertex colour.
+
 ## Intake checklist
 
 1. Run the kit script; read its warnings and preview.

@@ -13,6 +13,23 @@ Status labels:
 
 ## Current work
 
+### Leather Coral
+
+Status: `Current in development` — `v0.47.0-dev_2`, branch `species/sarcophyton-glaucum`,
+[PR #184](https://github.com/jeremyyeh11/world-oceanarium/pull/184) ·
+[Preparation and intake](docs/species-preparation.md).
+
+- [x] Prepare the species: research, hidden entry, study credits (`dev_1`).
+- [x] Jeremy's four toadstools: kit (`scripts/build-leather-coral-kit.py`), placement on the
+  bommies' low ledges and feet before the staghorn, sway along the current, Atlas specimen and
+  tile, image credits (`dev_2`).
+- [ ] Phone review on the Vercel preview: the toadstools read, sway gently, none floats or
+  clips a rock or coral. Not checked in a browser here (the preview would not load the tank over
+  Remote Control after the first load).
+- [ ] Ask David Burdick (Guam Reef Life) for permission to use his photo for the grey caps
+  (`burdick-leather-coral`); it is used without permission on Jeremy's call (2026-11-02), to be
+  taken down if he asks.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

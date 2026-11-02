@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`)
+## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`, model `dev_2`)
 
 Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
 (fish queue, Up next item 6), swaying on the sea fans' `coral-sway` shader. Jeremy picked
@@ -93,18 +93,40 @@ branch; the leather coral is the last coral for now):
   includes pecking, which a toxic coral must not get; a no-peck `table` row or a new form is a
   later call.
 
-Open for Jeremy:
+Model (`dev_2`, Jeremy's `sarcophyton glaucum.glb`, 2026-11-02): four toadstools, each one object
+(cap or two heads joined to the stalk) with its origin at the stalk's foot, polyps withdrawn and
+painted, caps from Diego Delso's (peach) and David Burdick's (grey) photos, stalks and undersides
+from Alexander Vasenin's. 878 to 2,748 triangles, 49 to 66 cm tall. He chose joined colonies over
+mix-and-match caps and stems, and cut the two heaviest from 5,552 and 4,048 triangles. Burdick's
+photo is all rights reserved and used without permission on Jeremy's call ("just use it, i'll
+takedown if necessary"): credited as such, with a ROADMAP item to ask him.
 
-- **GLB handoff.** 2–3 toadstools of different shapes and one colour each (a smooth young cap, a
-  wide one with a deeply folded rim, one in between), each its own top-level object; upright,
-  +Z up; origin at the centre of the stalk's base (the holdfast, which sinks into rock or sand);
-  1 unit = 1 m at true size (30–80 cm across). Faceted, about 1,000–2,500 triangles each, with at
-  least 4 rings up the stalk and 6 or more rings out across the cap so the lean bends rather than
-  shears. Polyps painted in the texture, not modelled. Opaque photo or painted texture (no
-  alpha), each photo's source listed for `IMAGE_CREDITS`. No bones, clips, shape keys or
-  vertex paint. A kit script on the brain corals' pattern (`scripts/build-brain-coral-kit.py`)
-  and a placement module beside `brainCoralPlacement.js` are written at intake; Atlas: the
-  toadstools on a low rock, swaying (`prepareAtlasSway`); tile from an in-tank close-up.
+Kit (`scripts/build-leather-coral-kit.py`): nothing decimated or baked; each photo cut to its used
+part and scaled to 1024 px (61 MB of PNGs to a 1.2 MB GLB), every face moved onto one UV map (his
+stalks sampled a second), every material opaque (his export was Blend). Atlas specimen
+(`scripts/build-leather-coral-atlas.py`): all four on a 1.5 m rock, swaying from their feet. Tile:
+the classic peach toadstool rendered in Blender from the specimen, as the sea fan's was, since the
+dev tank would not load in the preview over Remote Control.
+
+Placement (`src/components/leatherCoralPlacement.js`, landscapes.js `leatherCorals`): 1 to 3 a
+bommie, one colour (grey, peach; the two-headed one counts as either), within 0.6 rad of one side,
+most often the camera's; ledges in the lower half of the bommie (at least 70% up-facing) or the sand
+within 1.5 m of its foot (40%); 35 to 75 cm tall (1.4 to 3 WU), up to 9° lean, foot sunk 4%; foot
+supported all round (7 of 8 points), stalk and cap clear of rock, sand, tables, fans, brain and
+cauliflower corals and each other (the cap touching nothing), shrinking to 80% then 60% before
+giving up. The staghorn keeps clear of them (`inToadstool`: a cylinder of the cap's reach plus its
+swing and 5 cm). Reef fish: the `toadstool` form, solid but unvisited (docs/reef-behavior.md).
+
+Space check, one full load of the dev tank (`dev_2`, desktop): 15 toadstools on all 9 bommies (1 to
+3 each, 22 to 72 cm). Tables 130, brain corals 26 and cauliflower corals 29 (20 on the tops plus
+the front ones) as read; the sea fans (25 when last measured) were not read. All four are placed
+before the toadstools, so they cannot change. Staghorn 243, against 275 at
+the cauliflower intake (measured before its front colonies): at most 32 fewer (−12%), inside the
+fifth Jeremy allowed. The same-session count without the toadstools was not taken (the preview
+hung on reload), and the tank was not checked by eye.
+
+Open for Jeremy: the look on his phone (do the toadstools read, sway gently, sit on the rock and
+not float), the tile, and Burdick's permission.
 
 ## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`, shipped `v0.46.0`)
 

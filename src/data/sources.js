@@ -659,4 +659,33 @@ export const IMAGE_CREDITS = [
   // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
   { id: 'coralsoftheworld-brain-coral', subject: 'Brain Coral textures (blue-and-brown and brown colonies, two photos)', author: 'Corals of the World' },
   { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
+  {
+    id: 'delso-leather-coral',
+    subject: 'Leather Coral texture (peach caps)',
+    author: 'Diego Delso, delso.photo',
+    work: 'Toadstool leather coral (Sarcophyton glaucum), Red Sea, Egypt',
+    url: 'https://commons.wikimedia.org/wiki/File:Coral_(Sarcophyton_glaucum),_mar_Rojo,_Egipto,_2023-04-14,_DD_73.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'vasenin-leather-coral',
+    subject: 'Leather Coral texture (stalks and cap undersides)',
+    author: 'Alexander Vasenin',
+    work: 'Sarcophyton glaucum soft coral at Shaab Angosh reef (Red Sea, Egypt)',
+    url: 'https://commons.wikimedia.org/wiki/File:Sarcophyton_glaucum_at_Shaab_Angosh_reef.JPG',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Used without permission (Jeremy, 2026-11-02: take it down if asked); the photographer's terms
+    // ask for permission first. ROADMAP has the follow-up.
+    id: 'burdick-leather-coral',
+    subject: 'Leather Coral texture (grey caps)',
+    author: 'David Burdick',
+    work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
+    url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',
+    licence: { name: 'all rights reserved', url: 'https://www.guamreeflife.com/index.php/image-copyright-appropriate-usage/' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
 ]

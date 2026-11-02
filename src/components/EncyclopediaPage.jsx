@@ -285,6 +285,18 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.6, 0],
     lookAt: [0, -0.1, 0],
   },
+  // Four leather corals on a low rock (the model's origin is the rock's foot), framed like the
+  // cauliflower corals but looking less far down, so the stalks under the caps read.
+  'sarcophyton-glaucum': {
+    yawOffset: -0.3,
+    pitchDegrees: 15,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.7, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -339,6 +351,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // The cauliflower corals on their rock, widest across (scripts/build-cauliflower-coral-atlas.py
   // prints the bounds: the rock, 1.1 m).
   'pocillopora-meandrina': 1.1,
+  // The leather corals on their rock, widest across (scripts/build-leather-coral-atlas.py prints the
+  // bounds: the rock, 1.5 m).
+  'sarcophyton-glaucum': 1.5,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

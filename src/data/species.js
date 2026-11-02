@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
+import { LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -213,7 +213,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -4905,9 +4905,14 @@ export const SPECIES = [
     },
   },
   // Leather Coral (Sarcophyton glaucum): Jeremy's pick (2026-11-01) for the soft coral after the
-  // cauliflower coral on The Reefs (docs/fish-queue.md), a toadstool that will lean in the surge
-  // on the sea fans' sway shader (docs/procedural/coral-sway.md). Prepared ahead of its model
-  // (docs/species-preparation.md): no model, on no tank, no landscape placement, out of the Atlas.
+  // cauliflower coral on The Reefs (docs/fish-queue.md), the last coral for now. A landscape species
+  // like the other corals: toadstools of one colour a bommie on the table corals' bommies' low
+  // ledges and at their feet (landscapes.js `leatherCorals`, src/components/leatherCoralPlacement.js),
+  // leaning in the surge on the sea fans' sway shader (docs/procedural/coral-sway.md); its toxins
+  // keep the reef fish off it (the `toadstool` form, solid but unvisited: docs/reef-behavior.md).
+  // Jeremy's model (2026-11-02): four photo-projected toadstools, normalised by
+  // scripts/build-leather-coral-kit.py; the Atlas shows all four on a low rock
+  // (scripts/build-leather-coral-atlas.py).
   // Facts: WoRMS (family Sarcophytidae; records from Mozambique and Madagascar to Fiji and Samoa),
   // SeaLifeBase (IUCN Not Evaluated, Red List 2025-2; intertidal to considerable depths, reef
   // flats and turbid near-shore reefs as well as offshore), Coral Trait Database (colony width
@@ -4924,6 +4929,10 @@ export const SPECIES = [
     name: 'Leather Coral',
     scientificName: 'Sarcophyton glaucum',
     family: 'Sarcophytidae',
+    // Tile (2026-11-02): the classic peach toadstool on its rock, three-quarter, against reef blue,
+    // rendered square at 940 px in Blender from the Atlas model and scaled to 470 px, as the sea
+    // fan's (the dev tank would not load in the preview over Remote Control).
+    atlasThumbnail: '/atlas/sarcophyton-glaucum-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -4978,11 +4987,17 @@ export const SPECIES = [
       social: 'Colonial',
     },
     description: 'A soft coral shaped like a toadstool: a smooth stalk under a wide, folded cap up to 80 cm across, furred with tiny polyps it pulls in when disturbed. Its leathery tissue is laced with sarcophine, a toxin that keeps fish from eating it, and its colonies, male or female, spawn together on one night a year.',
-    // The largest recorded colony, 80 cm across (Coral Trait Database).
-    maxBodyLengthMeters: 0.8,
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts stay for
-    // when its GLB lands.
-    hiddenInAtlas: true,
+    // The Atlas's widest toadstool, for the scale comparison: the two-headed one at 59 cm across
+    // (scripts/build-leather-coral-kit.py; the largest recorded colony is 80 cm, Coral Trait Database).
+    maxBodyLengthMeters: 0.6,
+    model: {
+      path: '/models/fish/sarcophyton-glaucum/sarcophyton-glaucum.glb',
+      // The kit's four toadstools at true size on a low limestone rock, 1.5 m across
+      // (scripts/build-leather-coral-atlas.py), the rock's foot at the origin, each toadstool's
+      // node at its holdfast. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      sway: LEATHER_CORAL_SWAY,
+    },
   },
 ]
 

@@ -15,6 +15,7 @@ import { measureColony, placeStaghorn } from './staghornPlacement'
 import { inFan, measureFan, placeSeaFans } from './seaFanPlacement'
 import { inMound, measureMound, placeBrainCorals } from './brainCoralPlacement'
 import { inBush, measureBush, placeCauliflowerCorals } from './cauliflowerCoralPlacement'
+import { inToadstool, measureToadstool, placeLeatherCorals } from './leatherCoralPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 import { addSwayAttributes, applyCoralSway, useSwayClock } from '../utils/coralSway'
 import { installLodDebug, tagLodGeometry } from '../utils/lodDebug'
@@ -266,6 +267,10 @@ const MOUND_REEF_SURFACES = new WeakMap()
 const PLACED_CAULIFLOWER_CORALS = new WeakMap()
 // The cauliflower corals reef fish can reach, as raycast surfaces, per placement.
 const BUSH_REEF_SURFACES = new WeakMap()
+// Placed leather corals per landscape, for the session.
+const PLACED_LEATHER_CORALS = new WeakMap()
+// The leather corals reef fish can reach, as raycast surfaces, per placement.
+const TOADSTOOL_REEF_SURFACES = new WeakMap()
 
 // One world-space geometry per table inside the landscape's reef reach, from its _lo mesh (700
 // triangles, 300 for the small one: plenty for a ray), with its plate for the site search to aim
@@ -766,9 +771,108 @@ function CauliflowerCorals({ landscape, clusters, tables, fans, mounds, sightRoc
   return (
     <>
       {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.model]} />)}
-      {bushes && landscape.staghorn && (
+      {bushes && (landscape.leatherCorals ? (
+        <Suspense fallback={null}>
+          <LeatherCorals landscape={landscape} clusters={clusters} tables={tables} fans={fans} mounds={mounds} bushes={bushes} environmentId={environmentId} debugLodView={debugLodView} />
+        </Suspense>
+      ) : landscape.staghorn && (
         <Suspense fallback={null}>
           <Staghorn landscape={landscape} clusters={clusters} tables={tables} fans={fans} mounds={mounds} bushes={bushes} environmentId={environmentId} debugLodView={debugLodView} />
+        </Suspense>
+      ))}
+    </>
+  )
+}
+
+// The leather corals inside the landscape's reef reach as raycast surfaces (reefSites.js
+// setCoralSurfaces), one per colony at rest, so a toadstool blocks a fish's site rays like rock.
+// Its sarcophine poisons fish, so no reef mode visits the `toadstool` form (docs/reef-behavior.md,
+// Coral forms); fish steer round them. Built once per placement and kept for the session.
+function toadstoolReefSurfaces(landscape, toadstools, models) {
+  const cached = TOADSTOOL_REEF_SURFACES.get(toadstools)
+  if (cached) return cached
+  const reach = landscape.reefReach
+  const geometries = []
+  const metas = []
+  for (const toadstool of toadstools) {
+    const { base } = toadstool
+    if (reach && (base.x < reach.xMin || base.x > reach.xMax || base.z < reach.zMin || base.z > reach.zMax
+      || base.y < reach.yMin - 4 || base.y > reach.yMax)) continue
+    const parts = models[toadstool.model].map(part => {
+      const geometry = new THREE.BufferGeometry()
+      geometry.setAttribute('position', part.geometry.attributes.position.clone())
+      geometry.setIndex(part.geometry.index.clone())
+      return geometry.applyMatrix4(toadstool.matrix)
+    })
+    const geometry = parts.length > 1 ? mergeGeometries(parts) : parts[0]
+    if (parts.length > 1) parts.forEach(part => part.dispose())
+    geometry.computeBoundingBox()
+    geometries.push(geometry)
+    metas.push({ form: 'toadstool', centre: base.clone(), top: toadstool.top, radius: toadstool.reach })
+  }
+  const result = { geometries, metas }
+  TOADSTOOL_REEF_SURFACES.set(toadstools, result)
+  return result
+}
+
+// Leather corals (landscape.leatherCorals): toadstools on the table corals' bommies' low ledges and
+// at their feet, one colour a bommie, clear of every coral placed before them
+// (leatherCoralPlacement.js), merged per material and square chunk like the sea fans, swaying in
+// the surge. Each colony joins the fish's rock obstacles and blocks their site rays. The staghorn
+// (landscape.staghorn) is placed after them, clear of them.
+function LeatherCorals({ landscape, clusters, tables, fans, mounds, bushes, environmentId, debugLodView }) {
+  const { kit, sway } = landscape.leatherCorals
+  const { models, materials } = useSwayKit(kit, sway, landscape.caustics, debugLodView, { prefix: 'leather', doubleSided: false })
+  useSwayClock()
+  const toadstools = useSlicedPlacement(PLACED_LEATHER_CORALS, landscape, () => {
+    const measures = models.map(parts => measureToadstool(parts.map(part => part.geometry)))
+    const avoid = (point, extra) => Boolean((fans && inFan(fans, point, extra)) || inMound(mounds, point, extra) || inBush(bushes, point, extra))
+    return placeLeatherCorals(landscape, clusters, tables, measures, landscape.view, avoid)
+  }, [kit, models, clusters, tables, fans, mounds, bushes], environmentId)
+
+  const { merged, obstacles } = useMemo(() => {
+    if (!toadstools) return { merged: [], obstacles: [] }
+    const groups = new Map()
+    // Every toadstool leans along the current (it has no face to swing across, as a fan does).
+    const direction = new THREE.Vector3(landscape.leatherCorals.current[0], 0, landscape.leatherCorals.current[1]).normalize()
+    for (const toadstool of toadstools) {
+      const chunk = `${Math.floor(toadstool.base.x / kit.chunkWU)}:${Math.floor(toadstool.base.z / kit.chunkWU)}`
+      // The flex measured from the stalk's foot to its farthest point (the cap's rim).
+      const reach = Math.hypot(toadstool.reach, toadstool.height)
+      for (const part of placedSwayParts(toadstool, models[toadstool.model], { direction, amplitude: toadstool.swing, reach })) {
+        const key = `${part.material}:${chunk}`
+        if (!groups.has(key)) groups.set(key, { material: part.material, list: [] })
+        groups.get(key).list.push(part.geometry)
+      }
+    }
+    return {
+      merged: [...groups].map(([key, { material, list }]) => {
+        const geometry = mergeGeometries(list)
+        list.forEach(part => part.dispose())
+        // Room for the swing, so a colony at a chunk's edge is not culled mid-sway.
+        geometry.computeBoundingSphere()
+        geometry.boundingSphere.radius += sway.bend * landscape.leatherCorals.height[1] * 2
+        return { key, material, geometry }
+      }),
+      obstacles: toadstools.map(toadstool => toadstool.obstacle),
+    }
+  }, [kit, models, sway, landscape, toadstools])
+
+  useExtraObstacles(obstacles)
+  const reefToadstools = useMemo(() => (toadstools ? toadstoolReefSurfaces(landscape, toadstools, models) : null), [landscape, toadstools, models])
+  useLayoutEffect(() => {
+    if (!reefToadstools?.geometries.length) return undefined
+    const owner = setCoralSurfaces(reefToadstools.geometries, reefToadstools.metas)
+    return () => clearCoralSurfaces(owner)
+  }, [reefToadstools])
+  useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])
+
+  return (
+    <>
+      {merged.map(part => <mesh key={part.key} geometry={part.geometry} material={materials[part.material]} />)}
+      {toadstools && landscape.staghorn && (
+        <Suspense fallback={null}>
+          <Staghorn landscape={landscape} clusters={clusters} tables={tables} fans={fans} mounds={mounds} bushes={bushes} toadstools={toadstools} environmentId={environmentId} debugLodView={debugLodView} />
         </Suspense>
       )}
     </>
@@ -776,18 +880,19 @@ function CauliflowerCorals({ landscape, clusters, tables, fans, mounds, sightRoc
 }
 
 // Staghorn (landscape.staghorn): patches of one colour each on the table corals' bommies,
-// clear of their plates and of the sea fans, brain corals and cauliflower corals when there are
-// any (`fans`, `mounds`, `bushes`, placed first: staghornPlacement.js), each bommie's drawn as one
-// LOD (staghornLods). Each colony joins the fish's rock obstacles.
-function Staghorn({ landscape, clusters, tables, fans = null, mounds = null, bushes = null, environmentId, debugLodView }) {
+// clear of their plates and of the sea fans, brain, cauliflower and leather corals when there are
+// any (`fans`, `mounds`, `bushes`, `toadstools`, placed first: staghornPlacement.js), each bommie's
+// drawn as one LOD (staghornLods). Each colony joins the fish's rock obstacles.
+function Staghorn({ landscape, clusters, tables, fans = null, mounds = null, bushes = null, toadstools = null, environmentId, debugLodView }) {
   const { kit } = landscape.staghorn
   const { meshes, materials } = useCoralKit(kit, landscape.caustics, debugLodView)
   const colonies = useSlicedPlacement(PLACED_STAGHORN, landscape, () => {
     const measures = kit.models.map(model => measureColony(meshes[`${model.name}_far`]))
-    const avoid = (fans || mounds || bushes) && ((point, extra) => Boolean((fans && inFan(fans, point, extra))
-      || (mounds && inMound(mounds, point, extra)) || (bushes && inBush(bushes, point, extra))))
+    const avoid = (fans || mounds || bushes || toadstools) && ((point, extra) => Boolean((fans && inFan(fans, point, extra))
+      || (mounds && inMound(mounds, point, extra)) || (bushes && inBush(bushes, point, extra))
+      || (toadstools && inToadstool(toadstools, point, extra))))
     return placeStaghorn(landscape, clusters, tables, measures, landscape.view, avoid)
-  }, [kit, meshes, clusters, tables, fans, mounds, bushes], environmentId)
+  }, [kit, meshes, clusters, tables, fans, mounds, bushes, toadstools], environmentId)
 
   const { bommies, obstacles } = useMemo(() => {
     if (!colonies) return { bommies: [], obstacles: [] }
@@ -820,25 +925,27 @@ function ThicketReefSurfaces({ landscape, colonies, meshes, kit, environmentId }
   return null
 }
 
-// A sea fan kit (landscape.seaFans.kit, built by scripts/build-sea-fan-kit.py): each fan (fan0,
-// fan1, ...) in model metres with its holdfast at the origin and its lattice in the XY plane, as
-// its parts (one per material: the branches, the lattice cut out by its texture's alpha) and one
-// shared list of materials. The GLB's own materials, two-sided, swaying (utils/coralSway.js),
-// and a masked one smoothed at its cut edges by alpha to coverage (the canvas is antialiased),
-// so thin branches fade instead of flickering when the fan is far off.
-function useSeaFanKit(kit, sway, caustics, debugLodView) {
+// A swaying coral kit (built by scripts/build-sea-fan-kit.py or build-leather-coral-kit.py): each
+// colony (`prefix` 0, 1, ...: fan0, leather0) in model metres with its holdfast at the origin (a
+// fan's lattice in the XY plane), as its parts (one per material: a fan's branches and its lattice
+// cut out by its texture's alpha; a toadstool's cap and stalk photos) and one shared list of
+// materials. The GLB's own materials, swaying (utils/coralSway.js), two-sided for a fan's single
+// sheet (`doubleSided`), and a masked one smoothed at its cut edges by alpha to coverage (the
+// canvas is antialiased), so thin branches fade instead of flickering when the fan is far off.
+function useSwayKit(kit, sway, caustics, debugLodView, { prefix = 'fan', doubleSided = true } = {}) {
   const gltf = useGLTF(kit.path)
   const { models, materials } = useMemo(() => {
     const sources = []
     const models = []
     gltf.scene.updateMatrixWorld(true)
     const toFan = new THREE.Matrix4()
+    const named = new RegExp(`^${prefix}\\d+$`)
     gltf.scene.traverse(object => {
       if (!object.isMesh) return
       let fan = object
-      while (fan && !/^fan\d+$/.test(fan.name)) fan = fan.parent
+      while (fan && !named.test(fan.name)) fan = fan.parent
       if (!fan) return
-      const index = Number(fan.name.slice(3))
+      const index = Number(fan.name.slice(prefix.length))
       let material = sources.indexOf(object.material)
       if (material < 0) material = sources.push(object.material) - 1
       const source = object.geometry
@@ -855,7 +962,7 @@ function useSeaFanKit(kit, sway, caustics, debugLodView) {
     })
     const materials = sources.map(source => {
       const material = source.clone()
-      material.side = THREE.DoubleSide
+      material.side = doubleSided ? THREE.DoubleSide : THREE.FrontSide
       material.transparent = false
       material.depthWrite = true
       material.alphaToCoverage = material.alphaTest > 0
@@ -866,9 +973,9 @@ function useSeaFanKit(kit, sway, caustics, debugLodView) {
       return material
     })
     return { models: models.filter(Boolean), materials }
-  }, [gltf, sway, caustics])
+  }, [gltf, sway, caustics, prefix, doubleSided])
   useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
-  // Sea fans have one source detail level. Preserve their sway shader when toggling the
+  // Swaying corals have one source detail level. Preserve their sway shader when toggling the
   // existing all-GLB diagnostic view, and restore it when debug colouring is turned off.
   useLayoutEffect(() => {
     if (!debugLodView) return undefined
@@ -878,14 +985,16 @@ function useSeaFanKit(kit, sway, caustics, debugLodView) {
   return { models, materials }
 }
 
-// A placed fan's parts, moved into place with its sway baked in.
-function placedFanParts(fan, parts, sway) {
+// A placed colony's parts (a fan's, a toadstool's), moved into place with its sway baked in:
+// `direction` the way it swings, `amplitude` its farthest point's swing and `reach` the distance
+// from its holdfast that counts as that point.
+function placedSwayParts(colony, parts, { direction, amplitude, reach }) {
   return parts.map(part => {
     const geometry = new THREE.BufferGeometry()
     for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, part.geometry.attributes[attribute].clone())
     geometry.setIndex(part.geometry.index.clone())
-    geometry.applyMatrix4(fan.matrix)
-    addSwayAttributes(geometry, { origin: fan.base, direction: fan.normal, amplitude: sway.bend * fan.height, reach: fan.reach, phase: fan.phase })
+    geometry.applyMatrix4(colony.matrix)
+    addSwayAttributes(geometry, { origin: colony.base, direction, amplitude, reach, phase: colony.phase })
     return { geometry, material: part.material }
   })
 }
@@ -926,7 +1035,7 @@ function fanReefSurfaces(landscape, fans, models) {
 // rays. The brain corals and the staghorn are placed after them, clear of them (AfterFans).
 function SeaFans({ landscape, clusters, tables, sightRocks, coralRocks, environmentId, debugLodView }) {
   const { kit, sway } = landscape.seaFans
-  const { models, materials } = useSeaFanKit(kit, sway, landscape.caustics, debugLodView)
+  const { models, materials } = useSwayKit(kit, sway, landscape.caustics, debugLodView)
   useSwayClock()
   const fans = useSlicedPlacement(PLACED_SEA_FANS, landscape, () => {
     const measures = models.map(parts => measureFan(parts.map(part => ({ geometry: part.geometry, masked: materials[part.material].alphaTest > 0 }))))
@@ -938,7 +1047,7 @@ function SeaFans({ landscape, clusters, tables, sightRocks, coralRocks, environm
     const groups = new Map()
     for (const fan of fans) {
       const chunk = `${Math.floor(fan.base.x / kit.chunkWU)}:${Math.floor(fan.base.z / kit.chunkWU)}`
-      for (const part of placedFanParts(fan, models[fan.model], sway)) {
+      for (const part of placedSwayParts(fan, models[fan.model], { direction: fan.normal, amplitude: sway.bend * fan.height, reach: fan.reach })) {
         const key = `${part.material}:${chunk}`
         if (!groups.has(key)) groups.set(key, { material: part.material, list: [] })
         groups.get(key).list.push(part.geometry)
@@ -1077,6 +1186,10 @@ const unsubscribeRetirement = environmentLoader.onRetire((id, current) => {
   for (const geometry of (bushes && BUSH_REEF_SURFACES.get(bushes)?.geometries) ?? []) disposeGeometry(geometry)
   if (bushes) BUSH_REEF_SURFACES.delete(bushes)
   PLACED_CAULIFLOWER_CORALS.delete(landscape)
+  const toadstools = PLACED_LEATHER_CORALS.get(landscape)
+  for (const geometry of (toadstools && TOADSTOOL_REEF_SURFACES.get(toadstools)?.geometries) ?? []) disposeGeometry(geometry)
+  if (toadstools) TOADSTOOL_REEF_SURFACES.delete(toadstools)
+  PLACED_LEATHER_CORALS.delete(landscape)
   BUILT_LANDSCAPES.delete(landscape)
   PLACED_CORALS.delete(landscape)
   PLACED_STAGHORN.delete(landscape)

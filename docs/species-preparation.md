@@ -112,8 +112,8 @@ Texture sources (Jeremy, 2026-11-02):
   ([Commons](https://commons.wikimedia.org/wiki/File:Giant_Clam_(Tridacna_gigas)_(6058446919).jpg)).
   Credit it in `IMAGE_CREDITS` when the GLB ships, with the same-licence `changes` line.
 - **Shell:** Andrew Green's wild clam in the Coral Sea, Queensland, on Reef Life Survey's
-  [*Tridacna gigas* page](https://reeflifesurvey.com/species/tridacna-gigas/) (photo 2 of 2,
-  1000×666). Copyright stays with the photographer; usage requests go through Reef Life
+  [*Tridacna gigas* page](https://reeflifesurvey.com/species/tridacna-gigas/) (photo 1 of 2,
+  1000×666, `species_c6_5795c0cb8b368`). Copyright stays with the photographer; usage requests go through Reef Life
   Survey's contact form. Used without permission on Jeremy's call (2026-11-02), to be taken
   down if asked, like the leather coral's grey caps. Crop out the `reeflifesurvey.com`
   watermark (bottom right) so it never reaches the texture. Credit it in `IMAGE_CREDITS` with

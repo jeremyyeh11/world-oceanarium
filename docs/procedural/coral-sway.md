@@ -104,18 +104,19 @@ jelly or flutter like a fan's rim, and must not look still (`dev_2` did).
 
 - Swing direction: the landscape's current (`leatherCorals.current`, the fans' value), horizontal.
   A toadstool has no face, so every colony swings the same way; `phase` comes from its position
-  along the current, as a fan's, so a fan and a toadstool side by side lean together.
+  along the current, as a fan's (at its own, slower period since `dev_6`).
 - Flex by height (since `dev_4`, Jeremy: sway the caps more than the stem): `addSwayAttributes`
   with `up` (the colony's own up, leant with its ledge) and `flexFrom` measures flex as height up
   the colony over its height, 0 below `flexFrom` and rising to 1 at the top. With the shader's
   flex², the stalk stands still, its top barely leans and the cap rocks on it. `dev_2` and `dev_3`
   used the fans' straight-line distance from the foot, which spread the swing down the stalk.
-- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 7 (the fans' surge), `bend` 0.25 (the
-  top's swing either way, a share of the colony's height), `flutter` 0.2, `flexFrom` 0.35. The
-  two knobs: `bend` for how far, `flexFrom` for where (higher keeps more of the stalk still). A
-  toadstool is about a twentieth of a fan's height, so it needs a larger share: 0.03 (`dev_2`)
-  swung a 50 cm toadstool 1.5 cm ("not obvious enough"), 0.15 (`dev_3`) still too little; 0.25
-  swings its top about 12 cm.
+- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 14, `bend` 0.21 (the top's swing either
+  way, a share of the colony's height), `flutter` 0.2, `flexFrom` 0.35. The two knobs: `bend` for
+  how far, `flexFrom` for where (higher keeps more of the stalk still). A toadstool is about a
+  twentieth of a fan's height, so it needs a larger share: 0.03 (`dev_2`) swung a 50 cm toadstool
+  1.5 cm ("not obvious enough"), 0.15 (`dev_3`) still too little, 0.25 (`dev_4`, `dev_5`) good but
+  15% too much; 0.21 (`dev_6`) swings its top about 10 cm. The period was the fans' 7 s until
+  `dev_6`, when Jeremy halved the frequency: the heavy caps circled too fast.
 - `orbit` 0.8 (since `dev_5`): swinging only along the current, the cap moved toward and away
   from the resting camera and read as stretching up and down (Jeremy, 2026-11-02). The shader adds
   a swing across the current, level, `orbit` times the swing along it and a quarter period behind

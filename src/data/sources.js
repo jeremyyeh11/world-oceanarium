@@ -646,14 +646,16 @@ export const IMAGE_CREDITS = [
   // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
   // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
   // (v0.43.0): none is openly licensed; used on Jeremy's call (2026-10-30), taken down on request.
-  // The photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth Images
-  // Kwajalein"; the page states no licence. Shown with `url` and no `licence`.
+  // The pale colony's photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth
+  // Images Kwajalein"; Scott Johnson gave Jeremy permission by email for the team (2026-11-02).
+  // No public page records it, so the licence has no link.
   {
     id: 'kwajalein-brain-coral',
     subject: 'Brain Coral texture (pale colony)',
     author: 'In-Depth Images Kwajalein',
     work: 'Platygyra cf. daedalea (k01-100711), Kwajalein Underwater',
     url: 'https://underwaterkwaj.com/uw-misc/coral/merulinidae/Platygyra-cf-daedalea.htm',
+    licence: { name: 'used with permission' },
     changes: 'Mapped onto the 3D model and resized.',
   },
   // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.

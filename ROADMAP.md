@@ -269,7 +269,8 @@ Subtasks:
   portrait and landscape phone; in-tank tile; unhidden and on The Reefs' `landscapeSpecies`.
 - [x] Texture licences: the four photos are not openly licensed. Two carry a
   "CoralsOfTheWorld.org" watermark (their terms: unaltered, personal, non-commercial use only);
-  one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated); the orange
+  one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated; Scott Johnson gave
+  permission by email 2026-11-02, credited "used with permission" from `v0.47.2-dev_1`); the orange
   colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
   the UVs and never reach the baked maps. Jeremy (2026-10-30): keep them, credited; "if anyone
   wants me to take down, i will".

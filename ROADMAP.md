@@ -838,6 +838,21 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 
 ## Released / archived
 
+### Bluefin Trevally (The Reefs)
+
+Status: shipped in clean `v0.46.0` (2026-11-02, PR #179), from `v0.46.0-dev_5`, branch
+`species/caranx-melampygus`.
+[Preparation and intake](docs/species-preparation.md) · [Followers](docs/ride-hosts.md).
+
+- [x] Hidden prep entry, wrasse as an escort-only `reef-forager` host (`dev_1`); Jeremy's calls:
+  adults, two or three per wrasse (`dev_2`).
+- [x] Model intake, Atlas pose and tile, roster slot, `escort.maxPerHost`, eight `creatures_dev`
+  rows (ids 1175–1182) (`dev_3`).
+- [x] Fins set into the body from Jeremy's re-export, tile recaptured (`dev_4`).
+- [x] Feel review: 35–45 cm FL and `escort.quietTail`, no burst or snap-turn strokes while
+  escorting (`dev_5`). Jeremy: "ok looks good".
+- [x] Production rows: six (Jeremy: "write 6 instead"), `creatures` ids 1474–1479, 831 → 837.
+
 ### Common Remora (The Open Sea)
 
 Status: shipped in clean `v0.44.0` (2026-11-01, PR #176), from `v0.43.0-dev_3`, branch

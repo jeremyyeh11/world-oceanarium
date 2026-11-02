@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.46.0',
+    date: '2026-11-02',
+    title: 'Bluefin Trevally',
+    changes: [
+      ['new', 'Six Bluefin Trevally follow the humphead wrasses in The Reefs, silver hunters with electric-blue fins that stay close, waiting to snatch whatever the big wrasses flush from the rock.'],
+      ['new', 'Meet the Bluefin Trevally in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.45.0',
     date: '2026-11-01',
     title: 'Cauliflower Coral',

@@ -208,14 +208,15 @@ const LEATHER_CORAL_KIT = {
 // heavy caps circled too fast, Jeremy, 2026-11-02). `bend` is the top's swing either way, a share of
 // the colony's height: a toadstool is a twentieth of a fan's height, so it takes a larger share to
 // read (Jeremy, 2026-11-02: 0.03 was "not obvious enough", 0.15 still too little, 0.25 good but a
-// little much, so 0.21). The sway goes into the cap, not the stalk (Jeremy):
+// little much, then 0.21 "waving way too much" against reference videos, so 0.08: a slow, slight
+// rock). The sway goes into the cap, not the stalk (Jeremy):
 // flex is height up the colony, nothing below `flexFrom` of its height, rising to the top, so the
 // stalk stands still and the cap rocks on it; with the shader's flex², most of the swing is in the
 // cap. Raise `flexFrom` to keep more of the stalk still, `bend` for a bigger swing. Swinging only
 // along the current, the cap went toward and away from the camera and read as stretching up and
 // down (Jeremy, 2026-11-02); `orbit` swings it across the current too, a quarter period behind,
 // so the cap circles in the level plane and reads from any side.
-export const LEATHER_CORAL_SWAY = { period: 14, bend: 0.21, flutter: 0.2, flexFrom: 0.35, orbit: 0.8 }
+export const LEATHER_CORAL_SWAY = { period: 14, bend: 0.08, flutter: 0.2, flexFrom: 0.35, orbit: 0.8 }
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the

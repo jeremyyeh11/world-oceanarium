@@ -110,12 +110,14 @@ jelly or flutter like a fan's rim, and must not look still (`dev_2` did).
   the colony over its height, 0 below `flexFrom` and rising to 1 at the top. With the shader's
   flex², the stalk stands still, its top barely leans and the cap rocks on it. `dev_2` and `dev_3`
   used the fans' straight-line distance from the foot, which spread the swing down the stalk.
-- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 14, `bend` 0.21 (the top's swing either
+- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 14, `bend` 0.08 (the top's swing either
   way, a share of the colony's height), `flutter` 0.2, `flexFrom` 0.35. The two knobs: `bend` for
   how far, `flexFrom` for where (higher keeps more of the stalk still). A toadstool is about a
   twentieth of a fan's height, so it needs a larger share: 0.03 (`dev_2`) swung a 50 cm toadstool
   1.5 cm ("not obvious enough"), 0.15 (`dev_3`) still too little, 0.25 (`dev_4`, `dev_5`) good but
-  15% too much; 0.21 (`dev_6`) swings its top about 10 cm. The period was the fans' 7 s until
+  15% too much, 0.21 (`dev_6`) "waving way too much" once Jeremy watched reference videos; 0.08
+  (`dev_7`) rocks its top about 4 cm, in the cap with the stalk still and circling, which is what
+  0.03 lacked. The period was the fans' 7 s until
   `dev_6`, when Jeremy halved the frequency: the heavy caps circled too fast.
 - `orbit` 0.8 (since `dev_5`): swinging only along the current, the cap moved toward and away
   from the resting camera and read as stretching up and down (Jeremy, 2026-11-02). The shader adds

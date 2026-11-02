@@ -30,8 +30,9 @@ Subtasks:
 - [x] Texture sources (Jeremy, 2026-11-02): mantle from Bernard Dupont's Commons photo
   (CC BY-SA 2.0); shell from Andrew Green's Reef Life Survey photo, used without permission on
   Jeremy's call, to be taken down if asked.
-- [ ] Ask Andrew Green, through Reef Life Survey's contact form, for permission to use his photo
-  for the shell.
+- [x] Asked Andrew Green for permission to use his photo for the shell, through Reef Life
+  Survey's contact form (Jeremy, 2026-11-02).
+- [ ] Andrew Green's reply: keep with his preferred credit, or take the shell texture down.
 - [ ] Mantle breathing as a `coral-sway` config (needs a per-vertex swing direction) and the shadow
   flinch (new type doc first): only on Jeremy's yes. `Backlog`
 
@@ -203,9 +204,9 @@ Status: shipped in clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`,
 - [x] Swing way down, `bend` 0.21 → 0.08 (Jeremy, after reference videos: "waving way too
   much", `dev_7`).
 - [x] Phone review on the Vercel preview (Jeremy: "looks good. lets merge").
-- [ ] Ask David Burdick (Guam Reef Life) for permission to use his photo for the grey caps
-  (`burdick-leather-coral`); it is used without permission on Jeremy's call (2026-11-02), to be
-  taken down if he asks.
+- [x] Asked David Burdick (Guam Reef Life) for permission to use his photo for the grey caps
+  (`burdick-leather-coral`; Jeremy emailed him 2026-11-02). It stays in use until he answers.
+- [ ] David Burdick's reply: keep with his preferred credit, or take the grey caps down.
 
 ### Humphead Wrasse: gentle giant
 
@@ -295,6 +296,9 @@ Subtasks:
   colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
   the UVs and never reach the baked maps. Jeremy (2026-10-30): keep them, credited; "if anyone
   wants me to take down, i will".
+- [x] Asked In-Depth Images Kwajalein for permission to use the pale colony's photo (Jeremy
+  emailed them 2026-11-02).
+- [ ] Kwajalein's reply: keep with their preferred credit, or take the pale colony's texture down.
 - [x] Black facet on the pale colony (`dev_4`): not Jeremy's mesh (closed, no sharp or inward
   faces) but the kit script. Reducing `_hi` to `_lo` and `_far` collapsed edges across UV island
   seams, leaving a triangle whose UVs spanned the unbaked gap between islands. The script now
@@ -954,6 +958,9 @@ free-swimming fish that sometimes rides, the way the sharksuckers do.
 - [x] Photo credits: the body texture is Jeremy's recolour of P. Béarez's FishBase specimen
   photo, which FishBase marks all rights reserved; used on Jeremy's call, to be taken down if
   the holder objects. The disc is M. M. Khan's photo (CC BY 3.0).
+- [x] Asked Philippe Béarez for permission to use his photo for the body texture (Jeremy
+  emailed him 2026-11-02).
+- [ ] Philippe Béarez's reply: keep with his preferred credit, or take the body texture down.
 - [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
   after).
 - [x] Atlas tile (`public/atlas/remora-remora-thumbnail.png`, `v0.43.0-dev_3`).

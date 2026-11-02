@@ -29,7 +29,7 @@ try {
     maxTop: 30,
     leatherCorals: {
       kit, seed: 9551, perCluster: [6, 6], patchSpread: Math.PI, lowShare: 0.5, footShare: 0.4,
-      height: [1.4, 3], current: [0.16, 1], sway: { period: 7, bend: 0.25, flutter: 0.2, flexFrom: 0.35 },
+      height: [1.4, 3], current: [0.16, 1], sway: { period: 7, bend: 0.25, flutter: 0.2, flexFrom: 0.35, orbit: 0.8 },
     },
   }
   const generator = placeLeatherCorals(landscape, [{ geometries: [rock], seed: 1 }], [table], [shape, shape, shape], null, point => inBush([bush], point))

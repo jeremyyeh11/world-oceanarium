@@ -115,6 +115,9 @@ export function* placeLeatherCorals(landscape, clusters, tables, measures, view,
   const tableFeet = tables.map(table => ({ plate: table.plate, foot: new THREE.Vector3().setFromMatrixPosition(table.matrix) }))
   const current = new THREE.Vector3(config.current[0], 0, config.current[1]).normalize()
   const flexFrom = sway.flexFrom ?? 0
+  const orbit = sway.orbit ?? 0
+  // The level direction across the current, as the shader turns it (coralSway.js).
+  const across = new THREE.Vector3(-current.z, 0, current.x)
   const swung = new THREE.Vector3()
   // The kit's colours, and the models of each.
   const colours = [...new Set(kit.models.flatMap(model => model.colours))]
@@ -151,13 +154,14 @@ export function* placeLeatherCorals(landscape, clusters, tables, measures, view,
         if (point.y < sandHeight(landscape, point.x, point.z) || rocks.inside(point)) {
           if (cap || ++inside > INSIDE_ALLOWED) return false
         }
-        // At either end of its swing (the shader's flex² of its height above flexFrom), the cap
-        // stays out of the rock and sand too.
+        // At the ends of its swing, along the current and across it (the shader's flex² of its
+        // height above flexFrom, `orbit` across), the cap stays out of the rock and sand too.
         const flex = Math.min(Math.max((sample.y / shape.height - flexFrom) / (1 - flexFrom), 0), 1)
         if (flex > 0) {
           const swing = colony.swing * flex * flex
-          for (const side of [-1, 1]) {
-            swung.copy(point).addScaledVector(current, side * swing)
+          for (const [along, side] of [[current, -1], [current, 1], [across, -orbit], [across, orbit]]) {
+            if (!side) continue
+            swung.copy(point).addScaledVector(along, side * swing)
             if (swung.y < sandHeight(landscape, swung.x, swung.z) || rocks.inside(swung)) {
               if (cap || ++inside > INSIDE_ALLOWED) return false
             }

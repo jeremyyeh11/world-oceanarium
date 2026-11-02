@@ -116,7 +116,13 @@ jelly or flutter like a fan's rim, and must not look still (`dev_2` did).
   toadstool is about a twentieth of a fan's height, so it needs a larger share: 0.03 (`dev_2`)
   swung a 50 cm toadstool 1.5 cm ("not obvious enough"), 0.15 (`dev_3`) still too little; 0.25
   swings its top about 12 cm.
-- Placement keeps the cap out of the rock and sand at both ends of its swing
+- `orbit` 0.8 (since `dev_5`): swinging only along the current, the cap moved toward and away
+  from the resting camera and read as stretching up and down (Jeremy, 2026-11-02). The shader adds
+  a swing across the current, level, `orbit` times the swing along it and a quarter period behind
+  (`vec3(-aSway.z, 0, aSway.x) × flex² × orbit × cos t`), so the cap circles on its stalk in an
+  ellipse and reads from any side. An optional `applyCoralSway` setting: the fans have none and
+  compile the same shader as before.
+- Placement keeps the cap out of the rock and sand at the four ends of its swing
   (leatherCoralPlacement.js), and the staghorn keeps the cap's swing clear (`inToadstool`). The
   Atlas measures flex by each toadstool's own height (EncyclopediaPage.jsx `prepareAtlasSway`).
 

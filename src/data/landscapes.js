@@ -210,8 +210,11 @@ const LEATHER_CORAL_KIT = {
 // "not obvious enough", 0.15 still too little). The sway goes into the cap, not the stalk (Jeremy):
 // flex is height up the colony, nothing below `flexFrom` of its height, rising to the top, so the
 // stalk stands still and the cap rocks on it; with the shader's flex², most of the swing is in the
-// cap. Raise `flexFrom` to keep more of the stalk still, `bend` for a bigger swing.
-export const LEATHER_CORAL_SWAY = { period: 7, bend: 0.25, flutter: 0.2, flexFrom: 0.35 }
+// cap. Raise `flexFrom` to keep more of the stalk still, `bend` for a bigger swing. Swinging only
+// along the current, the cap went toward and away from the camera and read as stretching up and
+// down (Jeremy, 2026-11-02); `orbit` swings it across the current too, a quarter period behind,
+// so the cap circles in the level plane and reads from any side.
+export const LEATHER_CORAL_SWAY = { period: 7, bend: 0.25, flutter: 0.2, flexFrom: 0.35, orbit: 0.8 }
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the

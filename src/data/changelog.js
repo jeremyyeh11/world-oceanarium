@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.47.1',
+    date: '2026-11-02',
+    title: 'Remora photo permission',
+    changes: [
+      ['fix', 'The Common Remora\'s photo credit in Sources now reads "used with permission": its photographer, Philippe Béarez, kindly said yes.'],
+    ],
+  },
+  {
     version: 'v0.47.0',
     date: '2026-11-02',
     title: 'Leather Coral',

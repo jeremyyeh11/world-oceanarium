@@ -931,7 +931,7 @@ free-swimming fish that sometimes rides, the way the sharksuckers do.
   and framing, verifier target, test lists, The Open Sea's roster, out of hiding.
 - [x] Photo credits: the body texture is Jeremy's recolour of P. Béarez's FishBase specimen
   photo, which FishBase marks all rights reserved; Béarez gave permission by email
-  (2026-11-02), credited "used with permission" from `v0.47.1-dev_1`. The disc is M. M. Khan's
+  (2026-11-02), credited "used with permission" in `v0.47.1`. The disc is M. M. Khan's
   photo (CC BY 3.0).
 - [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
   after).

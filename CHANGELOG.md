@@ -10,7 +10,8 @@ Versioning convention notes:
 
 ## v0.47.1 — Remora photo permission
 
-Status: in development, `v0.47.1-dev_1`, branch `claude/youthful-spence-15725a`.
+Status: clean `v0.47.1` (2026-11-02), accepted from `v0.47.1-dev_1`, branch
+`claude/youthful-spence-15725a`, [PR #190](https://github.com/jeremyyeh11/world-oceanarium/pull/190). Jeremy: "merge".
 
 ### Sources
 

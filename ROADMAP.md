@@ -15,8 +15,8 @@ Status labels:
 
 ### Spearfish Remora (The Reefs)
 
-Status: `Blocked / waiting review` — `v0.48.0-dev_2`, branch `species/remora-brachyptera`,
-model in; waiting for Jeremy's go-ahead on the `creatures_dev` rows.
+Status: `Blocked / waiting review` — `v0.48.0-dev_3`, branch `species/remora-brachyptera`,
+riding the Mola in the dev tank; waiting for Jeremy's phone review.
 [Prep](docs/species-preparation.md) · [Ride hosts](docs/ride-hosts.md) ·
 [Fish queue](docs/fish-queue.md).
 
@@ -34,9 +34,12 @@ model in; waiting for Jeremy's go-ahead on the `creatures_dev` rows.
   `npm test` fits its measured top line on every Mola spot.
 - [ ] Textures credited as "Unknown source" (`unknown-spearfish-remora`): find the two photos'
   source (see Photo texture sources).
-- [ ] Four `creatures_dev` rows (ids 1183–1186, sizes 0, 0.33, 0.67, 1; backups taken
-  2026-11-01), then a live check on the Mola through a sun-bask and the Atlas tile from its
-  first swim. Production rows only on his go-ahead.
+- [x] Four `creatures_dev` rows (`v0.48.0-dev_3`, 2026-11-02; ids 1183–1186, sizes 0, 0.33,
+  0.67, 1; backed up before and after). All four ride the Mola and run the full let-go and
+  re-attach cycle in the dev tank.
+- [x] Atlas tile (`dev_3`), rendered off the largest rider.
+- [ ] Not yet seen live: the let-go before a sun-bask lifts a rider above the water.
+- [ ] Jeremy: review `dev_3` on a phone. Production rows only on his go-ahead.
 
 ### Yellowfin Tuna follow-ups
 

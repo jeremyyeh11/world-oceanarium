@@ -51,8 +51,7 @@ In the order they will be added.
 6. **Leather Coral** (*Sarcophyton*, species to choose), The Reefs. Soft coral on the sea
    fan's sway shader.
 7. **Spearfish Remora** (`remora-brachyptera`), The Reefs. In progress (branch
-   `species/remora-brachyptera`): model in, waiting for its `creatures_dev` rows. Rides the
-   Mola.
+   `species/remora-brachyptera`): riding the Mola in the dev tank, waiting for Jeremy's review.
 8. **Giant Clam** (*Tridacna gigas*), The Reefs. Static landscape piece in the sand between
    bommies.
 9. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
@@ -104,7 +103,7 @@ a tank slot and `creatures_dev` rows. Their generated stand-ins were removed in
   large fish. Home: The Open Sea, on the mako and whale shark.
 - **Spearfish Remora** (`remora-brachyptera`, 50 cm, LC). Rides billfish, also sunfish. Home:
   The Reefs, on its Mola; it lies on all 12 of the Mola's spots (tested). Model in on branch
-  `species/remora-brachyptera` ([prep](species-preparation.md)); waiting for its rows.
+  `species/remora-brachyptera` ([prep](species-preparation.md)); four in `creatures_dev`.
 - **Marlinsucker** (`remora-osteochir`, 40 cm, LC). Rides billfish only; needs a marlin,
   sailfish or swordfish first.
 - **Whalesucker** (`remora-australis`, 76 cm, LC). Rides whales and dolphins only.

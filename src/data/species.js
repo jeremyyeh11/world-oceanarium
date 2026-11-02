@@ -1564,6 +1564,8 @@ export const SPECIES = [
     scientificName: 'Remora brachyptera',
     family: 'Echeneidae',
     alternateNames: [],
+    // Rendered in the dev tank (2026-11-02) off the largest rider on the Mola.
+    atlasThumbnail: '/atlas/remora-brachyptera-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,

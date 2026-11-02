@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`)
+## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`, tank `dev_3`)
 
 Reserve: The Reefs, riding the giant sunfish ([fish queue](fish-queue.md), Up next 7). Felt
 intention: a pale passenger that is almost part of the Mola, clamped to its flanks for minutes
@@ -70,14 +70,21 @@ Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md),
 
 Open for Jeremy:
 
-- **`creatures_dev` rows:** four, ids 1183–1186 (above the dev table's max 1182), sizes 0,
-  0.33, 0.67, 1, alternating sex, each with its own description. Backups were taken
-  2026-11-01 before the write was attempted; the write needs his go-ahead. Then the live check on
-  the Mola and the Atlas tile from its first swim.
+- **Review `dev_3` on a phone:** the four riders on the Mola and the new Atlas tile.
 - **Texture source:** where the two photos came from.
-- Watch in the live tank: a rider on the Mola's upper flank lets go before a sun-bask would lift
-  it above the water. Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP,
-  Remoras).
+- Not yet seen live: a rider on the Mola's upper flank letting go before a sun-bask would lift
+  it above the water (the debug sun-bask did not start while the Mola held station). Riding the
+  gill chamber, as juveniles do, stays a backlog item (ROADMAP, Remoras).
+
+Tank (`dev_3`, 2026-11-02):
+
+- `creatures_dev` ids 1183–1186 (dev table 832 → 836; production unchanged at 831), sizes 0,
+  0.33, 0.67, 1, alternating sex, each with its own description. Backed up before and after.
+- Checked in the dev tank: all four rode the Mola (id 21) within seconds of load, and ran the
+  full cycle (attached, release, escort or free, approach, dock, latch, attached) on new spots.
+  A ride measured 172 s (data: 90–200 s); they held on through the Mola's dive to y −13.
+- Atlas tile rendered off the largest rider (`public/atlas/remora-brachyptera-thumbnail.png`,
+  470 px).
 
 ## Golden Trevally — `gnathanodon-speciosus` (prepared `v0.41.0-dev_1`, model `dev_2`)
 

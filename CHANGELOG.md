@@ -10,9 +10,13 @@ Versioning convention notes:
 
 ## v0.48.0 — Spearfish Remora (in progress)
 
-Status: `v0.48.0-dev_2`, branch `species/remora-brachyptera`, model in, not yet in a tank.
+Status: `v0.48.0-dev_3`, branch `species/remora-brachyptera`, riding the Mola in the dev tank.
 
 ### Species and Atlas
+
+- `v0.48.0-dev_3`: four in `creatures_dev` (ids 1183–1186, 30–50 cm), riding The Reefs' Mola:
+  they latch on, let go for a few seconds of swimming or escorting, and come back to new spots.
+  Atlas list tile added. Production unchanged.
 
 - `v0.48.0-dev_2`: Jeremy's model. Fitted as a rider (disc 25% of total length, second dorsal
   about 2 cm proud of the disc line), it swims with the sharksuckers' caudal wave and paired-fin

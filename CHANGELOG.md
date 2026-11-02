@@ -8,6 +8,16 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.47.1 — Remora photo permission
+
+Status: in development, `v0.47.1-dev_1`, branch `claude/youthful-spence-15725a`.
+
+### Sources
+
+- Common Remora body texture: P. Béarez gave permission by email (2026-11-02), so its credit
+  reads "used with permission" instead of "all rights reserved". A licence with no link shows as
+  plain text in the Sources modal.
+
 ## v0.47.0 — Leather Coral
 
 Status: clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`, branch

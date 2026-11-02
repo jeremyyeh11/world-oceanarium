@@ -38,7 +38,9 @@ riding the Mola in the dev tank; waiting for Jeremy's phone review.
   0.67, 1; backed up before and after). All four ride the Mola and run the full let-go and
   re-attach cycle in the dev tank.
 - [x] Atlas tile (`dev_3`), rendered off the largest rider.
-- [ ] Not yet seen live: the let-go before a sun-bask lifts a rider above the water.
+- [x] Sun-bask let-go seen live (`dev_3`, debug sun-bask): the rider on the top spot let go at
+  y 4.19 as the Mola rose; one holding just under the limit stayed submerged (its highest
+  point 4.46, surface 4.6).
 - [ ] Jeremy: review `dev_3` on a phone. Production rows only on his go-ahead.
 
 ### Yellowfin Tuna follow-ups

@@ -72,9 +72,7 @@ Open for Jeremy:
 
 - **Review `dev_3` on a phone:** the four riders on the Mola and the new Atlas tile.
 - **Texture source:** where the two photos came from.
-- Not yet seen live: a rider on the Mola's upper flank letting go before a sun-bask would lift
-  it above the water (the debug sun-bask did not start while the Mola held station). Riding the
-  gill chamber, as juveniles do, stays a backlog item (ROADMAP, Remoras).
+- Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP, Remoras).
 
 Tank (`dev_3`, 2026-11-02):
 
@@ -83,6 +81,10 @@ Tank (`dev_3`, 2026-11-02):
 - Checked in the dev tank: all four rode the Mola (id 21) within seconds of load, and ran the
   full cycle (attached, release, escort or free, approach, dock, latch, attached) on new spots.
   A ride measured 172 s (data: 90–200 s); they held on through the Mola's dive to y −13.
+- Sun-bask (debug shortcut; it waits for a basking spot ahead of the Mola, so it can take a
+  minute or two to start): the rider on the top spot let go at y 4.19 as the Mola rose and
+  re-attached once it settled; one holding just under the limit stayed submerged (highest point
+  4.46, surface 4.6).
 - Atlas tile rendered off the largest rider (`public/atlas/remora-brachyptera-thumbnail.png`,
   470 px).
 

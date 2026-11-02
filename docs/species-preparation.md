@@ -130,6 +130,17 @@ When the GLB lands: a kit script and placement module, the clams in The Reefs'
 mantle open), `maxBodyLengthMeters` from the specimen, an EncyclopediaPage pose, unhide, and an
 in-tank Atlas tile (checklist section 6, landscape rule).
 
+Model in (`v0.49.0-dev_2`, Jeremy's GLB of 2026-11-02, 1.11 m, about 10,300 triangles):
+`scripts/build-giant-clam-kit.py` writes `public/models/landscape/giant-clams.glb` (1.3 MB; both
+photos cut to their used part and shrunk under 1024 px; opaque; the Reef Life Survey watermark
+filled; the shell's length turned onto X). `scripts/build-giant-clam-atlas.py` writes the Atlas
+specimen, the clam on a 1.7 m oval of sand. `src/components/giantClamPlacement.js` places them
+after the leather corals and before the staghorn (`inClam`). The first clam is tried in a phone's
+view and then the desktop frame, its whole line of sight to the resting camera clear of rock,
+tables and corals; in The Reefs neither fits (the front-half sand at the coral bommies' feet is
+behind nearer rocks and table plates from the resting camera), so all four lie off the frame or
+behind rock. That is the open question for Jeremy's review (ROADMAP).
+
 ## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`, model `dev_2`, sway `dev_3`–`dev_7`, shipped `v0.47.0`)
 
 Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals

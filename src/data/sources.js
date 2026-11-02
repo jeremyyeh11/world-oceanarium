@@ -714,4 +714,25 @@ export const IMAGE_CREDITS = [
     licence: { name: 'all rights reserved', url: 'https://www.guamreeflife.com/index.php/image-copyright-appropriate-usage/' },
     changes: 'Mapped onto the 3D model, cropped and resized.',
   },
+  {
+    id: 'dupont-giant-clam',
+    subject: 'Giant Clam texture (mantle)',
+    author: 'Bernard Dupont',
+    work: 'Giant Clam (Tridacna gigas), Fukui, Bunaken Island, Sulawesi, Indonesia',
+    url: 'https://commons.wikimedia.org/wiki/File:Giant_Clam_(Tridacna_gigas)_(6058446919).jpg',
+    licence: { name: 'CC BY-SA 2.0', url: 'https://creativecommons.org/licenses/by-sa/2.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Used without permission (Jeremy, 2026-11-02: take it down if asked); Reef Life Survey says
+    // copyright stays with the photographer. Jeremy asked him through its contact form the same day
+    // (ROADMAP). The watermark corner is filled in before it ships (scripts/build-giant-clam-kit.py).
+    id: 'green-giant-clam',
+    subject: 'Giant Clam texture (shell)',
+    author: 'Andrew Green, Reef Life Survey',
+    work: 'Tridacna gigas, Coral Sea, Queensland (photo 1 of 2)',
+    url: 'https://reeflifesurvey.com/species/tridacna-gigas/',
+    licence: { name: 'all rights reserved', url: 'https://reeflifesurvey.com/species/tridacna-gigas/' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
 ]

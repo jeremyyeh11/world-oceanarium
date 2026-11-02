@@ -218,6 +218,17 @@ const LEATHER_CORAL_KIT = {
 // so the cap circles in the level plane and reads from any side.
 export const LEATHER_CORAL_SWAY = { period: 14, bend: 0.08, flutter: 0.2, flexFrom: 0.35, orbit: 0.8 }
 
+// Jeremy's giant clam (Tridacna gigas, `_blender models/tridacna gigas.glb`, 2026-11-02), normalised
+// by scripts/build-giant-clam-kit.py: clam0, one open clam 1.11 m long, 0.51 m wide and 0.61 m to
+// the mantle's crown, in metres with its rest point at the origin (his object origin, the middle of
+// the shell's underside), the shell's length along X, with opaque photo materials (Bernard Dupont's
+// mantle, Andrew Green's shell). About 10,300 triangles, static.
+const GIANT_CLAM_KIT = {
+  path: '/models/landscape/giant-clams.glb',
+  models: [{ name: 'clam0' }],
+  chunkWU: 60,
+}
+
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
@@ -522,6 +533,20 @@ export const LANDSCAPES = {
       kit: LEATHER_CORAL_KIT,
       seed: 9551, perCluster: [1, 3], patchSpread: 0.6, lowShare: 0.5, footShare: 0.4,
       height: [1.4, 3], current: [0.16, 1], sway: LEATHER_CORAL_SWAY,
+    },
+    // Giant clams (src/components/giantClamPlacement.js), placed after the leather corals, clear of
+    // every coral before them, and before the staghorn, which keeps clear of them (Jeremy,
+    // 2026-11-01): `count` clams on the open sand at the feet of the bommies whose middle is in
+    // front of z `zMin` (the front half of the basin), one a bommie, `spacing` WU apart (8 WU, 2 m),
+    // the first in a 375 px phone's view: its middle within `phoneWidth` of the 16:9 frame's middle
+    // across (a portrait phone shows 0.26 of it either way), with nothing in the way and its line of
+    // sight kept clear of the staghorn; failing that, within `viewWidth` (the desktop frame).
+    // `length` is the shell's in WU (60 cm to 1.2 m: most adults round the 80 cm common length,
+    // SeaLifeBase).
+    giantClams: {
+      kit: GIANT_CLAM_KIT,
+      seed: 9661, count: 4, zMin: -36, spacing: 8, phoneWidth: 0.25, viewWidth: 0.85,
+      length: [2.4, 4.8],
     },
   },
   // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's

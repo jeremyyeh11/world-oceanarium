@@ -213,7 +213,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum', 'tridacna-gigas'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -4999,11 +4999,11 @@ export const SPECIES = [
       sway: LEATHER_CORAL_SWAY,
     },
   },
-  // Giant Clam (Tridacna gigas): queued for The Reefs (docs/fish-queue.md), a static landscape
-  // piece lying in the sand between the bommies. Prepared before Jeremy's model
-  // (docs/species-preparation.md): no model, no `swim`, no roster slot, no creature rows, not in
-  // The Reefs' landscapeSpecies, hidden in the Atlas. Jeremy (2026-11-01): 4 clams of 60-120 cm on
-  // the open sand at the bommies' feet in the front half of the basin, one mid-phone view, static.
+  // Giant Clam (Tridacna gigas): a static landscape piece in The Reefs (docs/fish-queue.md,
+  // docs/species-preparation.md), lying on the sand at the bommies' feet: no `swim`, no roster slot,
+  // no creature rows, like the corals. Jeremy (2026-11-01): 4 clams of 60-120 cm on the open sand at
+  // the bommies' feet in the front half of the basin, one mid-phone view, static. His model
+  // (2026-11-02), built by scripts/build-giant-clam-kit.py; placed by giantClamPlacement.js.
   // Facts: the IUCN assessment (Neo & Li 2024: CR A2acd; free-living on sand or hard reef in clear
   // water; aged to 76 years, Mecha & Dolorosa 2020; male phase at about 4 years in culture,
   // Heslinga et al. 1984, female phase about 10; up to 500 million eggs a spawning; spawns on
@@ -5078,11 +5078,17 @@ export const SPECIES = [
       diet: 'Sunlight & plankton',
       social: 'Solitary',
     },
+    atlasThumbnail: '/atlas/tridacna-gigas-thumbnail.png',
     description: 'The largest living clam, its shell up to 137 cm long. It lies open on the sand and rock of clear, shallow reefs, its mantle spread to the sun, yellowish brown to olive green with shimmering blue-green rings: algae living in the mantle make most of its food. Collected for food and shells across most of its range, it is Critically Endangered.',
-    // SeaLifeBase's maximum shell length. Reset to the Atlas specimen's size when the model lands.
-    maxBodyLengthMeters: 1.37,
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas.
-    hiddenInAtlas: true,
+    // The Atlas clam's shell, for the scale comparison: Jeremy's model at 1.11 m, an old adult past
+    // the 80 cm common length (scripts/build-giant-clam-kit.py; the largest recorded is 137 cm).
+    maxBodyLengthMeters: 1.11,
+    model: {
+      path: '/models/fish/tridacna-gigas/tridacna-gigas.glb',
+      // The kit's clam at its 1.11 m on a low oval of sand 1.7 m across
+      // (scripts/build-giant-clam-atlas.py), the sand's middle at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+    },
   },
 ]
 

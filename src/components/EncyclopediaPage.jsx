@@ -297,6 +297,18 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.7, 0],
     lookAt: [0, -0.1, 0],
   },
+  // One giant clam on a low patch of sand (the model's origin is the sand's middle), three-quarter
+  // from above, so the fluted shell and the mantle spread in its gape both read.
+  'tridacna-gigas': {
+    yawOffset: -0.5,
+    pitchDegrees: 28,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.6, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -354,6 +366,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // The leather corals on their rock, widest across (scripts/build-leather-coral-atlas.py prints the
   // bounds: the rock, 1.5 m).
   'sarcophyton-glaucum': 1.5,
+  // The clam on its sand, widest across (scripts/build-giant-clam-atlas.py prints the bounds: the
+  // sand, 1.7 m).
+  'tridacna-gigas': 1.72,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

@@ -10,15 +10,30 @@ Versioning convention notes:
 
 ## v0.49.0 — Giant Clam (in progress)
 
-Status: `v0.49.0-dev_1`, branch `species/tridacna-gigas`, prepared and waiting for Jeremy's model.
+Status: `v0.49.0-dev_2`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
+waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas.
 
 ### Species and Atlas
 
-- Giant Clam (`tridacna-gigas`): hidden entry for The Reefs' sand (IUCN Critically Endangered,
-  Neo & Li 2024; SeaLifeBase sizes; 76-year oldest aged clam; maturity from culture). Weight stays
-  Unknown (no published length–weight relation). No model, not placed, out of the Atlas. Layout
-  decided by Jeremy: 4 static clams, 60–120 cm, on the front-half sand at the bommies' feet. Prep,
-  motion proposals and the GLB contract in `docs/species-preparation.md`.
+- Giant Clam (`tridacna-gigas`) in The Reefs: IUCN Critically Endangered (Neo & Li 2024), SeaLifeBase
+  sizes, 76-year oldest aged clam, maturity from culture; weight stays Unknown (no published
+  length–weight relation). Jeremy's model (2026-11-02), built by `scripts/build-giant-clam-kit.py`:
+  photos cut and shrunk to 1024 px or less, opaque, the Reef Life Survey watermark filled, the
+  shell's length turned onto X (1.3 MB, about 10,300 triangles). Atlas specimen of the clam on a
+  low patch of sand (`scripts/build-giant-clam-atlas.py`), pose, tile, unhidden and on The Reefs'
+  `landscapeSpecies`. Image credits: Bernard Dupont's mantle (CC BY-SA 2.0); Andrew Green's shell
+  (Reef Life Survey), used without permission on Jeremy's call and asked for the same day.
+
+### Landscape
+
+- Giant clams (`src/components/giantClamPlacement.js`): 4 static clams of 60 cm to 1.2 m on the
+  open sand off the feet of the front-half bommies (one a bommie, 2 m apart), level with the sand,
+  fluted side to the resting camera, placed after the leather corals and before the staghorn,
+  which keeps clear of them (`inClam`). The first is placed in a phone's view with its line of
+  sight kept clear, or failing that in the desktop frame. One dev-tank load: no spot met either
+  view test (the front-half sand at the coral bommies' feet is behind nearer rocks from the
+  resting camera), so the four lie where the rest of the rules put them. Each joins the fish's rock
+  obstacles.
 
 ## v0.47.0 — Leather Coral
 

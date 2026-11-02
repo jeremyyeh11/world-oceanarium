@@ -46,8 +46,8 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 In the order they will be added.
 
 1. **Spearfish Remora** (`remora-brachyptera`), The Reefs. Rides the Mola.
-2. **Giant Clam** (`tridacna-gigas`), The Reefs. In progress: prepared (`v0.49.0-dev_1`,
-   [species-preparation.md](species-preparation.md)); waiting for Jeremy's GLB. Static landscape
+2. **Giant Clam** (`tridacna-gigas`), The Reefs. In progress: model, placement and Atlas in
+   `v0.49.0-dev_2` ([species-preparation.md](species-preparation.md)); waiting for Jeremy's review. Static landscape
    piece in the sand between bommies.
 3. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
    type.

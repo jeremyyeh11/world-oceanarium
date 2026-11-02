@@ -18,6 +18,16 @@ for (const url of ['/models/landscape/brain-corals.glb', '/models/landscape/brai
 }
 assert.ok(reefAssets.includes('/models/landscape/brain-corals.glb'), 'the brain coral kit loads with The Reefs')
 
+// The cauliflower coral's model is in: in the Atlas, counted on The Reefs, and its kit loaded with
+// the reserve.
+const cauliflowerCoral = speciesById.get('pocillopora-meandrina')
+assert.ok(!cauliflowerCoral.hiddenInAtlas, 'the cauliflower coral is in the Atlas')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(cauliflowerCoral.id))
+for (const url of ['/models/landscape/cauliflower-corals.glb', '/models/landscape/cauliflower2-normal.jpg', cauliflowerCoral.model.path]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `cauliflower coral asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/cauliflower-corals.glb'), 'the cauliflower coral kit loads with The Reefs')
+
 // FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
 const trevally = speciesById.get('gnathanodon-speciosus')
 assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)

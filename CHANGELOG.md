@@ -8,7 +8,12 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.46.0 — Bluefin Trevally (in development)
+## v0.46.0 — Bluefin Trevally
+
+Status: clean `v0.46.0` (2026-11-02), accepted from `v0.46.0-dev_5`, branch
+`species/caranx-melampygus`, [PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179). Jeremy: "ok looks good", then "Yes, both".
+`dev_1` and `dev_2` prepared the species and the wrasse as a host; `dev_3` the model, Atlas and
+dev rows; `dev_4` the fins; `dev_5` the size and the quiet escort tail.
 
 ### Behaviour and motion
 
@@ -27,11 +32,46 @@ Versioning convention notes:
   ages and maturity, Sudekum et al. 1991 spawning and eggs, Hobson 1974 following behaviour (all
   credited). Jeremy's model, scaled by fork length, its Commons photo (Diego Delso, CC BY-SA 4.0,
   credited) cropped to the fish; the golden trevally's carangid `caudal-wave`; Atlas pose and tile.
-  Eight adults follow the three wrasses, two or three each, above and beside them. Dev rows only.
+  Six adults follow the three wrasses in production (`creatures` ids 1474–1479, Jeremy: "write 6
+  instead" of eight), above and beside them; eight in `creatures_dev`.
 - Bluefin fins: Jeremy's re-export sets the pelvic and pectoral fins into the body (the pelvics
   hung just below the belly before); Atlas tile recaptured.
 - Bluefin size: 35–45 cm fork length (was 45–70), so they trail the wrasses at about the
   proportions seen in photos rather than matching the females' length.
+
+## v0.45.0 — Cauliflower Coral
+
+Status: clean `v0.45.0` (2026-11-01), accepted from `v0.45.0-dev_5`, branch
+`species/pocillopora-meandrina`, [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183). Jeremy: "merge". `dev_1` prepared the species
+entry ahead of the model; `dev_2` added Jeremy's colonies in the tank; `dev_3` the Atlas specimen
+and tile; `dev_4` and `dev_5` put colonies in the resting view.
+
+### Landscape and corals
+
+- Cauliflower corals (*Pocillopora meandrina*) as small bushes on the table corals' bommies' tops
+  and upper shoulders, singly or in loose twos and threes (`src/components/cauliflowerCoralPlacement.js`),
+  placed after the tables, sea fans and brain corals and before the staghorn, which keeps clear of
+  them. A colony's stalk is buried in the rock. 20 colonies, 15 to 35 cm; staghorn 298 → 275.
+- Colonies on the front (`dev_4`, Jeremy: "i dont like that thyere all hidden away"): from the
+  resting view only 1 of the 13 colonies in frame showed, the rest under the table plates. Each
+  bommie in frame now gets 3 to 4 more on its camera side, lower down, each kept only if the
+  resting camera sees part of its head (no rock or table plate between).
+- Front colonies from the camera (`dev_5`, Jeremy: "i still dont see any from the default view"):
+  12 to 16 colonies on the first rock ledges that rays from the resting camera meet, 1.5 to 15 m
+  away, so they are in view by construction (still kept only where no table plate hides them).
+- Kit and Atlas scripts (`scripts/build-cauliflower-coral-kit.py`, a copy of the brain coral's,
+  and `scripts/build-cauliflower-coral-atlas.py`): Jeremy's three displaced, photo-projected
+  colonies scaled to true size (20, 31 and 45 cm), baked to three detail levels.
+
+### Behaviour and motion
+
+- Each bommie's cauliflower corals are one `thicket` to the reef fish, beside the staghorn patches.
+
+### Atlas
+
+- Cauliflower Coral (Endangered): SeaLifeBase and the NMFS 2019 status review; three colonies on a
+  small rock; in-tank tile. Photo credits: Dwayne Meadows (NOAA, public domain) and Peterwchen
+  (CC BY-SA 4.0).
 
 ## v0.44.1 — Natural creature edges
 

@@ -13,19 +13,6 @@ Status labels:
 
 ## Current work
 
-### Bluefin Trevally (The Reefs)
-
-Status: `Current in development` — model in `v0.46.0-dev_3` (2026-11-01), branch
-`species/caranx-melampygus`, [PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179).
-[Preparation and intake](docs/species-preparation.md) · [Followers](docs/ride-hosts.md).
-
-- [x] Hidden prep entry, wrasse as an escort-only `reef-forager` host (`dev_1`); Jeremy's calls:
-  adults, eight, two or three per wrasse (`dev_2`).
-- [x] Model intake, Atlas pose and tile, roster slot, `escort.maxPerHost`, eight `creatures_dev`
-  rows (ids 1175–1182) (`dev_3`).
-- [ ] Jeremy: feel review on the phone.
-- [ ] Production rows (eight, the same sizes and sexes) on Jeremy's go-ahead, then promotion.
-
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -172,6 +159,32 @@ Review gates:
 - [ ] Jeremy confirms the type split and the per-doc template before the first new-type implementation starts.
 
 ## Shipped, with open follow-ups
+
+### Cauliflower Coral
+
+Status: shipped in clean `v0.45.0` (2026-11-01, [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183)), from `v0.45.0-dev_5`,
+branch `species/pocillopora-meandrina`; open items below are follow-ups.
+[Prep and intake record](docs/species-preparation.md).
+
+Subtasks:
+- [x] Species entry: SeaLifeBase (EN 2023) and the NMFS 2019 status review, credited in
+  `STUDY_CREDITS` (`dev_1`).
+- [x] Kit (`scripts/build-cauliflower-coral-kit.py`): Jeremy's three colonies at true size, 20, 31
+  and 45 cm; photo credits in `IMAGE_CREDITS` (`dev_2`).
+- [x] Placement (`src/components/cauliflowerCoralPlacement.js`): bommie tops and upper shoulders,
+  loose groups, after the brain corals, before the staghorn (`inBush`); a `thicket` to the reef
+  fish. Unit test `tests/cauliflowerCoralPlacement.test.mjs`. In the tank: 20 colonies; staghorn
+  298 → 275.
+- [x] Atlas specimen, tile, unhidden, on The Reefs' `landscapeSpecies`; desktop, 375 px portrait and
+  landscape phone checked.
+- [x] Colonies on the front (`dev_4`, Jeremy: "i dont like that thyere all hidden away"): 3 to 4
+  more on the camera side of each bommie in frame, lower down, each seen by the resting camera.
+  Count in the tank not measured (the dev tank would not load with no window open).
+- [x] Front colonies from the camera (`dev_5`; Jeremy on `dev_4`: "i still dont see any from the
+  default view"): 12 to 16 colonies on the first rock ledges the resting camera's rays meet, in view
+  by construction. Count in the tank not measured either.
+- [x] Jeremy's look (2026-11-01, `dev_5`: "Yes, I see them") and go-ahead ("merge").
+- [ ] Measure reef fish visits at the bushes (thicket shares now cover staghorn and cauliflower).
 
 ### Natural creature edges — v0.44.1
 
@@ -824,6 +837,21 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### Bluefin Trevally (The Reefs)
+
+Status: shipped in clean `v0.46.0` (2026-11-02, PR #179), from `v0.46.0-dev_5`, branch
+`species/caranx-melampygus`.
+[Preparation and intake](docs/species-preparation.md) · [Followers](docs/ride-hosts.md).
+
+- [x] Hidden prep entry, wrasse as an escort-only `reef-forager` host (`dev_1`); Jeremy's calls:
+  adults, two or three per wrasse (`dev_2`).
+- [x] Model intake, Atlas pose and tile, roster slot, `escort.maxPerHost`, eight `creatures_dev`
+  rows (ids 1175–1182) (`dev_3`).
+- [x] Fins set into the body from Jeremy's re-export, tile recaptured (`dev_4`).
+- [x] Feel review: 35–45 cm FL and `escort.quietTail`, no burst or snap-turn strokes while
+  escorting (`dev_5`). Jeremy: "ok looks good".
+- [x] Production rows: six (Jeremy: "write 6 instead"), `creatures` ids 1474–1479, 831 → 837.
 
 ### Common Remora (The Open Sea)
 

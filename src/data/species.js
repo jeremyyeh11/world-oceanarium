@@ -213,7 +213,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -4626,7 +4626,7 @@ export const SPECIES = [
   // (Kona: patrols just above the reef; follows close behind big foraging goatfish to catch the
   // prey they flush). Planned for The Reefs as a follower of the humphead wrasse, on the golden
   // trevally's escort code (docs/fish-queue.md; docs/ride-hosts.md, Followers). Jeremy's model
-  // (2026-11-01), eight adults in The Reefs (dev data).
+  // (2026-11-01); six adults in The Reefs in production, eight in creatures_dev.
   {
     id: 'caranx-melampygus',
     name: 'Bluefin Trevally',
@@ -4808,6 +4808,92 @@ export const SPECIES = [
       },
       debugForwardOrigin: 'head',
       debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // Cauliflower Coral (Pocillopora meandrina): Jeremy's pick (2026-11-01) for the next coral on The
+  // Reefs (docs/fish-queue.md), a small branching hard coral. A landscape species like the other
+  // corals: small bushes on the table corals' bommies' tops and upper shoulders, singly or in loose
+  // groups (landscapes.js `cauliflowerCorals`, src/components/cauliflowerCoralPlacement.js), a
+  // `thicket` to the reef fish (docs/reef-behavior.md, Coral forms). Jeremy's model (2026-11-01):
+  // three displaced, photo-projected bushes, baked by scripts/build-cauliflower-coral-kit.py; the
+  // Atlas shows all three on a small rock (scripts/build-cauliflower-coral-atlas.py).
+  // Facts: SeaLifeBase (IUCN EN, assessed 27 October 2023, A3ce; shallow reefs, exposed reef
+  // fronts), NMFS 2019 status review (western Indian Ocean to the eastern Pacific, 95 of 133
+  // Indo-Pacific ecoregions; the surface to at least 34 m, commonest under 5 m on reef crests and
+  // upper slopes; bushes commonly 20-40 cm across, light brown or cream, also green or pink;
+  // determinate growth, most colonies stopping near 40 cm, short-lived for a coral; often the
+  // first coral on bare rock; hermaphrodite broadcast spawner, 1-3 days after the full moon
+  // shortly after sunrise in late spring or early summer; eggs seeded with zooxanthellae, Hirose
+  // et al. 2001; also fragmentation; crabs and shrimp in colonies over about 10 cm ward off
+  // crown-of-thorns starfish, Glynn 1976), Wikipedia (polyps extended mostly at night).
+  {
+    id: 'pocillopora-meandrina',
+    name: 'Cauliflower Coral',
+    scientificName: 'Pocillopora meandrina',
+    family: 'Pocilloporidae',
+    // Tile (2026-11-01): an in-tank close-up of two cream colonies on their ledge, rendered square at
+    // 940 px with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/pocillopora-meandrina-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 October 2023 (A3ce, SeaLifeBase): projected declines as reefs warm and degrade.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the western Indian Ocean to Hawaii and the eastern Pacific, most common on wave-swept reef crests and upper slopes, from the surface to at least 34 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      // Short-lived for a coral (NMFS 2019, after Brown 2004 and Coles & Brown 2007), but no age
+      // is published.
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each bush is one colony of tiny polyps on a shared skeleton of stubby, warty branches. It is often the first coral to settle bare rock after a storm, a lava flow or bleaching, and grows fast, but most colonies stop at about 40 cm across. Once a colony is about 10 cm across, guard crabs and shrimp move in between its branches and drive off coral-eating starfish.',
+        // NMFS 2019 (Stimson 1978, Schmidt-Roach et al. 2012; zooxanthellae in the eggs, Hirose et
+        // al. 2001; fragmentation, Glynn & Colley 2008).
+        reproduction: 'Each colony makes both eggs and sperm. In late spring, one to three days after the full moon, the colonies spawn together just after sunrise, unusual for a coral. Its eggs already carry the algae that feed the adult, so its drifting larvae can make food from sunlight. Broken branches also grow into new colonies.',
+      },
+      averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published (adult
+        // colonies are commonly 20 to 40 cm across, NMFS 2019).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A hard coral that grows into small, round bushes of stubby, warty branches, cream, brown, green or pink, rarely more than 40 cm across. It thrives on wave-swept reef crests, is often the first coral back after a storm, and shelters guard crabs that fend off coral-eating starfish. Bleaching and the decline of reefs have made it Endangered.',
+    // The Atlas's biggest colony across, for the scale comparison: the cream one at 45 cm (typical
+    // colonies stop growing at about 40 cm, NMFS 2019; a few grow larger).
+    maxBodyLengthMeters: 0.45,
+    model: {
+      path: '/models/fish/pocillopora-meandrina/pocillopora-meandrina.glb',
+      // The kit's three colonies at true size on a low limestone rock, 1.1 m across
+      // (scripts/build-cauliflower-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
     },
   },
 ]

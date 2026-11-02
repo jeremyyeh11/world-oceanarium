@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`, tank `dev_3`)
+## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`, tank `dev_3`, credit `dev_4`)
 
 Reserve: The Reefs, riding the giant sunfish ([fish queue](fish-queue.md), Up next 7). Felt
 intention: a pale passenger that is almost part of the Mola, clamped to its flanks for minutes
@@ -63,15 +63,17 @@ Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md),
   units); fin flutter 0.08 / 0.04, as on the whitefin.
 - Textures: two embedded photos (570×215 and 570×304 px, about 550 KB), solid alpha, so the
   model renders opaque; normals outward on 97% of the body. Neither matches the paper's
-  greyscale figure; credited as "Unknown source" (`unknown-spearfish-remora`) until Jeremy
-  names the source.
+  greyscale figure. Jeremy named the source (2026-11-02): photos 3 and 5 of John Snow's
+  Mexican Fish.com page (a 15 cm white-morph fish off a striped marlin, Punta Palmilla, 2007),
+  credited as `snow-spearfish-remora`. The site states no licence.
 - Atlas: framed at 1.45 display units, between the bannerfish and the pilot fish; checked at
   375 px and on desktop.
 
 Open for Jeremy:
 
 - **Review `dev_3` on a phone:** the four riders on the Mola and the new Atlas tile.
-- **Texture source:** where the two photos came from.
+- **Texture licence:** Mexican Fish.com states none, so all rights stay with John Snow. Keep the
+  photos as they are, or ask him for permission.
 - Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP, Remoras).
 
 Tank (`dev_3`, 2026-11-02):

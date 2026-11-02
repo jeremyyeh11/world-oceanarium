@@ -381,8 +381,9 @@ export const STUDY_CREDITS = [
 // texture is shared under the same licence, which `changes` says.
 // Every photo texture gets an entry. One whose source is not known has no `url`
 // and shows "Unknown source" (with `author` when only the photographer is known);
-// replace it with the full credit once the source is found. Generated images are
-// not photographs and are not listed.
+// replace it with the full credit once the source is found. A found source that
+// states no licence has no `licence` and shows "no licence stated". Generated images
+// are not photographs and are not listed.
 export const IMAGE_CREDITS = [
   {
     id: 'zerpe-emperor-angelfish',
@@ -475,6 +476,16 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    // Jeremy named the page (2026-11-02): photos 3 and 5 there, at the same 570×215 and 570×304
+    // px. The site states no licence, so all rights stay with the photographer.
+    id: 'snow-spearfish-remora',
+    subject: 'Spearfish Remora textures (two photos)',
+    author: 'John Snow, Mexican Fish.com',
+    work: 'Spearfish Remora, Remora brachyptera, white morph',
+    url: 'https://mexican-fish.com/spearfish-remora/',
+    changes: 'Mapped onto the 3D model.',
+  },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
   { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },
@@ -494,7 +505,6 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
   { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
   { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
-  { id: 'unknown-spearfish-remora', subject: 'Spearfish Remora textures (two photos)' },
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },

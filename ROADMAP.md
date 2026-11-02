@@ -15,7 +15,7 @@ Status labels:
 
 ### Spearfish Remora (The Reefs)
 
-Status: `Blocked / waiting review` — `v0.48.0-dev_3`, branch `species/remora-brachyptera`,
+Status: `Blocked / waiting review` — `v0.48.0-dev_4`, branch `species/remora-brachyptera`,
 riding the Mola in the dev tank; waiting for Jeremy's phone review.
 [Prep](docs/species-preparation.md) · [Ride hosts](docs/ride-hosts.md) ·
 [Fish queue](docs/fish-queue.md).
@@ -32,8 +32,10 @@ riding the Mola in the dev tank; waiting for Jeremy's phone review.
   3.5093, disc 25% of total length), Atlas source length and framing,
   `SUPPLIED_REMORA_SOURCE_LENGTHS`, verifier target, out of hiding, on The Reefs' roster;
   `npm test` fits its measured top line on every Mola spot.
-- [ ] Textures credited as "Unknown source" (`unknown-spearfish-remora`): find the two photos'
-  source (see Photo texture sources).
+- [x] Texture source (Jeremy, 2026-11-02): John Snow's photos on Mexican Fish.com
+  (`snow-spearfish-remora`). The site states no licence, so all rights are reserved.
+- [ ] Jeremy: keep the photos as they are (as with Guy Stevens' manta photo), or ask John Snow
+  for permission.
 - [x] Four `creatures_dev` rows (`v0.48.0-dev_3`, 2026-11-02; ids 1183–1186, sizes 0, 0.33,
   0.67, 1; backed up before and after). All four ride the Mola and run the full let-go and
   re-attach cycle in the dev tank.
@@ -65,7 +67,7 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
 Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
-  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 18 entries), and the link and
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 17 entries), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).

@@ -8,6 +8,43 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.47.0 — Leather Coral
+
+Status: clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`, branch
+`species/sarcophyton-glaucum`, [PR #184](https://github.com/jeremyyeh11/world-oceanarium/pull/184). Jeremy: "looks good. lets merge". `dev_1`
+prepared the species entry ahead of the model; `dev_2` added Jeremy's toadstools in the tank and
+the Atlas; `dev_3` to `dev_7` tuned the sway.
+
+### Landscape and corals
+
+- Leather corals (*Sarcophyton glaucum*) as toadstools on the table corals' bommies' low ledges
+  and on the sand at their feet, 1 to 3 a bommie in one-colour patches, grey or peach
+  (`src/components/leatherCoralPlacement.js`), placed after the cauliflower corals and before the
+  staghorn, which keeps clear of them (`inToadstool`). Each is upright, leant at most 9°, its
+  stalk's foot held up all round and its cap clear of the rock at every point of its swing.
+  15 toadstools on the 9 bommies; staghorn 275 → 243 in one desktop load. The last coral for now.
+- Kit and Atlas scripts (`scripts/build-leather-coral-kit.py`, `scripts/build-leather-coral-atlas.py`):
+  Jeremy's four toadstools kept as modelled (878 to 2,748 triangles), each photo cut to the part
+  its faces use and scaled to 1024 px (61 MB to 1.2 MB), one UV map, opaque materials.
+
+### Behaviour and motion
+
+- Toadstools sway on `coral-sway`, in the cap with the stalk still: `addSwayAttributes` can measure
+  flex by height (`up`, `flexFrom`), and the shader gains an optional `orbit`, a level swing across
+  the current a quarter period behind, so the cap circles instead of moving toward and away from
+  the camera. `LEATHER_CORAL_SWAY`: period 14 s, bend 0.08, flutter 0.2, flexFrom 0.35, orbit 0.8,
+  after Jeremy's rounds (too still at 0.03, then up to 0.25, then "waving way too much" against
+  reference videos). The sea fans are unchanged.
+- The `toadstool` coral form: the leather coral's sarcophine poisons fish, so reef fish treat the
+  toadstools as solid (site rays, obstacles) but never visit them.
+
+### Atlas
+
+- Leather Coral (Not Evaluated): Benayahu & Loya 1986, Schleyer et al. 2004 and Chao et al. 2017;
+  all four toadstools on a low rock, swaying; its tile, rendered in Blender from the specimen.
+- Image credits: Diego Delso (CC BY-SA 4.0) and Alexander Vasenin (CC BY-SA 3.0); David Burdick's
+  grey caps, all rights reserved, used without permission on Jeremy's call (ROADMAP: ask him).
+
 ## v0.46.2 — Landing species count
 
 Status: clean `v0.46.2` (2026-11-02), accepted from `v0.46.2-dev_1`, branch

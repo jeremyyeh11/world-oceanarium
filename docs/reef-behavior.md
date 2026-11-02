@@ -228,6 +228,11 @@ Forms:
   `v0.38.0-dev_1` (its surfaces block the site rays, `form: 'fan'`, and it is in the obstacle
   field), but no mode visits it yet: `fan` is not in `CORAL_FORMS`. Proposed: hover and patrol
   beside the lattice.
+- `toadstool` (leather corals; Leather Coral): a fleshy cap on a stalk, shaped like a `table`
+  but toxic: its sarcophine poisons fish (Chao et al. 2017), so no reef fish shelters under,
+  pecks at or hovers by it. Solid since `v0.47.0-dev_2` (its surfaces block the site rays,
+  `form: 'toadstool'`, and it is in the obstacle field), and deliberately not in `CORAL_FORMS`
+  (Jeremy, 2026-11-01: solid but unvisited).
 - `host` (anemones): a home for one symbiont, closer to docs/ride-hosts.md. Proposed; needs its
   own design.
 

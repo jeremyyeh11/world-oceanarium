@@ -10,7 +10,8 @@ Versioning convention notes:
 
 ## v0.46.2 — Landing species count
 
-Status: in development, `v0.46.2-dev_1`, branch `fix/landing-species-count`.
+Status: clean `v0.46.2` (2026-11-02), accepted from `v0.46.2-dev_1`, branch
+`fix/landing-species-count`, [PR #189](https://github.com/jeremyyeh11/world-oceanarium/pull/189). Jeremy: "Yes, merge".
 
 ### Interface
 

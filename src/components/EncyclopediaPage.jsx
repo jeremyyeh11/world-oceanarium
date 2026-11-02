@@ -366,8 +366,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // The leather corals on their rock, widest across (scripts/build-leather-coral-atlas.py prints the
   // bounds: the rock, 1.5 m).
   'sarcophyton-glaucum': 1.5,
-  // The clam on its sand, widest across (scripts/build-giant-clam-atlas.py prints the bounds: the
-  // sand, 1.7 m).
+  // The clam framed as on its first, hard 1.7 m patch of sand: its soft disc now fades out well
+  // inside its 3.2 m (scripts/build-giant-clam-atlas.py prints the bounds).
   'tridacna-gigas': 1.72,
 }
 

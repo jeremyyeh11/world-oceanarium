@@ -134,7 +134,8 @@ Model in (`v0.49.0-dev_2`, Jeremy's GLB of 2026-11-02, 1.11 m, about 10,300 tria
 `scripts/build-giant-clam-kit.py` writes `public/models/landscape/giant-clams.glb` (1.3 MB; both
 photos cut to their used part and shrunk under 1024 px; opaque; the Reef Life Survey watermark
 filled; the shell's length turned onto X). `scripts/build-giant-clam-atlas.py` writes the Atlas
-specimen, the clam on a 1.7 m oval of sand. `src/components/giantClamPlacement.js` places them
+specimen, the clam on a faint disc of sand fading out like the table coral's (`dev_4`; first a hard
+1.7 m oval). `src/components/giantClamPlacement.js` places them
 after the leather corals and before the staghorn (`inClam`). The sand at the coral bommies'
 feet is hidden from the resting camera, so since `dev_3` (Jeremy: "By any rock") the first clam
 lies by any rock on the sand the camera's rays meet, in a phone's view if it can, else in the

@@ -5085,9 +5085,11 @@ export const SPECIES = [
     maxBodyLengthMeters: 1.11,
     model: {
       path: '/models/fish/tridacna-gigas/tridacna-gigas.glb',
-      // The kit's clam at its 1.11 m on a low oval of sand 1.7 m across
-      // (scripts/build-giant-clam-atlas.py), the sand's middle at the origin. 1 raw = 1 m -> 4 WU.
+      // The kit's clam at its 1.11 m on a faint disc of sand like the table coral's
+      // (scripts/build-giant-clam-atlas.py), the clam's middle at the origin. 1 raw = 1 m -> 4 WU.
       scale: 4,
+      // The sand's soft edge is alpha-blended; the clam is opaque.
+      alphaBlend: true,
     },
   },
 ]

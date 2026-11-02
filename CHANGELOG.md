@@ -10,9 +10,9 @@ Versioning convention notes:
 
 ## v0.49.0 — Giant Clam (in progress)
 
-Status: `v0.49.0-dev_3`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
+Status: `v0.49.0-dev_4`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
 waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas;
-`dev_3` a clam in the resting view, by any rock.
+`dev_3` a clam in the resting view, by any rock; `dev_4` the Atlas clam on soft sand.
 
 ### Species and Atlas
 
@@ -21,7 +21,8 @@ waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's mode
   length–weight relation). Jeremy's model (2026-11-02), built by `scripts/build-giant-clam-kit.py`:
   photos cut and shrunk to 1024 px or less, opaque, the Reef Life Survey watermark filled, the
   shell's length turned onto X (1.3 MB, about 10,300 triangles). Atlas specimen of the clam on a
-  low patch of sand (`scripts/build-giant-clam-atlas.py`), pose, tile, unhidden and on The Reefs'
+  faint disc of sand fading out like the table coral's (`scripts/build-giant-clam-atlas.py`; was a
+  hard patch until `dev_4`, Jeremy: "match the ... soft gradient"), pose, tile, unhidden and on The Reefs'
   `landscapeSpecies`. Image credits: Bernard Dupont's mantle (CC BY-SA 2.0); Andrew Green's shell
   (Reef Life Survey), used without permission on Jeremy's call and asked for the same day.
 

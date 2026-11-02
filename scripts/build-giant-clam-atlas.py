@@ -7,12 +7,14 @@
 #
 # The clam at the kit's size (Jeremy's model, a 1.11 m shell: an adult past the 80 cm common
 # length), sunk 3% of its height as the tank sinks it (src/components/giantClamPlacement.js SINK), on
-# an oval of sand a little wider than the shell: a low, faceted mound in the tank's sand colour
-# (landscapes.js reefs floorColor), so the clam reads as lying on the seabed, not floating. The clam
-# keeps the kit's photo materials. Everything in metres, the sand's middle on the origin. Prints the
-# specimen's bounds: its largest extent is the Atlas source length (EncyclopediaPage.jsx).
+# a faint disc of sand like the table coral's (scripts/build-coral-atlas.py): the tank's sand colour
+# with a little grain, toned well down, at most 60% opaque, fading out from 30% of its radius and a
+# little darker under the clam (the Atlas draws no shadows), so the clam reads as lying on the
+# seabed without a hard patch (Jeremy, 2026-11-02: "match the ... soft gradient"; its alpha needs
+# the species' `model.alphaBlend`). The clam keeps the kit's photo materials. Everything in metres,
+# the clam's middle on the origin. Prints the clam's and the specimen's bounds.
 
-import bpy, bmesh, sys, os, math, random
+import bpy, sys, os, math
 from mathutils import Vector
 
 args = sys.argv[sys.argv.index('--') + 1:]
@@ -21,12 +23,12 @@ preview_dir = args[2] if len(args) > 2 else None
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 
-# The tank's sand (#c4bea2), in linear light.
-SAND = tuple(((c / 255 + 0.055) / 1.055) ** 2.4 for c in (0xc4, 0xbe, 0xa2)) + (1,)
 SINK = 0.03
-# The sand oval's half-extents round the shell, and its mound's height, in metres.
-SAND_MARGIN = (0.3, 0.32)
-SAND_RISE = 0.05
+# The sand disc, as the table coral's: texture size, radius (m), tone and greatest opacity.
+SAND_SIZE = 256
+SAND_RADIUS = 1.6
+SAND_TONE = (0.25, 0.25, 0.25)
+SAND_ALPHA = 0.6
 
 bpy.ops.import_scene.gltf(filepath=os.path.join(kit_dir, 'giant-clams.glb'))
 clam = bpy.data.objects['clam0']
@@ -37,46 +39,65 @@ zs = [v.co.z for v in clam.data.vertices]
 height = max(zs)
 clam.location.z = -height * SINK
 
-# A faceted oval of sand: rings of vertices rising gently to the middle, jittered a little.
-rx = (max(xs) - min(xs)) / 2 + SAND_MARGIN[0]
-ry = (max(ys) - min(ys)) / 2 + SAND_MARGIN[1]
-rand = random.Random(4127)
-bm = bmesh.new()
-rings, segments = 4, 28
-centre = bm.verts.new((0, 0, SAND_RISE))
-grid = []
-for r in range(1, rings + 1):
-    share = r / rings
-    ring = []
-    for s in range(segments):
-        a = s * 2 * math.pi / segments + (r % 2) * math.pi / segments
-        jitter = 1 + (rand.random() - 0.5) * 0.08 * share
-        z = SAND_RISE * (1 - share ** 2) + (rand.random() - 0.5) * 0.012 * (1 - share)
-        ring.append(bm.verts.new((math.cos(a) * rx * share * jitter, math.sin(a) * ry * share * jitter, z)))
-    grid.append(ring)
-for s in range(segments):
-    bm.faces.new((centre, grid[0][s], grid[0][(s + 1) % segments]))
-for r in range(rings - 1):
-    inner, outer = grid[r], grid[r + 1]
-    for s in range(segments):
-        bm.faces.new((inner[s], outer[s], outer[(s + 1) % segments]))
-        bm.faces.new((inner[s], outer[(s + 1) % segments], inner[(s + 1) % segments]))
-mesh = bpy.data.meshes.new('sand')
-bm.to_mesh(mesh)
-bm.free()
-for p in mesh.polygons:
-    p.use_smooth = False
-sand = bpy.data.objects.new('sand', mesh)
-scene.collection.objects.link(sand)
+# A faint disc of sand under the clam, generated here so the build needs no extra asset.
+clam_reach = max(max(xs) - min(xs), max(ys) - min(ys)) / 2
+grain_seed = [12345]
+
+
+def grain():
+    grain_seed[0] = (grain_seed[0] * 1103515245 + 12345) % 2147483648
+    return grain_seed[0] / 2147483648 - 0.5
+
+
+pixels = [0.0] * (SAND_SIZE * SAND_SIZE * 4)
+for py in range(SAND_SIZE):
+    for px in range(SAND_SIZE):
+        u = (px + 0.5) / SAND_SIZE * 2 - 1
+        v = (py + 0.5) / SAND_SIZE * 2 - 1
+        r = math.hypot(u, v)
+        if r > 1:
+            continue
+        edge = max(0.0, min(1.0, (1 - r) / 0.7))
+        alpha = SAND_ALPHA * edge * edge * (3 - 2 * edge)
+        d = r * SAND_RADIUS / max(clam_reach, 0.01)
+        shade = 0.75 + 0.25 * max(0.0, min(1.0, (d - 0.55) / 0.7))
+        ripple = 0.03 * math.sin(u * 23.0 + v * 7.0) + 0.02 * math.sin(v * 31.0 - u * 11.0)
+        g = grain() * 0.06 + ripple
+        k = (py * SAND_SIZE + px) * 4
+        pixels[k:k + 4] = [max(0.0, min(1.0, (0.77 + g) * shade)), max(0.0, min(1.0, (0.745 + g) * shade)),
+                           max(0.0, min(1.0, (0.635 + g) * shade)), alpha]
+generated = bpy.data.images.new('clam-sand', SAND_SIZE, SAND_SIZE, alpha=True)
+generated.pixels = pixels
+os.makedirs(os.path.dirname(out_path), exist_ok=True)
+sand_path = os.path.join(os.path.dirname(out_path), 'clam-sand.png')
+generated.filepath_raw = sand_path
+generated.file_format = 'PNG'
+generated.save()
+sand_img = bpy.data.images.load(sand_path)
 mat = bpy.data.materials.new('sand')
 mat.use_nodes = True
-bsdf = mat.node_tree.nodes['Principled BSDF']
-bsdf.inputs['Base Color'].default_value = SAND
-bsdf.inputs['Roughness'].default_value = 1
+nt = mat.node_tree
+bsdf = nt.nodes['Principled BSDF']
+bsdf.inputs['Roughness'].default_value = 1.0
 bsdf.inputs['Metallic'].default_value = 0
-mesh.materials.append(mat)
-# The clam sits on the mound's top.
-clam.location.z += SAND_RISE
+tex = nt.nodes.new('ShaderNodeTexImage')
+tex.image = sand_img
+tone = nt.nodes.new('ShaderNodeMix')
+tone.data_type = 'RGBA'
+tone.blend_type = 'MULTIPLY'
+tone.inputs['Factor'].default_value = 1.0
+tone.inputs[7].default_value = (*SAND_TONE, 1.0)
+nt.links.new(tex.outputs['Color'], tone.inputs[6])
+nt.links.new(tone.outputs[2], bsdf.inputs['Base Color'])
+nt.links.new(tex.outputs['Alpha'], bsdf.inputs['Alpha'])
+if hasattr(mat, 'surface_render_method'):
+    mat.surface_render_method = 'BLENDED'
+else:
+    mat.blend_method = 'BLEND'
+bpy.ops.mesh.primitive_circle_add(vertices=64, radius=SAND_RADIUS, fill_type='TRIFAN', calc_uvs=True, location=(0, 0, 0))
+sand = bpy.context.active_object
+sand.name = 'sand'
+sand.data.materials.append(mat)
 
 bpy.context.view_layer.update()
 pts = [o.matrix_world @ Vector(c) for o in (clam, sand) for c in o.bound_box]
@@ -115,6 +136,7 @@ clam.select_set(True)
 sand.select_set(True)
 bpy.context.view_layer.objects.active = clam
 bpy.ops.export_scene.gltf(filepath=out_path, export_format='GLB', use_selection=True, export_materials='EXPORT',
-                          export_image_format='JPEG', export_image_quality=85, export_texcoords=True,
+                          export_image_format='AUTO', export_texcoords=True,
                           export_normals=True, export_yup=True, export_animations=False, export_morph=False)
+os.remove(sand_path)
 print('GLB', out_path, os.path.getsize(out_path))

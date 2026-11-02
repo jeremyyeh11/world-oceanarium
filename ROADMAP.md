@@ -177,6 +177,61 @@ Review gates:
 
 ## Shipped, with open follow-ups
 
+### Humphead Wrasse: gentle giant
+
+Status: shipped in clean `v0.46.1` (2026-11-02, [PR #187](https://github.com/jeremyyeh11/world-oceanarium/pull/187)), from `v0.46.1-dev_1`,
+branch `fix/humphead-gentle-giant`; the open item below is a follow-up. Jeremy: the humpheads
+looked jittery, "bursting every few seconds"; make them a gentle giant.
+
+- [x] Speeds in each fish's own body lengths (`swim.speedFollowsSize`, wrasse only), slower cruise,
+  no turn sprint, bursts every 60–120 s at about a third of the old speed, a softer tail stroke,
+  slower turns at the rock. Dev tank, 150 s each on a fresh load (desktop browser, about 25 fps
+  in the hidden pane), the three wrasses (1.40, 0.93, 0.85 m): tail actions 4.0 → 0.5 per wrasse
+  per minute (12 bursts and 18 turn sprints → 4 soft bursts); time above 0.55 own body lengths a
+  second 12 / 67 / 86% → 7 / 3 / 5%; peak 3.05 / 3.71 / 4.18 → 0.83 / 0.75 / 0.81 own body
+  lengths a second. Not measured on a phone.
+- [ ] The occasional tremble Jeremy sees (wrasse and, through their stations, the bluefin):
+  not this change; find its cause separately. `Backlog`
+
+### Cauliflower Coral
+
+Status: shipped in clean `v0.45.0` (2026-11-01, [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183)), from `v0.45.0-dev_5`,
+branch `species/pocillopora-meandrina`; open items below are follow-ups.
+[Prep and intake record](docs/species-preparation.md).
+
+Subtasks:
+- [x] Species entry: SeaLifeBase (EN 2023) and the NMFS 2019 status review, credited in
+  `STUDY_CREDITS` (`dev_1`).
+- [x] Kit (`scripts/build-cauliflower-coral-kit.py`): Jeremy's three colonies at true size, 20, 31
+  and 45 cm; photo credits in `IMAGE_CREDITS` (`dev_2`).
+- [x] Placement (`src/components/cauliflowerCoralPlacement.js`): bommie tops and upper shoulders,
+  loose groups, after the brain corals, before the staghorn (`inBush`); a `thicket` to the reef
+  fish. Unit test `tests/cauliflowerCoralPlacement.test.mjs`. In the tank: 20 colonies; staghorn
+  298 → 275.
+- [x] Atlas specimen, tile, unhidden, on The Reefs' `landscapeSpecies`; desktop, 375 px portrait and
+  landscape phone checked.
+- [x] Colonies on the front (`dev_4`, Jeremy: "i dont like that thyere all hidden away"): 3 to 4
+  more on the camera side of each bommie in frame, lower down, each seen by the resting camera.
+  Count in the tank not measured (the dev tank would not load with no window open).
+- [x] Front colonies from the camera (`dev_5`; Jeremy on `dev_4`: "i still dont see any from the
+  default view"): 12 to 16 colonies on the first rock ledges the resting camera's rays meet, in view
+  by construction. Count in the tank not measured either.
+- [x] Jeremy's look (2026-11-01, `dev_5`: "Yes, I see them") and go-ahead ("merge").
+- [ ] Measure reef fish visits at the bushes (thicket shares now cover staghorn and cauliflower).
+
+### Natural creature edges — v0.44.1
+
+Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge. Branch `feat/remove-creature-cyan-rim`.
+
+Feel: an animal lit by the water around it, not a neon outline when seen from below.
+
+- [x] Remove only the shared additive cyan backlight rim, for GLBs and instanced sardines.
+- [x] Preserve natural PBR/material sheen, body/silhouette shading, caustics, debug outlines, scene brightness, faceted normals and physical water reflections.
+- [x] Actual GLB/instanced shader regressions, retained debug-outline test, full local gates, frozen-frame underside comparison and mobile-layout smoke. Reviewed dev-head CI/Vercel passed; clean promotion/main gates recorded in PR #186.
+- [x] Jeremy accepted the iteration and authorized release. No physical-phone performance claim.
+- [ ] Backlog: make the reversed belly-shadow smoothstep defined; deliberately outside this rim-only patch.
+
+
 Released features whose sections still hold open items. Their checked subtasks are history; promote an open item to Current work when it is picked up, and move the section to Released / archived once nothing is open.
 
 ### Brain Coral
@@ -815,6 +870,30 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### Landing species count
+
+Status: shipped in clean `v0.46.2` (2026-11-02, [PR #189](https://github.com/jeremyyeh11/world-oceanarium/pull/189)), from
+`v0.46.2-dev_1`, branch `fix/landing-species-count`. Jeremy: the landing page counted more
+species than the reserves hold; it should reflect only the current version's roster.
+
+- [x] The landing count is the union of the per-tank counts (roster-filtered rows plus landscape
+  corals), so rows written ahead of a release or kept for hidden stand-ins are not counted.
+
+### Bluefin Trevally (The Reefs)
+
+Status: shipped in clean `v0.46.0` (2026-11-02, PR #179), from `v0.46.0-dev_5`, branch
+`species/caranx-melampygus`.
+[Preparation and intake](docs/species-preparation.md) · [Followers](docs/ride-hosts.md).
+
+- [x] Hidden prep entry, wrasse as an escort-only `reef-forager` host (`dev_1`); Jeremy's calls:
+  adults, two or three per wrasse (`dev_2`).
+- [x] Model intake, Atlas pose and tile, roster slot, `escort.maxPerHost`, eight `creatures_dev`
+  rows (ids 1175–1182) (`dev_3`).
+- [x] Fins set into the body from Jeremy's re-export, tile recaptured (`dev_4`).
+- [x] Feel review: 35–45 cm FL and `escort.quietTail`, no burst or snap-turn strokes while
+  escorting (`dev_5`). Jeremy: "ok looks good".
+- [x] Production rows: six (Jeremy: "write 6 instead"), `creatures` ids 1474–1479, 831 → 837.
 
 ### Common Remora (The Open Sea)
 

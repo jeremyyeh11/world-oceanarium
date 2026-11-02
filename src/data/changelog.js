@@ -8,6 +8,48 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.46.2',
+    date: '2026-11-02',
+    title: 'Landing species count',
+    changes: [
+      ['fix', 'The species count on the welcome screen now matches the reserves, counting only the animals you can actually visit.'],
+    ],
+  },
+  {
+    version: 'v0.46.1',
+    date: '2026-11-02',
+    title: 'Gentle humphead',
+    changes: [
+      ['fix', 'The humphead wrasses in The Reefs swim like the gentle giants they are, a slow, steady cruise with only an occasional soft burst, instead of darting every few seconds.'],
+    ],
+  },
+  {
+    version: 'v0.46.0',
+    date: '2026-11-02',
+    title: 'Bluefin Trevally',
+    changes: [
+      ['new', 'Six Bluefin Trevally follow the humphead wrasses in The Reefs, silver hunters with electric-blue fins that stay close, waiting to snatch whatever the big wrasses flush from the rock.'],
+      ['new', 'Meet the Bluefin Trevally in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.45.0',
+    date: '2026-11-01',
+    title: 'Cauliflower Coral',
+    changes: [
+      ['new', 'Cauliflower corals grow on the rocks of The Reefs, small knobbly bushes in pink and cream on the bommie tops and the ledges right in front of you, where reef fish hover and pick.'],
+      ['new', 'Meet the Cauliflower Coral in the Atlas, an endangered reef builder, with three colonies on a rock and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.44.1',
+    date: '2026-11-01',
+    title: 'Natural creature edges',
+    changes: [
+      ['fix', 'Remove the artificial blue edge glow when looking up at animals, keeping their natural reflections and shading.'],
+    ],
+  },
+  {
     version: 'v0.44.0',
     date: '2026-11-01',
     title: 'Common Remora',

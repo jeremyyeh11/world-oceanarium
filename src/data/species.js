@@ -209,11 +209,11 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis', 'caranx-melampygus'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -369,10 +369,11 @@ const HUMPHEAD_WRASSE_SWIM = {
   flexStart: 0.5,
   flexFull: 0.9,
   turnStrength: 0.6,
-  burstAmplitude: 1.1,
+  // A soft push rather than a whip (was 1.1 and 0.3 until v0.46.1).
+  burstAmplitude: 0.6,
   response: 6,
   speedFrequencyBoost: 0.3,
-  burstFrequencyBoost: 0.3,
+  burstFrequencyBoost: 0.15,
   // Its pectorals are the engine at cruise, so they row harder than the grouper's.
   pectoralFinFlutter: 0.4,
   pelvicFinFlutter: 0.06,
@@ -3254,18 +3255,24 @@ export const SPECIES = [
     adultLengthRangeMeters: [0.65, 2.29],
     maxBodyLengthMeters: 2.29,
     swim: {
-      // Starting values until the model lands: a labriform cruiser that rows on its pectorals,
-      // slow and heavy, keeping its tail for rare bursts.
+      // A gentle giant (Jeremy, 2026-11-01: it looked jittery, bursting every few seconds): a
+      // labriform cruiser rowing slowly on its pectorals, turning without speeding up, and only
+      // now and then a soft push of the tail. Speeds are in each fish's own body lengths
+      // (`speedFollowsSize`); in the largest's, the 0.85 m females cruised at up to 0.8 of their
+      // length a second and burst at 4.
+      speedFollowsSize: true,
       visualTimeScale: 0.75,
       driftEnabled: false,
-      idleBLPerSec: [0.2, 0.4],
+      idleBLPerSec: [0.25, 0.35],
       idleDriftBLPerSec: [0.04, 0.08],
-      snapBLPerSec: [0.6, 0.9],
-      burstBLPerSec: [2.0, 3.0],
-      burstInterval: [20.0, 40.0],
-      burstActionDuration: 0.6,
+      // Snap speed now only sets how briskly it leaves the rock when startled there.
+      snapBLPerSec: [0.4, 0.5],
+      turnSpeedupEnabled: false,
+      burstBLPerSec: [0.9, 1.2],
+      burstInterval: [60.0, 120.0],
+      burstActionDuration: 1.0,
       turnActionDuration: 0.8,
-      erraticness: 0.08,
+      erraticness: 0.03,
       // Pectoral rowing turns a wrasse tightly for its length.
       turnRadiusBodyLengths: 1.0,
       speedMultiplier: 1.0,
@@ -3293,6 +3300,19 @@ export const SPECIES = [
     sizeRangeBySex: { female: [0.35, 0.44] },
     // FishBase Bayesian length–weight (TL cm): a 0.01445, b 2.98; about 13 kg at 1 m, 44 kg at 1.5 m.
     mass: { coefficient: 0.01445, exponent: 2.98 },
+    // Escort-only host (docs/ride-hosts.md, Followers) for the bluefin trevally, which follows
+    // big reef foragers to catch the prey they flush. `reef-forager` is its own group, so the
+    // pilot fish and bannerfish (who follow `large-fish`) leave it alone. No `anchors`: nothing
+    // rides a wrasse.
+    rideHost: {
+      groups: ['reef-forager'],
+      // Measured with scripts/measure-ride-anchors.mjs on both models (9.16 WU, after each
+      // model's `position`): snout at z -4.58, caudal peduncle near +2.6; belly -1.0 (male) to
+      // -1.6 (female), pelvic tips -1.9; back and dorsal fin up to +2.46 on the male; body ±0.89
+      // wide, the male's pectorals ±1.95. Centre (0, 0.3, -0.6) WU, radii (1.9, 2.1, 4.4) WU:
+      // body, head and pectorals to the peduncle; the tail fin stays outside.
+      body: { center: [0, 0.033, -0.066], radii: [0.207, 0.229, 0.48] },
+    },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It roves the reef by day, so it
     // patrols more than any other resident, pausing off a face and biting shellfish and urchins
     // off the rock. Its ledge is for the night, so it shelters little. At the corals it cruises
@@ -3303,7 +3323,8 @@ export const SPECIES = [
       pecks: [1, 2],
       hoverSeconds: [4, 10],
       hoverStandoffBodyLengths: [0.6, 0.9],
-      turnDegreesPerSecond: 60,
+      // Turns slowly at the rock (60 until v0.46.1).
+      turnDegreesPerSecond: 40,
       startleShelterChance: 0.2,
       corals: { table: { patrol: 0.3, hover: 0.25, shelter: 0.15 }, thicket: { patrol: 0.2, peck: 0.1 } },
     },
@@ -4604,6 +4625,282 @@ export const SPECIES = [
       path: '/models/fish/platygyra-daedalea/platygyra-daedalea.glb',
       // Three of the kit's colonies (orange, blue and brown, pale) on a low limestone rock, 2.6 m
       // across (scripts/build-brain-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+    },
+  },
+  // --- Bluefin trevally (Carangidae) ----------------------------------------------------------
+  // Facts from FishBase, Pardee et al. 2021 (Hawaii: sex-specific growth, ages and maturity),
+  // Sudekum et al. 1991 (NW Hawaiian Islands: spawning season, fecundity, diet) and Hobson 1974
+  // (Kona: patrols just above the reef; follows close behind big foraging goatfish to catch the
+  // prey they flush). Planned for The Reefs as a follower of the humphead wrasse, on the golden
+  // trevally's escort code (docs/fish-queue.md; docs/ride-hosts.md, Followers). Jeremy's model
+  // (2026-11-01); six adults in The Reefs in production, eight in creatures_dev.
+  {
+    id: 'caranx-melampygus',
+    name: 'Bluefin Trevally',
+    scientificName: 'Caranx melampygus',
+    family: 'Carangidae',
+    alternateNames: ['Bluefin Jack', 'Blue Trevally', 'Omilu'],
+    // Tile (2026-11-01): fish 1182's head facing left, rendered from a little below in The Reefs
+    // with the other fish hidden, square at 470 px.
+    atlasThumbnail: '/atlas/caranx-melampygus-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Usually alone or a few together by day (Hobson 1974), and each follower holds its own
+    // station round the wrasse, so it runs the solo-agent path the escort steering lives on.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Over 90% fish by volume in Hawaii (Sudekum et al. 1991).
+    predator: true,
+    tempo: 'cruise',
+    // IUCN assessed 9 March 2015 (FishBase).
+    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      // Sudekum et al. 1991: over 90% fish; wrasses, goatfishes and filefishes the main
+      // families, eels too; crustaceans in about a fifth of stomachs.
+      commonDiet: 'Mostly small reef fishes, among them wrasses, goatfishes, filefishes and eels; some crustaceans.',
+      foundIn: 'Tropical Indo-Pacific from the Red Sea and East Africa to Hawaii and Ducie Island, north to the Ryukyu Islands and south to New Caledonia, and in the eastern Pacific from Mexico to Panama. Deeper lagoons and outer reefs, 0 to 190 m.',
+      // Pardee et al. 2021: females mature larger and later; growth does not differ significantly
+      // between the sexes. No colour difference is published.
+      sexualDimorphism: 'Females mature at a larger size and a year later than males. No colour difference is known.',
+      // Pardee et al. 2021 (Hawaii, 194 aged): oldest female 24 years, oldest male 17.
+      lifeSpan: 'Up to 24 years',
+      // Pardee et al. 2021, A50 from histology: females 4.1 years at 37.2 cm FL, males 2.9 years
+      // at 32.9 cm. Supersedes Sudekum et al. 1991's "about 2 years" at 35 cm SL.
+      maturityAge: 'Females about 4 years, males about 3',
+      social: {
+        schoolSize: 'Solitary or small groups',
+        // Hobson 1974 (Kona): of 24 groups of the goatfish Parupeneus chryserydros (now
+        // P. cyclostomus), 16 had a jack
+        // following close behind; "clearly, it is the jack that maintains the association".
+        groupingBehaviour: 'By day usually alone or a few together, patrolling about a metre above the reef. Often follows close behind a big forager, such as a goatfish probing the bottom, to snap up the small fish it drives out of hiding.',
+        // Sudekum et al. 1991 (NW Hawaiian Islands): gravid fish from April to November, more
+        // than half gravid in May, June and July.
+        reproduction: 'Spawns in the warm months: in Hawaii, ripe fish from April to November, most from May to July.',
+      },
+      averages: {
+        // Pardee et al. 2021 (Hawaii, Table 1): sex-specific mean asymptotic fork lengths, 74.9
+        // cm female and 69.2 cm male (the growth curves do not differ significantly). Weights
+        // from the study's relation, W (g) = 6.77e-6 FL (mm)^3.15, at those lengths: 7.7 and
+        // 6.0 kg. Life expectancy is each sex's oldest aged fish.
+        maleSizeMeters: 0.69,
+        femaleSizeMeters: 0.75,
+        maleWeightKg: 6,
+        femaleWeightKg: 7.7,
+        maleLifeExpectancyYears: 17,
+        femaleLifeExpectancyYears: 24,
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Females about 4 years, males about 3',
+        sexualSterilityYears: 'None known',
+        // Sudekum et al. 1991: mature eggs in the ovaries of 11 gravid females in July, 49,700
+        // (32.8 cm SL) to 4,270,000 (64 cm SL), rising with body weight to the 1.7 power.
+        offspringPerMatingEvent: 'About 50,000 to 4.3 million eggs, more in larger females',
+      },
+    },
+    atlasSummary: { biome: 'Reef', zone: 'Sunlight', diet: 'Fish', social: 'Follower' },
+    // Colour: Fishes of Australia (electric-blue second dorsal, anal and tail fins; blue and black
+    // spots on the sides).
+    description: 'A reef jack up to 117 cm, silvery with a bronze-blue back, its sides freckled with blue and black spots and its second dorsal, anal and tail fins electric blue. It patrols just above the reef, alone or a few together, and often trails a big fish that is rooting in the bottom, snapping up the small fish it flushes. In the reserve a few follow the humphead wrasse as it works the rocks.',
+    // Pardee et al. 2021: males mature from 32.9 cm FL; FishBase maximum 117 cm FL.
+    adultLengthRangeMeters: [0.33, 1.17],
+    maxBodyLengthMeters: 1.17,
+    // Eight adults at 35–45 cm FL (1.4–1.8 WU), two or three per wrasse (Jeremy, 2026-11-01).
+    // At 45–70 cm they looked nearly as long as the 0.8–1 m females; photos of bluefin trailing
+    // a humphead show them at roughly 40–50% of its length. Still adults: males mature from 32.9.
+    sizeRange: [0.35 / 1.17, 0.45 / 1.17],
+    // Pardee et al. 2021, W (g) = 6.77e-6 FL (mm)^3.15, rewritten for cm FL to grams.
+    mass: { coefficient: 0.009563, exponent: 3.15 },
+    swim: {
+      // A quick carangid cruiser that never hovers, the golden trevally's swim. While following,
+      // the escort steering slows it to the wrasse's pace and these only bound it.
+      visualTimeScale: 0.7,
+      driftEnabled: false,
+      idleBLPerSec: [0.9, 1.3],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [1.4, 1.9],
+      burstBLPerSec: [2.2, 3.0],
+      burstInterval: [10.0, 18.0],
+      burstActionDuration: 0.8,
+      turnActionDuration: 0.6,
+      erraticness: 0.1,
+      turnRadiusBodyLengths: 1.2,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // The wrasse's room. Its stations sit at most about 3 WU off the wrasse; one following it
+      // past a wall waits at the wall (to watch at intake).
+      ...REEF_BOUNDS,
+      // 1 WU = 25 cm: 117 cm maximum fork length = 4.68 WU. The model is scaled by fork length.
+      bodyLengthWU: 4.68,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.0,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        // A fish-eater, so the small reef fish give it a little room.
+        menace: 0.15,
+        wariness: 0.05,
+      },
+    },
+    hitchhiker: {
+      // Follows rather than rides, breaking off now and then to patrol on its own.
+      attaches: false,
+      freeSeconds: [30, 70],
+      // Hobson 1974: big foraging goatfish; also reported following wrasses, rays and sharks.
+      // Only `reef-forager` for now: its stations sit above the host, which on a ray would be
+      // level with the wings, so a Reefs ray or shark host needs its own check first.
+      hosts: { 'reef-forager': 1 },
+      escort: {
+        // "Follows close behind": over the wrasse's back from the head to just past the tail,
+        // weighted to the rear half.
+        along: [-0.3, 0.9],
+        // Above and to either side, never below: the wrasse works the rock with its belly near
+        // it (0 = its right, 90 above, 180 its left; drift adds up to 18 more).
+        angleDegrees: [20, 160],
+        radius: [1.15, 1.5],
+        seconds: [30, 80],
+        // Then it drifts round to a new station, or (`leaveChance`) swims off for `freeSeconds`.
+        // Low, so two or three of the eight stay with each wrasse (Jeremy, 2026-11-01).
+        leaveChance: 0.2,
+        minSpeedBLPerSec: 0.3,
+        // No burst or snap-turn tail strokes while following: the escort holds its speed, so they
+        // whipped the tail without the dash and read as darting (Jeremy, 2026-11-01).
+        quietTail: true,
+        // It goes looking for a wrasse anywhere on the reef.
+        rangeBodyLengths: 12,
+        // Two or three per wrasse (Jeremy, 2026-11-01): a wrasse with three already is passed
+        // over for the next nearest. Uncapped, most piled onto the nearest one or two.
+        maxPerHost: 3,
+      },
+    },
+    model: {
+      path: '/models/fish/caranx-melampygus/caranx-melampygus.glb',
+      // Supplied 2026-11-01; scripts/prepare-bluefin-trevally-model.py bakes the body's node
+      // offset, centres the root halfway along the fork length on the body axis and crops the
+      // photo to the fish (GLB 4.2 MB -> 0.24 MB). Snout to fork notch: 0.773418 source units ->
+      // 4.68 WU / 117 cm FL; the upper caudal lobe reaches 0.85897 (5.2 WU).
+      scale: 6.0510623944802475,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['caranx_melampygus'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Carangiform, the golden trevally's setup: a firm front and a compact rear-body stroke.
+        // Its 0.043 and 0.033 body lengths, of this model's 0.859 source units snout to tail tip.
+        amplitude: 0.0369,
+        waveSpeed: 2.8,
+        waveTravel: 3.5,
+        flexStart: 0.26,
+        flexFull: 0.84,
+        turnStrength: 0.0283,
+        burstAmplitude: 0.8,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        // The long sickle pectorals row little at cruise; jacks swim on the tail.
+        pectoralFinFlutter: 0.1,
+        pelvicFinFlutter: 0.06,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // Cauliflower Coral (Pocillopora meandrina): Jeremy's pick (2026-11-01) for the next coral on The
+  // Reefs (docs/fish-queue.md), a small branching hard coral. A landscape species like the other
+  // corals: small bushes on the table corals' bommies' tops and upper shoulders, singly or in loose
+  // groups (landscapes.js `cauliflowerCorals`, src/components/cauliflowerCoralPlacement.js), a
+  // `thicket` to the reef fish (docs/reef-behavior.md, Coral forms). Jeremy's model (2026-11-01):
+  // three displaced, photo-projected bushes, baked by scripts/build-cauliflower-coral-kit.py; the
+  // Atlas shows all three on a small rock (scripts/build-cauliflower-coral-atlas.py).
+  // Facts: SeaLifeBase (IUCN EN, assessed 27 October 2023, A3ce; shallow reefs, exposed reef
+  // fronts), NMFS 2019 status review (western Indian Ocean to the eastern Pacific, 95 of 133
+  // Indo-Pacific ecoregions; the surface to at least 34 m, commonest under 5 m on reef crests and
+  // upper slopes; bushes commonly 20-40 cm across, light brown or cream, also green or pink;
+  // determinate growth, most colonies stopping near 40 cm, short-lived for a coral; often the
+  // first coral on bare rock; hermaphrodite broadcast spawner, 1-3 days after the full moon
+  // shortly after sunrise in late spring or early summer; eggs seeded with zooxanthellae, Hirose
+  // et al. 2001; also fragmentation; crabs and shrimp in colonies over about 10 cm ward off
+  // crown-of-thorns starfish, Glynn 1976), Wikipedia (polyps extended mostly at night).
+  {
+    id: 'pocillopora-meandrina',
+    name: 'Cauliflower Coral',
+    scientificName: 'Pocillopora meandrina',
+    family: 'Pocilloporidae',
+    // Tile (2026-11-01): an in-tank close-up of two cream colonies on their ledge, rendered square at
+    // 940 px with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/pocillopora-meandrina-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 October 2023 (A3ce, SeaLifeBase): projected declines as reefs warm and degrade.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the western Indian Ocean to Hawaii and the eastern Pacific, most common on wave-swept reef crests and upper slopes, from the surface to at least 34 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      // Short-lived for a coral (NMFS 2019, after Brown 2004 and Coles & Brown 2007), but no age
+      // is published.
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each bush is one colony of tiny polyps on a shared skeleton of stubby, warty branches. It is often the first coral to settle bare rock after a storm, a lava flow or bleaching, and grows fast, but most colonies stop at about 40 cm across. Once a colony is about 10 cm across, guard crabs and shrimp move in between its branches and drive off coral-eating starfish.',
+        // NMFS 2019 (Stimson 1978, Schmidt-Roach et al. 2012; zooxanthellae in the eggs, Hirose et
+        // al. 2001; fragmentation, Glynn & Colley 2008).
+        reproduction: 'Each colony makes both eggs and sperm. In late spring, one to three days after the full moon, the colonies spawn together just after sunrise, unusual for a coral. Its eggs already carry the algae that feed the adult, so its drifting larvae can make food from sunlight. Broken branches also grow into new colonies.',
+      },
+      averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published (adult
+        // colonies are commonly 20 to 40 cm across, NMFS 2019).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A hard coral that grows into small, round bushes of stubby, warty branches, cream, brown, green or pink, rarely more than 40 cm across. It thrives on wave-swept reef crests, is often the first coral back after a storm, and shelters guard crabs that fend off coral-eating starfish. Bleaching and the decline of reefs have made it Endangered.',
+    // The Atlas's biggest colony across, for the scale comparison: the cream one at 45 cm (typical
+    // colonies stop growing at about 40 cm, NMFS 2019; a few grow larger).
+    maxBodyLengthMeters: 0.45,
+    model: {
+      path: '/models/fish/pocillopora-meandrina/pocillopora-meandrina.glb',
+      // The kit's three colonies at true size on a low limestone rock, 1.1 m across
+      // (scripts/build-cauliflower-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
       scale: 4,
     },
   },

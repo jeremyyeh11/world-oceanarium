@@ -2470,6 +2470,11 @@ export function hitchhikerProfile(species) {
     leaveChance: escort.leaveChance ?? 0,
     // Slowest it swims while escorting (body lengths/s); unset, half its idle speed.
     minSpeedBLPerSec: escort.minSpeedBLPerSec ?? null,
+    // Most fish (any kind) it will join round one host; a full host is passed over for the
+    // next nearest, so followers spread over several hosts. Unset, no limit.
+    maxPerHost: escort.maxPerHost ?? Infinity,
+    // No idle burst or snap-turn strokes while escorting (startles still fire). Unset, they play.
+    quietTail: escort.quietTail === true,
   }
   hitchhikerProfiles.set(species, profile)
   return profile
@@ -2932,18 +2937,33 @@ function beginRideRelease(ride, riderId, host, anchor, now, rand, hitch) {
   ride.stageStartedAt = now
 }
 
+const escortFollowerCounts = new Map()
+
 /**
  * The nearest host this rider would ride, visible and within RIDE_ESCORT_RANGE_BODY_LENGTHS
  * of its own length, regardless of room on it: the host to escort when it cannot ride.
  */
 export function findEscortHost(rider, riderPosition, hitch, preferHostId = null) {
   let best = null
+  // With a cap, count who already follows each host: every rider registers the host it
+  // steers by (`rideHostId`), so last frame's registry is enough.
+  const maxPerHost = hitch.escort.maxPerHost ?? Infinity
+  let followers = null
+  if (Number.isFinite(maxPerHost)) {
+    followers = escortFollowerCounts
+    followers.clear()
+    FISH_REGISTRY.forEach((entry, id) => {
+      if (id === rider.id || entry.rideHostId == null) return
+      followers.set(entry.rideHostId, (followers.get(entry.rideHostId) ?? 0) + 1)
+    })
+  }
   FISH_REGISTRY.forEach((entry, hostId) => {
     if (hostId === rider.id || entry.biome !== rider.biome || !entry.hasPose || entry.opacity < 0.99) return
     const hostProfile = rideHostProfile(resolveSpecies(entry))
     if (!hostProfile) return
     const weight = rideHostWeight(hitch, hostProfile)
     if (weight <= 0) return
+    if (followers && (followers.get(hostId) ?? 0) >= maxPerHost) return
     const distance = entry.position.distanceTo(riderPosition)
     if (distance > entry.bodyLength * hitch.escort.rangeBodyLengths) return
     const score = hostId === preferHostId ? -1 : distance / weight

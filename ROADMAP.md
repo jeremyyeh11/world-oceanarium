@@ -160,6 +160,22 @@ Review gates:
 
 ## Shipped, with open follow-ups
 
+### Humphead Wrasse: gentle giant
+
+Status: shipped in clean `v0.46.1` (2026-11-02, [PR #187](https://github.com/jeremyyeh11/world-oceanarium/pull/187)), from `v0.46.1-dev_1`,
+branch `fix/humphead-gentle-giant`; the open item below is a follow-up. Jeremy: the humpheads
+looked jittery, "bursting every few seconds"; make them a gentle giant.
+
+- [x] Speeds in each fish's own body lengths (`swim.speedFollowsSize`, wrasse only), slower cruise,
+  no turn sprint, bursts every 60–120 s at about a third of the old speed, a softer tail stroke,
+  slower turns at the rock. Dev tank, 150 s each on a fresh load (desktop browser, about 25 fps
+  in the hidden pane), the three wrasses (1.40, 0.93, 0.85 m): tail actions 4.0 → 0.5 per wrasse
+  per minute (12 bursts and 18 turn sprints → 4 soft bursts); time above 0.55 own body lengths a
+  second 12 / 67 / 86% → 7 / 3 / 5%; peak 3.05 / 3.71 / 4.18 → 0.83 / 0.75 / 0.81 own body
+  lengths a second. Not measured on a phone.
+- [ ] The occasional tremble Jeremy sees (wrasse and, through their stations, the bluefin):
+  not this change; find its cause separately. `Backlog`
+
 ### Cauliflower Coral
 
 Status: shipped in clean `v0.45.0` (2026-11-01, [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183)), from `v0.45.0-dev_5`,
@@ -837,6 +853,21 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### Bluefin Trevally (The Reefs)
+
+Status: shipped in clean `v0.46.0` (2026-11-02, PR #179), from `v0.46.0-dev_5`, branch
+`species/caranx-melampygus`.
+[Preparation and intake](docs/species-preparation.md) · [Followers](docs/ride-hosts.md).
+
+- [x] Hidden prep entry, wrasse as an escort-only `reef-forager` host (`dev_1`); Jeremy's calls:
+  adults, two or three per wrasse (`dev_2`).
+- [x] Model intake, Atlas pose and tile, roster slot, `escort.maxPerHost`, eight `creatures_dev`
+  rows (ids 1175–1182) (`dev_3`).
+- [x] Fins set into the body from Jeremy's re-export, tile recaptured (`dev_4`).
+- [x] Feel review: 35–45 cm FL and `escort.quietTail`, no burst or snap-turn strokes while
+  escorting (`dev_5`). Jeremy: "ok looks good".
+- [x] Production rows: six (Jeremy: "write 6 instead"), `creatures` ids 1474–1479, 831 → 837.
 
 ### Common Remora (The Open Sea)
 

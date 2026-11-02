@@ -8,6 +8,49 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.46.1 — Gentle humphead
+
+Status: clean `v0.46.1` (2026-11-02), accepted from `v0.46.1-dev_1`, branch
+`fix/humphead-gentle-giant`, [PR #187](https://github.com/jeremyyeh11/world-oceanarium/pull/187). Jeremy: "Yes, both" (merge `v0.46.0`, then this).
+
+### Behaviour and motion
+
+- Humphead wrasse as a gentle giant: speeds in each fish's own body lengths (`speedFollowsSize`,
+  new and opt-in), so the 0.85–0.93 m females no longer cruise and burst at the 2.29 m record's
+  pace; a slower cruise, no sprint on turns, a soft burst every 60–120 s instead of a hard one
+  every 20–40, a gentler tail stroke and slower turns at the rock. Only the wrasse changes.
+
+## v0.46.0 — Bluefin Trevally
+
+Status: clean `v0.46.0` (2026-11-02), accepted from `v0.46.0-dev_5`, branch
+`species/caranx-melampygus`, [PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179). Jeremy: "ok looks good", then "Yes, both".
+`dev_1` and `dev_2` prepared the species and the wrasse as a host; `dev_3` the model, Atlas and
+dev rows; `dev_4` the fins; `dev_5` the size and the quiet escort tail.
+
+### Behaviour and motion
+
+- Escort cap: a follower's `escort.maxPerHost` limits how many fish it joins round one host,
+  counted from the registry; a full host is passed over for the next nearest. Unset, no limit,
+  so every existing follower behaves as before.
+- Quiet escort tail: a follower's `escort.quietTail` drops idle bursts and snap turns while it
+  escorts (the escort sets its speed, so they whipped the tail without the dash). Only the bluefin
+  uses it; startles and roaming bursts are unchanged.
+- The humphead wrasse is an escort-only host in a new `reef-forager` group (clearance measured on
+  both sex models); the pilot fish and bannerfish do not follow it.
+
+### Species and Atlas
+
+- Bluefin Trevally (`caranx-melampygus`) in The Reefs: FishBase facts, Pardee et al. 2021 sizes,
+  ages and maturity, Sudekum et al. 1991 spawning and eggs, Hobson 1974 following behaviour (all
+  credited). Jeremy's model, scaled by fork length, its Commons photo (Diego Delso, CC BY-SA 4.0,
+  credited) cropped to the fish; the golden trevally's carangid `caudal-wave`; Atlas pose and tile.
+  Six adults follow the three wrasses in production (`creatures` ids 1474–1479, Jeremy: "write 6
+  instead" of eight), above and beside them; eight in `creatures_dev`.
+- Bluefin fins: Jeremy's re-export sets the pelvic and pectoral fins into the body (the pelvics
+  hung just below the belly before); Atlas tile recaptured.
+- Bluefin size: 35–45 cm fork length (was 45–70), so they trail the wrasses at about the
+  proportions seen in photos rather than matching the females' length.
+
 ## v0.45.0 — Cauliflower Coral
 
 Status: clean `v0.45.0` (2026-11-01), accepted from `v0.45.0-dev_5`, branch

@@ -177,6 +177,17 @@ const targets = [
     minVertices: 1000,
   },
   {
+    name: 'Spearfish Remora static parts',
+    path: 'public/models/fish/remora-brachyptera/remora-brachyptera.glb',
+    staticMesh: true,
+    bodyMeshNames: ['mexican-fish_(1)'],
+    requiredFollowMeshes: ['mexican-fish_(1)_1'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 3,
+    minVertices: 1000,
+  },
+  {
     name: 'Pilot Fish static parts',
     path: 'public/models/fish/naucrates-ductor/naucrates-ductor.glb',
     staticMesh: true,

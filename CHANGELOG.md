@@ -8,6 +8,35 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.48.0 — Spearfish Remora
+
+Status: clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`, branch
+`species/remora-brachyptera`, [PR #178](https://github.com/jeremyyeh11/world-oceanarium/pull/178).
+Jeremy: "merge", and yes to production rows. `dev_1` prepared the species entry ahead of the
+model; `dev_2` added Jeremy's model; `dev_3` the dev rows and Atlas tile; `dev_4` the texture
+credit.
+
+### Species and Atlas
+
+- Spearfish Remora (`remora-brachyptera`), four riding The Reefs' Mola (id 21), 30–50 cm. In
+  `creatures_dev` ids 1183–1186; in production `creatures` ids 1480–1483 (837 → 841 rows,
+  backed up before and after), each with its own description.
+- Jeremy's model, fitted as a rider (disc 25% of total length, second dorsal about 2 cm proud of
+  the disc line); it swims with the sharksuckers' caudal wave and paired-fin flutter. It lies on
+  all 12 Mola spots at 30–50 cm (worst disc lift 2.2 mm), and a full-size Mola carries five to
+  eight at once.
+- Checked in the dev tank: all four latch on, let go for a few seconds of swimming or escorting,
+  and come back to new spots; a ride lasted 172 s (data 90–200 s); the rider on the top spot lets
+  go before a sun-bask lifts it out of the water.
+- Atlas entry and tile: host range credited to Anislado-Tolentino et al. 2022 (billfishes and
+  swordfish, also ocean sunfishes, blue shark and loggerhead turtles). No published age,
+  maturity or spawning data, so those fields stay Unknown.
+
+### Sources
+
+- Its two photo textures are credited to John Snow (Mexican Fish.com). The site states no
+  licence, so the credit reads "licence not stated"; a permission request is drafted.
+
 ## v0.47.2 — Brain coral photo permission
 
 Status: clean `v0.47.2` (2026-11-03), accepted from `v0.47.2-dev_1`, branch

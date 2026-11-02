@@ -35,7 +35,7 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
 Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
-  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 18 entries), and the link and
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 19 entries), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).
@@ -159,6 +159,31 @@ Review gates:
 - [ ] Jeremy confirms the type split and the per-doc template before the first new-type implementation starts.
 
 ## Shipped, with open follow-ups
+
+### Spearfish Remora (The Reefs)
+
+Status: shipped in clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`,
+[PR #178](https://github.com/jeremyyeh11/world-oceanarium/pull/178) ·
+[Preparation and intake](docs/species-preparation.md) · [Ride hosts](docs/ride-hosts.md).
+
+- [x] Facts and ride data in `species.js`; host range credited (Anislado-Tolentino et al.
+  2022); no age, maturity or fecundity data published, so those Atlas fields stay Unknown.
+- [x] Size floor: 30–50 cm (1.2–2.0 WU), above 27 cm.
+- [x] Host: the Mola's 12 spots regenerate unchanged from its GLB, and the rider lies on all of
+  them (worst disc lift 2.2 mm); a full-size Mola carries 5–8 at once.
+- [x] Jeremy (2026-10-30): four, 30–50 cm, sharing the reserve's one Mola (id 21).
+- [x] Jeremy's GLB and intake (`dev_2`): rig-free body, separate suction disc and four paired
+  fins, two opaque photo textures; fitted with `scripts/fit-rider-model.mjs` (source length
+  3.5093, disc 25% of total length); `npm test` fits its top line on every Mola spot.
+- [x] Four `creatures_dev` rows (`dev_3`, ids 1183–1186) and the Atlas tile; all four ride the
+  Mola and run the full let-go and re-attach cycle, and the top rider lets go before a sun-bask
+  lifts it out of the water (seen live).
+- [x] Texture source (`dev_4`): John Snow's photos on Mexican Fish.com (`snow-spearfish-remora`).
+- [x] Jeremy accepted `dev_4` (2026-11-03: "merge"). Production `creatures` ids 1480–1483
+  (837 → 841 rows, backed up before and after).
+- [ ] Permission from John Snow: the site states no licence, so the credit reads "licence not
+  stated". A request is drafted in Jeremy's Gmail; on a yes, the credit reads "used with
+  permission" (as on the common remora and brain coral).
 
 ### Leather Coral
 

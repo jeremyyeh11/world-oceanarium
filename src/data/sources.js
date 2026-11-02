@@ -469,6 +469,15 @@ export const STUDY_CREDITS = [
     venue: 'Marine Drugs 15(7): 202',
     url: 'https://doi.org/10.3390/md15070202',
   },
+  {
+    id: 'anislado-tolentino-2022-spearfish-remora',
+    subject: 'Spearfish Remora hosts beyond billfishes: ocean sunfishes, blue shark, loggerhead turtle',
+    authors: 'Anislado-Tolentino, Rosales-Vásquez, Irigoyen-Solis, Del Moral-Flores & Wakida-Kusunoki',
+    year: 2022,
+    title: 'First record of the spearfish remora Remora brachyptera (Carangiformes: Echeneidae) in the Gulf of Tehuantepec, Mexico',
+    venue: 'Hidrobiológica 32: 71–74',
+    url: 'https://doi.org/10.24275/uam/izt/dcbs/hidro/2022v32n1/Anislado',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one
@@ -477,8 +486,9 @@ export const STUDY_CREDITS = [
 // texture is shared under the same licence, which `changes` says.
 // Every photo texture gets an entry. One whose source is not known has no `url`
 // and shows "Unknown source" (with `author` when only the photographer is known);
-// replace it with the full credit once the source is found. Generated images are
-// not photographs and are not listed.
+// replace it with the full credit once the source is found. A found source that
+// states no licence has no `licence` and shows "licence not stated". Generated images
+// are not photographs and are not listed.
 export const IMAGE_CREDITS = [
   {
     id: 'zerpe-emperor-angelfish',
@@ -617,6 +627,16 @@ export const IMAGE_CREDITS = [
     url: 'https://commons.wikimedia.org/wiki/File:Jurel_de_aleta_azul_(Caranx_melampygus),_Yeda,_Arabia_Saudita,_2025-05-23,_DD_22.jpg',
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Jeremy named the page (2026-11-02): photos 3 and 5 there, at the same 570×215 and 570×304
+    // px. The site states no licence, so all rights stay with the photographer.
+    id: 'snow-spearfish-remora',
+    subject: 'Spearfish Remora textures (two photos)',
+    author: 'John Snow, Mexican Fish.com',
+    work: 'Spearfish Remora, Remora brachyptera, white morph',
+    url: 'https://mexican-fish.com/spearfish-remora/',
+    changes: 'Mapped onto the 3D model.',
   },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },

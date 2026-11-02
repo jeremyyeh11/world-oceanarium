@@ -336,8 +336,9 @@ For followers only, step 1 is enough: an escort-only host needs no anchors.
 
 ## Remora models
 
-The two sharksuckers, the white suckerfish (`v0.42.0`, on the giant manta) and the common
-remora (`v0.44.0`, on the mako and the whale shark) have models. The common remora's export
+The two sharksuckers, the white suckerfish (`v0.42.0`, on the giant manta), the common
+remora (`v0.44.0`, on the mako and the whale shark) and the Spearfish Remora (`v0.48.0`, on
+The Reefs' Mola) have models. The common remora's export
 came in inside out (every part with its faces inward) and is turned right side out by
 `scripts/prepare-common-remora-model.py` before the fit. The other remoras keep their species entries
 (facts, `hitchhiker` data) but no model, on no tank and out of the Atlas, until their GLBs

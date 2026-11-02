@@ -169,6 +169,8 @@ const VIEW_POSES_BY_SPECIES = {
   'remora-remora': { maxLengthDisplayUnits: 2.1 },
   // White suckerfish: 0.3 m standard length, a touch above the 0.25 m bannerfish's framing.
   'remora-albescens': { maxLengthDisplayUnits: 1.2 },
+  // Spearfish remora: 0.5 m, between the bannerfish (0.25 m) and the pilot fish (0.7 m).
+  'remora-brachyptera': { maxLengthDisplayUnits: 1.45 },
   // Pilot fish: 0.7 m, framed a touch shorter than the 0.75 m whitefin sharksucker.
   'naucrates-ductor': { maxLengthDisplayUnits: 1.75 },
   // Longfin bannerfish: 0.25 m, the sardinella's size and camera. Its banner trails another 0.6
@@ -316,6 +318,8 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'remora-remora': 0.8604,
   // Supplied White Suckerfish model (scripts/fit-rider-model.mjs).
   'remora-albescens': 0.2996,
+  // Supplied Spearfish Remora model (scripts/fit-rider-model.mjs).
+  'remora-brachyptera': 3.5093,
   // Supplied pilot fish model, nose to tail tip along Z.
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).

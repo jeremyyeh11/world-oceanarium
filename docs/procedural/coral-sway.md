@@ -105,16 +105,20 @@ jelly or flutter like a fan's rim, and must not look still (`dev_2` did).
 - Swing direction: the landscape's current (`leatherCorals.current`, the fans' value), horizontal.
   A toadstool has no face, so every colony swings the same way; `phase` comes from its position
   along the current, as a fan's, so a fan and a toadstool side by side lean together.
-- `reach` (flex 1) is the distance from the stalk's foot to the cap's rim
-  (`hypot(cap reach, height)`), so the foot stays still, the stalk bends a little and the rim
-  moves most. `flex` is straight-line distance from the foot, so the rim swings a little more
-  than the middle of the cap: at this `bend` it reads as a soft cap, not a wobble. If it ever
-  reads wobbly, measure flex by height only (an option on `addSwayAttributes`).
-- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 7 (the fans' surge), `bend` 0.15,
-  `flutter` 0.2. `bend` is a share of the colony's own height, and a toadstool is about a
-  twentieth of a fan's height: `dev_2`'s 0.03 (half the fans') swung a 50 cm toadstool 1.5 cm,
-  which Jeremy found "not obvious enough"; since `dev_3`, 0.15 swings it about 7.5 cm (0.3 WU,
-  close to a fan's rim swing in world units).
+- Flex by height (since `dev_4`, Jeremy: sway the caps more than the stem): `addSwayAttributes`
+  with `up` (the colony's own up, leant with its ledge) and `flexFrom` measures flex as height up
+  the colony over its height, 0 below `flexFrom` and rising to 1 at the top. With the shader's
+  flex², the stalk stands still, its top barely leans and the cap rocks on it. `dev_2` and `dev_3`
+  used the fans' straight-line distance from the foot, which spread the swing down the stalk.
+- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 7 (the fans' surge), `bend` 0.25 (the
+  top's swing either way, a share of the colony's height), `flutter` 0.2, `flexFrom` 0.35. The
+  two knobs: `bend` for how far, `flexFrom` for where (higher keeps more of the stalk still). A
+  toadstool is about a twentieth of a fan's height, so it needs a larger share: 0.03 (`dev_2`)
+  swung a 50 cm toadstool 1.5 cm ("not obvious enough"), 0.15 (`dev_3`) still too little; 0.25
+  swings its top about 12 cm.
+- Placement keeps the cap out of the rock and sand at both ends of its swing
+  (leatherCoralPlacement.js), and the staghorn keeps the cap's swing clear (`inToadstool`). The
+  Atlas measures flex by each toadstool's own height (EncyclopediaPage.jsx `prepareAtlasSway`).
 
 ### Blender contract: leather coral
 

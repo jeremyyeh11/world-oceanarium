@@ -696,8 +696,23 @@ function prepareAtlasSway(scene, sway) {
   }
   const origin = new THREE.Vector3()
   const direction = new THREE.Vector3(0, 0, 1)
+  // Flex by height (`sway.flexFrom`, a toadstool's cap swaying on a still stalk): each colony by its
+  // own height, a colony being the node its meshes hang from (one per material).
+  const colonyHeight = new Map()
+  if (sway.flexFrom != null) {
+    for (const mesh of meshes) {
+      const position = mesh.geometry.attributes.position
+      let top = colonyHeight.get(mesh.parent) ?? 0
+      for (let i = 0; i < position.count; i++) top = Math.max(top, position.getY(i))
+      colonyHeight.set(mesh.parent, top)
+    }
+  }
+  const up = new THREE.Vector3(0, 1, 0)
   for (const mesh of meshes) {
-    mesh.geometry = addSwayAttributes(mesh.geometry.clone(), { origin, direction, amplitude: sway.bend * height, reach, phase: 0 })
+    const own = colonyHeight.get(mesh.parent)
+    mesh.geometry = addSwayAttributes(mesh.geometry.clone(), own
+      ? { origin, direction, amplitude: sway.bend * own, reach: own, phase: 0, up, flexFrom: sway.flexFrom }
+      : { origin, direction, amplitude: sway.bend * height, reach, phase: 0 })
     const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
     materials.forEach(material => applyCoralSway(material, sway))
   }

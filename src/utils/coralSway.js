@@ -32,14 +32,20 @@ export function useSwayClock() {
 // Bakes the sway attributes into a geometry (any space; origin and direction in the same one).
 // origin: the holdfast (Vector3); direction: the unit swing direction (Vector3); amplitude: the
 // rim's swing in the geometry's units; reach: the distance from the holdfast that counts as the
-// rim (flex 1); phase: radians.
-export function addSwayAttributes(geometry, { origin, direction, amplitude, reach, phase }) {
+// rim (flex 1); phase: radians. By default flex is the straight-line distance from the holdfast
+// over reach (a fan). With `up` (the colony's unit up) flex is height along it instead, 0 up to
+// `flexFrom` of reach and rising to 1 at the top (a toadstool: its stalk still, its cap swaying).
+export function addSwayAttributes(geometry, { origin, direction, amplitude, reach, phase, up = null, flexFrom = 0 }) {
   const position = geometry.attributes.position
   const flex = new Float32Array(position.count)
   const sway = new Float32Array(position.count * 4)
   for (let i = 0; i < position.count; i++) {
-    const d = Math.hypot(position.getX(i) - origin.x, position.getY(i) - origin.y, position.getZ(i) - origin.z)
-    flex[i] = Math.min(d / reach, 1)
+    const dx = position.getX(i) - origin.x
+    const dy = position.getY(i) - origin.y
+    const dz = position.getZ(i) - origin.z
+    flex[i] = up
+      ? Math.min(Math.max(((dx * up.x + dy * up.y + dz * up.z) / reach - flexFrom) / (1 - flexFrom), 0), 1)
+      : Math.min(Math.hypot(dx, dy, dz) / reach, 1)
     sway[i * 4] = direction.x * amplitude
     sway[i * 4 + 1] = direction.y * amplitude
     sway[i * 4 + 2] = direction.z * amplitude

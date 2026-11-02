@@ -837,9 +837,11 @@ function LeatherCorals({ landscape, clusters, tables, fans, mounds, bushes, envi
     const direction = new THREE.Vector3(landscape.leatherCorals.current[0], 0, landscape.leatherCorals.current[1]).normalize()
     for (const toadstool of toadstools) {
       const chunk = `${Math.floor(toadstool.base.x / kit.chunkWU)}:${Math.floor(toadstool.base.z / kit.chunkWU)}`
-      // The flex measured from the stalk's foot to its farthest point (the cap's rim).
-      const reach = Math.hypot(toadstool.reach, toadstool.height)
-      for (const part of placedSwayParts(toadstool, models[toadstool.model], { direction, amplitude: toadstool.swing, reach })) {
+      // The flex measured up the colony (its own up, leant with its ledge): the stalk still, the cap
+      // swaying (LEATHER_CORAL_SWAY flexFrom).
+      const up = new THREE.Vector3(0, 1, 0).transformDirection(toadstool.matrix)
+      const options = { direction, amplitude: toadstool.swing, reach: toadstool.height, up, flexFrom: sway.flexFrom }
+      for (const part of placedSwayParts(toadstool, models[toadstool.model], options)) {
         const key = `${part.material}:${chunk}`
         if (!groups.has(key)) groups.set(key, { material: part.material, list: [] })
         groups.get(key).list.push(part.geometry)
@@ -987,14 +989,15 @@ function useSwayKit(kit, sway, caustics, debugLodView, { prefix = 'fan', doubleS
 
 // A placed colony's parts (a fan's, a toadstool's), moved into place with its sway baked in:
 // `direction` the way it swings, `amplitude` its farthest point's swing and `reach` the distance
-// from its holdfast that counts as that point.
-function placedSwayParts(colony, parts, { direction, amplitude, reach }) {
+// from its holdfast that counts as that point; `up` and `flexFrom` measure flex by height
+// (coralSway.js addSwayAttributes).
+function placedSwayParts(colony, parts, { direction, amplitude, reach, up = null, flexFrom = 0 }) {
   return parts.map(part => {
     const geometry = new THREE.BufferGeometry()
     for (const attribute of ['position', 'normal', 'uv']) geometry.setAttribute(attribute, part.geometry.attributes[attribute].clone())
     geometry.setIndex(part.geometry.index.clone())
     geometry.applyMatrix4(colony.matrix)
-    addSwayAttributes(geometry, { origin: colony.base, direction, amplitude, reach, phase: colony.phase })
+    addSwayAttributes(geometry, { origin: colony.base, direction, amplitude, reach, phase: colony.phase, up, flexFrom })
     return { geometry, material: part.material }
   })
 }

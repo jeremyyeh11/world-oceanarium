@@ -29,7 +29,7 @@ try {
     maxTop: 30,
     leatherCorals: {
       kit, seed: 9551, perCluster: [6, 6], patchSpread: Math.PI, lowShare: 0.5, footShare: 0.4,
-      height: [1.4, 3], current: [0.16, 1], sway: { period: 7, bend: 0.03, flutter: 0.1 },
+      height: [1.4, 3], current: [0.16, 1], sway: { period: 7, bend: 0.25, flutter: 0.2, flexFrom: 0.35 },
     },
   }
   const generator = placeLeatherCorals(landscape, [{ geometries: [rock], seed: 1 }], [table], [shape, shape, shape], null, point => inBush([bush], point))
@@ -55,6 +55,16 @@ try {
   assert.ok(shared.length >= 1, 'one colour on the bommie')
   assert.ok(inToadstool(toadstools, toadstools[0].centre), 'a colony holds the water under its cap')
   assert.ok(!inToadstool(toadstools, new THREE.Vector3(100, 0, 100)), 'and nothing far off')
+  // The sway by height: the stalk below flexFrom still, the cap's top at full flex.
+  const { addSwayAttributes } = await server.ssrLoadModule('/src/utils/coralSway.js')
+  const probe = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0.3, 0.2, 0, 0.3, 0.6, 0, 0, 0.6, 0], 3))
+  addSwayAttributes(probe, {
+    origin: new THREE.Vector3(), direction: new THREE.Vector3(1, 0, 0), amplitude: 0.15, reach: 0.6, phase: 0,
+    up: new THREE.Vector3(0, 1, 0), flexFrom: 0.35,
+  })
+  const flex = probe.attributes.aSwayFlex.array
+  assert.ok(flex[0] === 0 && flex[1] === 0, 'the stalk below flexFrom stays still, even out at the side')
+  assert.ok(Math.abs(flex[2] - 1) < 1e-6 && Math.abs(flex[3] - 1) < 1e-6, 'the cap at the top flexes fully, rim and middle alike')
   console.log(`leather coral placement: ${toadstools.length} toadstools, low and of one colour, passed`)
 } finally {
   await server.close()

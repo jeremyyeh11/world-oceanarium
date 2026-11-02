@@ -15,7 +15,7 @@ Status labels:
 
 ### Leather Coral
 
-Status: `Current in development` — `v0.47.0-dev_3`, branch `species/sarcophyton-glaucum`,
+Status: `Current in development` — `v0.47.0-dev_4`, branch `species/sarcophyton-glaucum`,
 [PR #184](https://github.com/jeremyyeh11/world-oceanarium/pull/184) ·
 [Preparation and intake](docs/species-preparation.md).
 
@@ -25,6 +25,8 @@ Status: `Current in development` — `v0.47.0-dev_3`, branch `species/sarcophyto
   tile, image credits (`dev_2`).
 - [x] Sway 5× stronger, `bend` 0.03 → 0.15, `flutter` 0.1 → 0.2 (Jeremy: "not obvious enough",
   `dev_3`).
+- [x] Sway in the cap, not the stalk: flex by height from 35% up (`flexFrom`), `bend` 0.25; caps
+  kept out of the rock at both ends of the swing (Jeremy: "sway even more", `dev_4`).
 - [ ] Phone review on the Vercel preview: the toadstools read, sway visibly, none floats or
   clips a rock or coral. Not checked in a browser here (the preview would not load the tank over
   Remote Control after the first load).

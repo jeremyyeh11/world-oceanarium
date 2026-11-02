@@ -21,7 +21,8 @@ import { inTable } from './seaFanPlacement'
 //
 // It sways in the surge like the sea fans (utils/coralSway.js, docs/procedural/coral-sway.md):
 // along the landscape's current, `phase` from its position along it, so a fan and a toadstool side
-// by side lean together.
+// by side lean together; the cap sways and the stalk stands still (LEATHER_CORAL_SWAY flexFrom),
+// and the cap is kept out of the rock at both ends of its swing.
 
 const UP = new THREE.Vector3(0, 1, 0)
 const DOWN = new THREE.Vector3(0, -1, 0)
@@ -113,6 +114,8 @@ export function* placeLeatherCorals(landscape, clusters, tables, measures, view,
   const plates = tables.map(table => table.plate)
   const tableFeet = tables.map(table => ({ plate: table.plate, foot: new THREE.Vector3().setFromMatrixPosition(table.matrix) }))
   const current = new THREE.Vector3(config.current[0], 0, config.current[1]).normalize()
+  const flexFrom = sway.flexFrom ?? 0
+  const swung = new THREE.Vector3()
   // The kit's colours, and the models of each.
   const colours = [...new Set(kit.models.flatMap(model => model.colours))]
   const placed = []
@@ -147,6 +150,18 @@ export function* placeLeatherCorals(landscape, clusters, tables, measures, view,
         const cap = sample.y > shape.height * CAP_SHARE
         if (point.y < sandHeight(landscape, point.x, point.z) || rocks.inside(point)) {
           if (cap || ++inside > INSIDE_ALLOWED) return false
+        }
+        // At either end of its swing (the shader's flex² of its height above flexFrom), the cap
+        // stays out of the rock and sand too.
+        const flex = Math.min(Math.max((sample.y / shape.height - flexFrom) / (1 - flexFrom), 0), 1)
+        if (flex > 0) {
+          const swing = colony.swing * flex * flex
+          for (const side of [-1, 1]) {
+            swung.copy(point).addScaledVector(current, side * swing)
+            if (swung.y < sandHeight(landscape, swung.x, swung.z) || rocks.inside(swung)) {
+              if (cap || ++inside > INSIDE_ALLOWED) return false
+            }
+          }
         }
       }
       let supported = 0
@@ -192,7 +207,7 @@ export function* placeLeatherCorals(landscape, clusters, tables, measures, view,
       let fit = null
       for (const shrink of SHRINKS) {
         const scale = drawn * shrink / shape.height
-        const colony = { height: shape.height * scale, reach: shape.reach * scale }
+        const colony = { height: shape.height * scale, reach: shape.reach * scale, swing: sway.bend * shape.height * scale }
         const base = new THREE.Vector3(origin.x, y - colony.height * SINK, origin.z)
         if (placed.some(other => Math.abs(other.base.y - base.y) < Math.max(other.height, colony.height)
           && Math.hypot(other.base.x - base.x, other.base.z - base.z) < (other.reach + colony.reach) * SPACING)) continue

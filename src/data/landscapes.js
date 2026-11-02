@@ -205,11 +205,13 @@ const LEATHER_CORAL_KIT = {
 }
 
 // How the leather corals sway: the sea fans' surge (the same period, so the whole reef moves to
-// one swell). `bend` is a share of the colony's height, and a toadstool is a twentieth of a fan's
-// height, so it takes a larger share to read: at 0.03 (half the fans') a 50 cm toadstool swung
-// 1.5 cm and looked still (Jeremy, 2026-11-02: "not obvious enough"); at 0.15 it swings about
-// 7.5 cm, the cap rocking on its stalk, with a little more ripple at the rim.
-export const LEATHER_CORAL_SWAY = { period: 7, bend: 0.15, flutter: 0.2 }
+// one swell). `bend` is the top's swing either way, a share of the colony's height: a toadstool is
+// a twentieth of a fan's height, so it takes a larger share to read (Jeremy, 2026-11-02: 0.03 was
+// "not obvious enough", 0.15 still too little). The sway goes into the cap, not the stalk (Jeremy):
+// flex is height up the colony, nothing below `flexFrom` of its height, rising to the top, so the
+// stalk stands still and the cap rocks on it; with the shader's flex², most of the swing is in the
+// cap. Raise `flexFrom` to keep more of the stalk still, `bend` for a bigger swing.
+export const LEATHER_CORAL_SWAY = { period: 7, bend: 0.25, flutter: 0.2, flexFrom: 0.35 }
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the

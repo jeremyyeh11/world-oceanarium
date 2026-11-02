@@ -4634,7 +4634,7 @@ export const SPECIES = [
   // (Kona: patrols just above the reef; follows close behind big foraging goatfish to catch the
   // prey they flush). Planned for The Reefs as a follower of the humphead wrasse, on the golden
   // trevally's escort code (docs/fish-queue.md; docs/ride-hosts.md, Followers). Jeremy's model
-  // (2026-11-01), eight adults in The Reefs (dev data).
+  // (2026-11-01); six adults in The Reefs in production, eight in creatures_dev.
   {
     id: 'caranx-melampygus',
     name: 'Bluefin Trevally',

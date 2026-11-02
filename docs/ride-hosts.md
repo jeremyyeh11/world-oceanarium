@@ -207,8 +207,8 @@ hitchhiker: {
   With Jeremy's model (`v0.41.0-dev_2`, 2026-10-29), all six were escorting within 30 s of
   the tank loading, 7–12 WU from the manta's centre.
 
-- The Bluefin Trevally (`caranx-melampygus`, The Reefs, eight in `creatures_dev` since
-  `v0.46.0-dev_3`) follows the humphead wrasse, an escort-only host in its own `reef-forager`
+- The Bluefin Trevally (`caranx-melampygus`, The Reefs, six in production since `v0.46.0`,
+  eight in `creatures_dev`) follows the humphead wrasse, an escort-only host in its own `reef-forager`
   group, so the pilot fish and bannerfish (who follow `large-fish`) leave the wrasse alone. Its
   stations sit above and to either side of the wrasse, from over its head to just past its tail
   (`along [-0.3, 0.9]`, `angleDegrees [20, 160]`, `radius [1.15, 1.5]`), never below, where the

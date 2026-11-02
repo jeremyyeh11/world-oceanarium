@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`)
+## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`, shipped `v0.46.0`)
 
 Reserve: The Reefs, as a follower of the humphead wrasse (fish queue, Up next item 5). Felt
 intention: a quick blue hunter shadowing a slow, heavy forager, hanging just above and behind
@@ -41,7 +41,7 @@ Decided by Jeremy (2026-11-01):
 
 - **Life stage: adults.** Silver with a blue-bronze back, electric-blue fins and spotted flanks.
   Juveniles (dark fins, yellow pectorals) live in sandy shallows and do not follow.
-- **Count: eight,** two or three per wrasse (the reef has one male and two females), at 45–70 cm
+- **Count: eight** (six in production, below), two or three per wrasse (the reef has one male and two females), at 45–70 cm
   FL (35–45 cm since `dev_5`, below), in `creatures_dev` first. With so many following, `leaveChance` is 0.2, so most are with a
   wrasse at any moment. The escort picks the nearest wrasse, not the least crowded one, so at
   intake watch that they spread over all three rather than piling onto one.
@@ -103,8 +103,10 @@ alternating 50 s blocks after a dropped 25 s warm-up, all eight escorting most o
 164 strokes (43 bursts, 121 snap turns) in 9.3 escorting fish-minutes, about 18 per fish per
 minute. On: none in 9.0 fish-minutes, startles included.
 
-Open for Jeremy: feel review on the phone, then production rows (eight, the same sizes and sexes)
-and promotion.
+Production (2026-11-02, Jeremy: "write 6 instead" of eight): `creatures` ids 1474–1479, six
+adults, size parameters 0/0.2/…/1 (35–45 cm FL), three of each sex, each with its own
+description. Production backup before and after (831 → 837, no existing row changed).
+Accepted from `dev_5` and shipped in clean `v0.46.0` ([PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179)).
 
 ## Cauliflower Coral — `pocillopora-meandrina` (prepared `v0.45.0-dev_1`, model `dev_2`, shipped `v0.45.0`)
 

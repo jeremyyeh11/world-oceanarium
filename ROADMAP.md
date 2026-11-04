@@ -157,6 +157,40 @@ Review gates:
 
 ## Shipped, with open follow-ups
 
+### Giant Clam (The Reefs)
+
+Status: shipped in clean `v0.49.0` (2026-11-04), accepted from `v0.49.0-dev_7`,
+[PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180) ·
+[Prep, proposals and GLB contract](docs/species-preparation.md). The open items below are
+follow-ups.
+
+Subtasks:
+- [x] Hidden species entry (no model, no rows, not in `landscapeSpecies`): IUCN CR 2024 (Neo & Li),
+  SeaLifeBase, NOAA, Pearson & Munro 1991, credited in `STUDY_CREDITS`. Weight stays Unknown.
+- [x] Jeremy's decisions (2026-11-01): 4 clams, on the open sand at the bommies' feet in the
+  front half of the basin with one mid-phone view, 60–120 cm, static first.
+- [x] Jeremy's GLB (2026-11-02): one open clam, shell and mantle on separate materials, 1.11 m.
+- [x] `dev_2`: kit script, placement module (`giantClams` in landscapes.js), rock obstacles, Atlas
+  specimen and pose, unhidden, `landscapeSpecies`, in-tank tile, photo credits.
+- [x] A clam in the resting view (`dev_3`, Jeremy: "By any rock"): the first lies by any rock the
+  camera sees, left of centre on desktop.
+- [x] Jeremy's review: "ok lets merge" (2026-11-04).
+- [ ] No clam fits the phone's middle yet: table plates on the bommie in front of the outcrop hide
+  that sand. Options if wanted: a smaller clam allowed there, or the in-view clam on a low rock
+  ledge. `Backlog`
+- [x] Texture sources (Jeremy, 2026-11-02): mantle from Bernard Dupont's Commons photo
+  (CC BY-SA 2.0); shell from Andrew Green's Reef Life Survey photo, used without permission on
+  Jeremy's call, to be taken down if asked.
+- [x] Asked Andrew Green for permission to use his photo for the shell, through Reef Life
+  Survey's contact form (Jeremy, 2026-11-02).
+- [ ] Andrew Green's reply (none yet, 2026-11-04; the shell stays in use until then, credited "all
+  rights reserved"): keep with his preferred credit ("used with permission"), or take the shell
+  texture down.
+- [x] Mantle breathing (`dev_5`, Jeremy 2026-11-04): a coral-sway config with the new `swell`
+  option (docs/procedural/coral-sway.md, Giant clam mantle).
+- [ ] Shadow flinch (the mantle pulling in when a fish passes over): new type doc first, only on
+  Jeremy's yes. `Backlog`
+
 ### Spearfish Remora (The Reefs)
 
 Status: shipped in clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`,

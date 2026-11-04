@@ -470,6 +470,32 @@ export const STUDY_CREDITS = [
     url: 'https://doi.org/10.3390/md15070202',
   },
   {
+    id: 'neo-li-2024-tridacna-gigas',
+    subject: 'Giant Clam conservation status, oldest aged clam, maturity ages, eggs per spawning, spawning timing and habitat',
+    authors: 'Neo & Li',
+    year: 2024,
+    title: 'Tridacna gigas',
+    venue: 'The IUCN Red List of Threatened Species 2024: e.T22137A119167161',
+    url: 'https://dx.doi.org/10.2305/IUCN.UK.2024-2.RLTS.T22137A119167161.en',
+  },
+  {
+    id: 'pearson-munro-1991-tridacna-gigas',
+    subject: 'Giant Clam density on an unfished reef',
+    authors: 'Pearson & Munro',
+    year: 1991,
+    title: 'Growth, mortality and recruitment rates of giant clams, Tridacna gigas and T. derasa, at Michaelmas Reef, central Great Barrier Reef, Australia',
+    venue: 'Australian Journal of Marine and Freshwater Research 42: 241–262',
+    url: 'https://www.publish.csiro.au/mf/MF9910241',
+  },
+  {
+    id: 'noaa-true-giant-clam',
+    subject: 'Giant Clam mantle colour and habitat',
+    authors: 'NOAA Fisheries',
+    title: 'True Giant Clam',
+    venue: 'Species directory',
+    url: 'https://www.fisheries.noaa.gov/species/true-giant-clam',
+  },
+  {
     id: 'anislado-tolentino-2022-spearfish-remora',
     subject: 'Spearfish Remora hosts beyond billfishes: ocean sunfishes, blue shark, loggerhead turtle',
     authors: 'Anislado-Tolentino, Rosales-Vásquez, Irigoyen-Solis, Del Moral-Flores & Wakida-Kusunoki',
@@ -711,6 +737,29 @@ export const IMAGE_CREDITS = [
     work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
     url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',
     licence: { name: 'used with permission' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
+  {
+    id: 'dupont-giant-clam',
+    subject: 'Giant Clam texture (mantle)',
+    author: 'Bernard Dupont',
+    work: 'Giant Clam (Tridacna gigas), Fukui, Bunaken Island, Sulawesi, Indonesia',
+    url: 'https://commons.wikimedia.org/wiki/File:Giant_Clam_(Tridacna_gigas)_(6058446919).jpg',
+    licence: { name: 'CC BY-SA 2.0', url: 'https://creativecommons.org/licenses/by-sa/2.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Used without permission (Jeremy, 2026-11-02: take it down if asked); Reef Life Survey says
+    // copyright stays with the photographer. Jeremy asked him through its website's contact form the
+    // same day; no reply yet (2026-11-04), so it stays in use until there is one (ROADMAP). Becomes
+    // "used with permission" if he says yes. The watermark corner is filled in before it ships
+    // (scripts/build-giant-clam-kit.py).
+    id: 'green-giant-clam',
+    subject: 'Giant Clam texture (shell)',
+    author: 'Andrew Green, Reef Life Survey',
+    work: 'Tridacna gigas, Coral Sea, Queensland (photo 1 of 2)',
+    url: 'https://reeflifesurvey.com/species/tridacna-gigas/',
+    licence: { name: 'all rights reserved', url: 'https://reeflifesurvey.com/species/tridacna-gigas/' },
     changes: 'Mapped onto the 3D model, cropped and resized.',
   },
 ]

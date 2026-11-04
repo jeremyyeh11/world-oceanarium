@@ -41,26 +41,25 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 27. **Bluefin Trevally** (`caranx-melampygus`): `v0.46.0` (#179), The Reefs.
 28. **Leather Coral** (`sarcophyton-glaucum`): `v0.47.0` (#184), The Reefs.
 29. **Spearfish Remora** (`remora-brachyptera`): `v0.48.0` (#178), The Reefs.
+30. **Giant Clam** (`tridacna-gigas`): `v0.49.0` (#180), The Reefs.
 
 ## Up next
 
 In the order they will be added.
 
-1. **Giant Clam** (*Tridacna gigas*), The Reefs. Static landscape piece in the sand between
-   bommies.
-2. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
+1. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
    type.
-3. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
-4. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
-5. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.
-6. **Reef Manta** (*Mobula alfredi*), The Reefs.
-7. **Toadfish** (species to choose).
-8. **Scrawled Filefish** (*Aluterus scriptus*).
-9. **Coelacanth** (*Latimeria*, species to choose).
-10. **Butterfly Ray** (*Gymnura*, species to choose).
-11. **Oceanic Whitetip Shark** (*Carcharhinus longimanus*).
-12. **Goliath Grouper** (*Epinephelus itajara*).
-13. **Koi** (*Cyprinus rubrofuscus*, domestic).
+2. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
+3. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
+4. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.
+5. **Reef Manta** (*Mobula alfredi*), The Reefs.
+6. **Toadfish** (species to choose).
+7. **Scrawled Filefish** (*Aluterus scriptus*).
+8. **Coelacanth** (*Latimeria*, species to choose).
+9. **Butterfly Ray** (*Gymnura*, species to choose).
+10. **Oceanic Whitetip Shark** (*Carcharhinus longimanus*).
+11. **Goliath Grouper** (*Epinephelus itajara*).
+12. **Koi** (*Cyprinus rubrofuscus*, domestic).
 
 Corals crowd the bommie tops: each coral release checks how many of every coral still fit
 (placement order matters; the sea fans go before the staghorn). The leather coral was the last

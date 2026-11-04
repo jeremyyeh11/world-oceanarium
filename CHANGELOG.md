@@ -8,6 +8,53 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.49.0 — Giant Clam
+
+Status: clean `v0.49.0` (2026-11-04), accepted from `v0.49.0-dev_7`, branch
+`species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180).
+Jeremy: "ok lets merge". No production data: the clams are a landscape species. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas;
+`dev_3` a clam in the resting view, by any rock; `dev_4` the Atlas clam on soft sand; `dev_5` the mantle breathes; `dev_6` and `dev_7` the Atlas tile re-shot.
+
+### Species and Atlas
+
+- Giant Clam (`tridacna-gigas`) in The Reefs: IUCN Critically Endangered (Neo & Li 2024), SeaLifeBase
+  sizes, 76-year oldest aged clam, maturity from culture; weight stays Unknown (no published
+  length–weight relation). Jeremy's model (2026-11-02), built by `scripts/build-giant-clam-kit.py`:
+  photos cut and shrunk to 1024 px or less, opaque, the Reef Life Survey watermark filled, the
+  shell's length turned onto X (1.3 MB, about 10,300 triangles). Atlas specimen of the clam on a
+  faint disc of sand fading out like the table coral's (`scripts/build-giant-clam-atlas.py`; was a
+  hard patch until `dev_4`, Jeremy: "match the ... soft gradient"), pose, in-tank tile (re-shot in
+  `dev_7`, Jeremy: from the tank, not the Atlas specimen as in `dev_6`: the clam lying in view by
+  the left pillars, centred, fluted side forward, nothing between it and the lens, rock only in the
+  corners; the first tile was half rock on a phone), unhidden and on The Reefs'
+  `landscapeSpecies`. Image credits: Bernard Dupont's mantle (CC BY-SA 2.0); Andrew Green's shell
+  (Reef Life Survey), used without permission on Jeremy's call and asked through Reef Life
+  Survey's contact form the same day (no reply yet, 2026-11-04); credited "all rights reserved"
+  until he answers.
+
+### Landscape
+
+- Giant clams (`src/components/giantClamPlacement.js`): 4 static clams of 60 cm to 1.2 m on the
+  open sand off the feet of the front-half bommies (one a bommie, 2 m apart), level with the sand,
+  fluted side to the resting camera, placed after the leather corals and before the staghorn,
+  which keeps clear of them (`inClam`). Each joins the fish's rock obstacles.
+- A clam in the resting view (`dev_3`): the sand at the coral bommies' feet is hidden from the
+  resting camera, so the first clam lies by any rock (Jeremy, 2026-11-02: "By any rock") on the
+  sand the camera's rays meet, in a phone's view if it can, else in the desktop frame, its whole
+  line of sight clear of rock, tables and corals and kept clear of the staghorn. One dev-tank load:
+  it lies low between the left-hand pillars, left of a phone's frame (table plates on the bommie in
+  front hide the sand in the phone's middle); the other three lie by the front bommies, out of
+  frame or behind rock.
+
+### Behaviour and motion
+
+- The mantle breathes (`dev_5`, Jeremy: "at least the mantle if the shell is not going to open and
+  close"): a third coral-sway config, `GIANT_CLAM_MANTLE_SWAY` (period 9 s, bend 0.06, flutter
+  0.15, flexFrom 0.45). New `swell` option on `addSwayAttributes`: each vertex swings along the
+  surface's outward normal (normals averaged per point, so the faceted mesh never opens), so the
+  mantle swells over the shell's lips and settles back; only the `part` named mantle moves, the
+  shell stays still. In the tank (each clam on its own phase) and the Atlas.
+
 ## v0.48.3 — Duplicate devil ray credit
 
 Status: clean `v0.48.3` (2026-11-04), accepted from `v0.48.3-dev_1`, branch

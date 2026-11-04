@@ -38,6 +38,17 @@ for (const url of ['/models/landscape/leather-corals.glb', leatherCoral.model.pa
 }
 assert.ok(reefAssets.includes('/models/landscape/leather-corals.glb'), 'the leather coral kit loads with The Reefs')
 
+// The giant clam's model is in: in the Atlas, counted on The Reefs as a landscape species (no
+// creature rows), and its kit loaded with the reserve.
+const giantClam = speciesById.get('tridacna-gigas')
+assert.ok(!giantClam.hiddenInAtlas, 'the giant clam is in the Atlas')
+assert.ok(!giantClam.swim, 'the giant clam does not swim')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(giantClam.id))
+for (const url of ['/models/landscape/giant-clams.glb', giantClam.model.path, giantClam.atlasThumbnail]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `giant clam asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/giant-clams.glb'), 'the giant clam kit loads with The Reefs')
+
 // FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
 const trevally = speciesById.get('gnathanodon-speciosus')
 assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)

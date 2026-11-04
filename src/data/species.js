@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
+import { GIANT_CLAM_MANTLE_SWAY, LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -213,7 +213,7 @@ export const TANKS = [
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum', 'tridacna-gigas'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -5038,6 +5038,101 @@ export const SPECIES = [
       // node at its holdfast. 1 raw = 1 m -> 4 WU.
       scale: 4,
       sway: LEATHER_CORAL_SWAY,
+    },
+  },
+  // Giant Clam (Tridacna gigas): a static landscape piece in The Reefs (docs/fish-queue.md,
+  // docs/species-preparation.md), lying on the sand at the bommies' feet: no `swim`, no roster slot,
+  // no creature rows, like the corals. Jeremy (2026-11-01): 4 clams of 60-120 cm on the open sand at
+  // the bommies' feet in the front half of the basin, one mid-phone view, static. His model
+  // (2026-11-02), built by scripts/build-giant-clam-kit.py; placed by giantClamPlacement.js.
+  // Facts: the IUCN assessment (Neo & Li 2024: CR A2acd; free-living on sand or hard reef in clear
+  // water; aged to 76 years, Mecha & Dolorosa 2020; male phase at about 4 years in culture,
+  // Heslinga et al. 1984, female phase about 10; up to 500 million eggs a spawning; spawns on
+  // incoming tides round the full and new moons in the austral summer, Braley 1984; densities 0.2
+  // to 431.9 a hectare, Pearson & Munro 1991), SeaLifeBase (Cardiidae; Myanmar to Wallis and
+  // Futuna, Japan to Australia; 0-35 m; 137 cm maximum and 80 cm common shell length; 500 kg
+  // maximum published weight; simultaneous hermaphrodite in later years; zooxanthellae), NOAA
+  // Fisheries (mantle yellowish-brown to olive-green with blue-green rings; proposed Endangered
+  // under the US ESA).
+  {
+    id: 'tridacna-gigas',
+    name: 'Giant Clam',
+    scientificName: 'Tridacna gigas',
+    family: 'Cardiidae',
+    alternateNames: ['True Giant Clam'],
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 23 May 2024 (A2acd; Neo & Li): more than 80% lost over the past century, and gone
+      // or uncertain in 26 of 31 localities surveyed (Neo et al. 2017). Vulnerable since 1996.
+      code: 'CR',
+      label: 'Critically Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Shell length',
+      // Most of its food comes from the algae in its mantle; it filters plankton as well
+      // (SeaLifeBase: facultative planktotroph with zooxanthellae).
+      commonDiet: 'Sugars from the algae living in its mantle, and plankton it filters from the water.',
+      foundIn: 'The Indo-Pacific, from Myanmar east to Wallis and Futuna, north to Japan and south to Australia, lying on sand or rock on shallow, clear reefs, down to 35 m.',
+      sexualDimorphism: 'None: every adult is both male and female.',
+      // The oldest aged clam (Mecha & Dolorosa 2020, via the IUCN assessment).
+      lifeSpan: '76 years',
+      // In culture (Heslinga et al. 1984; Yusuf pers. comm., via the IUCN assessment): male at 3.5
+      // to 5 years, female function at about 10 (Roa-Quiaoit pers. comm.). Wild ages are unknown.
+      maturityAge: 'About 4 years as a male, 10 as a female',
+      social: {
+        schoolSize: 'Solitary',
+        // Pearson & Munro 1991: 431.9 a hectare at Michaelmas Reef, about 4 per 100 m². Most
+        // surviving subpopulations hold fewer than 10 clams (IUCN assessment).
+        groupingBehaviour: 'Lives alone, lying free on sand or rock among the corals, and never moves once grown. Where it has not been fished out, as on parts of the Great Barrier Reef, clams lie scattered over the reef, up to about four to every 100 m². Elsewhere most groups that remain number fewer than ten.',
+        // Braley 1984 and the IUCN assessment; starts out male (Heslinga et al. 1984).
+        reproduction: 'Each clam is male first, then both male and female. Clams spawn in summer on incoming tides around the full and new moons, a clam releasing up to 500 million eggs at a time to meet the sperm of its neighbours. The larvae drift in the plankton, then settle on the reef.',
+      },
+      averages: {
+        // Every adult is both sexes. Size: SeaLifeBase's common shell length, 80 cm. No length–weight
+        // relation is published; single specimens (230 kg at 137 cm, 333 kg at 115 cm, Wikipedia)
+        // disagree by half at 80 cm, so weight stays Unknown. Life expectancy: the oldest aged clam,
+        // 76 years (Mecha & Dolorosa 2020, via the IUCN assessment), for both.
+        maleSizeMeters: 0.8,
+        femaleSizeMeters: 0.8,
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 76,
+        femaleLifeExpectancyYears: 76,
+      },
+      lifecycle: {
+        // Cultured clams' male phase (IUCN assessment, after Heslinga et al. 1984).
+        sexualMaturityYears: 'About 4 years',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Up to 500 million eggs',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Solitary',
+    },
+    atlasThumbnail: '/atlas/tridacna-gigas-thumbnail.png',
+    description: 'The largest living clam, its shell up to 137 cm long. It lies open on the sand and rock of clear, shallow reefs, its mantle spread to the sun, yellowish brown to olive green with shimmering blue-green rings: algae living in the mantle make most of its food. Collected for food and shells across most of its range, it is Critically Endangered.',
+    // The Atlas clam's shell, for the scale comparison: Jeremy's model at 1.11 m, an old adult past
+    // the 80 cm common length (scripts/build-giant-clam-kit.py; the largest recorded is 137 cm).
+    maxBodyLengthMeters: 1.11,
+    model: {
+      path: '/models/fish/tridacna-gigas/tridacna-gigas.glb',
+      // The kit's clam at its 1.11 m on a faint disc of sand like the table coral's
+      // (scripts/build-giant-clam-atlas.py), the clam's middle at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      // The sand's soft edge is alpha-blended; the clam is opaque.
+      alphaBlend: true,
+      // The mantle breathes as in the tank; the shell and sand stay still.
+      sway: GIANT_CLAM_MANTLE_SWAY,
     },
   },
 ]

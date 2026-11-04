@@ -299,6 +299,18 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.7, 0],
     lookAt: [0, -0.1, 0],
   },
+  // One giant clam on a low patch of sand (the model's origin is the sand's middle), three-quarter
+  // from above, so the fluted shell and the mantle spread in its gape both read.
+  'tridacna-gigas': {
+    yawOffset: -0.5,
+    pitchDegrees: 28,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.6, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -358,6 +370,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // The leather corals on their rock, widest across (scripts/build-leather-coral-atlas.py prints the
   // bounds: the rock, 1.5 m).
   'sarcophyton-glaucum': 1.5,
+  // The clam framed as on its first, hard 1.7 m patch of sand: its soft disc now fades out well
+  // inside its 3.2 m (scripts/build-giant-clam-atlas.py prints the bounds).
+  'tridacna-gigas': 1.72,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -683,12 +698,15 @@ function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = fals
 // A soft coral specimen swaying as it does in the tank (`model.sway`, utils/coralSway.js): each
 // coral mesh's origin is its holdfast and its lattice faces +Z, so it swings along Z, its rim the
 // most. Meshes under a node named `rock…` (the specimen's base rock) stay still. Each coral mesh
-// gets its own copy of its geometry with the sway baked in.
+// gets its own copy of its geometry with the sway baked in. With `sway.part`, only meshes of the
+// material of that name sway (a giant clam's mantle, swelling along its surface with `sway.swell`;
+// its shell and sand stay still).
 function prepareAtlasSway(scene, sway) {
   if (!sway) return
   const meshes = []
   const onRock = object => object && (object.name.startsWith('rock') || onRock(object.parent))
-  scene.traverse(object => { if (object.isMesh && !onRock(object)) meshes.push(object) })
+  const ofPart = object => !sway.part || [object.material].flat().some(material => material?.name === sway.part)
+  scene.traverse(object => { if (object.isMesh && !onRock(object) && ofPart(object)) meshes.push(object) })
   let height = 0
   let reach = 0
   for (const mesh of meshes) {
@@ -715,7 +733,7 @@ function prepareAtlasSway(scene, sway) {
   for (const mesh of meshes) {
     const own = colonyHeight.get(mesh.parent)
     mesh.geometry = addSwayAttributes(mesh.geometry.clone(), own
-      ? { origin, direction, amplitude: sway.bend * own, reach: own, phase: 0, up, flexFrom: sway.flexFrom }
+      ? { origin, direction, amplitude: sway.bend * own, reach: own, phase: 0, up, flexFrom: sway.flexFrom, swell: sway.swell === true }
       : { origin, direction, amplitude: sway.bend * height, reach, phase: 0 })
     const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
     materials.forEach(material => applyCoralSway(material, sway))

@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Clam
 
-Status: `Blocked / waiting review` — `v0.49.0-dev_6`, branch `species/tridacna-gigas`,
+Status: `Blocked / waiting review` — `v0.49.0-dev_7`, branch `species/tridacna-gigas`,
 [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180). Jeremy's model in The Reefs and the Atlas;
 waiting for his phone review.
 [Prep, proposals and GLB contract](docs/species-preparation.md).

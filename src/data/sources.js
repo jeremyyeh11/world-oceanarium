@@ -750,8 +750,10 @@ export const IMAGE_CREDITS = [
   },
   {
     // Used without permission (Jeremy, 2026-11-02: take it down if asked); Reef Life Survey says
-    // copyright stays with the photographer. Jeremy asked him through its contact form the same day
-    // (ROADMAP). The watermark corner is filled in before it ships (scripts/build-giant-clam-kit.py).
+    // copyright stays with the photographer. Jeremy asked him through its website's contact form the
+    // same day; no reply yet (2026-11-04), so it stays in use until there is one (ROADMAP). Becomes
+    // "used with permission" if he says yes. The watermark corner is filled in before it ships
+    // (scripts/build-giant-clam-kit.py).
     id: 'green-giant-clam',
     subject: 'Giant Clam texture (shell)',
     author: 'Andrew Green, Reef Life Survey',

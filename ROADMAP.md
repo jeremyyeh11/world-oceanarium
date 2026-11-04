@@ -15,7 +15,7 @@ Status labels:
 
 ### Giant Clam
 
-Status: `Blocked / waiting review` — `v0.49.0-dev_5`, branch `species/tridacna-gigas`,
+Status: `Blocked / waiting review` — `v0.49.0-dev_6`, branch `species/tridacna-gigas`,
 [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180). Jeremy's model in The Reefs and the Atlas;
 waiting for his phone review.
 [Prep, proposals and GLB contract](docs/species-preparation.md).
@@ -38,7 +38,9 @@ Subtasks:
   Jeremy's call, to be taken down if asked.
 - [x] Asked Andrew Green for permission to use his photo for the shell, through Reef Life
   Survey's contact form (Jeremy, 2026-11-02).
-- [ ] Andrew Green's reply: keep with his preferred credit, or take the shell texture down.
+- [ ] Andrew Green's reply (none yet, 2026-11-04; the shell stays in use until then, credited "all
+  rights reserved"): keep with his preferred credit ("used with permission"), or take the shell
+  texture down.
 - [x] Mantle breathing (`dev_5`, Jeremy 2026-11-04): a coral-sway config with the new `swell`
   option (docs/procedural/coral-sway.md, Giant clam mantle).
 - [ ] Shadow flinch (the mantle pulling in when a fish passes over): new type doc first, only on

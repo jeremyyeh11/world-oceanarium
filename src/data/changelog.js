@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.48.1',
+    date: '2026-11-04',
+    title: 'Photo credits',
+    changes: [
+      ['fix', 'The grey Leather Coral\'s photo credit in Sources now reads "used with permission": its photographer, David Burdick of Guam Reef Life, kindly said yes.'],
+      ['fix', 'Munk\'s Devil Ray\'s photos are now listed in Sources, as unknown source until we find where they came from.'],
+    ],
+  },
+  {
     version: 'v0.48.0',
     date: '2026-11-03',
     title: 'Spearfish Remora',

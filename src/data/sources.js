@@ -650,6 +650,9 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-longfin-bannerfish', subject: 'Longfin Bannerfish texture' },
   { id: 'unknown-raccoon-butterflyfish', subject: 'Raccoon Butterflyfish texture' },
   { id: 'unknown-clown-triggerfish', subject: 'Clown Triggerfish texture' },
+  // Embedded as `mexican-fish (3) - dorsal`, `mexican-fish (3)` and `mexican-fish (4)`; Jeremy
+  // (2026-11-04): source unknown. Missing from the audit until v0.48.1.
+  { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures (three photos)" },
   // The file name credits the photographer: humphead-wrasse-simon-ilett-underwater-photography.
   { id: 'ilett-humphead-wrasse', subject: 'Humphead Wrasse body texture', author: 'Simon Ilett' },
   // ROADMAP (v0.37.0): Guy Stevens' photo, © Manta Trust, used on Jeremy's call.
@@ -701,14 +704,14 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
   },
   {
-    // Used without permission (Jeremy, 2026-11-02: take it down if asked); the photographer's terms
-    // ask for permission first. ROADMAP has the follow-up.
+    // David Burdick gave Jeremy permission by email (2026-11-04), for this photo and any other of
+    // his. No public page records it, so the licence has no link.
     id: 'burdick-leather-coral',
     subject: 'Leather Coral texture (grey caps)',
     author: 'David Burdick',
     work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
     url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',
-    licence: { name: 'all rights reserved', url: 'https://www.guamreeflife.com/index.php/image-copyright-appropriate-usage/' },
+    licence: { name: 'used with permission' },
     changes: 'Mapped onto the 3D model, cropped and resized.',
   },
 ]

@@ -42,8 +42,7 @@ the Atlas; `dev_3` to `dev_7` tuned the sway.
 
 - Leather Coral (Not Evaluated): Benayahu & Loya 1986, Schleyer et al. 2004 and Chao et al. 2017;
   all four toadstools on a low rock, swaying; its tile, rendered in Blender from the specimen.
-- Image credits: Diego Delso (CC BY-SA 4.0) and Alexander Vasenin (CC BY-SA 3.0); David Burdick's
-  grey caps, all rights reserved, used without permission on Jeremy's call (ROADMAP: ask him).
+- Updated image credits.
 
 ## v0.46.2 — Landing species count
 

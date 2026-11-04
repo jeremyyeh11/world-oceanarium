@@ -18,6 +18,8 @@ Status: in development, `v0.48.1-dev_1`, branch `claude/burdick-permission`.
   credit reads "used with permission" instead of "all rights reserved". He allowed any of his
   other Guam Reef Life photos too: `docs/new-species-checklist.md` gains a list of photographers
   with standing permission, starting with him.
+- Munk's Devil Ray's three photo textures had no credit; they are listed as "Unknown source"
+  until their source is found (Jeremy, 2026-11-04).
 
 ## v0.48.0 — Spearfish Remora
 

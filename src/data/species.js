@@ -1732,19 +1732,19 @@ export const SPECIES = [
       rideSeconds: [90, 200],
       freeSeconds: [6, 14],
       // Measured off the supplied model by scripts/fit-rider-model.mjs. Its disc runs 25% of the
-      // total length (about 29% of standard length; 28–40% in life, 32.6% on the Tehuantepec
+      // total length (about 28% of standard length; 28–40% in life, 32.6% on the Tehuantepec
       // fish). The second dorsal fin stands about 2 cm proud of the line from the disc to the
       // tail, so the rider pivots on its disc until it clears the host's skin.
-      discAheadBodyLengths: 0.3134,
-      dorsalClearanceBodyLengths: 0.0633,
-      backProfile: [[-0.1841, 0.0405], [-0.1741, 0.0258], [-0.1641, 0.0195], [-0.1541, 0.0168], [-0.1241, 0.014], [-0.1141, 0.0109], [-0.0641, 0.0054], [-0.0141, 0.0052], [0.0459, 0.0016], [0.1059, 0.0002], [0.1259, 0.002], [0.2359, -0.0007], [0.3159, -0.0012], [0.3259, -0.0021], [0.4159, -0.0378], [0.4659, -0.0407], [0.4759, -0.0385], [0.4959, -0.0309], [0.5559, -0.0026], [0.5959, 0.0123], [0.6259, 0.0265], [0.6359, 0.0327], [0.6459, 0.0405], [0.6859, 0.0309], [0.7559, 0.0193], [0.7659, 0.0188], [0.7959, 0.0215], [0.8059, 0.0782]],
+      discAheadBodyLengths: 0.3039,
+      dorsalClearanceBodyLengths: 0.0625,
+      backProfile: [[-0.1936, 0.0672], [-0.1836, 0.0424], [-0.1736, 0.0277], [-0.1636, 0.02], [-0.1536, 0.0167], [-0.1236, 0.0139], [-0.1136, 0.0108], [-0.0636, 0.0054], [-0.0136, 0.0052], [0.0464, 0.0016], [0.1064, 0.0002], [0.1164, 0.0017], [0.1264, 0.0019], [0.2264, -0.0006], [0.3164, -0.0013], [0.3264, -0.0038], [0.4064, -0.0355], [0.4164, -0.0379], [0.4564, -0.04], [0.4664, -0.0395], [0.4864, -0.0319], [0.4964, -0.0278], [0.5464, -0.0038], [0.5964, 0.0155], [0.6164, 0.025], [0.6264, 0.031], [0.6364, 0.0395], [0.6764, 0.0209], [0.7464, -0.0202], [0.7564, -0.0236], [0.7864, -0.0229], [0.7964, 0.0808]],
     },
     model: {
       path: '/models/fish/remora-brachyptera/remora-brachyptera.glb',
-      // Source length 3.5093 -> 2 WU. The root is recentred mid-length on the body axis, the
+      // Source length 3.5506 -> 2 WU. The root is recentred mid-length on the body axis, the
       // frame the ride fit uses (scripts/fit-rider-model.mjs).
-      scale: 0.5699,
-      position: [0, -0.0268, -0.1529],
+      scale: 0.5633,
+      position: [0, -0.0265, -0.1395],
       followAim: 'root',
       moveset: {
         cruise: 'procedural_cruise',
@@ -1755,14 +1755,15 @@ export const SPECIES = [
       },
       proceduralAnimation: {
         ...REMORA_CAUDAL,
-        // The supplied GLB is rig-free. GLTFLoader splits the body by material: the main mesh
-        // carries the dorsal, anal and caudal fins, `_1` is the rigid suction disc. The short
-        // pectorals and the pelvics are separate objects.
-        bodyMeshNames: ['mexican-fish_(1)'],
-        followBodyMeshNames: ['mexican-fish_(1)_1'],
+        // The supplied GLB is rig-free. Its body has two primitives
+        // (scripts/prepare-spearfish-remora-model.py): the main mesh carries the dorsal, anal and
+        // caudal fins, `_2` is the rigid suction disc. The short pectorals and the pelvics are
+        // separate objects.
+        bodyMeshNames: ['remora_brachyptera_1'],
+        followBodyMeshNames: ['remora_brachyptera_2'],
         // The sharksuckers' stroke, 0.07 and 0.03 body lengths, in this model's source units.
-        amplitude: 0.246,
-        turnStrength: 0.105,
+        amplitude: 0.249,
+        turnStrength: 0.107,
         pectoralFinFlutter: 0.08,
         pelvicFinFlutter: 0.04,
       },

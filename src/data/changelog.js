@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.48.2',
+    date: '2026-11-04',
+    title: 'Spearfish Remora new look',
+    changes: [
+      ['fix', 'The Spearfish Remoras on the giant sunfish wear a new skin, dusky grey-purple from a photo of a living fish, in The Reefs and in the Atlas.'],
+    ],
+  },
+  {
     version: 'v0.48.1',
     date: '2026-11-04',
     title: 'Photo credits',

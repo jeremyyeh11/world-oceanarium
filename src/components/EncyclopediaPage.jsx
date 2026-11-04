@@ -319,7 +319,7 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // Supplied White Suckerfish model (scripts/fit-rider-model.mjs).
   'remora-albescens': 0.2996,
   // Supplied Spearfish Remora model (scripts/fit-rider-model.mjs).
-  'remora-brachyptera': 3.5093,
+  'remora-brachyptera': 3.5506,
   // Supplied pilot fish model, nose to tail tip along Z.
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).

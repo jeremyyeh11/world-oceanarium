@@ -182,9 +182,11 @@ Status: shipped in clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`,
 - [x] Texture source (`dev_4`): John Snow's photos on Mexican Fish.com (`snow-spearfish-remora`).
 - [x] Jeremy accepted `dev_4` (2026-11-03: "merge"). Production `creatures` ids 1480–1483
   (837 → 841 rows, backed up before and after).
-- [ ] Permission from John Snow: the site states no licence, so the credit reads "licence not
-  stated". A request is drafted in Jeremy's Gmail; on a yes, the credit reads "used with
-  permission" (as on the common remora and brain coral).
+- [x] Retextured (`v0.48.2`, Jeremy: Snow's photos are not to be used): Jeremy's new GLB
+  uses Eric L. Chen's iNaturalist photo (CC BY-NC 4.0); `scripts/prepare-spearfish-remora-model.py`
+  crops it and splits the disc back out of the body; rider fit re-run (source length 3.5506).
+- [x] Atlas tile recaptured with the new texture (`public/atlas/remora-brachyptera-thumbnail.png`,
+  rendered in the dev tank, other fish hidden).
 
 ### Leather Coral
 

@@ -10,7 +10,8 @@ Versioning convention notes:
 
 ## v0.48.2 — Spearfish Remora texture
 
-Status: in development, `v0.48.2-dev_1`, branch `claude/spearfish-texture`.
+Status: clean `v0.48.2` (2026-11-04), accepted from `v0.48.2-dev_1`, branch
+`claude/spearfish-texture`, [PR #193](https://github.com/jeremyyeh11/world-oceanarium/pull/193). Jeremy: "merge both".
 
 ### Species and Atlas
 

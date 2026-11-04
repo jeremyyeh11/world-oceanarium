@@ -629,7 +629,7 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
   {
-    // Jeremy's retextured model (v0.48.2-dev_1): one photo of one fish from above, the side and
+    // Jeremy's retextured model (v0.48.2): one photo of one fish from above, the side and
     // below; the model uses the top and side views. It replaced John Snow's photos.
     id: 'chen-spearfish-remora',
     subject: 'Spearfish Remora texture',

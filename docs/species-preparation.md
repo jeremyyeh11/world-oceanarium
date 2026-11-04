@@ -53,7 +53,7 @@ Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md),
 
 - Rig-free, nose −Z. The body has two primitives: `remora_brachyptera_1` (body with dorsal,
   anal and caudal fins) and `remora_brachyptera_2` (the suction disc, in
-  `followBodyMeshNames`). Jeremy's retextured export (`v0.48.2-dev_1`) merged the disc into the
+  `followBodyMeshNames`). Jeremy's retextured export (`v0.48.2`) merged the disc into the
   body; `scripts/prepare-spearfish-remora-model.py` splits it back out (176 faces). The short pectorals and the pelvics are separate objects
   (`pectorall/r`, `pelvicl/r`) and flutter on their own.
 - `scripts/fit-rider-model.mjs`: source length 3.5506 → 2 WU (scale 0.5633; 3.5093 before the
@@ -63,7 +63,7 @@ Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md),
   `npm test` fits that measured top line on every Mola spot.
 - Stroke: the sharksuckers' 0.07 and 0.03 body lengths (amplitude 0.249, turn 0.107 source
   units); fin flutter 0.08 / 0.04, as on the whitefin.
-- Texture (`v0.48.2-dev_1`): Jeremy retextured the model from Eric L. Chen's iNaturalist photo
+- Texture (`v0.48.2`): Jeremy retextured the model from Eric L. Chen's iNaturalist photo
   (one fish from above, the side and below, East China Sea, CC BY-NC 4.0, `chen-spearfish-remora`),
   replacing John Snow's Mexican Fish.com photos, which had no licence. The prepare script cuts
   the 2048 px PNG to the two views the UVs use (1536×783 JPEG) and drops BLEND (solid alpha):

@@ -39,7 +39,7 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 25. **Common Remora** (`remora-remora`): `v0.44.0` (#176), The Open Sea.
 26. **Cauliflower Coral** (`pocillopora-meandrina`): `v0.45.0` (#183), The Reefs.
 27. **Bluefin Trevally** (`caranx-melampygus`): `v0.46.0` (#179), The Reefs.
-28. **Leather Coral** (`sarcophyton-glaucum`): `v0.47.0` (#184), The Reefs.
+28. **Toadstool Leather Coral** (`sarcophyton-glaucum`): `v0.47.0` (#184), The Reefs; renamed from Leather Coral in `v0.49.1`.
 29. **Spearfish Remora** (`remora-brachyptera`): `v0.48.0` (#178), The Reefs.
 30. **Giant Clam** (`tridacna-gigas`): `v0.49.0` (#180), The Reefs.
 

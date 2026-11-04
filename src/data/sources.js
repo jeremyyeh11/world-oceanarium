@@ -444,7 +444,7 @@ export const STUDY_CREDITS = [
   },
   {
     id: 'benayahu-loya-1986-sarcophyton',
-    subject: 'Leather Coral sexes, maturity ages, egg development, eggs per polyp and yearly spawning',
+    subject: 'Toadstool Leather Coral sexes, maturity ages, egg development, eggs per polyp and yearly spawning',
     authors: 'Benayahu & Loya',
     year: 1986,
     title: 'Sexual reproduction of a soft coral: synchronous and brief annual spawning of Sarcophyton glaucum (Quoy & Gaimard, 1833)',
@@ -453,7 +453,7 @@ export const STUDY_CREDITS = [
   },
   {
     id: 'schleyer-2004-sarcophyton',
-    subject: 'Leather Coral reproduction and hermaphrodite colonies in South Africa',
+    subject: 'Toadstool Leather Coral reproduction and hermaphrodite colonies in South Africa',
     authors: 'Schleyer, Kruger & Benayahu',
     year: 2004,
     title: 'Reproduction and the unusual condition of hermaphroditism in Sarcophyton glaucum (Octocorallia, Alcyoniidae) in KwaZulu-Natal, South Africa',
@@ -462,7 +462,7 @@ export const STUDY_CREDITS = [
   },
   {
     id: 'chao-2017-sarcophyton',
-    subject: 'Leather Coral toxins against fish and stony corals',
+    subject: 'Toadstool Leather Coral toxins against fish and stony corals',
     authors: 'Chao et al.',
     year: 2017,
     title: 'Isoprenoids from the soft coral Sarcophyton glaucum',
@@ -712,7 +712,7 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
   {
     id: 'delso-leather-coral',
-    subject: 'Leather Coral texture (peach caps)',
+    subject: 'Toadstool Leather Coral texture (peach caps)',
     author: 'Diego Delso, delso.photo',
     work: 'Toadstool leather coral (Sarcophyton glaucum), Red Sea, Egypt',
     url: 'https://commons.wikimedia.org/wiki/File:Coral_(Sarcophyton_glaucum),_mar_Rojo,_Egipto,_2023-04-14,_DD_73.jpg',
@@ -721,7 +721,7 @@ export const IMAGE_CREDITS = [
   },
   {
     id: 'vasenin-leather-coral',
-    subject: 'Leather Coral texture (stalks and cap undersides)',
+    subject: 'Toadstool Leather Coral texture (stalks and cap undersides)',
     author: 'Alexander Vasenin',
     work: 'Sarcophyton glaucum soft coral at Shaab Angosh reef (Red Sea, Egypt)',
     url: 'https://commons.wikimedia.org/wiki/File:Sarcophyton_glaucum_at_Shaab_Angosh_reef.JPG',
@@ -732,7 +732,7 @@ export const IMAGE_CREDITS = [
     // David Burdick gave Jeremy permission by email (2026-11-04), for this photo and any other of
     // his. No public page records it, so the licence has no link.
     id: 'burdick-leather-coral',
-    subject: 'Leather Coral texture (grey caps)',
+    subject: 'Toadstool Leather Coral texture (grey caps)',
     author: 'David Burdick',
     work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
     url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',

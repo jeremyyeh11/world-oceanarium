@@ -36,7 +36,7 @@ Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
   (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 20 entries with Munk's Devil Ray's
-  three, added in `v0.48.1-dev_1`), and the link and
+  three, added in `v0.48.1`), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).
@@ -209,7 +209,7 @@ Status: shipped in clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`,
 - [x] Phone review on the Vercel preview (Jeremy: "looks good. lets merge").
 - [x] David Burdick (Guam Reef Life) gave permission by email (2026-11-04) for the grey caps'
   photo (`burdick-leather-coral`), and for any of his other photos; credited "used with
-  permission" from `v0.48.1-dev_1`.
+  permission" in `v0.48.1`.
 
 ### Humphead Wrasse: gentle giant
 

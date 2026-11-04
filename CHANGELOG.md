@@ -8,9 +8,10 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.48.1 — Leather coral photo permission
+## v0.48.1 — Leather coral photo permission and devil ray credit
 
-Status: in development, `v0.48.1-dev_1`, branch `claude/burdick-permission`.
+Status: clean `v0.48.1` (2026-11-04), accepted from `v0.48.1-dev_1`, branch
+`claude/burdick-permission`, [PR #192](https://github.com/jeremyyeh11/world-oceanarium/pull/192). Jeremy: "merge both".
 
 ### Sources
 

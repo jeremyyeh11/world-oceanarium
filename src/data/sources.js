@@ -650,7 +650,7 @@ export const IMAGE_CREDITS = [
   { id: 'unknown-raccoon-butterflyfish', subject: 'Raccoon Butterflyfish texture' },
   { id: 'unknown-clown-triggerfish', subject: 'Clown Triggerfish texture' },
   // Embedded as `mexican-fish (3) - dorsal`, `mexican-fish (3)` and `mexican-fish (4)`; Jeremy
-  // (2026-11-04): source unknown. Missing from the audit until v0.48.1-dev_1.
+  // (2026-11-04): source unknown. Missing from the audit until v0.48.1.
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures (three photos)" },
   // The file name credits the photographer: humphead-wrasse-simon-ilett-underwater-photography.
   { id: 'ilett-humphead-wrasse', subject: 'Humphead Wrasse body texture', author: 'Simon Ilett' },

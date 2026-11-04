@@ -223,7 +223,7 @@ Status: shipped in clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`,
 Status: shipped in clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`,
 [PR #184](https://github.com/jeremyyeh11/world-oceanarium/pull/184) ·
 [Preparation and intake](docs/species-preparation.md). Renamed from Leather Coral in
-`v0.49.1-dev_1` (2026-11-04).
+clean `v0.49.1` (2026-11-04, [PR #198](https://github.com/jeremyyeh11/world-oceanarium/pull/198)).
 
 - [x] Prepare the species: research, hidden entry, study credits (`dev_1`).
 - [x] Jeremy's four toadstools: kit (`scripts/build-leather-coral-kit.py`), placement on the

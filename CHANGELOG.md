@@ -10,7 +10,9 @@ Versioning convention notes:
 
 ## v0.49.1 — Toadstool Leather Coral
 
-Status: `v0.49.1-dev_1` (2026-11-04), branch `species/toadstool-leather-coral-name`.
+Status: clean `v0.49.1` (2026-11-04), accepted from `v0.49.1-dev_1`, branch
+`species/toadstool-leather-coral-name`, [PR #198](https://github.com/jeremyyeh11/world-oceanarium/pull/198).
+Jeremy: "Yes, merge". No production data.
 
 ### Species and Atlas
 

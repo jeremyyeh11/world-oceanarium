@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## Giant Clam — `tridacna-gigas` (prepared `v0.49.0-dev_1`)
+## Giant Clam — `tridacna-gigas` (prepared `v0.49.0-dev_1`, model `dev_2`, in view `dev_3`, mantle `dev_5`, tile `dev_7`, shipped `v0.49.0`)
 
 Reserve: The Reefs, as a landscape piece lying in the sand between the bommies (fish queue,
 Up next item 8). Not a creature: no `swim`, no roster slot, no creature rows, like the corals.

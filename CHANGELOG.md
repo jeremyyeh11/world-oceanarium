@@ -8,10 +8,11 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.49.0 — Giant Clam (in progress)
+## v0.49.0 — Giant Clam
 
-Status: `v0.49.0-dev_7`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
-waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas;
+Status: clean `v0.49.0` (2026-11-04), accepted from `v0.49.0-dev_7`, branch
+`species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180).
+Jeremy: "ok lets merge". No production data: the clams are a landscape species. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas;
 `dev_3` a clam in the resting view, by any rock; `dev_4` the Atlas clam on soft sand; `dev_5` the mantle breathes; `dev_6` and `dev_7` the Atlas tile re-shot.
 
 ### Species and Atlas

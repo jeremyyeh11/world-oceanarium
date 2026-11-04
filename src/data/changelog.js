@@ -9,10 +9,10 @@
 export const VISITOR_CHANGELOG = [
   {
     version: 'v0.49.0',
-    date: '2026-11-02',
+    date: '2026-11-04',
     title: 'Giant Clam',
     changes: [
-      ['new', 'Giant clams lie on the sand at the feet of the rocks in The Reefs, their shells fluted and crusted, their mantles spread to the light.'],
+      ['new', 'Giant clams lie on the sand at the feet of the rocks in The Reefs, their shells fluted and crusted, their mantles spread to the light and slowly breathing.'],
       ['new', 'Meet the Giant Clam in the Atlas, the largest living clam, now Critically Endangered.'],
     ],
   },

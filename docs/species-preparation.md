@@ -51,21 +51,23 @@ Decided by Jeremy (2026-10-30):
 
 Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md), Remora models):
 
-- Rig-free, nose −Z. GLTFLoader splits the body by material: `mexican-fish_(1)` (body with
-  dorsal, anal and caudal fins) and `mexican-fish_(1)_1` (the suction disc, in
-  `followBodyMeshNames`). The short pectorals and the pelvics are separate objects
+- Rig-free, nose −Z. The body has two primitives: `remora_brachyptera_1` (body with dorsal,
+  anal and caudal fins) and `remora_brachyptera_2` (the suction disc, in
+  `followBodyMeshNames`). Jeremy's retextured export (`v0.48.2-dev_1`) merged the disc into the
+  body; `scripts/prepare-spearfish-remora-model.py` splits it back out (176 faces). The short pectorals and the pelvics are separate objects
   (`pectorall/r`, `pelvicl/r`) and flutter on their own.
-- `scripts/fit-rider-model.mjs`: source length 3.5093 → 2 WU (scale 0.5699); the disc runs 25%
-  of total length (about 29% of standard length, inside the 28–40% in life), its centre 0.3134
+- `scripts/fit-rider-model.mjs`: source length 3.5506 → 2 WU (scale 0.5633; 3.5093 before the
+  retextured export's mouth and tail edits); the disc runs 24.5% of total length (about 28% of
+  standard length, inside the 28–40% in life), its centre 0.3039
   body lengths ahead of the root; the second dorsal stands about 2 cm proud of the disc line.
   `npm test` fits that measured top line on every Mola spot.
-- Stroke: the sharksuckers' 0.07 and 0.03 body lengths (amplitude 0.246, turn 0.105 source
+- Stroke: the sharksuckers' 0.07 and 0.03 body lengths (amplitude 0.249, turn 0.107 source
   units); fin flutter 0.08 / 0.04, as on the whitefin.
-- Textures: two embedded photos (570×215 and 570×304 px, about 550 KB), solid alpha, so the
-  model renders opaque; normals outward on 97% of the body. Neither matches the paper's
-  greyscale figure. Jeremy named the source (2026-11-02): photos 3 and 5 of John Snow's
-  Mexican Fish.com page (a 15 cm white-morph fish off a striped marlin, Punta Palmilla, 2007),
-  credited as `snow-spearfish-remora`. The site states no licence.
+- Texture (`v0.48.2-dev_1`): Jeremy retextured the model from Eric L. Chen's iNaturalist photo
+  (one fish from above, the side and below, East China Sea, CC BY-NC 4.0, `chen-spearfish-remora`),
+  replacing John Snow's Mexican Fish.com photos, which had no licence. The prepare script cuts
+  the 2048 px PNG to the two views the UVs use (1536×783 JPEG) and drops BLEND (solid alpha):
+  2.08 MB to 207 KB.
 - Atlas: framed at 1.45 display units, between the bannerfish and the pilot fish; checked at
   375 px and on desktop.
 
@@ -74,8 +76,6 @@ the same four as dev (837 → 841 rows, backed up before and after).
 
 Open:
 
-- **Texture licence:** Mexican Fish.com states none, so all rights stay with John Snow; the
-  credit reads "licence not stated". Jeremy's permission request is drafted in his Gmail.
 - Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP, Remoras).
 
 Tank (`dev_3`, 2026-11-02):

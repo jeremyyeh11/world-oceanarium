@@ -629,14 +629,15 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
   {
-    // Jeremy named the page (2026-11-02): photos 3 and 5 there, at the same 570×215 and 570×304
-    // px. The site states no licence, so all rights stay with the photographer.
-    id: 'snow-spearfish-remora',
-    subject: 'Spearfish Remora textures (two photos)',
-    author: 'John Snow, Mexican Fish.com',
-    work: 'Spearfish Remora, Remora brachyptera, white morph',
-    url: 'https://mexican-fish.com/spearfish-remora/',
-    changes: 'Mapped onto the 3D model.',
+    // Jeremy's retextured model (v0.48.2-dev_1): one photo of one fish from above, the side and
+    // below; the model uses the top and side views. It replaced John Snow's photos.
+    id: 'chen-spearfish-remora',
+    subject: 'Spearfish Remora texture',
+    author: 'Eric L. Chen',
+    work: 'Remora brachyptera, East China Sea (iNaturalist)',
+    url: 'https://www.inaturalist.org/observations/341341699',
+    licence: { name: 'CC BY-NC 4.0', url: 'https://creativecommons.org/licenses/by-nc/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized.',
   },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },

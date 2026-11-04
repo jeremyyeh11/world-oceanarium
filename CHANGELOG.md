@@ -8,6 +8,23 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.48.2 — Spearfish Remora texture
+
+Status: in development, `v0.48.2-dev_1`, branch `claude/spearfish-texture`.
+
+### Species and Atlas
+
+- Spearfish Remora retextured on Jeremy's new GLB from Eric L. Chen's iNaturalist photo
+  (CC BY-NC 4.0), replacing John Snow's photos. `scripts/prepare-spearfish-remora-model.py`
+  crops the photo to the two views the UVs use, renders the fish opaque, and splits the suction
+  disc back out of the body so it stays rigid (2.08 MB to 207 KB). Mouth and tail edits lengthen
+  the source to 3.5506 units; scale, rider fit and stroke re-measured.
+
+### Sources
+
+- The Spearfish Remora credit is Eric L. Chen's photo (CC BY-NC 4.0); John Snow's credit is
+  removed with his photos.
+
 ## v0.48.0 — Spearfish Remora
 
 Status: clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`, branch

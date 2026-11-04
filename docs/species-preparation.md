@@ -218,7 +218,7 @@ Sway (`dev_3`–`dev_7`, Jeremy on his phone): stronger, then in the cap with th
 reference videos, far smaller: `bend` 0.08 (docs/procedural/coral-sway.md has the steps).
 Accepted ("looks good. lets merge") and shipped in `v0.47.0`.
 
-Still open: Burdick's permission (ROADMAP).
+Burdick gave permission by email (2026-11-04), credited "used with permission" in `v0.48.1`.
 
 ## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`, shipped `v0.46.0`)
 

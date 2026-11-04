@@ -143,6 +143,10 @@ desktop frame, its whole line of sight clear of rock, tables and corals and kept
 staghorn. In The Reefs it lies low between the left-hand pillars, left of a phone's frame: table
 plates on the bommie in front of the outcrop hide the sand in the phone's middle.
 
+Mantle breathing built in `dev_5` (Jeremy, 2026-11-04: "at least the mantle"): the proposal above,
+as `GIANT_CLAM_MANTLE_SWAY` with the new `swell` option (each vertex along the surface's outward
+normal). See docs/procedural/coral-sway.md, Giant clam mantle. The shadow flinch stays a proposal.
+
 ## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`, tank `dev_3`, credit `dev_4`, shipped `v0.48.0`)
 
 Reserve: The Reefs, riding the giant sunfish ([fish queue](fish-queue.md), Up next 7). Felt

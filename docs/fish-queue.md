@@ -47,7 +47,7 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 In the order they will be added.
 
 1. **Giant Clam** (`tridacna-gigas`), The Reefs. In progress: model, placement and Atlas in
-   `v0.49.0-dev_4` ([species-preparation.md](species-preparation.md)); waiting for Jeremy's review.
+   `v0.49.0-dev_5` ([species-preparation.md](species-preparation.md)); waiting for Jeremy's review.
    Static landscape piece in the sand between bommies.
 2. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
    type.

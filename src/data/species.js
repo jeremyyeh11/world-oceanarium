@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
+import { GIANT_CLAM_MANTLE_SWAY, LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -5131,6 +5131,8 @@ export const SPECIES = [
       scale: 4,
       // The sand's soft edge is alpha-blended; the clam is opaque.
       alphaBlend: true,
+      // The mantle breathes as in the tank; the shell and sand stay still.
+      sway: GIANT_CLAM_MANTLE_SWAY,
     },
   },
 ]

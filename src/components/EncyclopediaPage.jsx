@@ -698,12 +698,15 @@ function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = fals
 // A soft coral specimen swaying as it does in the tank (`model.sway`, utils/coralSway.js): each
 // coral mesh's origin is its holdfast and its lattice faces +Z, so it swings along Z, its rim the
 // most. Meshes under a node named `rock…` (the specimen's base rock) stay still. Each coral mesh
-// gets its own copy of its geometry with the sway baked in.
+// gets its own copy of its geometry with the sway baked in. With `sway.part`, only meshes of the
+// material of that name sway (a giant clam's mantle, swelling along its surface with `sway.swell`;
+// its shell and sand stay still).
 function prepareAtlasSway(scene, sway) {
   if (!sway) return
   const meshes = []
   const onRock = object => object && (object.name.startsWith('rock') || onRock(object.parent))
-  scene.traverse(object => { if (object.isMesh && !onRock(object)) meshes.push(object) })
+  const ofPart = object => !sway.part || [object.material].flat().some(material => material?.name === sway.part)
+  scene.traverse(object => { if (object.isMesh && !onRock(object) && ofPart(object)) meshes.push(object) })
   let height = 0
   let reach = 0
   for (const mesh of meshes) {
@@ -730,7 +733,7 @@ function prepareAtlasSway(scene, sway) {
   for (const mesh of meshes) {
     const own = colonyHeight.get(mesh.parent)
     mesh.geometry = addSwayAttributes(mesh.geometry.clone(), own
-      ? { origin, direction, amplitude: sway.bend * own, reach: own, phase: 0, up, flexFrom: sway.flexFrom }
+      ? { origin, direction, amplitude: sway.bend * own, reach: own, phase: 0, up, flexFrom: sway.flexFrom, swell: sway.swell === true }
       : { origin, direction, amplitude: sway.bend * height, reach, phase: 0 })
     const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
     materials.forEach(material => applyCoralSway(material, sway))

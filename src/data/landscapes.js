@@ -229,6 +229,15 @@ const GIANT_CLAM_KIT = {
   chunkWU: 60,
 }
 
+// How a giant clam's mantle breathes (utils/coralSway.js, `swell`), in the tank and in the Atlas:
+// the shell stays still (the clam never snaps shut) and only the `part` named mantle moves, swelling
+// out along its own surface and settling back once every `period` s, its upper part (above
+// `flexFrom` of the clam's height, where it spills over the shell's lips) the most, by up to `bend`
+// of the clam's height, with a small `flutter` (Jeremy, 2026-11-04: "at least the mantle"). Real
+// mantles shift slowly as the clam turns them to the light and pull in when a shadow passes;
+// this is the slow part only.
+export const GIANT_CLAM_MANTLE_SWAY = { period: 9, bend: 0.06, flutter: 0.15, flexFrom: 0.45, swell: true, part: 'mantle' }
+
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
 // default (z 10, y -3.35), zoomed about 1.5× (42°, was 61°): the reef rises around and above
@@ -544,9 +553,10 @@ export const LANDSCAPES = {
     // and its line of sight kept clear of the staghorn; failing that, within `viewWidth` (the
     // desktop frame).
     // `length` is the shell's in WU (60 cm to 1.2 m: most adults round the 80 cm common length,
-    // SeaLifeBase).
+    // SeaLifeBase). `sway` is GIANT_CLAM_MANTLE_SWAY: the mantle breathes, the shell stays still.
     giantClams: {
       kit: GIANT_CLAM_KIT,
+      sway: GIANT_CLAM_MANTLE_SWAY,
       seed: 9661, count: 4, zMin: -36, spacing: 8, phoneWidth: 0.25, viewWidth: 0.85,
       length: [2.4, 4.8],
     },

@@ -75,7 +75,28 @@ try {
   }
   assert.ok(inClam(clams, clams[0].centre), 'a clam holds its own space')
   assert.ok(!inClam(clams, new THREE.Vector3(100, 0, 100)), 'and nothing far off')
-  console.log(`giant clam placement: ${clams.length} clams on the sand, the first in the phone's view, passed`)
+  // The mantle's swell: every vertex swings along the surface's outward normal, split vertices of a
+  // flat-shaded mesh together (no facet opens), nothing below flexFrom.
+  const { addSwayAttributes } = await server.ssrLoadModule('/src/utils/coralSway.js')
+  const dome = new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).toNonIndexed()
+  addSwayAttributes(dome, {
+    origin: new THREE.Vector3(), direction: new THREE.Vector3(0, 1, 0), amplitude: 0.1, reach: 1, phase: 0,
+    up: new THREE.Vector3(0, 1, 0), flexFrom: 0.45, swell: true,
+  })
+  const position = dome.attributes.position
+  const sway = dome.attributes.aSway
+  const byPoint = new Map()
+  for (let i = 0; i < position.count; i++) {
+    const p = new THREE.Vector3().fromBufferAttribute(position, i)
+    const s = new THREE.Vector3(sway.getX(i), sway.getY(i), sway.getZ(i))
+    assert.ok(Math.abs(s.length() - 0.1) < 1e-4, 'the swell has the amplitude')
+    if (p.length() > 0.5 && p.y < 0.98) assert.ok(s.clone().normalize().dot(p.clone().normalize()) > 0.9, 'and points out of the surface')
+    const key = p.toArray().map(v => v.toFixed(4)).join(',')
+    if (byPoint.has(key)) assert.ok(byPoint.get(key).distanceTo(s) < 1e-6, 'split vertices swell together')
+    else byPoint.set(key, s)
+    if (p.y < 0.45) assert.equal(dome.attributes.aSwayFlex.getX(i), 0, 'nothing below flexFrom moves')
+  }
+  console.log(`giant clam placement: ${clams.length} clams on the sand, the first in the phone's view; the mantle swells, passed`)
 } finally {
   await server.close()
 }

@@ -888,11 +888,12 @@ function LeatherCorals({ landscape, clusters, tables, fans, mounds, bushes, sigh
   )
 }
 
-// A static photo kit (built by scripts/build-giant-clam-kit.py): each model (`prefix` 0, 1, ...:
-// clam0) in model metres with its rest point at the origin, as its parts (one per material: a clam's
+// A photo kit (built by scripts/build-giant-clam-kit.py): each model (`prefix` 0, 1, ...: clam0)
+// in model metres with its rest point at the origin, as its parts (one per material: a clam's
 // mantle and shell photos) and one shared list of materials, the GLB's own, opaque and one-sided,
-// with the landscape's caustics like the rock.
-function useStaticKit(kit, caustics, debugLodView, prefix) {
+// with the landscape's caustics like the rock. The material named `sway.part` (a clam's mantle)
+// sways (utils/coralSway.js); the rest stay still. Each part keeps its material's name (`name`).
+function useStaticKit(kit, caustics, debugLodView, prefix, sway = null) {
   const gltf = useGLTF(kit.path)
   const { models, materials } = useMemo(() => {
     const sources = []
@@ -917,7 +918,7 @@ function useStaticKit(kit, caustics, debugLodView, prefix) {
       geometry.setIndex(source.index ? source.index.clone() : [...Array(source.attributes.position.count).keys()])
       geometry.applyMatrix4(toModel.copy(root.matrixWorld).invert().multiply(object.matrixWorld))
       if (!models[index]) models[index] = []
-      models[index].push({ geometry, material })
+      models[index].push({ geometry, material, name: object.material.name })
     })
     const materials = sources.map(source => {
       const material = source.clone()
@@ -927,11 +928,12 @@ function useStaticKit(kit, caustics, debugLodView, prefix) {
       material.roughness = 0.9
       material.metalness = 0
       material.envMapIntensity = 0.35
-      applyRockShade(material, null, caustics)
+      if (sway && source.name === sway.part) applyCoralSway(material, sway, caustics)
+      else applyRockShade(material, null, caustics)
       return material
     })
     return { models: models.filter(Boolean), materials }
-  }, [gltf, caustics, prefix])
+  }, [gltf, caustics, prefix, sway])
   useEffect(() => () => materials.forEach(material => material.dispose()), [materials])
   useLodDebugMaterials(materials, debugLodView)
   return { models, materials }
@@ -939,11 +941,13 @@ function useStaticKit(kit, caustics, debugLodView, prefix) {
 
 // Giant clams (landscape.giantClams): a few clams on the open sand at the front bommies' feet, one
 // in the phone's view, clear of every coral placed before them (giantClamPlacement.js), merged per
-// material and square chunk. Static. Each clam joins the fish's rock obstacles. The staghorn
-// (landscape.staghorn) is placed after them, clear of them.
+// material and square chunk. The shell is still; the mantle breathes (`sway`, landscapes.js
+// GIANT_CLAM_MANTLE_SWAY), each clam on its own phase. Each clam joins the fish's rock obstacles.
+// The staghorn (landscape.staghorn) is placed after them, clear of them.
 function GiantClams({ landscape, clusters, tables, fans, mounds, bushes, toadstools, sightRocks, environmentId, debugLodView }) {
-  const { kit } = landscape.giantClams
-  const { models, materials } = useStaticKit(kit, landscape.caustics, debugLodView, 'clam')
+  const { kit, sway } = landscape.giantClams
+  const { models, materials } = useStaticKit(kit, landscape.caustics, debugLodView, 'clam', sway)
+  useSwayClock()
   const clams = useSlicedPlacement(PLACED_GIANT_CLAMS, landscape, () => {
     const measures = models.map(parts => measureClam(parts.map(part => part.geometry)))
     const avoid = (point, extra) => Boolean((fans && inFan(fans, point, extra)) || inMound(mounds, point, extra)
@@ -956,22 +960,37 @@ function GiantClams({ landscape, clusters, tables, fans, mounds, bushes, toadsto
     const groups = new Map()
     for (const clam of clams) {
       const chunk = `${Math.floor(clam.base.x / kit.chunkWU)}:${Math.floor(clam.base.z / kit.chunkWU)}`
+      // The mantle swells along its own surface, measured up the clam (its own up, leant with the
+      // sand): nothing below flexFrom of its height, the most where it spills over the lips. Each
+      // clam on its own phase, from where it lies.
+      const up = new THREE.Vector3(0, 1, 0).transformDirection(clam.matrix)
+      const phase = (clam.base.x * 0.37 + clam.base.z * 0.61) % (Math.PI * 2)
       for (const part of models[clam.model]) {
         const key = `${part.material}:${chunk}`
         if (!groups.has(key)) groups.set(key, { material: part.material, list: [] })
-        groups.get(key).list.push(kitGeometry(part.geometry, clam.matrix))
+        const geometry = kitGeometry(part.geometry, clam.matrix)
+        if (sway && part.name === sway.part) {
+          addSwayAttributes(geometry, {
+            origin: clam.base, direction: up, amplitude: sway.bend * clam.height, reach: clam.height, phase,
+            up, flexFrom: sway.flexFrom, swell: true,
+          })
+        }
+        groups.get(key).list.push(geometry)
       }
     }
+    const swing = sway ? sway.bend * Math.max(0, ...clams.map(clam => clam.height)) * 2 : 0
     return {
       merged: [...groups].map(([key, { material, list }]) => {
         const geometry = list.length > 1 ? mergeGeometries(list) : list[0]
         if (list.length > 1) list.forEach(part => part.dispose())
         geometry.computeBoundingSphere()
+        // Room for the swell, so a clam at a chunk's edge is not culled mid-breath.
+        geometry.boundingSphere.radius += swing
         return { key, material, geometry }
       }),
       obstacles: clams.map(clam => clam.obstacle),
     }
-  }, [kit, models, clams])
+  }, [kit, models, sway, clams])
 
   useExtraObstacles(obstacles)
   useEffect(() => () => merged.forEach(part => part.geometry.dispose()), [merged])

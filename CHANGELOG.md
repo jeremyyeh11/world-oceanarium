@@ -10,9 +10,9 @@ Versioning convention notes:
 
 ## v0.49.0 — Giant Clam (in progress)
 
-Status: `v0.49.0-dev_4`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
+Status: `v0.49.0-dev_5`, branch `species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180),
 waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas;
-`dev_3` a clam in the resting view, by any rock; `dev_4` the Atlas clam on soft sand.
+`dev_3` a clam in the resting view, by any rock; `dev_4` the Atlas clam on soft sand; `dev_5` the mantle breathes.
 
 ### Species and Atlas
 
@@ -39,6 +39,15 @@ waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's mode
   it lies low between the left-hand pillars, left of a phone's frame (table plates on the bommie in
   front hide the sand in the phone's middle); the other three lie by the front bommies, out of
   frame or behind rock.
+
+### Behaviour and motion
+
+- The mantle breathes (`dev_5`, Jeremy: "at least the mantle if the shell is not going to open and
+  close"): a third coral-sway config, `GIANT_CLAM_MANTLE_SWAY` (period 9 s, bend 0.06, flutter
+  0.15, flexFrom 0.45). New `swell` option on `addSwayAttributes`: each vertex swings along the
+  surface's outward normal (normals averaged per point, so the faceted mesh never opens), so the
+  mantle swells over the shell's lips and settles back; only the `part` named mantle moves, the
+  shell stays still. In the tank (each clam on its own phase) and the Atlas.
 
 ## v0.48.3 — Duplicate devil ray credit
 

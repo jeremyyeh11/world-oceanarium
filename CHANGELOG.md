@@ -10,7 +10,9 @@ Versioning convention notes:
 
 ## v0.48.3 — Duplicate devil ray credit
 
-Status: in development, `v0.48.3-dev_1`, branch `fix/duplicate-devil-ray-credit`.
+Status: clean `v0.48.3` (2026-11-04), accepted from `v0.48.3-dev_1`, branch
+`fix/duplicate-devil-ray-credit`, [PR #195](https://github.com/jeremyyeh11/world-oceanarium/pull/195). Jeremy: "merge both".
+No visitor line: production never showed the duplicate.
 
 ### Sources
 

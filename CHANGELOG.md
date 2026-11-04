@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.48.3 — Duplicate devil ray credit
+
+Status: in development, `v0.48.3-dev_1`, branch `fix/duplicate-devil-ray-credit`.
+
+### Sources
+
+- Munk's Devil Ray was listed twice under Image credits: `v0.48.1` added an "Unknown source"
+  entry beside the one it already had. The duplicate is removed (it also gave two list items
+  the same React key), and `v0.48.1`'s visitor line about it is withdrawn, since visitors never
+  saw a change.
+
 ## v0.48.2 — Spearfish Remora texture
 
 Status: clean `v0.48.2` (2026-11-04), accepted from `v0.48.2-dev_1`, branch
@@ -38,8 +49,8 @@ Status: clean `v0.48.1` (2026-11-04), accepted from `v0.48.1-dev_1`, branch
   credit reads "used with permission" instead of "all rights reserved". He allowed any of his
   other Guam Reef Life photos too: `docs/new-species-checklist.md` gains a list of photographers
   with standing permission, starting with him.
-- Munk's Devil Ray's three photo textures had no credit; they are listed as "Unknown source"
-  until their source is found (Jeremy, 2026-11-04).
+- Munk's Devil Ray's three photo textures: an "Unknown source" credit was added, but one already
+  existed; `v0.48.3` removes the duplicate.
 
 ## v0.48.0 — Spearfish Remora
 

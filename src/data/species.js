@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
+import { GIANT_CLAM_MANTLE_SWAY, LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -209,11 +209,11 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis', 'caranx-melampygus'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis', 'caranx-melampygus', 'remora-brachyptera'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum', 'tridacna-gigas'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -1660,6 +1660,8 @@ export const SPECIES = [
     scientificName: 'Remora brachyptera',
     family: 'Echeneidae',
     alternateNames: [],
+    // Rendered in the dev tank (2026-11-02) off the largest rider on the Mola.
+    atlasThumbnail: '/atlas/remora-brachyptera-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -1685,7 +1687,9 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
-        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age data.
+        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age,
+        // maturity or fecundity study of this species is published (searched 2026-10-29), so life
+        // span, maturity and eggs stay Unknown.
         maleSizeMeters: 0.25,
         femaleSizeMeters: 0.25,
         maleWeightKg: 0.07,
@@ -1705,7 +1709,7 @@ export const SPECIES = [
       diet: 'Copepods',
       social: 'Hitchhiker',
     },
-    description: 'A slim, pale remora — whitish to pale blue in life — that rides marlins, sailfish, and swordfish, and is also recorded on ocean sunfishes. Juveniles often shelter inside the host\'s gill chamber. It can shift about its host\'s body and manage short bursts of independent swimming, so it should read as a fish that barely leaves its ride.',
+    description: 'A slim, pale remora — whitish to pale blue in life — that rides marlins, sailfish, and swordfish, and is also recorded on ocean sunfishes. Juveniles often shelter inside the host\'s gill chamber. It can shift about its host\'s body and manage short bursts of independent swimming, but it seldom leaves its ride for long.',
     adultLengthRangeMeters: [0.25, 0.5],
     maxBodyLengthMeters: 0.5,
     swim: {
@@ -1714,21 +1718,58 @@ export const SPECIES = [
       // 50 cm maximum total length = 2.0 WU.
       bodyLengthWU: 2.0,
     },
-    // Skewed above the 25 cm common length so individuals stay clear of the 27 cm tank floor.
+    // 30–50 cm (1.2–2.0 WU): skewed above the 25 cm common length so individuals stay clear of
+    // the 27 cm tank floor.
     sizeRange: [0.6, 1.0],
     mass: REMORA_MASS,
     hitchhiker: {
-      // Billfishes are its usual hosts. Sunfish (Mola), blue shark, and loggerhead records:
-      // Gulf of Tehuantepec first record, Hidrobiológica 2022,
-      // https://www.scielo.org.mx/scielo.php?pid=S0188-88972022000100071&script=sci_arttext
+      // Billfishes are its usual hosts (FishBase). Anislado-Tolentino et al. 2022 (Hidrobiológica
+      // 32: 71–74, after McEachran & Fechhelm 2005) list it in the gill cavity of swordfish, Mola
+      // sp., the sharptail mola and the blue shark, on loggerhead turtles, and occasionally free.
+      // On The Reefs' Mola it lies on all 12 spots at every size (disc lifted at most 2.2 mm) and
+      // a full-size Mola carries five at 50 cm, eight at 30 cm (docs/species-preparation.md).
       hosts: { billfish: 1, sunfish: 0.7, shark: 0.25, turtle: 0.25 },
       rideSeconds: [90, 200],
       freeSeconds: [6, 14],
-      discAheadBodyLengths: 0.3,
+      // Measured off the supplied model by scripts/fit-rider-model.mjs. Its disc runs 25% of the
+      // total length (about 28% of standard length; 28–40% in life, 32.6% on the Tehuantepec
+      // fish). The second dorsal fin stands about 2 cm proud of the line from the disc to the
+      // tail, so the rider pivots on its disc until it clears the host's skin.
+      discAheadBodyLengths: 0.3039,
+      dorsalClearanceBodyLengths: 0.0625,
+      backProfile: [[-0.1936, 0.0672], [-0.1836, 0.0424], [-0.1736, 0.0277], [-0.1636, 0.02], [-0.1536, 0.0167], [-0.1236, 0.0139], [-0.1136, 0.0108], [-0.0636, 0.0054], [-0.0136, 0.0052], [0.0464, 0.0016], [0.1064, 0.0002], [0.1164, 0.0017], [0.1264, 0.0019], [0.2264, -0.0006], [0.3164, -0.0013], [0.3264, -0.0038], [0.4064, -0.0355], [0.4164, -0.0379], [0.4564, -0.04], [0.4664, -0.0395], [0.4864, -0.0319], [0.4964, -0.0278], [0.5464, -0.0038], [0.5964, 0.0155], [0.6164, 0.025], [0.6264, 0.031], [0.6364, 0.0395], [0.6764, 0.0209], [0.7464, -0.0202], [0.7564, -0.0236], [0.7864, -0.0229], [0.7964, 0.0808]],
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
-    hiddenInAtlas: true,
+    model: {
+      path: '/models/fish/remora-brachyptera/remora-brachyptera.glb',
+      // Source length 3.5506 -> 2 WU. The root is recentred mid-length on the body axis, the
+      // frame the ride fit uses (scripts/fit-rider-model.mjs).
+      scale: 0.5633,
+      position: [0, -0.0265, -0.1395],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        // The supplied GLB is rig-free. Its body has two primitives
+        // (scripts/prepare-spearfish-remora-model.py): the main mesh carries the dorsal, anal and
+        // caudal fins, `_2` is the rigid suction disc. The short pectorals and the pelvics are
+        // separate objects.
+        bodyMeshNames: ['remora_brachyptera_1'],
+        followBodyMeshNames: ['remora_brachyptera_2'],
+        // The sharksuckers' stroke, 0.07 and 0.03 body lengths, in this model's source units.
+        amplitude: 0.249,
+        turnStrength: 0.107,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
   {
     id: 'remora-osteochir',
@@ -4997,6 +5038,101 @@ export const SPECIES = [
       // node at its holdfast. 1 raw = 1 m -> 4 WU.
       scale: 4,
       sway: LEATHER_CORAL_SWAY,
+    },
+  },
+  // Giant Clam (Tridacna gigas): a static landscape piece in The Reefs (docs/fish-queue.md,
+  // docs/species-preparation.md), lying on the sand at the bommies' feet: no `swim`, no roster slot,
+  // no creature rows, like the corals. Jeremy (2026-11-01): 4 clams of 60-120 cm on the open sand at
+  // the bommies' feet in the front half of the basin, one mid-phone view, static. His model
+  // (2026-11-02), built by scripts/build-giant-clam-kit.py; placed by giantClamPlacement.js.
+  // Facts: the IUCN assessment (Neo & Li 2024: CR A2acd; free-living on sand or hard reef in clear
+  // water; aged to 76 years, Mecha & Dolorosa 2020; male phase at about 4 years in culture,
+  // Heslinga et al. 1984, female phase about 10; up to 500 million eggs a spawning; spawns on
+  // incoming tides round the full and new moons in the austral summer, Braley 1984; densities 0.2
+  // to 431.9 a hectare, Pearson & Munro 1991), SeaLifeBase (Cardiidae; Myanmar to Wallis and
+  // Futuna, Japan to Australia; 0-35 m; 137 cm maximum and 80 cm common shell length; 500 kg
+  // maximum published weight; simultaneous hermaphrodite in later years; zooxanthellae), NOAA
+  // Fisheries (mantle yellowish-brown to olive-green with blue-green rings; proposed Endangered
+  // under the US ESA).
+  {
+    id: 'tridacna-gigas',
+    name: 'Giant Clam',
+    scientificName: 'Tridacna gigas',
+    family: 'Cardiidae',
+    alternateNames: ['True Giant Clam'],
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 23 May 2024 (A2acd; Neo & Li): more than 80% lost over the past century, and gone
+      // or uncertain in 26 of 31 localities surveyed (Neo et al. 2017). Vulnerable since 1996.
+      code: 'CR',
+      label: 'Critically Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Shell length',
+      // Most of its food comes from the algae in its mantle; it filters plankton as well
+      // (SeaLifeBase: facultative planktotroph with zooxanthellae).
+      commonDiet: 'Sugars from the algae living in its mantle, and plankton it filters from the water.',
+      foundIn: 'The Indo-Pacific, from Myanmar east to Wallis and Futuna, north to Japan and south to Australia, lying on sand or rock on shallow, clear reefs, down to 35 m.',
+      sexualDimorphism: 'None: every adult is both male and female.',
+      // The oldest aged clam (Mecha & Dolorosa 2020, via the IUCN assessment).
+      lifeSpan: '76 years',
+      // In culture (Heslinga et al. 1984; Yusuf pers. comm., via the IUCN assessment): male at 3.5
+      // to 5 years, female function at about 10 (Roa-Quiaoit pers. comm.). Wild ages are unknown.
+      maturityAge: 'About 4 years as a male, 10 as a female',
+      social: {
+        schoolSize: 'Solitary',
+        // Pearson & Munro 1991: 431.9 a hectare at Michaelmas Reef, about 4 per 100 m². Most
+        // surviving subpopulations hold fewer than 10 clams (IUCN assessment).
+        groupingBehaviour: 'Lives alone, lying free on sand or rock among the corals, and never moves once grown. Where it has not been fished out, as on parts of the Great Barrier Reef, clams lie scattered over the reef, up to about four to every 100 m². Elsewhere most groups that remain number fewer than ten.',
+        // Braley 1984 and the IUCN assessment; starts out male (Heslinga et al. 1984).
+        reproduction: 'Each clam is male first, then both male and female. Clams spawn in summer on incoming tides around the full and new moons, a clam releasing up to 500 million eggs at a time to meet the sperm of its neighbours. The larvae drift in the plankton, then settle on the reef.',
+      },
+      averages: {
+        // Every adult is both sexes. Size: SeaLifeBase's common shell length, 80 cm. No length–weight
+        // relation is published; single specimens (230 kg at 137 cm, 333 kg at 115 cm, Wikipedia)
+        // disagree by half at 80 cm, so weight stays Unknown. Life expectancy: the oldest aged clam,
+        // 76 years (Mecha & Dolorosa 2020, via the IUCN assessment), for both.
+        maleSizeMeters: 0.8,
+        femaleSizeMeters: 0.8,
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 76,
+        femaleLifeExpectancyYears: 76,
+      },
+      lifecycle: {
+        // Cultured clams' male phase (IUCN assessment, after Heslinga et al. 1984).
+        sexualMaturityYears: 'About 4 years',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Up to 500 million eggs',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Solitary',
+    },
+    atlasThumbnail: '/atlas/tridacna-gigas-thumbnail.png',
+    description: 'The largest living clam, its shell up to 137 cm long. It lies open on the sand and rock of clear, shallow reefs, its mantle spread to the sun, yellowish brown to olive green with shimmering blue-green rings: algae living in the mantle make most of its food. Collected for food and shells across most of its range, it is Critically Endangered.',
+    // The Atlas clam's shell, for the scale comparison: Jeremy's model at 1.11 m, an old adult past
+    // the 80 cm common length (scripts/build-giant-clam-kit.py; the largest recorded is 137 cm).
+    maxBodyLengthMeters: 1.11,
+    model: {
+      path: '/models/fish/tridacna-gigas/tridacna-gigas.glb',
+      // The kit's clam at its 1.11 m on a faint disc of sand like the table coral's
+      // (scripts/build-giant-clam-atlas.py), the clam's middle at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      // The sand's soft edge is alpha-blended; the clam is opaque.
+      alphaBlend: true,
+      // The mantle breathes as in the tank; the shell and sand stay still.
+      sway: GIANT_CLAM_MANTLE_SWAY,
     },
   },
 ]

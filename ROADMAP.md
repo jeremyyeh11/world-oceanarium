@@ -35,7 +35,7 @@ Status: `Backlog` — requested during `v0.39.0-dev_4` review (2026-10-27).
 Status: `Backlog` — audit of v0.38.0–v0.40.0 (2026-10-28, `v0.40.1-dev_1`).
 
 - [ ] Find the source page and licence of each photo texture credited as "Unknown source"
-  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 18 entries), and the link and
+  (`IMAGE_CREDITS` ids `unknown-*` in `src/data/sources.js`, 19 entries), and the link and
   licence for the two that name only a photographer (Simon Ilett, Guy Stevens / Manta Trust).
   Replace each with a full credit.
 - [x] Remove the IHC Melbourne logo from the mako GLB (`v0.40.1-dev_1`).
@@ -60,7 +60,7 @@ Status: `Backlog` — clean `v0.38.0` accepted on 2026-10-26; shipped work is un
 
 ### Remoras (week 1 of the species series)
 
-Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins were removed in `v0.37.0-dev_2` (Jeremy, 2026-10-25): their species entries stay, with no model, on no tank, listed in `docs/fish-queue.md` until their models land. The open items below carry into the next bucket. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
+Status: `Current in development` — week 1 shipped in clean `v0.16.0` (2026-09-28, from `v0.16.0-dev_17`): the ride system, all eight species' data, and the Live Sharksucker on Jeremy's model (revised in `dev_17`). The Whitefin Sharksucker model followed in clean `v0.17.1` and its Atlas tile in clean `v0.17.3`; the six remaining stand-ins were removed in `v0.37.0-dev_2` (Jeremy, 2026-10-25): their species entries stay, with no model, on no tank, listed in `docs/fish-queue.md` until their models land. The open items below carry into the next bucket. The remoras still without a model (Marlinsucker, Whalesucker, Slender Suckerfish) are not tracked here (Jeremy, 2026-11-04): new species come from `docs/fish-queue.md`. History: #102 was opened as `dev_1`, rebased onto `dev_6` and `dev_13`; `dev_8` retuned the body wave, `dev_9` sampled ride spots from the host mesh, `dev_10` added escorting, `dev_11` bent clamped riders and slowed the remora wave, `dev_12` fixed the latch snapping, and `dev_15`–`dev_17` were Atlas and model patches.
 
 Reference:
 - System: [`docs/ride-hosts.md`](docs/ride-hosts.md); code in the ride section of [`src/components/fishSwim.js`](src/components/fishSwim.js); tests in [`tests/fishRide.test.mjs`](tests/fishRide.test.mjs).
@@ -74,18 +74,15 @@ Subtasks:
 - [x] Live Sharksucker GLB (2026-09-27, from the `feat/echeneis-naucrates` branch, model only). Recentred with `model.position`, disc moving with the head through the new `followBodyMeshNames`, and the ride fit now uses the model's measured top line (`backProfile`, from the new `scripts/fit-rider-model.mjs`).
 - [x] Revised Live Sharksucker model (2026-09-28, `dev_17`): narrower head, single-surface disc. Same fit numbers; body depth, disc, pectoral and pelvic lengths measured inside published ranges.
 - [x] Production `creatures` now has four Live Sharksuckers. Whitefins intentionally remain dev-only for a later population release; the tables continue to diverge by design.
-- [ ] Supply the other six remora GLBs (Jeremy). Intake per species is the five steps under "Remora models" in `docs/ride-hosts.md`, starting with `node scripts/fit-rider-model.mjs <id>`.
 - [x] Clamped remoras bend their rear body onto the host's skin (2026-09-28, `dev_11`, Jeremy: "bend it"). The fit picks the bend with the tilt; the `caudal-vertex` shader draws it (`uProceduralHug`). A full-size sharksucker's tail reaches the mako's skin on 14 of 18 spots.
 - [x] Remora swim wave slowed after review ("they look like snakes", 2026-09-28): `waveSpeed 4.4 → 3.0`, `waveTravel 4.6 → 3.2`.
 - [x] Fins pivot at their roots (2026-09-28, `dev_9`). The sharksucker GLB's `pectoral.r` and `pelvic.r` share their left twin's origin; the renderer now finds each fin's root and turns it there, so no asset change is needed.
 - [x] Ride spots sampled from each host's mesh by face normal, host capacity by length, rider spacing, and riders following the host's caudal wave (2026-09-28, `dev_9`, Jeremy's review: "limit suckers by host size", "more asymmetrical", "use the mesh's face normals").
-- [ ] Decide `creatures_dev` review population for the other six remoras and write the rows (backup before/after). `creatures_dev` has four Live Sharksuckers (ids 283–286, sizes 0.76–1.0) and two Whitefin Sharksuckers (ids 287–288), while production intentionally has no Whitefins yet.
 - [ ] Jeremy feel review on device: latch, ride, and release on the mako and the Mola.
 
 Follow-ups (`Backlog`):
 - [ ] Riders moving between anchors on the same host (real remoras relocate when disturbed).
 - [ ] Mouth and gill-chamber riding (white suckerfish in mantas, juvenile spearfish remoras) — needs hosts with open mouths first.
-- [ ] Whalesucker and marlinsucker get their real hosts in week 3 (spinner dolphin, billfish): each needs only a `rideHost` block. The manta has its spots for the white suckerfish (`v0.42.0-dev_1`).
 - [x] Remoras escort a host loosely when they have no spot or have just let go (2026-09-28, `dev_10`, Jeremy's review).
 - [ ] Week 2's non-attaching followers (pilot fish, golden trevally, rainbow runner) can reuse the remoras' `escort` stage: a `hitchhiker` block that never attaches, only escorts. Pilot fish hold ahead of the snout and golden trevally off the pectorals, so they need their own station ranges.
 
@@ -160,6 +157,67 @@ Review gates:
 
 ## Shipped, with open follow-ups
 
+### Giant Clam (The Reefs)
+
+Status: shipped in clean `v0.49.0` (2026-11-04), accepted from `v0.49.0-dev_7`,
+[PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180) ·
+[Prep, proposals and GLB contract](docs/species-preparation.md). The open items below are
+follow-ups.
+
+Subtasks:
+- [x] Hidden species entry (no model, no rows, not in `landscapeSpecies`): IUCN CR 2024 (Neo & Li),
+  SeaLifeBase, NOAA, Pearson & Munro 1991, credited in `STUDY_CREDITS`. Weight stays Unknown.
+- [x] Jeremy's decisions (2026-11-01): 4 clams, on the open sand at the bommies' feet in the
+  front half of the basin with one mid-phone view, 60–120 cm, static first.
+- [x] Jeremy's GLB (2026-11-02): one open clam, shell and mantle on separate materials, 1.11 m.
+- [x] `dev_2`: kit script, placement module (`giantClams` in landscapes.js), rock obstacles, Atlas
+  specimen and pose, unhidden, `landscapeSpecies`, in-tank tile, photo credits.
+- [x] A clam in the resting view (`dev_3`, Jeremy: "By any rock"): the first lies by any rock the
+  camera sees, left of centre on desktop.
+- [x] Jeremy's review: "ok lets merge" (2026-11-04).
+- [ ] No clam fits the phone's middle yet: table plates on the bommie in front of the outcrop hide
+  that sand. Options if wanted: a smaller clam allowed there, or the in-view clam on a low rock
+  ledge. `Backlog`
+- [x] Texture sources (Jeremy, 2026-11-02): mantle from Bernard Dupont's Commons photo
+  (CC BY-SA 2.0); shell from Andrew Green's Reef Life Survey photo, used without permission on
+  Jeremy's call, to be taken down if asked.
+- [x] Asked Andrew Green for permission to use his photo for the shell, through Reef Life
+  Survey's contact form (Jeremy, 2026-11-02).
+- [ ] Andrew Green's reply (none yet, 2026-11-04; the shell stays in use until then, credited "all
+  rights reserved"): keep with his preferred credit ("used with permission"), or take the shell
+  texture down.
+- [x] Mantle breathing (`dev_5`, Jeremy 2026-11-04): a coral-sway config with the new `swell`
+  option (docs/procedural/coral-sway.md, Giant clam mantle).
+- [ ] Shadow flinch (the mantle pulling in when a fish passes over): new type doc first, only on
+  Jeremy's yes. `Backlog`
+
+### Spearfish Remora (The Reefs)
+
+Status: shipped in clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`,
+[PR #178](https://github.com/jeremyyeh11/world-oceanarium/pull/178) ·
+[Preparation and intake](docs/species-preparation.md) · [Ride hosts](docs/ride-hosts.md).
+
+- [x] Facts and ride data in `species.js`; host range credited (Anislado-Tolentino et al.
+  2022); no age, maturity or fecundity data published, so those Atlas fields stay Unknown.
+- [x] Size floor: 30–50 cm (1.2–2.0 WU), above 27 cm.
+- [x] Host: the Mola's 12 spots regenerate unchanged from its GLB, and the rider lies on all of
+  them (worst disc lift 2.2 mm); a full-size Mola carries 5–8 at once.
+- [x] Jeremy (2026-10-30): four, 30–50 cm, sharing the reserve's one Mola (id 21).
+- [x] Jeremy's GLB and intake (`dev_2`): rig-free body, separate suction disc and four paired
+  fins, two opaque photo textures; fitted with `scripts/fit-rider-model.mjs` (source length
+  3.5093, disc 25% of total length); `npm test` fits its top line on every Mola spot.
+- [x] Four `creatures_dev` rows (`dev_3`, ids 1183–1186) and the Atlas tile; all four ride the
+  Mola and run the full let-go and re-attach cycle, and the top rider lets go before a sun-bask
+  lifts it out of the water (seen live).
+- [x] Texture source (`dev_4`): John Snow's photos on Mexican Fish.com (`snow-spearfish-remora`).
+- [x] Jeremy accepted `dev_4` (2026-11-03: "merge"). Production `creatures` ids 1480–1483
+  (837 → 841 rows, backed up before and after).
+- [x] Retextured (`v0.48.2`, Jeremy: Snow's photos are not to be used): Jeremy's new GLB
+  uses Eric L. Chen's iNaturalist photo (CC BY-NC 4.0); `scripts/prepare-spearfish-remora-model.py`
+  crops it and splits the disc back out of the body; rider fit re-run (source length 3.5506).
+- [x] Atlas tile recaptured with the new texture (`public/atlas/remora-brachyptera-thumbnail.png`,
+  rendered in the dev tank, other fish hidden).
+
 ### Leather Coral
 
 Status: shipped in clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`,
@@ -181,9 +239,9 @@ Status: shipped in clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`,
 - [x] Swing way down, `bend` 0.21 → 0.08 (Jeremy, after reference videos: "waving way too
   much", `dev_7`).
 - [x] Phone review on the Vercel preview (Jeremy: "looks good. lets merge").
-- [ ] Ask David Burdick (Guam Reef Life) for permission to use his photo for the grey caps
-  (`burdick-leather-coral`); it is used without permission on Jeremy's call (2026-11-02), to be
-  taken down if he asks.
+- [x] David Burdick (Guam Reef Life) gave permission by email (2026-11-04) for the grey caps'
+  photo (`burdick-leather-coral`), and for any of his other photos; credited "used with
+  permission" in `v0.48.1`.
 
 ### Humphead Wrasse: gentle giant
 
@@ -269,7 +327,8 @@ Subtasks:
   portrait and landscape phone; in-tank tile; unhidden and on The Reefs' `landscapeSpecies`.
 - [x] Texture licences: the four photos are not openly licensed. Two carry a
   "CoralsOfTheWorld.org" watermark (their terms: unaltered, personal, non-commercial use only);
-  one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated); the orange
+  one is "© In-Depth Images Kwajalein" (Kwajalein Underwater, no licence stated; Scott Johnson gave
+  permission by email 2026-11-02, credited "used with permission" in `v0.47.2`); the orange
   colony's source is unknown. Credited in `IMAGE_CREDITS`; the watermarked corners lie outside
   the UVs and never reach the baked maps. Jeremy (2026-10-30): keep them, credited; "if anyone
   wants me to take down, i will".
@@ -930,8 +989,9 @@ free-swimming fish that sometimes rides, the way the sharksuckers do.
 - [x] Intake: rider fit (disc 35% of the length), stroke in model units, Atlas source length
   and framing, verifier target, test lists, The Open Sea's roster, out of hiding.
 - [x] Photo credits: the body texture is Jeremy's recolour of P. Béarez's FishBase specimen
-  photo, which FishBase marks all rights reserved; used on Jeremy's call, to be taken down if
-  the holder objects. The disc is M. M. Khan's photo (CC BY 3.0).
+  photo, which FishBase marks all rights reserved; Béarez gave permission by email
+  (2026-11-02), credited "used with permission" in `v0.47.1`. The disc is M. M. Khan's
+  photo (CC BY 3.0).
 - [x] Four in `creatures_dev` (ids 1171–1174, about 45, 58, 70 and 84 cm; snapshots before and
   after).
 - [x] Atlas tile (`public/atlas/remora-remora-thumbnail.png`, `v0.43.0-dev_3`).

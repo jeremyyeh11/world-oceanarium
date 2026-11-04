@@ -156,6 +156,31 @@ Jeremy's source: `_blender models/sarcophyton glaucum.glb`. Build the kit, then 
    set to Blend draws the far side through the near). Credit each photo in IMAGE_CREDITS.
 7. **Budget: up to 3,000 triangles a colony.** No bones, clips, shape keys or vertex colour.
 
+## Giant clam mantle (since `v0.49.0-dev_5`)
+
+The third config on this type, and the first that is not a coral: the mantle of *Tridacna gigas*
+on The Reefs (`src/components/giantClamPlacement.js`, Landscape.jsx `GiantClams`). Jeremy
+(2026-11-04): the clam "doesn't seem to move ... at least the mantle if the shell is not going to
+open and close". Felt intention: something very old and very still that is plainly alive, its
+mantle slowly swelling over the shell's lips and settling back. Must not snap shut, lean with the
+surge like a coral, or wobble like jelly.
+
+- Swell, not sway: `addSwayAttributes(..., swell: true)` swings each vertex along the surface's
+  own outward normal instead of one direction, so the mantle breathes in and out rather than
+  leaning. The normals of the faces round each point are averaged (area-weighted), so the
+  flat-shaded mesh's split vertices move together and no facet opens. The shading normals stay
+  the faceted ones.
+- Flex by height, as the leather coral: `up` (the clam's own up, leant with the sand) and
+  `flexFrom`, so the mantle deep in the gape stays still and its upper part, spilling over the
+  lips, moves most. Only the material named `part` (the mantle) gets the shader and attributes;
+  the shell is the static kit material (rock shade and caustics).
+- Config `GIANT_CLAM_MANTLE_SWAY` (landscapes.js): `period` 9, `bend` 0.06 (the swell at the top,
+  a share of the clam's height: about 2.5 cm on a 1 m clam, 0.1 WU), `flutter` 0.15, `flexFrom`
+  0.45, `swell: true`, `part: 'mantle'`. Each clam's phase comes from where it lies. No `orbit`.
+- The Atlas sways only the `part` meshes, swelling (EncyclopediaPage.jsx `prepareAtlasSway`).
+- Not built: the shadow flinch (the mantle pulling in and the gape narrowing when a fish passes
+  overhead). It is event-driven, not periodic, and would need its own type doc first.
+
 ## Intake checklist
 
 1. Run the kit script; read its warnings and preview.

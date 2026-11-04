@@ -17,6 +17,47 @@ export const VISITOR_CHANGELOG = [
     ],
   },
   {
+    version: 'v0.48.2',
+    date: '2026-11-04',
+    title: 'Spearfish Remora new look',
+    changes: [
+      ['fix', 'The Spearfish Remoras on the giant sunfish wear a new skin, dusky grey-purple from a photo of a living fish, in The Reefs and in the Atlas.'],
+    ],
+  },
+  {
+    version: 'v0.48.1',
+    date: '2026-11-04',
+    title: 'Photo credits',
+    changes: [
+      ['fix', 'The grey Leather Coral\'s photo credit in Sources now reads "used with permission": its photographer, David Burdick of Guam Reef Life, kindly said yes.'],
+    ],
+  },
+  {
+    version: 'v0.48.0',
+    date: '2026-11-03',
+    title: 'Spearfish Remora',
+    changes: [
+      ['new', 'Four Spearfish Remoras ride the giant sunfish in The Reefs, pale passengers clamped to its flanks that let go for a short swim, then hurry back to a new spot.'],
+      ['new', 'Meet the Spearfish Remora in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.47.2',
+    date: '2026-11-03',
+    title: 'Brain coral photo permission',
+    changes: [
+      ['fix', "The pale Brain Coral's photo credit in Sources now reads \"used with permission\": Scott Johnson of In-Depth Images Kwajalein kindly said yes."],
+    ],
+  },
+  {
+    version: 'v0.47.1',
+    date: '2026-11-02',
+    title: 'Remora photo permission',
+    changes: [
+      ['fix', 'The Common Remora\'s photo credit in Sources now reads "used with permission": its photographer, Philippe Béarez, kindly said yes.'],
+    ],
+  },
+  {
     version: 'v0.47.0',
     date: '2026-11-02',
     title: 'Leather Coral',

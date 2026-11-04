@@ -495,6 +495,15 @@ export const STUDY_CREDITS = [
     venue: 'Species directory',
     url: 'https://www.fisheries.noaa.gov/species/true-giant-clam',
   },
+  {
+    id: 'anislado-tolentino-2022-spearfish-remora',
+    subject: 'Spearfish Remora hosts beyond billfishes: ocean sunfishes, blue shark, loggerhead turtle',
+    authors: 'Anislado-Tolentino, Rosales-Vásquez, Irigoyen-Solis, Del Moral-Flores & Wakida-Kusunoki',
+    year: 2022,
+    title: 'First record of the spearfish remora Remora brachyptera (Carangiformes: Echeneidae) in the Gulf of Tehuantepec, Mexico',
+    venue: 'Hidrobiológica 32: 71–74',
+    url: 'https://doi.org/10.24275/uam/izt/dcbs/hidro/2022v32n1/Anislado',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one
@@ -503,8 +512,9 @@ export const STUDY_CREDITS = [
 // texture is shared under the same licence, which `changes` says.
 // Every photo texture gets an entry. One whose source is not known has no `url`
 // and shows "Unknown source" (with `author` when only the photographer is known);
-// replace it with the full credit once the source is found. Generated images are
-// not photographs and are not listed.
+// replace it with the full credit once the source is found. A found source that
+// states no licence has no `licence` and shows "licence not stated". Generated images
+// are not photographs and are not listed.
 export const IMAGE_CREDITS = [
   {
     id: 'zerpe-emperor-angelfish',
@@ -616,14 +626,14 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
   },
   {
-    // FishBase marks the photo all rights reserved; used on Jeremy's call (2026-11-01), to be
-    // taken down if the holder objects. FishBase names P. Béarez as its contributor.
+    // FishBase marks the photo all rights reserved; Philippe Béarez gave Jeremy permission to use
+    // it by email (2026-11-02). No public page records it, so the licence has no link.
     id: 'bearez-common-remora',
     subject: 'Common Remora body texture',
     author: 'P. Béarez',
     work: 'Remora remora, Salango, Manabí, Ecuador (FishBase)',
     url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species',
-    licence: { name: 'all rights reserved', url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species' },
+    licence: { name: 'used with permission' },
     changes: 'Recoloured from the preserved specimen to the living fish\'s dark brown, mapped onto the 3D model, cropped to the fish and resized.',
   },
   {
@@ -644,6 +654,17 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    // Jeremy's retextured model (v0.48.2): one photo of one fish from above, the side and
+    // below; the model uses the top and side views. It replaced John Snow's photos.
+    id: 'chen-spearfish-remora',
+    subject: 'Spearfish Remora texture',
+    author: 'Eric L. Chen',
+    work: 'Remora brachyptera, East China Sea (iNaturalist)',
+    url: 'https://www.inaturalist.org/observations/341341699',
+    licence: { name: 'CC BY-NC 4.0', url: 'https://creativecommons.org/licenses/by-nc/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized.',
+  },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
   { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },
@@ -660,6 +681,8 @@ export const IMAGE_CREDITS = [
   // ROADMAP (v0.37.0): Guy Stevens' photo, © Manta Trust, used on Jeremy's call.
   { id: 'stevens-giant-manta', subject: 'Giant Oceanic Manta top texture', author: 'Guy Stevens, Manta Trust' },
   { id: 'unknown-giant-manta', subject: 'Giant Oceanic Manta eye and mouth textures' },
+  // Embedded as `mexican-fish (3) - dorsal`, `mexican-fish (3)` and `mexican-fish (4)`; Jeremy
+  // (2026-11-04): source unknown.
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
   { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
   { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
@@ -672,14 +695,16 @@ export const IMAGE_CREDITS = [
   // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
   // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
   // (v0.43.0): none is openly licensed; used on Jeremy's call (2026-10-30), taken down on request.
-  // The photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth Images
-  // Kwajalein"; the page states no licence. Shown with `url` and no `licence`.
+  // The pale colony's photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth
+  // Images Kwajalein"; Scott Johnson gave Jeremy permission by email for the team (2026-11-02).
+  // No public page records it, so the licence has no link.
   {
     id: 'kwajalein-brain-coral',
     subject: 'Brain Coral texture (pale colony)',
     author: 'In-Depth Images Kwajalein',
     work: 'Platygyra cf. daedalea (k01-100711), Kwajalein Underwater',
     url: 'https://underwaterkwaj.com/uw-misc/coral/merulinidae/Platygyra-cf-daedalea.htm',
+    licence: { name: 'used with permission' },
     changes: 'Mapped onto the 3D model and resized.',
   },
   // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
@@ -704,14 +729,14 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
   },
   {
-    // Used without permission (Jeremy, 2026-11-02: take it down if asked); the photographer's terms
-    // ask for permission first. ROADMAP has the follow-up.
+    // David Burdick gave Jeremy permission by email (2026-11-04), for this photo and any other of
+    // his. No public page records it, so the licence has no link.
     id: 'burdick-leather-coral',
     subject: 'Leather Coral texture (grey caps)',
     author: 'David Burdick',
     work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
     url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',
-    licence: { name: 'all rights reserved', url: 'https://www.guamreeflife.com/index.php/image-copyright-appropriate-usage/' },
+    licence: { name: 'used with permission' },
     changes: 'Mapped onto the 3D model, cropped and resized.',
   },
   {

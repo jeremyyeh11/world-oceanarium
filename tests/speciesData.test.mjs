@@ -180,6 +180,7 @@ const SUPPLIED_REMORA_SOURCE_LENGTHS = {
   'echeneis-neucratoides': 5.4912,
   'remora-remora': 0.8604,
   'remora-albescens': 0.2996,
+  'remora-brachyptera': 3.5506,
 }
 for (const [id, maxMeters, iucn] of REMORAS) {
   const remora = speciesById.get(id)

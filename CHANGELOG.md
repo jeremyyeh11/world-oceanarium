@@ -40,6 +40,102 @@ waiting for Jeremy's review. `dev_1` prepared the species; `dev_2` Jeremy's mode
   front hide the sand in the phone's middle); the other three lie by the front bommies, out of
   frame or behind rock.
 
+## v0.48.3 — Duplicate devil ray credit
+
+Status: clean `v0.48.3` (2026-11-04), accepted from `v0.48.3-dev_1`, branch
+`fix/duplicate-devil-ray-credit`, [PR #195](https://github.com/jeremyyeh11/world-oceanarium/pull/195). Jeremy: "merge both".
+No visitor line: production never showed the duplicate.
+
+### Sources
+
+- Munk's Devil Ray was listed twice under Image credits: `v0.48.1` added an "Unknown source"
+  entry beside the one it already had. The duplicate is removed (it also gave two list items
+  the same React key), and `v0.48.1`'s visitor line about it is withdrawn, since visitors never
+  saw a change.
+
+## v0.48.2 — Spearfish Remora texture
+
+Status: clean `v0.48.2` (2026-11-04), accepted from `v0.48.2-dev_1`, branch
+`claude/spearfish-texture`, [PR #193](https://github.com/jeremyyeh11/world-oceanarium/pull/193). Jeremy: "merge both".
+
+### Species and Atlas
+
+- Spearfish Remora retextured on Jeremy's new GLB from Eric L. Chen's iNaturalist photo
+  (CC BY-NC 4.0), replacing John Snow's photos. `scripts/prepare-spearfish-remora-model.py`
+  crops the photo to the two views the UVs use, renders the fish opaque, and splits the suction
+  disc back out of the body so it stays rigid (2.08 MB to 207 KB). Mouth and tail edits lengthen
+  the source to 3.5506 units; scale, rider fit and stroke re-measured. Atlas tile recaptured
+  with the new texture.
+
+### Sources
+
+- The Spearfish Remora credit is Eric L. Chen's photo (CC BY-NC 4.0); John Snow's credit is
+  removed with his photos.
+
+## v0.48.1 — Leather coral photo permission and devil ray credit
+
+Status: clean `v0.48.1` (2026-11-04), accepted from `v0.48.1-dev_1`, branch
+`claude/burdick-permission`, [PR #192](https://github.com/jeremyyeh11/world-oceanarium/pull/192). Jeremy: "merge both".
+
+### Sources
+
+- Leather Coral texture (grey caps): David Burdick gave permission by email (2026-11-04), so its
+  credit reads "used with permission" instead of "all rights reserved". He allowed any of his
+  other Guam Reef Life photos too: `docs/new-species-checklist.md` gains a list of photographers
+  with standing permission, starting with him.
+- Munk's Devil Ray's three photo textures: an "Unknown source" credit was added, but one already
+  existed; `v0.48.3` removes the duplicate.
+
+## v0.48.0 — Spearfish Remora
+
+Status: clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`, branch
+`species/remora-brachyptera`, [PR #178](https://github.com/jeremyyeh11/world-oceanarium/pull/178).
+Jeremy: "merge", and yes to production rows. `dev_1` prepared the species entry ahead of the
+model; `dev_2` added Jeremy's model; `dev_3` the dev rows and Atlas tile; `dev_4` the texture
+credit.
+
+### Species and Atlas
+
+- Spearfish Remora (`remora-brachyptera`), four riding The Reefs' Mola (id 21), 30–50 cm. In
+  `creatures_dev` ids 1183–1186; in production `creatures` ids 1480–1483 (837 → 841 rows,
+  backed up before and after), each with its own description.
+- Jeremy's model, fitted as a rider (disc 25% of total length, second dorsal about 2 cm proud of
+  the disc line); it swims with the sharksuckers' caudal wave and paired-fin flutter. It lies on
+  all 12 Mola spots at 30–50 cm (worst disc lift 2.2 mm), and a full-size Mola carries five to
+  eight at once.
+- Checked in the dev tank: all four latch on, let go for a few seconds of swimming or escorting,
+  and come back to new spots; a ride lasted 172 s (data 90–200 s); the rider on the top spot lets
+  go before a sun-bask lifts it out of the water.
+- Atlas entry and tile: host range credited to Anislado-Tolentino et al. 2022 (billfishes and
+  swordfish, also ocean sunfishes, blue shark and loggerhead turtles). No published age,
+  maturity or spawning data, so those fields stay Unknown.
+
+### Sources
+
+- Its two photo textures are credited to John Snow (Mexican Fish.com). The site states no
+  licence, so the credit reads "licence not stated"; a permission request is drafted.
+
+## v0.47.2 — Brain coral photo permission
+
+Status: clean `v0.47.2` (2026-11-03), accepted from `v0.47.2-dev_1`, branch
+`claude/brain-coral-permission`, [PR #191](https://github.com/jeremyyeh11/world-oceanarium/pull/191). Jeremy: "merge".
+
+### Sources
+
+- Brain Coral texture (pale colony): Scott Johnson of In-Depth Images Kwajalein gave permission
+  by email (2026-11-02), so its credit reads "used with permission" instead of no licence.
+
+## v0.47.1 — Remora photo permission
+
+Status: clean `v0.47.1` (2026-11-02), accepted from `v0.47.1-dev_1`, branch
+`claude/youthful-spence-15725a`, [PR #190](https://github.com/jeremyyeh11/world-oceanarium/pull/190). Jeremy: "merge".
+
+### Sources
+
+- Common Remora body texture: P. Béarez gave permission by email (2026-11-02), so its credit
+  reads "used with permission" instead of "all rights reserved". A licence with no link shows as
+  plain text in the Sources modal.
+
 ## v0.47.0 — Leather Coral
 
 Status: clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`, branch

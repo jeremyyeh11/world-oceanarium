@@ -143,6 +143,92 @@ desktop frame, its whole line of sight clear of rock, tables and corals and kept
 staghorn. In The Reefs it lies low between the left-hand pillars, left of a phone's frame: table
 plates on the bommie in front of the outcrop hide the sand in the phone's middle.
 
+## Spearfish Remora — `remora-brachyptera` (prepared `v0.48.0-dev_1`, model `dev_2`, tank `dev_3`, credit `dev_4`, shipped `v0.48.0`)
+
+Reserve: The Reefs, riding the giant sunfish ([fish queue](fish-queue.md), Up next 7). Felt
+intention: a pale passenger that is almost part of the Mola, clamped to its flanks for minutes
+at a time and rolling with it through a sun-bask, letting go only for a short swim before it
+takes a spot again. Its ride (`rideSeconds` 90–200) is long and its time off (`freeSeconds`
+6–14) the shortest of any remora's. Must not happen: a remora roaming the reef on its own, a
+rider poking through the Mola's rowing dorsal or anal fin, or riders crowding the Mola so
+thickly it reads as spotted.
+
+Ready: the hidden species entry (no model, on no roster, no rows, out of the Atlas) with
+FishBase facts and its `hitchhiker` block. In this build:
+
+- Host range verified in Anislado-Tolentino et al. 2022 (Hidrobiológica 32: 71–74, now in
+  `STUDY_CREDITS`): billfishes and swordfish first, and in the gill cavity of *Mola* sp., the
+  sharptail mola and the blue shark, on loggerhead turtles, occasionally free. Weights
+  unchanged: billfish 1, sunfish 0.7, shark 0.25, turtle 0.25. The reserve's only host is the
+  Mola, so it accepts the Mola on 70% of its tries and escorts it on many of the rest.
+- FishBase (consulted 2026-10-29): 50 cm TL maximum, 25 cm TL common, LC (assessed 2009),
+  pelagic-oceanic, length–weight a 0.00263, b 3.17. No depth range, no maturity length, no age
+  or fecundity data; a search found no age, growth or spawning study of this species. Averages
+  stay at the common length (25 cm, 0.07 kg); life span, maturity and eggs stay Unknown.
+- Size floor: `sizeRange` 0.6–1.0 gives 30–50 cm (1.2–2.0 WU), all above 27 cm.
+- Atlas copy no longer describes how the reserve should play it (as on the common remora).
+- The Mola covers this rider with no change: `rideHost.groups` has `sunfish`; its 12 anchors
+  regenerate byte-for-byte from today's GLB with the command recorded in `rideAnchors.js`; and
+  `tests/fishRide.test.mjs` already fits every attaching rider with a sunfish weight on every
+  Mola spot. Measured for this one (stand-in straight back): it lies on all 12 spots at 30, 40
+  and 50 cm, median disc lift 0, worst 2.2 mm. A full-size Mola (13.2 WU, load 80%) carries
+  five 50 cm riders, six at 40 cm or eight at 30 cm at once, every arrival order tried (checked at
+  full size only; the reserve's Mola is size 0.88). No other rider claims Mola spots: the pilot fish,
+  bannerfish and angelfish only escort.
+- Swim room: `DRIFT_RIDER_BOUNDS`, the Mola's own box, so a rider let go anywhere the Mola
+  swims is already inside its swim volume.
+
+Decided by Jeremy (2026-10-30):
+
+- **Count: four,** sizes spread 30–50 cm (size parameters 0, 0.33, 0.67, 1; about 6.4 WU of
+  the Mola's 10 WU), so all four can ride at once with a spot spare as they rotate.
+  `creatures_dev` rows once the model is in (backups first); production rows only on his
+  go-ahead.
+- **Host: the reserve's one Mola,** id 21 (male, size 0.88) in both tables. No second Mola.
+
+Model (`v0.48.0-dev_2`, Jeremy's GLB, intake per [ride-hosts.md](ride-hosts.md), Remora models):
+
+- Rig-free, nose −Z. The body has two primitives: `remora_brachyptera_1` (body with dorsal,
+  anal and caudal fins) and `remora_brachyptera_2` (the suction disc, in
+  `followBodyMeshNames`). Jeremy's retextured export (`v0.48.2`) merged the disc into the
+  body; `scripts/prepare-spearfish-remora-model.py` splits it back out (176 faces). The short pectorals and the pelvics are separate objects
+  (`pectorall/r`, `pelvicl/r`) and flutter on their own.
+- `scripts/fit-rider-model.mjs`: source length 3.5506 → 2 WU (scale 0.5633; 3.5093 before the
+  retextured export's mouth and tail edits); the disc runs 24.5% of total length (about 28% of
+  standard length, inside the 28–40% in life), its centre 0.3039
+  body lengths ahead of the root; the second dorsal stands about 2 cm proud of the disc line.
+  `npm test` fits that measured top line on every Mola spot.
+- Stroke: the sharksuckers' 0.07 and 0.03 body lengths (amplitude 0.249, turn 0.107 source
+  units); fin flutter 0.08 / 0.04, as on the whitefin.
+- Texture (`v0.48.2`): Jeremy retextured the model from Eric L. Chen's iNaturalist photo
+  (one fish from above, the side and below, East China Sea, CC BY-NC 4.0, `chen-spearfish-remora`),
+  replacing John Snow's Mexican Fish.com photos, which had no licence. The prepare script cuts
+  the 2048 px PNG to the two views the UVs use (1536×783 JPEG) and drops BLEND (solid alpha):
+  2.08 MB to 207 KB.
+- Atlas: framed at 1.45 display units, between the bannerfish and the pilot fish; checked at
+  375 px and on desktop.
+
+Shipped in clean `v0.48.0` (2026-11-03, Jeremy: "merge"): production `creatures` ids 1480–1483,
+the same four as dev (837 → 841 rows, backed up before and after).
+
+Open:
+
+- Riding the gill chamber, as juveniles do, stays a backlog item (ROADMAP, Remoras).
+
+Tank (`dev_3`, 2026-11-02):
+
+- `creatures_dev` ids 1183–1186 (dev table 832 → 836; production unchanged at 831), sizes 0,
+  0.33, 0.67, 1, alternating sex, each with its own description. Backed up before and after.
+- Checked in the dev tank: all four rode the Mola (id 21) within seconds of load, and ran the
+  full cycle (attached, release, escort or free, approach, dock, latch, attached) on new spots.
+  A ride measured 172 s (data: 90–200 s); they held on through the Mola's dive to y −13.
+- Sun-bask (debug shortcut; it waits for a basking spot ahead of the Mola, so it can take a
+  minute or two to start): the rider on the top spot let go at y 4.19 as the Mola rose and
+  re-attached once it settled; one holding just under the limit stayed submerged (highest point
+  4.46, surface 4.6).
+- Atlas tile rendered off the largest rider (`public/atlas/remora-brachyptera-thumbnail.png`,
+  470 px).
+
 ## Leather Coral — `sarcophyton-glaucum` (prepared `v0.47.0-dev_1`, model `dev_2`, sway `dev_3`–`dev_7`, shipped `v0.47.0`)
 
 Reserve: The Reefs, a landscape coral like the tables, staghorn, sea fans and brain corals
@@ -269,7 +355,7 @@ Sway (`dev_3`–`dev_7`, Jeremy on his phone): stronger, then in the cap with th
 reference videos, far smaller: `bend` 0.08 (docs/procedural/coral-sway.md has the steps).
 Accepted ("looks good. lets merge") and shipped in `v0.47.0`.
 
-Still open: Burdick's permission (ROADMAP).
+Burdick gave permission by email (2026-11-04), credited "used with permission" in `v0.48.1`.
 
 ## Bluefin Trevally — `caranx-melampygus` (prepared `v0.46.0-dev_1`, model `dev_3`, fins `dev_4`, size and tail `dev_5`, shipped `v0.46.0`)
 

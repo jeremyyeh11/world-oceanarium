@@ -206,9 +206,9 @@ Status: shipped in clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`,
 - [x] Swing way down, `bend` 0.21 → 0.08 (Jeremy, after reference videos: "waving way too
   much", `dev_7`).
 - [x] Phone review on the Vercel preview (Jeremy: "looks good. lets merge").
-- [ ] Ask David Burdick (Guam Reef Life) for permission to use his photo for the grey caps
-  (`burdick-leather-coral`); it is used without permission on Jeremy's call (2026-11-02), to be
-  taken down if he asks.
+- [x] David Burdick (Guam Reef Life) gave permission by email (2026-11-04) for the grey caps'
+  photo (`burdick-leather-coral`), and for any of his other photos; credited "used with
+  permission" from `v0.48.1-dev_1`.
 
 ### Humphead Wrasse: gentle giant
 

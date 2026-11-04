@@ -8,6 +8,17 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.48.1 — Leather coral photo permission
+
+Status: in development, `v0.48.1-dev_1`, branch `claude/burdick-permission`.
+
+### Sources
+
+- Leather Coral texture (grey caps): David Burdick gave permission by email (2026-11-04), so its
+  credit reads "used with permission" instead of "all rights reserved". He allowed any of his
+  other Guam Reef Life photos too: `docs/new-species-checklist.md` gains a list of photographers
+  with standing permission, starting with him.
+
 ## v0.48.0 — Spearfish Remora
 
 Status: clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`, branch

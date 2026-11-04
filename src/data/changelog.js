@@ -27,9 +27,9 @@ export const VISITOR_CHANGELOG = [
   {
     version: 'v0.48.1',
     date: '2026-11-04',
-    title: 'Photo credits',
+    title: 'Updated credits',
     changes: [
-      ['fix', 'The grey Leather Coral\'s photo credit in Sources now reads "used with permission": its photographer, David Burdick of Guam Reef Life, kindly said yes.'],
+      ['fix', 'Updated image credits in Sources.'],
     ],
   },
   {
@@ -44,17 +44,17 @@ export const VISITOR_CHANGELOG = [
   {
     version: 'v0.47.2',
     date: '2026-11-03',
-    title: 'Brain coral photo permission',
+    title: 'Updated credits',
     changes: [
-      ['fix', "The pale Brain Coral's photo credit in Sources now reads \"used with permission\": Scott Johnson of In-Depth Images Kwajalein kindly said yes."],
+      ['fix', 'Updated image credits in Sources.'],
     ],
   },
   {
     version: 'v0.47.1',
     date: '2026-11-02',
-    title: 'Remora photo permission',
+    title: 'Updated credits',
     changes: [
-      ['fix', 'The Common Remora\'s photo credit in Sources now reads "used with permission": its photographer, Philippe Béarez, kindly said yes.'],
+      ['fix', 'Updated image credits in Sources.'],
     ],
   },
   {

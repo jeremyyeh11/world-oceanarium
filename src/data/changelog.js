@@ -21,7 +21,6 @@ export const VISITOR_CHANGELOG = [
     title: 'Photo credits',
     changes: [
       ['fix', 'The grey Leather Coral\'s photo credit in Sources now reads "used with permission": its photographer, David Burdick of Guam Reef Life, kindly said yes.'],
-      ['fix', 'Munk\'s Devil Ray\'s photos are now listed in Sources, as unknown source until we find where they came from.'],
     ],
   },
   {

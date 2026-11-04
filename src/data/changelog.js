@@ -8,6 +8,14 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.49.1',
+    date: '2026-11-04',
+    title: 'Toadstool Leather Coral',
+    changes: [
+      ['fix', 'The Leather Coral is now the Toadstool Leather Coral in the Atlas, its own common name; "leather coral" is shared by dozens of related soft corals.'],
+    ],
+  },
+  {
     version: 'v0.49.0',
     date: '2026-11-04',
     title: 'Giant Clam',

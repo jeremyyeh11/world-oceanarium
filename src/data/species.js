@@ -4967,7 +4967,10 @@ export const SPECIES = [
   // stony corals for space, after Fleury et al. 2006).
   {
     id: 'sarcophyton-glaucum',
-    name: 'Leather Coral',
+    // Renamed from 'Leather Coral' in v0.49.1 (Jeremy, 2026-11-04): "leather coral" covers the
+    // whole genus; "toadstool leather coral" is this species' own common name.
+    name: 'Toadstool Leather Coral',
+    alternateNames: ['Leather coral', 'Toadstool coral'],
     scientificName: 'Sarcophyton glaucum',
     family: 'Sarcophytidae',
     // Tile (2026-11-02): the classic peach toadstool on its rock, three-quarter, against reef blue,

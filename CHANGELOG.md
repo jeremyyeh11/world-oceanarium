@@ -8,6 +8,20 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.49.1 — Toadstool Leather Coral
+
+Status: clean `v0.49.1` (2026-11-04), accepted from `v0.49.1-dev_1`, branch
+`species/toadstool-leather-coral-name`, [PR #198](https://github.com/jeremyyeh11/world-oceanarium/pull/198).
+Jeremy: "Yes, merge". No production data.
+
+### Species and Atlas
+
+- `sarcophyton-glaucum` renamed from Leather Coral to Toadstool Leather Coral (Jeremy,
+  2026-11-04): "leather coral" names the whole genus, and the toadstool leather coral is
+  *S. glaucum*'s own common name. Leather coral and toadstool coral move to `alternateNames`;
+  the source subjects in `sources.js`, `docs/reef-behavior.md` and the fish queue follow. The id,
+  the `toadstool` coral form and the code names (`leatherCorals`, `LEATHER_CORAL_KIT`) stay.
+
 ## v0.49.0 — Giant Clam
 
 Status: clean `v0.49.0` (2026-11-04), accepted from `v0.49.0-dev_7`, branch

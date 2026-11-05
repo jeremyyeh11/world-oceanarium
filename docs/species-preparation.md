@@ -72,9 +72,9 @@ Decided (Jeremy, 2026-10-31):
   Solitary, each swimming on its own. Rows at intake, inside `sizeRange` 65–90 cm: the
   male near the breeding males' 67.5 cm, the females near their 78 cm. No juveniles.
   Nothing written to `creatures_dev` or `creatures` yet.
-- **Male variant model** (Jeremy, 2026-11-01): the male gets his own GLB with the long,
-  thick tail reaching well past the shell and the larger curved fore-flipper claws. The
-  female model is the base (`chelonia-mydas.glb`), the male `chelonia-mydas-male.glb` in
+- **Male variant model** (Jeremy, 2026-11-01; shape 2026-11-05): the male gets his own
+  GLB, the female model with a longer tail reaching well past the shell (the males' larger
+  fore-flipper claws are not modelled). The female model is the base (`chelonia-mydas.glb`), the male `chelonia-mydas-male.glb` in
   `model.sexVariants.male`, as the humphead wrasse's female is. Both follow the same
   foil-flap contract; the tail is left unpainted, so it stays rigid with the shell. The
   male's rows are written only once the live bundle serves the build that draws him.
@@ -87,6 +87,12 @@ Decided (Jeremy, 2026-10-31):
   back, 8–10 spanwise loops per fore-flipper. Full contract in foil-flap.md. The stand-in's
   lesson is the script's job: the stroke weight reaches full strength where the flipper
   leaves the shell, so the bend stays hidden inside it.
+
+- **References** (Jeremy, 2026-11-05): two Wikipedia photos of green turtles, one from
+  above, one from ahead, for modelling only. Both show other populations: the East Pacific
+  turtle's shell is darker (slate to olive-black), more domed and narrower over the hind
+  flippers, so check the shell outline at intake. A photo used as a texture needs its
+  Commons licence looked up and an `IMAGE_CREDITS` entry in the build that ships it.
 
 No decisions are open. Next: Jeremy's female and male `.blend` files.
 

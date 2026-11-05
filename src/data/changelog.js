@@ -8,6 +8,15 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.50.0',
+    date: '2026-11-05',
+    title: 'East Pacific Green Turtle',
+    changes: [
+      ['new', 'Meet the East Pacific Green Turtle in the Atlas, with its dark shell, powerful flipper strokes and long glides.'],
+      ['new', 'Ribbon seagrass sways in patchy beds across The Shallows, with open sand between the leaves.'],
+    ],
+  },
+  {
     version: 'v0.49.1',
     date: '2026-11-04',
     title: 'Toadstool Leather Coral',

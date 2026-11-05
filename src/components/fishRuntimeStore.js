@@ -48,6 +48,9 @@ function createRuntimeEntry() {
     nextBurstAt: 0,
     nextDriftAt: 0,
     driftUntil: 0,
+    // Turtles resume the same stroke, glide and breathing visit after a reserve switch.
+    foilFlap: null,
+    surfacing: null,
     // Hitchhiker (remora) ride state, mutated in place by advanceRide. Persisting it means a
     // remora clamped to the mako is still on the mako when you come back to the tank.
     ride: createRideState(),

@@ -42,6 +42,32 @@ Config (landscapes.js `SEA_FAN_SWAY`, shared by the tank and the Atlas):
 Normals are not bent with the fan (the swing is a few degrees), and the fish's raycast surfaces
 and obstacle boxes stay at the rest pose; the obstacle box is padded instead.
 
+## Seagrass scenery
+
+The Shallows' quick scenery pass (`v0.50.0-dev_5`, Jeremy's reference) uses the same
+`SWAY_TIME` clock with texture-driven displacement in `seagrassGeometry.js`; it is
+not a new creature animation type. `Seagrass.jsx` mounts it beside the sand.
+
+- One opaque, double-sided ribbon plane per leaf, six vertical segments, tapered
+  tip, 4–7 leaves per shoot. Shoot heights 0.9–2.6 WU (22–65 cm), with subsidiary
+  leaves at 60–100% of that height; widths 0.055–0.11 WU.
+- Fixed-seed placement in eight elliptical beds, mottled density and soft edges;
+  spacing 0.85 WU. Each root samples `sandHeight` and sinks 0.18 WU. Padded boulder
+  footprints stay clear. Soft leaves do not block fish or pointer selection.
+- A generated, seamlessly repeating 64 × 64 two-channel noise texture scrolls
+  along current `[0.8, 0.6]`, at 0.035 tiles/s. `bend` 0.3 scales displacement by
+  leaf height and height², keeping the root still; a small travelling ripple
+  separates the tips. The vertex shader converts the current back to each
+  instance's local basis, so differently rotated leaves share the same flow.
+- About 19,500 leaves in 37 spatial chunks (20 WU), sharing geometry, texture and
+  material. Bounds include the maximum sway. CPU frame work is the shared clock
+  only; mounted resources are disposed on unmount, without a new source cache.
+- Normals remain at rest for this small ribbon bend. Lighting/palette of the
+  reserve stays unchanged. Reference photo is not embedded or shipped.
+
+Headless desktop and phone-size screenshots render without console/shader errors.
+Density/movement acceptance and physical-phone frame time remain review work.
+
 ## Blender contract: sea fan
 
 Jeremy's source: `_blender models/annella mollis.glb`. Build the kit with:

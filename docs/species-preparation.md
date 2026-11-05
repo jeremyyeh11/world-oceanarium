@@ -6,6 +6,149 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
+## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`, female model `dev_3`, dev reserve `dev_4`, shipped `v0.50.0`)
+
+Reserve: The Shallows (ROADMAP projected roster, Jeremy, 2026-10-23). Range check: East
+Pacific green turtles graze the Gulf of California's bays (Bahía de los Ángeles, Seminoff
+et al. 2003), so the Sea of Cortez bay fits. No other reserve has a turtle.
+
+Felt intention: **powerful, unhurried flight.** A stable shell carried by long
+fore-flipper strokes, a surge on each downstroke, then a long glide. It fits the animal:
+cheloniid turtles fly underwater on stiff fore-flippers and spend much of their travel
+gliding. Must not happen: continuous anxious flapping, a dog paddle with the hind
+flippers, a shell rocking with every beat, or a turtle hovering in place. Reference
+species: the giant manta (a slow solo cruiser in the same bay, the same tempo) for
+behaviour only; its motion type does not fit (see below).
+
+Prepared: hidden species entry (no roster slot, no rows), Atlas copy, Averages and
+Lifecycle, a draft swim block, a draft escort-only `rideHost` (`turtle`), five study
+credits, a data test (`dev_1`). Jeremy approved the motion type on 2026-10-31, and `dev_2`
+built it: [foil-flap.md](procedural/foil-flap.md) on a generated stand-in model. `dev_3`
+swapped in Jeremy's female (2026-11-05; the stand-in and its generator are gone), joined and
+painted by `scripts/paint-foil-flap-masks.py`, and put her in the Atlas for review (no tile
+yet, no reserve slot, no rows). Intake: four flippers as named objects, all four inside out
+(turned); the shell 3.641 source units from front edge to back edge on the midline, scaled to
+1, origin mid-shell; nose to hind flipper tips 1.584 shells. Her first shell was as wide as
+it was long; real green turtles' straight shell width is nearer 0.8 of the length, and Jeremy
+narrowed it to 0.90 the same day (half-width 1.834 to 1.636 source units, length unchanged).
+The flippers leave the body unevenly: on the narrowed shell the front ones first show at
+0.049 of their span, the hind ones at 0.059. The stroke and rudder weights are full from 80%
+of the first exit, so the blade that shows turns stiff (measured: visible edges within 7.7% in
+any pose, hind 0%; the first ramp, to the last buried vertex, stretched them 75%, review
+2026-11-05), and the flipper roots stay hidden in every pose. Three photos, cropped to what
+the faces use and shrunk to 1024 px JPEGs: 54.3 MB to 388 KB, credited in `IMAGE_CREDITS`;
+Jeremy darkened the shell photo and made it more even (2026-11-05).
+Seen stroking and gliding in the Atlas, desktop and 375 px phone (the stand-in's pose framed
+her well on both).
+
+Current preview (`v0.50.0-dev_4`, Jeremy: "put her in first without the male. write dev db
+rows", 2026-11-05): the female model is on The Shallows' roster. Two adult females were
+inserted into `creatures_dev`, IDs **1187–1188**, `size` **0.48/0.64** (77/81 cm straight
+shell, 3.08/3.24 WU), each with its own description. Dev 836 → 838; production remains
+841, with no turtle rows. Both tables were snapshotted before/after, the production backup
+script ran successfully before/after, and full comparisons found every pre-existing row
+unchanged. No male rows or model; Jeremy put him on hold.
+
+Movement: roaming goals y −24…−20 over the bay sand, hard floor −26; every 120–240
+simulation seconds after returning low, a rise, a 5–8 second breathing glide, then a dive
+back to the low band. All stages keep the shared steering/turn/integrate/clamp pipeline;
+an ascent that cannot reach the surface gives up after 120 seconds. At the surface the
+center stays 0.24 shell lengths under the water plane, with 0.24 rad nose-up trim and
+quarter cruise speed. The foil clock drives pose and thrust together: 0.45 impulse at
+mid-downstroke, exponential decay 1.1/s, cruising multiplier floor 0.78. Stroke/glide and
+breathing state persist in `fishRuntimeStore.js`, and clear on page reload.
+
+Clearance measured from the female's rigid geometry: center `[0, 0, -0.15]`, radii
+`[0.54, 0.25, 0.86]` in shell lengths, maximum normalized vertex radius 0.905. Escort-only,
+with no attachment anchors. The golden trevally already accepts `turtle` hosts at weight
+0.8; its stations and the breathing pose still need in-tank inspection.
+
+Clean release: Jeremy accepted both turtle and seagrass PRs on 2026-11-05 ("merge both
+to main"). Seagrass #199 was merged into turtle #181 before clean `v0.50.0` promotion.
+The female model and isolated, runtime-rendered head tile ship in the Atlas; reserve
+movement is available for the two existing dev females. Production remains unstocked
+for turtles; no production data write is part of this merge, and the male stays on hold.
+
+Review limits: foil/thrust tests and capped-turn surfacing tests at 30/60/120 Hz pass.
+Headless desktop/phone-size reserve smoke checks, including the dev turtles and seagrass,
+render without console or shader errors. Detailed follow framing, trevally clearance,
+surface/body visual review and physical-phone frame time remain follow-ups in ROADMAP.
+Native Computer Use was stopped; subsequent checks used a separate headless browser.
+
+Research decisions:
+
+- **Name and status.** The slug stays the species, `chelonia-mydas`; the entry is the East
+  Pacific form ("black turtle", *C. m. agassizii* in older works). IUCN: the East Pacific
+  subpopulation is **Vulnerable** (update of 11 December 2023; MTSG list); the species
+  went from Endangered to Least Concern globally in October 2025. The entry shows VU, the
+  population a visitor sees.
+- **Length.** Straight shell length throughout, the measure that has weights: females
+  77.9 cm (Cutzi et al. 2023, n 100; 85.7 cm curved, n 1500), breeding males 67.5 cm and
+  45.7 kg (Delgado-Trejo et al. 2024, n 132). Maximum 100 cm at the Baja foraging ground
+  (Seminoff et al. 2003): 4 WU. Proposed reserve adults 65–90 cm (2.6–3.6 WU).
+- **Weight.** Shell length cubed, coefficient 0.15, from Seminoff et al. 2003's mean turtle
+  (74.3 cm, 61.5 kg); it gives 46 kg for the weighed males, so the female 71 kg is labelled
+  estimated.
+- **Ages.** Maturity about 18 years (males) and 28 (females), Michoacán females earlier
+  (about 17) than island nesters (about 30) (Turner Tomaszewicz et al. 2022). Oldest aged
+  turtle 50 years (same study, unsexed), so life expectancy reads "At least 50 years";
+  NOAA's species estimate of 70+ is noted, not shown.
+- **Reproduction.** About 70 eggs a clutch, 2.5–3 clutches a season, back every 3–5 years
+  (Cutzi et al. 2023; Alvarado-Díaz et al. 2003); about two months' incubation and
+  temperature-set sex ratio (NOAA). Mating groups average three males per female.
+- **Diet.** Seaweed and seagrass, with more animal food than other green turtles (NOAA,
+  USFWS). Not a predator in the tank.
+- **Ride host.** `turtle` group, escort-only, no anchors: no Shallows remora rides turtles.
+  In `dev_4` the clearance ellipsoid is measured from the female mesh (above). The golden
+  trevally follows turtles (weight 0.8) as well as the manta; its stations were tuned for
+  the manta's size and still need checking on the turtle.
+
+Decided (Jeremy, 2026-10-31):
+
+- **Motion type: `foil-flap-vertex`**, a new type, not a mask-fin-row variant ("ok use foil
+  flap"). Built on the stand-in in `dev_2`; the speed surge is implemented in `dev_4`.
+- **Behaviour: breathe once in a while.** Implemented in `dev_4`, with the parameters and
+  pending visual gates above. The 120–240 second intervals compress real turtles' longer
+  dives; low over the sand between visits. The manta's feeding passes were the scheduling
+  precedent (`proceduralAnimation.feeding` in Fish.jsx).
+- **Count and life stage: three adults, one male and two females** (Jeremy, 2026-11-01).
+  Solitary, each swimming on its own. Updated by Jeremy, 2026-11-05: two females first,
+  male on hold. Two adult females now in `creatures_dev` (IDs 1187–1188, above); no
+  production rows and no juveniles. The deferred male would be near 67.5 cm shell length.
+- **Male variant model** (Jeremy, 2026-11-01; shape 2026-11-05): the male gets his own
+  GLB, the female model with a longer tail reaching well past the shell (the males' larger
+  fore-flipper claws are not modelled). The female model is the base (`chelonia-mydas.glb`), the male `chelonia-mydas-male.glb` in
+  `model.sexVariants.male`, as the humphead wrasse's female is. Both follow the same
+  foil-flap contract; the tail is left unpainted, so it stays rigid with the shell. The
+  male's rows are written only once the live bundle serves the build that draws him.
+- **Handoff: flippers as named objects** (Jeremy, 2026-11-01). In each `.blend` the four
+  flippers stay separate objects named `flipper.fore.l/r`, `flipper.hind.l/r`; the shell,
+  head and neck (and the male's tail) can be one welded object or overlapping pieces, as
+  they never move. An intake script
+  (`scripts/paint-foil-flap-masks.py`, written with the first model) joins them, paints the
+  masks and exports the GLB. Nose at `-Z`, `+Y` up, origin mid-shell, 1 unit = 1 m at a
+  noted straight shell length, rest pose with the fore-flippers level and slightly swept
+  back, 8–10 spanwise loops per fore-flipper. Full contract in foil-flap.md. The stand-in's
+  lesson is the script's job: the stroke weight reaches full strength where the flipper
+  leaves the shell, so the bend stays hidden inside it.
+
+- **References** (Jeremy, 2026-11-05): two Wikipedia photos of green turtles, one from
+  above, one from ahead, for modelling only. Both show other populations: the East Pacific
+  turtle's shell is darker (slate to olive-black), more domed and narrower over the hind
+  flippers, so check the shell outline at intake. A photo used as a texture needs its
+  Commons licence looked up and an `IMAGE_CREDITS` entry in the build that ships it.
+  The two photos are Charles J. Sharp's Moorea turtle and Diego Delso's San Pedro, Belize
+  turtle on Commons, both CC BY-SA 4.0.
+- **Belly texture: ship it, swap if asked** (Jeremy, 2026-11-05), as the giant clam's shell.
+  The underside texture comes from Ken Kiefer's photo shared in the Facebook group Underwater
+  Photography (all rights reserved; the group's "full credit" rule is not a licence), credited
+  in `IMAGE_CREDITS`. Jeremy has asked Ken. With his yes, the licence becomes "used with
+  permission" in his wording; with a no or a takedown request, swap it for a plain pale cream
+  plastron with seam lines in the next build.
+
+Next: inspect the female preview in The Shallows, check trevally clearance and surface
+framing, measure phone frame time, and capture the Atlas tile. Male remains on hold.
+
 ## Giant Clam — `tridacna-gigas` (prepared `v0.49.0-dev_1`, model `dev_2`, in view `dev_3`, mantle `dev_5`, tile `dev_7`, shipped `v0.49.0`)
 
 Reserve: The Reefs, as a landscape piece lying in the sand between the bommies (fish queue,

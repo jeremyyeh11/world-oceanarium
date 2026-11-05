@@ -42,24 +42,23 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 28. **Toadstool Leather Coral** (`sarcophyton-glaucum`): `v0.47.0` (#184), The Reefs; renamed from Leather Coral in `v0.49.1`.
 29. **Spearfish Remora** (`remora-brachyptera`): `v0.48.0` (#178), The Reefs.
 30. **Giant Clam** (`tridacna-gigas`): `v0.49.0` (#180), The Reefs.
+31. **East Pacific Green Turtle** (`chelonia-mydas`): `v0.50.0` (#181), The Shallows reserve support and Atlas; production stocking and male remain deferred.
 
 ## Up next
 
 In the order they will be added.
 
-1. **East Pacific Green Turtle** (*Chelonia mydas*), The Shallows. Needs a new flipper motion
-   type.
-2. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
-3. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
-4. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.
-5. **Reef Manta** (*Mobula alfredi*), The Reefs.
-6. **Toadfish** (species to choose).
-7. **Scrawled Filefish** (*Aluterus scriptus*).
-8. **Coelacanth** (*Latimeria*, species to choose).
-9. **Butterfly Ray** (*Gymnura*, species to choose).
-10. **Oceanic Whitetip Shark** (*Carcharhinus longimanus*).
-11. **Goliath Grouper** (*Epinephelus itajara*).
-12. **Koi** (*Cyprinus rubrofuscus*, domestic).
+1. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
+2. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
+3. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.
+4. **Reef Manta** (*Mobula alfredi*), The Reefs.
+5. **Toadfish** (species to choose).
+6. **Scrawled Filefish** (*Aluterus scriptus*).
+7. **Coelacanth** (*Latimeria*, species to choose).
+8. **Butterfly Ray** (*Gymnura*, species to choose).
+9. **Oceanic Whitetip Shark** (*Carcharhinus longimanus*).
+10. **Goliath Grouper** (*Epinephelus itajara*).
+11. **Koi** (*Cyprinus rubrofuscus*, domestic).
 
 Corals crowd the bommie tops: each coral release checks how many of every coral still fit
 (placement order matters; the sea fans go before the staghorn). The leather coral was the last

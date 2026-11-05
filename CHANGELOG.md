@@ -8,6 +8,49 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.50.0 — East Pacific Green Turtle and seagrass
+
+Status: clean `v0.50.0` (2026-11-05), accepted from `v0.50.0-dev_5`,
+branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181).
+Seagrass [PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199) merged into that branch first.
+Jeremy: "merge both to main". No production data writes: turtle stocking remains deferred.
+
+### Environment
+
+- Patchy ribbon seagrass on The Shallows' sand, following Jeremy's reference: eight
+  soft-edged beds with open channels, olive/yellow-green leaves, and clearance around
+  the boulders. About 19,500 opaque, double-sided segmented planes in 37 culled instanced
+  chunks. A generated 64 × 64 noise texture flows along the current to displace the
+  tips; roots remain buried. One shared sway clock, no per-leaf frame work, no external
+  texture or database writes. Separate preview branch requested by Jeremy.
+
+### Species and Atlas
+
+- East Pacific Green Turtle (`chelonia-mydas`): IUCN Vulnerable (East Pacific
+  subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity ages and
+  the oldest aged turtle (credited), and an escort-only `rideHost` (`turtle`) measured from
+  the female's rigid mesh. Added to The Shallows' roster. Two adult females in
+  `creatures_dev` (IDs 1187–1188, 77/81 cm shell length, 2026-11-05); male deferred by
+  Jeremy. Dev rows 836 → 838; production remains 841 with no turtles. Both tables
+  snapshotted before/after; every pre-existing row verified unchanged.
+- Jeremy's female turtle model in the Atlas, flippers joined and painted by
+  `scripts/paint-foil-flap-masks.py`; her three photo textures credited in Sources.
+- Runtime-rendered, isolated three-quarter head tile captured from the dev reserve
+  before clean promotion. Desktop and phone-size headless smoke checks pass;
+  physical-phone frame time and detailed follow/surface review remain follow-ups.
+
+### Behaviour and motion
+
+- New procedural motion type `foil-flap-vertex` for the turtle's flippers, approved by Jeremy:
+  both fore-flippers stroke down and back from the shoulders, each blade twisting ahead of the
+  stroke, in groups of a few beats with glides between; the hind flippers steer. The tank and
+  the Atlas use the same stroke-and-glide machine. In the reserve, one shared clock drives
+  both pose and forward impulses: 0.45 added at mid-downstroke, decaying at 1.1/s, over a
+  0.78 cruising-speed floor. Stroke/glide and breathing state survive reserve switches.
+- Low roaming targets at y −24 to −20 over the sand; every 120–240 simulation seconds after
+  returning low, rise to breathe for 5–8 seconds, then descend. All stages use the shared
+  steering and movement pipeline. A failed ascent gives up after 120 seconds.
+
 ## v0.49.1 — Toadstool Leather Coral
 
 Status: clean `v0.49.1` (2026-11-04), accepted from `v0.49.1-dev_1`, branch

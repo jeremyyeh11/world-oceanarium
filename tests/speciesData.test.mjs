@@ -68,6 +68,32 @@ for (const alias of [trevally.id, trevally.name, trevally.scientificName]) {
 }
 assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === trevally.model.path))
 
+// The East Pacific green turtle: females swim in The Shallows; the male is deferred.
+{
+  const turtle = speciesById.get('chelonia-mydas')
+  assert.ok(turtle, 'chelonia-mydas canonical species exists')
+  assert.equal(turtle.model.path, '/models/fish/chelonia-mydas/chelonia-mydas.glb')
+  assert.ok(existsSync(new URL(`../public${turtle.model.path}`, import.meta.url)), 'the turtle model exists')
+  assert.equal(turtle.model.proceduralAnimation.type, 'foil-flap-vertex')
+  assert.ok(Math.abs(turtle.model.scale * 1 - turtle.swim.bodyLengthWU) < 1e-9, 'the 1-unit shell is the body length')
+  assert.ok(!turtle.hiddenInAtlas)
+  assert.equal(turtle.atlasThumbnail, '/atlas/chelonia-mydas-thumbnail.png')
+  assert.deepEqual(atlasWarmupUrls([turtle]), [turtle.atlasThumbnail, turtle.model.path], 'the Atlas warms the shipped turtle tile and model')
+  assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === turtle.model.path))
+  for (const alias of [turtle.id, turtle.name, turtle.scientificName]) {
+    const creature = { id: 'intake-turtle', species: alias, alive: true, size: 0.8 }
+    assert.equal(resolveSpecies(creature), turtle)
+    assert.deepEqual(TANKS.filter(tank => creaturesForTank([creature], tank).length).map(tank => tank.id), ['the-shallows'])
+  }
+  assert.ok(Math.abs(turtle.swim.bodyLengthWU * 0.25 - turtle.maxBodyLengthMeters) < 1e-9, 'turtle biological reference and world scale agree')
+  assert.ok(turtle.sizeRange[0] * turtle.swim.bodyLengthWU >= 1.08, 'proposed turtles are above the 27 cm size floor')
+  // Shell length cubed: the weighed Colola males, 67.5 cm and 45.7 kg (Delgado-Trejo et al. 2024).
+  assert.ok(Math.abs(turtle.mass.coefficient * 67.5 ** turtle.mass.exponent / 1000 - 45.7) < 1.5)
+  assert.deepEqual(turtle.rideHost.groups, ['turtle'])
+  assert.equal(turtle.rideHost.anchors, undefined, 'an escort-only turtle has no attachment anchors')
+  assert.equal(turtle.model.sexVariants?.male, undefined, 'the male model is deferred')
+}
+
 // Bluefin trevally: scaled by fork length (Pardee et al. 2021's relation is cm FL to grams).
 const bluefin = speciesById.get('caranx-melampygus')
 assert.ok(Math.abs(bluefin.mass.coefficient * 74.9 ** bluefin.mass.exponent / 1000 - 7.7) < 0.1, 'about 7.7 kg at the 74.9 cm female mean')

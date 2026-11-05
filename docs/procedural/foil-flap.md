@@ -155,10 +155,11 @@ Every vertex turns by its own weight, so wherever R ramps the blade bends, and t
 the bend stretch. On the stand-in, an R ramp over the first third of the span stretched those
 edges by 45% at cruise; ramped inside the shell, they changed at most 2.2% at cruise and 6.1% at
 full burst in a turn. A real flipper leaves the body unevenly, so the ramp must end where its
-*first* vertex shows, not its last buried one. On Jeremy's female (2026-11-05) the front
-flippers first show at 0.067 of their span and the last buried vertex is at 0.284: ramping to
-the latter stretched visible edges by up to 75% in the glide, and the hind rudder ramp to
-halfway out bent the visible blade 36% in a turn. Ramped to 0.8 of the first exit, visible
+*first* vertex shows, not its last buried one. On Jeremy's first female export (2026-11-05)
+the front flippers first showed at 0.067 of their span and the last buried vertex was at
+0.284: ramping to the latter stretched visible edges by up to 75% in the glide, and the hind
+rudder ramp to halfway out bent the visible blade 36% in a turn. On his narrowed shell they
+first show at 0.049 (front) and 0.059 (hind). Ramped to 0.8 of the first exit, visible
 edges change at most 7.7% in any stroke, burst, turn or glide (that much is the twist, meant to
 vary along the blade), and the hind flippers 0%. Buried flipper near the exit still rises above
 the shell's front rim at the top of a hard stroke, as a real flipper does; the root end never

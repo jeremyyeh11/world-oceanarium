@@ -826,9 +826,10 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
   },
   {
-    // Permission pending: Jeremy is asking Ken (2026-11-05); the group's "full credit" rule is not
-    // a licence. Until his yes it must not reach production (docs/species-preparation.md). With
-    // it, the licence becomes "used with permission"; without it, the belly is swapped out.
+    // Used without permission, as the giant clam's shell (Jeremy, 2026-11-05: "ship it, swap if
+    // asked"); the group's "full credit" rule is not a licence. Jeremy has asked Ken: with his yes
+    // the licence becomes "used with permission"; with a no or a takedown request, the belly is
+    // swapped out (docs/species-preparation.md).
     id: 'kiefer-green-turtle',
     subject: 'East Pacific Green Turtle texture (belly)',
     author: 'Ken Kiefer',

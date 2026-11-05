@@ -28,15 +28,17 @@ swapped in Jeremy's female (2026-11-05; the stand-in and its generator are gone)
 painted by `scripts/paint-foil-flap-masks.py`, and put her in the Atlas for review (no tile
 yet, no reserve slot, no rows). Intake: four flippers as named objects, all four inside out
 (turned); the shell 3.641 source units from front edge to back edge on the midline, scaled to
-1, origin mid-shell; nose to hind flipper tips 1.584 shells. The flippers leave the body
-unevenly: the front ones first show at 0.067 of their span (the last buried vertex is at
-0.284), the hind ones at 0.178. The stroke and rudder weights are full from 80% of the first
-exit, so the blade that shows turns stiff (measured: visible edges within 7.7% in any pose,
-hind 0%; the first ramp, to the last buried vertex, stretched them 75%, review 2026-11-05). Three photos, cropped to what the faces use and shrunk
-to 1024 px JPEGs: 62.8 MB to 415 KB, credited in `IMAGE_CREDITS`. Seen stroking and gliding
-in the Atlas, desktop and 375 px phone (the stand-in's pose framed her well on both). Her
-shell is about as wide as it is long (1.0); real green turtles' straight shell width is
-nearer 0.8 of the length, Jeremy's call.
+1, origin mid-shell; nose to hind flipper tips 1.584 shells. Her first shell was as wide as
+it was long; real green turtles' straight shell width is nearer 0.8 of the length, and Jeremy
+narrowed it to 0.90 the same day (half-width 1.834 to 1.636 source units, length unchanged).
+The flippers leave the body unevenly: on the narrowed shell the front ones first show at
+0.049 of their span, the hind ones at 0.059. The stroke and rudder weights are full from 80%
+of the first exit, so the blade that shows turns stiff (measured: visible edges within 7.7% in
+any pose, hind 0%; the first ramp, to the last buried vertex, stretched them 75%, review
+2026-11-05), and the flipper roots stay hidden in every pose. Three photos, cropped to what
+the faces use and shrunk to 1024 px JPEGs: 62.8 MB to 415 KB, credited in `IMAGE_CREDITS`.
+Seen stroking and gliding in the Atlas, desktop and 375 px phone (the stand-in's pose framed
+her well on both).
 
 Research decisions:
 
@@ -106,13 +108,12 @@ Decided (Jeremy, 2026-10-31):
   Commons licence looked up and an `IMAGE_CREDITS` entry in the build that ships it.
   The two photos are Charles J. Sharp's Moorea turtle and Diego Delso's San Pedro, Belize
   turtle on Commons, both CC BY-SA 4.0.
-- **Belly texture, permission pending** (Jeremy, 2026-11-05): the underside texture comes
-  from Ken Kiefer's photo shared in the Facebook group Underwater Photography (all rights
-  reserved; the group's "full credit" rule is not a licence). Jeremy has asked Ken for
-  permission. Until Ken's written yes, the texture may be used on the branch and in dev
-  previews but must not reach production: no merge to `main` with it. If there is no yes by
-  then, swap it for a plain pale cream plastron with seam lines. With a yes, credit him in
-  `IMAGE_CREDITS` with the wording he asks for.
+- **Belly texture: ship it, swap if asked** (Jeremy, 2026-11-05), as the giant clam's shell.
+  The underside texture comes from Ken Kiefer's photo shared in the Facebook group Underwater
+  Photography (all rights reserved; the group's "full credit" rule is not a licence), credited
+  in `IMAGE_CREDITS`. Jeremy has asked Ken. With his yes, the licence becomes "used with
+  permission" in his wording; with a no or a takedown request, swap it for a plain pale cream
+  plastron with seam lines in the next build.
 
 No decisions are open. Next: Jeremy's male (the female with a longer tail) through the same
 script; anchors and clearance from the mesh.

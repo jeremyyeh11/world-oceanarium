@@ -5260,12 +5260,13 @@ export const SPECIES = [
     model: {
       // Jeremy's female (2026-11-05), joined and painted by scripts/paint-foil-flap-masks.py: the
       // shell (3.641 source units, front edge to back edge on the midline) scaled to 1, origin
-      // mid-shell. His flippers came in inside out and were turned. Stroke and rudder weights are
-      // full before each flipper first shows outside the body, so the visible blades turn stiff. Three photos, cropped to what
+      // mid-shell; he narrowed the shell to 0.90 of its length the same day. His flippers came in
+      // inside out and were turned. Stroke and rudder weights are full before each flipper first
+      // shows outside the body, so the visible blades turn stiff. Three photos, cropped to what
       // the faces use and shrunk to 1024 px JPEGs (62.8 MB -> 415 KB): the shell and head from
       // Diego Delso's Belize turtle, flippers and neck from Charles J. Sharp's Moorea turtle (both
-      // CC BY-SA 4.0), the belly from Ken Kiefer's photo (permission pending: must not reach
-      // production without his yes; docs/species-preparation.md).
+      // CC BY-SA 4.0), the belly from Ken Kiefer's photo (no permission yet: shipped, swapped if
+      // he asks; docs/species-preparation.md).
       path: '/models/fish/chelonia-mydas/chelonia-mydas.glb',
       // 1 m = 4 WU, so the 1-unit shell is the 4 WU body length.
       scale: 4,

@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CAUSTIC_TIME, applyCaustics, causticsCacheKey } from '../utils/caustics'
 import Landscape from './Landscape'
+import Seagrass from './Seagrass'
 import { landscapePieces, sandGrain, sandHeight } from '../data/landscapes'
 import { clearRockObstacles, clearSeabed, setRockObstacles, setSeabed } from './rockObstacles'
 
@@ -163,6 +164,7 @@ export default function Environment({ biome, landscape = null, environmentId = n
   return (
     <group>
       <NoiseFloor biome={biome} landscape={landscape} />
+      {landscape?.seagrass && <Seagrass landscape={landscape} rocks={pieces} />}
       {landscape?.caustics && <CausticClock />}
       {/* The rock kit loads on its own so the seabed and fish never wait for it. */}
       {landscape && (

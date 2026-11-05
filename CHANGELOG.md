@@ -10,9 +10,19 @@ Versioning convention notes:
 
 ## v0.50.0 — East Pacific Green Turtle (in development)
 
-Status: `v0.50.0-dev_4`, branch `species/chelonia-mydas`,
-[PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181). Preview work;
-in-tank visual review, frame-time measurement and Atlas tile remain open.
+Status: `v0.50.0-dev_5`, seagrass preview on `feat/shallows-seagrass`
+([PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199)), forked from
+`species/chelonia-mydas` ([PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181)).
+Preview work; turtle visual review, physical-phone frame time and Atlas tile remain open.
+
+### Environment
+
+- Patchy ribbon seagrass on The Shallows' sand, following Jeremy's reference: eight
+  soft-edged beds with open channels, olive/yellow-green leaves, and clearance around
+  the boulders. About 19,500 opaque, double-sided segmented planes in 37 culled instanced
+  chunks. A generated 64 × 64 noise texture flows along the current to displace the
+  tips; roots remain buried. One shared sway clock, no per-leaf frame work, no external
+  texture or database writes. Separate preview branch requested by Jeremy.
 
 ### Species and Atlas
 

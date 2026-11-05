@@ -25,7 +25,7 @@ Status: `Current in development` — prepared in `v0.50.0-dev_1`, `foil-flap` bu
 - [x] A male variant model (Jeremy, 2026-11-01): the female model with a longer tail (2026-11-05), in `sexVariants.male`.
 - [x] Handoff (Jeremy, 2026-11-01): flippers as separate named objects in the `.blend`, joined and painted by an intake script.
 - [ ] Ken Kiefer's reply about the belly photo, which ships without permission by Jeremy's call (2026-11-05: "ship it, swap if asked", as the giant clam): with a yes, the credit becomes "used with permission"; with a no or a takedown request, swap for a plain cream plastron (docs/species-preparation.md).
-- [x] Jeremy's female (`dev_3`, 2026-11-05): `scripts/paint-foil-flap-masks.py` joins the flippers, turns them right way out, paints the masks, crops and shrinks the photos (62.8 MB to 415 KB) and exports; stand-in and generator removed; in the Atlas for review; three image credits. The stand-in's Atlas pose framed her on desktop and phone.
+- [x] Jeremy's female (`dev_3`, 2026-11-05): `scripts/paint-foil-flap-masks.py` joins the flippers, turns them right way out, paints the masks, crops and shrinks the photos (54.3 MB to 388 KB) and exports; stand-in and generator removed; in the Atlas for review; three image credits. The stand-in's Atlas pose framed her on desktop and phone.
 - [ ] Jeremy's male (the female with a longer tail) through the same script, in `sexVariants.male`.
 - [ ] Anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
 - [ ] In The Shallows: swim room low over the sand, surfacing to breathe, the downstroke speed surge (impulse-and-decay, frame time measured), Atlas tile, rows.

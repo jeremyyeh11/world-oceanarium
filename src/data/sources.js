@@ -814,7 +814,7 @@ export const IMAGE_CREDITS = [
     work: 'Tortuga verde (Chelonia mydas), San Pedro, Belice',
     url: 'https://commons.wikimedia.org/wiki/File:Tortuga_verde_(Chelonia_mydas),_San_Pedro,_Belice,_2025-12-17,_DD_198.jpg',
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
-    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+    changes: 'Darkened and evened in colour, mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
   },
   {
     id: 'sharp-green-turtle',

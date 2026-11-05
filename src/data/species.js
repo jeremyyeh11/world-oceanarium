@@ -5263,8 +5263,8 @@ export const SPECIES = [
       // mid-shell; he narrowed the shell to 0.90 of its length the same day. His flippers came in
       // inside out and were turned. Stroke and rudder weights are full before each flipper first
       // shows outside the body, so the visible blades turn stiff. Three photos, cropped to what
-      // the faces use and shrunk to 1024 px JPEGs (62.8 MB -> 415 KB): the shell and head from
-      // Diego Delso's Belize turtle, flippers and neck from Charles J. Sharp's Moorea turtle (both
+      // the faces use and shrunk to 1024 px JPEGs (54.3 MB -> 388 KB): the shell and head from
+      // Diego Delso's Belize turtle (darkened and evened by Jeremy), flippers and neck from Charles J. Sharp's Moorea turtle (both
       // CC BY-SA 4.0), the belly from Ken Kiefer's photo (no permission yet: shipped, swapped if
       // he asks; docs/species-preparation.md).
       path: '/models/fish/chelonia-mydas/chelonia-mydas.glb',

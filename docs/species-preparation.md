@@ -36,7 +36,8 @@ The flippers leave the body unevenly: on the narrowed shell the front ones first
 of the first exit, so the blade that shows turns stiff (measured: visible edges within 7.7% in
 any pose, hind 0%; the first ramp, to the last buried vertex, stretched them 75%, review
 2026-11-05), and the flipper roots stay hidden in every pose. Three photos, cropped to what
-the faces use and shrunk to 1024 px JPEGs: 62.8 MB to 415 KB, credited in `IMAGE_CREDITS`.
+the faces use and shrunk to 1024 px JPEGs: 54.3 MB to 388 KB, credited in `IMAGE_CREDITS`;
+Jeremy darkened the shell photo and made it more even (2026-11-05).
 Seen stroking and gliding in the Atlas, desktop and 375 px phone (the stand-in's pose framed
 her well on both).
 

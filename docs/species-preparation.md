@@ -79,8 +79,9 @@ Decided (Jeremy, 2026-10-31):
   foil-flap contract; the tail is left unpainted, so it stays rigid with the shell. The
   male's rows are written only once the live bundle serves the build that draws him.
 - **Handoff: flippers as named objects** (Jeremy, 2026-11-01). In each `.blend` the four
-  flippers stay separate objects named `flipper.fore.l/r`, `flipper.hind.l/r`, beside one
-  object for the shell, head and neck (and the male's tail). An intake script
+  flippers stay separate objects named `flipper.fore.l/r`, `flipper.hind.l/r`; the shell,
+  head and neck (and the male's tail) can be one welded object or overlapping pieces, as
+  they never move. An intake script
   (`scripts/paint-foil-flap-masks.py`, written with the first model) joins them, paints the
   masks and exports the GLB. Nose at `-Z`, `+Y` up, origin mid-shell, 1 unit = 1 m at a
   noted straight shell length, rest pose with the fore-flippers level and slightly swept

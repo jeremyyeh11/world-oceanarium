@@ -103,8 +103,9 @@ so the flippers *could* be independent objects; but the twist needs per-vertex c
 along the blade, which whole-object rotation cannot give. Join them and let the paint
 separate them. Jeremy keeps the flippers as separate objects named `flipper.fore.l`,
 `flipper.fore.r`, `flipper.hind.l`, `flipper.hind.r` in the `.blend` (decided 2026-11-01),
-with the shell, head and neck (and the male's tail) as one more object: the intake script
-joins and paints them (below) and exports the single body mesh.
+with the rest (shell, head and neck, the male's tail) in any other objects, welded or not:
+all of it is rigid, so its pieces may simply overlap (Jeremy asked, 2026-11-05). The intake
+script joins everything, paints the flippers (below) and exports the single body mesh.
 
 **How the flippers attach.** Like the pectoral and pelvic fins on Jeremy's fish: each flipper
 is its own closed piece with its root pushed into the body, sharing no vertices with it and

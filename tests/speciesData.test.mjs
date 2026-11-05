@@ -77,8 +77,8 @@ assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows')
   assert.equal(turtle.model.proceduralAnimation.type, 'foil-flap-vertex')
   assert.ok(Math.abs(turtle.model.scale * 1 - turtle.swim.bodyLengthWU) < 1e-9, 'the 1-unit shell is the body length')
   assert.ok(!turtle.hiddenInAtlas)
-  // The dev build's tile warning remains until the in-tank capture is reviewed.
-  assert.deepEqual(atlasWarmupUrls([turtle]), [turtle.model.path], 'the Atlas warms only the turtle model')
+  assert.equal(turtle.atlasThumbnail, '/atlas/chelonia-mydas-thumbnail.png')
+  assert.deepEqual(atlasWarmupUrls([turtle]), [turtle.atlasThumbnail, turtle.model.path], 'the Atlas warms the shipped turtle tile and model')
   assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === turtle.model.path))
   for (const alias of [turtle.id, turtle.name, turtle.scientificName]) {
     const creature = { id: 'intake-turtle', species: alias, alive: true, size: 0.8 }

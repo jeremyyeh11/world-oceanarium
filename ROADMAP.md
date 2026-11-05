@@ -13,38 +13,6 @@ Status labels:
 
 ## Current work
 
-### The Shallows seagrass
-
-Status: `Current in development` — `v0.50.0-dev_5`, branch `feat/shallows-seagrass`,
-[PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199),
-forked from `species/chelonia-mydas` at `da64f1f` by Jeremy's request (2026-11-05).
-
-- [x] Reference-led ribbon leaves from segmented planes; eight patchy beds rooted in
-  the existing sand, avoiding boulders; instanced chunks and noise-texture displacement.
-- [x] Headless desktop and phone-size render checks; no console or shader errors.
-- [ ] Review density, colour and movement in the preview; physical-phone frame time.
-- [ ] Retake the reserve card if this scenery is accepted for a clean release.
-
-### East Pacific Green Turtle (The Shallows)
-
-Status: `Current in development` — `v0.50.0-dev_4`, branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181): female model in The Shallows' roster with two dev adults, low cruising, downstroke surges and breathing visits. Visual/phone review, frame-time measurement and Atlas tile remain open; male and production stocking deferred. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
-
-- [x] Research, Atlas copy, Averages and Lifecycle; hidden entry, draft swim and escort-only `rideHost` (`turtle`); study credits; data test.
-- [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
-- [x] Jeremy approved `foil-flap-vertex` and surfacing to breathe now and then (2026-10-31).
-- [x] `foil-flap-vertex` (`dev_2`): shader in `Fish.jsx` with pivots read from the paint, stroke-group and glide clock in `src/utils/foilFlap.js` (tank and Atlas), on a generated stand-in (`scripts/build-turtle-placeholder.mjs`, 698 vertices, 1 m shell), verifier target, clock tests. Checked: glide share idle 0.45, cruise 0.37, fast 0.18; symmetric; tip down and back on the downstroke; twist leads; shell still; flipper edges outside the shell within 2.2% at cruise, 6.1% at full burst in a turn. Seen in the Atlas locally (un-hidden for the check only).
-- [x] Count and life stage: three adults, one male and two females (Jeremy, 2026-11-01).
-- [x] A male variant model (Jeremy, 2026-11-01): the female model with a longer tail (2026-11-05), in `sexVariants.male`.
-- [x] Handoff (Jeremy, 2026-11-01): flippers as separate named objects in the `.blend`, joined and painted by an intake script.
-- [ ] Ken Kiefer's reply about the belly photo, which ships without permission by Jeremy's call (2026-11-05: "ship it, swap if asked", as the giant clam): with a yes, the credit becomes "used with permission"; with a no or a takedown request, swap for a plain cream plastron (docs/species-preparation.md).
-- [x] Jeremy's female (`dev_3`, 2026-11-05): `scripts/paint-foil-flap-masks.py` joins the flippers, turns them right way out, paints the masks, crops and shrinks the photos (54.3 MB to 388 KB) and exports; stand-in and generator removed; in the Atlas for review; three image credits. The stand-in's Atlas pose framed her on desktop and phone.
-- [ ] Jeremy's male (the female with a longer tail) through the same script, in `sexVariants.male` — on hold by Jeremy, 2026-11-05; female preview first.
-- [x] Clearance from the female's rigid mesh: center `[0, 0, -0.15]`, radii `[0.54, 0.25, 0.86]` in shell lengths; all rigid vertices within normalized radius 0.905. Escort-only: no attachment anchors needed.
-- [x] `dev_4`: The Shallows roster, low goals y −24…−20, timed breathing visits, and shared foil clock with downstroke impulse-and-decay. Surfacing tests pass at 30/60/120 Hz; visual tuning remains.
-- [x] Two adult female `creatures_dev` rows (2026-11-05): IDs 1187–1188, sizes 0.48/0.64 → 77/81 cm shells. Dev 836 → 838; production 841 unchanged, no turtles. Before/after snapshots and full prior-row comparisons passed.
-- [ ] Check trevally escort stations, normal-distance motion, follow framing and surface/body clearance in the browser; measure frame time on phone. Computer Use stopped before browser inspection because it could not verify the Windows browser URL; no in-tank visual check claimed.
-- [ ] Capture and review the in-tank Atlas tile; clean-release blocker. This pushed work-in-progress preview retains the existing dev-only missing-tile warning.
-
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.
@@ -188,6 +156,45 @@ Review gates:
 - [ ] Jeremy confirms the type split and the per-doc template before the first new-type implementation starts.
 
 ## Shipped, with open follow-ups
+
+### The Shallows seagrass
+
+Status: shipped in clean `v0.50.0` (2026-11-05), accepted by Jeremy: "merge both to main".
+[PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199) was merged into
+[PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181).
+
+- [x] Reference-led ribbon leaves from segmented planes; eight patchy beds rooted in
+  the existing sand, avoiding boulders; instanced chunks and noise-texture displacement.
+- [x] Headless desktop and phone-size render checks; no console or shader errors.
+- [x] Jeremy accepted the preview for merge (2026-11-05).
+- [ ] Physical-phone review of density, colour, sway and frame time. `Backlog`
+- [ ] Retake the reserve card to show the accepted seagrass scenery. `Backlog`
+
+### East Pacific Green Turtle (The Shallows)
+
+Status: shipped in clean `v0.50.0` (2026-11-05), accepted from `dev_5`,
+[PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181). Atlas model/tile and
+reserve support ship; the two females remain in dev only. Male and production stocking
+are deferred. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
+
+- [x] Research, Atlas copy, Averages and Lifecycle; hidden entry, draft swim and escort-only `rideHost` (`turtle`); study credits; data test.
+- [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
+- [x] Jeremy approved `foil-flap-vertex` and surfacing to breathe now and then (2026-10-31).
+- [x] `foil-flap-vertex` (`dev_2`): shader in `Fish.jsx` with pivots read from the paint, stroke-group and glide clock in `src/utils/foilFlap.js` (tank and Atlas), on a generated stand-in (`scripts/build-turtle-placeholder.mjs`, 698 vertices, 1 m shell), verifier target, clock tests. Checked: glide share idle 0.45, cruise 0.37, fast 0.18; symmetric; tip down and back on the downstroke; twist leads; shell still; flipper edges outside the shell within 2.2% at cruise, 6.1% at full burst in a turn. Seen in the Atlas locally (un-hidden for the check only).
+- [x] Count and life stage: three adults, one male and two females (Jeremy, 2026-11-01).
+- [x] A male variant model (Jeremy, 2026-11-01): the female model with a longer tail (2026-11-05), in `sexVariants.male`.
+- [x] Handoff (Jeremy, 2026-11-01): flippers as separate named objects in the `.blend`, joined and painted by an intake script.
+- [ ] Ken Kiefer's reply about the belly photo, which ships without permission by Jeremy's call (2026-11-05: "ship it, swap if asked", as the giant clam): with a yes, the credit becomes "used with permission"; with a no or a takedown request, swap for a plain cream plastron (docs/species-preparation.md).
+- [x] Jeremy's female (`dev_3`, 2026-11-05): `scripts/paint-foil-flap-masks.py` joins the flippers, turns them right way out, paints the masks, crops and shrinks the photos (54.3 MB to 388 KB) and exports; stand-in and generator removed; in the Atlas for review; three image credits. The stand-in's Atlas pose framed her on desktop and phone.
+- [ ] Jeremy's male (the female with a longer tail) through the same script, in `sexVariants.male` — on hold by Jeremy, 2026-11-05; female preview first.
+- [x] Clearance from the female's rigid mesh: center `[0, 0, -0.15]`, radii `[0.54, 0.25, 0.86]` in shell lengths; all rigid vertices within normalized radius 0.905. Escort-only: no attachment anchors needed.
+- [x] `dev_4`: The Shallows roster, low goals y −24…−20, timed breathing visits, and shared foil clock with downstroke impulse-and-decay. Surfacing tests pass at 30/60/120 Hz; visual tuning remains.
+- [x] Two adult female `creatures_dev` rows (2026-11-05): IDs 1187–1188, sizes 0.48/0.64 → 77/81 cm shells. Dev 836 → 838; production 841 unchanged, no turtles. Before/after snapshots and full prior-row comparisons passed.
+- [x] Headless desktop and phone-size reserve smoke checks include both dev turtles, with no console or shader errors.
+- [ ] Detailed trevally escort, follow framing and surface/body visual review; physical-phone frame time. `Backlog`
+- [x] Isolated runtime-rendered, left-facing three-quarter head tile captured from the dev reserve before clean promotion.
+- [x] Jeremy accepted turtle and seagrass together for clean `v0.50.0` (2026-11-05).
+
 
 ### Giant Clam (The Reefs)
 

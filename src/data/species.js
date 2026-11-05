@@ -5144,10 +5144,12 @@ export const SPECIES = [
   // studies (Cutzi et al. 2023, Delgado-Trejo et al. 2024, Alvarado-Díaz et al. 2003), Turner
   // Tomaszewicz et al. 2022 (ages), Seminoff et al. 2003 (Baja foraging ground), NOAA Fisheries
   // and USFWS. Swims on foil-flap (docs/procedural/foil-flap.md, approved 2026-10-31). Jeremy's
-  // female model (2026-11-05) is in the Atlas and The Shallows in dev_4: two dev females,
-  // low passes, downstroke surges and breathing visits. Male and production rows deferred.
+  // female model ships in the Atlas in v0.50.0, with reserve support in The Shallows:
+  // two dev females, low passes, downstroke surges and breathing visits. Male and production
+  // rows remain deferred. The clean reserve has no turtles until separately stocked.
   {
     id: 'chelonia-mydas',
+    atlasThumbnail: '/atlas/chelonia-mydas-thumbnail.png',
     name: 'East Pacific Green Turtle',
     scientificName: 'Chelonia mydas',
     family: 'Cheloniidae',

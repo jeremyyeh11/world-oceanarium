@@ -8,12 +8,12 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.50.0 — East Pacific Green Turtle (in development)
+## v0.50.0 — East Pacific Green Turtle and seagrass
 
-Status: `v0.50.0-dev_5`, seagrass preview on `feat/shallows-seagrass`
-([PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199)), forked from
-`species/chelonia-mydas` ([PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181)).
-Preview work; turtle visual review, physical-phone frame time and Atlas tile remain open.
+Status: clean `v0.50.0` (2026-11-05), accepted from `v0.50.0-dev_5`,
+branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181).
+Seagrass [PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199) merged into that branch first.
+Jeremy: "merge both to main". No production data writes: turtle stocking remains deferred.
 
 ### Environment
 
@@ -35,6 +35,9 @@ Preview work; turtle visual review, physical-phone frame time and Atlas tile rem
   snapshotted before/after; every pre-existing row verified unchanged.
 - Jeremy's female turtle model in the Atlas, flippers joined and painted by
   `scripts/paint-foil-flap-masks.py`; her three photo textures credited in Sources.
+- Runtime-rendered, isolated three-quarter head tile captured from the dev reserve
+  before clean promotion. Desktop and phone-size headless smoke checks pass;
+  physical-phone frame time and detailed follow/surface review remain follow-ups.
 
 ### Behaviour and motion
 

@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`, female model `dev_3`, dev reserve `dev_4`)
+## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`, female model `dev_3`, dev reserve `dev_4`, shipped `v0.50.0`)
 
 Reserve: The Shallows (ROADMAP projected roster, Jeremy, 2026-10-23). Range check: East
 Pacific green turtles graze the Gulf of California's bays (Bahía de los Ángeles, Seminoff
@@ -63,11 +63,17 @@ Clearance measured from the female's rigid geometry: center `[0, 0, -0.15]`, rad
 with no attachment anchors. The golden trevally already accepts `turtle` hosts at weight
 0.8; its stations and the breathing pose still need in-tank inspection.
 
+Clean release: Jeremy accepted both turtle and seagrass PRs on 2026-11-05 ("merge both
+to main"). Seagrass #199 was merged into turtle #181 before clean `v0.50.0` promotion.
+The female model and isolated, runtime-rendered head tile ship in the Atlas; reserve
+movement is available for the two existing dev females. Production remains unstocked
+for turtles; no production data write is part of this merge, and the male stays on hold.
+
 Review limits: foil/thrust tests and capped-turn surfacing tests at 30/60/120 Hz pass.
-Computer Use stopped before in-tank visual inspection because it could not verify the
-Windows browser URL. Normal-distance motion, follow framing, trevally clearance, phone
-frame time and the in-tank Atlas tile remain open. This is an unfinished dev preview,
-explicitly pushed for review; the existing prebuild warning for the missing tile remains.
+Headless desktop/phone-size reserve smoke checks, including the dev turtles and seagrass,
+render without console or shader errors. Detailed follow framing, trevally clearance,
+surface/body visual review and physical-phone frame time remain follow-ups in ROADMAP.
+Native Computer Use was stopped; subsequent checks used a separate headless browser.
 
 Research decisions:
 

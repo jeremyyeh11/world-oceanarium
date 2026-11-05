@@ -219,14 +219,20 @@ Forms:
 
 - `table` (tabular corals; Hyacinth Table Coral): a plate on a stalk, cover overhead, a rim,
   tiers. Implemented (`v0.30.1`).
-- `thicket` (branching corals; Staghorn Coral): a patch of colonies, a crown of branch tips,
-  flanks, narrow gaps inside. Implemented (`v0.31.4`).
+- `thicket` (branching corals; Staghorn Coral, Cauliflower Coral): a patch of colonies, a crown
+  of branch tips, flanks, narrow gaps inside. Implemented (`v0.31.4`); the cauliflower corals since
+  `v0.45.0-dev_2`.
 - `mound` (massive, brain and encrusting corals; Brain Coral): a solid dome like rock, a crown,
   an overhang at the base. Implemented (`v0.43.0-dev_1`); on The Reefs since `v0.43.0-dev_2`.
 - `fan` (gorgonians, sea whips, soft corals; Giant Sea Fan): a flat, bendy lattice. Solid since
   `v0.38.0-dev_1` (its surfaces block the site rays, `form: 'fan'`, and it is in the obstacle
   field), but no mode visits it yet: `fan` is not in `CORAL_FORMS`. Proposed: hover and patrol
   beside the lattice.
+- `toadstool` (leather corals; Toadstool Leather Coral): a fleshy cap on a stalk, shaped like a `table`
+  but toxic: its sarcophine poisons fish (Chao et al. 2017), so no reef fish shelters under,
+  pecks at or hovers by it. Solid since `v0.47.0-dev_2` (its surfaces block the site rays,
+  `form: 'toadstool'`, and it is in the obstacle field), and deliberately not in `CORAL_FORMS`
+  (Jeremy, 2026-11-01: solid but unvisited).
 - `host` (anemones): a home for one symbiont, closer to docs/ride-hosts.md. Proposed; needs its
   own design.
 
@@ -318,6 +324,12 @@ rock between colonies (aiming at the middle, most rays met rock or a table first
   it), not the facet of the branch the ray met, which points anywhere.
 - `inside`: a level ray at the colony's heart, kept only where the branch it met is within 0.65 of
   the colony's reach (it slipped in past the outer branches).
+
+The cauliflower corals (cauliflowerCoralPlacement.js) are a second row under `thicket`, not a
+new form: a bommie's 1 to 3 small bushes (15 to 35 cm) make one thicket surface, their `_lo` meshes
+merged (Landscape.jsx `bushReefSurfaces`), with each colony's foot, crown and reach in its meta, so
+the same crown, flank and inside aims apply. A bush is too small to shelter any fish but the
+smallest (`inside` needs a fish under 0.8 WU). No visit counts have been measured at them yet.
 
 Thin branch tips can slip between roomToTurn's eight level rays: one came within 0.09 body
 lengths of a bannerfish hanging over a crown. So a thicket spot also needs its room clear in 26

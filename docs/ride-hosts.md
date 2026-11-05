@@ -207,6 +207,23 @@ hitchhiker: {
   With Jeremy's model (`v0.41.0-dev_2`, 2026-10-29), all six were escorting within 30 s of
   the tank loading, 7–12 WU from the manta's centre.
 
+- The Bluefin Trevally (`caranx-melampygus`, The Reefs, six in production since `v0.46.0`,
+  eight in `creatures_dev`) follows the humphead wrasse, an escort-only host in its own `reef-forager`
+  group, so the pilot fish and bannerfish (who follow `large-fish`) leave the wrasse alone. Its
+  stations sit above and to either side of the wrasse, from over its head to just past its tail
+  (`along [-0.3, 0.9]`, `angleDegrees [20, 160]`, `radius [1.15, 1.5]`), never below, where the
+  wrasse works the rock: Hobson (1974) saw bluefin trevally following close behind big foraging
+  goatfish to catch the prey they flush. `maxPerHost: 3` spreads the eight over the three wrasses.
+
+`escort.maxPerHost` (optional, unset = no limit) is the most fish of any kind a follower will
+join round one host. `findEscortHost` counts each host's current followers from the registry
+(every rider registers the host it steers by, `rideHostId`) and passes a full host over for the
+next nearest. Only joining is capped: a fish already following stays when a spell ends.
+
+`escort.quietTail` (optional, default off) stops idle bursts and snap turns while the fish is
+escorting; a startle still fires. The escort sets the follower's speed, so those strokes whipped
+the tail with no dash to match, and the bluefin (the only user) read as darting round the wrasse.
+
 ## Runtime
 
 Stages: `free` → `approach` → `dock` → `latch` → `attached` → `release` → `free`, with
@@ -319,8 +336,9 @@ For followers only, step 1 is enough: an escort-only host needs no anchors.
 
 ## Remora models
 
-The two sharksuckers, the white suckerfish (`v0.42.0`, on the giant manta) and the common
-remora (`v0.44.0`, on the mako and the whale shark) have models. The common remora's export
+The two sharksuckers, the white suckerfish (`v0.42.0`, on the giant manta), the common
+remora (`v0.44.0`, on the mako and the whale shark) and the Spearfish Remora (`v0.48.0`, on
+The Reefs' Mola) have models. The common remora's export
 came in inside out (every part with its faces inward) and is turned right side out by
 `scripts/prepare-common-remora-model.py` before the fit. The other remoras keep their species entries
 (facts, `hitchhiker` data) but no model, on no tank and out of the Atlas, until their GLBs

@@ -8,6 +8,107 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
+    version: 'v0.49.1',
+    date: '2026-11-04',
+    title: 'Toadstool Leather Coral',
+    changes: [
+      ['fix', 'The Leather Coral is now the Toadstool Leather Coral in the Atlas, its own common name; "leather coral" is shared by dozens of related soft corals.'],
+    ],
+  },
+  {
+    version: 'v0.49.0',
+    date: '2026-11-04',
+    title: 'Giant Clam',
+    changes: [
+      ['new', 'Giant clams lie on the sand at the feet of the rocks in The Reefs, their shells fluted and crusted, their mantles spread to the light and slowly breathing.'],
+      ['new', 'Meet the Giant Clam in the Atlas, the largest living clam, now Critically Endangered.'],
+    ],
+  },
+  {
+    version: 'v0.48.2',
+    date: '2026-11-04',
+    title: 'Spearfish Remora new look',
+    changes: [
+      ['fix', 'The Spearfish Remoras on the giant sunfish wear a new skin, dusky grey-purple from a photo of a living fish, in The Reefs and in the Atlas.'],
+    ],
+  },
+  {
+    version: 'v0.48.1',
+    date: '2026-11-04',
+    title: 'Updated credits',
+    changes: [
+      ['fix', 'Updated image credits in Sources.'],
+    ],
+  },
+  {
+    version: 'v0.48.0',
+    date: '2026-11-03',
+    title: 'Spearfish Remora',
+    changes: [
+      ['new', 'Four Spearfish Remoras ride the giant sunfish in The Reefs, pale passengers clamped to its flanks that let go for a short swim, then hurry back to a new spot.'],
+      ['new', 'Meet the Spearfish Remora in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.47.2',
+    date: '2026-11-03',
+    title: 'Updated credits',
+    changes: [
+      ['fix', 'Updated image credits in Sources.'],
+    ],
+  },
+  {
+    version: 'v0.47.1',
+    date: '2026-11-02',
+    title: 'Updated credits',
+    changes: [
+      ['fix', 'Updated image credits in Sources.'],
+    ],
+  },
+  {
+    version: 'v0.47.0',
+    date: '2026-11-02',
+    title: 'Leather Coral',
+    changes: [
+      ['new', 'Leather corals grow at the feet of the rocks in The Reefs, fleshy grey and peach toadstools whose caps rock slowly in the surge. Their tissue is toxic, so the reef fish leave them alone.'],
+      ['new', 'Meet the Leather Coral in the Atlas, four toadstools swaying on their rock.'],
+    ],
+  },
+  {
+    version: 'v0.46.2',
+    date: '2026-11-02',
+    title: 'Landing species count',
+    changes: [
+      ['fix', 'The species count on the welcome screen now matches the reserves, counting only the animals you can actually visit.'],
+    ],
+  },
+  {
+    version: 'v0.46.1',
+    date: '2026-11-02',
+    title: 'Gentle humphead',
+    changes: [
+      ['fix', 'The humphead wrasses in The Reefs swim like the gentle giants they are, a slow, steady cruise with only an occasional soft burst, instead of darting every few seconds.'],
+    ],
+  },
+  {
+    version: 'v0.46.0',
+    date: '2026-11-02',
+    title: 'Bluefin Trevally',
+    changes: [
+      ['new', 'Six Bluefin Trevally follow the humphead wrasses in The Reefs, silver hunters with electric-blue fins that stay close, waiting to snatch whatever the big wrasses flush from the rock.'],
+      ['new', 'Meet the Bluefin Trevally in the Atlas, with its animated specimen and measured scale.'],
+    ],
+  },
+  {
+    version: 'v0.45.0',
+    date: '2026-11-01',
+    title: 'Cauliflower Coral',
+    changes: [
+      ['new', 'Cauliflower corals grow on the rocks of The Reefs, small knobbly bushes in pink and cream on the bommie tops and the ledges right in front of you, where reef fish hover and pick.'],
+      ['new', 'Meet the Cauliflower Coral in the Atlas, an endangered reef builder, with three colonies on a rock and measured scale.'],
+    ],
+  },
+  {
     version: 'v0.44.1',
     date: '2026-11-01',
     title: 'Natural creature edges',

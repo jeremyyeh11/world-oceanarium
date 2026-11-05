@@ -7,6 +7,16 @@ globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
   {
+    name: 'Bluefin Trevally static parts',
+    path: 'public/models/fish/caranx-melampygus/caranx-melampygus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['caranx_melampygus'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.858,
+    minVertices: 1800,
+  },
+  {
     name: 'Golden Trevally static parts',
     path: 'public/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb',
     staticMesh: true,
@@ -174,6 +184,17 @@ const targets = [
     requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
     sourceAxis: 'z',
     minBodyLength: 0.25,
+    minVertices: 1000,
+  },
+  {
+    name: 'Spearfish Remora static parts',
+    path: 'public/models/fish/remora-brachyptera/remora-brachyptera.glb',
+    staticMesh: true,
+    bodyMeshNames: ['remora_brachyptera_1'],
+    requiredFollowMeshes: ['remora_brachyptera_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 3,
     minVertices: 1000,
   },
   {

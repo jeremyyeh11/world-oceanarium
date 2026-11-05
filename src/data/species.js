@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
+import { GIANT_CLAM_MANTLE_SWAY, LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -209,11 +209,11 @@ export const TANKS = [
     // The spearfish remora rides the Mola; it is recorded on ocean sunfishes as well as billfish.
     // Pilot fish follow the Mola without attaching; bannerfish and emperor angelfish do now and
     // then, as cleaners. The clown triggerfish keeps to itself.
-    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis'],
+    species: ['mola-alexandrini', 'naucrates-ductor', 'heniochus-acuminatus', 'pomacanthus-imperator', 'balistoides-conspicillum', 'plectropomus-areolatus', 'chaetodon-lunula', 'crassilabrus-undulatus', 'naso-unicornis', 'caranx-melampygus', 'remora-brachyptera'],
     // Species that live in the tank as part of its landscape rather than as creature rows: the
     // table corals placed on the rocks (landscapes.js `corals`). They count toward the tank's
     // species (the landing card) like the fish do.
-    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea'],
+    landscapeSpecies: ['acropora-hyacinthus', 'acropora-muricata', 'annella-mollis', 'platygyra-daedalea', 'pocillopora-meandrina', 'sarcophyton-glaucum', 'tridacna-gigas'],
   },
   {
     // Jeremy, 2026-10-23: a schooling ray in a reserve of its own, so the open sea and the reef
@@ -369,10 +369,11 @@ const HUMPHEAD_WRASSE_SWIM = {
   flexStart: 0.5,
   flexFull: 0.9,
   turnStrength: 0.6,
-  burstAmplitude: 1.1,
+  // A soft push rather than a whip (was 1.1 and 0.3 until v0.46.1).
+  burstAmplitude: 0.6,
   response: 6,
   speedFrequencyBoost: 0.3,
-  burstFrequencyBoost: 0.3,
+  burstFrequencyBoost: 0.15,
   // Its pectorals are the engine at cruise, so they row harder than the grouper's.
   pectoralFinFlutter: 0.4,
   pelvicFinFlutter: 0.06,
@@ -1659,6 +1660,8 @@ export const SPECIES = [
     scientificName: 'Remora brachyptera',
     family: 'Echeneidae',
     alternateNames: [],
+    // Rendered in the dev tank (2026-11-02) off the largest rider on the Mola.
+    atlasThumbnail: '/atlas/remora-brachyptera-thumbnail.png',
     biome: 'ocean',
     depthZone: 'epipelagic',
     schooling: false,
@@ -1684,7 +1687,9 @@ export const SPECIES = [
       },
       averages: {
         // FishBase common length (total length); no sex-specific data.
-        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age data.
+        // Weight from FishBase's length–weight (a 0.00263, b 3.17) at the common length. No age,
+        // maturity or fecundity study of this species is published (searched 2026-10-29), so life
+        // span, maturity and eggs stay Unknown.
         maleSizeMeters: 0.25,
         femaleSizeMeters: 0.25,
         maleWeightKg: 0.07,
@@ -1704,7 +1709,7 @@ export const SPECIES = [
       diet: 'Copepods',
       social: 'Hitchhiker',
     },
-    description: 'A slim, pale remora — whitish to pale blue in life — that rides marlins, sailfish, and swordfish, and is also recorded on ocean sunfishes. Juveniles often shelter inside the host\'s gill chamber. It can shift about its host\'s body and manage short bursts of independent swimming, so it should read as a fish that barely leaves its ride.',
+    description: 'A slim, pale remora — whitish to pale blue in life — that rides marlins, sailfish, and swordfish, and is also recorded on ocean sunfishes. Juveniles often shelter inside the host\'s gill chamber. It can shift about its host\'s body and manage short bursts of independent swimming, but it seldom leaves its ride for long.',
     adultLengthRangeMeters: [0.25, 0.5],
     maxBodyLengthMeters: 0.5,
     swim: {
@@ -1713,21 +1718,58 @@ export const SPECIES = [
       // 50 cm maximum total length = 2.0 WU.
       bodyLengthWU: 2.0,
     },
-    // Skewed above the 25 cm common length so individuals stay clear of the 27 cm tank floor.
+    // 30–50 cm (1.2–2.0 WU): skewed above the 25 cm common length so individuals stay clear of
+    // the 27 cm tank floor.
     sizeRange: [0.6, 1.0],
     mass: REMORA_MASS,
     hitchhiker: {
-      // Billfishes are its usual hosts. Sunfish (Mola), blue shark, and loggerhead records:
-      // Gulf of Tehuantepec first record, Hidrobiológica 2022,
-      // https://www.scielo.org.mx/scielo.php?pid=S0188-88972022000100071&script=sci_arttext
+      // Billfishes are its usual hosts (FishBase). Anislado-Tolentino et al. 2022 (Hidrobiológica
+      // 32: 71–74, after McEachran & Fechhelm 2005) list it in the gill cavity of swordfish, Mola
+      // sp., the sharptail mola and the blue shark, on loggerhead turtles, and occasionally free.
+      // On The Reefs' Mola it lies on all 12 spots at every size (disc lifted at most 2.2 mm) and
+      // a full-size Mola carries five at 50 cm, eight at 30 cm (docs/species-preparation.md).
       hosts: { billfish: 1, sunfish: 0.7, shark: 0.25, turtle: 0.25 },
       rideSeconds: [90, 200],
       freeSeconds: [6, 14],
-      discAheadBodyLengths: 0.3,
+      // Measured off the supplied model by scripts/fit-rider-model.mjs. Its disc runs 25% of the
+      // total length (about 28% of standard length; 28–40% in life, 32.6% on the Tehuantepec
+      // fish). The second dorsal fin stands about 2 cm proud of the line from the disc to the
+      // tail, so the rider pivots on its disc until it clears the host's skin.
+      discAheadBodyLengths: 0.3039,
+      dorsalClearanceBodyLengths: 0.0625,
+      backProfile: [[-0.1936, 0.0672], [-0.1836, 0.0424], [-0.1736, 0.0277], [-0.1636, 0.02], [-0.1536, 0.0167], [-0.1236, 0.0139], [-0.1136, 0.0108], [-0.0636, 0.0054], [-0.0136, 0.0052], [0.0464, 0.0016], [0.1064, 0.0002], [0.1164, 0.0017], [0.1264, 0.0019], [0.2264, -0.0006], [0.3164, -0.0013], [0.3264, -0.0038], [0.4064, -0.0355], [0.4164, -0.0379], [0.4564, -0.04], [0.4664, -0.0395], [0.4864, -0.0319], [0.4964, -0.0278], [0.5464, -0.0038], [0.5964, 0.0155], [0.6164, 0.025], [0.6264, 0.031], [0.6364, 0.0395], [0.6764, 0.0209], [0.7464, -0.0202], [0.7564, -0.0236], [0.7864, -0.0229], [0.7964, 0.0808]],
     },
-    // Queued (docs/fish-queue.md): no model yet, on no tank, out of the Atlas. The facts and
-    // ride data stay for when its GLB lands.
-    hiddenInAtlas: true,
+    model: {
+      path: '/models/fish/remora-brachyptera/remora-brachyptera.glb',
+      // Source length 3.5506 -> 2 WU. The root is recentred mid-length on the body axis, the
+      // frame the ride fit uses (scripts/fit-rider-model.mjs).
+      scale: 0.5633,
+      position: [0, -0.0265, -0.1395],
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        ...REMORA_CAUDAL,
+        // The supplied GLB is rig-free. Its body has two primitives
+        // (scripts/prepare-spearfish-remora-model.py): the main mesh carries the dorsal, anal and
+        // caudal fins, `_2` is the rigid suction disc. The short pectorals and the pelvics are
+        // separate objects.
+        bodyMeshNames: ['remora_brachyptera_1'],
+        followBodyMeshNames: ['remora_brachyptera_2'],
+        // The sharksuckers' stroke, 0.07 and 0.03 body lengths, in this model's source units.
+        amplitude: 0.249,
+        turnStrength: 0.107,
+        pectoralFinFlutter: 0.08,
+        pelvicFinFlutter: 0.04,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
   },
   {
     id: 'remora-osteochir',
@@ -3254,18 +3296,24 @@ export const SPECIES = [
     adultLengthRangeMeters: [0.65, 2.29],
     maxBodyLengthMeters: 2.29,
     swim: {
-      // Starting values until the model lands: a labriform cruiser that rows on its pectorals,
-      // slow and heavy, keeping its tail for rare bursts.
+      // A gentle giant (Jeremy, 2026-11-01: it looked jittery, bursting every few seconds): a
+      // labriform cruiser rowing slowly on its pectorals, turning without speeding up, and only
+      // now and then a soft push of the tail. Speeds are in each fish's own body lengths
+      // (`speedFollowsSize`); in the largest's, the 0.85 m females cruised at up to 0.8 of their
+      // length a second and burst at 4.
+      speedFollowsSize: true,
       visualTimeScale: 0.75,
       driftEnabled: false,
-      idleBLPerSec: [0.2, 0.4],
+      idleBLPerSec: [0.25, 0.35],
       idleDriftBLPerSec: [0.04, 0.08],
-      snapBLPerSec: [0.6, 0.9],
-      burstBLPerSec: [2.0, 3.0],
-      burstInterval: [20.0, 40.0],
-      burstActionDuration: 0.6,
+      // Snap speed now only sets how briskly it leaves the rock when startled there.
+      snapBLPerSec: [0.4, 0.5],
+      turnSpeedupEnabled: false,
+      burstBLPerSec: [0.9, 1.2],
+      burstInterval: [60.0, 120.0],
+      burstActionDuration: 1.0,
       turnActionDuration: 0.8,
-      erraticness: 0.08,
+      erraticness: 0.03,
       // Pectoral rowing turns a wrasse tightly for its length.
       turnRadiusBodyLengths: 1.0,
       speedMultiplier: 1.0,
@@ -3293,6 +3341,19 @@ export const SPECIES = [
     sizeRangeBySex: { female: [0.35, 0.44] },
     // FishBase Bayesian length–weight (TL cm): a 0.01445, b 2.98; about 13 kg at 1 m, 44 kg at 1.5 m.
     mass: { coefficient: 0.01445, exponent: 2.98 },
+    // Escort-only host (docs/ride-hosts.md, Followers) for the bluefin trevally, which follows
+    // big reef foragers to catch the prey they flush. `reef-forager` is its own group, so the
+    // pilot fish and bannerfish (who follow `large-fish`) leave it alone. No `anchors`: nothing
+    // rides a wrasse.
+    rideHost: {
+      groups: ['reef-forager'],
+      // Measured with scripts/measure-ride-anchors.mjs on both models (9.16 WU, after each
+      // model's `position`): snout at z -4.58, caudal peduncle near +2.6; belly -1.0 (male) to
+      // -1.6 (female), pelvic tips -1.9; back and dorsal fin up to +2.46 on the male; body ±0.89
+      // wide, the male's pectorals ±1.95. Centre (0, 0.3, -0.6) WU, radii (1.9, 2.1, 4.4) WU:
+      // body, head and pectorals to the peduncle; the tail fin stays outside.
+      body: { center: [0, 0.033, -0.066], radii: [0.207, 0.229, 0.48] },
+    },
     // Reef behaviour (reefBehavior.js, docs/reef-behavior.md). It roves the reef by day, so it
     // patrols more than any other resident, pausing off a face and biting shellfish and urchins
     // off the rock. Its ledge is for the night, so it shelters little. At the corals it cruises
@@ -3303,7 +3364,8 @@ export const SPECIES = [
       pecks: [1, 2],
       hoverSeconds: [4, 10],
       hoverStandoffBodyLengths: [0.6, 0.9],
-      turnDegreesPerSecond: 60,
+      // Turns slowly at the rock (60 until v0.46.1).
+      turnDegreesPerSecond: 40,
       startleShelterChance: 0.2,
       corals: { table: { patrol: 0.3, hover: 0.25, shelter: 0.15 }, thicket: { patrol: 0.2, peck: 0.1 } },
     },
@@ -4605,6 +4667,475 @@ export const SPECIES = [
       // Three of the kit's colonies (orange, blue and brown, pale) on a low limestone rock, 2.6 m
       // across (scripts/build-brain-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
       scale: 4,
+    },
+  },
+  // --- Bluefin trevally (Carangidae) ----------------------------------------------------------
+  // Facts from FishBase, Pardee et al. 2021 (Hawaii: sex-specific growth, ages and maturity),
+  // Sudekum et al. 1991 (NW Hawaiian Islands: spawning season, fecundity, diet) and Hobson 1974
+  // (Kona: patrols just above the reef; follows close behind big foraging goatfish to catch the
+  // prey they flush). Planned for The Reefs as a follower of the humphead wrasse, on the golden
+  // trevally's escort code (docs/fish-queue.md; docs/ride-hosts.md, Followers). Jeremy's model
+  // (2026-11-01); six adults in The Reefs in production, eight in creatures_dev.
+  {
+    id: 'caranx-melampygus',
+    name: 'Bluefin Trevally',
+    scientificName: 'Caranx melampygus',
+    family: 'Carangidae',
+    alternateNames: ['Bluefin Jack', 'Blue Trevally', 'Omilu'],
+    // Tile (2026-11-01): fish 1182's head facing left, rendered from a little below in The Reefs
+    // with the other fish hidden, square at 470 px.
+    atlasThumbnail: '/atlas/caranx-melampygus-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    // Usually alone or a few together by day (Hobson 1974), and each follower holds its own
+    // station round the wrasse, so it runs the solo-agent path the escort steering lives on.
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    // Over 90% fish by volume in Hawaii (Sudekum et al. 1991).
+    predator: true,
+    tempo: 'cruise',
+    // IUCN assessed 9 March 2015 (FishBase).
+    conservationStatus: { system: 'IUCN Red List', code: 'LC', label: 'Least Concern' },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      // Sudekum et al. 1991: over 90% fish; wrasses, goatfishes and filefishes the main
+      // families, eels too; crustaceans in about a fifth of stomachs.
+      commonDiet: 'Mostly small reef fishes, among them wrasses, goatfishes, filefishes and eels; some crustaceans.',
+      foundIn: 'Tropical Indo-Pacific from the Red Sea and East Africa to Hawaii and Ducie Island, north to the Ryukyu Islands and south to New Caledonia, and in the eastern Pacific from Mexico to Panama. Deeper lagoons and outer reefs, 0 to 190 m.',
+      // Pardee et al. 2021: females mature larger and later; growth does not differ significantly
+      // between the sexes. No colour difference is published.
+      sexualDimorphism: 'Females mature at a larger size and a year later than males. No colour difference is known.',
+      // Pardee et al. 2021 (Hawaii, 194 aged): oldest female 24 years, oldest male 17.
+      lifeSpan: 'Up to 24 years',
+      // Pardee et al. 2021, A50 from histology: females 4.1 years at 37.2 cm FL, males 2.9 years
+      // at 32.9 cm. Supersedes Sudekum et al. 1991's "about 2 years" at 35 cm SL.
+      maturityAge: 'Females about 4 years, males about 3',
+      social: {
+        schoolSize: 'Solitary or small groups',
+        // Hobson 1974 (Kona): of 24 groups of the goatfish Parupeneus chryserydros (now
+        // P. cyclostomus), 16 had a jack
+        // following close behind; "clearly, it is the jack that maintains the association".
+        groupingBehaviour: 'By day usually alone or a few together, patrolling about a metre above the reef. Often follows close behind a big forager, such as a goatfish probing the bottom, to snap up the small fish it drives out of hiding.',
+        // Sudekum et al. 1991 (NW Hawaiian Islands): gravid fish from April to November, more
+        // than half gravid in May, June and July.
+        reproduction: 'Spawns in the warm months: in Hawaii, ripe fish from April to November, most from May to July.',
+      },
+      averages: {
+        // Pardee et al. 2021 (Hawaii, Table 1): sex-specific mean asymptotic fork lengths, 74.9
+        // cm female and 69.2 cm male (the growth curves do not differ significantly). Weights
+        // from the study's relation, W (g) = 6.77e-6 FL (mm)^3.15, at those lengths: 7.7 and
+        // 6.0 kg. Life expectancy is each sex's oldest aged fish.
+        maleSizeMeters: 0.69,
+        femaleSizeMeters: 0.75,
+        maleWeightKg: 6,
+        femaleWeightKg: 7.7,
+        maleLifeExpectancyYears: 17,
+        femaleLifeExpectancyYears: 24,
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Females about 4 years, males about 3',
+        sexualSterilityYears: 'None known',
+        // Sudekum et al. 1991: mature eggs in the ovaries of 11 gravid females in July, 49,700
+        // (32.8 cm SL) to 4,270,000 (64 cm SL), rising with body weight to the 1.7 power.
+        offspringPerMatingEvent: 'About 50,000 to 4.3 million eggs, more in larger females',
+      },
+    },
+    atlasSummary: { biome: 'Reef', zone: 'Sunlight', diet: 'Fish', social: 'Follower' },
+    // Colour: Fishes of Australia (electric-blue second dorsal, anal and tail fins; blue and black
+    // spots on the sides).
+    description: 'A reef jack up to 117 cm, silvery with a bronze-blue back, its sides freckled with blue and black spots and its second dorsal, anal and tail fins electric blue. It patrols just above the reef, alone or a few together, and often trails a big fish that is rooting in the bottom, snapping up the small fish it flushes. In the reserve a few follow the humphead wrasse as it works the rocks.',
+    // Pardee et al. 2021: males mature from 32.9 cm FL; FishBase maximum 117 cm FL.
+    adultLengthRangeMeters: [0.33, 1.17],
+    maxBodyLengthMeters: 1.17,
+    // Eight adults at 35–45 cm FL (1.4–1.8 WU), two or three per wrasse (Jeremy, 2026-11-01).
+    // At 45–70 cm they looked nearly as long as the 0.8–1 m females; photos of bluefin trailing
+    // a humphead show them at roughly 40–50% of its length. Still adults: males mature from 32.9.
+    sizeRange: [0.35 / 1.17, 0.45 / 1.17],
+    // Pardee et al. 2021, W (g) = 6.77e-6 FL (mm)^3.15, rewritten for cm FL to grams.
+    mass: { coefficient: 0.009563, exponent: 3.15 },
+    swim: {
+      // A quick carangid cruiser that never hovers, the golden trevally's swim. While following,
+      // the escort steering slows it to the wrasse's pace and these only bound it.
+      visualTimeScale: 0.7,
+      driftEnabled: false,
+      idleBLPerSec: [0.9, 1.3],
+      idleDriftBLPerSec: [0.08, 0.16],
+      snapBLPerSec: [1.4, 1.9],
+      burstBLPerSec: [2.2, 3.0],
+      burstInterval: [10.0, 18.0],
+      burstActionDuration: 0.8,
+      turnActionDuration: 0.6,
+      erraticness: 0.1,
+      turnRadiusBodyLengths: 1.2,
+      speedMultiplier: 1.0,
+      boundsUseSpeciesSize: false,
+      // The wrasse's room. Its stations sit at most about 3 WU off the wrasse; one following it
+      // past a wall waits at the wall (to watch at intake).
+      ...REEF_BOUNDS,
+      // 1 WU = 25 cm: 117 cm maximum fork length = 4.68 WU. The model is scaled by fork length.
+      bodyLengthWU: 4.68,
+      boids: {
+        neighborCap: 4,
+        perceptionBodyLengths: 2.0,
+        separationWeight: 0.25,
+        alignmentWeight: 0,
+        cohesionWeight: 0,
+        maxWeight: 0.25,
+        // A fish-eater, so the small reef fish give it a little room.
+        menace: 0.15,
+        wariness: 0.05,
+      },
+    },
+    hitchhiker: {
+      // Follows rather than rides, breaking off now and then to patrol on its own.
+      attaches: false,
+      freeSeconds: [30, 70],
+      // Hobson 1974: big foraging goatfish; also reported following wrasses, rays and sharks.
+      // Only `reef-forager` for now: its stations sit above the host, which on a ray would be
+      // level with the wings, so a Reefs ray or shark host needs its own check first.
+      hosts: { 'reef-forager': 1 },
+      escort: {
+        // "Follows close behind": over the wrasse's back from the head to just past the tail,
+        // weighted to the rear half.
+        along: [-0.3, 0.9],
+        // Above and to either side, never below: the wrasse works the rock with its belly near
+        // it (0 = its right, 90 above, 180 its left; drift adds up to 18 more).
+        angleDegrees: [20, 160],
+        radius: [1.15, 1.5],
+        seconds: [30, 80],
+        // Then it drifts round to a new station, or (`leaveChance`) swims off for `freeSeconds`.
+        // Low, so two or three of the eight stay with each wrasse (Jeremy, 2026-11-01).
+        leaveChance: 0.2,
+        minSpeedBLPerSec: 0.3,
+        // No burst or snap-turn tail strokes while following: the escort holds its speed, so they
+        // whipped the tail without the dash and read as darting (Jeremy, 2026-11-01).
+        quietTail: true,
+        // It goes looking for a wrasse anywhere on the reef.
+        rangeBodyLengths: 12,
+        // Two or three per wrasse (Jeremy, 2026-11-01): a wrasse with three already is passed
+        // over for the next nearest. Uncapped, most piled onto the nearest one or two.
+        maxPerHost: 3,
+      },
+    },
+    model: {
+      path: '/models/fish/caranx-melampygus/caranx-melampygus.glb',
+      // Supplied 2026-11-01; scripts/prepare-bluefin-trevally-model.py bakes the body's node
+      // offset, centres the root halfway along the fork length on the body axis and crops the
+      // photo to the fish (GLB 4.2 MB -> 0.24 MB). Snout to fork notch: 0.773418 source units ->
+      // 4.68 WU / 117 cm FL; the upper caudal lobe reaches 0.85897 (5.2 WU).
+      scale: 6.0510623944802475,
+      followAim: 'root',
+      moveset: {
+        cruise: 'procedural_cruise',
+        drift: 'procedural_drift',
+        turnLeft: 'procedural_turn_left',
+        turnRight: 'procedural_turn_right',
+        burst: 'procedural_burst',
+      },
+      proceduralAnimation: {
+        type: 'caudal-vertex',
+        bodyMeshNames: ['caranx_melampygus'],
+        sourceAxis: 'z',
+        lateralAxis: 'x',
+        tailAtMaxZ: true,
+        // Carangiform, the golden trevally's setup: a firm front and a compact rear-body stroke.
+        // Its 0.043 and 0.033 body lengths, of this model's 0.859 source units snout to tail tip.
+        amplitude: 0.0369,
+        waveSpeed: 2.8,
+        waveTravel: 3.5,
+        flexStart: 0.26,
+        flexFull: 0.84,
+        turnStrength: 0.0283,
+        burstAmplitude: 0.8,
+        response: 7.5,
+        speedFrequencyBoost: 0.32,
+        burstFrequencyBoost: 0.24,
+        // The long sickle pectorals row little at cruise; jacks swim on the tail.
+        pectoralFinFlutter: 0.1,
+        pelvicFinFlutter: 0.06,
+      },
+      debugForwardOrigin: 'head',
+      debugForwardOffsetRatio: 0.5,
+    },
+  },
+  // Cauliflower Coral (Pocillopora meandrina): Jeremy's pick (2026-11-01) for the next coral on The
+  // Reefs (docs/fish-queue.md), a small branching hard coral. A landscape species like the other
+  // corals: small bushes on the table corals' bommies' tops and upper shoulders, singly or in loose
+  // groups (landscapes.js `cauliflowerCorals`, src/components/cauliflowerCoralPlacement.js), a
+  // `thicket` to the reef fish (docs/reef-behavior.md, Coral forms). Jeremy's model (2026-11-01):
+  // three displaced, photo-projected bushes, baked by scripts/build-cauliflower-coral-kit.py; the
+  // Atlas shows all three on a small rock (scripts/build-cauliflower-coral-atlas.py).
+  // Facts: SeaLifeBase (IUCN EN, assessed 27 October 2023, A3ce; shallow reefs, exposed reef
+  // fronts), NMFS 2019 status review (western Indian Ocean to the eastern Pacific, 95 of 133
+  // Indo-Pacific ecoregions; the surface to at least 34 m, commonest under 5 m on reef crests and
+  // upper slopes; bushes commonly 20-40 cm across, light brown or cream, also green or pink;
+  // determinate growth, most colonies stopping near 40 cm, short-lived for a coral; often the
+  // first coral on bare rock; hermaphrodite broadcast spawner, 1-3 days after the full moon
+  // shortly after sunrise in late spring or early summer; eggs seeded with zooxanthellae, Hirose
+  // et al. 2001; also fragmentation; crabs and shrimp in colonies over about 10 cm ward off
+  // crown-of-thorns starfish, Glynn 1976), Wikipedia (polyps extended mostly at night).
+  {
+    id: 'pocillopora-meandrina',
+    name: 'Cauliflower Coral',
+    scientificName: 'Pocillopora meandrina',
+    family: 'Pocilloporidae',
+    // Tile (2026-11-01): an in-tank close-up of two cream colonies on their ledge, rendered square at
+    // 940 px with the tank's own renderer and scaled to 470 px.
+    atlasThumbnail: '/atlas/pocillopora-meandrina-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 27 October 2023 (A3ce, SeaLifeBase): projected declines as reefs warm and degrade.
+      code: 'EN',
+      label: 'Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch at night.',
+      foundIn: 'The Indo-Pacific, from the western Indian Ocean to Hawaii and the eastern Pacific, most common on wave-swept reef crests and upper slopes, from the surface to at least 34 m deep.',
+      sexualDimorphism: 'None: every colony is both male and female.',
+      // Short-lived for a coral (NMFS 2019, after Brown 2004 and Coles & Brown 2007), but no age
+      // is published.
+      lifeSpan: 'Unknown',
+      maturityAge: 'Unknown',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each bush is one colony of tiny polyps on a shared skeleton of stubby, warty branches. It is often the first coral to settle bare rock after a storm, a lava flow or bleaching, and grows fast, but most colonies stop at about 40 cm across. Once a colony is about 10 cm across, guard crabs and shrimp move in between its branches and drive off coral-eating starfish.',
+        // NMFS 2019 (Stimson 1978, Schmidt-Roach et al. 2012; zooxanthellae in the eggs, Hirose et
+        // al. 2001; fragmentation, Glynn & Colley 2008).
+        reproduction: 'Each colony makes both eggs and sperm. In late spring, one to three days after the full moon, the colonies spawn together just after sunrise, unusual for a coral. Its eggs already carry the algae that feed the adult, so its drifting larvae can make food from sunlight. Broken branches also grow into new colonies.',
+      },
+      averages: {
+        // Colonies are both sexes, and no average colony size, weight or age is published (adult
+        // colonies are commonly 20 to 40 cm across, NMFS 2019).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        sexualMaturityYears: 'Unknown',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Unknown',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A hard coral that grows into small, round bushes of stubby, warty branches, cream, brown, green or pink, rarely more than 40 cm across. It thrives on wave-swept reef crests, is often the first coral back after a storm, and shelters guard crabs that fend off coral-eating starfish. Bleaching and the decline of reefs have made it Endangered.',
+    // The Atlas's biggest colony across, for the scale comparison: the cream one at 45 cm (typical
+    // colonies stop growing at about 40 cm, NMFS 2019; a few grow larger).
+    maxBodyLengthMeters: 0.45,
+    model: {
+      path: '/models/fish/pocillopora-meandrina/pocillopora-meandrina.glb',
+      // The kit's three colonies at true size on a low limestone rock, 1.1 m across
+      // (scripts/build-cauliflower-coral-atlas.py), the rock's foot at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+    },
+  },
+  // Leather Coral (Sarcophyton glaucum): Jeremy's pick (2026-11-01) for the soft coral after the
+  // cauliflower coral on The Reefs (docs/fish-queue.md), the last coral for now. A landscape species
+  // like the other corals: toadstools of one colour a bommie on the table corals' bommies' low
+  // ledges and at their feet (landscapes.js `leatherCorals`, src/components/leatherCoralPlacement.js),
+  // leaning in the surge on the sea fans' sway shader (docs/procedural/coral-sway.md); its toxins
+  // keep the reef fish off it (the `toadstool` form, solid but unvisited: docs/reef-behavior.md).
+  // Jeremy's model (2026-11-02): four photo-projected toadstools, normalised by
+  // scripts/build-leather-coral-kit.py; the Atlas shows all four on a low rock
+  // (scripts/build-leather-coral-atlas.py).
+  // Facts: WoRMS (family Sarcophytidae; records from Mozambique and Madagascar to Fiji and Samoa),
+  // SeaLifeBase (IUCN Not Evaluated, Red List 2025-2; intertidal to considerable depths, reef
+  // flats and turbid near-shore reefs as well as offshore), Coral Trait Database (colony width
+  // 80 cm; 3-30 m at Eilat; eight tentacles a polyp; colony contracts; zooxanthellate, clade C;
+  // suspension feeder; larvae swim 14 days), Benayahu & Loya 1986 (northern Red Sea: separate
+  // sexes 1:1; males mature at 6-7 years, females after 10; eggs ripen over 22-23 months, so a
+  // female holds two batches; most colonies spawn on one night a year, 9 July in 1980; about 35
+  // eggs a polyp, via the Coral Trait Database; slow growth, long life), Schleyer et al. 2004
+  // (KwaZulu-Natal: gonochoric broadcast spawner, but 9% of colonies hermaphrodite), Chao et al.
+  // 2017 (sarcophine is toxic to fish, after Ne'eman et al. 1974; sarcophytoxide competes with
+  // stony corals for space, after Fleury et al. 2006).
+  {
+    id: 'sarcophyton-glaucum',
+    // Renamed from 'Leather Coral' in v0.49.1 (Jeremy, 2026-11-04): "leather coral" covers the
+    // whole genus; "toadstool leather coral" is this species' own common name.
+    name: 'Toadstool Leather Coral',
+    alternateNames: ['Leather coral', 'Toadstool coral'],
+    scientificName: 'Sarcophyton glaucum',
+    family: 'Sarcophytidae',
+    // Tile (2026-11-02): the classic peach toadstool on its rock, three-quarter, against reef blue,
+    // rendered square at 940 px in Blender from the Atlas model and scaled to 470 px, as the sea
+    // fan's (the dev tank would not load in the preview over Remote Control).
+    atlasThumbnail: '/atlas/sarcophyton-glaucum-thumbnail.png',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // SeaLifeBase, after the Red List 2025-2: never assessed.
+      code: 'NE',
+      label: 'Not Evaluated',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Colony width',
+      commonDiet: 'Sugars from the algae living in its tissues, and plankton its polyps catch from the water.',
+      foundIn: 'The Indo-Pacific, from the Red Sea and East Africa to the western Pacific, on reef flats, in lagoons and on seaward slopes, from the shallows to about 30 m deep.',
+      // Benayahu & Loya 1986: separate sexes, 1:1. Schleyer et al. 2004 found 9% of colonies at
+      // KwaZulu-Natal carrying both.
+      sexualDimorphism: 'None visible: each colony is male or female, in equal numbers.',
+      // "Long life span" (Benayahu & Loya 1986), but no age is published.
+      lifeSpan: 'Unknown',
+      maturityAge: 'Males 6 to 7 years; females over 10 years',
+      social: {
+        schoolSize: 'Colonial',
+        groupingBehaviour: 'Each toadstool is one colony of tiny eight-tentacled polyps on a fleshy, leathery body stiffened with chalky spicules, with no hard skeleton. Disturbed, it draws in its polyps and shrinks. Its tissue is laced with toxins: sarcophine poisons fish, and another compound helps it hold its ground against stony corals.',
+        reproduction: 'Each colony is male or female. Once a year, on a single summer night, most colonies release their eggs and sperm together. A female\'s eggs take nearly two years to ripen, so she always carries two batches. The larvae swim for about two weeks before settling.',
+      },
+      averages: {
+        // Colonies are male or female, but no average colony size, weight or age is published (the
+        // largest recorded is 80 cm across, Coral Trait Database).
+        maleSizeMeters: 'Unknown',
+        femaleSizeMeters: 'Unknown',
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 'Unknown',
+        femaleLifeExpectancyYears: 'Unknown',
+      },
+      lifecycle: {
+        // Benayahu & Loya 1986: the smallest males with testes (11 cm³) were 6-7 years old; females
+        // matured at 61 cm³ or more, over 10 years old.
+        sexualMaturityYears: 'Males 6 to 7 years; females over 10 years',
+        sexualSterilityYears: 'None known',
+        // 35 eggs a polyp (Benayahu & Loya 1986, via the Coral Trait Database); one spawning a year.
+        offspringPerMatingEvent: 'About 35 eggs per polyp',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Colonial',
+    },
+    description: 'A soft coral shaped like a toadstool: a smooth stalk under a wide, folded cap up to 80 cm across, furred with tiny polyps it pulls in when disturbed. Its leathery tissue is laced with sarcophine, a toxin that keeps fish from eating it, and its colonies, male or female, spawn together on one night a year.',
+    // The Atlas's widest toadstool, for the scale comparison: the two-headed one at 59 cm across
+    // (scripts/build-leather-coral-kit.py; the largest recorded colony is 80 cm, Coral Trait Database).
+    maxBodyLengthMeters: 0.6,
+    model: {
+      path: '/models/fish/sarcophyton-glaucum/sarcophyton-glaucum.glb',
+      // The kit's four toadstools at true size on a low limestone rock, 1.5 m across
+      // (scripts/build-leather-coral-atlas.py), the rock's foot at the origin, each toadstool's
+      // node at its holdfast. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      sway: LEATHER_CORAL_SWAY,
+    },
+  },
+  // Giant Clam (Tridacna gigas): a static landscape piece in The Reefs (docs/fish-queue.md,
+  // docs/species-preparation.md), lying on the sand at the bommies' feet: no `swim`, no roster slot,
+  // no creature rows, like the corals. Jeremy (2026-11-01): 4 clams of 60-120 cm on the open sand at
+  // the bommies' feet in the front half of the basin, one mid-phone view, static. His model
+  // (2026-11-02), built by scripts/build-giant-clam-kit.py; placed by giantClamPlacement.js.
+  // Facts: the IUCN assessment (Neo & Li 2024: CR A2acd; free-living on sand or hard reef in clear
+  // water; aged to 76 years, Mecha & Dolorosa 2020; male phase at about 4 years in culture,
+  // Heslinga et al. 1984, female phase about 10; up to 500 million eggs a spawning; spawns on
+  // incoming tides round the full and new moons in the austral summer, Braley 1984; densities 0.2
+  // to 431.9 a hectare, Pearson & Munro 1991), SeaLifeBase (Cardiidae; Myanmar to Wallis and
+  // Futuna, Japan to Australia; 0-35 m; 137 cm maximum and 80 cm common shell length; 500 kg
+  // maximum published weight; simultaneous hermaphrodite in later years; zooxanthellae), NOAA
+  // Fisheries (mantle yellowish-brown to olive-green with blue-green rings; proposed Endangered
+  // under the US ESA).
+  {
+    id: 'tridacna-gigas',
+    name: 'Giant Clam',
+    scientificName: 'Tridacna gigas',
+    family: 'Cardiidae',
+    alternateNames: ['True Giant Clam'],
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    schooling: false,
+    repulser: false,
+    aggressive: false,
+    predator: false,
+    conservationStatus: {
+      system: 'IUCN Red List',
+      // Assessed 23 May 2024 (A2acd; Neo & Li): more than 80% lost over the past century, and gone
+      // or uncertain in 26 of 31 localities surveyed (Neo et al. 2017). Vulnerable since 1996.
+      code: 'CR',
+      label: 'Critically Endangered',
+    },
+    atlasDetails: {
+      biome: 'Coral Reef',
+      maxLengthLabel: 'Shell length',
+      // Most of its food comes from the algae in its mantle; it filters plankton as well
+      // (SeaLifeBase: facultative planktotroph with zooxanthellae).
+      commonDiet: 'Sugars from the algae living in its mantle, and plankton it filters from the water.',
+      foundIn: 'The Indo-Pacific, from Myanmar east to Wallis and Futuna, north to Japan and south to Australia, lying on sand or rock on shallow, clear reefs, down to 35 m.',
+      sexualDimorphism: 'None: every adult is both male and female.',
+      // The oldest aged clam (Mecha & Dolorosa 2020, via the IUCN assessment).
+      lifeSpan: '76 years',
+      // In culture (Heslinga et al. 1984; Yusuf pers. comm., via the IUCN assessment): male at 3.5
+      // to 5 years, female function at about 10 (Roa-Quiaoit pers. comm.). Wild ages are unknown.
+      maturityAge: 'About 4 years as a male, 10 as a female',
+      social: {
+        schoolSize: 'Solitary',
+        // Pearson & Munro 1991: 431.9 a hectare at Michaelmas Reef, about 4 per 100 m². Most
+        // surviving subpopulations hold fewer than 10 clams (IUCN assessment).
+        groupingBehaviour: 'Lives alone, lying free on sand or rock among the corals, and never moves once grown. Where it has not been fished out, as on parts of the Great Barrier Reef, clams lie scattered over the reef, up to about four to every 100 m². Elsewhere most groups that remain number fewer than ten.',
+        // Braley 1984 and the IUCN assessment; starts out male (Heslinga et al. 1984).
+        reproduction: 'Each clam is male first, then both male and female. Clams spawn in summer on incoming tides around the full and new moons, a clam releasing up to 500 million eggs at a time to meet the sperm of its neighbours. The larvae drift in the plankton, then settle on the reef.',
+      },
+      averages: {
+        // Every adult is both sexes. Size: SeaLifeBase's common shell length, 80 cm. No length–weight
+        // relation is published; single specimens (230 kg at 137 cm, 333 kg at 115 cm, Wikipedia)
+        // disagree by half at 80 cm, so weight stays Unknown. Life expectancy: the oldest aged clam,
+        // 76 years (Mecha & Dolorosa 2020, via the IUCN assessment), for both.
+        maleSizeMeters: 0.8,
+        femaleSizeMeters: 0.8,
+        maleWeightKg: 'Unknown',
+        femaleWeightKg: 'Unknown',
+        maleLifeExpectancyYears: 76,
+        femaleLifeExpectancyYears: 76,
+      },
+      lifecycle: {
+        // Cultured clams' male phase (IUCN assessment, after Heslinga et al. 1984).
+        sexualMaturityYears: 'About 4 years',
+        sexualSterilityYears: 'None known',
+        offspringPerMatingEvent: 'Up to 500 million eggs',
+      },
+    },
+    atlasSummary: {
+      biome: 'Reef',
+      zone: 'Sunlight',
+      diet: 'Sunlight & plankton',
+      social: 'Solitary',
+    },
+    atlasThumbnail: '/atlas/tridacna-gigas-thumbnail.png',
+    description: 'The largest living clam, its shell up to 137 cm long. It lies open on the sand and rock of clear, shallow reefs, its mantle spread to the sun, yellowish brown to olive green with shimmering blue-green rings: algae living in the mantle make most of its food. Collected for food and shells across most of its range, it is Critically Endangered.',
+    // The Atlas clam's shell, for the scale comparison: Jeremy's model at 1.11 m, an old adult past
+    // the 80 cm common length (scripts/build-giant-clam-kit.py; the largest recorded is 137 cm).
+    maxBodyLengthMeters: 1.11,
+    model: {
+      path: '/models/fish/tridacna-gigas/tridacna-gigas.glb',
+      // The kit's clam at its 1.11 m on a faint disc of sand like the table coral's
+      // (scripts/build-giant-clam-atlas.py), the clam's middle at the origin. 1 raw = 1 m -> 4 WU.
+      scale: 4,
+      // The sand's soft edge is alpha-blended; the clam is opaque.
+      alphaBlend: true,
+      // The mantle breathes as in the tank; the shell and sand stay still.
+      sway: GIANT_CLAM_MANTLE_SWAY,
     },
   },
   // --- East Pacific green turtle (Cheloniidae) -----------------------------------------------

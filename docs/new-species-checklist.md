@@ -37,6 +37,7 @@ Write this before implementation:
 - [ ] Confirm provenance is recorded as supplied/approved; do not invent licensing claims.
 - [ ] List every image embedded in the GLB (name, size) and look at each one. Remove anything that is not the animal (logos, watermarked comps, screenshots); if a material samples only a corner of one, cut that corner out and remap the UVs.
 - [ ] Credit every photo texture in `IMAGE_CREDITS` (`src/data/sources.js`) in the build that ships it: the full credit, or an entry with no `url` that shows "Unknown source" plus a ROADMAP item to find it. Generated images are not listed.
+- [ ] Looking for a texture photo: check the photographers below first. Each has given standing permission, so their photos need no new request; credit them `used with permission`.
 - [ ] Put the runtime asset at `public/models/fish/<scientific-slug>/` and update the relevant preload only when startup cost is justified.
 - [ ] Set model transform, real-world scale (`1 WU = 25 cm`), body length, and source-length measurement deliberately.
 - [ ] Ensure the authored root/origin is at the intended follow point—normally the body/swim pivot; if it is used for camera follow, it must be visually meaningful.
@@ -106,6 +107,12 @@ Write this before implementation:
 - [ ] Before clean release: rebase latest `origin/main`, rerun gates, get explicit Jeremy/YK approval, promote version/changelog/roadmap together, merge, delete branch, and verify main deployment.
 - [ ] Release hygiene (AGENTS.md): both changelogs updated, and every visitor line true of production (nothing only `creatures_dev` shows); the species' ROADMAP section moved out of Current work; the entry appended at the end of `SPECIES`, its header comment matching what shipped; merged through the PR so the title ends in `(#N)`.
 - [ ] Nothing outside the codebase is committed: reel and social briefs, book materials and the like go to Jeremy in chat (AGENTS.md, Release hygiene).
+
+## Photographers with standing permission
+
+Photographers who let us use any of their photos without asking each time. The permission is in Jeremy's email; credit each photo in `IMAGE_CREDITS` with the photo's own page as `url` and `licence: { name: 'used with permission' }`.
+
+- David Burdick, [Guam Reef Life](https://www.guamreeflife.com/): corals, fish and invertebrates of Guam and the Mariana Islands (email, 2026-11-04: "Feel free to use any of my other images").
 
 ## Review handoff
 

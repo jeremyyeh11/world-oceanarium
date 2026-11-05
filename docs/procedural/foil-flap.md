@@ -106,6 +106,15 @@ separate them. Jeremy keeps the flippers as separate objects named `flipper.fore
 with the shell, head and neck (and the male's tail) as one more object: the intake script
 joins and paints them (below) and exports the single body mesh.
 
+**How the flippers attach.** Like the pectoral and pelvic fins on Jeremy's fish: each flipper
+is its own closed piece with its root pushed into the body, sharing no vertices with it and
+not welded (Jeremy asked, 2026-11-05). Bury about the first 10–15% of the flipper's length
+inside the body under the shell, so the root stays hidden as the flipper turns; the body
+stays closed, with no hole where the flipper enters. Put one edge loop roughly where the
+flipper comes out from under the shell: the stroke weight reaches full strength there. The
+join is a plain Ctrl+J, with no merge by distance. Welding would drag the body's vertices
+with the stroke, or tear them.
+
 **Orientation.** Nose at `-Z`, `+Y` up (the renderer turns local `-Z` to the heading),
 transforms applied. Origin at world `0`, at the centre of the shell (the follow point).
 
@@ -119,7 +128,8 @@ glide; hind flippers trailing beside the tail. The glide pose is computed from t
 
 **Topology.** Fore-flippers 8–10 spanwise loops from shoulder to tip and 3–4 chordwise
 divisions, so the blade both bends and twists without faceting badly (faceting itself is
-the art style). A dense ring at the shoulder, where rotation starts. Hind flippers 4–5
+the art style). A dense ring at the shoulder, where rotation starts, and a loop where the flipper leaves
+the shell. Hind flippers 4–5
 spanwise loops. The shell needs no density at all.
 
 **Poly budget.** About 3000–6000 vertices in all; each fore-flipper about 300–500.

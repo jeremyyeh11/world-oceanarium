@@ -28,6 +28,7 @@ import { getFishRuntime } from './fishRuntimeStore'
 import { createFishMaterialPass } from './fishMaterialPass'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 import { advanceFoilFlap, createFoilFlapState } from '../utils/foilFlap'
+import { advanceTurtleSurfacing, createTurtleSurfacingState, turtleSurfaceCeiling } from './turtleSurfacing'
 import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, rockBendSide, seabedHeightAt, startedInsideLastPush, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
@@ -194,6 +195,7 @@ const SPINE_FOLD_RATE = 2.5
 // slows to `speedScale` of its pace and opens its mouth (its own shape key, a glTF morph target)
 // for `duration` seconds, easing open and shut over about `easeSeconds`.
 const FEEDING_DEFAULTS = { interval: [60, 180], duration: [10, 20], easeSeconds: 1.5, speedScale: 0.6 }
+const TURTLE_SURFACING_BEHAVIOR = Object.freeze({ type: 'surface' })
 const CAUDAL_WHIP_EXTRA_BURST = 1.8
 const CAUDAL_WHIP_FREQUENCY_BOOST = 1.0
 const DEFAULT_MOVESET = {
@@ -2236,20 +2238,20 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         response,
         rawDelta * simulationSpeed,
       )
-      if (!foilFlapRef.current) {
+      if (!proceduralInput.foilFlapState && !foilFlapRef.current) {
         const rand = mulberry32(animationVariation?.foilFlapSeed ?? 1)
         foilFlapRef.current = { rand, state: createFoilFlapState(curveConfig, rand) }
       }
       const beatRate = curveConfig.beatRateRange
         ? THREE.MathUtils.lerp(curveConfig.beatRateRange[0], curveConfig.beatRateRange[1], animationVariation?.beatRate01 ?? 0.5)
         : 1
-      advanceFoilFlap(foilFlapRef.current.state, curveConfig, rawDelta * simulationSpeed, {
+      if (!proceduralInput.foilFlapState) advanceFoilFlap(foilFlapRef.current.state, curveConfig, rawDelta * simulationSpeed, {
         speed01: THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1),
         burst01: THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1),
         beatRate,
         rand: foilFlapRef.current.rand,
       })
-      proceduralWaveClockRef.current = foilFlapRef.current.state.clock
+      proceduralWaveClockRef.current = (proceduralInput.foilFlapState ?? foilFlapRef.current.state).clock
     }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current
@@ -2353,7 +2355,7 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         // bottom of the stroke.
         proceduralUniforms.phase.value = proceduralWaveClockRef.current
           + (proceduralUniforms.glide ? 0 : (proceduralInput.phase ?? 0))
-        if (proceduralUniforms.glide) proceduralUniforms.glide.value = foilFlapRef.current?.state.glide ?? 0
+        if (proceduralUniforms.glide) proceduralUniforms.glide.value = (proceduralInput.foilFlapState ?? foilFlapRef.current?.state)?.glide ?? 0
         proceduralUniforms.speed.value = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
         // The startle whip (whip01) is 0 outside a startle, leaving these as they were.
         const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
@@ -2441,6 +2443,33 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
   const size = creature.size ?? 1
+  // The tank owns the foil clock so thrust and visible pose read the same frame. Atlas
+  // specimens have no Fish parent and keep FishModel's independent presentation clock.
+  const foilFlap = useMemo(() => {
+    if (model?.proceduralAnimation?.type !== 'foil-flap-vertex') return null
+    if (!runtime.foilFlap) {
+      const rand = mulberry32(animationVariation.foilFlapSeed)
+      runtime.foilFlap = {
+        state: createFoilFlapState(model.proceduralAnimation, rand),
+        input: { rand, speed01: 0, burst01: 0, beatRate: 1, resting: false },
+      }
+    }
+    return runtime.foilFlap
+  }, [runtime, model, animationVariation.foilFlapSeed])
+  const surfacing = useMemo(() => {
+    if (!swim.surfacing) return null
+    if (!runtime.surfacing) runtime.surfacing = {
+      state: createTurtleSurfacingState(),
+      rand: mulberry32(hashString(`${creature.id}:surfacing`)),
+    }
+    return runtime.surfacing
+  }, [runtime, swim.surfacing, creature.id])
+  const surfaceSteeringBounds = useMemo(() => {
+    if (!surfacing) return null
+    // Leave room for the ascent target above the hard ceiling: ordinary ceiling
+    // avoidance would otherwise turn her down before her head reached the surface.
+    return { ...swimBounds(creature.depthZone, swim, size), yMax: SURFACE_PLANE_Y + swim.bodyLengthWU * 3 }
+  }, [surfacing, creature.depthZone, swim, size])
   const organicMotion = useMemo(() => {
     const rand = mulberry32(hashString(`${school?.id ?? 'solo'}:${creature.id ?? creature.species}:organic-motion`))
     return {
@@ -2613,7 +2642,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
-  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, whip01: 0, phase: 0 })
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, whip01: 0, phase: 0, foilFlapState: foilFlap?.state })
   // The caudal wave as rendered this frame (FishModel writes it); a ride host publishes it so its
   // clamped riders move with the body under them.
   const waveOutRef = useRef({ phase: 0, speed01: 0, turn: 0, burst: 0 })
@@ -2826,6 +2855,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (simulationTime.current === null) simulationTime.current = rawNow
     simulationTime.current += delta
     const now = simulationTime.current
+
+    if (foilFlap) {
+      const config = model.proceduralAnimation
+      const input = foilFlap.input
+      input.speed01 = THREE.MathUtils.clamp(motion.idleSpeed / Math.max(0.001, motion.burstSpeed), 0, 1)
+      input.burst01 = curveDeformInputRef.current.burst01
+      input.beatRate = config.beatRateRange
+        ? THREE.MathUtils.lerp(config.beatRateRange[0], config.beatRateRange[1], animationVariation.beatRate01)
+        : 1
+      input.resting = surfacing?.state.stage === 'breathe'
+      advanceFoilFlap(foilFlap.state, config, delta, input)
+    }
 
     if (isSchooling) {
       const noise = organicNoise.current
@@ -3055,6 +3096,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       currentForward.normalize()
 
       const bodyLength = creatureBodyLength(creature, swim)
+      if (surfacing) {
+        const active = advanceTurtleSurfacing(surfacing.state, swim.surfacing, now, position, currentForward,
+          bodyLength, swimBounds(creature.depthZone, swim, size), surfacing.rand)
+        if (active) {
+          agentBehavior.current = TURTLE_SURFACING_BEHAVIOR
+          agentTarget.current.copy(surfacing.state.target)
+          agentHasTarget.current = true
+        } else if (agentBehavior.current?.type === 'surface') {
+          agentBehavior.current = null
+          agentHasTarget.current = false
+        }
+      }
       if (steersByRide && ride.approaching) {
         // Closing on a host (or keeping station by a mate): the moving intercept point replaces the roaming target, and the
         // behavior slot stays occupied so no roaming target is picked meanwhile.
@@ -3068,7 +3121,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         ? Math.min(bodyLength * MOLA_SUN_BASK_REACHED_BODY_LENGTHS, MOLA_SUN_BASK_REACHED_MAX)
         : soloAgentReachedDistance(creature, bodyLength)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
-      if (agentBehavior.current && agentBehavior.current.type !== 'ride' && agentBehavior.current.type !== 'reef' && targetDistance <= reachedDistance) {
+      if (agentBehavior.current && agentBehavior.current.type !== 'ride' && agentBehavior.current.type !== 'reef' && agentBehavior.current.type !== 'surface' && targetDistance <= reachedDistance) {
         if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
           const plannedDistance = Math.max(0.001, agentBehavior.current.approachDistance ?? 0)
           const distanceProgress = plannedDistance > 0.001
@@ -3619,7 +3672,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         } else if (agentHasTarget.current) {
           // Solo agent: steer toward the personal roaming/authored target (boundary-shaped for
           // non-mola species).
-          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim, bounds)
+          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim,
+            agentBehavior.current?.type === 'surface' ? surfaceSteeringBounds : bounds)
         } else {
           // Between targets: hold the current heading and let boids/clamps shape it.
           agentMoveDirection.copy(tangent)
@@ -3748,6 +3802,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const remaining = fish.position.distanceTo(agentTarget.current) / Math.max(0.001, bodyLength)
           authoredSpeedScale = THREE.MathUtils.lerp(REEF_ARRIVAL_SPEED_SCALE, 1, THREE.MathUtils.smoothstep(remaining, 0.5, REEF_ARRIVAL_BODY_LENGTHS))
         }
+        if (foilFlap) authoredSpeedScale *= foilFlap.state.speedScale
+        if (surfacing?.state.stage === 'breathe') authoredSpeedScale *= swim.surfacing.speedScale
 
         // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
         // Cloud members vary pace smoothly above; a permanent personal speed bias
@@ -3835,7 +3891,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           if (isSoloAgent) {
             // Keep the body below the water plane and flatten any upward heading so it glides
             // along the ceiling instead of nosing through the surface.
-            clampToSurfaceCeiling(fish.position, agentMoveDirection, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
+            clampToSurfaceCeiling(fish.position, agentMoveDirection, surfacing
+              ? turtleSurfaceCeiling(swim.surfacing, bodyLength)
+              : SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
           }
         }
         // A remora closing on its host never passes through it (see keepRiderClearOfHost).
@@ -3940,7 +3998,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         ? `pair → ${pairFollow?.leaderId}${ride.hostId != null ? ` (follow → ${ride.hostId})` : ''}`
         : hitchhiker && ride.stage !== 'free'
         ? `${hitchhiker.attaches ? `ride ${ride.stage}` : 'follow'}${ride.hostId != null ? ` → ${ride.hostId}${ride.anchorIndex >= 0 ? ` #${ride.anchorIndex}` : ''}` : ''}`
-        : (behavior?.type === 'sun-bask'
+        : (behavior?.type === 'surface'
+          ? `surface ${surfacing.state.stage}`
+          : behavior?.type === 'sun-bask'
           ? `sun-bask ${behavior.stage}`
           : behavior?.type === 'reef'
             ? `reef ${reefRef.current.mode} ${reefRef.current.stage}${reefRef.current.siteKind !== 'rock' ? ` ${reefRef.current.siteKind}${reefRef.current.siteAim === 'crown' ? ' crown' : ''}` : ''}${reefRef.current.stage === 'peck' ? ` ${reefRef.current.peckPhase} ×${reefRef.current.pecksLeft}` : ''}`
@@ -4012,7 +4072,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       pitchSpeedReference * PITCH_FADE_SPEED_FRACTION_LO,
       pitchSpeedReference * PITCH_FADE_SPEED_FRACTION_HI,
     )
-    const targetVisualPitch = pitchSpeedWeight * ((frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
+    const targetVisualPitch = surfacing?.state.stage === 'breathe' ? swim.surfacing.breathePitchRadians : pitchSpeedWeight * ((frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
       ? THREE.MathUtils.clamp(Math.atan2(frameMove.y, Math.max(frameHorizontalMove, 1e-4)), -pitchLimit, pitchLimit)
       : 0)
     if (!hasVisualForward.current) {

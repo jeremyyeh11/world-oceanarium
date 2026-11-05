@@ -8,14 +8,21 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
-## v0.50.0 — East Pacific Green Turtle preparation (in development)
+## v0.50.0 — East Pacific Green Turtle (in development)
+
+Status: `v0.50.0-dev_4`, branch `species/chelonia-mydas`,
+[PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181). Preview work;
+in-tank visual review, frame-time measurement and Atlas tile remain open.
 
 ### Species and Atlas
 
 - East Pacific Green Turtle (`chelonia-mydas`): IUCN Vulnerable (East Pacific
   subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity ages and
-  the oldest aged turtle (credited), a draft escort-only `rideHost` (`turtle`). Three adults
-  planned, one male on his own long-tailed model (Jeremy). No roster slot or rows yet.
+  the oldest aged turtle (credited), and an escort-only `rideHost` (`turtle`) measured from
+  the female's rigid mesh. Added to The Shallows' roster. Two adult females in
+  `creatures_dev` (IDs 1187–1188, 77/81 cm shell length, 2026-11-05); male deferred by
+  Jeremy. Dev rows 836 → 838; production remains 841 with no turtles. Both tables
+  snapshotted before/after; every pre-existing row verified unchanged.
 - Jeremy's female turtle model in the Atlas, flippers joined and painted by
   `scripts/paint-foil-flap-masks.py`; her three photo textures credited in Sources.
 
@@ -24,9 +31,12 @@ Versioning convention notes:
 - New procedural motion type `foil-flap-vertex` for the turtle's flippers, approved by Jeremy:
   both fore-flippers stroke down and back from the shoulders, each blade twisting ahead of the
   stroke, in groups of a few beats with glides between; the hind flippers steer. The tank and
-  the Atlas share one stroke-and-glide clock. The speed surge on each downstroke comes with
-  the turtles' move into The Shallows.
-- Turtles will surface to breathe now and then (Jeremy); built with their swim room.
+  the Atlas use the same stroke-and-glide machine. In the reserve, one shared clock drives
+  both pose and forward impulses: 0.45 added at mid-downstroke, decaying at 1.1/s, over a
+  0.78 cruising-speed floor. Stroke/glide and breathing state survive reserve switches.
+- Low roaming targets at y −24 to −20 over the sand; every 120–240 simulation seconds after
+  returning low, rise to breathe for 5–8 seconds, then descend. All stages use the shared
+  steering and movement pipeline. A failed ascent gives up after 120 seconds.
 
 ## v0.49.1 — Toadstool Leather Coral
 

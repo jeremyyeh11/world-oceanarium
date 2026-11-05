@@ -40,6 +40,7 @@ Important paths:
 
 - `src/components/Fish.jsx` — creature rendering, movement, animation, debug labels
 - `src/components/fishRuntimeStore.js` — session-lifetime fish snapshots that survive active-tank unmount/remount
+- `src/components/turtleSurfacing.js` — the turtle's timed rise, breathing glide and return to low cruising; authored targets on the shared movement pipeline, with state kept in `fishRuntimeStore.js`
 - `src/components/Biome.jsx` — renders a tank's curated creature assemblage (see `docs/tank-design.md`)
 - `src/components/TankView.jsx` — tank UI, debug mode, follow selection, controls
 - `src/hooks/useCreatures.js` — Supabase/local creature source routing

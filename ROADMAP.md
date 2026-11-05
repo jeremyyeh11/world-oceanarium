@@ -15,7 +15,7 @@ Status labels:
 
 ### East Pacific Green Turtle (The Shallows)
 
-Status: `Current in development` — prepared in `v0.50.0-dev_1`, `foil-flap` built on a generated stand-in in `dev_2`, Jeremy's female model in the Atlas in `dev_3` (branch `species/chelonia-mydas`); the male and the move into The Shallows to come. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
+Status: `Current in development` — `v0.50.0-dev_4`, branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181): female model in The Shallows' roster with two dev adults, low cruising, downstroke surges and breathing visits. Visual/phone review, frame-time measurement and Atlas tile remain open; male and production stocking deferred. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
 
 - [x] Research, Atlas copy, Averages and Lifecycle; hidden entry, draft swim and escort-only `rideHost` (`turtle`); study credits; data test.
 - [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
@@ -26,9 +26,12 @@ Status: `Current in development` — prepared in `v0.50.0-dev_1`, `foil-flap` bu
 - [x] Handoff (Jeremy, 2026-11-01): flippers as separate named objects in the `.blend`, joined and painted by an intake script.
 - [ ] Ken Kiefer's reply about the belly photo, which ships without permission by Jeremy's call (2026-11-05: "ship it, swap if asked", as the giant clam): with a yes, the credit becomes "used with permission"; with a no or a takedown request, swap for a plain cream plastron (docs/species-preparation.md).
 - [x] Jeremy's female (`dev_3`, 2026-11-05): `scripts/paint-foil-flap-masks.py` joins the flippers, turns them right way out, paints the masks, crops and shrinks the photos (54.3 MB to 388 KB) and exports; stand-in and generator removed; in the Atlas for review; three image credits. The stand-in's Atlas pose framed her on desktop and phone.
-- [ ] Jeremy's male (the female with a longer tail) through the same script, in `sexVariants.male`.
-- [ ] Anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
-- [ ] In The Shallows: swim room low over the sand, surfacing to breathe, the downstroke speed surge (impulse-and-decay, frame time measured), Atlas tile, rows.
+- [ ] Jeremy's male (the female with a longer tail) through the same script, in `sexVariants.male` — on hold by Jeremy, 2026-11-05; female preview first.
+- [x] Clearance from the female's rigid mesh: center `[0, 0, -0.15]`, radii `[0.54, 0.25, 0.86]` in shell lengths; all rigid vertices within normalized radius 0.905. Escort-only: no attachment anchors needed.
+- [x] `dev_4`: The Shallows roster, low goals y −24…−20, timed breathing visits, and shared foil clock with downstroke impulse-and-decay. Surfacing tests pass at 30/60/120 Hz; visual tuning remains.
+- [x] Two adult female `creatures_dev` rows (2026-11-05): IDs 1187–1188, sizes 0.48/0.64 → 77/81 cm shells. Dev 836 → 838; production 841 unchanged, no turtles. Before/after snapshots and full prior-row comparisons passed.
+- [ ] Check trevally escort stations, normal-distance motion, follow framing and surface/body clearance in the browser; measure frame time on phone. Computer Use stopped before browser inspection because it could not verify the Windows browser URL; no in-tank visual check claimed.
+- [ ] Capture and review the in-tank Atlas tile; clean-release blocker. This pushed work-in-progress preview retains the existing dev-only missing-tile warning.
 
 ### Yellowfin Tuna follow-ups
 

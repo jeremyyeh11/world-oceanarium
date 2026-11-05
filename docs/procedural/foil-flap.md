@@ -13,8 +13,9 @@ Read [README.md](README.md) first for the rules shared by every type.
 > `scripts/paint-foil-flap-masks.py` (see [species-preparation.md](../species-preparation.md)). Code: `foilFlap()` GLSL and
 > `foilFlapRig()` in `src/components/Fish.jsx`; the stroke-group and glide clock in
 > `src/utils/foilFlap.js`, shared by the tank and the Atlas specimen; tests in
-> `tests/foilFlap.test.mjs`. The speed surge (impulse-and-decay) is not built yet: it touches
-> shared movement and waits for the turtles to reach The Shallows.
+> `tests/foilFlap.test.mjs`. In `dev_4`, the tank owns the clock and uses it for both the
+> visible pose and downstroke thrust; surfacing lives in `src/components/turtleSurfacing.js`.
+> In-tank visual tuning and frame-time measurement remain open.
 
 ## Animals
 
@@ -221,11 +222,17 @@ machine (`src/utils/foilFlap.js`), per creature, from its own seeded stream:
   rather than looping on elapsed time.
 - **Turns:** amplitude biased between sides by `turn`, and the hind rudders angle; the
   shell banks only through the existing integrator.
-- **Impulse-and-decay (not built yet):** each downstroke adds a forward impulse, decaying
-  through the recovery and the glide, so speed surges with the pose. This is the one
-  shared-movement touch, gated to this type and frame-time measured, as the README requires.
-  Built when the turtles reach The Shallows. Uniforms carry the clock and the glide blend
-  only; no per-frame allocation.
+- **Impulse-and-decay (`dev_4`):** crossing mid-downstroke adds `strokeImpulse` (0.45) to
+  thrust, decaying exponentially at `strokeDecay` (1.1/s). Travel speed is multiplied by
+  `glideSpeedScale` (0.78) plus thrust. Impulse decay accounts for the crossing's time
+  within the frame. The tank advances this state before movement, and FishModel reads
+  that same clock/glide without advancing twice. Atlas keeps its own presentation clock.
+  Inputs/state are reused; frame-time measurement remains open.
+- **Breathing (`dev_4`):** `swim.surfacing` schedules low cruise → rise → breathe → dive.
+  Every stage supplies a target to the existing pipeline. During a breath the foil clock
+  holds at its current phase while the glide blend eases in, without a phase jump or
+  another impulse. Stroke/glide state, random stream and surfacing schedule survive tank
+  switches in `fishRuntimeStore.js`; page reload clears them.
 
 ## Config keys
 
@@ -255,10 +262,13 @@ The orientation is fixed by the contract (nose `-Z`, `+Y` up), so there is no ax
 | `idleAmplitudeFloor` | `0.6` | Share of the full stroke kept at rest |
 | `response` | `2.5` | Turn damping |
 | `speedFrequencyBoost`, `burstFrequencyBoost` | `0.3`, `0.4` | Cadence gain |
+| `strokeImpulse`, `strokeDecay` | `0`, `1.1` | Forward speed-ratio impulse at mid-downstroke, exponential decay per second; turtle uses 0.45 |
+| `glideSpeedScale` | `1` | Cruising-speed multiplier before thrust is added; turtle uses 0.78 |
 
-Not built yet: `strokeImpulse`, the forward impulse per downstroke (impulse-and-decay). Every
-value is a starting point for the first tuning pass, not a measurement. Tuning goes in a tuning
-row here once the turtle ships.
+Every value is a starting point for visual tuning, not a biological measurement. The turtle's
+`swim.surfacing` uses intervals 120–240 s, breathing duration 5–8 s, low band y −24…−20,
+center clearance 0.24 shell lengths, nose-up pitch 0.24 rad, breathing speed scale 0.25,
+and a 120 s failed-ascent timeout. Times use simulation seconds.
 
 ## Verifier entry
 
@@ -273,7 +283,9 @@ reach the export under its own name.
 Checked on the stand-in (2026-10-31), from `tests/foilFlap.test.mjs` and a JS port of the
 shader run over the stand-in's vertices, and the beat in the Atlas locally. On Jeremy's female
 (2026-11-05): stroke, glide with the flippers swept back, and recovery seen in the Atlas on
-desktop and a 375 px phone; not measured frame by frame yet. The rest waits for the reserve.
+desktop and a 375 px phone; not measured frame by frame yet. In `dev_4`, thrust timing,
+glide rest and ascent/breath/descent at 30/60/120 Hz pass CPU tests. In-tank visual checks,
+trevally spacing, frame-time measurement and the Atlas tile remain open.
 
 - Glide share: idle 0.45, cruise 0.37, fast 0.18; none in a burst.
 - The downstroke takes 38% of the beat by construction (`downFraction`). The tip drops from
@@ -308,6 +320,5 @@ The gates:
 2. Flippers: **separate named objects in the `.blend`, joined and painted by the intake
    script** (`scripts/paint-foil-flap-masks.py`, written with the first model), Jeremy,
    2026-11-01.
-3. Glides were built first, in the clock and the shader. The speed surge waits for the turtles
-   to reach The Shallows, where it can be tuned against the swim speed and its frame cost
-   measured.
+3. Glides were built first; downstroke thrust and surface visits followed in `dev_4`.
+   Tune the reserve motion visually and measure its frame cost before clean release.

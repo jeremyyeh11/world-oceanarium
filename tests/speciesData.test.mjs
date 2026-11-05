@@ -68,8 +68,7 @@ for (const alias of [trevally.id, trevally.name, trevally.scientificName]) {
 }
 assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === trevally.model.path))
 
-// The East Pacific green turtle: Jeremy's female in the Atlas for review, but no reserve slot
-// yet, and its draft escort-only rideHost has no spots to ride yet.
+// The East Pacific green turtle: females swim in The Shallows; the male is deferred.
 {
   const turtle = speciesById.get('chelonia-mydas')
   assert.ok(turtle, 'chelonia-mydas canonical species exists')
@@ -77,20 +76,22 @@ assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows')
   assert.ok(existsSync(new URL(`../public${turtle.model.path}`, import.meta.url)), 'the turtle model exists')
   assert.equal(turtle.model.proceduralAnimation.type, 'foil-flap-vertex')
   assert.ok(Math.abs(turtle.model.scale * 1 - turtle.swim.bodyLengthWU) < 1e-9, 'the 1-unit shell is the body length')
-  // In the Atlas, so it warms its model there; no tile until it swims in a tank.
+  assert.ok(!turtle.hiddenInAtlas)
+  // The dev build's tile warning remains until the in-tank capture is reviewed.
   assert.deepEqual(atlasWarmupUrls([turtle]), [turtle.model.path], 'the Atlas warms only the turtle model')
-  assert.ok(ENVIRONMENT_MANIFESTS.every(manifest => manifest.assets.every(asset => !asset.url.includes('chelonia-mydas'))), 'the turtle cannot block reserve loading')
+  assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === turtle.model.path))
   for (const alias of [turtle.id, turtle.name, turtle.scientificName]) {
-    const creature = { id: 'pending-turtle', species: alias, alive: true, size: 0.8 }
+    const creature = { id: 'intake-turtle', species: alias, alive: true, size: 0.8 }
     assert.equal(resolveSpecies(creature), turtle)
-    for (const tank of TANKS) assert.deepEqual(creaturesForTank([creature], tank), [], 'the turtle is not stocked before intake')
+    assert.deepEqual(TANKS.filter(tank => creaturesForTank([creature], tank).length).map(tank => tank.id), ['the-shallows'])
   }
   assert.ok(Math.abs(turtle.swim.bodyLengthWU * 0.25 - turtle.maxBodyLengthMeters) < 1e-9, 'turtle biological reference and world scale agree')
   assert.ok(turtle.sizeRange[0] * turtle.swim.bodyLengthWU >= 1.08, 'proposed turtles are above the 27 cm size floor')
   // Shell length cubed: the weighed Colola males, 67.5 cm and 45.7 kg (Delgado-Trejo et al. 2024).
   assert.ok(Math.abs(turtle.mass.coefficient * 67.5 ** turtle.mass.exponent / 1000 - 45.7) < 1.5)
   assert.deepEqual(turtle.rideHost.groups, ['turtle'])
-  assert.equal(turtle.rideHost.anchors, undefined, 'anchors wait for the GLB')
+  assert.equal(turtle.rideHost.anchors, undefined, 'an escort-only turtle has no attachment anchors')
+  assert.equal(turtle.model.sexVariants?.male, undefined, 'the male model is deferred')
 }
 
 // Bluefin trevally: scaled by fork length (Pardee et al. 2021's relation is cm FL to grams).

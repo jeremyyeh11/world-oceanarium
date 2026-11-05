@@ -24,6 +24,8 @@ export function createFoilFlapState(config, rand) {
     gliding: false,
     glideLeft: 0,
     glide: 0,
+    thrust: 0,
+    speedScale: 1,
   }
 }
 
@@ -31,15 +33,21 @@ export function createFoilFlapState(config, rand) {
 // cadence. Faster swimming adds strokes to a group and shortens glides; a burst strokes on with no
 // glide; a resting turtle mostly glides. `glide` eases toward 1 while gliding and back to 0 after,
 // over about half a beat (glideResponse). Returns the state.
-export function advanceFoilFlap(state, config, delta, { speed01 = 0, burst01 = 0, beatRate = 1, rand } = {}) {
+export function advanceFoilFlap(state, config, delta, { speed01 = 0, burst01 = 0, beatRate = 1, resting = false, rand } = {}) {
   const dt = Math.max(0, delta)
+  const previousClock = state.clock
+  if (resting) {
+    state.gliding = true
+    // Ease into the glide from this pose; never jump the clock to another phase.
+    state.glideLeft = Math.max(state.glideLeft, dt + 0.1)
+  }
   if (state.gliding) {
     state.glideLeft -= dt
     // A burst or a hard push cuts the glide short.
     if (state.glideLeft <= 0 || burst01 > 0.15) {
       state.gliding = false
       const strokes = Math.max(1, Math.round(pick(rand, config.strokesPerGroup, 2) + speed01 * (config.speedExtraStrokes ?? 2)))
-      state.nextGlideAt = state.clock + TAU * strokes
+      state.nextGlideAt = TAU * (Math.floor(state.clock / TAU) + strokes + (config.downFraction ?? 0.38))
     }
   } else {
     const rate = (config.waveSpeed ?? 3.4) * beatRate * (
@@ -60,5 +68,19 @@ export function advanceFoilFlap(state, config, delta, { speed01 = 0, burst01 = 0
   }
   const target = state.gliding ? 1 : 0
   state.glide += (target - state.glide) * (1 - Math.exp(-(config.glideResponse ?? 3) * dt))
+  // One impulse at mid-downstroke, followed by continuous drag through recovery/glide.
+  // Integrate the decay on either side of the crossing, so 30/60/120 Hz agree.
+  const decay = config.strokeDecay ?? 1.1
+  state.thrust *= Math.exp(-decay * dt)
+  if (!resting && state.clock > previousClock) {
+    const impulsePhase = (config.downFraction ?? 0.38) * 0.5
+    const first = Math.floor(previousClock / TAU - impulsePhase) + 1
+    const last = Math.floor(state.clock / TAU - impulsePhase)
+    for (let beat = first; beat <= last; beat += 1) {
+      const remaining = dt * (state.clock - TAU * (beat + impulsePhase)) / (state.clock - previousClock)
+      state.thrust += (config.strokeImpulse ?? 0) * Math.exp(-decay * remaining)
+    }
+  }
+  state.speedScale = (config.glideSpeedScale ?? 1) + state.thrust
   return state
 }

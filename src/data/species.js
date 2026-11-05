@@ -273,7 +273,7 @@ export const TANKS = [
     },
     landscape: 'shallows',
     camera: SHALLOWS_VIEW,
-    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus', 'remora-albescens'],
+    species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus', 'remora-albescens', 'chelonia-mydas'],
   },
 ]
 
@@ -5144,8 +5144,8 @@ export const SPECIES = [
   // studies (Cutzi et al. 2023, Delgado-Trejo et al. 2024, Alvarado-Díaz et al. 2003), Turner
   // Tomaszewicz et al. 2022 (ages), Seminoff et al. 2003 (Baja foraging ground), NOAA Fisheries
   // and USFWS. Swims on foil-flap (docs/procedural/foil-flap.md, approved 2026-10-31). Jeremy's
-  // female model (2026-11-05) is in the Atlas for review; no reserve slot yet, and the male (a
-  // longer tail) comes later.
+  // female model (2026-11-05) is in the Atlas and The Shallows in dev_4: two dev females,
+  // low passes, downstroke surges and breathing visits. Male and production rows deferred.
   {
     id: 'chelonia-mydas',
     name: 'East Pacific Green Turtle',
@@ -5214,16 +5214,16 @@ export const SPECIES = [
     // the largest turtle at the Baja foraging ground (100 cm, Seminoff et al. 2003).
     adultLengthRangeMeters: [0.61, 1.0],
     maxBodyLengthMeters: 1.0,
-    // Adults 65–90 cm straight shell (2.6–3.6 WU). Jeremy chose three adults, one male and two
-    // females, the male on his own long-tailed model (2026-11-01); rows wait for model intake
-    // (docs/species-preparation.md).
+    // In-tank Atlas tile still pending visual capture; tracked in ROADMAP.
+    // Adults 65–90 cm straight shell (2.6–3.6 WU). Two females first in creatures_dev;
+    // the male and production stocking are deferred (Jeremy, 2026-11-05).
     sizeRange: [0.65, 0.9],
     // Shell length (cm) cubed to grams: Seminoff et al. 2003's mean turtle (74.3 cm, 61.5 kg)
     // gives 0.15, which matches the weighed Colola males (67.5 cm, 45.7 kg; 46 kg from this).
     mass: { coefficient: 0.15, exponent: 3 },
     swim: {
-      // DRAFT until the turtles reach the reserve: an unhurried cruiser. foil-flap's strokes are
-      // to pulse this speed (impulse-and-decay, not built yet), so tune both together.
+      // Unhurried low passes over the bay's sand, with a surge on each downstroke and
+      // occasional visits to breathe. See docs/procedural/foil-flap.md.
       visualTimeScale: 0.6,
       driftEnabled: false,
       burstEnabled: false,
@@ -5236,13 +5236,24 @@ export const SPECIES = [
       turnRadiusBodyLengths: 1.0,
       speedMultiplier: 1.0,
       boundsUseSpeciesSize: false,
-      // The manta's room for now. Jeremy (2026-10-31): low over the sand, up to breathe now and
-      // then; neither is built yet (docs/species-preparation.md).
+      goalPick: 'across',
+      goalBounds: { halfX: 32, zMin: -50, zMax: 4, yMin: -24, yMax: -20 },
+      // The sand is at -28 (troughs lower); enough clearance for the downstroke at -26.
+      // The high outer ceiling permits the authored ascent; roaming targets stay low.
       boundsWedge: { apexZ: 24, slope: 1.4, margin: 20, goalSlope: 0.55, goalMargin: 0 },
-      boundsYMin: -22,
-      boundsYMax: -2,
+      boundsYMin: -26,
+      boundsYMax: 4.6,
       boundsZMin: -80,
       boundsZMax: 15,
+      surfacing: {
+        interval: [120, 240],
+        duration: [5, 8],
+        cruiseY: [-24, -20],
+        clearanceBodyLengths: 0.24,
+        breathePitchRadians: 0.24,
+        speedScale: 0.25,
+        maxRiseSeconds: 120,
+      },
       // 1 WU = 25 cm: 100 cm maximum straight shell length = 4 WU.
       bodyLengthWU: 4,
       boids: {
@@ -5300,6 +5311,9 @@ export const SPECIES = [
         glideBackRadians: 0.9,
         glideDownRadians: 0.2,
         glideResponse: 3,
+        strokeImpulse: 0.45,
+        strokeDecay: 1.1,
+        glideSpeedScale: 0.78,
         rudderRadians: 0.35,
         trimRadians: 0.08,
         turnStrength: 0.3,
@@ -5310,14 +5324,13 @@ export const SPECIES = [
         burstFrequencyBoost: 0.4,
       },
     },
-    // Draft, escort-only (docs/ride-hosts.md): remoras and followers that take turtles (the
-    // golden trevally in The Shallows, turtle 0.8) can find it; anchors wait for the GLB
-    // (scripts/fit-ride-anchors.mjs). The clearance is a guess from the Colola males' shell
-    // (width 0.81, height 0.37 of shell length) plus the head; measure it off the mesh at intake.
-    // The fore-flippers stay outside it, like the manta's wings.
+    // Escort-only (docs/ride-hosts.md): the golden trevally follows turtles (weight 0.8).
+    // Clearance measured from the female's rigid shell, belly, head and neck; moving
+    // flipper blades stay outside it like the manta's wings. No attachment anchors:
+    // none of The Shallows' remoras ride turtles.
     rideHost: {
       groups: ['turtle'],
-      body: { center: [0, 0, -0.05], radii: [0.42, 0.2, 0.62] },
+      body: { center: [0, 0, -0.15], radii: [0.54, 0.25, 0.86] },
     },
   },
 ]

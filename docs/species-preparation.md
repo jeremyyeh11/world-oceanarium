@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`, female model `dev_3`)
+## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`, female model `dev_3`, dev reserve `dev_4`)
 
 Reserve: The Shallows (ROADMAP projected roster, Jeremy, 2026-10-23). Range check: East
 Pacific green turtles graze the Gulf of California's bays (Bahía de los Ángeles, Seminoff
@@ -41,6 +41,34 @@ Jeremy darkened the shell photo and made it more even (2026-11-05).
 Seen stroking and gliding in the Atlas, desktop and 375 px phone (the stand-in's pose framed
 her well on both).
 
+Current preview (`v0.50.0-dev_4`, Jeremy: "put her in first without the male. write dev db
+rows", 2026-11-05): the female model is on The Shallows' roster. Two adult females were
+inserted into `creatures_dev`, IDs **1187–1188**, `size` **0.48/0.64** (77/81 cm straight
+shell, 3.08/3.24 WU), each with its own description. Dev 836 → 838; production remains
+841, with no turtle rows. Both tables were snapshotted before/after, the production backup
+script ran successfully before/after, and full comparisons found every pre-existing row
+unchanged. No male rows or model; Jeremy put him on hold.
+
+Movement: roaming goals y −24…−20 over the bay sand, hard floor −26; every 120–240
+simulation seconds after returning low, a rise, a 5–8 second breathing glide, then a dive
+back to the low band. All stages keep the shared steering/turn/integrate/clamp pipeline;
+an ascent that cannot reach the surface gives up after 120 seconds. At the surface the
+center stays 0.24 shell lengths under the water plane, with 0.24 rad nose-up trim and
+quarter cruise speed. The foil clock drives pose and thrust together: 0.45 impulse at
+mid-downstroke, exponential decay 1.1/s, cruising multiplier floor 0.78. Stroke/glide and
+breathing state persist in `fishRuntimeStore.js`, and clear on page reload.
+
+Clearance measured from the female's rigid geometry: center `[0, 0, -0.15]`, radii
+`[0.54, 0.25, 0.86]` in shell lengths, maximum normalized vertex radius 0.905. Escort-only,
+with no attachment anchors. The golden trevally already accepts `turtle` hosts at weight
+0.8; its stations and the breathing pose still need in-tank inspection.
+
+Review limits: foil/thrust tests and capped-turn surfacing tests at 30/60/120 Hz pass.
+Computer Use stopped before in-tank visual inspection because it could not verify the
+Windows browser URL. Normal-distance motion, follow framing, trevally clearance, phone
+frame time and the in-tank Atlas tile remain open. This is an unfinished dev preview,
+explicitly pushed for review; the existing prebuild warning for the missing tile remains.
+
 Research decisions:
 
 - **Name and status.** The slug stays the species, `chelonia-mydas`; the entry is the East
@@ -64,27 +92,23 @@ Research decisions:
   temperature-set sex ratio (NOAA). Mating groups average three males per female.
 - **Diet.** Seaweed and seagrass, with more animal food than other green turtles (NOAA,
   USFWS). Not a predator in the tank.
-- **Ride host.** `turtle` group, no anchors, a guessed clearance ellipsoid from the males'
-  shell proportions. No Shallows remora rides turtles, but the golden trevally follows
-  turtles (weight 0.8): once turtles live in The Shallows, some trevally will escort them
-  instead of the manta. Its stations were tuned for the manta's size; check them against
-  a 1 m turtle at intake.
+- **Ride host.** `turtle` group, escort-only, no anchors: no Shallows remora rides turtles.
+  In `dev_4` the clearance ellipsoid is measured from the female mesh (above). The golden
+  trevally follows turtles (weight 0.8) as well as the manta; its stations were tuned for
+  the manta's size and still need checking on the turtle.
 
 Decided (Jeremy, 2026-10-31):
 
 - **Motion type: `foil-flap-vertex`**, a new type, not a mask-fin-row variant ("ok use foil
-  flap"). Built on the stand-in in `dev_2`; the speed surge waits for the reserve.
-- **Behaviour: breathe once in a while.** Surfacing is built when the turtles reach The
-  Shallows, with their swim room. Proposed shape, to tune there: now and then (every few
-  minutes, compressed from a real turtle's longer dives) a turtle leaves the low water over
-  the sand, rises at its cruise pace to the surface, holds its head at the surface for a few
-  seconds, then glides back down. It stays low over the sand the rest of the time. The
-  manta's feeding passes are the scheduling precedent (`proceduralAnimation.feeding` in
-  Fish.jsx). The draft swim room is the manta's until then.
+  flap"). Built on the stand-in in `dev_2`; the speed surge is implemented in `dev_4`.
+- **Behaviour: breathe once in a while.** Implemented in `dev_4`, with the parameters and
+  pending visual gates above. The 120–240 second intervals compress real turtles' longer
+  dives; low over the sand between visits. The manta's feeding passes were the scheduling
+  precedent (`proceduralAnimation.feeding` in Fish.jsx).
 - **Count and life stage: three adults, one male and two females** (Jeremy, 2026-11-01).
-  Solitary, each swimming on its own. Rows at intake, inside `sizeRange` 65–90 cm: the
-  male near the breeding males' 67.5 cm, the females near their 78 cm. No juveniles.
-  Nothing written to `creatures_dev` or `creatures` yet.
+  Solitary, each swimming on its own. Updated by Jeremy, 2026-11-05: two females first,
+  male on hold. Two adult females now in `creatures_dev` (IDs 1187–1188, above); no
+  production rows and no juveniles. The deferred male would be near 67.5 cm shell length.
 - **Male variant model** (Jeremy, 2026-11-01; shape 2026-11-05): the male gets his own
   GLB, the female model with a longer tail reaching well past the shell (the males' larger
   fore-flipper claws are not modelled). The female model is the base (`chelonia-mydas.glb`), the male `chelonia-mydas-male.glb` in
@@ -116,8 +140,8 @@ Decided (Jeremy, 2026-10-31):
   permission" in his wording; with a no or a takedown request, swap it for a plain pale cream
   plastron with seam lines in the next build.
 
-No decisions are open. Next: Jeremy's male (the female with a longer tail) through the same
-script; anchors and clearance from the mesh.
+Next: inspect the female preview in The Shallows, check trevally clearance and surface
+framing, measure phone frame time, and capture the Atlas tile. Male remains on hold.
 
 ## Giant Clam — `tridacna-gigas` (prepared `v0.49.0-dev_1`, model `dev_2`, in view `dev_3`, mantle `dev_5`, tile `dev_7`, shipped `v0.49.0`)
 

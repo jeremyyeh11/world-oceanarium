@@ -66,3 +66,33 @@ function run({ seconds = 600, speed01 = 0.3, burst01 = 0, seed = 7 } = {}) {
 }
 
 console.log('foil-flap clock tests passed')
+
+// Thrust arrives only on a power stroke, then decays through recovery and glide.
+{
+  const rand = mulberry32(7)
+  const state = createFoilFlapState(config, rand)
+  state.clock = 0
+  state.nextGlideAt = TAU * (2 + config.downFraction)
+  let impulses = 0
+  let speedMin = Infinity
+  let speedMax = 0
+  for (let frame = 0; frame < 1200; frame += 1) {
+    const before = state.thrust
+    advanceFoilFlap(state, config, 1 / 60, { speed01: 0.3, rand })
+    if (state.thrust > before) {
+      impulses += 1
+      const phase = (state.clock / TAU) % 1
+      assert.ok(phase >= config.downFraction * 0.5 && phase < config.downFraction, 'surge during downstroke')
+    }
+    speedMin = Math.min(speedMin, state.speedScale)
+    speedMax = Math.max(speedMax, state.speedScale)
+    assert.ok(state.speedScale > 0.7 && state.speedScale < 1.5, 'a bounded forward glide, never a stop or dash')
+  }
+  assert.ok(impulses > 3)
+  assert.ok(speedMax - speedMin > 0.4, 'the strokes change travel speed')
+  const clock = state.clock
+  for (let i = 0; i < 120; i += 1) advanceFoilFlap(state, config, 1 / 60, { resting: true, rand })
+  assert.equal(state.clock, clock, 'taking a breath never jumps the stroke clock')
+  assert.ok(state.glide > 0.99, 'breathing rests the flippers')
+  assert.ok(state.thrust < 0.06, 'thrust decays during a breath')
+}

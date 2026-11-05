@@ -206,6 +206,11 @@ hitchhiker: {
   2–6 WU below and 1–8 WU ahead of the manta's middle, a few breaking off to roam.
   With Jeremy's model (`v0.41.0-dev_2`, 2026-10-29), all six were escorting within 30 s of
   the tank loading, 7–12 WU from the manta's centre.
+  From `v0.50.0-dev_4` it can also escort the two female green turtles in `creatures_dev`
+  (host group `turtle`, weight 0.8). Their clearance is measured from the female's rigid
+  mesh: center `[0, 0, -0.15]`, radii `[0.54, 0.25, 0.86]` in shell lengths. They have no
+  attachment anchors because no Shallows remora rides turtles. The existing trevally
+  stations on this smaller, stroking host still need visual review; see ROADMAP.
 
 - The Bluefin Trevally (`caranx-melampygus`, The Reefs, six in production since `v0.46.0`,
   eight in `creatures_dev`) follows the humphead wrasse, an escort-only host in its own `reef-forager`

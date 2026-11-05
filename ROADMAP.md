@@ -13,6 +13,17 @@ Status labels:
 
 ## Current work
 
+### The Shallows seagrass
+
+Status: `Current in development` — `v0.50.0-dev_5`, branch `feat/shallows-seagrass`,
+forked from `species/chelonia-mydas` at `da64f1f` by Jeremy's request (2026-11-05).
+
+- [x] Reference-led ribbon leaves from segmented planes; eight patchy beds rooted in
+  the existing sand, avoiding boulders; instanced chunks and noise-texture displacement.
+- [x] Headless desktop and phone-size render checks; no console or shader errors.
+- [ ] Review density, colour and movement in the preview; physical-phone frame time.
+- [ ] Retake the reserve card if this scenery is accepted for a clean release.
+
 ### East Pacific Green Turtle (The Shallows)
 
 Status: `Current in development` — `v0.50.0-dev_4`, branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181): female model in The Shallows' roster with two dev adults, low cruising, downstroke surges and breathing visits. Visual/phone review, frame-time measurement and Atlas tile remain open; male and production stocking deferred. Record: [`docs/species-preparation.md`](docs/species-preparation.md).

@@ -563,7 +563,7 @@ export const LANDSCAPES = {
   },
   // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's
   // devil rays school. Mostly open on purpose, so the school is the subject: pale rippled sand,
-  // strong caustics, and a few dark volcanic boulders kept to the left. The limestone kit,
+  // strong caustics, patchy ribbon seagrass, and dark volcanic boulders kept to the left. The limestone kit,
   // shaded dark, stands in for basalt.
   shallows: {
     view: SHALLOWS_VIEW,
@@ -572,6 +572,19 @@ export const LANDSCAPES = {
     floorY: -28,
     floorColor: '#e6dcb2',
     floorRelief: 1.2,
+    // Reference-led scenery pass: 22–65 cm shoots with shorter inner leaves, sandy gaps.
+    // Instanced segmented planes, noise-texture displacement; no solid obstacle or creature rows.
+    seagrass: {
+      seed: 27183, spacing: 0.85, chunkSize: 20,
+      height: [0.9, 2.6], width: [0.055, 0.11],
+      current: [0.8, 0.6], bend: 0.3, speed: 0.035,
+      // [x, z, radiusX, radiusZ], soft edges, open sand down the middle foreground.
+      patches: [
+        [-22, 8, 19, 13], [17, 5, 15, 13], [-36, -21, 20, 18],
+        [29, -24, 23, 19], [-8, -43, 20, 15], [46, -54, 22, 19],
+        [-48, -63, 23, 21], [0, -77, 32, 15],
+      ],
+    },
     rockShade: {
       tone: 0.34, top: 0.9, underside: 0.2, low: 0.55, lowY: -28, highY: -18,
     },

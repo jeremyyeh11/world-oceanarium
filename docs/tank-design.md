@@ -245,6 +245,14 @@ driven by tank fields:
 Rule of thumb: give every tank a unique `seed`; reach for `lighting` only when a tank
 should feel meaningfully different in mood.
 
+The Shallows also opts into `landscape.seagrass`: soft-edged beds of narrow ribbon
+planes on its sand, leaving open sandy channels. `Seagrass.jsx` owns the generated
+geometry/material/noise texture for that mount and disposes them on unmount; there
+are no source downloads or retained placement caches. The leaves use the existing
+sway clock, with the texture-driven scenery contract in
+[`procedural/coral-sway.md`](procedural/coral-sway.md#seagrass-scenery).
+They are soft decoration, not solid obstacles or reef visit sites.
+
 ## How to change it by hand
 
 ### Move a species into a different tank

@@ -28,9 +28,11 @@ swapped in Jeremy's female (2026-11-05; the stand-in and its generator are gone)
 painted by `scripts/paint-foil-flap-masks.py`, and put her in the Atlas for review (no tile
 yet, no reserve slot, no rows). Intake: four flippers as named objects, all four inside out
 (turned); the shell 3.641 source units from front edge to back edge on the midline, scaled to
-1, origin mid-shell; nose to hind flipper tips 1.584 shells. Each front flipper is buried
-28% of its span in the body, each hind flipper 30%: the stroke weight is full from 80% of
-that depth, so the bend stays hidden. Three photos, cropped to what the faces use and shrunk
+1, origin mid-shell; nose to hind flipper tips 1.584 shells. The flippers leave the body
+unevenly: the front ones first show at 0.067 of their span (the last buried vertex is at
+0.284), the hind ones at 0.178. The stroke and rudder weights are full from 80% of the first
+exit, so the blade that shows turns stiff (measured: visible edges within 7.7% in any pose,
+hind 0%; the first ramp, to the last buried vertex, stretched them 75%, review 2026-11-05). Three photos, cropped to what the faces use and shrunk
 to 1024 px JPEGs: 62.8 MB to 415 KB, credited in `IMAGE_CREDITS`. Seen stroking and gliding
 in the Atlas, desktop and 375 px phone (the stand-in's pose framed her well on both). Her
 shell is about as wide as it is long (1.0); real green turtles' straight shell width is
@@ -112,7 +114,8 @@ Decided (Jeremy, 2026-10-31):
   then, swap it for a plain pale cream plastron with seam lines. With a yes, credit him in
   `IMAGE_CREDITS` with the wording he asks for.
 
-No decisions are open. Next: Jeremy's female and male `.blend` files.
+No decisions are open. Next: Jeremy's male (the female with a longer tail) through the same
+script; anchors and clearance from the mesh.
 
 ## Giant Clam — `tridacna-gigas` (prepared `v0.49.0-dev_1`, model `dev_2`, in view `dev_3`, mantle `dev_5`, tile `dev_7`, shipped `v0.49.0`)
 

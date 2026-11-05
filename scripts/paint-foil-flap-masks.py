@@ -2,7 +2,7 @@
 
     "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
         --python scripts/paint-foil-flap-masks.py -- <in.glb> <out.glb> --shell <front>,<back> \
-        [--name chelonia_mydas] [--ramp-end 0.8] [--max-texture 1024]
+        [--name chelonia_mydas] [--exit-percentile 0] [--ramp-end 0.8] [--max-texture 1024]
 
 Jeremy models the turtle with its four flippers as their own objects, `flipper.fore.l/r` and
 `flipper.hind.l/r`, each a closed piece with its root pushed into the body; everything else is
@@ -10,13 +10,18 @@ the rigid body (docs/procedural/foil-flap.md, Blender contract). This computes t
 COLOR_1 masks from the shapes rather than hand-painting them:
 
 - Span: along each flipper, 0 at its root end (the end farthest from the tip) to 1 at the tip.
-- R, fore-flipper stroke weight: smoothstep from the root to `--ramp-end` of the span at which
-  the flipper leaves the body, then 1 to the tip. The bend stays inside the body, and the blade
-  that shows turns stiff (a ramp out in the open stretched the stand-in's edges by 45%).
+- Where the flipper starts to leave the body: the lowest span of its vertices outside the body
+  (`--exit-percentile` 0). A flipper leaves unevenly (Jeremy's female: a few vertices in the
+  front flippers' first tenth of span already show beside the neck), so the last buried vertex
+  is far too late: ramping to it put half the ramp in the open, stretching edges there 75% in
+  the glide (review, 2026-11-05). Even the 5th percentile (span 0.17) left 40%.
+- R, fore-flipper stroke weight: smoothstep from the root to `--ramp-end` (0.8) of that span,
+  then 1 to the tip, so the blade that shows turns stiff.
 - G, fore-flipper twist weight: the span, linear, a hair above 0 at the root (0.002), so the
   runtime can find the shoulder (`foilFlapRig`: the middle of the vertices with 0 < G < 0.1).
-- B, hind-flipper rudder weight: smoothstep to 1 halfway out, a hair above 0 at the root (the
-  hip is the middle of the vertices with 0 < B < 0.15).
+- B, hind-flipper rudder weight: the same ramp to where the hind flipper starts to leave the
+  body, a hair above 0 at the root (the hip is the middle of the vertices with 0 < B < 0.15).
+  Ramping to halfway out bent the visible blade 36% in a turn.
 The body is black: rigid.
 
 It also turns inside-out flippers (negative volume) the right way out, joins all five objects
@@ -44,6 +49,7 @@ if '--shell' not in argv:
     sys.exit('--shell <front>,<back> is required: the shell edges on the midline, glTF z')
 SHELL_FRONT, SHELL_BACK = (float(x) for x in option('--shell', '').split(','))
 NAME = option('--name', 'chelonia_mydas')
+EXIT_PERCENTILE = option('--exit-percentile', 0.0)
 RAMP_END = option('--ramp-end', 0.8)
 MAX_TEXTURE = option('--max-texture', 1024)
 CROP_MARGIN = 0.01
@@ -86,21 +92,26 @@ for o in meshes.values():
         bpy.context.view_layer.objects.active = o
         bpy.ops.mesh.customdata_custom_splitnormals_clear()
 
-# Inside the body: odd number of crossings along a ray (the body is closed).
+# Inside the body: an odd number of crossings along a ray (the body is closed), by majority over
+# six directions; one ray misreads points grazing a facet edge.
 tree_bm = bmesh.new()
 for b in bodies:
     tree_bm.from_mesh(b.data)
 tree = BVHTree.FromBMesh(tree_bm)
-RAY = Vector((0.0123, 0.9999, 0.0071)).normalized()
+RAYS = [Vector(d).normalized() for d in [(0.0123, 0.9999, 0.0071), (0.013, -1, 0.007), (1, 0.011, 0.017),
+                                         (-1, 0.013, 0.019), (0.017, 0.012, 1), (0.011, 0.019, -1)]]
 def inside(p):
-    hits, origin = 0, Vector(p)
-    while hits < 64:
-        location = tree.ray_cast(origin, RAY)[0]
-        if location is None:
-            break
-        hits += 1
-        origin = location + RAY * 1e-5
-    return hits % 2 == 1
+    votes = 0
+    for ray in RAYS:
+        hits, origin = 0, Vector(p)
+        while hits < 64:
+            location = tree.ray_cast(origin, ray)[0]
+            if location is None:
+                break
+            hits += 1
+            origin = location + ray * 1e-5
+        votes += hits % 2
+    return votes >= 4
 
 # Masks per object, per vertex, before joining (the join keeps vertex order per object).
 masks = {}
@@ -118,17 +129,20 @@ for name, kind in FLIPPERS.items():
     root = max(points, key=lambda p: (p - tip).length)
     axis = tip - root
     span = [max(0.0, min(1.0, (p - root).dot(axis) / axis.length_squared)) for p in points]
-    buried = [s for p, s in zip(points, span) if inside(p)]
-    exit_span = float(np.percentile(buried, 95)) if buried else 0.0
+    buried = [inside(p) for p in points]
+    shown = [s for s, b in zip(span, buried) if not b]
+    exit_span = float(np.percentile(shown, EXIT_PERCENTILE))
+    ramp = max(1e-3, exit_span * RAMP_END)
     out = []
     for s in span:
         if kind == 'fore':
-            out.append((smoothstep(max(1e-3, exit_span * RAMP_END), s), max(0.002, s), 0.0))
+            out.append((smoothstep(ramp, s), max(0.002, s), 0.0))
         else:
-            out.append((0.0, 0.0, max(0.002, smoothstep(0.5, s))))
+            out.append((0.0, 0.0, max(0.002, smoothstep(ramp, s))))
     masks[name] = out
     print('FLIPPER', name, 'root', [round(c, 3) for c in root], 'tip', [round(c, 3) for c in tip],
-          f'leaves the body at span {exit_span:.3f}; {len(buried)} of {len(points)} vertices inside')
+          f'starts to leave the body at span {exit_span:.3f}, ramp to {ramp:.3f}; '
+          f'{sum(buried)} of {len(points)} vertices inside')
 
 for o in meshes.values():
     mesh = o.data

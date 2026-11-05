@@ -143,19 +143,26 @@ Painted into `COLOR_1`, exposed as `color_1`. `COLOR_0` stays white.
 
 | Channel | Means | Ramp |
 | --- | --- | --- |
-| R | Fore-flipper stroke weight | `0` in the shoulder ring → `1` where the flipper leaves the shell, then `1` to the tip |
+| R | Fore-flipper stroke weight | `0` in the shoulder ring → `1` before the flipper first shows outside the body, then `1` to the tip |
 | G | Fore-flipper twist weight | a hair above `0` (0.002) in the shoulder ring → `1` at the tip, linear along the span |
-| B | Hind-flipper rudder weight | a hair above `0` in the hip ring → `1` halfway out, then `1` to the tip |
+| B | Hind-flipper rudder weight | a hair above `0` in the hip ring → `1` before the flipper first shows, then `1` to the tip |
 | A | Unused | Side comes from the sign of raw X |
 
 Black (all three `0`) is rigid: shell, head and neck.
 
-**Why R finishes at the shell margin.** The flipper must turn as a stiff blade. Every vertex
-turns by its own weight, so wherever R ramps the blade bends, and the edges across the bend
-stretch. On the stand-in, an R ramp over the first third of the span stretched those edges by
-45% at cruise. Ramped inside the shell instead, outside edges change at most 2.2% at cruise and
-6.1% at full burst in a turn (that much is the twist, which is meant to vary along the blade).
-The bend happens out of sight.
+**Why R and B finish before the flipper shows.** The flipper must turn as a stiff blade.
+Every vertex turns by its own weight, so wherever R ramps the blade bends, and the edges across
+the bend stretch. On the stand-in, an R ramp over the first third of the span stretched those
+edges by 45% at cruise; ramped inside the shell, they changed at most 2.2% at cruise and 6.1% at
+full burst in a turn. A real flipper leaves the body unevenly, so the ramp must end where its
+*first* vertex shows, not its last buried one. On Jeremy's female (2026-11-05) the front
+flippers first show at 0.067 of their span and the last buried vertex is at 0.284: ramping to
+the latter stretched visible edges by up to 75% in the glide, and the hind rudder ramp to
+halfway out bent the visible blade 36% in a turn. Ramped to 0.8 of the first exit, visible
+edges change at most 7.7% in any stroke, burst, turn or glide (that much is the twist, meant to
+vary along the blade), and the hind flippers 0%. Buried flipper near the exit still rises above
+the shell's front rim at the top of a hard stroke, as a real flipper does; the root end never
+shows.
 
 **The pivots are read from the paint** (`foilFlapRig()`, right side, mirrored for the left):
 the shoulder is the middle of the fore-flipper vertices with `0 < G < 0.1`, the span axis runs
@@ -163,13 +170,12 @@ from there to the middle of those with `G > 0.9`, and the hip is the middle of t
 `0 < B < 0.15`. That is why the root rings carry a hair of G and B rather than `0`. Config
 `foreRoot`, `foreSpanAxis` and `hindRoot` override.
 
-**Computed, not hand-painted.** As with the devil ray, the masks are pure geometry: a
-proposed `scripts/paint-foil-flap-masks.py` (headless Blender, modelled on
-`paint-disc-wave-masks.py`) joins the four flipper objects to the body, paints R and G as
-ramps along each fore-flipper's span from its shoulder, B along each hind flipper, writes
-white `COLOR_0`, and prints the shoulder and hip roots it finds to check against the runtime's.
-Blender's vertex paint cannot paint one channel alone, so hand painting would need packing
-anyway. The stand-in generator computes the same masks.
+**Computed, not hand-painted.** As with the devil ray, the masks are pure geometry:
+`scripts/paint-foil-flap-masks.py` (headless Blender, modelled on `paint-disc-wave-masks.py`)
+joins the four flipper objects to the body, paints R and G as ramps along each fore-flipper's
+span from its root, B along each hind flipper, writes white `COLOR_0`, and prints each
+flipper's root, tip and first exit. Blender's vertex paint cannot paint one channel alone, so
+hand painting would need packing anyway.
 
 ## How the deformation should work
 

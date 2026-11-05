@@ -145,7 +145,7 @@ Status: `Current in development` — hub and the two implemented type contracts 
 Reference:
 - Gate: [`scripts/verify-procedural-docs.mjs`](scripts/verify-procedural-docs.mjs) — doc coverage for every shipping procedural type.
 - Hub: [`docs/procedural/README.md`](docs/procedural/README.md) — shared asset contract, runtime drivers, motion primitives, creature/type index.
-- Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`foil-flap.md`](docs/procedural/foil-flap.md) (on a stand-in).
+- Implemented: [`caudal-wave.md`](docs/procedural/caudal-wave.md), [`mask-fin-row.md`](docs/procedural/mask-fin-row.md), [`disc-wave.md`](docs/procedural/disc-wave.md), [`foil-flap.md`](docs/procedural/foil-flap.md).
 - Proposed: [`bell-pulse.md`](docs/procedural/bell-pulse.md), [`limb-step.md`](docs/procedural/limb-step.md), [`pleopod-beat.md`](docs/procedural/pleopod-beat.md).
 - Superseded: [`docs/procedural-caudal-fish.md`](docs/procedural-caudal-fish.md) kept as the `v0.14.0`–`v0.15.3` review record.
 

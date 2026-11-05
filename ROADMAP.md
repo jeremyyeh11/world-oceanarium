@@ -16,6 +16,7 @@ Status labels:
 ### The Shallows seagrass
 
 Status: `Current in development` — `v0.50.0-dev_5`, branch `feat/shallows-seagrass`,
+[PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199),
 forked from `species/chelonia-mydas` at `da64f1f` by Jeremy's request (2026-11-05).
 
 - [x] Reference-led ribbon leaves from segmented planes; eight patchy beds rooted in

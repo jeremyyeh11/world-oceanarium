@@ -10,7 +10,8 @@ Versioning convention notes:
 
 ## v0.50.0 — East Pacific Green Turtle (in development)
 
-Status: `v0.50.0-dev_5`, seagrass preview on `feat/shallows-seagrass`, forked from
+Status: `v0.50.0-dev_5`, seagrass preview on `feat/shallows-seagrass`
+([PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199)), forked from
 `species/chelonia-mydas` ([PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181)).
 Preview work; turtle visual review, physical-phone frame time and Atlas tile remain open.
 

@@ -93,6 +93,15 @@ Decided (Jeremy, 2026-10-31):
   turtle's shell is darker (slate to olive-black), more domed and narrower over the hind
   flippers, so check the shell outline at intake. A photo used as a texture needs its
   Commons licence looked up and an `IMAGE_CREDITS` entry in the build that ships it.
+  The two photos are Charles J. Sharp's Moorea turtle and Diego Delso's San Pedro, Belize
+  turtle on Commons, both CC BY-SA 4.0.
+- **Belly texture, permission pending** (Jeremy, 2026-11-05): the underside texture comes
+  from Ken Kiefer's photo shared in the Facebook group Underwater Photography (all rights
+  reserved; the group's "full credit" rule is not a licence). Jeremy has asked Ken for
+  permission. Until Ken's written yes, the texture may be used on the branch and in dev
+  previews but must not reach production: no merge to `main` with it. If there is no yes by
+  then, swap it for a plain pale cream plastron with seam lines. With a yes, credit him in
+  `IMAGE_CREDITS` with the wording he asks for.
 
 No decisions are open. Next: Jeremy's female and male `.blend` files.
 

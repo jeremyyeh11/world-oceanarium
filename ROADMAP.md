@@ -24,6 +24,7 @@ Status: `Current in development` — prepared hidden in `v0.50.0-dev_1`, `foil-f
 - [x] Count and life stage: three adults, one male and two females (Jeremy, 2026-11-01).
 - [x] A male variant model (Jeremy, 2026-11-01): the female model with a longer tail (2026-11-05), in `sexVariants.male`.
 - [x] Handoff (Jeremy, 2026-11-01): flippers as separate named objects in the `.blend`, joined and painted by an intake script.
+- [ ] Belly texture from Ken Kiefer's photo: his written permission before any merge to `main`, else swap for a plain cream plastron (docs/species-preparation.md). Blocks release.
 - [ ] Jeremy's female and male `.blend` files; `scripts/paint-foil-flap-masks.py`; swap out the stand-in; retune the Atlas pose; anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
 - [ ] In The Shallows: swim room low over the sand, surfacing to breathe, the downstroke speed surge (impulse-and-decay, frame time measured), Atlas tile, rows.
 

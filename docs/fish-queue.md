@@ -47,9 +47,9 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 
 In the order they will be added.
 
-1. **East Pacific Green Turtle** (`chelonia-mydas`), The Shallows. Prepared hidden; its
-   flipper motion (`foil-flap`) is built on a stand-in. Three adults, one male. Waiting on
-   Jeremy's female and male models ([species-preparation.md](species-preparation.md)).
+1. **East Pacific Green Turtle** (`chelonia-mydas`), The Shallows. Prepared; its
+   flipper motion (`foil-flap`) is built, and Jeremy's female is in the Atlas. Three adults,
+   one male; the male model and The Shallows to come ([species-preparation.md](species-preparation.md)).
 2. **Golden Cownose Ray** (*Rhinoptera steindachneri*), The Shallows.
 3. **Sailfish** (*Istiophorus platypterus*), The Open Sea. A billfish host.
 4. **Marlinsucker** (`remora-osteochir`), The Open Sea. Rides the sailfish.

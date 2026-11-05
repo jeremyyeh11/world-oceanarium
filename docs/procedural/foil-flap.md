@@ -1,6 +1,6 @@
 # foil-flap
 
-Shader type: `foil-flap-vertex` · Status: **Implemented on a generated stand-in (approved 2026-10-31); waiting for the first model**
+Shader type: `foil-flap-vertex` · Status: **Implemented (approved 2026-10-31); first model: Jeremy's female turtle, 2026-11-05**
 
 Paired appendages beating as hydrofoils on a rigid body. Thrust comes from the
 downstroke of a stiff, twisting blade — flight underwater, not rowing.
@@ -8,10 +8,9 @@ downstroke of a stiff, twisting blade — flight underwater, not rowing.
 Read [README.md](README.md) first for the rules shared by every type.
 
 > Jeremy approved this type for the East Pacific green turtle (`chelonia-mydas`) on
-> 2026-10-31. Built in `v0.50.0-dev_2` on a generated stand-in
-> (`scripts/build-turtle-placeholder.mjs`, 698 vertices, 1 m shell) and checked in the Atlas
-> locally; the turtle stays hidden until his model lands (see
-> [species-preparation.md](../species-preparation.md)). Code: `foilFlap()` GLSL and
+> 2026-10-31. Built in `v0.50.0-dev_2` on a generated stand-in (698 vertices, 1 m shell,
+> since removed); his female model replaced it in `dev_3`, joined and painted by
+> `scripts/paint-foil-flap-masks.py` (see [species-preparation.md](../species-preparation.md)). Code: `foilFlap()` GLSL and
 > `foilFlapRig()` in `src/components/Fish.jsx`; the stroke-group and glide clock in
 > `src/utils/foilFlap.js`, shared by the tank and the Atlas specimen; tests in
 > `tests/foilFlap.test.mjs`. The speed surge (impulse-and-decay) is not built yet: it touches
@@ -256,26 +255,18 @@ row here once the turtle ships.
 
 ## Verifier entry
 
-The stand-in's entry in `scripts/inspect-procedural-targets.mjs` checks the one body mesh and
-its `color_1` with a 600-vertex floor. Jeremy's model replaces it with:
-
-```js
-{
-  name: 'East Pacific Green Turtle foil-flap',
-  path: 'public/models/fish/chelonia-mydas/chelonia-mydas.glb',
-  staticMesh: true,
-  bodyMeshNames: ['<body>'],
-  forbiddenMeshNames: ['flipper.fore.l', 'flipper.fore.r'], // joined by the paint script
-  requiredBodyAttributes: ['color_1'],
-  minVertices: 2000,
-}
-```
+`scripts/inspect-procedural-targets.mjs` checks the female's flipper part
+(`chelonia_mydas_3`, 2004 vertices, every mask) and its `color_1` against a 2000-vertex floor;
+the floors are per part, so the shell (`_1`) and belly (`_2`) parts are not checked there,
+though the app deforms all three. The paint script joins the flipper objects, so none can
+reach the export under its own name.
 
 ## Review gates
 
 Checked on the stand-in (2026-10-31), from `tests/foilFlap.test.mjs` and a JS port of the
-shader run over the stand-in's vertices, and the beat in the Atlas locally. The rest waits for
-Jeremy's model and the reserve.
+shader run over the stand-in's vertices, and the beat in the Atlas locally. On Jeremy's female
+(2026-11-05): stroke, glide with the flippers swept back, and recovery seen in the Atlas on
+desktop and a 375 px phone; not measured frame by frame yet. The rest waits for the reserve.
 
 - Glide share: idle 0.45, cruise 0.37, fast 0.18; none in a burst.
 - The downstroke takes 38% of the beat by construction (`downFraction`). The tip drops from

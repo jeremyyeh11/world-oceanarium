@@ -12,19 +12,20 @@ Versioning convention notes:
 
 ### Species and Atlas
 
-- East Pacific Green Turtle (`chelonia-mydas`) prepared, hidden: IUCN Vulnerable (East
-  Pacific subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity
-  ages and the oldest aged turtle (credited), a draft escort-only `rideHost` (`turtle`).
-  Three adults planned, one male on his own long-tailed model (Jeremy). No roster slot or
-  rows yet, so visitors see no change.
+- East Pacific Green Turtle (`chelonia-mydas`): IUCN Vulnerable (East Pacific
+  subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity ages and
+  the oldest aged turtle (credited), a draft escort-only `rideHost` (`turtle`). Three adults
+  planned, one male on his own long-tailed model (Jeremy). No roster slot or rows yet.
+- Jeremy's female turtle model in the Atlas, flippers joined and painted by
+  `scripts/paint-foil-flap-masks.py`; her three photo textures credited in Sources.
 
 ### Behaviour and motion
 
 - New procedural motion type `foil-flap-vertex` for the turtle's flippers, approved by Jeremy:
   both fore-flippers stroke down and back from the shoulders, each blade twisting ahead of the
   stroke, in groups of a few beats with glides between; the hind flippers steer. The tank and
-  the Atlas share one stroke-and-glide clock. Built on a generated stand-in model until
-  Jeremy's; the speed surge on each downstroke comes with the turtles' move into The Shallows.
+  the Atlas share one stroke-and-glide clock. The speed surge on each downstroke comes with
+  the turtles' move into The Shallows.
 - Turtles will surface to breathe now and then (Jeremy); built with their swim room.
 
 ## v0.49.1 — Toadstool Leather Coral

@@ -807,4 +807,34 @@ export const IMAGE_CREDITS = [
     licence: { name: 'all rights reserved', url: 'https://reeflifesurvey.com/species/tridacna-gigas/' },
     changes: 'Mapped onto the 3D model, cropped and resized.',
   },
+  {
+    id: 'delso-green-turtle',
+    subject: 'East Pacific Green Turtle texture (shell and head)',
+    author: 'Diego Delso',
+    work: 'Tortuga verde (Chelonia mydas), San Pedro, Belice',
+    url: 'https://commons.wikimedia.org/wiki/File:Tortuga_verde_(Chelonia_mydas),_San_Pedro,_Belice,_2025-12-17,_DD_198.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'sharp-green-turtle',
+    subject: 'East Pacific Green Turtle texture (flippers and neck)',
+    author: 'Charles J. Sharp',
+    work: 'Green sea turtle (Chelonia mydas), Moorea',
+    url: 'https://commons.wikimedia.org/wiki/File:Green_sea_turtle_(Chelonia_mydas)_Moorea.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Permission pending: Jeremy is asking Ken (2026-11-05); the group's "full credit" rule is not
+    // a licence. Until his yes it must not reach production (docs/species-preparation.md). With
+    // it, the licence becomes "used with permission"; without it, the belly is swapped out.
+    id: 'kiefer-green-turtle',
+    subject: 'East Pacific Green Turtle texture (belly)',
+    author: 'Ken Kiefer',
+    work: 'Green turtle from below, shared in the Facebook group Underwater Photography',
+    url: 'https://www.facebook.com/groups/uwphotography/posts/3568746043421421/',
+    licence: { name: 'all rights reserved', url: 'https://www.facebook.com/groups/uwphotography/posts/3568746043421421/' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
 ]

@@ -5143,16 +5143,15 @@ export const SPECIES = [
   // works), planned for The Shallows (ROADMAP, Jeremy 2026-10-23). Facts from the Colola nesting
   // studies (Cutzi et al. 2023, Delgado-Trejo et al. 2024, Alvarado-Díaz et al. 2003), Turner
   // Tomaszewicz et al. 2022 (ages), Seminoff et al. 2003 (Baja foraging ground), NOAA Fisheries
-  // and USFWS. Swims on foil-flap (docs/procedural/foil-flap.md, approved 2026-10-31), for now on
-  // a generated stand-in (scripts/build-turtle-placeholder.mjs). Queued until Jeremy supplies its
-  // GLB: no reserve slot, out of the Atlas.
+  // and USFWS. Swims on foil-flap (docs/procedural/foil-flap.md, approved 2026-10-31). Jeremy's
+  // female model (2026-11-05) is in the Atlas for review; no reserve slot yet, and the male (a
+  // longer tail) comes later.
   {
     id: 'chelonia-mydas',
     name: 'East Pacific Green Turtle',
     scientificName: 'Chelonia mydas',
     family: 'Cheloniidae',
     alternateNames: ['Black Turtle', 'Pacific Green Turtle', 'Green Sea Turtle'],
-    hiddenInAtlas: true,
     biome: 'ocean',
     depthZone: 'epipelagic',
     // Solitary, though many share one foraging bay.
@@ -5259,9 +5258,15 @@ export const SPECIES = [
       },
     },
     model: {
-      // Generated stand-in to the foil-flap contract, until Jeremy's model: 1 m shell along Z.
-      path: '/models/fish/chelonia-mydas/chelonia-mydas_placeholder.glb',
-      // 1 m = 4 WU, so the 1 m stand-in shell is the 4 WU body length.
+      // Jeremy's female (2026-11-05), joined and painted by scripts/paint-foil-flap-masks.py: the
+      // shell (3.641 source units, front edge to back edge on the midline) scaled to 1, origin
+      // mid-shell. His flippers came in inside out and were turned. Three photos, cropped to what
+      // the faces use and shrunk to 1024 px JPEGs (62.8 MB -> 415 KB): the shell and head from
+      // Diego Delso's Belize turtle, flippers and neck from Charles J. Sharp's Moorea turtle (both
+      // CC BY-SA 4.0), the belly from Ken Kiefer's photo (permission pending: must not reach
+      // production without his yes; docs/species-preparation.md).
+      path: '/models/fish/chelonia-mydas/chelonia-mydas.glb',
+      // 1 m = 4 WU, so the 1-unit shell is the 4 WU body length.
       scale: 4,
       followAim: 'root',
       moveset: {
@@ -5276,7 +5281,8 @@ export const SPECIES = [
       // hind flippers steer. Pivots are read from the paint. First-pass values, not measurements.
       proceduralAnimation: {
         type: 'foil-flap-vertex',
-        bodyMeshNames: ['turtle-placeholder'],
+        // One part per photo: shell and head, belly, flippers and neck.
+        bodyMeshNames: ['chelonia_mydas_1', 'chelonia_mydas_2', 'chelonia_mydas_3'],
         // One beat about every 1.8 s at cruise (green turtles stroke at about 0.5 Hz).
         waveSpeed: 3.4,
         beatRateRange: [0.85, 1.15],

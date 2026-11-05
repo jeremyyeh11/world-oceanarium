@@ -314,8 +314,7 @@ const VIEW_POSES_BY_SPECIES = {
     position: [0, -0.6, 0],
     lookAt: [0, -0.1, 0],
   },
-  // Turtle: seen from above and ahead like the rays, so the flipper strokes read. Set on the
-  // generated stand-in; retune with Jeremy's model.
+  // Turtle: seen from above and ahead like the rays, so the flipper strokes read.
   'chelonia-mydas': {
     pitchDegrees: 30,
     cameraDistance: 6.8,
@@ -386,9 +385,9 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   // The clam framed as on its first, hard 1.7 m patch of sand: its soft disc now fades out well
   // inside its 3.2 m (scripts/build-giant-clam-atlas.py prints the bounds).
   'tridacna-gigas': 1.72,
-  // Generated turtle stand-in (scripts/build-turtle-placeholder.mjs), nose to tail tip along Z;
-  // the shell is 1 long.
-  'chelonia-mydas': 1.376,
+  // Jeremy's female, nose to the hind flipper tips along Z; the shell is 1 long
+  // (scripts/paint-foil-flap-masks.py prints both).
+  'chelonia-mydas': 1.5842,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {

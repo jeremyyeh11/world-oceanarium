@@ -15,7 +15,7 @@ Status labels:
 
 ### East Pacific Green Turtle (The Shallows)
 
-Status: `Current in development` — prepared hidden in `v0.50.0-dev_1`, `foil-flap` built on a generated stand-in in `dev_2` (branch `species/chelonia-mydas`); waiting on Jeremy's GLB. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
+Status: `Current in development` — prepared in `v0.50.0-dev_1`, `foil-flap` built on a generated stand-in in `dev_2`, Jeremy's female model in the Atlas in `dev_3` (branch `species/chelonia-mydas`); the male and the move into The Shallows to come. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
 
 - [x] Research, Atlas copy, Averages and Lifecycle; hidden entry, draft swim and escort-only `rideHost` (`turtle`); study credits; data test.
 - [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
@@ -25,7 +25,9 @@ Status: `Current in development` — prepared hidden in `v0.50.0-dev_1`, `foil-f
 - [x] A male variant model (Jeremy, 2026-11-01): the female model with a longer tail (2026-11-05), in `sexVariants.male`.
 - [x] Handoff (Jeremy, 2026-11-01): flippers as separate named objects in the `.blend`, joined and painted by an intake script.
 - [ ] Belly texture from Ken Kiefer's photo: his written permission before any merge to `main`, else swap for a plain cream plastron (docs/species-preparation.md). Blocks release.
-- [ ] Jeremy's female and male `.blend` files; `scripts/paint-foil-flap-masks.py`; swap out the stand-in; retune the Atlas pose; anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
+- [x] Jeremy's female (`dev_3`, 2026-11-05): `scripts/paint-foil-flap-masks.py` joins the flippers, turns them right way out, paints the masks, crops and shrinks the photos (62.8 MB to 415 KB) and exports; stand-in and generator removed; in the Atlas for review; three image credits. The stand-in's Atlas pose framed her on desktop and phone.
+- [ ] Jeremy's male (the female with a longer tail) through the same script, in `sexVariants.male`.
+- [ ] Anchors and clearance from the mesh; check the golden trevally's escort stations on a turtle.
 - [ ] In The Shallows: swim room low over the sand, surfacing to breathe, the downstroke speed surge (impulse-and-decay, frame time measured), Atlas tile, rows.
 
 ### Yellowfin Tuna follow-ups

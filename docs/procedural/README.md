@@ -24,7 +24,7 @@ that type's doc.
 | [caudal-wave](caudal-wave.md) | Travelling body/tail undulation | Sardinella, Mahi-mahi, Shortfin Mako; eels and sea snakes as a config variant | Implemented |
 | [mask-fin-row](mask-fin-row.md) | Rigid body, painted fins rowing from fixed roots | Giant Sunfish; Clown Triggerfish (balistiform variant: rippling fins) | Implemented |
 | [bell-pulse](bell-pulse.md) | Contract-and-glide jet propulsion | Jellyfish, salps | Proposed |
-| [foil-flap](foil-flap.md) | Paired oscillating foils on a rigid body | East Pacific green turtle (first asset, on a generated stand-in); penguins, sea lions | Implemented (stand-in, 2026-10-31) |
+| [foil-flap](foil-flap.md) | Paired oscillating foils on a rigid body | East Pacific green turtle (first asset, Jeremy's female, 2026-11-05); penguins, sea lions | Implemented (2026-10-31) |
 | [disc-wave](disc-wave.md) | Travelling wave along a lateral margin | Munk's Devil Ray (mobuliform); skates, stingrays, cuttlefish proposed | Implemented (mobuliform) |
 | [limb-step](limb-step.md) | Limb cycling under a rigid carapace | Crabs, walking lobsters | Proposed |
 | [pleopod-beat](pleopod-beat.md) | Metachronal swimmeret wave | Prawns, shrimp, krill | Proposed |

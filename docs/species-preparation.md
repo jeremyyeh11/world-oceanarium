@@ -6,7 +6,7 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
-## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`)
+## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`, female model `dev_3`)
 
 Reserve: The Shallows (ROADMAP projected roster, Jeremy, 2026-10-23). Range check: East
 Pacific green turtles graze the Gulf of California's bays (Bahía de los Ángeles, Seminoff
@@ -23,10 +23,18 @@ behaviour only; its motion type does not fit (see below).
 Prepared: hidden species entry (no roster slot, no rows), Atlas copy, Averages and
 Lifecycle, a draft swim block, a draft escort-only `rideHost` (`turtle`), five study
 credits, a data test (`dev_1`). Jeremy approved the motion type on 2026-10-31, and `dev_2`
-built it: [foil-flap.md](procedural/foil-flap.md) on a generated stand-in model
-(`scripts/build-turtle-placeholder.mjs`), checked in the Atlas locally with the turtle
-un-hidden for the check only. Its Atlas pose and length are set on the stand-in and need
-retuning with Jeremy's model.
+built it: [foil-flap.md](procedural/foil-flap.md) on a generated stand-in model. `dev_3`
+swapped in Jeremy's female (2026-11-05; the stand-in and its generator are gone), joined and
+painted by `scripts/paint-foil-flap-masks.py`, and put her in the Atlas for review (no tile
+yet, no reserve slot, no rows). Intake: four flippers as named objects, all four inside out
+(turned); the shell 3.641 source units from front edge to back edge on the midline, scaled to
+1, origin mid-shell; nose to hind flipper tips 1.584 shells. Each front flipper is buried
+28% of its span in the body, each hind flipper 30%: the stroke weight is full from 80% of
+that depth, so the bend stays hidden. Three photos, cropped to what the faces use and shrunk
+to 1024 px JPEGs: 62.8 MB to 415 KB, credited in `IMAGE_CREDITS`. Seen stroking and gliding
+in the Atlas, desktop and 375 px phone (the stand-in's pose framed her well on both). Her
+shell is about as wide as it is long (1.0); real green turtles' straight shell width is
+nearer 0.8 of the length, Jeremy's call.
 
 Research decisions:
 

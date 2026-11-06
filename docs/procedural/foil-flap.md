@@ -1,124 +1,324 @@
 # foil-flap
 
-Shader type: `foil-flap-vertex` (proposed) · Status: **Proposed — not implemented**
+Shader type: `foil-flap-vertex` · Status: **Implemented (approved 2026-10-31); first model: Jeremy's female turtle, 2026-11-05**
 
 Paired appendages beating as hydrofoils on a rigid body. Thrust comes from the
 downstroke of a stiff, twisting blade — flight underwater, not rowing.
 
 Read [README.md](README.md) first for the rules shared by every type.
 
-> Starting convention only. No runtime code exists. Expect the first asset to change
-> it.
+> Jeremy approved this type for the East Pacific green turtle (`chelonia-mydas`) on
+> 2026-10-31. Built in `v0.50.0-dev_2` on a generated stand-in (698 vertices, 1 m shell,
+> since removed); his female model replaced it in `dev_3`, joined and painted by
+> `scripts/paint-foil-flap-masks.py` (see [species-preparation.md](../species-preparation.md)). Code: `foilFlap()` GLSL and
+> `foilFlapRig()` in `src/components/Fish.jsx`; the stroke-group and glide clock in
+> `src/utils/foilFlap.js`, shared by the tank and the Atlas specimen; tests in
+> `tests/foilFlap.test.mjs`. In `dev_4`, the tank owns the clock and uses it for both the
+> visible pose and downstroke thrust; surfacing lives in `src/components/turtleSurfacing.js`.
+> In-tank visual tuning and frame-time measurement remain open.
 
 ## Animals
 
-Proposed: sea turtles, penguins, sea lions.
+First asset: East Pacific green turtle, adults 65–90 cm straight shell length in the
+reserve (2.6–3.6 WU), well above the 1.08 WU floor. Later candidates: other sea turtles,
+penguins, sea lions (a sea lion's fore-flippers are the same problem).
 
 **Not this type:** a Mola, whose dorsal and anal fins scull as flexible sheets rather
 than beating as rigid foils — see [mask-fin-row](mask-fin-row.md). A ray, whose thrust
 is a wave through a continuous disc margin — see [disc-wave](disc-wave.md).
 
-Worth flagging early: this type and `mask-fin-row` are both root-pivoted rotation
-driven by a painted weight. If the first turtle implementation ends up as
-`mask-fin-row` with different constants, **merge them** rather than keeping two
-near-identical shaders. The criterion is whether the foil needs a genuine twist
-(pitch about its own span axis), which `mask-fin-row` has no concept of.
+## Why not an existing type
+
+Two types come close. Neither covers it with config alone.
+
+**[mask-fin-row](mask-fin-row.md), the closest.** Both are a rigid body whose painted
+appendages rotate about fixed roots with quintic-eased weights. That is where the
+likeness ends:
+
+- *Stroke plane.* Its rotating fins (dorsal, anal) swing in the raw Y/Z plane about a
+  lateral axis: a fin on the body's midline. A turtle's fore-flippers are a mirrored pair
+  that swing up and down about a roughly fore–aft axis through each shoulder. The type's
+  only paired channel, grey pectorals, is a small mirrored *offset*, not a rotation.
+- *Twist.* A foil pitches about its own span axis, leading the stroke. mask-fin-row has
+  no concept of rotating a blade about its own length.
+- *Timing.* mask-fin-row runs a continuous sine. A turtle strokes in bursts with an
+  asymmetric beat and glides with its flippers held swept back. Neither the envelope nor
+  the glide hold exists there.
+- *Locomotion.* A turtle's speed should surge on each downstroke (README,
+  impulse-and-decay). mask-fin-row moves the body at constant speed.
+
+Fitting all four into mask-fin-row would mean a new paired rotation about a new axis, a
+new twist rotation, a new clock and a new movement coupling: an architecture behind a
+flag, not a variant. The balistiform variant shows the line: three keys, same engine,
+same channels. Here the engine moves from the midline fins to a paired flipper.
+
+**[disc-wave](disc-wave.md) (mobuliform).** The devil ray's wings also beat together
+with a fast downstroke, but a wing is continuous with the disc: no shoulder to pivot on,
+and the tip lag is a phase delay along a bending sheet. A turtle flipper is a stiff blade
+on a joint. disc-wave's displacement would bend the flipper like rubber and leave the
+shoulder unhinged.
+
+**Recommendation: a new type, `foil-flap-vertex`, reusing shared helpers.** The quintic
+weight easing, the `forwardAxis`/`upAxis` remap and root-pivot rotation come from
+mask-fin-row; the asymmetric envelope from disc-wave. This answers the ROADMAP question
+(does foil-flap merge into mask-fin-row?) with no: the turtle needs a genuine twist, the
+merge criterion this doc set itself.
+
+## What produces thrust
+
+- **Engine: the fore-flippers' downstroke.** Both flippers sweep down and back together,
+  leading edge pitched down, and the turtle surges forward. The upstroke recovers with
+  the blade feathered and adds little.
+- **Steering and trim: the hind flippers.** They trail as rudders and elevators, angled
+  into turns. They do not paddle while the turtle cruises.
+- **Decoration: none moves on its own.** Shell, head and neck stay rigid in the first
+  pass. A slight head bob or the slow four-limb paddle turtles use when manoeuvring at
+  low speed are later ideas, not part of this contract.
 
 ## Felt intention
 
-**Powerful, unhurried flight.** A turtle's body is a stable platform; the flippers
-sweep through a long arc and the animal surges forward on each downstroke, then
-glides. The body should barely move — all the motion is in the appendages.
+**Powerful, unhurried flight.** The shell is a stable platform; the fore-flippers sweep
+through a long arc, the animal surges on each downstroke, then glides. All the motion is
+in the flippers.
 
-Glide phases matter as much as strokes. A turtle that flaps continuously reads
-anxious.
+Glides matter as much as strokes. A turtle that flaps continuously reads anxious.
 
 ## What must not happen
 
-- A flipper that translates instead of rotating — that shears and stretches the blade.
+- A flipper that translates instead of rotating: that shears and stretches the blade.
 - A flat paddle with no twist. The pitch change across the stroke is what makes it
   read as a foil rather than an oar.
 - Symmetric up and down strokes. The power stroke is the downstroke.
-- The body pitching or rolling in sympathy with every beat.
+- The shell pitching or rolling in sympathy with every beat.
 - Continuous flapping with no glide.
-- Left and right beating in perfect lockstep through a turn — asymmetry is how it
-  steers.
+- Left and right beating in perfect lockstep through a turn: asymmetry is how it steers.
+- Hind flippers paddling at cruise, reading as a swimming dog.
+- A turtle that speeds along at constant velocity while its flippers beat.
 
-## Blender contract (proposed)
+## Blender contract
 
-**Objects:** one body mesh containing the shell/torso and both fore-flippers, with
-hind flippers either included or as separate low-motion objects.
+**Objects.** One body mesh in the export: shell (carapace and plastron), head and neck,
+and all four flippers joined. Fore-flipper roots sit in the shoulder, which barely moves,
+so the flippers *could* be independent objects; but the twist needs per-vertex control
+along the blade, which whole-object rotation cannot give. Join them and let the paint
+separate them. Jeremy keeps the flippers as separate objects named `flipper.fore.l`,
+`flipper.fore.r`, `flipper.hind.l`, `flipper.hind.r` in the `.blend` (decided 2026-11-01),
+with the rest (shell, head and neck, the male's tail) in any other objects, welded or not:
+all of it is rigid, so its pieces may simply overlap (Jeremy asked, 2026-11-05). The intake
+script joins everything, paints the flippers (below) and exports the single body mesh.
 
-Fore-flippers must be part of the deforming mesh: their roots sit in the shoulder,
-which barely moves, so they *could* be independent objects — but the twist needs
-per-vertex control along the blade, which whole-object rotation cannot give. Paint
-them instead.
+**How the flippers attach.** Like the pectoral and pelvic fins on Jeremy's fish: each flipper
+is its own closed piece with its root pushed into the body, sharing no vertices with it and
+not welded (Jeremy asked, 2026-11-05). Bury about the first 10–15% of the flipper's length
+inside the body under the shell, so the root stays hidden as the flipper turns; the body
+stays closed, with no hole where the flipper enters. Put one edge loop roughly where the
+flipper comes out from under the shell: the stroke weight reaches full strength there. The
+join is a plain Ctrl+J, with no merge by distance. Welding would drag the body's vertices
+with the stroke, or tear them.
 
-**Orientation:** `+Z` forward, `+Y` up, transforms applied, origin at world `0`.
+**Orientation.** Nose at `-Z`, `+Y` up (the renderer turns local `-Z` to the heading),
+transforms applied. Origin at world `0`, at the centre of the shell (the follow point).
 
-**Topology:** lengthwise loops along each flipper span — the blade bends and twists
-along its length, so it needs at least 6–8 spanwise divisions. Chordwise can stay
-coarse. The body needs no density at all.
+**Scale.** `1` raw unit = `1` m, at a known straight shell length (front to back edge of
+the shell along the midline, not over the curve). Note the shell length with the export:
+the species' world scale is derived from it, as the Atlas `maxLengthLabel` "Shell length"
+says.
 
-**Poly budget:** body dominated by silhouette needs, not motion. Flippers ~200–400
-vertices each.
+**Rest pose.** Fore-flippers held out level and slightly swept back, as at the top of a
+glide; hind flippers trailing beside the tail. The glide pose is computed from this one.
 
-## Vertex paint channels (proposed)
+**Topology.** Fore-flippers 8–10 spanwise loops from shoulder to tip and 3–4 chordwise
+divisions, so the blade both bends and twists without faceting badly (faceting itself is
+the art style). A dense ring at the shoulder, where rotation starts, and a loop where the flipper leaves
+the shell. Hind flippers 4–5
+spanwise loops. The shell needs no density at all.
 
-| Channel | Means |
-| --- | --- |
-| R | Fore-flipper stroke weight, `0` at shoulder → `1` at tip |
-| G | Twist weight along the blade — usually similar to R but can lead it |
-| B | Hind-flipper / rudder weight |
-| A | Side sign, or unused — side may be cheaper from raw X |
+**Poly budget.** About 3000–6000 vertices in all; each fore-flipper about 300–500.
+
+**Normals.** Outward. Recalculate Outside before export; past exports have come in
+inside out.
+
+## Vertex paint channels
+
+Painted into `COLOR_1`, exposed as `color_1`. `COLOR_0` stays white.
+
+| Channel | Means | Ramp |
+| --- | --- | --- |
+| R | Fore-flipper stroke weight | `0` in the shoulder ring → `1` before the flipper first shows outside the body, then `1` to the tip |
+| G | Fore-flipper twist weight | a hair above `0` (0.002) in the shoulder ring → `1` at the tip, linear along the span |
+| B | Hind-flipper rudder weight | a hair above `0` in the hip ring → `1` before the flipper first shows, then `1` to the tip |
+| A | Unused | Side comes from the sign of raw X |
+
+Black (all three `0`) is rigid: shell, head and neck.
+
+**Why R and B finish before the flipper shows.** The flipper must turn as a stiff blade.
+Every vertex turns by its own weight, so wherever R ramps the blade bends, and the edges across
+the bend stretch. On the stand-in, an R ramp over the first third of the span stretched those
+edges by 45% at cruise; ramped inside the shell, they changed at most 2.2% at cruise and 6.1% at
+full burst in a turn. A real flipper leaves the body unevenly, so the ramp must end where its
+*first* vertex shows, not its last buried one. On Jeremy's first female export (2026-11-05)
+the front flippers first showed at 0.067 of their span and the last buried vertex was at
+0.284: ramping to the latter stretched visible edges by up to 75% in the glide, and the hind
+rudder ramp to halfway out bent the visible blade 36% in a turn. On his narrowed shell they
+first show at 0.049 (front) and 0.059 (hind). Ramped to 0.8 of the first exit, visible
+edges change at most 7.7% in any stroke, burst, turn or glide (that much is the twist, meant to
+vary along the blade), and the hind flippers 0%. Buried flipper near the exit still rises above
+the shell's front rim at the top of a hard stroke, as a real flipper does; the root end never
+shows.
+
+**The pivots are read from the paint** (`foilFlapRig()`, right side, mirrored for the left):
+the shoulder is the middle of the fore-flipper vertices with `0 < G < 0.1`, the span axis runs
+from there to the middle of those with `G > 0.9`, and the hip is the middle of those with
+`0 < B < 0.15`. That is why the root rings carry a hair of G and B rather than `0`. Config
+`foreRoot`, `foreSpanAxis` and `hindRoot` override.
+
+**Computed, not hand-painted.** As with the devil ray, the masks are pure geometry:
+`scripts/paint-foil-flap-masks.py` (headless Blender, modelled on `paint-disc-wave-masks.py`)
+joins the four flipper objects to the body, paints R and G as ramps along each fore-flipper's
+span from its root, B along each hind flipper, writes white `COLOR_0`, and prints each
+flipper's root, tip and first exit. Blender's vertex paint cannot paint one channel alone, so
+hand painting would need packing anyway.
 
 ## How the deformation should work
 
-- Stroke: root-pivoted rotation about the shoulder in the vertical plane, using the
-  asymmetric drive envelope from [README.md](README.md) so the downstroke is fast and
-  the recovery slow.
-- Twist: rotation about the flipper's own span axis, phase-**led** slightly ahead of
-  the stroke. This lead is the whole trick — a foil pitches into the stroke before it
-  sweeps. Without it you have an oar.
-- Turn: bias stroke amplitude between sides by `turn`, and add a hind-flipper rudder
-  offset.
-- Glide: a `dutyCycle` well below 1, with the animal holding an extended pose between
-  stroke groups. Consider strokes in bursts of 2–3 with a glide between, rather than
-  a continuous cycle.
+Per vertex, side `s = sign(x)`, in the rest frame:
 
-## Locomotion coupling
+1. **Twist** about the fore-flipper's own span axis (root → tip at rest, mirrored by side)
+   by `twistRadians · twistDrive(phase + twistLead) · ease(G)`. The lead is the whole trick:
+   the blade pitches into the stroke before it sweeps. Without it you have an oar.
+2. **Stroke** about an axis through the shoulder root, roughly fore–aft and tilted by
+   `strokeAxisSweep` so the tip moves down *and back*, by
+   `s · strokeRadians · envelope(phase) · ease(R) · (1 + s · turn · turnStrength)`.
+   Rotation, not translation, so the tip traces an arc and the shoulder never stretches.
+3. **Sweep** (optional) about the vertical through the root by
+   `sweepRadians · sin(phase + sweepLead) · ease(R)`, which opens the tip's path into the
+   figure-eight a flying flipper traces.
+4. **Hind rudder** about the hip by `turn · rudderRadians · ease(B)` (yaw) plus a small
+   trailing trim that follows the stroke with a lag, never driving.
+5. **Glide** blends 1–3 toward a held pose (`glideBackRadians`, `glideDownRadians`:
+   flippers swept back along the shell, slightly down) by the glide blend.
 
-Like [bell-pulse](bell-pulse.md), thrust here is periodic, so speed should pulse with
-the stroke. Less critical than for a jellyfish — a turtle's glide is long and its
-speed variation modest — but a constant-velocity turtle with flapping flippers will
-read as a toy. Reuse the impulse-and-decay primitive.
+Steps 1–3 use the fore-flipper weights (twist by G, stroke and sweep by R); step 4 uses B.
+A vertex's side comes from its rest position, so normals turn with their vertex.
 
-## Config keys (proposed)
+`envelope` is the README's asymmetric drive envelope: the downstroke over
+`downFraction` of the beat (about 0.35–0.4), the recovery over the rest, each
+smoothstep-eased. `ease` is the shared zero-slope quintic.
 
-`type`, `bodyMeshNames`, `strokeRootYZ` (or per-side roots), `strokeRadians`,
-`twistRadians`, `twistLead`, `dutyCycle`, `strokeGroupCount`, `glideFraction`,
-`rudderAmplitude`, `turnStrength`, `burstAmplitude`, `response`, `waveSpeed`,
-`speedFrequencyBoost`, `burstFrequencyBoost`.
+## Clock, glides and locomotion coupling
 
-## Verifier entry (proposed)
+The beat clock follows the integrated clock rule (README). On top of it a small CPU state
+machine (`src/utils/foilFlap.js`), per creature, from its own seeded stream:
 
-```js
-{
-  name: '<Species> foil-flap static',
-  path: 'public/models/fish/<slug>/<slug>.glb',
-  staticMesh: true,
-  bodyMeshNames: ['<body>'],
-  requiredBodyAttributes: ['color_1'],
-  minVertices: 2000,
-}
-```
+- **Stroke group:** `strokesPerGroup` beats, then a **glide** of `glideSeconds` with the glide
+  blend easing to 1 and back (`glideResponse`). The group ends at the bottom of its last
+  downstroke, the flippers already down and back, and the clock holds there through the
+  glide, so the next group starts with the recovery. The clock starts at a random point in a
+  group, so turtles never stroke in step; the shared per-creature phase offset is not added,
+  as it would move the hold off the bottom of the stroke.
+- **Speed:** faster swimming shortens glides and adds strokes; a burst strokes
+  continuously at `burstAmplitude` with no glide. Idle drift is mostly glide.
+- **Atlas:** the specimen runs the same machine at `speed01` 0.42, so it glides as in the tank
+  rather than looping on elapsed time.
+- **Turns:** amplitude biased between sides by `turn`, and the hind rudders angle; the
+  shell banks only through the existing integrator.
+- **Impulse-and-decay (`dev_4`):** crossing mid-downstroke adds `strokeImpulse` (0.45) to
+  thrust, decaying exponentially at `strokeDecay` (1.1/s). Travel speed is multiplied by
+  `glideSpeedScale` (0.78) plus thrust. Impulse decay accounts for the crossing's time
+  within the frame. The tank advances this state before movement, and FishModel reads
+  that same clock/glide without advancing twice. Atlas keeps its own presentation clock.
+  Inputs/state are reused; frame-time measurement remains open.
+- **Breathing (`dev_4`):** `swim.surfacing` schedules low cruise → rise → breathe → dive.
+  Every stage supplies a target to the existing pipeline. During a breath the foil clock
+  holds at its current phase while the glide blend eases in, without a phase jump or
+  another impulse. Stroke/glide state, random stream and surfacing schedule survive tank
+  switches in `fishRuntimeStore.js`; page reload clears them.
+
+## Config keys
+
+The orientation is fixed by the contract (nose `-Z`, `+Y` up), so there is no axis remap.
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `type` | — | `'foil-flap-vertex'` |
+| `bodyMeshNames` | — | The single body mesh |
+| `foreRoot`, `foreSpanAxis`, `hindRoot` | read from the paint | Overrides for the right-side shoulder, span direction and hip; left mirrored |
+| `waveSpeed` | `3.4` | Clock radians per second (one beat per 2π): about one beat every 1.8 s at cruise |
+| `beatRateRange` | none | A stable per-turtle cadence multiplier, as disc-wave's |
+| `strokeRadians` | `0.7` | Peak stroke rotation either side of level (about ±40°) at full speed |
+| `strokeAxisSweep` | `0.35` | Tilt of the stroke axis so the tip moves down and back |
+| `downFraction` | `0.38` | Share of the beat spent on the power stroke |
+| `twistRadians` | `0.5` | Peak blade pitch, at the stroke's fastest |
+| `twistLead` | `0.6` | Phase lead of twist over stroke (radians) |
+| `sweepRadians`, `sweepLead` | `0.15`, `1.2` | Fore–aft tip sweep for the figure-eight |
+| `strokesPerGroup` | `[2, 3]` | Beats per stroke group; `speedExtraStrokes` (2) more at full speed |
+| `glideSeconds` | `[1.5, 4]` | Glide length; ×1.5 at rest, shrinking with speed (`speedGlideCut` 1.1); none in a burst |
+| `glideBackRadians`, `glideDownRadians` | `0.9`, `0.2` | The glide pose: flippers swept back along the shell and a little below level |
+| `glideResponse` | `3` | How fast the pose eases into and out of a glide (per second) |
+| `rudderRadians` | `0.35` | Hind-flipper yaw at full turn |
+| `trimRadians` | `0.08` | Hind-flipper trailing pitch, following the stroke late |
+| `turnStrength` | `0.3` | Stroke amplitude bias between sides per unit `turn` |
+| `burstAmplitude` | `0.3` | Extra stroke under burst |
+| `idleAmplitudeFloor` | `0.6` | Share of the full stroke kept at rest |
+| `response` | `2.5` | Turn damping |
+| `speedFrequencyBoost`, `burstFrequencyBoost` | `0.3`, `0.4` | Cadence gain |
+| `strokeImpulse`, `strokeDecay` | `0`, `1.1` | Forward speed-ratio impulse at mid-downstroke, exponential decay per second; turtle uses 0.45 |
+| `glideSpeedScale` | `1` | Cruising-speed multiplier before thrust is added; turtle uses 0.78 |
+
+Every value is a starting point for visual tuning, not a biological measurement. The turtle's
+`swim.surfacing` uses intervals 120–240 s, breathing duration 5–8 s, low band y −24…−20,
+center clearance 0.24 shell lengths, nose-up pitch 0.24 rad, breathing speed scale 0.25,
+and a 120 s failed-ascent timeout. Times use simulation seconds.
+
+## Verifier entry
+
+`scripts/inspect-procedural-targets.mjs` checks the female's flipper part
+(`chelonia_mydas_3`, 2004 vertices, every mask) and its `color_1` against a 2000-vertex floor;
+the floors are per part, so the shell (`_1`) and belly (`_2`) parts are not checked there,
+though the app deforms all three. The paint script joins the flipper objects, so none can
+reach the export under its own name.
 
 ## Review gates
 
-- The animal surges on the downstroke and glides between stroke groups.
-- Flipper blades twist through the stroke; they never read as flat oars.
-- The body stays a stable platform.
-- Turns are driven by asymmetric stroke amplitude, not by rotating in place.
-- No shear or stretch at the shoulder attachment.
+Checked on the stand-in (2026-10-31), from `tests/foilFlap.test.mjs` and a JS port of the
+shader run over the stand-in's vertices, and the beat in the Atlas locally. On Jeremy's female
+(2026-11-05): stroke, glide with the flippers swept back, and recovery seen in the Atlas on
+desktop and a 375 px phone; not measured frame by frame yet. In `dev_4`, thrust timing,
+glide rest and ascent/breath/descent at 30/60/120 Hz pass CPU tests. In-tank visual checks,
+trevally spacing, frame-time measurement and the Atlas tile remain open.
+
+- Glide share: idle 0.45, cruise 0.37, fast 0.18; none in a burst.
+- The downstroke takes 38% of the beat by construction (`downFraction`). The tip drops from
+  +0.26 to −0.31 m and moves 0.30 m back over it, then comes forward on the recovery.
+- Left and right match to 1e-6 with no turn.
+- Mid-downstroke the leading edge sits below the trailing edge, and above it mid-recovery.
+- The shell does not move.
+- Outside the shell, flipper edges change at most 2.2% at cruise and 6.1% at full burst in a
+  turn.
+
+The gates:
+
+- The turtle surges on the downstroke and glides between stroke groups; at cruise it
+  glides for a good share of the time (aim for at least a third, measured).
+- The downstroke takes about 35–40% of the beat (measured in the Atlas, as the devil ray's
+  43% was).
+- Flipper blades visibly change pitch through the stroke; they never read as flat oars.
+- The shell stays a stable platform: no pitch or roll with the beat.
+- Turns come from asymmetric stroke amplitude and the hind rudders, not from rotating in
+  place.
+- No shear or stretch at the shoulder: edge lengths in the shoulder ring stay within a few
+  percent through the stroke.
+- Hind flippers never paddle at cruise.
+- Reads as a turtle at 375 px portrait from the resting camera.
 - Atlas specimen moves through the same path as the tank.
-- No runtime or WebGL errors.
+- No runtime or WebGL errors; phone frame time measured with the turtles in The Shallows.
+
+## Decisions and open questions
+
+1. Separate type or a mask-fin-row variant: **separate**, Jeremy, 2026-10-31 ("ok use foil
+   flap").
+2. Flippers: **separate named objects in the `.blend`, joined and painted by the intake
+   script** (`scripts/paint-foil-flap-masks.py`, written with the first model), Jeremy,
+   2026-11-01.
+3. Glides were built first; downstroke thrust and surface visits followed in `dev_4`.
+   Tune the reserve motion visually and measure its frame cost before clean release.

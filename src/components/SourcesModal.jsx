@@ -127,7 +127,11 @@ export default function SourcesModal({ onClose }) {
                           <a href={credit.url} target="_blank" rel="noreferrer noopener">{credit.work}</a>
                           {' by '}{credit.author}
                           {', '}
-                          <a href={credit.licence.url} target="_blank" rel="noreferrer noopener">{credit.licence.name}</a>
+                          {!credit.licence
+                            ? 'licence not stated'
+                            : credit.licence.url
+                              ? <a href={credit.licence.url} target="_blank" rel="noreferrer noopener">{credit.licence.name}</a>
+                              : credit.licence.name}
                           .
                         </span>
                       ) : (

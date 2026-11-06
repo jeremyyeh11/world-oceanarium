@@ -127,6 +127,48 @@ const STAGHORN_KIT = {
   doubleSided: true,
 }
 
+// Jeremy's brain corals (Platygyra daedalea, `_blender models/platygyra daedalea.glb`, 2026-10-30),
+// baked by scripts/build-brain-coral-kit.py: four photo-textured boulders about 1.4-1.6 m across,
+// each with _hi (his own 256-768 triangles), _lo (118-346) and _far (116-216) meshes sharing its
+// 1024 px brainN-color/-normal.jpg. In metres, up +Y, origin at his object origin: the ground
+// line, with 0.22-0.52 m of rounded underside below it to be buried. 0: blue and brown, 0.70 m
+// above ground; 1: orange, 0.72 m; 2: brown, 0.64 m; 3: pale yellow-green, 0.71 m.
+const BRAIN_CORAL_KIT = {
+  path: '/models/landscape/brain-corals.glb',
+  models: ['brain0', 'brain1', 'brain2', 'brain3'].map(name => ({
+    name,
+    color: `/models/landscape/${name}-color.jpg`,
+    normal: `/models/landscape/${name}-normal.jpg`,
+  })),
+  // As the tables: _hi within hiDetailDistance of the resting camera, _lo to loDetailDistance,
+  // _far beyond (Landscape.jsx mergeKitModels).
+  hiDetailDistance: 30,
+  loDetailDistance: 60,
+  // Merged in square chunks this many WU wide (per model), so off-screen ones are culled.
+  chunkWU: 60,
+}
+
+// Jeremy's cauliflower corals (Pocillopora meandrina, `_blender models/pocillopora meandrina.glb`,
+// 2026-11-01), baked by scripts/build-cauliflower-coral-kit.py at true size from his displaced,
+// photo-projected bushes: 0, cream (Peterwchen's Kauaʻi tidepool photo), 45 cm across, 26 cm tall;
+// 1, pink (Dwayne Meadows' NOAA photo), 31 cm, 25 cm tall, on a short stalk; 2, pink, 20 cm, 13 cm
+// tall. _hi 6,000 / 6,000 / 3,000 triangles, _lo and _far 40% and 16% of that, sharing their
+// 1024 px (2: 512 px) cauliflowerN-color/-normal.jpg. In metres, up +Y, origin at his object origin:
+// the foot.
+const CAULIFLOWER_CORAL_KIT = {
+  path: '/models/landscape/cauliflower-corals.glb',
+  models: ['cauliflower0', 'cauliflower1', 'cauliflower2'].map(name => ({
+    name,
+    color: `/models/landscape/${name}-color.jpg`,
+    normal: `/models/landscape/${name}-normal.jpg`,
+  })),
+  // As the brain corals: _hi within hiDetailDistance of the resting camera, _lo to
+  // loDetailDistance, _far beyond (Landscape.jsx mergeKitModels).
+  hiDetailDistance: 30,
+  loDetailDistance: 60,
+  chunkWU: 60,
+}
+
 // Jeremy's giant sea fans (Annella mollis, `_blender models/annella mollis.glb`, 2026-10-26),
 // normalised by scripts/build-sea-fan-kit.py: fan0, fan1, ... each in metres with its holdfast at
 // the origin (his object origin, at the trunk's root) and its lattice in the XY plane, with the
@@ -143,6 +185,58 @@ const SEA_FAN_KIT = {
 // forth every `period` s (the surge), the rim swinging `bend` of the fan's height either way,
 // with a faster `flutter` toward the rim.
 export const SEA_FAN_SWAY = { period: 7, bend: 0.06, flutter: 0.25 }
+
+// Jeremy's leather corals (Sarcophyton glaucum, `_blender models/sarcophyton glaucum.glb`,
+// 2026-11-02), normalised by scripts/build-leather-coral-kit.py: leather0, leather1, ... tallest
+// first, each a cap (or two heads) joined to its stalk, in metres with its holdfast at the origin
+// (his object origin, at the bottom of the stalk), with opaque photo materials (Diego Delso's and
+// David Burdick's caps, Alexander Vasenin's stalks and undersides). 0: grey cap, leaning, 66 cm
+// tall; 1: two heads, grey and peach, 61 cm; 2: peach, 53 cm; 3: peach, the classic toadstool,
+// 49 cm. 878 to 2,748 triangles. `colours` groups them into one-colour patches (placement).
+const LEATHER_CORAL_KIT = {
+  path: '/models/landscape/leather-corals.glb',
+  models: [
+    { name: 'leather0', colours: ['grey'] },
+    { name: 'leather1', colours: ['grey', 'peach'] },
+    { name: 'leather2', colours: ['peach'] },
+    { name: 'leather3', colours: ['peach'] },
+  ],
+  chunkWU: 60,
+}
+
+// How the leather corals sway: twice as slow as the sea fans (`period` 14 s; at their 7 s the
+// heavy caps circled too fast, Jeremy, 2026-11-02). `bend` is the top's swing either way, a share of
+// the colony's height: a toadstool is a twentieth of a fan's height, so it takes a larger share to
+// read (Jeremy, 2026-11-02: 0.03 was "not obvious enough", 0.15 still too little, 0.25 good but a
+// little much, then 0.21 "waving way too much" against reference videos, so 0.08: a slow, slight
+// rock). The sway goes into the cap, not the stalk (Jeremy):
+// flex is height up the colony, nothing below `flexFrom` of its height, rising to the top, so the
+// stalk stands still and the cap rocks on it; with the shader's flex², most of the swing is in the
+// cap. Raise `flexFrom` to keep more of the stalk still, `bend` for a bigger swing. Swinging only
+// along the current, the cap went toward and away from the camera and read as stretching up and
+// down (Jeremy, 2026-11-02); `orbit` swings it across the current too, a quarter period behind,
+// so the cap circles in the level plane and reads from any side.
+export const LEATHER_CORAL_SWAY = { period: 14, bend: 0.08, flutter: 0.2, flexFrom: 0.35, orbit: 0.8 }
+
+// Jeremy's giant clam (Tridacna gigas, `_blender models/tridacna gigas.glb`, 2026-11-02), normalised
+// by scripts/build-giant-clam-kit.py: clam0, one open clam 1.11 m long, 0.51 m wide and 0.61 m to
+// the mantle's crown, in metres with its rest point at the origin (his object origin, the middle of
+// the shell's underside), the shell's length along X, with opaque photo materials (Bernard Dupont's
+// mantle, Andrew Green's shell). About 10,300 triangles, static.
+const GIANT_CLAM_KIT = {
+  path: '/models/landscape/giant-clams.glb',
+  models: [{ name: 'clam0' }],
+  chunkWU: 60,
+}
+
+// How a giant clam's mantle breathes (utils/coralSway.js, `swell`), in the tank and in the Atlas:
+// the shell stays still (the clam never snaps shut) and only the `part` named mantle moves, swelling
+// out along its own surface and settling back once every `period` s, its upper part (above
+// `flexFrom` of the clam's height, where it spills over the shell's lips) the most, by up to `bend`
+// of the clam's height, with a small `flutter` (Jeremy, 2026-11-04: "at least the mantle"). Real
+// mantles shift slowly as the clam turns them to the light and pull in when a shadow passes;
+// this is the slow part only.
+export const GIANT_CLAM_MANTLE_SWAY = { period: 9, bend: 0.06, flutter: 0.15, flexFrom: 0.45, swell: true, part: 'mantle' }
 
 // The Reefs' resting camera (Camera.jsx cameraSettings), shared with its tank in species.js
 // so the rock detail levels measure distance from the same viewpoint. Back and down from the
@@ -414,10 +508,62 @@ export const LANDSCAPES = {
       scatter: { seed: 8501, rocks: 30, perRock: [2, 4], spacing: 6.5, maxDistance: 95 },
       sway: SEA_FAN_SWAY,
     },
+    // Brain corals (src/components/brainCoralPlacement.js) on the same bommies, placed after the
+    // tables and sea fans, clear of both, and before the staghorn, which keeps clear of them:
+    // `perCluster` colonies a bommie, about footShare of them on the sand at its foot, the rest on
+    // its ledges. `diameter` in WU at the foot (60 cm to 1.6 m: colonies commonly grow to 1 m or
+    // more, SeaLifeBase), ledgeScale times that up on the rock. `pending: true` would keep it off
+    // (no kit, no placement, no load), as it was until Jeremy's model was baked.
+    brainCorals: {
+      kit: BRAIN_CORAL_KIT,
+      seed: 9103, perCluster: [2, 4], footShare: 0.3,
+      diameter: [2.4, 6.4], ledgeScale: 0.7,
+    },
+    // Cauliflower corals (src/components/cauliflowerCoralPlacement.js) on the same bommies, placed
+    // after the tables, sea fans and brain corals, clear of them all, and before the staghorn,
+    // which keeps clear of them (Jeremy, 2026-11-01): `perCluster` colonies a bommie, on its top
+    // and upper shoulders only, singly or in loose twos and threes. `diameter` in WU (20 to 45 cm:
+    // colonies are commonly 20 to 40 cm across, most stopping near 40 cm, NMFS 2019). Then `front`
+    // more in the resting view, on the first rock ledges the camera's rays meet (Jeremy, 2026-11-01:
+    // not all hidden away).
+    cauliflowerCorals: {
+      kit: CAULIFLOWER_CORAL_KIT,
+      seed: 9419, perCluster: [2, 4], front: [12, 16],
+      diameter: [0.8, 1.8],
+    },
+    // Leather corals (src/components/leatherCoralPlacement.js) on the same bommies, placed after
+    // the cauliflower corals, clear of every coral before them, and before the staghorn, which
+    // keeps clear of them (Jeremy, 2026-11-01): `perCluster` toadstools a bommie, one patch of one
+    // colour within `patchSpread` radians round the rock, on its ledges in the lower `lowShare` of
+    // its height and about footShare of them on the sand and rubble at its foot. `height` in WU
+    // (35 to 75 cm; colonies reach 80 cm across, Coral Trait Database). They sway along `current`
+    // (the sea fans'), `sway` LEATHER_CORAL_SWAY.
+    leatherCorals: {
+      kit: LEATHER_CORAL_KIT,
+      seed: 9551, perCluster: [1, 3], patchSpread: 0.6, lowShare: 0.5, footShare: 0.4,
+      height: [1.4, 3], current: [0.16, 1], sway: LEATHER_CORAL_SWAY,
+    },
+    // Giant clams (src/components/giantClamPlacement.js), placed after the leather corals, clear of
+    // every coral before them, and before the staghorn, which keeps clear of them (Jeremy,
+    // 2026-11-01): `count` clams on the open sand at the feet of the bommies whose middle is in
+    // front of z `zMin` (the front half of the basin), one a bommie, `spacing` WU apart (8 WU, 2 m),
+    // the first by any rock where the resting camera sees it (Jeremy, 2026-11-02: the bommies' feet
+    // are hidden from it): in a 375 px phone's view, its middle within `phoneWidth` of the 16:9
+    // frame's middle across (a portrait phone shows 0.26 of it either way), with nothing in the way
+    // and its line of sight kept clear of the staghorn; failing that, within `viewWidth` (the
+    // desktop frame).
+    // `length` is the shell's in WU (60 cm to 1.2 m: most adults round the 80 cm common length,
+    // SeaLifeBase). `sway` is GIANT_CLAM_MANTLE_SWAY: the mantle breathes, the shell stays still.
+    giantClams: {
+      kit: GIANT_CLAM_KIT,
+      sway: GIANT_CLAM_MANTLE_SWAY,
+      seed: 9661, count: 4, zMin: -36, spacing: 8, phoneWidth: 0.25, viewWidth: 0.85,
+      length: [2.4, 4.8],
+    },
   },
   // The Shallows (Jeremy, 2026-10-23): a bright, shallow Sea of Cortez sand bay where Munk's
   // devil rays school. Mostly open on purpose, so the school is the subject: pale rippled sand,
-  // strong caustics, and a few dark volcanic boulders kept to the left. The limestone kit,
+  // strong caustics, patchy ribbon seagrass, and dark volcanic boulders kept to the left. The limestone kit,
   // shaded dark, stands in for basalt.
   shallows: {
     view: SHALLOWS_VIEW,
@@ -426,6 +572,19 @@ export const LANDSCAPES = {
     floorY: -28,
     floorColor: '#e6dcb2',
     floorRelief: 1.2,
+    // Reference-led scenery pass: 22–65 cm shoots with shorter inner leaves, sandy gaps.
+    // Instanced segmented planes, noise-texture displacement; no solid obstacle or creature rows.
+    seagrass: {
+      seed: 27183, spacing: 0.85, chunkSize: 20,
+      height: [0.9, 2.6], width: [0.055, 0.11],
+      current: [0.8, 0.6], bend: 0.3, speed: 0.035,
+      // [x, z, radiusX, radiusZ], soft edges, open sand down the middle foreground.
+      patches: [
+        [-22, 8, 19, 13], [17, 5, 15, 13], [-36, -21, 20, 18],
+        [29, -24, 23, 19], [-8, -43, 20, 15], [46, -54, 22, 19],
+        [-48, -63, 23, 21], [0, -77, 32, 15],
+      ],
+    },
     rockShade: {
       tone: 0.34, top: 0.9, underside: 0.2, low: 0.55, lowY: -28, highY: -18,
     },
@@ -479,6 +638,12 @@ export const LANDSCAPES = {
 
 export function landscapeForTank(tank) {
   return tank?.landscape ? LANDSCAPES[tank.landscape] ?? null : null
+}
+
+// The landscape's brain corals, unless they wait for their kit (`pending`).
+export function brainCoralsOf(landscape) {
+  const config = landscape?.brainCorals
+  return config && !config.pending ? config : null
 }
 
 // The sand's grain: a broad swell (wavelength about 200 WU), dunes (40–60 WU), hummocks

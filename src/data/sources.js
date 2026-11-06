@@ -147,6 +147,60 @@ export const STUDY_CREDITS = [
     url: 'https://www.fao.org/4/t1817e/t1817e05.htm',
   },
   {
+    id: 'cutzi-2023-black-turtle',
+    subject: 'East Pacific Green Turtle female shell length, clutch size, fecundity and remigration at Colola, Michoacán',
+    authors: 'Bedolla-Ochoa, Reyes-López, Hervey R. G. & Delgado-Trejo',
+    year: 2023,
+    title: 'Black Sea Turtle (Chelonia mydas agassizii) Life History in the Sanctuary of Colola Beach, Michoacan, Mexico',
+    venue: 'Animals 13(3): 406',
+    url: 'https://doi.org/10.3390/ani13030406',
+  },
+  {
+    id: 'delgado-trejo-2024-black-turtle-males',
+    subject: 'East Pacific Green Turtle breeding male size, weight, tail length and mating groups',
+    authors: 'Delgado-Trejo, Reyes-López, Pérez-Ishiwara, Lemus-Fernández, Camacho-Sánchez & Bedolla-Ochoa',
+    year: 2024,
+    title: 'The First Comprehensive Examination of Male Morphometrics and the Operational Sex Ratio of the Black Sea Turtle (Chelonia mydas agassizii) Population in Colola, Michoacan, Mexico',
+    venue: 'Animals 15(1): 2',
+    url: 'https://doi.org/10.3390/ani15010002',
+  },
+  {
+    id: 'turner-tomaszewicz-2022-green-turtle-age',
+    subject: 'East Pacific Green Turtle age at maturity by sex and oldest aged turtle',
+    authors: 'Turner Tomaszewicz, Avens, LaCasella, Eguchi, Dutton, LeRoux & Seminoff',
+    year: 2022,
+    title: 'Mixed-stock aging analysis reveals variable sea turtle maturity rates in a recovering population',
+    venue: 'Journal of Wildlife Management 86(4)',
+    url: 'https://doi.org/10.1002/jwmg.22217',
+  },
+  {
+    id: 'alvarado-diaz-2003-clutch-frequency',
+    subject: 'East Pacific Green Turtle clutches per season at Colola',
+    authors: 'Alvarado-Díaz, Arias-Coyotl & Delgado-Trejo',
+    year: 2003,
+    title: 'Clutch Frequency of the Michoacán Green Seaturtle',
+    venue: 'Journal of Herpetology 37(1): 183–185',
+    url: 'https://doi.org/10.1670/0022-1511(2003)037[0183:CFOTMN]2.0.CO;2',
+  },
+  {
+    id: 'seminoff-2003-baja-green-turtles',
+    subject: 'East Pacific Green Turtle shell length and mass at a Baja California foraging ground',
+    authors: 'Seminoff, Jones, Resendiz, Nichols & Chaloupka',
+    year: 2003,
+    title: 'Monitoring green turtles (Chelonia mydas) at a coastal foraging area in Baja California, Mexico: multiple indices to describe population status',
+    venue: 'Journal of the Marine Biological Association of the UK 83(6): 1355–1362',
+    url: 'https://doi.org/10.1017/S0025315403008816',
+  },
+  {
+    id: 'farrag-2019-golden-trevally',
+    subject: 'Golden Trevally growth and estimated life span in the southern Arabian Gulf',
+    authors: 'Farrag, Al-Zaaby, Alyafei & Alshaer',
+    year: 2019,
+    title: 'Population dynamics and assessment of golden trevally (Gnathonodon speciosus, Forsskål 1775) in the southern Arabian Gulf off the United Arab Emirates',
+    venue: 'International Journal of Fisheries and Aquaculture Research 5(2)',
+    url: 'https://eajournals.org/ijfar/vol-5-issue-2-april-2019/population-dynamics-and-assessment-of-golden-trevally-gnathonodon-speciosus-forsskal-1775-in-the-southern-arabian-gulf-off-the-united-arab-emirates/',
+  },
+  {
     id: 'notarbartolo-1988-mobula',
     subject: "Munk's Devil Ray average size by sex, width–weight relationship and male maturity",
     authors: 'Notarbartolo di Sciara',
@@ -355,6 +409,146 @@ export const STUDY_CREDITS = [
     venue: "Florent's Guide to the Tropical Reefs",
     url: 'https://reefguide.org/subergorgiamollis.html',
   },
+  {
+    id: 'sealifebase-platygyra-daedalea',
+    subject: 'Brain Coral status, range, depth, habitat, colony size and reproduction',
+    authors: 'SeaLifeBase',
+    title: 'Platygyra daedalea (Ellis & Solander, 1786), Brain coral',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Platygyra-daedalea.html',
+  },
+  {
+    id: 'lapid-chadwick-2006-sweeper-tentacles',
+    subject: 'Brain Coral sweeper tentacles against neighbouring corals',
+    authors: 'Lapid & Chadwick',
+    year: 2006,
+    title: 'Long-term effects of competition on coral growth and sweeper tentacle development',
+    venue: 'Marine Ecology Progress Series 313: 115–123',
+    url: 'https://doi.org/10.3354/meps313115',
+  },
+  {
+    id: 'mangubhai-harrison-2008-platygyra',
+    subject: 'Brain Coral spawning season and yearly gametogenic cycle in Kenya',
+    authors: 'Mangubhai & Harrison',
+    year: 2008,
+    title: 'Gametogenesis, spawning and fecundity of Platygyra daedalea (Scleractinia) on equatorial reefs in Kenya',
+    venue: 'Coral Reefs 27: 117–122',
+    url: 'https://doi.org/10.1007/s00338-007-0297-8',
+  },
+  {
+    id: 'pardee-2021-bluefin-trevally',
+    subject: 'Bluefin Trevally sex-specific growth, oldest ages, maturity and length–weight relationship in Hawaii',
+    authors: 'Pardee, Wiley & Springer',
+    year: 2021,
+    title: 'Age, growth, and maturity for two highly targeted jack species: Caranx ignobilis and Caranx melampygus',
+    venue: 'Journal of Fish Biology 99: 1247–1255',
+    url: 'https://repository.library.noaa.gov/view/noaa/63122',
+  },
+  {
+    id: 'sudekum-1991-hawaiian-jacks',
+    subject: 'Bluefin Trevally spawning season, eggs per female and diet in the Northwestern Hawaiian Islands',
+    authors: 'Sudekum, Parrish, Radtke & Ralston',
+    year: 1991,
+    title: 'Life history and ecology of large jacks in undisturbed, shallow, oceanic communities',
+    venue: 'Fishery Bulletin 89: 493–513',
+    url: 'https://swfsc-publications.fisheries.noaa.gov/publications/CR/1991/9173.PDF',
+  },
+  {
+    id: 'hobson-1974-kona',
+    subject: 'Bluefin Trevally patrolling above the reef and following foraging goatfish in Kona, Hawaii',
+    authors: 'Hobson',
+    year: 1974,
+    title: 'Feeding relationships of teleostean fishes on coral reefs in Kona, Hawaii',
+    venue: 'Fishery Bulletin 72: 915–1031',
+    url: 'https://spo.nmfs.noaa.gov/sites/default/files/pdf-content/1974/724/hobson.pdf',
+  },
+  {
+    id: 'fishes-of-australia-bluefin-trevally',
+    subject: 'Bluefin Trevally colour',
+    authors: 'Dianne J. Bray',
+    title: 'Bluefin Trevally, Caranx melampygus',
+    venue: 'Fishes of Australia',
+    url: 'https://fishesofaustralia.net.au/home/species/1652',
+  },
+  {
+    id: 'sealifebase-pocillopora-meandrina',
+    subject: 'Cauliflower Coral status and habitat',
+    authors: 'SeaLifeBase',
+    title: 'Pocillopora meandrina Dana, 1846',
+    venue: 'Species summary',
+    url: 'https://www.sealifebase.se/summary/Pocillopora-meandrina.html',
+  },
+  {
+    id: 'nmfs-2019-pocillopora-meandrina',
+    subject: 'Cauliflower Coral range, depth, colony size and growth, spawning, and the crabs that guard it',
+    authors: 'National Marine Fisheries Service',
+    year: 2019,
+    title: 'Pocillopora meandrina: Status Review Report',
+    venue: 'NOAA Pacific Islands Regional Office',
+    url: 'https://www.fisheries.noaa.gov/s3/dam-migration/pocillopora_meandrina_status_review_report_2019.pdf',
+  },
+  {
+    id: 'benayahu-loya-1986-sarcophyton',
+    subject: 'Toadstool Leather Coral sexes, maturity ages, egg development, eggs per polyp and yearly spawning',
+    authors: 'Benayahu & Loya',
+    year: 1986,
+    title: 'Sexual reproduction of a soft coral: synchronous and brief annual spawning of Sarcophyton glaucum (Quoy & Gaimard, 1833)',
+    venue: 'The Biological Bulletin 170: 32–42',
+    url: 'https://doi.org/10.2307/1541378',
+  },
+  {
+    id: 'schleyer-2004-sarcophyton',
+    subject: 'Toadstool Leather Coral reproduction and hermaphrodite colonies in South Africa',
+    authors: 'Schleyer, Kruger & Benayahu',
+    year: 2004,
+    title: 'Reproduction and the unusual condition of hermaphroditism in Sarcophyton glaucum (Octocorallia, Alcyoniidae) in KwaZulu-Natal, South Africa',
+    venue: 'Hydrobiologia 530/531: 399–409',
+    url: 'https://doi.org/10.1007/s10750-004-2683-3',
+  },
+  {
+    id: 'chao-2017-sarcophyton',
+    subject: 'Toadstool Leather Coral toxins against fish and stony corals',
+    authors: 'Chao et al.',
+    year: 2017,
+    title: 'Isoprenoids from the soft coral Sarcophyton glaucum',
+    venue: 'Marine Drugs 15(7): 202',
+    url: 'https://doi.org/10.3390/md15070202',
+  },
+  {
+    id: 'neo-li-2024-tridacna-gigas',
+    subject: 'Giant Clam conservation status, oldest aged clam, maturity ages, eggs per spawning, spawning timing and habitat',
+    authors: 'Neo & Li',
+    year: 2024,
+    title: 'Tridacna gigas',
+    venue: 'The IUCN Red List of Threatened Species 2024: e.T22137A119167161',
+    url: 'https://dx.doi.org/10.2305/IUCN.UK.2024-2.RLTS.T22137A119167161.en',
+  },
+  {
+    id: 'pearson-munro-1991-tridacna-gigas',
+    subject: 'Giant Clam density on an unfished reef',
+    authors: 'Pearson & Munro',
+    year: 1991,
+    title: 'Growth, mortality and recruitment rates of giant clams, Tridacna gigas and T. derasa, at Michaelmas Reef, central Great Barrier Reef, Australia',
+    venue: 'Australian Journal of Marine and Freshwater Research 42: 241–262',
+    url: 'https://www.publish.csiro.au/mf/MF9910241',
+  },
+  {
+    id: 'noaa-true-giant-clam',
+    subject: 'Giant Clam mantle colour and habitat',
+    authors: 'NOAA Fisheries',
+    title: 'True Giant Clam',
+    venue: 'Species directory',
+    url: 'https://www.fisheries.noaa.gov/species/true-giant-clam',
+  },
+  {
+    id: 'anislado-tolentino-2022-spearfish-remora',
+    subject: 'Spearfish Remora hosts beyond billfishes: ocean sunfishes, blue shark, loggerhead turtle',
+    authors: 'Anislado-Tolentino, Rosales-Vásquez, Irigoyen-Solis, Del Moral-Flores & Wakida-Kusunoki',
+    year: 2022,
+    title: 'First record of the spearfish remora Remora brachyptera (Carangiformes: Echeneidae) in the Gulf of Tehuantepec, Mexico',
+    venue: 'Hidrobiológica 32: 71–74',
+    url: 'https://doi.org/10.24275/uam/izt/dcbs/hidro/2022v32n1/Anislado',
+  },
 ]
 
 // Photographs the models are textured from. The Sources panel groups them in one
@@ -363,8 +557,9 @@ export const STUDY_CREDITS = [
 // texture is shared under the same licence, which `changes` says.
 // Every photo texture gets an entry. One whose source is not known has no `url`
 // and shows "Unknown source" (with `author` when only the photographer is known);
-// replace it with the full credit once the source is found. Generated images are
-// not photographs and are not listed.
+// replace it with the full credit once the source is found. A found source that
+// states no licence has no `licence` and shows "licence not stated". Generated images
+// are not photographs and are not listed.
 export const IMAGE_CREDITS = [
   {
     id: 'zerpe-emperor-angelfish',
@@ -447,6 +642,74 @@ export const IMAGE_CREDITS = [
     licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
     changes: 'Cut out and mapped onto the 3D model, and resized; the adapted texture is shared under the same licence.',
   },
+  {
+    id: 'potensky-golden-trevally',
+    subject: 'Golden Trevally texture',
+    // Commons lists the uploader "Zoofoto!"; the photo's EXIF names Norbert Potensky.
+    author: 'Norbert Potensky (Zoofoto!)',
+    work: 'Goldmakrele (Gnathanodon speciosus) im Haus des Meeres, Wien',
+    url: 'https://commons.wikimedia.org/wiki/File:20081218_100609_Haus_des_Meeres.jpg',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'meadows-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (pink colonies)',
+    author: 'Dwayne Meadows, NOAA/NMFS/OPR',
+    work: 'Pocillopora meandrina, Northwestern Hawaiian Islands (NOAA Photo Library, reef0752)',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina.jpg',
+    licence: { name: 'Public domain (NOAA)', url: 'https://commons.wikimedia.org/wiki/Template:PD-USGov-NOAA' },
+    changes: 'Mapped onto the 3D models, baked into new textures, and resized.',
+  },
+  {
+    id: 'peterwchen-cauliflower-coral',
+    subject: 'Cauliflower Coral texture (cream colony)',
+    author: 'Peterwchen',
+    work: 'Pocillopora meandrina in a tidepool, Kēʻē Beach, Kauaʻi',
+    url: 'https://commons.wikimedia.org/wiki/File:Pocillopora_meandrina-tidepool.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, baked into a new texture, and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // FishBase marks the photo all rights reserved; Philippe Béarez gave Jeremy permission to use
+    // it by email (2026-11-02). No public page records it, so the licence has no link.
+    id: 'bearez-common-remora',
+    subject: 'Common Remora body texture',
+    author: 'P. Béarez',
+    work: 'Remora remora, Salango, Manabí, Ecuador (FishBase)',
+    url: 'https://www.fishbase.se/photos/PicturesSummary.php?resultPage=2&ID=1751&what=species',
+    licence: { name: 'used with permission' },
+    changes: 'Recoloured from the preserved specimen to the living fish\'s dark brown, mapped onto the 3D model, cropped to the fish and resized.',
+  },
+  {
+    id: 'khan-common-remora-disc',
+    subject: 'Common Remora suction disc texture',
+    author: 'Mohammad Moazzam Khan',
+    work: 'Remora remora, Pakistan (FishBase)',
+    url: 'https://commons.wikimedia.org/wiki/File:Remora_remora_1.jpg',
+    licence: { name: 'CC BY 3.0', url: 'https://creativecommons.org/licenses/by/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the disc and resized.',
+  },
+  {
+    id: 'delso-bluefin-trevally',
+    subject: 'Bluefin Trevally texture',
+    author: 'Diego Delso, delso.photo',
+    work: 'Bluefin trevally (Caranx melampygus), Jeddah, Saudi Arabia',
+    url: 'https://commons.wikimedia.org/wiki/File:Jurel_de_aleta_azul_(Caranx_melampygus),_Yeda,_Arabia_Saudita,_2025-05-23,_DD_22.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Jeremy's retextured model (v0.48.2): one photo of one fish from above, the side and
+    // below; the model uses the top and side views. It replaced John Snow's photos.
+    id: 'chen-spearfish-remora',
+    subject: 'Spearfish Remora texture',
+    author: 'Eric L. Chen',
+    work: 'Remora brachyptera, East China Sea (iNaturalist)',
+    url: 'https://www.inaturalist.org/observations/341341699',
+    licence: { name: 'CC BY-NC 4.0', url: 'https://creativecommons.org/licenses/by-nc/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped to the fish and resized.',
+  },
   // Photo textures whose source is not known yet (audit, 2026-10-28).
   { id: 'unknown-spotted-sardinella', subject: 'Spotted Sardinella texture' },
   { id: 'unknown-mahi-mahi', subject: 'Mahi-mahi texture' },
@@ -463,10 +726,116 @@ export const IMAGE_CREDITS = [
   // ROADMAP (v0.37.0): Guy Stevens' photo, © Manta Trust, used on Jeremy's call.
   { id: 'stevens-giant-manta', subject: 'Giant Oceanic Manta top texture', author: 'Guy Stevens, Manta Trust' },
   { id: 'unknown-giant-manta', subject: 'Giant Oceanic Manta eye and mouth textures' },
+  // Embedded as `mexican-fish (3) - dorsal`, `mexican-fish (3)` and `mexican-fish (4)`; Jeremy
+  // (2026-11-04): source unknown.
   { id: 'unknown-munks-devil-ray', subject: "Munk's Devil Ray textures" },
   { id: 'unknown-bluespine-unicornfish', subject: 'Bluespine Unicornfish texture' },
   { id: 'unknown-yellowfin-tuna', subject: 'Yellowfin Tuna texture' },
+  // ROADMAP (v0.42.0): a side photo of a live fish, and an underside specimen photo for the disc
+  // (embedded as `art_3A10`, a Springer article-figure file name).
+  { id: 'unknown-white-suckerfish', subject: 'White Suckerfish textures (two photos)' },
   { id: 'unknown-staghorn-coral', subject: 'Staghorn Coral textures' },
   { id: 'unknown-giant-sea-fan', subject: 'Giant Sea Fan textures (orange and pink fans)' },
   { id: 'unknown-limestone', subject: 'Reef limestone rock texture' },
+  // Brain Coral (Jeremy's model, 2026-10-30): four photos, one per colony. The watermarks sit in
+  // the photos' corners, outside every colony's UVs, so none reaches the baked maps. ROADMAP
+  // (v0.43.0): none is openly licensed; used on Jeremy's call (2026-10-30), taken down on request.
+  // The pale colony's photo is on the site's Platygyra cf. daedalea page, watermarked "© In-Depth
+  // Images Kwajalein"; Scott Johnson gave Jeremy permission by email for the team (2026-11-02).
+  // No public page records it, so the licence has no link.
+  {
+    id: 'kwajalein-brain-coral',
+    subject: 'Brain Coral texture (pale colony)',
+    author: 'In-Depth Images Kwajalein',
+    work: 'Platygyra cf. daedalea (k01-100711), Kwajalein Underwater',
+    url: 'https://underwaterkwaj.com/uw-misc/coral/merulinidae/Platygyra-cf-daedalea.htm',
+    licence: { name: 'used with permission' },
+    changes: 'Mapped onto the 3D model and resized.',
+  },
+  // Both watermarked "CoralsOfTheWorld.org"; the exact pages are not found yet.
+  { id: 'coralsoftheworld-brain-coral', subject: 'Brain Coral textures (blue-and-brown and brown colonies, two photos)', author: 'Corals of the World' },
+  { id: 'unknown-brain-coral', subject: 'Brain Coral texture (orange colony)' },
+  {
+    id: 'delso-leather-coral',
+    subject: 'Toadstool Leather Coral texture (peach caps)',
+    author: 'Diego Delso, delso.photo',
+    work: 'Toadstool leather coral (Sarcophyton glaucum), Red Sea, Egypt',
+    url: 'https://commons.wikimedia.org/wiki/File:Coral_(Sarcophyton_glaucum),_mar_Rojo,_Egipto,_2023-04-14,_DD_73.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'vasenin-leather-coral',
+    subject: 'Toadstool Leather Coral texture (stalks and cap undersides)',
+    author: 'Alexander Vasenin',
+    work: 'Sarcophyton glaucum soft coral at Shaab Angosh reef (Red Sea, Egypt)',
+    url: 'https://commons.wikimedia.org/wiki/File:Sarcophyton_glaucum_at_Shaab_Angosh_reef.JPG',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // David Burdick gave Jeremy permission by email (2026-11-04), for this photo and any other of
+    // his. No public page records it, so the licence has no link.
+    id: 'burdick-leather-coral',
+    subject: 'Toadstool Leather Coral texture (grey caps)',
+    author: 'David Burdick',
+    work: 'Sarcophyton glaucum? (Guam Reef Life, Sarcophytidae)',
+    url: 'https://www.guamreeflife.com/species-id-v2/corals/octocorals/malacalcyonacea/sarcophytidae/',
+    licence: { name: 'used with permission' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
+  {
+    id: 'dupont-giant-clam',
+    subject: 'Giant Clam texture (mantle)',
+    author: 'Bernard Dupont',
+    work: 'Giant Clam (Tridacna gigas), Fukui, Bunaken Island, Sulawesi, Indonesia',
+    url: 'https://commons.wikimedia.org/wiki/File:Giant_Clam_(Tridacna_gigas)_(6058446919).jpg',
+    licence: { name: 'CC BY-SA 2.0', url: 'https://creativecommons.org/licenses/by-sa/2.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Used without permission (Jeremy, 2026-11-02: take it down if asked); Reef Life Survey says
+    // copyright stays with the photographer. Jeremy asked him through its website's contact form the
+    // same day; no reply yet (2026-11-04), so it stays in use until there is one (ROADMAP). Becomes
+    // "used with permission" if he says yes. The watermark corner is filled in before it ships
+    // (scripts/build-giant-clam-kit.py).
+    id: 'green-giant-clam',
+    subject: 'Giant Clam texture (shell)',
+    author: 'Andrew Green, Reef Life Survey',
+    work: 'Tridacna gigas, Coral Sea, Queensland (photo 1 of 2)',
+    url: 'https://reeflifesurvey.com/species/tridacna-gigas/',
+    licence: { name: 'all rights reserved', url: 'https://reeflifesurvey.com/species/tridacna-gigas/' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
+  {
+    id: 'delso-green-turtle',
+    subject: 'East Pacific Green Turtle texture (shell and head)',
+    author: 'Diego Delso, delso.photo',
+    work: 'Tortuga verde (Chelonia mydas), San Pedro, Belice',
+    url: 'https://commons.wikimedia.org/wiki/File:Tortuga_verde_(Chelonia_mydas),_San_Pedro,_Belice,_2025-12-17,_DD_198.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Darkened and evened in colour, mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    id: 'sharp-green-turtle',
+    subject: 'East Pacific Green Turtle texture (flippers and neck)',
+    author: 'Charles J. Sharp',
+    work: 'Green sea turtle (Chelonia mydas), Moorea',
+    url: 'https://commons.wikimedia.org/wiki/File:Green_sea_turtle_(Chelonia_mydas)_Moorea.jpg',
+    licence: { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    changes: 'Mapped onto the 3D model, cropped and resized; the adapted texture is shared under the same licence.',
+  },
+  {
+    // Used without permission, as the giant clam's shell (Jeremy, 2026-11-05: "ship it, swap if
+    // asked"); the group's "full credit" rule is not a licence. Jeremy has asked Ken: with his yes
+    // the licence becomes "used with permission"; with a no or a takedown request, the belly is
+    // swapped out (docs/species-preparation.md).
+    id: 'kiefer-green-turtle',
+    subject: 'East Pacific Green Turtle texture (belly)',
+    author: 'Ken Kiefer',
+    work: 'Green turtle from below, shared in the Facebook group Underwater Photography',
+    url: 'https://www.facebook.com/groups/uwphotography/posts/3568746043421421/',
+    licence: { name: 'all rights reserved', url: 'https://www.facebook.com/groups/uwphotography/posts/3568746043421421/' },
+    changes: 'Mapped onto the 3D model, cropped and resized.',
+  },
 ]

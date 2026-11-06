@@ -42,6 +42,32 @@ Config (landscapes.js `SEA_FAN_SWAY`, shared by the tank and the Atlas):
 Normals are not bent with the fan (the swing is a few degrees), and the fish's raycast surfaces
 and obstacle boxes stay at the rest pose; the obstacle box is padded instead.
 
+## Seagrass scenery
+
+The Shallows' quick scenery pass (`v0.50.0-dev_5`, Jeremy's reference) uses the same
+`SWAY_TIME` clock with texture-driven displacement in `seagrassGeometry.js`; it is
+not a new creature animation type. `Seagrass.jsx` mounts it beside the sand.
+
+- One opaque, double-sided ribbon plane per leaf, six vertical segments, tapered
+  tip, 4–7 leaves per shoot. Shoot heights 0.9–2.6 WU (22–65 cm), with subsidiary
+  leaves at 60–100% of that height; widths 0.055–0.11 WU.
+- Fixed-seed placement in eight elliptical beds, mottled density and soft edges;
+  spacing 0.85 WU. Each root samples `sandHeight` and sinks 0.18 WU. Padded boulder
+  footprints stay clear. Soft leaves do not block fish or pointer selection.
+- A generated, seamlessly repeating 64 × 64 two-channel noise texture scrolls
+  along current `[0.8, 0.6]`, at 0.035 tiles/s. `bend` 0.3 scales displacement by
+  leaf height and height², keeping the root still; a small travelling ripple
+  separates the tips. The vertex shader converts the current back to each
+  instance's local basis, so differently rotated leaves share the same flow.
+- About 19,500 leaves in 37 spatial chunks (20 WU), sharing geometry, texture and
+  material. Bounds include the maximum sway. CPU frame work is the shared clock
+  only; mounted resources are disposed on unmount, without a new source cache.
+- Normals remain at rest for this small ribbon bend. Lighting/palette of the
+  reserve stays unchanged. Reference photo is not embedded or shipped.
+
+Headless desktop and phone-size screenshots render without console/shader errors.
+Density/movement acceptance and physical-phone frame time remain review work.
+
 ## Blender contract: sea fan
 
 Jeremy's source: `_blender models/annella mollis.glb`. Build the kit with:
@@ -94,6 +120,92 @@ pink leaning out left and right, after Jeremy's sketch) from it:
    photo in src/data/sources.js IMAGE_CREDITS.
 9. **Budget: up to 3000 triangles a fan** (the yellow fan's branches are 4,646; fine for three
    models). No bones, animation clips or shape keys.
+
+## Leather coral (since `v0.47.0-dev_2`)
+
+The second species on this type: toadstools of *Sarcophyton glaucum* on The Reefs
+(`src/components/leatherCoralPlacement.js`). Felt intention: a few fat, fleshy toadstools that
+lean slowly with the surge, the cap rocking on its stalk as one thick body. Must not wobble like
+jelly or flutter like a fan's rim, and must not look still (`dev_2` did).
+
+- Swing direction: the landscape's current (`leatherCorals.current`, the fans' value), horizontal.
+  A toadstool has no face, so every colony swings the same way; `phase` comes from its position
+  along the current, as a fan's (at its own, slower period since `dev_6`).
+- Flex by height (since `dev_4`, Jeremy: sway the caps more than the stem): `addSwayAttributes`
+  with `up` (the colony's own up, leant with its ledge) and `flexFrom` measures flex as height up
+  the colony over its height, 0 below `flexFrom` and rising to 1 at the top. With the shader's
+  flex², the stalk stands still, its top barely leans and the cap rocks on it. `dev_2` and `dev_3`
+  used the fans' straight-line distance from the foot, which spread the swing down the stalk.
+- Config `LEATHER_CORAL_SWAY` (landscapes.js): `period` 14, `bend` 0.08 (the top's swing either
+  way, a share of the colony's height), `flutter` 0.2, `flexFrom` 0.35. The two knobs: `bend` for
+  how far, `flexFrom` for where (higher keeps more of the stalk still). A toadstool is about a
+  twentieth of a fan's height, so it needs a larger share: 0.03 (`dev_2`) swung a 50 cm toadstool
+  1.5 cm ("not obvious enough"), 0.15 (`dev_3`) still too little, 0.25 (`dev_4`, `dev_5`) good but
+  15% too much, 0.21 (`dev_6`) "waving way too much" once Jeremy watched reference videos; 0.08
+  (`dev_7`) rocks its top about 4 cm, in the cap with the stalk still and circling, which is what
+  0.03 lacked. The period was the fans' 7 s until
+  `dev_6`, when Jeremy halved the frequency: the heavy caps circled too fast.
+- `orbit` 0.8 (since `dev_5`): swinging only along the current, the cap moved toward and away
+  from the resting camera and read as stretching up and down (Jeremy, 2026-11-02). The shader adds
+  a swing across the current, level, `orbit` times the swing along it and a quarter period behind
+  (`vec3(-aSway.z, 0, aSway.x) × flex² × orbit × cos t`), so the cap circles on its stalk in an
+  ellipse and reads from any side. An optional `applyCoralSway` setting: the fans have none and
+  compile the same shader as before.
+- Placement keeps the cap out of the rock and sand at the four ends of its swing
+  (leatherCoralPlacement.js), and the staghorn keeps the cap's swing clear (`inToadstool`). The
+  Atlas measures flex by each toadstool's own height (EncyclopediaPage.jsx `prepareAtlasSway`).
+
+### Blender contract: leather coral
+
+Jeremy's source: `_blender models/sarcophyton glaucum.glb`. Build the kit, then the Atlas specimen:
+
+```
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
+  --python scripts/build-leather-coral-kit.py -- "<path>/sarcophyton glaucum.glb" public/models/landscape <preview-dir>
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup \
+  --python scripts/build-leather-coral-atlas.py -- public/models/landscape \
+  public/models/fish/sarcophyton-glaucum/sarcophyton-glaucum.glb <preview-dir>
+```
+
+1. **Real size, metres.** Toadstools 30 to 80 cm tall or across (colonies reach 80 cm).
+2. **One object per colony,** its cap (or two or three heads on one stalk) joined to its stalk:
+   one object, one origin, so it bends as one animal. Several colonies in one file; they need not
+   be welded.
+3. **The origin at the bottom of the stalk, in the middle** (where it meets the rock): the sway
+   bends from it. Up +Z in Blender.
+4. **Polyps withdrawn:** a smooth stalk and a folded cap of a few big folds, the polyps a speckle in
+   the texture, never geometry.
+5. **The cap's underside and the stalk are bare** (polyps grow on top only): Solidify's material
+   offset puts the stalk's material on the underside and rim.
+6. **Photo textures, any UV maps.** The script cuts each photo to the part its faces use, scales it
+   to 1024 px at most, moves every face onto one UV map and makes every material opaque (an export
+   set to Blend draws the far side through the near). Credit each photo in IMAGE_CREDITS.
+7. **Budget: up to 3,000 triangles a colony.** No bones, clips, shape keys or vertex colour.
+
+## Giant clam mantle (since `v0.49.0-dev_5`)
+
+The third config on this type, and the first that is not a coral: the mantle of *Tridacna gigas*
+on The Reefs (`src/components/giantClamPlacement.js`, Landscape.jsx `GiantClams`). Jeremy
+(2026-11-04): the clam "doesn't seem to move ... at least the mantle if the shell is not going to
+open and close". Felt intention: something very old and very still that is plainly alive, its
+mantle slowly swelling over the shell's lips and settling back. Must not snap shut, lean with the
+surge like a coral, or wobble like jelly.
+
+- Swell, not sway: `addSwayAttributes(..., swell: true)` swings each vertex along the surface's
+  own outward normal instead of one direction, so the mantle breathes in and out rather than
+  leaning. The normals of the faces round each point are averaged (area-weighted), so the
+  flat-shaded mesh's split vertices move together and no facet opens. The shading normals stay
+  the faceted ones.
+- Flex by height, as the leather coral: `up` (the clam's own up, leant with the sand) and
+  `flexFrom`, so the mantle deep in the gape stays still and its upper part, spilling over the
+  lips, moves most. Only the material named `part` (the mantle) gets the shader and attributes;
+  the shell is the static kit material (rock shade and caustics).
+- Config `GIANT_CLAM_MANTLE_SWAY` (landscapes.js): `period` 9, `bend` 0.06 (the swell at the top,
+  a share of the clam's height: about 2.5 cm on a 1 m clam, 0.1 WU), `flutter` 0.15, `flexFrom`
+  0.45, `swell: true`, `part: 'mantle'`. Each clam's phase comes from where it lies. No `orbit`.
+- The Atlas sways only the `part` meshes, swelling (EncyclopediaPage.jsx `prepareAtlasSway`).
+- Not built: the shadow flinch (the mantle pulling in and the gape narrowing when a fish passes
+  overhead). It is event-driven, not periodic, and would need its own type doc first.
 
 ## Intake checklist
 

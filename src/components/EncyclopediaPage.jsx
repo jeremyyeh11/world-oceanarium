@@ -7,6 +7,9 @@ import { BIOMES, SPECIES, WORLD_UNIT_METERS } from '../data/species'
 import { APP_VERSION_SHORT_LABEL } from '../version'
 import { speciesForLifeStage, speciesForSex } from '../utils/speciesLookup'
 import { addSwayAttributes, applyCoralSway, useSwayClock } from '../utils/coralSway'
+import { advanceFoilFlap, createFoilFlapState } from '../utils/foilFlap'
+import { hashString } from '../utils/hash'
+import { mulberry32 } from './fishSwim'
 import Environment from './Environment'
 import OceanBubbles from './OceanBubbles'
 import SceneLighting from './SceneLighting'
@@ -165,6 +168,12 @@ const VIEW_POSES_BY_SPECIES = {
   // the fish fills about 85% of the stage's width.
   'echeneis-naucrates': { maxLengthDisplayUnits: 3.7, portraitPhoneDistanceScale: 0.9 },
   'echeneis-neucratoides': { maxLengthDisplayUnits: 1.85 },
+  // Common remora: 0.86 m, framed on the whitefin's and pilot fish's scale (about 2.4 a metre).
+  'remora-remora': { maxLengthDisplayUnits: 2.1 },
+  // White suckerfish: 0.3 m standard length, a touch above the 0.25 m bannerfish's framing.
+  'remora-albescens': { maxLengthDisplayUnits: 1.2 },
+  // Spearfish remora: 0.5 m, between the bannerfish (0.25 m) and the pilot fish (0.7 m).
+  'remora-brachyptera': { maxLengthDisplayUnits: 1.45 },
   // Pilot fish: 0.7 m, framed a touch shorter than the 0.75 m whitefin sharksucker.
   'naucrates-ductor': { maxLengthDisplayUnits: 1.75 },
   // Longfin bannerfish: 0.25 m, the sardinella's size and camera. Its banner trails another 0.6
@@ -242,6 +251,78 @@ const VIEW_POSES_BY_SPECIES = {
     position: [-0.25, -0.1, 0],
     lookAt: [0, -0.1, 0],
   },
+  // Golden trevally: a deep jack like the unicornfish, framed nose to lower tail-lobe tip.
+  'gnathanodon-speciosus': {
+    maxLengthDisplayUnits: 2.6,
+    portraitPhoneDistanceScale: 0.75,
+    position: [0, -0.05, 0],
+    lookAt: [0, -0.05, 0],
+  },
+  // Bluefin trevally: scaled by fork length, so the tail lobes reach a tenth past it; framed a
+  // little shorter so the whole fish fits.
+  'caranx-melampygus': {
+    maxLengthDisplayUnits: 2.4,
+    portraitPhoneDistanceScale: 0.75,
+    position: [0, -0.05, 0],
+    lookAt: [0, -0.05, 0],
+  },
+  // Three brain corals on a low rock (the model's origin is the rock's foot), framed like the
+  // other corals: turned a little and looking 25° down, so the domes' maze of valleys reads.
+  'platygyra-daedalea': {
+    yawOffset: -0.3,
+    pitchDegrees: 25,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.6, 0],
+    lookAt: [0, -0.1, 0],
+  },
+  // Three cauliflower corals on a small rock (the model's origin is the rock's foot), framed like
+  // the brain corals: turned a little and looking 25 degrees down, so the lobes and grooves read.
+  'pocillopora-meandrina': {
+    yawOffset: -0.3,
+    pitchDegrees: 25,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.6, 0],
+    lookAt: [0, -0.1, 0],
+  },
+  // Four leather corals on a low rock (the model's origin is the rock's foot), framed like the
+  // cauliflower corals but looking less far down, so the stalks under the caps read.
+  'sarcophyton-glaucum': {
+    yawOffset: -0.3,
+    pitchDegrees: 15,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.7, 0],
+    lookAt: [0, -0.1, 0],
+  },
+  // One giant clam on a low patch of sand (the model's origin is the sand's middle), three-quarter
+  // from above, so the fluted shell and the mantle spread in its gape both read.
+  'tridacna-gigas': {
+    yawOffset: -0.5,
+    pitchDegrees: 28,
+    maxLengthDisplayUnits: 2.6,
+    cameraDistance: 6.4,
+    portraitPhoneDistanceScale: 1.1,
+    mobileDistanceScale: 0.95,
+    position: [0, -0.6, 0],
+    lookAt: [0, -0.1, 0],
+  },
+  // Turtle: seen from above and ahead like the rays, so the flipper strokes read.
+  'chelonia-mydas': {
+    pitchDegrees: 30,
+    cameraDistance: 6.8,
+    maxLengthDisplayUnits: 2.2,
+    portraitPhoneDistanceScale: 0.95,
+    position: [0, -0.1, 0],
+    lookAt: [0, -0.1, 0],
+  },
 }
 
 const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
@@ -257,6 +338,12 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'echeneis-naucrates': 6.6014,
   // Supplied Whitefin Sharksucker model (scripts/fit-rider-model.mjs).
   'echeneis-neucratoides': 5.4912,
+  // Supplied Common Remora model (scripts/fit-rider-model.mjs).
+  'remora-remora': 0.8604,
+  // Supplied White Suckerfish model (scripts/fit-rider-model.mjs).
+  'remora-albescens': 0.2996,
+  // Supplied Spearfish Remora model (scripts/fit-rider-model.mjs).
+  'remora-brachyptera': 3.5506,
   // Supplied pilot fish model, nose to tail tip along Z.
   'naucrates-ductor': 7.3672,
   // Supplied bannerfish model, nose to tail tip along Z (banner excluded).
@@ -281,6 +368,26 @@ const MODEL_SOURCE_LENGTH_UNITS_BY_SPECIES = {
   'acropora-muricata': 3.157,
   // The three fans on their rock, widest across (scripts/build-sea-fan-atlas.py prints the bounds).
   'annella-mollis': 1.711,
+  // Supplied golden trevally model, mouth to lower caudal-lobe tip along Z.
+  'gnathanodon-speciosus': 1.199504,
+  // Supplied bluefin trevally model, snout to caudal fork notch along Z (the tail lobes extend
+  // past it), the same fork length its scale uses.
+  'caranx-melampygus': 0.773418,
+  // The brain corals on their rock, widest across (scripts/build-brain-coral-atlas.py prints the
+  // bounds: the rock, 2.6 m).
+  'platygyra-daedalea': 2.6,
+  // The cauliflower corals on their rock, widest across (scripts/build-cauliflower-coral-atlas.py
+  // prints the bounds: the rock, 1.1 m).
+  'pocillopora-meandrina': 1.1,
+  // The leather corals on their rock, widest across (scripts/build-leather-coral-atlas.py prints the
+  // bounds: the rock, 1.5 m).
+  'sarcophyton-glaucum': 1.5,
+  // The clam framed as on its first, hard 1.7 m patch of sand: its soft disc now fades out well
+  // inside its 3.2 m (scripts/build-giant-clam-atlas.py prints the bounds).
+  'tridacna-gigas': 1.72,
+  // Jeremy's female, nose to the hind flipper tips along Z; the shell is 1 long
+  // (scripts/paint-foil-flap-masks.py prints both).
+  'chelonia-mydas': 1.5842,
 }
 
 const ATLAS_HERO_ANIMATION_BY_SPECIES = {
@@ -606,12 +713,15 @@ function prepareAtlasModelScene(sourceScene, alphaTest = null, alphaBlend = fals
 // A soft coral specimen swaying as it does in the tank (`model.sway`, utils/coralSway.js): each
 // coral mesh's origin is its holdfast and its lattice faces +Z, so it swings along Z, its rim the
 // most. Meshes under a node named `rock…` (the specimen's base rock) stay still. Each coral mesh
-// gets its own copy of its geometry with the sway baked in.
+// gets its own copy of its geometry with the sway baked in. With `sway.part`, only meshes of the
+// material of that name sway (a giant clam's mantle, swelling along its surface with `sway.swell`;
+// its shell and sand stay still).
 function prepareAtlasSway(scene, sway) {
   if (!sway) return
   const meshes = []
   const onRock = object => object && (object.name.startsWith('rock') || onRock(object.parent))
-  scene.traverse(object => { if (object.isMesh && !onRock(object)) meshes.push(object) })
+  const ofPart = object => !sway.part || [object.material].flat().some(material => material?.name === sway.part)
+  scene.traverse(object => { if (object.isMesh && !onRock(object) && ofPart(object)) meshes.push(object) })
   let height = 0
   let reach = 0
   for (const mesh of meshes) {
@@ -623,8 +733,23 @@ function prepareAtlasSway(scene, sway) {
   }
   const origin = new THREE.Vector3()
   const direction = new THREE.Vector3(0, 0, 1)
+  // Flex by height (`sway.flexFrom`, a toadstool's cap swaying on a still stalk): each colony by its
+  // own height, a colony being the node its meshes hang from (one per material).
+  const colonyHeight = new Map()
+  if (sway.flexFrom != null) {
+    for (const mesh of meshes) {
+      const position = mesh.geometry.attributes.position
+      let top = colonyHeight.get(mesh.parent) ?? 0
+      for (let i = 0; i < position.count; i++) top = Math.max(top, position.getY(i))
+      colonyHeight.set(mesh.parent, top)
+    }
+  }
+  const up = new THREE.Vector3(0, 1, 0)
   for (const mesh of meshes) {
-    mesh.geometry = addSwayAttributes(mesh.geometry.clone(), { origin, direction, amplitude: sway.bend * height, reach, phase: 0 })
+    const own = colonyHeight.get(mesh.parent)
+    mesh.geometry = addSwayAttributes(mesh.geometry.clone(), own
+      ? { origin, direction, amplitude: sway.bend * own, reach: own, phase: 0, up, flexFrom: sway.flexFrom, swell: sway.swell === true }
+      : { origin, direction, amplitude: sway.bend * height, reach, phase: 0 })
     const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
     materials.forEach(material => applyCoralSway(material, sway))
   }
@@ -652,6 +777,9 @@ function ModelAsset({ species, adultSpecies = species, pose, companion = null })
     () => prepareProceduralFinFollow(scene, proceduralAnimation),
     [scene, proceduralAnimation],
   )
+  // foil-flap strokes in groups and glides between, as in the tank, so the specimen runs the
+  // same integrated clock rather than elapsed time.
+  const foilFlapRef = useRef(null)
   const mixerRef = useRef(null)
   const actionsRef = useRef({ idle: null, burst: null })
   const burstDueAtRef = useRef(0)
@@ -728,6 +856,16 @@ function ModelAsset({ species, adultSpecies = species, pose, companion = null })
     if (proceduralAnimation) {
       // Atlas is an in-place gallery pose, but its static specimens should still
       // breathe through the same species-shaped procedural material as the tank.
+      if (proceduralAnimation.type === 'foil-flap-vertex') {
+        if (!foilFlapRef.current) {
+          const rand = mulberry32(hashString(`${species?.id}:atlas-foil-flap`))
+          foilFlapRef.current = { rand, state: createFoilFlapState(proceduralAnimation, rand) }
+        }
+        const { rand, state } = foilFlapRef.current
+        advanceFoilFlap(state, proceduralAnimation, delta * animationSpeed, { speed01: 0.42, rand })
+        updateProceduralVertexMaterials(proceduralMaterials, { phase: state.clock, speed01: 0.42, glide: state.glide })
+        return
+      }
       const phase = (_.clock.getElapsedTime() * (proceduralAnimation.waveSpeed ?? 1) + animationOffset) * animationSpeed
       updateProceduralVertexMaterials(proceduralMaterials, {
         phase,

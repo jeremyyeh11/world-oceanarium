@@ -27,6 +27,8 @@ import { debugOverlayVisibility } from '../utils/debugMenu'
 import { getFishRuntime } from './fishRuntimeStore'
 import { createFishMaterialPass } from './fishMaterialPass'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
+import { advanceFoilFlap, createFoilFlapState } from '../utils/foilFlap'
+import { advanceTurtleSurfacing, createTurtleSurfacingState, turtleSurfaceCeiling } from './turtleSurfacing'
 import { liftAboveSeabed, nudgeOutOfRocks, pinchedLastPush, pushOutOfRocks, rockBendSide, seabedHeightAt, startedInsideLastPush, steerAroundRocks } from './rockObstacles'
 import {
   REEF_CLAMP_RECOVERY_SECONDS,
@@ -63,6 +65,7 @@ import {
   clampToSurfaceCeiling,
   clampToSwimBounds,
   clampToSwimBoundsWithContacts,
+  lowerSwimFloor,
   BODY_CLEARANCE_MIN_LENGTH,
   computeBoidSteering,
   creatureBodyLength,
@@ -192,6 +195,7 @@ const SPINE_FOLD_RATE = 2.5
 // slows to `speedScale` of its pace and opens its mouth (its own shape key, a glTF morph target)
 // for `duration` seconds, easing open and shut over about `easeSeconds`.
 const FEEDING_DEFAULTS = { interval: [60, 180], duration: [10, 20], easeSeconds: 1.5, speedScale: 0.6 }
+const TURTLE_SURFACING_BEHAVIOR = Object.freeze({ type: 'surface' })
 const CAUDAL_WHIP_EXTRA_BURST = 1.8
 const CAUDAL_WHIP_FREQUENCY_BOOST = 1.0
 const DEFAULT_MOVESET = {
@@ -468,6 +472,14 @@ function limitClampCorrection(position, unclamped, from, delta, returnSpeed = CL
   position.copy(unclamped).addScaledVector(clampCorrection, THREE.MathUtils.clamp(t, 0, 1))
 }
 
+// The swim volume for this frame: on a trip to a brain coral the floor drops to the swim
+// profile's `moundBoundsYMin`, since most domes sit below the usual floor (species.js
+// REEF_BOUNDS); every other trip keeps the usual floor.
+function reefVisitBounds(bounds, swim, behavior, reef) {
+  if (swim.moundBoundsYMin === undefined || behavior?.type !== 'reef' || reef.stage === 'idle' || reef.siteKind !== 'mound') return bounds
+  return lowerSwimFloor(bounds, swim.moundBoundsYMin)
+}
+
 // Whether a point lies inside a swim volume (its x range narrows toward the camera unless the
 // volume is a box) and clear of the sand for a body of `bodyLength`.
 function pointInSwimBounds(point, bounds, bodyLength = 0) {
@@ -628,6 +640,47 @@ function discWaveSpan(geometry) {
   return span
 }
 
+const foilFlapRigCache = new WeakMap()
+
+// foil-flap-vertex's pivots, read once per model from its paint (right side, x > 0; the shader
+// mirrors the left): the shoulder is the middle of the fore-flipper's root ring, where its twist
+// weight (G) has barely started, and the span axis runs from there to the middle of its tip,
+// where G is nearly 1. The hip is the middle of the hind flipper's root ring (B). Config
+// `foreRoot`, `foreSpanAxis` and `hindRoot` override.
+function foilFlapRig(geometry, config) {
+  const cached = foilFlapRigCache.get(geometry)
+  if (cached) return cached
+  const color = geometry.getAttribute('color_1')
+  const position = geometry.getAttribute('position')
+  const sums = { root: [new THREE.Vector3(), 0], tip: [new THREE.Vector3(), 0], hip: [new THREE.Vector3(), 0] }
+  const point = new THREE.Vector3()
+  if (color && position) {
+    for (let index = 0; index < position.count; index += 1) {
+      point.fromBufferAttribute(position, index)
+      if (point.x <= 0) continue
+      const g = color.getY(index)
+      const b = color.getZ(index)
+      const add = key => { sums[key][0].add(point); sums[key][1] += 1 }
+      if (g > 0 && g < 0.1) add('root')
+      if (g > 0.9) add('tip')
+      if (b > 0 && b < 0.15) add('hip')
+    }
+  }
+  const mean = ([sum, count]) => (count > 0 ? sum.clone().divideScalar(count) : new THREE.Vector3())
+  const foreRoot = config?.foreRoot ? new THREE.Vector3(...config.foreRoot) : mean(sums.root)
+  const foreSpan = config?.foreSpanAxis
+    ? new THREE.Vector3(...config.foreSpanAxis)
+    : mean(sums.tip).sub(foreRoot)
+  if (foreSpan.lengthSq() < 1e-8) foreSpan.set(1, 0, 0)
+  const rig = {
+    foreRoot,
+    foreSpan: foreSpan.normalize(),
+    hindRoot: config?.hindRoot ? new THREE.Vector3(...config.hindRoot) : mean(sums.hip),
+  }
+  foilFlapRigCache.set(geometry, rig)
+  return rig
+}
+
 // Folding spines (`spineFold`): the model's own shape key for the folded spines, a glTF morph
 // target, weighted per fish (1 folded, 0 open as modelled). Every mesh carrying the target, with
 // its index; each starts folded (the Atlas keeps it so).
@@ -752,7 +805,40 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
     tailAmplitude: { value: proceduralVertex.tailAmplitude ?? 0.05 },
     span: { value: discWaveSpan(geometry) },
   } : null
-  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms ?? discWaveUniforms
+  // foil-flap-vertex (docs/procedural/foil-flap.md): a turtle's fore-flippers stroke down and
+  // back together from the shoulders, each blade twisting ahead of the stroke, in groups with
+  // glides between (src/utils/foilFlap.js); the hind flippers trail as rudders. Lengths in the
+  // model's source units (1 = 1 m by the contract).
+  const foilFlapUniforms = proceduralVertex?.type === 'foil-flap-vertex' && proceduralBounds ? {
+    phase: { value: 0 },
+    speed: { value: 0 },
+    turn: { value: 0 },
+    burst: { value: 0 },
+    glide: { value: 0 },
+    strokeRadians: { value: proceduralVertex.strokeRadians ?? 0.7 },
+    strokeAxisSweep: { value: proceduralVertex.strokeAxisSweep ?? 0.35 },
+    downFraction: { value: proceduralVertex.downFraction ?? 0.38 },
+    twistRadians: { value: proceduralVertex.twistRadians ?? 0.5 },
+    twistLead: { value: proceduralVertex.twistLead ?? 0.6 },
+    sweepRadians: { value: proceduralVertex.sweepRadians ?? 0.15 },
+    sweepLead: { value: proceduralVertex.sweepLead ?? 1.2 },
+    glideBack: { value: proceduralVertex.glideBackRadians ?? 0.9 },
+    glideDown: { value: proceduralVertex.glideDownRadians ?? 0.2 },
+    rudderRadians: { value: proceduralVertex.rudderRadians ?? 0.35 },
+    trimRadians: { value: proceduralVertex.trimRadians ?? 0.08 },
+    turnStrength: { value: proceduralVertex.turnStrength ?? 0.3 },
+    burstAmplitude: { value: proceduralVertex.burstAmplitude ?? 0.3 },
+    idleAmplitudeFloor: { value: proceduralVertex.idleAmplitudeFloor ?? 0.6 },
+    ...(() => {
+      const rig = foilFlapRig(geometry, proceduralVertex)
+      return {
+        foreRoot: { value: rig.foreRoot },
+        foreSpan: { value: rig.foreSpan },
+        hindRoot: { value: rig.hindRoot },
+      }
+    })(),
+  } : null
+  const proceduralUniforms = caudalUniforms ?? molaMaskUniforms ?? discWaveUniforms ?? foilFlapUniforms
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uFishLightMaskTime = maskUniforms.uTime
@@ -825,6 +911,30 @@ function applyFishLightMask(material, rim = null, proceduralVertex = null, geome
       shader.uniforms.uDiscHeave = discWaveUniforms.heave
       shader.uniforms.uDiscTailAmplitude = discWaveUniforms.tailAmplitude
       shader.uniforms.uDiscSpan = discWaveUniforms.span
+    }
+    if (foilFlapUniforms) {
+      shader.uniforms.uFoilPhase = foilFlapUniforms.phase
+      shader.uniforms.uFoilSpeed = foilFlapUniforms.speed
+      shader.uniforms.uFoilTurn = foilFlapUniforms.turn
+      shader.uniforms.uFoilBurst = foilFlapUniforms.burst
+      shader.uniforms.uFoilGlide = foilFlapUniforms.glide
+      shader.uniforms.uFoilStroke = foilFlapUniforms.strokeRadians
+      shader.uniforms.uFoilAxisSweep = foilFlapUniforms.strokeAxisSweep
+      shader.uniforms.uFoilDownFraction = foilFlapUniforms.downFraction
+      shader.uniforms.uFoilTwist = foilFlapUniforms.twistRadians
+      shader.uniforms.uFoilTwistLead = foilFlapUniforms.twistLead
+      shader.uniforms.uFoilSweep = foilFlapUniforms.sweepRadians
+      shader.uniforms.uFoilSweepLead = foilFlapUniforms.sweepLead
+      shader.uniforms.uFoilGlideBack = foilFlapUniforms.glideBack
+      shader.uniforms.uFoilGlideDown = foilFlapUniforms.glideDown
+      shader.uniforms.uFoilRudder = foilFlapUniforms.rudderRadians
+      shader.uniforms.uFoilTrim = foilFlapUniforms.trimRadians
+      shader.uniforms.uFoilTurnStrength = foilFlapUniforms.turnStrength
+      shader.uniforms.uFoilBurstAmplitude = foilFlapUniforms.burstAmplitude
+      shader.uniforms.uFoilIdleFloor = foilFlapUniforms.idleAmplitudeFloor
+      shader.uniforms.uFoilForeRoot = foilFlapUniforms.foreRoot
+      shader.uniforms.uFoilForeSpan = foilFlapUniforms.foreSpan
+      shader.uniforms.uFoilHindRoot = foilFlapUniforms.hindRoot
     }
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -1090,7 +1200,8 @@ void proceduralDiscMotion(inout vec3 value) {
   float side = value.x < 0.0 ? -1.0 : 1.0;
   value.x -= side * min(lift * lift / (2.0 * reach), 0.5 * reach);
   value.y += lift;
-  // The body heaves a little against the wings: it rises as they press down.
+  // The body heaves a little against the wings: it rises as they press down. Riders on a
+  // manta heave with it through fishSwim.js discBodyHeave; keep the two in step.
   float rootSlope;
   float rootBeat = discBeat(uDiscPhase - clamp(mask.g, 0.0, 1.0) * uDiscWaveTravel, rootSlope);
   value.y -= uDiscHeave * discStroke() * rootBeat;
@@ -1099,6 +1210,97 @@ void proceduralDiscMotion(inout vec3 value) {
   float tailWeight = tail * tail;
   value.y += tailWeight * uDiscTailAmplitude * mix(uDiscIdleFloor, 1.0, uDiscSpeed) * sin(uDiscPhase - 1.2 - tail * 2.4);
   value.x += tailWeight * uDiscTurn * uDiscTailAmplitude * 2.0;
+}` : ''}${foilFlapUniforms ? `attribute vec4 color_1;
+uniform float uFoilPhase;
+uniform float uFoilSpeed;
+uniform float uFoilTurn;
+uniform float uFoilBurst;
+uniform float uFoilGlide;
+uniform float uFoilStroke;
+uniform float uFoilAxisSweep;
+uniform float uFoilDownFraction;
+uniform float uFoilTwist;
+uniform float uFoilTwistLead;
+uniform float uFoilSweep;
+uniform float uFoilSweepLead;
+uniform float uFoilGlideBack;
+uniform float uFoilGlideDown;
+uniform float uFoilRudder;
+uniform float uFoilTrim;
+uniform float uFoilTurnStrength;
+uniform float uFoilBurstAmplitude;
+uniform float uFoilIdleFloor;
+uniform vec3 uFoilForeRoot;
+uniform vec3 uFoilForeSpan;
+uniform vec3 uFoilHindRoot;
+vec3 foilRotate(vec3 v, vec3 axis, float angle) {
+  float c = cos(angle);
+  float s = sin(angle);
+  return v * c + cross(axis, v) * s + axis * dot(axis, v) * (1.0 - c);
+}
+// About a pivot for a point; a direction (a normal, isPoint 0) only turns.
+vec3 foilTurn(vec3 v, vec3 pivot, vec3 axis, float angle, float isPoint) {
+  vec3 origin = pivot * isPoint;
+  return origin + foilRotate(v - origin, axis, angle);
+}
+// Zero-slope quintic: the flipper bends out of the shoulder with no kink.
+float foilEase(float w) {
+  w = clamp(w, 0.0, 1.0);
+  return w * w * w * (w * (w * 6.0 - 15.0) + 10.0);
+}
+// The stroke: 1 at the top, -1 at the bottom. The downstroke (the power stroke) takes
+// uFoilDownFraction of the beat and the recovery the rest, each eased. velocity is the stroke's
+// speed scaled to -1..1, negative going down.
+float foilBeat(float angle, out float velocity) {
+  float down = clamp(uFoilDownFraction, 0.05, 0.95);
+  float p = fract(angle / 6.2831853);
+  float t = p < down ? p / down : (p - down) / (1.0 - down);
+  float eased = t * t * (3.0 - 2.0 * t);
+  velocity = (p < down ? -4.0 : 4.0) * t * (1.0 - t);
+  return p < down ? 1.0 - 2.0 * eased : -1.0 + 2.0 * eased;
+}
+// One vertex (or its normal) in the rest frame: nose at -Z, +Y up. side comes from the rest
+// position; the left side is mirrored onto the right's pivots and back. R strokes, G twists,
+// B steers; black (the shell, head and neck) never moves.
+vec3 foilFlap(vec3 v, vec3 restPosition, vec4 mask, float isPoint) {
+  float stroke = foilEase(mask.r);
+  float twist = foilEase(mask.g);
+  float hind = foilEase(mask.b);
+  if (stroke + twist + hind <= 0.0) return v;
+  float side = restPosition.x < 0.0 ? -1.0 : 1.0;
+  v.x *= side;
+  float glide = clamp(uFoilGlide, 0.0, 1.0);
+  float amount = mix(uFoilIdleFloor, 1.0, uFoilSpeed) * (1.0 + uFoilBurst * uFoilBurstAmplitude);
+  float velocity;
+  float beat = foilBeat(uFoilPhase, velocity);
+  if (stroke + twist > 0.0) {
+    // A turn strokes the outer flipper harder.
+    float sideAmount = amount * (1.0 + side * uFoilTurn * uFoilTurnStrength);
+    // Twist about the blade's own span, ahead of the stroke: the leading edge pitches down
+    // going down and up coming back, flat in the glide.
+    float leadVelocity;
+    foilBeat(uFoilPhase + uFoilTwistLead, leadVelocity);
+    v = foilTurn(v, uFoilForeRoot, uFoilForeSpan, uFoilTwist * sideAmount * leadVelocity * (1.0 - glide) * twist, isPoint);
+    // Stroke about a fore-aft axis through the shoulder, tilted up at the rear so the tip goes
+    // down and back on the power stroke. The glide holds the flipper a little below level.
+    vec3 strokeAxis = vec3(0.0, sin(uFoilAxisSweep), cos(uFoilAxisSweep));
+    float strokeAngle = mix(uFoilStroke * sideAmount * beat, -uFoilGlideDown, glide);
+    v = foilTurn(v, uFoilForeRoot, strokeAxis, strokeAngle * stroke, isPoint);
+    // Sweep about the vertical: the tip's path opens into a figure-eight; the glide lays the
+    // flipper back along the shell.
+    float sweepAngle = mix(uFoilSweep * sideAmount * sin(uFoilPhase + uFoilSweepLead), -uFoilGlideBack, glide);
+    v = foilTurn(v, uFoilForeRoot, vec3(0.0, 1.0, 0.0), sweepAngle * stroke, isPoint);
+  }
+  if (hind > 0.0) {
+    // Rudders: both hind flippers yaw the same way, so mirrored the angle flips with the side.
+    v = foilTurn(v, uFoilHindRoot, vec3(0.0, 1.0, 0.0), uFoilTurn * uFoilRudder * side * hind, isPoint);
+    // A small trailing trim that follows the stroke late; it never drives.
+    float trimVelocity;
+    float trim = uFoilTrim * amount * foilBeat(uFoilPhase - 1.4, trimVelocity) * (1.0 - glide);
+    v = foilTurn(v, uFoilHindRoot, vec3(1.0, 0.0, 0.0), trim * hind, isPoint);
+  }
+  v.x *= side;
+  return v;
 }` : ''}`
       )
     if (caudalUniforms) {
@@ -1151,6 +1353,19 @@ proceduralDiscNormal(objectNormal);`
         .replace(
           '#include <project_vertex>',
           `proceduralDiscMotion(transformed);
+#include <project_vertex>`
+        )
+    }
+    if (foilFlapUniforms) {
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          '#include <beginnormal_vertex>',
+          `#include <beginnormal_vertex>
+objectNormal = normalize(foilFlap(objectNormal, position, color_1, 0.0));`
+        )
+        .replace(
+          '#include <project_vertex>',
+          `transformed = foilFlap(transformed, position, color_1, 1.0);
 #include <project_vertex>`
         )
     }
@@ -1260,8 +1475,8 @@ gl_FragColor.rgb += uRimColor * rimAmount * uRimIntensity;
     ? 'static'
     : proceduralVertex.type === 'caudal-vertex'
       ? `caudal-vertex:${proceduralSourceAxis}:${proceduralLateralAxis}`
-      : proceduralVertex.type === 'disc-wave-vertex'
-        ? 'disc-wave-vertex'
+      : proceduralVertex.type === 'disc-wave-vertex' || proceduralVertex.type === 'foil-flap-vertex'
+        ? proceduralVertex.type
         : `mola-mask-vertex:${proceduralVertex.maskAttribute ?? 'color_1'}`
   material.customProgramCacheKey = () => `fish-light-mask:${FISH_LIGHT_MASK_ENABLED ? 'on' : 'off'}:${situationalLight ? 'situational' : 'flat'}:${rimKey}:${proceduralKey}:${surfaceUniforms ? 'surface-v1' : 'surface-off'}:${causticsCacheKey(caustics)}`
   material.userData.fishLightMaskUniforms = maskUniforms
@@ -1332,11 +1547,12 @@ export function prepareProceduralVertexMaterials(root, proceduralAnimation) {
 }
 
 // eslint-disable-next-line react-refresh/only-export-components -- shared renderer helper, never a React value
-export function updateProceduralVertexMaterials(materials, { phase = 0, speed01 = 0, turn = 0, burst01 = 0 } = {}) {
+export function updateProceduralVertexMaterials(materials, { phase = 0, speed01 = 0, turn = 0, burst01 = 0, glide = 0 } = {}) {
   materials.forEach(material => {
     const uniforms = material?.userData?.proceduralFishUniforms
     if (!uniforms) return
     uniforms.phase.value = phase
+    if (uniforms.glide) uniforms.glide.value = glide
     uniforms.speed.value = THREE.MathUtils.clamp(speed01, 0, 1)
     uniforms.turn.value = THREE.MathUtils.clamp(turn, -1, 1)
     uniforms.burst.value = THREE.MathUtils.clamp(burst01, 0, 1)
@@ -1386,6 +1602,8 @@ function animationVariationForCreature(creature) {
     surfaceSeed: hashString(`${creature.id ?? creature.species}:surface-variation`),
     // Separate stream: a procedural beat's individual rate, without consuming old draws.
     beatRate01: mulberry32(hashString(`${creature.id ?? creature.species}:beat-rate`))(),
+    // foil-flap-vertex's stroke groups and glides draw from their own stream.
+    foilFlapSeed: hashString(`${creature.id ?? creature.species}:foil-flap`),
     speeds: {
       idle: baseSpeed,
       slow_cruise: baseSpeed,
@@ -1654,7 +1872,7 @@ function proceduralAxisMax(bounds, axisIndex) {
 }
 
 function shouldProcedurallyDeformMesh(mesh, proceduralAnimation) {
-  if (!['caudal-vertex', 'mola-mask-vertex', 'disc-wave-vertex'].includes(proceduralAnimation?.type)) return false
+  if (!['caudal-vertex', 'mola-mask-vertex', 'disc-wave-vertex', 'foil-flap-vertex'].includes(proceduralAnimation?.type)) return false
   const name = mesh.name?.toLowerCase() ?? ''
   if (isProceduralBodyFollower(mesh, proceduralAnimation)) return true
   if (proceduralAnimation.bodyMeshNames?.some(bodyName => name === bodyName.toLowerCase())) return true
@@ -1918,6 +2136,7 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
   const mouthMorphs = useMemo(() => collectMouthMorphs(object, model?.proceduralAnimation), [object, model])
   const curveDeformTurnRef = useRef(0)
   const proceduralWaveClockRef = useRef(0)
+  const foilFlapRef = useRef(null)
   const curveDeformQuatRef = useRef(new THREE.Quaternion())
   const curveDeformScratchQuatRef = useRef(new THREE.Quaternion())
   const curveDeformStateRef = useRef({
@@ -2009,6 +2228,30 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         + burst01 * (curveConfig.burstFrequencyBoost ?? 0.35)
         + Math.max(0, proceduralInput.accel01 ?? 0) * 0.1
       )
+    } else if (curveConfig?.type === 'foil-flap-vertex') {
+      // Stroke groups with glides between (src/utils/foilFlap.js): the clock holds through a
+      // glide, so the next group starts where the last left off.
+      const response = Number.isFinite(curveConfig.response) ? Math.max(0.01, curveConfig.response) : 2.5
+      curveDeformTurnRef.current = THREE.MathUtils.damp(
+        curveDeformTurnRef.current,
+        THREE.MathUtils.clamp(proceduralInput.turn ?? 0, -1, 1),
+        response,
+        rawDelta * simulationSpeed,
+      )
+      if (!proceduralInput.foilFlapState && !foilFlapRef.current) {
+        const rand = mulberry32(animationVariation?.foilFlapSeed ?? 1)
+        foilFlapRef.current = { rand, state: createFoilFlapState(curveConfig, rand) }
+      }
+      const beatRate = curveConfig.beatRateRange
+        ? THREE.MathUtils.lerp(curveConfig.beatRateRange[0], curveConfig.beatRateRange[1], animationVariation?.beatRate01 ?? 0.5)
+        : 1
+      if (!proceduralInput.foilFlapState) advanceFoilFlap(foilFlapRef.current.state, curveConfig, rawDelta * simulationSpeed, {
+        speed01: THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1),
+        burst01: THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1),
+        beatRate,
+        rand: foilFlapRef.current.rand,
+      })
+      proceduralWaveClockRef.current = (proceduralInput.foilFlapState ?? foilFlapRef.current.state).clock
     }
     if (curveConfig && curveDeformBones.length > 0) {
       const curveState = curveDeformStateRef.current
@@ -2108,7 +2351,11 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
       }
       const proceduralUniforms = material?.userData?.proceduralFishUniforms
       if (proceduralUniforms) {
-        proceduralUniforms.phase.value = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
+        // foil-flap's clock already starts per creature, and an offset would move its glide off the
+        // bottom of the stroke.
+        proceduralUniforms.phase.value = proceduralWaveClockRef.current
+          + (proceduralUniforms.glide ? 0 : (proceduralInput.phase ?? 0))
+        if (proceduralUniforms.glide) proceduralUniforms.glide.value = (proceduralInput.foilFlapState ?? foilFlapRef.current?.state)?.glide ?? 0
         proceduralUniforms.speed.value = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
         // The startle whip (whip01) is 0 outside a startle, leaving these as they were.
         const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
@@ -2140,6 +2387,14 @@ function FishModel({ model, shadowCasterId = null, animation = 'idle', animation
         out.turn = waveTurn
         out.burst = waveBurst
       }
+    } else if (curveConfig?.type === 'disc-wave-vertex' && waveOutRef?.current) {
+      // The beat the shader just received: a ride host's riders heave with the body under them.
+      const whip01 = THREE.MathUtils.clamp(proceduralInput.whip01 ?? 0, 0, 1)
+      const out = waveOutRef.current
+      out.phase = proceduralWaveClockRef.current + (proceduralInput.phase ?? 0)
+      out.speed01 = THREE.MathUtils.clamp(proceduralInput.speed01 ?? 0, 0, 1)
+      out.turn = curveDeformTurnRef.current * (1 + whip01 * CAUDAL_WHIP_BEND_GAIN)
+      out.burst = THREE.MathUtils.clamp(proceduralInput.burst01 ?? 0, 0, 1) + whip01 * CAUDAL_WHIP_EXTRA_BURST
     }
   })
 
@@ -2188,6 +2443,33 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   const schoolOffset = useMemo(() => schoolFormationOffset(school, creature), [school, creature])
   const isSchooling = Boolean(schoolOffset)
   const size = creature.size ?? 1
+  // The tank owns the foil clock so thrust and visible pose read the same frame. Atlas
+  // specimens have no Fish parent and keep FishModel's independent presentation clock.
+  const foilFlap = useMemo(() => {
+    if (model?.proceduralAnimation?.type !== 'foil-flap-vertex') return null
+    if (!runtime.foilFlap) {
+      const rand = mulberry32(animationVariation.foilFlapSeed)
+      runtime.foilFlap = {
+        state: createFoilFlapState(model.proceduralAnimation, rand),
+        input: { rand, speed01: 0, burst01: 0, beatRate: 1, resting: false },
+      }
+    }
+    return runtime.foilFlap
+  }, [runtime, model, animationVariation.foilFlapSeed])
+  const surfacing = useMemo(() => {
+    if (!swim.surfacing) return null
+    if (!runtime.surfacing) runtime.surfacing = {
+      state: createTurtleSurfacingState(),
+      rand: mulberry32(hashString(`${creature.id}:surfacing`)),
+    }
+    return runtime.surfacing
+  }, [runtime, swim.surfacing, creature.id])
+  const surfaceSteeringBounds = useMemo(() => {
+    if (!surfacing) return null
+    // Leave room for the ascent target above the hard ceiling: ordinary ceiling
+    // avoidance would otherwise turn her down before her head reached the surface.
+    return { ...swimBounds(creature.depthZone, swim, size), yMax: SURFACE_PLANE_Y + swim.bodyLengthWU * 3 }
+  }, [surfacing, creature.depthZone, swim, size])
   const organicMotion = useMemo(() => {
     const rand = mulberry32(hashString(`${school?.id ?? 'solo'}:${creature.id ?? creature.species}:organic-motion`))
     return {
@@ -2360,7 +2642,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   })
   const animationRef = useRef(resolveMoveAnimation(model, 'cruise'))
   const animationSpeedScaleRef = useRef(1)
-  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, whip01: 0, phase: 0 })
+  const curveDeformInputRef = useRef({ turn: 0, speed01: 0, accel01: 0, speedEase01: 1, burst01: 0, whip01: 0, phase: 0, foilFlapState: foilFlap?.state })
   // The caudal wave as rendered this frame (FishModel writes it); a ride host publishes it so its
   // clamped riders move with the body under them.
   const waveOutRef = useRef({ phase: 0, speed01: 0, turn: 0, burst: 0 })
@@ -2377,7 +2659,10 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
   )
   const motion = useMemo(() => {
     const rand = mulberry32(hashString(`${isSchooling ? school.id : (creature.id ?? creature.species)}-motion`))
-    const velocityScale = swim.bodyLengthWU * swim.visualTimeScale * swim.speedMultiplier
+    // Speeds are body lengths of the species' largest fish, so a small adult swims as fast as a big
+    // one; with `speedFollowsSize` they are this fish's own body lengths instead.
+    const speedLengthWU = swim.speedFollowsSize ? creatureBodyLength(creature, swim) : swim.bodyLengthWU
+    const velocityScale = speedLengthWU * swim.visualTimeScale * swim.speedMultiplier
     return {
       idleSpeed: randomRangeFromPair(rand, swim.idleBLPerSec, DEFAULT_SWIM.idleBLPerSec) * velocityScale,
       idleDrift: randomRangeFromPair(rand, swim.idleDriftBLPerSec, DEFAULT_SWIM.idleDriftBLPerSec) * velocityScale,
@@ -2570,6 +2855,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
     if (simulationTime.current === null) simulationTime.current = rawNow
     simulationTime.current += delta
     const now = simulationTime.current
+
+    if (foilFlap) {
+      const config = model.proceduralAnimation
+      const input = foilFlap.input
+      input.speed01 = THREE.MathUtils.clamp(motion.idleSpeed / Math.max(0.001, motion.burstSpeed), 0, 1)
+      input.burst01 = curveDeformInputRef.current.burst01
+      input.beatRate = config.beatRateRange
+        ? THREE.MathUtils.lerp(config.beatRateRange[0], config.beatRateRange[1], animationVariation.beatRate01)
+        : 1
+      input.resting = surfacing?.state.stage === 'breathe'
+      advanceFoilFlap(foilFlap.state, config, delta, input)
+    }
 
     if (isSchooling) {
       const noise = organicNoise.current
@@ -2799,6 +3096,18 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       currentForward.normalize()
 
       const bodyLength = creatureBodyLength(creature, swim)
+      if (surfacing) {
+        const active = advanceTurtleSurfacing(surfacing.state, swim.surfacing, now, position, currentForward,
+          bodyLength, swimBounds(creature.depthZone, swim, size), surfacing.rand)
+        if (active) {
+          agentBehavior.current = TURTLE_SURFACING_BEHAVIOR
+          agentTarget.current.copy(surfacing.state.target)
+          agentHasTarget.current = true
+        } else if (agentBehavior.current?.type === 'surface') {
+          agentBehavior.current = null
+          agentHasTarget.current = false
+        }
+      }
       if (steersByRide && ride.approaching) {
         // Closing on a host (or keeping station by a mate): the moving intercept point replaces the roaming target, and the
         // behavior slot stays occupied so no roaming target is picked meanwhile.
@@ -2812,7 +3121,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         ? Math.min(bodyLength * MOLA_SUN_BASK_REACHED_BODY_LENGTHS, MOLA_SUN_BASK_REACHED_MAX)
         : soloAgentReachedDistance(creature, bodyLength)
       const targetDistance = agentHasTarget.current ? position.distanceTo(agentTarget.current) : Infinity
-      if (agentBehavior.current && agentBehavior.current.type !== 'ride' && agentBehavior.current.type !== 'reef' && targetDistance <= reachedDistance) {
+      if (agentBehavior.current && agentBehavior.current.type !== 'ride' && agentBehavior.current.type !== 'reef' && agentBehavior.current.type !== 'surface' && targetDistance <= reachedDistance) {
         if (agentBehavior.current.type === 'sun-bask' && agentBehavior.current.stage === 'approach') {
           const plannedDistance = Math.max(0.001, agentBehavior.current.approachDistance ?? 0)
           const distanceProgress = plannedDistance > 0.001
@@ -2928,11 +3237,15 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         // To the reef: by its mate if it has one, else round its own home.
         const leader = pairFollow ? getFishEntry(pairFollow.leaderId) : null
         const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+        const moundBounds = swim.moundBoundsYMin === undefined ? null : lowerSwimFloor(bounds, swim.moundBoundsYMin)
         const cruiseSpeed = motion.idleSpeed * organicMotion.speedScale
         const result = startReefBehavior(reefRef.current, reefConfig, {
           bodyLength,
           region: bounds,
           contains: point => pointInSwimBounds(point, bounds, bodyLength),
+          // A brain coral's site may lie below the floor (reefVisitBounds).
+          moundRegion: moundBounds,
+          moundContains: moundBounds && (point => pointInSwimBounds(point, moundBounds, bodyLength)),
           position,
           rand: agentRand.current,
           now,
@@ -3107,7 +3420,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       if (tangent.lengthSq() < 0.0001) tangent.set(0, 0, -1)
       tangent.normalize()
 
-      const bounds = swimBounds(creature.depthZone, swim, creature.size ?? 1)
+      const bounds = reefVisitBounds(swimBounds(creature.depthZone, swim, creature.size ?? 1), swim, agentBehavior.current, reefRef.current)
       const schoolSoftWall = Math.max(SCHOOL_SOFT_WALL_MIN, creatureBodyLength(creature, swim) * (swim.schoolSoftWallBodyLengths ?? SCHOOL_SOFT_WALL_BODY_LENGTHS))
       const sunBaskHolding = agentBehavior.current?.type === 'sun-bask' && agentBehavior.current.stage === 'hold'
       if (sunBaskHolding) {
@@ -3355,11 +3668,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           agentMoveDirection.normalize()
           // Boundary shaping via a projected lookahead point.
           agentCandidateTarget.copy(fish.position).addScaledVector(agentMoveDirection, bodyLength * 6)
-          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentCandidateTarget, tangent, creature, swim)
+          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentCandidateTarget, tangent, creature, swim, bounds)
         } else if (agentHasTarget.current) {
           // Solo agent: steer toward the personal roaming/authored target (boundary-shaped for
           // non-mola species).
-          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim)
+          shapeSoloAgentSteeringDesired(agentMoveDirection, fish.position, agentTarget.current, tangent, creature, swim,
+            agentBehavior.current?.type === 'surface' ? surfaceSteeringBounds : bounds)
         } else {
           // Between targets: hold the current heading and let boids/clamps shape it.
           agentMoveDirection.copy(tangent)
@@ -3488,6 +3802,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           const remaining = fish.position.distanceTo(agentTarget.current) / Math.max(0.001, bodyLength)
           authoredSpeedScale = THREE.MathUtils.lerp(REEF_ARRIVAL_SPEED_SCALE, 1, THREE.MathUtils.smoothstep(remaining, 0.5, REEF_ARRIVAL_BODY_LENGTHS))
         }
+        if (foilFlap) authoredSpeedScale *= foilFlap.state.speedScale
+        if (surfacing?.state.stage === 'breathe') authoredSpeedScale *= swim.surfacing.speedScale
 
         // Turn no faster than a body-length arc allows at the current speed; tighten near walls.
         // Cloud members vary pace smoothly above; a permanent personal speed bias
@@ -3575,7 +3891,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
           if (isSoloAgent) {
             // Keep the body below the water plane and flatten any upward heading so it glides
             // along the ceiling instead of nosing through the surface.
-            clampToSurfaceCeiling(fish.position, agentMoveDirection, SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
+            clampToSurfaceCeiling(fish.position, agentMoveDirection, surfacing
+              ? turtleSurfaceCeiling(swim.surfacing, bodyLength)
+              : SURFACE_PLANE_Y - SOLO_AGENT_SURFACE_CLEARANCE)
           }
         }
         // A remora closing on its host never passes through it (see keepRiderClearOfHost).
@@ -3680,7 +3998,9 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
         ? `pair → ${pairFollow?.leaderId}${ride.hostId != null ? ` (follow → ${ride.hostId})` : ''}`
         : hitchhiker && ride.stage !== 'free'
         ? `${hitchhiker.attaches ? `ride ${ride.stage}` : 'follow'}${ride.hostId != null ? ` → ${ride.hostId}${ride.anchorIndex >= 0 ? ` #${ride.anchorIndex}` : ''}` : ''}`
-        : (behavior?.type === 'sun-bask'
+        : (behavior?.type === 'surface'
+          ? `surface ${surfacing.state.stage}`
+          : behavior?.type === 'sun-bask'
           ? `sun-bask ${behavior.stage}`
           : behavior?.type === 'reef'
             ? `reef ${reefRef.current.mode} ${reefRef.current.stage}${reefRef.current.siteKind !== 'rock' ? ` ${reefRef.current.siteKind}${reefRef.current.siteAim === 'crown' ? ' crown' : ''}` : ''}${reefRef.current.stage === 'peck' ? ` ${reefRef.current.peckPhase} ×${reefRef.current.pecksLeft}` : ''}`
@@ -3752,7 +4072,7 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       pitchSpeedReference * PITCH_FADE_SPEED_FRACTION_LO,
       pitchSpeedReference * PITCH_FADE_SPEED_FRACTION_HI,
     )
-    const targetVisualPitch = pitchSpeedWeight * ((frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
+    const targetVisualPitch = surfacing?.state.stage === 'breathe' ? swim.surfacing.breathePitchRadians : pitchSpeedWeight * ((frameHorizontalMove > 1e-4 || Math.abs(frameMove.y) > 1e-4)
       ? THREE.MathUtils.clamp(Math.atan2(frameMove.y, Math.max(frameHorizontalMove, 1e-4)), -pitchLimit, pitchLimit)
       : 0)
     if (!hasVisualForward.current) {
@@ -4139,9 +4459,12 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       // A startle cuts through any turn animation or cooldown in progress: escaping comes first. So
       // does the flinch as a school's alarm wave reaches this fish, as an ordinary burst.
       const reflex = startled || alarmFlinch
+      // A quiet-tailed follower keeps to its cruise beat while escorting: the escort sets its speed,
+      // so an idle burst or snap turn would whip the tail without the dash to go with it.
+      const quietEscort = Boolean(hitchhiker?.escort.quietTail) && ride.stage === 'escort'
       if (riding) {
         playAnimation(resolveMoveAnimation(model, ride.stage === 'dock' ? 'cruise' : 'drift'))
-      } else if (reflex || (previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
+      } else if (reflex || (!quietEscort && previousTangent.current.lengthSq() > 0 && now > animationCooldown.current && now > animationHoldUntil.current)) {
         let triggeredAction = false
         if (swim.turnSpeedupEnabled !== false && !reflex && turn > motion.turnTriggerThreshold) {
           const turnDuration = motion.turnActionDuration

@@ -7,6 +7,26 @@ globalThis.createImageBitmap = async () => ({ close() {} })
 
 const targets = [
   {
+    name: 'Bluefin Trevally static parts',
+    path: 'public/models/fish/caranx-melampygus/caranx-melampygus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['caranx_melampygus'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.858,
+    minVertices: 1800,
+  },
+  {
+    name: 'Golden Trevally static parts',
+    path: 'public/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb',
+    staticMesh: true,
+    bodyMeshNames: ['gnathanodon_speciosus'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 1.199,
+    minVertices: 1200,
+  },
+  {
     name: 'Yellowfin Tuna joined body and four paired fins',
     path: 'public/models/fish/thunnus-albacares/thunnus-albacares.glb',
     staticMesh: true,
@@ -97,6 +117,18 @@ const targets = [
     minVertices: 1300,
   },
   {
+    // Jeremy's female, painted by scripts/paint-foil-flap-masks.py. One part per photo: shell and
+    // head (_1, 404 vertices), belly (_2, 224), flippers and neck (_3, 2004). The floors are per
+    // part, so only the flipper part, which carries every mask, is checked; the app deforms all
+    // three (species.js bodyMeshNames).
+    name: 'East Pacific Green Turtle foil-flap',
+    path: 'public/models/fish/chelonia-mydas/chelonia-mydas.glb',
+    staticMesh: true,
+    bodyMeshNames: ['chelonia_mydas_3'],
+    requiredBodyAttributes: ['color_1'],
+    minVertices: 2000,
+  },
+  {
     name: 'Whale Shark static parts',
     path: 'public/models/fish/rhincodon-typus/rhincodon-typus.glb',
     staticMesh: true,
@@ -132,6 +164,39 @@ const targets = [
     requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
     sourceAxis: 'z',
     minBodyLength: 5,
+    minVertices: 1000,
+  },
+  {
+    name: 'Common Remora static parts',
+    path: 'public/models/fish/remora-remora/remora-remora.glb',
+    staticMesh: true,
+    bodyMeshNames: ['remora_remora_1'],
+    requiredFollowMeshes: ['remora_remora_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.8,
+    minVertices: 1000,
+  },
+  {
+    name: 'White Suckerfish static parts',
+    path: 'public/models/fish/remora-albescens/remora-albescens.glb',
+    staticMesh: true,
+    bodyMeshNames: ['white_remora_1'],
+    requiredFollowMeshes: ['white_remora_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 0.25,
+    minVertices: 1000,
+  },
+  {
+    name: 'Spearfish Remora static parts',
+    path: 'public/models/fish/remora-brachyptera/remora-brachyptera.glb',
+    staticMesh: true,
+    bodyMeshNames: ['remora_brachyptera_1'],
+    requiredFollowMeshes: ['remora_brachyptera_2'],
+    requiredFinMeshes: ['pectorall', 'pectoralr', 'pelvicl', 'pelvicr'],
+    sourceAxis: 'z',
+    minBodyLength: 3,
     minVertices: 1000,
   },
   {

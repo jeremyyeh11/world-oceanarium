@@ -8,6 +8,479 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.50.0 — East Pacific Green Turtle and seagrass
+
+Status: clean `v0.50.0` (2026-11-05), accepted from `v0.50.0-dev_5`,
+branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181).
+Seagrass [PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199) merged into that branch first.
+Jeremy: "merge both to main". No production data writes: turtle stocking remains deferred.
+
+### Environment
+
+- Patchy ribbon seagrass on The Shallows' sand, following Jeremy's reference: eight
+  soft-edged beds with open channels, olive/yellow-green leaves, and clearance around
+  the boulders. About 19,500 opaque, double-sided segmented planes in 37 culled instanced
+  chunks. A generated 64 × 64 noise texture flows along the current to displace the
+  tips; roots remain buried. One shared sway clock, no per-leaf frame work, no external
+  texture or database writes. Separate preview branch requested by Jeremy.
+
+### Species and Atlas
+
+- East Pacific Green Turtle (`chelonia-mydas`): IUCN Vulnerable (East Pacific
+  subpopulation), Colola nesting-beach sizes, clutches and mating groups, maturity ages and
+  the oldest aged turtle (credited), and an escort-only `rideHost` (`turtle`) measured from
+  the female's rigid mesh. Added to The Shallows' roster. Two adult females in
+  `creatures_dev` (IDs 1187–1188, 77/81 cm shell length, 2026-11-05); male deferred by
+  Jeremy. Dev rows 836 → 838; production remains 841 with no turtles. Both tables
+  snapshotted before/after; every pre-existing row verified unchanged.
+- Jeremy's female turtle model in the Atlas, flippers joined and painted by
+  `scripts/paint-foil-flap-masks.py`; her three photo textures credited in Sources.
+- Runtime-rendered, isolated three-quarter head tile captured from the dev reserve
+  before clean promotion. Desktop and phone-size headless smoke checks pass;
+  physical-phone frame time and detailed follow/surface review remain follow-ups.
+
+### Behaviour and motion
+
+- New procedural motion type `foil-flap-vertex` for the turtle's flippers, approved by Jeremy:
+  both fore-flippers stroke down and back from the shoulders, each blade twisting ahead of the
+  stroke, in groups of a few beats with glides between; the hind flippers steer. The tank and
+  the Atlas use the same stroke-and-glide machine. In the reserve, one shared clock drives
+  both pose and forward impulses: 0.45 added at mid-downstroke, decaying at 1.1/s, over a
+  0.78 cruising-speed floor. Stroke/glide and breathing state survive reserve switches.
+- Low roaming targets at y −24 to −20 over the sand; every 120–240 simulation seconds after
+  returning low, rise to breathe for 5–8 seconds, then descend. All stages use the shared
+  steering and movement pipeline. A failed ascent gives up after 120 seconds.
+
+## v0.49.1 — Toadstool Leather Coral
+
+Status: clean `v0.49.1` (2026-11-04), accepted from `v0.49.1-dev_1`, branch
+`species/toadstool-leather-coral-name`, [PR #198](https://github.com/jeremyyeh11/world-oceanarium/pull/198).
+Jeremy: "Yes, merge". No production data.
+
+### Species and Atlas
+
+- `sarcophyton-glaucum` renamed from Leather Coral to Toadstool Leather Coral (Jeremy,
+  2026-11-04): "leather coral" names the whole genus, and the toadstool leather coral is
+  *S. glaucum*'s own common name. Leather coral and toadstool coral move to `alternateNames`;
+  the source subjects in `sources.js`, `docs/reef-behavior.md` and the fish queue follow. The id,
+  the `toadstool` coral form and the code names (`leatherCorals`, `LEATHER_CORAL_KIT`) stay.
+
+## v0.49.0 — Giant Clam
+
+Status: clean `v0.49.0` (2026-11-04), accepted from `v0.49.0-dev_7`, branch
+`species/tridacna-gigas`, [PR #180](https://github.com/jeremyyeh11/world-oceanarium/pull/180).
+Jeremy: "ok lets merge". No production data: the clams are a landscape species. `dev_1` prepared the species; `dev_2` Jeremy's model, placement and Atlas;
+`dev_3` a clam in the resting view, by any rock; `dev_4` the Atlas clam on soft sand; `dev_5` the mantle breathes; `dev_6` and `dev_7` the Atlas tile re-shot.
+
+### Species and Atlas
+
+- Giant Clam (`tridacna-gigas`) in The Reefs: IUCN Critically Endangered (Neo & Li 2024), SeaLifeBase
+  sizes, 76-year oldest aged clam, maturity from culture; weight stays Unknown (no published
+  length–weight relation). Jeremy's model (2026-11-02), built by `scripts/build-giant-clam-kit.py`:
+  photos cut and shrunk to 1024 px or less, opaque, the Reef Life Survey watermark filled, the
+  shell's length turned onto X (1.3 MB, about 10,300 triangles). Atlas specimen of the clam on a
+  faint disc of sand fading out like the table coral's (`scripts/build-giant-clam-atlas.py`; was a
+  hard patch until `dev_4`, Jeremy: "match the ... soft gradient"), pose, in-tank tile (re-shot in
+  `dev_7`, Jeremy: from the tank, not the Atlas specimen as in `dev_6`: the clam lying in view by
+  the left pillars, centred, fluted side forward, nothing between it and the lens, rock only in the
+  corners; the first tile was half rock on a phone), unhidden and on The Reefs'
+  `landscapeSpecies`. Image credits: Bernard Dupont's mantle (CC BY-SA 2.0); Andrew Green's shell
+  (Reef Life Survey), used without permission on Jeremy's call and asked through Reef Life
+  Survey's contact form the same day (no reply yet, 2026-11-04); credited "all rights reserved"
+  until he answers.
+
+### Landscape
+
+- Giant clams (`src/components/giantClamPlacement.js`): 4 static clams of 60 cm to 1.2 m on the
+  open sand off the feet of the front-half bommies (one a bommie, 2 m apart), level with the sand,
+  fluted side to the resting camera, placed after the leather corals and before the staghorn,
+  which keeps clear of them (`inClam`). Each joins the fish's rock obstacles.
+- A clam in the resting view (`dev_3`): the sand at the coral bommies' feet is hidden from the
+  resting camera, so the first clam lies by any rock (Jeremy, 2026-11-02: "By any rock") on the
+  sand the camera's rays meet, in a phone's view if it can, else in the desktop frame, its whole
+  line of sight clear of rock, tables and corals and kept clear of the staghorn. One dev-tank load:
+  it lies low between the left-hand pillars, left of a phone's frame (table plates on the bommie in
+  front hide the sand in the phone's middle); the other three lie by the front bommies, out of
+  frame or behind rock.
+
+### Behaviour and motion
+
+- The mantle breathes (`dev_5`, Jeremy: "at least the mantle if the shell is not going to open and
+  close"): a third coral-sway config, `GIANT_CLAM_MANTLE_SWAY` (period 9 s, bend 0.06, flutter
+  0.15, flexFrom 0.45). New `swell` option on `addSwayAttributes`: each vertex swings along the
+  surface's outward normal (normals averaged per point, so the faceted mesh never opens), so the
+  mantle swells over the shell's lips and settles back; only the `part` named mantle moves, the
+  shell stays still. In the tank (each clam on its own phase) and the Atlas.
+
+## v0.48.3 — Duplicate devil ray credit
+
+Status: clean `v0.48.3` (2026-11-04), accepted from `v0.48.3-dev_1`, branch
+`fix/duplicate-devil-ray-credit`, [PR #195](https://github.com/jeremyyeh11/world-oceanarium/pull/195). Jeremy: "merge both".
+No visitor line: production never showed the duplicate.
+
+### Sources
+
+- Munk's Devil Ray was listed twice under Image credits: `v0.48.1` added an "Unknown source"
+  entry beside the one it already had. The duplicate is removed (it also gave two list items
+  the same React key), and `v0.48.1`'s visitor line about it is withdrawn, since visitors never
+  saw a change.
+
+## v0.48.2 — Spearfish Remora texture
+
+Status: clean `v0.48.2` (2026-11-04), accepted from `v0.48.2-dev_1`, branch
+`claude/spearfish-texture`, [PR #193](https://github.com/jeremyyeh11/world-oceanarium/pull/193). Jeremy: "merge both".
+
+### Species and Atlas
+
+- Spearfish Remora retextured on Jeremy's new GLB from Eric L. Chen's iNaturalist photo
+  (CC BY-NC 4.0), replacing John Snow's photos. `scripts/prepare-spearfish-remora-model.py`
+  crops the photo to the two views the UVs use, renders the fish opaque, and splits the suction
+  disc back out of the body so it stays rigid (2.08 MB to 207 KB). Mouth and tail edits lengthen
+  the source to 3.5506 units; scale, rider fit and stroke re-measured. Atlas tile recaptured
+  with the new texture.
+
+### Sources
+
+- The Spearfish Remora credit is Eric L. Chen's photo (CC BY-NC 4.0); John Snow's credit is
+  removed with his photos.
+
+## v0.48.1 — Leather coral photo permission and devil ray credit
+
+Status: clean `v0.48.1` (2026-11-04), accepted from `v0.48.1-dev_1`, branch
+`claude/burdick-permission`, [PR #192](https://github.com/jeremyyeh11/world-oceanarium/pull/192). Jeremy: "merge both".
+
+### Sources
+
+- Leather Coral texture (grey caps): David Burdick gave permission by email (2026-11-04), so its
+  credit reads "used with permission" instead of "all rights reserved". He allowed any of his
+  other Guam Reef Life photos too: `docs/new-species-checklist.md` gains a list of photographers
+  with standing permission, starting with him.
+- Munk's Devil Ray's three photo textures: an "Unknown source" credit was added, but one already
+  existed; `v0.48.3` removes the duplicate.
+
+## v0.48.0 — Spearfish Remora
+
+Status: clean `v0.48.0` (2026-11-03), accepted from `v0.48.0-dev_4`, branch
+`species/remora-brachyptera`, [PR #178](https://github.com/jeremyyeh11/world-oceanarium/pull/178).
+Jeremy: "merge", and yes to production rows. `dev_1` prepared the species entry ahead of the
+model; `dev_2` added Jeremy's model; `dev_3` the dev rows and Atlas tile; `dev_4` the texture
+credit.
+
+### Species and Atlas
+
+- Spearfish Remora (`remora-brachyptera`), four riding The Reefs' Mola (id 21), 30–50 cm. In
+  `creatures_dev` ids 1183–1186; in production `creatures` ids 1480–1483 (837 → 841 rows,
+  backed up before and after), each with its own description.
+- Jeremy's model, fitted as a rider (disc 25% of total length, second dorsal about 2 cm proud of
+  the disc line); it swims with the sharksuckers' caudal wave and paired-fin flutter. It lies on
+  all 12 Mola spots at 30–50 cm (worst disc lift 2.2 mm), and a full-size Mola carries five to
+  eight at once.
+- Checked in the dev tank: all four latch on, let go for a few seconds of swimming or escorting,
+  and come back to new spots; a ride lasted 172 s (data 90–200 s); the rider on the top spot lets
+  go before a sun-bask lifts it out of the water.
+- Atlas entry and tile: host range credited to Anislado-Tolentino et al. 2022 (billfishes and
+  swordfish, also ocean sunfishes, blue shark and loggerhead turtles). No published age,
+  maturity or spawning data, so those fields stay Unknown.
+
+### Sources
+
+- Its two photo textures are credited to John Snow (Mexican Fish.com). The site states no
+  licence, so the credit reads "licence not stated"; a permission request is drafted.
+
+## v0.47.2 — Brain coral photo permission
+
+Status: clean `v0.47.2` (2026-11-03), accepted from `v0.47.2-dev_1`, branch
+`claude/brain-coral-permission`, [PR #191](https://github.com/jeremyyeh11/world-oceanarium/pull/191). Jeremy: "merge".
+
+### Sources
+
+- Brain Coral texture (pale colony): Scott Johnson of In-Depth Images Kwajalein gave permission
+  by email (2026-11-02), so its credit reads "used with permission" instead of no licence.
+
+## v0.47.1 — Remora photo permission
+
+Status: clean `v0.47.1` (2026-11-02), accepted from `v0.47.1-dev_1`, branch
+`claude/youthful-spence-15725a`, [PR #190](https://github.com/jeremyyeh11/world-oceanarium/pull/190). Jeremy: "merge".
+
+### Sources
+
+- Common Remora body texture: P. Béarez gave permission by email (2026-11-02), so its credit
+  reads "used with permission" instead of "all rights reserved". A licence with no link shows as
+  plain text in the Sources modal.
+
+## v0.47.0 — Leather Coral
+
+Status: clean `v0.47.0` (2026-11-02), accepted from `v0.47.0-dev_7`, branch
+`species/sarcophyton-glaucum`, [PR #184](https://github.com/jeremyyeh11/world-oceanarium/pull/184). Jeremy: "looks good. lets merge". `dev_1`
+prepared the species entry ahead of the model; `dev_2` added Jeremy's toadstools in the tank and
+the Atlas; `dev_3` to `dev_7` tuned the sway.
+
+### Landscape and corals
+
+- Leather corals (*Sarcophyton glaucum*) as toadstools on the table corals' bommies' low ledges
+  and on the sand at their feet, 1 to 3 a bommie in one-colour patches, grey or peach
+  (`src/components/leatherCoralPlacement.js`), placed after the cauliflower corals and before the
+  staghorn, which keeps clear of them (`inToadstool`). Each is upright, leant at most 9°, its
+  stalk's foot held up all round and its cap clear of the rock at every point of its swing.
+  15 toadstools on the 9 bommies; staghorn 275 → 243 in one desktop load. The last coral for now.
+- Kit and Atlas scripts (`scripts/build-leather-coral-kit.py`, `scripts/build-leather-coral-atlas.py`):
+  Jeremy's four toadstools kept as modelled (878 to 2,748 triangles), each photo cut to the part
+  its faces use and scaled to 1024 px (61 MB to 1.2 MB), one UV map, opaque materials.
+
+### Behaviour and motion
+
+- Toadstools sway on `coral-sway`, in the cap with the stalk still: `addSwayAttributes` can measure
+  flex by height (`up`, `flexFrom`), and the shader gains an optional `orbit`, a level swing across
+  the current a quarter period behind, so the cap circles instead of moving toward and away from
+  the camera. `LEATHER_CORAL_SWAY`: period 14 s, bend 0.08, flutter 0.2, flexFrom 0.35, orbit 0.8,
+  after Jeremy's rounds (too still at 0.03, then up to 0.25, then "waving way too much" against
+  reference videos). The sea fans are unchanged.
+- The `toadstool` coral form: the leather coral's sarcophine poisons fish, so reef fish treat the
+  toadstools as solid (site rays, obstacles) but never visit them.
+
+### Atlas
+
+- Leather Coral (Not Evaluated): Benayahu & Loya 1986, Schleyer et al. 2004 and Chao et al. 2017;
+  all four toadstools on a low rock, swaying; its tile, rendered in Blender from the specimen.
+- Updated image credits.
+
+## v0.46.2 — Landing species count
+
+Status: clean `v0.46.2` (2026-11-02), accepted from `v0.46.2-dev_1`, branch
+`fix/landing-species-count`, [PR #189](https://github.com/jeremyyeh11/world-oceanarium/pull/189). Jeremy: "Yes, merge".
+
+### Interface
+
+- The landing gate's species count is the union of the tanks' counts (each tank's species on
+  this build's roster plus its landscape corals), so creature rows written ahead of a release
+  or kept for a hidden stand-in no longer inflate it. It now always agrees with the reserve
+  cards.
+
+## v0.46.1 — Gentle humphead
+
+Status: clean `v0.46.1` (2026-11-02), accepted from `v0.46.1-dev_1`, branch
+`fix/humphead-gentle-giant`, [PR #187](https://github.com/jeremyyeh11/world-oceanarium/pull/187). Jeremy: "Yes, both" (merge `v0.46.0`, then this).
+
+### Behaviour and motion
+
+- Humphead wrasse as a gentle giant: speeds in each fish's own body lengths (`speedFollowsSize`,
+  new and opt-in), so the 0.85–0.93 m females no longer cruise and burst at the 2.29 m record's
+  pace; a slower cruise, no sprint on turns, a soft burst every 60–120 s instead of a hard one
+  every 20–40, a gentler tail stroke and slower turns at the rock. Only the wrasse changes.
+
+## v0.46.0 — Bluefin Trevally
+
+Status: clean `v0.46.0` (2026-11-02), accepted from `v0.46.0-dev_5`, branch
+`species/caranx-melampygus`, [PR #179](https://github.com/jeremyyeh11/world-oceanarium/pull/179). Jeremy: "ok looks good", then "Yes, both".
+`dev_1` and `dev_2` prepared the species and the wrasse as a host; `dev_3` the model, Atlas and
+dev rows; `dev_4` the fins; `dev_5` the size and the quiet escort tail.
+
+### Behaviour and motion
+
+- Escort cap: a follower's `escort.maxPerHost` limits how many fish it joins round one host,
+  counted from the registry; a full host is passed over for the next nearest. Unset, no limit,
+  so every existing follower behaves as before.
+- Quiet escort tail: a follower's `escort.quietTail` drops idle bursts and snap turns while it
+  escorts (the escort sets its speed, so they whipped the tail without the dash). Only the bluefin
+  uses it; startles and roaming bursts are unchanged.
+- The humphead wrasse is an escort-only host in a new `reef-forager` group (clearance measured on
+  both sex models); the pilot fish and bannerfish do not follow it.
+
+### Species and Atlas
+
+- Bluefin Trevally (`caranx-melampygus`) in The Reefs: FishBase facts, Pardee et al. 2021 sizes,
+  ages and maturity, Sudekum et al. 1991 spawning and eggs, Hobson 1974 following behaviour (all
+  credited). Jeremy's model, scaled by fork length, its Commons photo (Diego Delso, CC BY-SA 4.0,
+  credited) cropped to the fish; the golden trevally's carangid `caudal-wave`; Atlas pose and tile.
+  Six adults follow the three wrasses in production (`creatures` ids 1474–1479, Jeremy: "write 6
+  instead" of eight), above and beside them; eight in `creatures_dev`.
+- Bluefin fins: Jeremy's re-export sets the pelvic and pectoral fins into the body (the pelvics
+  hung just below the belly before); Atlas tile recaptured.
+- Bluefin size: 35–45 cm fork length (was 45–70), so they trail the wrasses at about the
+  proportions seen in photos rather than matching the females' length.
+
+## v0.45.0 — Cauliflower Coral
+
+Status: clean `v0.45.0` (2026-11-01), accepted from `v0.45.0-dev_5`, branch
+`species/pocillopora-meandrina`, [PR #183](https://github.com/jeremyyeh11/world-oceanarium/pull/183). Jeremy: "merge". `dev_1` prepared the species
+entry ahead of the model; `dev_2` added Jeremy's colonies in the tank; `dev_3` the Atlas specimen
+and tile; `dev_4` and `dev_5` put colonies in the resting view.
+
+### Landscape and corals
+
+- Cauliflower corals (*Pocillopora meandrina*) as small bushes on the table corals' bommies' tops
+  and upper shoulders, singly or in loose twos and threes (`src/components/cauliflowerCoralPlacement.js`),
+  placed after the tables, sea fans and brain corals and before the staghorn, which keeps clear of
+  them. A colony's stalk is buried in the rock. 20 colonies, 15 to 35 cm; staghorn 298 → 275.
+- Colonies on the front (`dev_4`, Jeremy: "i dont like that thyere all hidden away"): from the
+  resting view only 1 of the 13 colonies in frame showed, the rest under the table plates. Each
+  bommie in frame now gets 3 to 4 more on its camera side, lower down, each kept only if the
+  resting camera sees part of its head (no rock or table plate between).
+- Front colonies from the camera (`dev_5`, Jeremy: "i still dont see any from the default view"):
+  12 to 16 colonies on the first rock ledges that rays from the resting camera meet, 1.5 to 15 m
+  away, so they are in view by construction (still kept only where no table plate hides them).
+- Kit and Atlas scripts (`scripts/build-cauliflower-coral-kit.py`, a copy of the brain coral's,
+  and `scripts/build-cauliflower-coral-atlas.py`): Jeremy's three displaced, photo-projected
+  colonies scaled to true size (20, 31 and 45 cm), baked to three detail levels.
+
+### Behaviour and motion
+
+- Each bommie's cauliflower corals are one `thicket` to the reef fish, beside the staghorn patches.
+
+### Atlas
+
+- Cauliflower Coral (Endangered): SeaLifeBase and the NMFS 2019 status review; three colonies on a
+  small rock; in-tank tile. Photo credits: Dwayne Meadows (NOAA, public domain) and Peterwchen
+  (CC BY-SA 4.0).
+
+## v0.44.1 — Natural creature edges
+
+Status: clean `v0.44.1` (2026-11-01), accepted from `v0.44.1-dev_1`, branch `feat/remove-creature-cyan-rim`, [PR #186](https://github.com/jeremyyeh11/world-oceanarium/pull/186), issue #185. Jeremy explicitly approved clean promotion and merge.
+
+### Lighting
+
+- Remove the artificial additive cyan backlight rim shared by creature GLBs and instanced sardines. Viewing an animal from below no longer paints a blue edge onto it.
+- Preserve backlit silhouette shading, dorsal/ventral/front lighting, light pools, fish-caster shadows, natural material reflectivity, caustics, debug selection/leader outlines and the water's physical underside reflections. No scene-wide grade, material/normal/asset/data/movement changes.
+- The separately identified reversed belly-shadow smoothstep is deliberately unchanged in this narrowly scoped patch.
+
+## v0.44.0 — Common Remora (2026-11-01)
+
+Status: clean `v0.44.0`, accepted from `v0.43.0-dev_3` (renumbered: Brain Coral took `v0.43.0`),
+branch `species/remora-remora`,
+[PR #176](https://github.com/jeremyyeh11/world-oceanarium/pull/176). Jeremy approved production
+rows, promotion and merge on 2026-11-01. `dev_1` built everything but the model; `dev_2` adds
+Jeremy's model; `dev_3` the Atlas tile.
+
+### Behaviour and motion
+
+- Common remoras ride the mako and the whale shark: Jeremy's model measured by
+  `scripts/fit-rider-model.mjs` (disc 35% of the length, the largest of the remoras; back
+  profile laid against every host spot), swimming on the remoras' `caudal-vertex` stroke in this
+  model's units, with four separate fins fluttering about their roots.
+- The skin-fit test checks every remora on the whale shark's 18 spots too, beside the mako's,
+  the Mola's and the manta's: 456 rider-and-spot pairs, median disc lift 0. The common remora
+  sits flush on all 36 spots of its two hosts.
+
+### Species and Atlas
+
+- Common Remora (`remora-remora`): in The Open Sea and the Atlas. The export came in inside out
+  and is turned right side out, its photos cropped and BLEND dropped
+  (`scripts/prepare-common-remora-model.py`, 5.2 MB to 1.4 MB). Both photo textures credited:
+  the body from P. Béarez's FishBase specimen photo (all rights reserved, used on Jeremy's
+  call), the disc from M. M. Khan's (CC BY 3.0). Atlas tile rendered in the dev tank. Atlas
+  copy no longer describes the reserve's plans. No published age, maturity or spawning data,
+  so those fields stay Unknown.
+- Four common remoras, about 45, 58, 70 and 84 cm, two of each sex: `creatures_dev` 1171–1174
+  (820 → 824 rows) and production `creatures` 1470–1473 (827 → 831 rows); backups before and
+  after each write.
+
+## v0.43.0 — Brain Coral (2026-11-01)
+
+Status: clean `v0.43.0`, accepted from `v0.43.0-dev_4`, branch `species/platygyra-daedalea`,
+[PR #177](https://github.com/jeremyyeh11/world-oceanarium/pull/177). Jeremy approved promotion and
+merge on 2026-11-01. `dev_1` built everything but the model; `dev_2` adds Jeremy's four
+colonies; `dev_3` lets reef fish down to the low ones; `dev_4` fixes a black facet on the pale
+colony.
+
+### Landscape and corals
+
+- Brain corals (*Platygyra daedalea*) as boulders on the table corals' bommies, on ledges and on
+  the sand at their feet (`src/components/brainCoralPlacement.js`): placed after the tables and
+  sea fans and before the staghorn, which keeps clear of them; held up all round, out of the
+  tables, fans and each other, trying smaller sizes where a big colony clashes. Jeremy's colonies
+  (`dev_2`): their rounded undersides below his origins stay buried in rock or sand, and none is
+  ever turned over. 24 colonies, 33 cm to 1.2 m; staghorn 358 → about 310 (measured with a
+  stand-in kit).
+- Kit and Atlas scripts (`scripts/build-brain-coral-kit.py`, `scripts/build-brain-coral-atlas.py`):
+  bake his colonies to three detail levels with colour and normal maps, origin at his object
+  origin; run end to end on generated domes.
+- No black facet on the pale colony seen from mid-distance (`dev_4`): the kit's reduced meshes keep
+  to the baked texture.
+
+### Behaviour and motion
+
+- The `mound` coral form: reef fish peck and hover at a dome's side, hang over and skim across its
+  crown, and shelter under an undercut edge. The unicornfish and emperor angelfish never peck it;
+  the raccoon butterflyfish does. Off while no tank has mounds.
+- Reef fish visiting a brain coral may swim below their usual floor, down to the sand, so they
+  reach the low colonies (`dev_3`): pecks at a colony now happen (9 of 26 tries, from none) and
+  time at the colonies rises by half, with no fewer fish in clear view.
+
+### Species and Atlas
+
+- Brain Coral entry: SeaLifeBase, Lapid & Chadwick 2006 and Mangubhai & Harrison 2008 credited.
+  Atlas specimen of three colonies on a low rock, Atlas pose and in-tank tile; on The Reefs'
+  species count. The four photo textures are credited in Sources (not openly licensed; used on Jeremy's call).
+- Sources: an image credit with a known page but no stated licence reads "licence not stated".
+
+## v0.42.0 — White Suckerfish (2026-10-30)
+
+Status: clean `v0.42.0`, accepted from `v0.42.0-dev_3`, branch `species/remora-albescens`,
+[PR #174](https://github.com/jeremyyeh11/world-oceanarium/pull/174). Jeremy approved production
+rows, promotion and merge on 2026-10-30.
+
+### Behaviour and motion
+
+- The giant oceanic manta can be ridden: 11 spots fitted to its belly's flat centre
+  (`scripts/fit-ride-anchors.mjs`, which now reads only a disc-wave host's R and B masks and
+  records each spot's chord), clear of the wing beat and of the jaw its open mouth moves.
+- Riders on a disc-wave host heave with its body (`discBodyHeave`, the shader's heave on the
+  CPU, 1.2 WU either way at full cruise); the manta publishes its beat for them.
+- Golden trevally still escort the manta (tested): followers never take spots.
+
+### Species and Atlas
+
+- White Suckerfish (`remora-albescens`): Jeremy's model (2026-10-30), rig-free with separate
+  pectoral and pelvic fins and a rigid disc, fitted by `scripts/fit-rider-model.mjs` (0.2996
+  source units to 1.2 WU, disc 31% of its length ahead of the root). Held at 27–30 cm
+  (`sizeRange` 0.9–1.0), so none falls below the 27 cm floor.
+- It lives in The Shallows on the giant manta, in the manta's widened room
+  (`SHALLOWS_MANTA_FOLLOWER_BOUNDS`, now shared with the golden trevally). In the dev tank all
+  three `creatures_dev` riders (ids 1158–1160) found the manta and clamped to its belly within
+  about five minutes.
+- In the Atlas, with its tile rendered in the dev tank. Its two texture photos are credited as
+  unknown sources until found. Its diet is "Unknown": FishBase has no diet data for it.
+- Juvenile giant mantas (`lifeStages.juvenile`, Jeremy, 2026-10-30): the adult model at 2.5–3.5 m
+  (born 1.1–1.3 m, mature about 4.2 m; FishBase), since young mantas stay in shallow water.
+  Every rider is fitted on the smallest juvenile too (tests). `creatures_dev` 1161, 3 m; with
+  three more suckerfish (1162–1164), the riders and the trevally split between the two mantas,
+  which swim their own paths ("singly or in loose aggregations", FishBase).
+- Twelve white suckerfish in `creatures_dev` (1158–1160, 1162–1170; live, 10 of 12 clamped by
+  three minutes, five on each manta) and in production `creatures` (1457–1459, 1461–1469,
+  814 → 826 rows), 27–30 cm, six of each sex; backups before and after each write. The
+  juvenile manta followed once the live bundle served `v0.42.0` (a new life stage): production
+  `creatures` 1460, as dev 1161 (3 m, male), 826 → 827 rows (2026-11-01).
+
+## v0.41.0 — Golden Trevally (2026-10-29)
+
+Status: clean `v0.41.0`, accepted from `v0.41.0-dev_2`, branch `species/gnathanodon-speciosus`,
+[PR #173](https://github.com/jeremyyeh11/world-oceanarium/pull/173). Jeremy approved production
+rows, promotion and merge on 2026-10-29.
+
+### Behaviour and motion
+
+- Escort-only ride hosts: a `rideHost` with groups and a clearance ellipsoid but no anchors
+  can be followed but not ridden (`rideHostProfile` no longer requires anchors). The giant
+  oceanic manta is the first (`ray` + `large-fish`; radii 0.5 × 0.15 × 0.28 of its span, from
+  its mesh, covering the head fins at full heave).
+- Golden trevally swim on the pilot fish's carangid `caudal-wave` (amplitude and turn scaled to
+  this model's units) and follow the manta: in the dev tank all six were escorting it within
+  30 s, holding 7–12 WU from its centre.
+
+### Species and Atlas
+
+- Golden Trevally (`gnathanodon-speciosus`): FishBase facts and Farrag et al. 2019 life span
+  (credited), and a follower block whose stations sit ahead of and under the manta, never level
+  with a wing.
+- Jeremy's model (`dev_2`): `scripts/prepare-golden-trevally-model.py` bakes the node offsets,
+  centres the root mid-length on the body axis, crops the embedded Commons photo to the part the
+  UVs use and remaps them (GLB 4.8 → 1.3 MB), and drops alpha blending (the photo has no alpha).
+  Scale from total length (1.1995 source units = 120 cm). Atlas pose, source length and tile;
+  the photo is credited in Sources (Norbert Potensky, CC BY-SA 3.0).
+- The Shallows roster gains the trevally. Six adults in `creatures_dev` (ids 1152–1157) and in
+  production `creatures` (ids 1451–1456, 808 → 814 rows), 50–75 cm, three of each sex; backups
+  before and after each write.
+
 ## v0.40.2 — Open Sea roaming (2026-10-28)
 
 Status: clean `v0.40.2`, accepted from `v0.40.2-dev_1`, branch `fix/open-sea-wider-roaming`,

@@ -7,6 +7,111 @@ import { creaturesForTank, resolveSpecies } from '../src/utils/speciesLookup.js'
 
 const speciesById = new Map(SPECIES.map(species => [species.id, species]))
 
+// The brain coral's model is in: in the Atlas, counted on The Reefs, and its kit loaded with the
+// reserve.
+const brainCoral = speciesById.get('platygyra-daedalea')
+assert.ok(!brainCoral.hiddenInAtlas, 'the brain coral is in the Atlas')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(brainCoral.id))
+const reefAssets = ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-reefs').assets.map(asset => asset.url)
+for (const url of ['/models/landscape/brain-corals.glb', '/models/landscape/brain3-normal.jpg', brainCoral.model.path]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `brain coral asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/brain-corals.glb'), 'the brain coral kit loads with The Reefs')
+
+// The cauliflower coral's model is in: in the Atlas, counted on The Reefs, and its kit loaded with
+// the reserve.
+const cauliflowerCoral = speciesById.get('pocillopora-meandrina')
+assert.ok(!cauliflowerCoral.hiddenInAtlas, 'the cauliflower coral is in the Atlas')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(cauliflowerCoral.id))
+for (const url of ['/models/landscape/cauliflower-corals.glb', '/models/landscape/cauliflower2-normal.jpg', cauliflowerCoral.model.path]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `cauliflower coral asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/cauliflower-corals.glb'), 'the cauliflower coral kit loads with The Reefs')
+
+// The leather coral's model is in: in the Atlas, counted on The Reefs, and its kit loaded with the
+// reserve.
+const leatherCoral = speciesById.get('sarcophyton-glaucum')
+assert.ok(!leatherCoral.hiddenInAtlas, 'the leather coral is in the Atlas')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(leatherCoral.id))
+for (const url of ['/models/landscape/leather-corals.glb', leatherCoral.model.path, leatherCoral.atlasThumbnail]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `leather coral asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/leather-corals.glb'), 'the leather coral kit loads with The Reefs')
+
+// The giant clam's model is in: in the Atlas, counted on The Reefs as a landscape species (no
+// creature rows), and its kit loaded with the reserve.
+const giantClam = speciesById.get('tridacna-gigas')
+assert.ok(!giantClam.hiddenInAtlas, 'the giant clam is in the Atlas')
+assert.ok(!giantClam.swim, 'the giant clam does not swim')
+assert.ok(TANKS.find(tank => tank.id === 'the-reefs').landscapeSpecies.includes(giantClam.id))
+for (const url of ['/models/landscape/giant-clams.glb', giantClam.model.path, giantClam.atlasThumbnail]) {
+  assert.ok(existsSync(new URL(`../public${url}`, import.meta.url)), `giant clam asset exists: ${url}`)
+}
+assert.ok(reefAssets.includes('/models/landscape/giant-clams.glb'), 'the giant clam kit loads with The Reefs')
+
+// FishBase's Bayesian relation is in cm total length and returns grams: about 4.7 kg at 75 cm.
+const trevally = speciesById.get('gnathanodon-speciosus')
+assert.ok(Math.abs(trevally.mass.coefficient * 75 ** trevally.mass.exponent / 1000 - 4.7) < 0.1)
+assert.ok(trevally.sizeRange[0] * trevally.swim.bodyLengthWU >= 1.08, 'trevally are above the 27 cm size floor')
+assert.ok(Math.abs(trevally.swim.bodyLengthWU * 0.25 - trevally.maxBodyLengthMeters) < 1e-9, 'trevally biological reference and world scale agree')
+assert.ok(!trevally.hiddenInAtlas, 'the supplied trevally is available in Atlas')
+assert.equal(trevally.model.path, '/models/fish/gnathanodon-speciosus/gnathanodon-speciosus.glb')
+assert.equal(trevally.model.followAim, 'root')
+assert.ok(Math.abs(trevally.model.scale * 1.199503779411316 - trevally.swim.bodyLengthWU) < 1e-6, 'total length, mouth to lower lobe tip, defines world scale')
+assert.equal(trevally.model.proceduralAnimation.type, 'caudal-vertex')
+assert.ok(existsSync(new URL(`../public${trevally.model.path}`, import.meta.url)), 'trevally model exists')
+assert.ok(atlasWarmupUrls([trevally]).includes(trevally.model.path))
+for (const alias of [trevally.id, trevally.name, trevally.scientificName]) {
+  const creature = { id: 'intake-trevally', species: alias, alive: true, size: 0.6 }
+  assert.equal(resolveSpecies(creature), trevally)
+  assert.deepEqual(TANKS.filter(tank => creaturesForTank([creature], tank).length).map(tank => tank.id), ['the-shallows'], 'trevally live only in The Shallows')
+}
+assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === trevally.model.path))
+
+// The East Pacific green turtle: females swim in The Shallows; the male is deferred.
+{
+  const turtle = speciesById.get('chelonia-mydas')
+  assert.ok(turtle, 'chelonia-mydas canonical species exists')
+  assert.equal(turtle.model.path, '/models/fish/chelonia-mydas/chelonia-mydas.glb')
+  assert.ok(existsSync(new URL(`../public${turtle.model.path}`, import.meta.url)), 'the turtle model exists')
+  assert.equal(turtle.model.proceduralAnimation.type, 'foil-flap-vertex')
+  assert.ok(Math.abs(turtle.model.scale * 1 - turtle.swim.bodyLengthWU) < 1e-9, 'the 1-unit shell is the body length')
+  assert.ok(!turtle.hiddenInAtlas)
+  assert.equal(turtle.atlasThumbnail, '/atlas/chelonia-mydas-thumbnail.png')
+  assert.deepEqual(atlasWarmupUrls([turtle]), [turtle.atlasThumbnail, turtle.model.path], 'the Atlas warms the shipped turtle tile and model')
+  assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-shallows').assets.some(asset => asset.url === turtle.model.path))
+  for (const alias of [turtle.id, turtle.name, turtle.scientificName]) {
+    const creature = { id: 'intake-turtle', species: alias, alive: true, size: 0.8 }
+    assert.equal(resolveSpecies(creature), turtle)
+    assert.deepEqual(TANKS.filter(tank => creaturesForTank([creature], tank).length).map(tank => tank.id), ['the-shallows'])
+  }
+  assert.ok(Math.abs(turtle.swim.bodyLengthWU * 0.25 - turtle.maxBodyLengthMeters) < 1e-9, 'turtle biological reference and world scale agree')
+  assert.ok(turtle.sizeRange[0] * turtle.swim.bodyLengthWU >= 1.08, 'proposed turtles are above the 27 cm size floor')
+  // Shell length cubed: the weighed Colola males, 67.5 cm and 45.7 kg (Delgado-Trejo et al. 2024).
+  assert.ok(Math.abs(turtle.mass.coefficient * 67.5 ** turtle.mass.exponent / 1000 - 45.7) < 1.5)
+  assert.deepEqual(turtle.rideHost.groups, ['turtle'])
+  assert.equal(turtle.rideHost.anchors, undefined, 'an escort-only turtle has no attachment anchors')
+  assert.equal(turtle.model.sexVariants?.male, undefined, 'the male model is deferred')
+}
+
+// Bluefin trevally: scaled by fork length (Pardee et al. 2021's relation is cm FL to grams).
+const bluefin = speciesById.get('caranx-melampygus')
+assert.ok(Math.abs(bluefin.mass.coefficient * 74.9 ** bluefin.mass.exponent / 1000 - 7.7) < 0.1, 'about 7.7 kg at the 74.9 cm female mean')
+assert.ok(bluefin.sizeRange[0] * bluefin.swim.bodyLengthWU >= 1.08, 'bluefin trevally are above the 27 cm size floor')
+assert.ok(Math.abs(bluefin.swim.bodyLengthWU * 0.25 - bluefin.maxBodyLengthMeters) < 1e-9, 'bluefin biological reference and world scale agree')
+assert.ok(!bluefin.hiddenInAtlas, 'the supplied bluefin trevally is available in Atlas')
+assert.ok(Math.abs(bluefin.model.scale * 0.7734179049730301 - bluefin.swim.bodyLengthWU) < 1e-6, 'fork length, snout to fork notch, defines world scale')
+assert.equal(bluefin.model.proceduralAnimation.type, 'caudal-vertex')
+for (const asset of [bluefin.model.path, bluefin.atlasThumbnail]) {
+  assert.ok(existsSync(new URL(`../public${asset}`, import.meta.url)), `bluefin asset exists: ${asset}`)
+}
+for (const alias of [bluefin.id, bluefin.name, bluefin.scientificName]) {
+  const creature = { id: 'intake-bluefin', species: alias, alive: true, size: 0.6 }
+  assert.equal(resolveSpecies(creature), bluefin)
+  assert.deepEqual(TANKS.filter(tank => creaturesForTank([creature], tank).length).map(tank => tank.id), ['the-reefs'], 'bluefin trevally live only in The Reefs')
+}
+assert.ok(ENVIRONMENT_MANIFESTS.find(manifest => manifest.id === 'the-reefs').assets.some(asset => asset.url === bluefin.model.path))
+
 const unicornfish = speciesById.get('naso-unicornis')
 const tuna = speciesById.get('thunnus-albacares')
 assert.ok(!tuna.hiddenInAtlas, 'the supplied tuna is available in Atlas')
@@ -99,6 +204,9 @@ const REMORAS = [
 const SUPPLIED_REMORA_SOURCE_LENGTHS = {
   'echeneis-naucrates': 6.6014,
   'echeneis-neucratoides': 5.4912,
+  'remora-remora': 0.8604,
+  'remora-albescens': 0.2996,
+  'remora-brachyptera': 3.5506,
 }
 for (const [id, maxMeters, iucn] of REMORAS) {
   const remora = speciesById.get(id)
@@ -129,5 +237,23 @@ for (const [id, maxMeters, iucn] of REMORAS) {
 // Standard-length maxima are labelled as such, like the sardinella's.
 assert.equal(speciesById.get('remora-albescens').atlasDetails.maxLengthLabel, 'Standard length')
 assert.equal(speciesById.get('remora-osteochir').atlasDetails.maxLengthLabel, 'Standard length')
+
+// Juvenile giant mantas: the adult model, between birth (1.1–1.3 m) and maturity (about 4 m).
+{
+  const manta = speciesById.get('mobula-birostris')
+  const [small, large] = manta.lifeStages.juvenile.sizeRange.map(size => size * manta.swim.bodyLengthWU * 0.25)
+  assert.ok(small > 1.3 && large < manta.adultLengthRangeMeters[0], 'juvenile mantas sit between birth and adult sizes')
+  assert.equal(manta.lifeStages.juvenile.model, undefined, 'a juvenile manta keeps the adult model')
+}
+
+// Humphead wrasse, a gentle giant (v0.46.1): speeds in each fish's own length, no turn sprint,
+// rare soft bursts.
+{
+  const wrasse = speciesById.get('crassilabrus-undulatus')
+  assert.equal(wrasse.swim.speedFollowsSize, true, 'wrasse speeds follow each fish\'s own length')
+  assert.equal(wrasse.swim.turnSpeedupEnabled, false, 'the wrasse turns without speeding up')
+  assert.ok(wrasse.swim.burstInterval[0] >= 60 && wrasse.swim.burstBLPerSec[1] <= 1.2, 'wrasse bursts are rare and soft')
+  assert.ok(SPECIES.filter(species => species.swim?.speedFollowsSize).every(species => species.id === 'crassilabrus-undulatus'), 'only the wrasse opts in so far')
+}
 
 console.log('species data correction tests passed')

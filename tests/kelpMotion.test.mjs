@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { Group, Mesh, MeshStandardMaterial, PlaneGeometry, Vector3 } from 'three'
+import { Group, Line3, Mesh, MeshStandardMaterial, PlaneGeometry, Vector3 } from 'three'
 import { advanceKelp, makeKelp } from '../src/components/kelpMotion.js'
 import { makeKelpBatch, makeKelpTemplate } from '../src/components/kelpSkin.js'
 import { seededRandom } from '../src/data/landscapes.js'
@@ -15,20 +15,31 @@ const advanceBoth = (from, to, colliders = []) => {
     advanceKelp(control, step * dt, dt, [])
   }
 }
-advanceBoth(1, 360)
+const straightStipe = new Line3()
+const nearest = new Vector3()
+let peakBow = 0
+for (let tick = 1; tick < 360; tick += 30) {
+  advanceBoth(tick, Math.min(tick + 30, 360))
+  straightStipe.set(root, plant.stalk.at(-1))
+  for (const point of plant.stalk) {
+    peakBow = Math.max(peakBow, point.distanceTo(straightStipe.closestPointToPoint(point, true, nearest)))
+  }
+}
 assert.ok(plant.stalk[0].equals(root))
-assert.ok(plant.stalk.at(-1).distanceTo(plant.points[8].rest) > 0.5, 'the current bends the stipe')
+assert.equal(plant.stalk.length, 17)
+assert.ok(peakBow > 1.5, 'the stipe bows away from its root-to-tip axis during the swell')
 for (const { a, b, length } of plant.links) {
   assert.ok(Math.abs(a.position.distanceTo(b.position) - length) < length * 0.03)
 }
 
 const axis = new Vector3(0, 0, 1)
-const center = plant.stalk[5].clone().add(new Vector3(0.3, 0, 0))
+const joint = plant.stalk.indexOf(plant.blades[5].points[0])
+const center = plant.stalk[joint].clone().add(new Vector3(0.3, 0, 0))
 const capsule = { position: center.clone(), axis, radius: 1.2, halfLength: 1 }
 advanceBoth(360, 402, [capsule])
 assert.ok(plant.stalk[0].equals(root), 'contact leaves the holdfast fixed')
 assert.ok(capsule.position.equals(center), 'contact is one-way')
-assert.ok(plant.stalk[5].distanceTo(control.stalk[5]) > 0.5, 'contact bends the stipe')
+assert.ok(plant.stalk[joint].distanceTo(control.stalk[joint]) > 0.5, 'contact bends the stipe')
 assert.ok(plant.blades[5].points[2].distanceTo(control.blades[5].points[2]) > 0.1, 'contact travels into the blade')
 for (const { position } of plant.points.slice(1)) {
   const offset = position.clone().sub(center)
@@ -36,7 +47,7 @@ for (const { position } of plant.points.slice(1)) {
   assert.ok(offset.length() >= capsule.radius - 1e-6)
 }
 advanceBoth(402, 900)
-assert.ok(plant.stalk[5].distanceTo(control.stalk[5]) < 0.1, 'kelp settles into the current after contact')
+assert.ok(plant.stalk[joint].distanceTo(control.stalk[joint]) < 0.1, 'kelp settles into the current after contact')
 
 // Changing simulation rate near the canopy keeps a finite pose beneath the water.
 const tall = makeKelp(root, SURFACE_PLANE_Y - root.y, seededRandom(2))

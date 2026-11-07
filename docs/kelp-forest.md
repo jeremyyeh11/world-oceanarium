@@ -11,8 +11,11 @@ and [NOAA Monterey Bay National Marine Sanctuary](https://montereybay.noaa.gov/s
 
 `src/data/landscapes.js` owns the bed layout and asset paths. `KelpForest.jsx`
 raycasts the drawn rock meshes at mount to pin each holdfast. `kelpMotion.js`
-simulates eight stipe links and eleven blades, with a middle and tip per blade.
+simulates 17 stipe points and eleven blades, with a middle and tip per blade.
 Damped Verlet integration and six length solves carry the swell up each stipe.
+The stipe starts from a shallow S-curve. A shorter current wave (about 37 WU per
+cycle) travels along it over the slower bed-wide swell, so sections can bend
+at different times. The rendered stipe is 0.15 WU wide.
 Nearby registered fish contribute body-length capsules. The diver camera carries a
 1.2 WU sphere in Diver mode, so the contact can be reviewed before stocking.
 Both shapes project points out and remove inward velocity. Contact moves the kelp

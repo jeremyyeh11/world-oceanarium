@@ -14,7 +14,7 @@ Status: in development on `feat/kelp-forest`.
 
 ### Environment
 
-- The Kelp Forest opens for habitat review. Dense banks of giant kelp frame an open channel of green water. The rock-anchored stipes bend in the swell, and their blades flex independently. Passing fish or the diver can brush the kelp aside. The stipe segment and blade card are separate, replaceable assets.
+- The Kelp Forest opens for habitat review. Dense banks of giant kelp frame an open channel of green water. The thicker, rock-anchored stipes bend in sections as the swell travels up them, and their blades flex independently. Passing fish or the diver can brush the kelp aside. The stipe segment and blade card are separate, replaceable assets.
 
 ## v0.50.0 — East Pacific Green Turtle and seagrass
 

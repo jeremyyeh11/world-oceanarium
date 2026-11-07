@@ -2,7 +2,8 @@ import { Box3, Vector3 } from 'three'
 import { SURFACE_PLANE_Y } from '../utils/waterSurfaceGeometry.js'
 
 const SOLVER_PASSES = 6
-const STEM_LINKS = 8
+const STEM_LINKS = 16
+const CURRENT_WAVE_NUMBER = 0.17 // Radians per WU, about one bend cycle per 37 WU of stipe.
 
 function point(rest, anchor = null) {
   return { rest, anchor, position: anchor ? anchor.position.clone().add(rest) : rest.clone(), previous: null }
@@ -16,24 +17,27 @@ export function makeKelp(root, height, random) {
   const step = height / STEM_LINKS
   const phase = random() * Math.PI * 2
   const lean = new Vector3(Math.cos(phase), 0, Math.sin(phase)).multiplyScalar(height * 0.085)
+  const crossLean = new Vector3(-Math.sin(phase), 0, Math.cos(phase)).multiplyScalar(height * 0.07)
   for (let i = 0; i <= STEM_LINKS; i += 1) {
     const t = i / STEM_LINKS
     const rest = root.clone().addScaledVector(lean, t * t)
+    rest.addScaledVector(crossLean, Math.sin(t * Math.PI * 2) * t)
     rest.y += step * i
     const joint = point(rest)
     stalk.push(joint.position)
     if (i > 0) {
-      links.push({ a: points[i - 1], b: joint, length: step, aWeight: i === 1 ? 0 : 0.5 })
+      const parent = points[i - 1]
+      links.push({ a: parent, b: joint, length: rest.distanceTo(parent.rest), aWeight: i === 1 ? 0 : 0.5 })
     }
     points.push(joint)
   }
 
   // More blades near the light. Each pair of free points shares its root with the stipe.
   let azimuth = phase
-  for (const index of [2, 3, 4, 5, 5, 6, 6, 7, 7, 8, 8]) {
-    const anchor = points[index]
+  for (const fraction of [0.25, 0.375, 0.5, 0.625, 0.625, 0.75, 0.75, 0.875, 0.875, 1, 1]) {
+    const anchor = points[Math.round(fraction * STEM_LINKS)]
     azimuth += 2.39996 + random() * 0.5
-    const length = (2.7 + random() * 2.6) * (0.68 + 0.32 * index / STEM_LINKS)
+    const length = (2.7 + random() * 2.6) * (0.68 + 0.32 * fraction)
     const direction = new Vector3(Math.cos(azimuth), 0.25 + random() * 0.45, Math.sin(azimuth)).normalize()
     const middle = point(direction.clone().multiplyScalar(length / 2), anchor)
     const endRest = direction.multiplyScalar(length)
@@ -96,20 +100,27 @@ export function advanceKelp(plant, time, dt, colliders) {
   }
   const damping = Math.exp(-4.2 * dt) * (plant.step ? dt / plant.step : 1)
   const dtSq = dt * dt
+  const swellPhase = time * 0.87 + root.x * 0.07 + root.z * 0.04
+  const bendPhase = time * 0.96 + phase
+  const plantSurge = 2.4 + Math.sin(time * 1.31 + phase) * 0.9
   plant.step = dt
 
   for (let i = 1; i < points.length; i += 1) {
     const { position, previous, rest, anchor } = points[i]
-    const t = Math.max(0, Math.min(1, (position.y - root.y) / height))
-    // Long swell is shared across the bed, with a travelling phase up each stipe.
-    const swell = time * 0.87 + root.x * 0.07 + root.z * 0.04 - t * 1.8
-    const surge = 2.4 + Math.sin(swell) * 3.8 + Math.sin(time * 1.31 + phase) * 0.9
+    const rise = (anchor?.rest.y ?? rest.y) - root.y
+    const t = rise / height
+    // The bed shares the slow swell. A shorter spatial wave bends sections of the same
+    // stipe in different directions as it travels from the holdfast towards the tip.
+    const swell = swellPhase - t * 1.8
+    const bend = bendPhase - rise * CURRENT_WAVE_NUMBER
+    const surge = plantSurge + Math.sin(swell) * 3.2
     offset.copy(rest)
     if (anchor) offset.add(anchor.position)
-    offset.sub(position).multiplyScalar(anchor ? 3.6 : 0.88)
-    offset.x += surge * (0.25 + t) + (anchor ? Math.sin(time * 2.7 + phase + i) * 2.1 : 0)
-    offset.z += Math.sin(swell * 0.72 + phase) * (anchor ? 2.8 : 1.6)
-    offset.y += anchor ? Math.cos(time * 2.2 + phase + i * 0.8) * 2.8 : 3.2
+    offset.sub(position).multiplyScalar(anchor ? 3.6 : 0.74)
+    offset.x += surge * (0.25 + t) + Math.sin(bend) * (1.0 + t * 2.8)
+    if (anchor) offset.x += Math.sin(time * 2.7 + phase + i) * 2.1
+    offset.z += Math.sin(swell * 0.72 + phase) * (anchor ? 2.8 : 1.6) + Math.cos(bend) * (0.8 + t * 2.2)
+    offset.y += anchor ? Math.cos(time * 2.2 + phase + i * 0.8) * 2.8 : 2.1
     velocity.subVectors(position, previous).multiplyScalar(damping)
     previous.copy(position)
     position.add(velocity).addScaledVector(offset, dtSq)

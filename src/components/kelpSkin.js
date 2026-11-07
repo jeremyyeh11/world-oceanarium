@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 
+const STEM_WIDTH = 0.15
+
 function starterBlade() {
   const widths = [0.08, 0.38, 0.49, 0.44, 0.52, 0.37, 0.29, 0.16, 0.01]
   const card = new THREE.PlaneGeometry(1, 1, 2, widths.length - 1).translate(0, 0.5, 0)
@@ -28,7 +30,8 @@ export function makeKelpTemplate(gltf, isStem) {
     mesh = object
   })
   if (gltf && !mesh) throw new Error('Kelp asset has no mesh')
-  const source = mesh?.geometry ?? (isStem ? new THREE.CylinderGeometry(0.5, 0.5, 1, 5, 2, true) : starterBlade())
+  // One span per link keeps the starter stem's triangle count at sixteen spans.
+  const source = mesh?.geometry ?? (isStem ? new THREE.CylinderGeometry(0.5, 0.5, 1, 5, 1, true) : starterBlade())
   const material = mesh?.material.clone() ?? new THREE.MeshStandardMaterial({
     color: isStem ? '#77612e' : '#998338', roughness: 0.83, envMapIntensity: 0.32,
   })
@@ -86,7 +89,7 @@ export function makeKelpBatch(template, plants) {
   const sections = plants.flatMap(plant => {
     plant.skin ??= []
     if (!isStem) return plant.blades.map(blade => ({ plant, ...blade, repeats: 1 }))
-    return [{ plant, points: plant.stalk, across: acrossStem, width: 0.086, shade: 0.9, repeats: plant.stalk.length - 1 }]
+    return [{ plant, points: plant.stalk, across: acrossStem, width: STEM_WIDTH, shade: 0.9, repeats: plant.stalk.length - 1 }]
   })
   const vertexCount = sections.reduce((total, section) => total + section.repeats * count, 0)
   const geometry = new THREE.BufferGeometry()

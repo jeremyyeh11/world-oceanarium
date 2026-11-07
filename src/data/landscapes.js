@@ -260,17 +260,22 @@ export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY:
 // 2026-10-25); the animals' swim wedges are sized to stay outside a 21:9 frame.
 export const SHALLOWS_VIEW = { fov: 58, x: 0, y: -24, z: 24, lookX: 0, lookY: -14.3, maxStageAspect: 21 / 9 }
 
-export const KELP_FOREST_VIEW = { fov: 55, x: 0, y: -24, z: 22, lookX: 0, lookY: -18, maxStageAspect: 21 / 9 }
+// Look up from near the rock bases so the side beds frame the water column in portrait too.
+export const KELP_FOREST_VIEW = { fov: 55, x: 0, y: -41, z: 22, lookX: 0, lookY: -37, maxStageAspect: 21 / 9 }
 
-// [x, z, rock width, rock height, rock depth, yaw, number of stipes]. Gaps between the
-// patches form lanes the diver can swim down. The nearest clumps frame the opening view.
+// [x, z, rock width, rock height, rock depth, yaw, number of stipes]. Overlapping rows on
+// each side frame a clear channel. The inner beds sit close enough to read in the phone crop.
 const KELP_BEDS = [
-  [-7, 13, 8, 3.5, 8, 0.6, 5], [8, 8, 9, 3.1, 7, 1.1, 5],
-  [-13, -2, 13, 5, 10, 0.4, 7], [5, -5, 8, 2.8, 8, 0.2, 5], [16, -9, 12, 4, 9, 1.8, 6],
-  [-26, -18, 14, 5, 10, 0.3, 7], [-10, -21, 10, 4.7, 8, 1.6, 6], [9, -25, 14, 4, 11, 2.2, 7],
-  [30, -28, 14, 5.2, 10, 0.7, 7], [-22, -38, 13, 4.7, 13, 1.5, 6], [1, -39, 12, 4, 11, 0.8, 7],
-  [17, -48, 15, 4.8, 12, 1.4, 7], [-40, -46, 15, 5, 11, 0.5, 7], [-10, -57, 15, 4.8, 12, 2.9, 7],
-  [34, -58, 13, 5, 10, 0.8, 6], [3, -71, 16, 5.5, 12, 2.5, 7], [-30, -73, 15, 5, 12, 0.3, 7],
+  [-5.4, 13, 9, 4, 8, 0.6, 10], [7.2, 8, 9, 3.7, 8, 1.1, 11],
+  [-7.1, 1, 10, 5, 9, 0.4, 13], [7.5, -4, 11, 4.5, 10, 0.2, 13],
+  [-14, 3, 12, 5.5, 10, 0.7, 12], [15, 0, 13, 5, 10, 1.8, 12],
+  [-8, -14, 13, 6.8, 11, 1.6, 14], [9.5, -19, 14, 5.8, 12, 2.2, 15],
+  [-19, -12, 13, 5, 11, 0.3, 11], [21, -15, 14, 5.2, 11, 0.7, 11],
+  [-13, -29, 13, 5.2, 12, 1.5, 13], [9, -38, 14, 5.3, 13, 0.8, 12],
+  [-25, -27, 15, 5, 12, 0.5, 9], [26, -33, 14, 5.3, 13, 1.4, 9],
+  [-14, -46, 15, 5.5, 13, 2.9, 9], [6, -57, 15, 5.1, 12, 0.8, 9],
+  [-19, 8, 13, 5.2, 12, 0.3, 8], [19, 5, 14, 5, 11, 1.4, 8],
+  [-9, -69, 15, 5.2, 14, 0.5, 7], [9, -76, 16, 5.5, 13, 2.5, 7],
 ]
 
 export const LANDSCAPES = {
@@ -661,7 +666,7 @@ export const LANDSCAPES = {
     scatter: { count: 37, seed: 488, xMin: -56, xMax: 56, zMin: -94, zMax: 13, width: [1.2, 6.5], height: [0.6, 2.8] },
     kelp: {
       seed: 8117,
-      height: [0.57, 0.99], // Fraction of the water column above each rocky holdfast.
+      height: [0.62, 0.99], // Fraction of the water column above each rocky holdfast.
       beds: KELP_BEDS.map(([x, z, w, , d, , count]) => [x, z, Math.min(w, d) * 0.38, count]),
       // Self-contained GLBs. Either slot can be replaced independently (docs/kelp-forest.md).
       stemModel: null,

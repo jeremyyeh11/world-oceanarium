@@ -2,8 +2,9 @@
 
 The first preview is a rocky Monterey Bay habitat at 0–15 m. It uses giant kelp
 (*Macrocystis pyrifera*) as its reference: stipes are anchored to rock, with
-gas floats and blades along their length. The bed layout leaves open swimming
-lanes. [Monterey Bay Aquarium](https://www.montereybayaquarium.org/animals-the-ocean/ecosystems/kelp-forest)
+gas floats and blades along their length. From the low resting camera, staggered
+beds on both sides frame an open channel of green water. Near beds reach into the
+phone crop, and outer beds fill the wider view. [Monterey Bay Aquarium](https://www.montereybayaquarium.org/animals-the-ocean/ecosystems/kelp-forest)
 and [NOAA Monterey Bay National Marine Sanctuary](https://montereybay.noaa.gov/science/characterization/kelp-forests.html).
 
 ## Motion and contact

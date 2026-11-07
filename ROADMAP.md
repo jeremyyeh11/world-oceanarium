@@ -15,9 +15,10 @@ Status labels:
 
 ### The Kelp Forest reserve
 
-Status: `Current in development` — `v0.51.0-dev_1` · [Kelp motion and asset contract](docs/kelp-forest.md).
+Status: `Current in development` — `v0.51.0-dev_2` · [Kelp motion and asset contract](docs/kelp-forest.md).
 
 - [x] Set up a temperate eastern Pacific habitat with rocky beds of giant kelp, simulated stipes and blades, and one-way contact in Diver mode.
+- [x] Thicken the side beds, frame a clear middle channel from the resting camera, and grade the water greener against Jeremy's reference.
 - [ ] Replace the starter blade card and repeated stipe segment with Jeremy's assets. Refresh the selector still once the art is accepted.
 - [ ] Review contact and frame time on a physical phone. Choose a roster, add its species to the fish queue, and update the descent when stocking is planned.
 

@@ -13,6 +13,14 @@ Status labels:
 
 ## Current work
 
+### The Kelp Forest reserve
+
+Status: `Current in development` — `v0.51.0-dev_1` · [Kelp motion and asset contract](docs/kelp-forest.md).
+
+- [x] Set up a temperate eastern Pacific habitat with rocky beds of giant kelp, simulated stipes and blades, and one-way contact in Diver mode.
+- [ ] Replace the starter blade card and repeated stipe segment with Jeremy's assets. Refresh the selector still once the art is accepted.
+- [ ] Review contact and frame time on a physical phone. Choose a roster, add its species to the fish queue, and update the descent when stocking is planned.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

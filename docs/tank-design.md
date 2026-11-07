@@ -291,6 +291,8 @@ tank on a compatible tempo, or the dev guard will warn.
 
 ### New reserve checklist
 
+For The Kelp Forest's placement, motion, and replaceable meshes, see [The Kelp Forest](kelp-forest.md).
+
 Everything a new tank needs before it ships as a reserve. Species-level work (models,
 motion, Atlas) has its own list in `docs/new-species-checklist.md`; this is the reserve
 around them.

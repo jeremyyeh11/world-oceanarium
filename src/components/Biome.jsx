@@ -109,7 +109,7 @@ function groupFollowersForCreatures(creatures) {
   return followers
 }
 
-export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugInspectorEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
+export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0, selectedCreatureId, zoomActive, diverActive = false, debugSunBaskRequestId = 0, soloRuntimeRecoveryEnabled = true, hideSelectionSilhouette = false, debug = false, debugView = 'all', debugLayers = null, debugLodView = false, debugStatsEnabled = false, debugInspectorEnabled = false, debugSimulationSpeed = 1, onCreatureClick, onCreatureReady, onRuntimeRecoveryNeeded }) {
   // Retire failed target geometry only after this scene has actually unmounted.
   useLayoutEffect(() => tank?.id ? environmentLoader.retainScene(tank.id) : undefined, [tank?.id])
   const visibleCreatures = useMemo(
@@ -167,7 +167,7 @@ export default function Biome({ name, tank = null, creatures, tankVisitSeed = 0,
 
   return (
     <group>
-      <Environment biome={name} landscape={landscapeForTank(tank)} environmentId={tank?.id} debugLodView={debugLodView} />
+      <Environment biome={name} landscape={landscapeForTank(tank)} environmentId={tank?.id} debugLodView={debugLodView} diverActive={diverActive} />
       {name === 'ocean' && <OceanBubbles />}
       {ENABLE_SARDINE_INSTANCED_LAYER && name === 'ocean' && <SardineInstancedLayer debugLodView={debugLodView} debugStatsEnabled={debugStatsEnabled} />}
       {visibleCreatures.map(creature => {

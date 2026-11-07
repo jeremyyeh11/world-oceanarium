@@ -260,6 +260,19 @@ export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY:
 // 2026-10-25); the animals' swim wedges are sized to stay outside a 21:9 frame.
 export const SHALLOWS_VIEW = { fov: 58, x: 0, y: -24, z: 24, lookX: 0, lookY: -14.3, maxStageAspect: 21 / 9 }
 
+export const KELP_FOREST_VIEW = { fov: 55, x: 0, y: -24, z: 22, lookX: 0, lookY: -18, maxStageAspect: 21 / 9 }
+
+// [x, z, rock width, rock height, rock depth, yaw, number of stipes]. Gaps between the
+// patches form lanes the diver can swim down. The nearest clumps frame the opening view.
+const KELP_BEDS = [
+  [-7, 13, 8, 3.5, 8, 0.6, 5], [8, 8, 9, 3.1, 7, 1.1, 5],
+  [-13, -2, 13, 5, 10, 0.4, 7], [5, -5, 8, 2.8, 8, 0.2, 5], [16, -9, 12, 4, 9, 1.8, 6],
+  [-26, -18, 14, 5, 10, 0.3, 7], [-10, -21, 10, 4.7, 8, 1.6, 6], [9, -25, 14, 4, 11, 2.2, 7],
+  [30, -28, 14, 5.2, 10, 0.7, 7], [-22, -38, 13, 4.7, 13, 1.5, 6], [1, -39, 12, 4, 11, 0.8, 7],
+  [17, -48, 15, 4.8, 12, 1.4, 7], [-40, -46, 15, 5, 11, 0.5, 7], [-10, -57, 15, 4.8, 12, 2.9, 7],
+  [34, -58, 13, 5, 10, 0.8, 6], [3, -71, 16, 5.5, 12, 2.5, 7], [-30, -73, 15, 5, 12, 0.3, 7],
+]
+
 export const LANDSCAPES = {
   reefs: {
     view: REEFS_VIEW,
@@ -633,6 +646,27 @@ export const LANDSCAPES = {
     ],
     // Pebbles of the same rock around the cluster.
     rubble: { count: 40, seed: 9131, xMin: -42, xMax: -12, zMin: -30, zMax: 0, sizeMin: 0.4, sizeMax: 1.1 },
+  },
+  kelpForest: {
+    view: KELP_FOREST_VIEW,
+    kit: LIMESTONE_KIT,
+    floorY: -54,
+    floorColor: '#676252',
+    floorRelief: 1.9,
+    maxTop: -43,
+    topJitter: 2,
+    clearance: { side: 70, back: -90, front: 26, floorTop: -44, outcropFront: 26 },
+    rockShade: { tone: 0.58, top: 0.92, underside: 0.47, low: 0.62, lowY: -54, highY: -47 },
+    rocks: KELP_BEDS.map(([x, z, w, h, d, yaw], i) => ['ledge', x, z, w, h, d, yaw, 7240 + i]),
+    scatter: { count: 37, seed: 488, xMin: -56, xMax: 56, zMin: -94, zMax: 13, width: [1.2, 6.5], height: [0.6, 2.8] },
+    kelp: {
+      seed: 8117,
+      height: [0.57, 0.99], // Fraction of the water column above each rocky holdfast.
+      beds: KELP_BEDS.map(([x, z, w, , d, , count]) => [x, z, Math.min(w, d) * 0.38, count]),
+      // Self-contained GLBs. Either slot can be replaced independently (docs/kelp-forest.md).
+      stemModel: null,
+      bladeModel: null,
+    },
   },
 }
 

@@ -75,7 +75,7 @@ function useSources(kind, urls) {
 
 // Owned source cache shared by tanks and Atlas. Consumers lease originals; clones remain local.
 export function useEnvironmentGLTF(url) {
-  return useSources('gltf', [url])[0]
+  return useSources('gltf', url ? [url] : [])[0]
 }
 
 export function useEnvironmentTextures(input) {

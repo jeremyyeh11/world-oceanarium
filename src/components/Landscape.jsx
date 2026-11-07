@@ -20,6 +20,7 @@ import { inClam, measureClam, placeGiantClams } from './giantClamPlacement'
 import { applyCaustics, causticsCacheKey } from '../utils/caustics'
 import { addSwayAttributes, applyCoralSway, useSwayClock } from '../utils/coralSway'
 import { installLodDebug, tagLodGeometry } from '../utils/lodDebug'
+import KelpForest from './KelpForest'
 
 // Rocks for a tank landscape (src/data/landscapes.js), kitbashed from the landscape's kit of
 // modelled rocks. Every piece and rubble chunk is transformed, given fresh UVs and baked into
@@ -1229,7 +1230,7 @@ function builtLandscape(landscape, gltf, rocks) {
   return result
 }
 
-export default function Landscape({ landscape, environmentId, debugLodView = false }) {
+export default function Landscape({ landscape, environmentId, debugLodView = false, diverActive = false }) {
   const { kit } = landscape
   const gltf = useGLTF(kit.path)
   const textures = useTexture(kit.textures)
@@ -1276,6 +1277,7 @@ export default function Landscape({ landscape, environmentId, debugLodView = fal
   return (
     <group>
       {chunks.map(chunk => <mesh key={chunk.key} geometry={chunk.geometry} material={material} />)}
+      {landscape.kelp && <KelpForest landscape={landscape} rocks={sightRocks} diverActive={diverActive} />}
       {landscape.corals && (
         <Suspense fallback={null}>
           <Corals landscape={landscape} coralRocks={coralRocks} sightRocks={sightRocks} environmentId={environmentId} debugLodView={debugLodView} />

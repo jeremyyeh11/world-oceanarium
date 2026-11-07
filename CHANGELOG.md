@@ -8,6 +8,14 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.51.0 — The Kelp Forest
+
+Status: in development on `feat/kelp-forest`.
+
+### Environment
+
+- The Kelp Forest opens for habitat review. Dense banks of giant kelp frame an open channel of green water. The thicker, rock-anchored stipes bend in sections as the swell travels up them, and their blades flex independently. Passing fish or the diver can brush the kelp aside. The stipe segment and blade card are separate, replaceable assets.
+
 ## v0.50.0 — East Pacific Green Turtle and seagrass
 
 Status: clean `v0.50.0` (2026-11-05), accepted from `v0.50.0-dev_5`,

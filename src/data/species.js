@@ -1,5 +1,5 @@
 import { RIDE_ANCHORS } from './rideAnchors.js'
-import { GIANT_CLAM_MANTLE_SWAY, LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
+import { GIANT_CLAM_MANTLE_SWAY, KELP_FOREST_VIEW, LEATHER_CORAL_SWAY, REEFS_VIEW, SEA_FAN_SWAY, SHALLOWS_VIEW } from './landscapes.js'
 
 export const WORLD_UNIT_METERS = 0.25
 
@@ -274,6 +274,35 @@ export const TANKS = [
     landscape: 'shallows',
     camera: SHALLOWS_VIEW,
     species: ['mobula-munkiana', 'mobula-birostris', 'gnathanodon-speciosus', 'remora-albescens', 'chelonia-mydas'],
+  },
+  {
+    id: 'kelp-forest',
+    name: 'The Kelp Forest',
+    tagline: 'Giant kelp in the Pacific swell',
+    description: 'A rocky Monterey Bay reserve where thick stands of giant kelp frame a channel of green water.',
+    biome: 'ocean',
+    depthZone: 'epipelagic',
+    depthMeters: [0, 15], // 58.6 WU from the surface to the mean seabed, about 14.7 m.
+    cardImage: '/reserves/kelp-forest.webp',
+    descent: {
+      scenery: [
+        { sprite: 'giant-kelp', depth: 4, side: 'right', dx: 17, distance: 0.45 },
+        { sprite: 'giant-kelp', depth: 8, side: 'left', flip: true, distance: 0.1 },
+        { sprite: 'giant-kelp', depth: 12, side: 'right', distance: 0.15 },
+      ],
+    },
+    seed: 8117,
+    lighting: {
+      envTop: '#cde3bf', envHorizon: '#3d7555', envDeep: '#183a2a',
+      fog: '#377751', density: 0.021, exposure: 1.1,
+      hemiSky: '#d5e7c7', hemiGround: '#516e59', key: '#fff0ce', fill: '#629574',
+      backgroundStops: [[0, '#c1e3bf'], [0.3, '#6fb481'], [0.52, '#358153'], [0.75, '#225a3f'], [1, '#1b4533']],
+      heightFog: { low: '#306444', high: '#8ec495', yLow: -54, yHigh: 4.6, strength: 0.8, seabedLight: 0.82 },
+      surfaceColor: '#b9dcad', surfaceAttenuationColor: '#82b992', backgroundBeamAlpha: 0.28,
+    },
+    landscape: 'kelpForest',
+    camera: KELP_FOREST_VIEW,
+    species: [], // Habitat preview. Stocking gets its own roster review.
   },
 ]
 

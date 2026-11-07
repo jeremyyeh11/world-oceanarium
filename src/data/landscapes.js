@@ -260,6 +260,24 @@ export const REEFS_VIEW = { fov: 42, x: 12, y: -9.8, z: 25.2, lookX: 7.8, lookY:
 // 2026-10-25); the animals' swim wedges are sized to stay outside a 21:9 frame.
 export const SHALLOWS_VIEW = { fov: 58, x: 0, y: -24, z: 24, lookX: 0, lookY: -14.3, maxStageAspect: 21 / 9 }
 
+// Look up from near the rock bases so the side beds frame the water column in portrait too.
+export const KELP_FOREST_VIEW = { fov: 55, x: 0, y: -41, z: 22, lookX: 0, lookY: -37, maxStageAspect: 21 / 9 }
+
+// [x, z, rock width, rock height, rock depth, yaw, number of stipes]. Overlapping rows on
+// each side frame a clear channel. The inner beds sit close enough to read in the phone crop.
+const KELP_BEDS = [
+  [-5.4, 13, 9, 4, 8, 0.6, 10], [7.2, 8, 9, 3.7, 8, 1.1, 11],
+  [-7.1, 1, 10, 5, 9, 0.4, 13], [7.5, -4, 11, 4.5, 10, 0.2, 13],
+  [-14, 3, 12, 5.5, 10, 0.7, 12], [15, 0, 13, 5, 10, 1.8, 12],
+  [-8, -14, 13, 6.8, 11, 1.6, 14], [9.5, -19, 14, 5.8, 12, 2.2, 15],
+  [-19, -12, 13, 5, 11, 0.3, 11], [21, -15, 14, 5.2, 11, 0.7, 11],
+  [-13, -29, 13, 5.2, 12, 1.5, 13], [9, -38, 14, 5.3, 13, 0.8, 12],
+  [-25, -27, 15, 5, 12, 0.5, 9], [26, -33, 14, 5.3, 13, 1.4, 9],
+  [-14, -46, 15, 5.5, 13, 2.9, 9], [6, -57, 15, 5.1, 12, 0.8, 9],
+  [-19, 8, 13, 5.2, 12, 0.3, 8], [19, 5, 14, 5, 11, 1.4, 8],
+  [-9, -69, 15, 5.2, 14, 0.5, 7], [9, -76, 16, 5.5, 13, 2.5, 7],
+]
+
 export const LANDSCAPES = {
   reefs: {
     view: REEFS_VIEW,
@@ -633,6 +651,27 @@ export const LANDSCAPES = {
     ],
     // Pebbles of the same rock around the cluster.
     rubble: { count: 40, seed: 9131, xMin: -42, xMax: -12, zMin: -30, zMax: 0, sizeMin: 0.4, sizeMax: 1.1 },
+  },
+  kelpForest: {
+    view: KELP_FOREST_VIEW,
+    kit: LIMESTONE_KIT,
+    floorY: -54,
+    floorColor: '#676252',
+    floorRelief: 1.9,
+    maxTop: -43,
+    topJitter: 2,
+    clearance: { side: 70, back: -90, front: 26, floorTop: -44, outcropFront: 26 },
+    rockShade: { tone: 0.58, top: 0.92, underside: 0.47, low: 0.62, lowY: -54, highY: -47 },
+    rocks: KELP_BEDS.map(([x, z, w, h, d, yaw], i) => ['ledge', x, z, w, h, d, yaw, 7240 + i]),
+    scatter: { count: 37, seed: 488, xMin: -56, xMax: 56, zMin: -94, zMax: 13, width: [1.2, 6.5], height: [0.6, 2.8] },
+    kelp: {
+      seed: 8117,
+      height: [0.62, 0.99], // Fraction of the water column above each rocky holdfast.
+      beds: KELP_BEDS.map(([x, z, w, , d, , count]) => [x, z, Math.min(w, d) * 0.38, count]),
+      // Self-contained GLBs. Either slot can be replaced independently (docs/kelp-forest.md).
+      stemModel: null,
+      bladeModel: null,
+    },
   },
 }
 

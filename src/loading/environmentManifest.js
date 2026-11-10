@@ -27,6 +27,7 @@ export function createEnvironmentManifests(tanks = TANKS, species = SPECIES, lan
     // Sardine LODs are source assets too; the active ocean instancer mounts them independently.
     if (tank.biome === 'ocean') for (const level of [1, 2]) add('gltf', `/models/fish/sardine/sardine_LOD${level}.glb`)
     const landscape = landscapeOf(tank)
+    for (const path of [landscape?.kelp?.stemModel, landscape?.kelp?.bladeModel]) if (path) add('gltf', path)
     if (landscape?.kit) {
       add('gltf', landscape.kit.path)
       for (const url of Object.values(landscape.kit.textures)) add('texture', url)

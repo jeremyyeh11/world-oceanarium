@@ -797,6 +797,7 @@ export default function TankView({ biome, tank = null, creatures, creatureDataLo
             tankVisitSeed={tankVisitSeed}
             selectedCreatureId={selectedCreature?.id}
             zoomActive={zoomActive || diverMode}
+            diverActive={diverMode}
             debugSunBaskRequestId={debugSunBaskRequestId}
             soloRuntimeRecoveryEnabled={!zoomActive && defaultCameraSettled}
             hideSelectionSilhouette={screenshotMode}

@@ -202,6 +202,25 @@ const SPRITES = {
     '....uu......',
     '....uu......',
   ],
+  'giant-kelp': [
+    '.......h....',
+    '.....hhh.h..',
+    '...hh.Hhhh..',
+    '....hHHh....',
+    '..hhhH.hhh..',
+    '...hHHhh....',
+    '.....H......',
+    '..hhhHhhh...',
+    '...hhH.hh...',
+    '......H.....',
+    '....hhHhhh..',
+    '.....hH.h...',
+    '.......H....',
+    '.....hhHh...',
+    '.......H....',
+    '.......H....',
+    '......HHH...',
+  ],
 }
 
 // Each sprite as { width, height, runs }, runs being [x, y, length, colour] merged along

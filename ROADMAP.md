@@ -15,7 +15,8 @@ Status labels:
 
 ### Release audit follow-ups
 
-Status: `Current in development` — `v0.50.1-dev_1`, branch `fix/audit-follow-ups`.
+Status: `Current in development` — `v0.50.1-dev_1`, branch `fix/audit-follow-ups`,
+[PR #203](https://github.com/jeremyyeh11/world-oceanarium/pull/203).
 Read-only audit of releases after `v0.40.0` through main `4e31182` completed on 2026-11-10.
 Jeremy approved all four fixes, the merged #202 remote-branch deletion and missing-description backfill.
 
@@ -25,7 +26,7 @@ Jeremy approved all four fixes, the merged #202 remote-branch deletion and missi
 - [x] Filled blank descriptions on 158 production devil rays (IDs 524–681) and 29 development fish on 2026-11-10. Both tables have zero living rows with blank descriptions; counts remain 843/838. Before/after snapshots and full comparisons confirm only the approved description fields changed. See `docs/species-preparation.md` and CHANGELOG.
 - [x] Delete the merged `docs/turtle-production-stocking` remote branch after checking its tip still matches #202.
 - [x] Build, lint and full tests passed; independent review verified the fixes and both complete data comparisons.
-- [ ] Preview deployment and clean promotion; clean promotion awaits acceptance.
+- [ ] Accept the preview in #203 and promote to a clean release; implementation and data repair are complete.
 
 ### Yellowfin Tuna follow-ups
 

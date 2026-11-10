@@ -10,7 +10,8 @@ Versioning convention notes:
 
 ## v0.50.1 — Release audit follow-ups
 
-Status: review `v0.50.1-dev_1` (2026-11-10), branch `fix/audit-follow-ups`.
+Status: review `v0.50.1-dev_1` (2026-11-10), branch `fix/audit-follow-ups`,
+[PR #203](https://github.com/jeremyyeh11/world-oceanarium/pull/203).
 Fixes approved after the audit of `v0.40.0` through main `4e31182`; clean promotion remains pending.
 
 ### Data and backup verification

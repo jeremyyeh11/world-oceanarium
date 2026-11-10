@@ -4861,9 +4861,10 @@ export const SPECIES = [
   },
   // Cauliflower Coral (Pocillopora meandrina): Jeremy's pick (2026-11-01) for the next coral on The
   // Reefs (docs/fish-queue.md), a small branching hard coral. A landscape species like the other
-  // corals: small bushes on the table corals' bommies' tops and upper shoulders, singly or in loose
-  // groups (landscapes.js `cauliflowerCorals`, src/components/cauliflowerCoralPlacement.js), a
-  // `thicket` to the reef fish (docs/reef-behavior.md, Coral forms). Jeremy's model (2026-11-01):
+  // corals: small bushes on the table corals' bommies and on rock ledges seen by the resting camera
+  // (landscapes.js `cauliflowerCorals`, src/components/cauliflowerCoralPlacement.js). Colonies near
+  // a bommie share its `thicket` site, while isolated front colonies each form their own
+  // (docs/reef-behavior.md, Coral forms). Jeremy's model (2026-11-01):
   // three displaced, photo-projected bushes, baked by scripts/build-cauliflower-coral-kit.py; the
   // Atlas shows all three on a small rock (scripts/build-cauliflower-coral-atlas.py).
   // Facts: SeaLifeBase (IUCN EN, assessed 27 October 2023, A3ce; shallow reefs, exposed reef
@@ -5140,7 +5141,7 @@ export const SPECIES = [
   },
   // --- East Pacific green turtle (Cheloniidae) -----------------------------------------------
   // The green turtle's East Pacific subpopulation ("black turtle", C. m. agassizii of older
-  // works), planned for The Shallows (ROADMAP, Jeremy 2026-10-23). Facts from the Colola nesting
+  // works), in The Shallows. Facts from the Colola nesting
   // studies (Cutzi et al. 2023, Delgado-Trejo et al. 2024, Alvarado-Díaz et al. 2003), Turner
   // Tomaszewicz et al. 2022 (ages), Seminoff et al. 2003 (Baja foraging ground), NOAA Fisheries
   // and USFWS. Swims on foil-flap (docs/procedural/foil-flap.md, approved 2026-10-31). Jeremy's
@@ -5216,7 +5217,6 @@ export const SPECIES = [
     // the largest turtle at the Baja foraging ground (100 cm, Seminoff et al. 2003).
     adultLengthRangeMeters: [0.61, 1.0],
     maxBodyLengthMeters: 1.0,
-    // In-tank Atlas tile still pending visual capture; tracked in ROADMAP.
     // Adults 65–90 cm straight shell (2.6–3.6 WU). The stocked females have 77 and 81 cm shells.
     sizeRange: [0.65, 0.9],
     // Shell length (cm) cubed to grams: Seminoff et al. 2003's mean turtle (74.3 cm, 61.5 kg)

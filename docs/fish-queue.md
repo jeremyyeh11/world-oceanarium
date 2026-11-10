@@ -42,7 +42,7 @@ Oldest first ([species-preparation.md](species-preparation.md)).
 28. **Toadstool Leather Coral** (`sarcophyton-glaucum`): `v0.47.0` (#184), The Reefs; renamed from Leather Coral in `v0.49.1`.
 29. **Spearfish Remora** (`remora-brachyptera`): `v0.48.0` (#178), The Reefs.
 30. **Giant Clam** (`tridacna-gigas`): `v0.49.0` (#180), The Reefs.
-31. **East Pacific Green Turtle** (`chelonia-mydas`): `v0.50.0` (#181), The Shallows reserve support and Atlas; production stocking and male remain deferred.
+31. **East Pacific Green Turtle** (`chelonia-mydas`): `v0.50.0` (#181), The Shallows reserve support and Atlas. Two adult females were stocked in production on 2026-11-10 (#202). The male remains deferred.
 
 ## Up next
 

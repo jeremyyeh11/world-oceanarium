@@ -8,6 +8,38 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.50.1 — Release audit follow-ups
+
+Status: clean `v0.50.1` (2026-11-10), accepted from `v0.50.1-dev_1`, branch `fix/audit-follow-ups`,
+[PR #203](https://github.com/jeremyyeh11/world-oceanarium/pull/203).
+Fixes approved after the audit of `v0.40.0` through main `4e31182`; Jeremy approved clean promotion and merge on 2026-11-10.
+
+### Data and backup verification
+
+- Filled blank individual descriptions only: 158 production Munk's Devil Rays (IDs 524–681)
+  and 29 development fish (24 Emperor Angelfish, 3 Clown Triggerfish, 2 Whitefin Sharksuckers).
+  Each sentence uses the animal's existing size/life stage and recorded species facts.
+  Production remains 843 rows, development 838; all living rows in both tables now have descriptions.
+  Full anonymous REST snapshots and `npm run backup:creatures` ran before and after.
+  Full comparisons verified exactly 158/29 description changes, no other field changes and no
+  additions or removals. The guarded transaction required every targeted row to match its snapshot.
+- Backup baseline selection and retention now accept only regular files with valid canonical UTC
+  timestamps for the intended production history. Development/manual snapshots no longer become
+  baselines or displace production retention. The regression recreates the mixed-history failure
+  and verifies the correct two-addition diff and preservation of unrelated files. Existing audit
+  evidence was preserved; this session's backups use a separate worktree history.
+
+### Release records and verification
+
+- The next visitor bucket records the juvenile manta's production arrival, the previously queued
+  turtle stocking and the newly completed devil-ray descriptions. The bucket moves from the
+  placeholder `v0.51.0` to this next patch release.
+- Corrected the turtle's stocked status and captured tile, the manta's ride anchors, turtle escort
+  availability, front-ledged cauliflower colonies and separate reef sites, and the implemented
+  procedural-type count. The cauliflower placement test now runs in `npm test` and CI.
+- Shared rules require new regressions in the normal CI command and table-specific backup history.
+  Deleted the merged #202 remote branch on Jeremy's explicit approval after checking its head.
+
 ## v0.50.0 — East Pacific Green Turtle and seagrass
 
 Status: clean `v0.50.0` (2026-11-05), accepted from `v0.50.0-dev_5`,

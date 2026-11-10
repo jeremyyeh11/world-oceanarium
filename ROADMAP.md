@@ -123,7 +123,7 @@ Explicitly rejected — do not re-propose:
 
 ### Procedural animation doc set
 
-Status: `Current in development` — hub and the two implemented type contracts are written; five type docs are unvalidated sketches awaiting their first asset.
+Status: `Current in development` — hub and four implemented type contracts are written. Three proposed type docs await their first asset.
 
 Reference:
 - Gate: [`scripts/verify-procedural-docs.mjs`](scripts/verify-procedural-docs.mjs) — doc coverage for every shipping procedural type.
@@ -422,8 +422,7 @@ Status: shipped in clean `v0.42.0` (2026-10-30, PR #174), from `v0.42.0-dev_3`, 
   and after).
 - [x] The juvenile manta's production row: `creatures` 1460, as dev 1161 (3 m, male), written
   2026-11-01 once the live bundle served `v0.42.0` (826 → 827 rows; backups before and after).
-- [ ] Visitor changelog line for the juvenile manta in the next release bucket (a production
-  write visitors can see).
+- [x] Added the juvenile manta to the next visitor changelog bucket.
 
 ### Open Sea wider roaming
 
@@ -978,6 +977,22 @@ Revisit when a 3rd/4th tank lands — the inline pill does not scale past ~4. Fu
 - Data model already supports all phases (`tank.biome`, `tank.depthZone` are the grouping keys); only the navigation UI changes.
 
 ## Released / archived
+
+### Release audit follow-ups
+
+Status: shipped in clean `v0.50.1` (2026-11-10), accepted from `v0.50.1-dev_1`, branch `fix/audit-follow-ups`,
+[PR #203](https://github.com/jeremyyeh11/world-oceanarium/pull/203).
+Read-only audit of releases after `v0.40.0` through main `4e31182` completed on 2026-11-10.
+Jeremy approved all four fixes, the merged #202 remote-branch deletion and missing-description backfill.
+
+- [x] Add the juvenile manta's production arrival to the next visitor bucket and correct turtle, host, cauliflower and procedural documentation.
+- [x] Include the cauliflower placement regression in `npm test` and CI.
+- [x] Restrict backup baselines and retention to valid production history; mixed-table regression and independent review pass.
+- [x] Filled blank descriptions on 158 production devil rays (IDs 524–681) and 29 development fish on 2026-11-10. Both tables have zero living rows with blank descriptions; counts remain 843/838. Before/after snapshots and full comparisons confirm only the approved description fields changed. See `docs/species-preparation.md` and CHANGELOG.
+- [x] Delete the merged `docs/turtle-production-stocking` remote branch after checking its tip still matches #202.
+- [x] Build, lint and full tests passed; independent review verified the fixes and both complete data comparisons.
+- [x] Jeremy accepted #203 for clean promotion and merge on 2026-11-10.
+
 
 ### Landing species count
 

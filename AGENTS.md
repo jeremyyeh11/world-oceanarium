@@ -59,7 +59,7 @@ Important paths:
 - `src/components/staghornPlacement.js` — staghorn coral in one-colour patches on the table corals' bommies, placed after the tables and clear of their plates; drawn as one `THREE.LOD` per bommie. Each patch is one `thicket` reef-site surface (Landscape.jsx `thicketReefSurfaces`). Kit and Atlas specimen from `scripts/build-staghorn-kit.py` and `scripts/build-staghorn-atlas.py`
 - `src/components/seaFanPlacement.js` — giant sea fans growing from rock faces on the table corals' bommies and, singly, on other reef rocks, placed after the tables and before the staghorn (which keeps clear of them, `inFan`), broadside to the landscape's current; swaying via `src/utils/coralSway.js` (`docs/procedural/coral-sway.md`, which holds the model contract). Kit and Atlas specimen from `scripts/build-sea-fan-kit.py`
 - `src/components/brainCoralPlacement.js` — brain corals (*Platygyra daedalea*) as boulders on the ledges and at the feet of the table corals' bommies, placed after the tables and sea fans and before the staghorn (which keeps clear of them, `inMound`), each a `mound` to the reef fish. A colony is only spun about its vertical and leant a little, never turned over; the underside below its origin stays buried. Kit and Atlas specimen from `scripts/build-brain-coral-kit.py` (whose header holds the model contract) and `scripts/build-brain-coral-atlas.py`
-- `src/components/cauliflowerCoralPlacement.js` — cauliflower corals (*Pocillopora meandrina*) as small bushes on the tops and upper shoulders of the table corals' bommies, singly or in loose groups, never on the sand, placed after the brain corals and before the staghorn (which keeps clear of them, `inBush`); each bommie's bushes are one `thicket` to the reef fish (Landscape.jsx `bushReefSurfaces`). A colony's stalk below its neck is buried in the rock. Kit and Atlas specimen from `scripts/build-cauliflower-coral-kit.py` (whose header holds the model contract) and `scripts/build-cauliflower-coral-atlas.py`
+- `src/components/cauliflowerCoralPlacement.js` — cauliflower corals (*Pocillopora meandrina*) as small bushes on the tops and upper shoulders of the table corals' bommies and on visible front rock ledges, singly or in loose groups, never on the sand, placed after the brain corals and before the staghorn (which keeps clear of them, `inBush`); each bommie's bushes are one `thicket` to the reef fish, with a separate site for a front colony away from a bommie (Landscape.jsx `bushReefSurfaces`). A colony's stalk below its neck is buried in the rock. Kit and Atlas specimen from `scripts/build-cauliflower-coral-kit.py` (whose header holds the model contract) and `scripts/build-cauliflower-coral-atlas.py`
 - `src/components/leatherCoralPlacement.js` — leather corals (*Sarcophyton glaucum*) as toadstools on the low ledges and at the feet of the table corals' bommies, one colour a bommie, placed after the cauliflower corals and before the staghorn (which keeps clear of them, `inToadstool`); swaying along the current via `src/utils/coralSway.js` (`docs/procedural/coral-sway.md`, which holds the model contract). Toxic, so a `toadstool` to the reef fish: solid but never visited. Kit and Atlas specimen from `scripts/build-leather-coral-kit.py` and `scripts/build-leather-coral-atlas.py`
 - `src/version.js` — visible bottom-right version label
 - `CHANGELOG.md` — categorized release-bucket notes
@@ -144,6 +144,8 @@ To check a range of releases against these rules, use the audit procedure in `.c
 
 ## Validation
 
+Every new regression test must be included in the normal `npm test` / CI path in the same PR; running it manually alone is not enough.
+
 Before pushing code changes:
 
 ```bash
@@ -172,6 +174,7 @@ Vite chunk-size warnings are non-blocking if the build succeeds.
 - `creatures_dev` and `creatures` intentionally diverge. Do not sync/copy tables unless explicitly asked.
 - Clean production builds should not silently fall back to bundled creature fixtures when Supabase is empty.
 - Before direct Supabase creature writes, run `npm run backup:creatures`; verify after writes and back up again. It snapshots production `creatures` only, so snapshot `creatures_dev` yourself (anon REST read) before and after a dev write.
+- Keep development/manual snapshots outside production backup history. Baseline selection and retention must accept only valid, canonical UTC filenames for the intended table; compare the explicit before/after pair for a write, never an unrelated generated diff. Preserve historical evidence when repairing backup tooling.
 - Both tables share `creatures_id_seq`, which is far behind: insert with explicit ids, above that table's own `max(id)` (the same id in both tables is fine).
 - Every live row has its own `description`: one light sentence with a real detail. Write one for every new row, dev and production.
 - Bundled `CREATURES` fixtures load only when `creatures_dev` is empty, so a new species is invisible on a dev build until it has `creatures_dev` rows.

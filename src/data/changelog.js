@@ -8,10 +8,13 @@
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
   {
-    version: 'v0.51.0',
-    title: 'Turtles in The Shallows',
+    version: 'v0.50.1',
+    date: '2026-11-10',
+    title: 'Turtles and a young manta in The Shallows',
     changes: [
       ['new', 'Two East Pacific Green Turtles glide over the sand in The Shallows and rise to the surface to breathe.'],
+      ['new', 'A young giant oceanic manta, about 3 metres across, joins the adult in The Shallows.'],
+      ['fix', 'Filled in missing individual descriptions for the devil rays in The Shallows.'],
     ],
   },
   {

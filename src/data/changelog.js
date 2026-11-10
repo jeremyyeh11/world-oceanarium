@@ -9,6 +9,7 @@
 export const VISITOR_CHANGELOG = [
   {
     version: 'v0.50.1',
+    date: '2026-11-10',
     title: 'Turtles and a young manta in The Shallows',
     changes: [
       ['new', 'Two East Pacific Green Turtles glide over the sand in The Shallows and rise to the surface to breathe.'],

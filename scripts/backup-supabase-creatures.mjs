@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '..')
@@ -11,10 +11,9 @@ const envFileCandidates = [
   path.join(os.homedir(), '.secrets', 'world-oceanarium-supabase-test.env'),
 ].filter(Boolean)
 const backupRoot = path.join(repoRoot, '.supabase-creature-backups')
-const snapshotsDir = path.join(backupRoot, 'snapshots')
-const diffsDir = path.join(backupRoot, 'diffs')
 const KEEP_DIFFS = 10
 const KEEP_SNAPSHOTS = KEEP_DIFFS + 1
+const BACKUP_FILE_PATTERN = /^(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})-(\d{3})Z_(creatures|diff)\.json$/
 
 async function firstExistingEnvFile(candidates) {
   for (const candidate of candidates) {
@@ -96,10 +95,22 @@ async function fetchCreatures({ url, key }) {
   return canonicalRows(Array.isArray(rows) ? rows : [])
 }
 
-async function listJsonFiles(dir) {
+function isBackupFile(name, kind) {
+  const match = BACKUP_FILE_PATTERN.exec(name)
+  if (!match || match[6] !== kind) return false
+  const [, day, hours, minutes, seconds, milliseconds] = match
+  const iso = `${day}T${hours}:${minutes}:${seconds}.${milliseconds}Z`
+  const date = new Date(iso)
+  return Number.isFinite(date.valueOf()) && date.toISOString() === iso
+}
+
+async function listBackupFiles(dir, kind) {
   try {
-    return (await fs.readdir(dir))
-      .filter(file => file.endsWith('.json'))
+    // Fixed-width UTC filenames sort chronologically after filtering. Dev and
+    // manual backups can share the folder without affecting selection or retention.
+    return (await fs.readdir(dir, { withFileTypes: true }))
+      .filter(file => file.isFile() && isBackupFile(file.name, kind))
+      .map(file => file.name)
       .sort()
   } catch (error) {
     if (error.code === 'ENOENT') return []
@@ -130,30 +141,28 @@ function diffRows(previousRows, currentRows) {
   return { added, removed, changed }
 }
 
-async function prune(dir, keep) {
-  const files = await listJsonFiles(dir)
+async function prune(dir, kind, keep) {
+  const files = await listBackupFiles(dir, kind)
   const stale = files.slice(0, Math.max(0, files.length - keep))
   await Promise.all(stale.map(file => fs.unlink(path.join(dir, file))))
 }
 
-async function main() {
-  const options = parseArgs()
-  await loadEnvFile(options.envFile || await firstExistingEnvFile(envFileCandidates))
-  const config = resolveSupabaseConfig()
-  const rows = await fetchCreatures(config)
-
+export async function writeCreatureBackup(rows, root, now = new Date()) {
+  const snapshotsDir = path.join(root, 'snapshots')
+  const diffsDir = path.join(root, 'diffs')
   await fs.mkdir(snapshotsDir, { recursive: true })
   await fs.mkdir(diffsDir, { recursive: true })
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').replace('Z', 'Z')
-  const snapshots = await listJsonFiles(snapshotsDir)
+  const timestamp = now.toISOString().replace(/[:.]/g, '-').replace('T', '_')
+  const snapshots = await listBackupFiles(snapshotsDir, 'creatures')
   const previousSnapshot = snapshots.at(-1)
   const previousRows = previousSnapshot
     ? JSON.parse(await fs.readFile(path.join(snapshotsDir, previousSnapshot), 'utf8'))
     : []
 
   const snapshotFile = `${timestamp}_creatures.json`
-  await fs.writeFile(path.join(snapshotsDir, snapshotFile), `${JSON.stringify(rows, null, 2)}\n`)
+  const snapshotPath = path.join(snapshotsDir, snapshotFile)
+  await fs.writeFile(snapshotPath, `${JSON.stringify(rows, null, 2)}\n`)
 
   if (previousSnapshot) {
     const diff = diffRows(previousRows, rows)
@@ -172,15 +181,27 @@ async function main() {
     }, null, 2)}\n`)
   }
 
-  await prune(snapshotsDir, KEEP_SNAPSHOTS)
-  await prune(diffsDir, KEEP_DIFFS)
+  await prune(snapshotsDir, 'creatures', KEEP_SNAPSHOTS)
+  await prune(diffsDir, 'diff', KEEP_DIFFS)
 
-  console.log(`Backed up ${rows.length} creature rows to ${path.relative(repoRoot, path.join(snapshotsDir, snapshotFile))}`)
+  return { snapshotPath, previousSnapshot }
+}
+
+async function main() {
+  const options = parseArgs()
+  await loadEnvFile(options.envFile || await firstExistingEnvFile(envFileCandidates))
+  const config = resolveSupabaseConfig()
+  const rows = await fetchCreatures(config)
+  const { snapshotPath, previousSnapshot } = await writeCreatureBackup(rows, backupRoot)
+
+  console.log(`Backed up ${rows.length} creature rows to ${path.relative(repoRoot, snapshotPath)}`)
   if (previousSnapshot) console.log(`Recorded diff; keeping last ${KEEP_DIFFS} diffs.`)
   else console.log('Initial snapshot; diff starts on next backup.')
 }
 
-main().catch(error => {
-  console.error(error.message)
-  process.exit(1)
-})
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(error => {
+    console.error(error.message)
+    process.exitCode = 1
+  })
+}

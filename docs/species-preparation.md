@@ -6,6 +6,20 @@ draft behaviour data are in `src/data/species.js`; source credits are in
 not a second species database. [Fish queue](fish-queue.md) ·
 [Species checklist](new-species-checklist.md) · [Caudal-wave contract](procedural/caudal-wave.md).
 
+## Individual-description repair (2026-11-10, `v0.50.1-dev_1`)
+
+Jeremy approved filling the descriptions found missing by the release audit. Updated only
+blank `description` fields on 158 production Munk's Devil Rays (IDs 524–681), plus 29
+development fish: Emperor Angelfish (24), Clown Triggerfish (3) and Whitefin Sharksuckers (2).
+The sentences use existing species facts and each row's rendered size or life stage.
+The 218-ray production school is unchanged; total production/development counts stay
+843/838, with no living row missing its description in either table.
+
+Full snapshots of both tables and the production backup command ran before and after.
+Exact row comparisons confirmed 158/29 description changes only, no other field changes,
+no additions and no removals. The guarded transaction required each target to match its
+before snapshot; existing descriptions were preserved. This does not synchronize the tables.
+
 ## East Pacific Green Turtle — `chelonia-mydas` (prepared `v0.50.0-dev_1`, foil-flap `dev_2`, female model `dev_3`, dev reserve `dev_4`, shipped `v0.50.0`)
 
 Reserve: The Shallows (ROADMAP projected roster, Jeremy, 2026-10-23). Range check: East

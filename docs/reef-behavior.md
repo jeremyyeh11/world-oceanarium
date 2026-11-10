@@ -325,11 +325,12 @@ rock between colonies (aiming at the middle, most rays met rock or a table first
 - `inside`: a level ray at the colony's heart, kept only where the branch it met is within 0.65 of
   the colony's reach (it slipped in past the outer branches).
 
-The cauliflower corals (cauliflowerCoralPlacement.js) are a second row under `thicket`, not a
-new form: a bommie's 1 to 3 small bushes (15 to 35 cm) make one thicket surface, their `_lo` meshes
-merged (Landscape.jsx `bushReefSurfaces`), with each colony's foot, crown and reach in its meta, so
-the same crown, flank and inside aims apply. A bush is too small to shelter any fish but the
-smallest (`inside` needs a fish under 0.8 WU). No visit counts have been measured at them yet.
+Cauliflower coral bushes (15 to 35 cm) use the same `thicket` form. Colonies on or near a
+bommie share one thicket surface. Front colonies grow on rock ledges visible from the resting
+camera and get their own sites where no bommie is nearby (`cauliflowerCoralPlacement.js`).
+`bushReefSurfaces` in Landscape.jsx merges the `_lo` meshes within each site and records each
+colony's foot, crown and reach, so the same crown, flank and inside aims apply. The `inside`
+shelter search is limited to fish under 0.8 WU. No visit counts have been measured at them yet.
 
 Thin branch tips can slip between roomToTurn's eight level rays: one came within 0.09 body
 lengths of a bannerfish hanging over a crown. So a thicket spot also needs its room clear in 26

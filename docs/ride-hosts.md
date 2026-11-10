@@ -195,8 +195,9 @@ hitchhiker: {
   pilot fish's three fifths. Measured in the dev tank (2026-10-11): 2–5 of 12 bannerfish
   escorting at once while 11–15 of 18 pilot fish were.
 - The Golden Trevally (`gnathanodon-speciosus`, The Shallows, six since `v0.41.0`) follows
-  the giant manta, an escort-only host. A manta is wide, flat and flapping: its clearance ellipsoid
-  (radii 0.5 × 0.15 × 0.28 of the 7 m span) covers the body, head fins and the beat's heave,
+  the giant manta, which also carries white suckerfish on its belly. A manta is wide, flat
+  and flapping. Its clearance ellipsoid (radii 0.5 × 0.15 × 0.28 of the 7 m span) covers
+  the body, head fins and the beat's heave,
   but not the wingtips, which flap ±4 WU outside it. So the trevally's stations sit ahead of
   the head fins and under the front of the body (`along [-0.95, -0.4]`, `angleDegrees
   [-120, -60]`, `radius [1.2, 1.5]`), never level with a wing: sampled, they reach 7.4 WU
@@ -206,9 +207,10 @@ hitchhiker: {
   2–6 WU below and 1–8 WU ahead of the manta's middle, a few breaking off to roam.
   With Jeremy's model (`v0.41.0-dev_2`, 2026-10-29), all six were escorting within 30 s of
   the tank loading, 7–12 WU from the manta's centre.
-  From `v0.50.0-dev_4` it can also escort the two female green turtles in `creatures_dev`
-  (host group `turtle`, weight 0.8). Their clearance is measured from the female's rigid
-  mesh: center `[0, 0, -0.15]`, radii `[0.54, 0.25, 0.86]` in shell lengths. They have no
+  It can also escort the female green turtles (host group `turtle`, weight 0.8). There are
+  two in `creatures_dev` from `v0.50.0-dev_4` and two in production from 2026-11-10.
+  Their clearance is measured from the female's rigid mesh: center `[0, 0, -0.15]`, radii
+  `[0.54, 0.25, 0.86]` in shell lengths. They have no
   attachment anchors because no Shallows remora rides turtles. The existing trevally
   stations on this smaller, stroking host still need visual review; see ROADMAP.
 

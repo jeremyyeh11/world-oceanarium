@@ -13,7 +13,7 @@ Versioning convention notes:
 Status: clean `v0.50.0` (2026-11-05), accepted from `v0.50.0-dev_5`,
 branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181).
 Seagrass [PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199) merged into that branch first.
-Jeremy: "merge both to main". No production data writes: turtle stocking remains deferred.
+Jeremy: "merge both to main". The two production turtles were stocked separately on 2026-11-10.
 
 ### Environment
 
@@ -31,8 +31,11 @@ Jeremy: "merge both to main". No production data writes: turtle stocking remains
   the oldest aged turtle (credited), and an escort-only `rideHost` (`turtle`) measured from
   the female's rigid mesh. Added to The Shallows' roster. Two adult females in
   `creatures_dev` (IDs 1187–1188, 77/81 cm shell length, 2026-11-05); male deferred by
-  Jeremy. Dev rows 836 → 838; production remains 841 with no turtles. Both tables
+  Jeremy. Dev rows 836 → 838; production was 841 at that point. Both tables
   snapshotted before/after; every pre-existing row verified unchanged.
+- Production stocking (2026-11-10): two adult females in The Shallows, IDs 1484–1485,
+  with 77 and 81 cm shells. Production rose from 841 to 843 rows. The before and
+  after backups confirmed exactly two additions and no changes to earlier rows.
 - Jeremy's female turtle model in the Atlas, flippers joined and painted by
   `scripts/paint-foil-flap-masks.py`; her three photo textures credited in Sources.
 - Runtime-rendered, isolated three-quarter head tile captured from the dev reserve

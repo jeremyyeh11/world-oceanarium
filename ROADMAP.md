@@ -174,8 +174,8 @@ Status: shipped in clean `v0.50.0` (2026-11-05), accepted by Jeremy: "merge both
 
 Status: shipped in clean `v0.50.0` (2026-11-05), accepted from `dev_5`,
 [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181). Atlas model/tile and
-reserve support ship; the two females remain in dev only. Male and production stocking
-are deferred. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
+reserve support ship. Two adult females were stocked in production on 2026-11-10.
+The male remains on hold. Record: [`docs/species-preparation.md`](docs/species-preparation.md).
 
 - [x] Research, Atlas copy, Averages and Lifecycle; hidden entry, draft swim and escort-only `rideHost` (`turtle`); study credits; data test.
 - [x] `foil-flap` contract proposal: Blender contract, computed masks, config keys, review gates, why not `mask-fin-row`.
@@ -189,7 +189,8 @@ are deferred. Record: [`docs/species-preparation.md`](docs/species-preparation.m
 - [ ] Jeremy's male (the female with a longer tail) through the same script, in `sexVariants.male` — on hold by Jeremy, 2026-11-05; female preview first.
 - [x] Clearance from the female's rigid mesh: center `[0, 0, -0.15]`, radii `[0.54, 0.25, 0.86]` in shell lengths; all rigid vertices within normalized radius 0.905. Escort-only: no attachment anchors needed.
 - [x] `dev_4`: The Shallows roster, low goals y −24…−20, timed breathing visits, and shared foil clock with downstroke impulse-and-decay. Surfacing tests pass at 30/60/120 Hz; visual tuning remains.
-- [x] Two adult female `creatures_dev` rows (2026-11-05): IDs 1187–1188, sizes 0.48/0.64 → 77/81 cm shells. Dev 836 → 838; production 841 unchanged, no turtles. Before/after snapshots and full prior-row comparisons passed.
+- [x] Two adult female `creatures_dev` rows (2026-11-05): IDs 1187–1188, sizes 0.48/0.64 → 77/81 cm shells. Dev 836 → 838. Before/after snapshots and full prior-row comparisons passed.
+- [x] Two adult female production rows (2026-11-10): IDs 1484–1485, with the same 77 and 81 cm shell lengths. Production 841 → 843; both backups verified all earlier rows were identical.
 - [x] Headless desktop and phone-size reserve smoke checks include both dev turtles, with no console or shader errors.
 - [ ] Detailed trevally escort, follow framing and surface/body visual review; physical-phone frame time. `Backlog`
 - [x] Isolated runtime-rendered, left-facing three-quarter head tile captured from the dev reserve before clean promotion.

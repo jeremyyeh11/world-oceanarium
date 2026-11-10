@@ -41,11 +41,11 @@ Jeremy darkened the shell photo and made it more even (2026-11-05).
 Seen stroking and gliding in the Atlas, desktop and 375 px phone (the stand-in's pose framed
 her well on both).
 
-Current preview (`v0.50.0-dev_4`, Jeremy: "put her in first without the male. write dev db
+Development stocking (`v0.50.0-dev_4`, Jeremy: "put her in first without the male. write dev db
 rows", 2026-11-05): the female model is on The Shallows' roster. Two adult females were
 inserted into `creatures_dev`, IDs **1187–1188**, `size` **0.48/0.64** (77/81 cm straight
-shell, 3.08/3.24 WU), each with its own description. Dev 836 → 838; production remains
-841, with no turtle rows. Both tables were snapshotted before/after, the production backup
+shell, 3.08/3.24 WU), each with its own description. Dev 836 → 838. Both tables
+were snapshotted before/after, the production backup
 script ran successfully before/after, and full comparisons found every pre-existing row
 unchanged. No male rows or model; Jeremy put him on hold.
 
@@ -65,9 +65,13 @@ with no attachment anchors. The golden trevally already accepts `turtle` hosts a
 
 Clean release: Jeremy accepted both turtle and seagrass PRs on 2026-11-05 ("merge both
 to main"). Seagrass #199 was merged into turtle #181 before clean `v0.50.0` promotion.
-The female model and isolated, runtime-rendered head tile ship in the Atlas; reserve
-movement is available for the two existing dev females. Production remains unstocked
-for turtles; no production data write is part of this merge, and the male stays on hold.
+The female model and isolated, runtime-rendered head tile ship in the Atlas, with
+reserve movement for the two dev females. The male stays on hold.
+
+Production stocking (2026-11-10): Jeremy requested two turtles for The Shallows.
+Two adult females were added to `creatures`, IDs **1484–1485**, with `size` **0.48/0.64**
+and individual descriptions. Production rose from 841 to 843 rows. Comparing the
+before and after backups confirmed that all earlier rows were identical.
 
 Review limits: foil/thrust tests and capped-turn surfacing tests at 30/60/120 Hz pass.
 Headless desktop/phone-size reserve smoke checks, including the dev turtles and seagrass,

@@ -2,11 +2,18 @@
 // (constants, dev builds, measurements); this is the short version the version
 // label opens: new things to see and fixes they would notice, newest first.
 // Use clean release buckets; dev builds preview the upcoming clean release here.
-// Omit individual dev patch entries and database-only changes.
+// Omit individual dev patch entries and data changes visitors cannot see.
 // Releases that only touched tooling, code structure or data plumbing are left out.
 //
 // Each change is `new` (something to see or do) or `fix` (something that was wrong).
 export const VISITOR_CHANGELOG = [
+  {
+    version: 'v0.51.0',
+    title: 'Turtles in The Shallows',
+    changes: [
+      ['new', 'Two East Pacific Green Turtles glide over the sand in The Shallows and rise to the surface to breathe.'],
+    ],
+  },
   {
     version: 'v0.50.0',
     date: '2026-11-05',

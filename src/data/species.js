@@ -5145,8 +5145,8 @@ export const SPECIES = [
   // Tomaszewicz et al. 2022 (ages), Seminoff et al. 2003 (Baja foraging ground), NOAA Fisheries
   // and USFWS. Swims on foil-flap (docs/procedural/foil-flap.md, approved 2026-10-31). Jeremy's
   // female model ships in the Atlas in v0.50.0, with reserve support in The Shallows:
-  // two dev females, low passes, downstroke surges and breathing visits. Male and production
-  // rows remain deferred. The clean reserve has no turtles until separately stocked.
+  // low passes, downstroke surges and breathing visits. Two adult females are stocked in
+  // development and two in production (2026-11-10). The male remains on hold.
   {
     id: 'chelonia-mydas',
     atlasThumbnail: '/atlas/chelonia-mydas-thumbnail.png',
@@ -5217,8 +5217,7 @@ export const SPECIES = [
     adultLengthRangeMeters: [0.61, 1.0],
     maxBodyLengthMeters: 1.0,
     // In-tank Atlas tile still pending visual capture; tracked in ROADMAP.
-    // Adults 65–90 cm straight shell (2.6–3.6 WU). Two females first in creatures_dev;
-    // the male and production stocking are deferred (Jeremy, 2026-11-05).
+    // Adults 65–90 cm straight shell (2.6–3.6 WU). The stocked females have 77 and 81 cm shells.
     sizeRange: [0.65, 0.9],
     // Shell length (cm) cubed to grams: Seminoff et al. 2003's mean turtle (74.3 cm, 61.5 kg)
     // gives 0.15, which matches the weighed Colola males (67.5 cm, 45.7 kg; 46 kg from this).

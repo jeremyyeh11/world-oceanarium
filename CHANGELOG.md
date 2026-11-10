@@ -13,7 +13,8 @@ Versioning convention notes:
 Status: clean `v0.50.0` (2026-11-05), accepted from `v0.50.0-dev_5`,
 branch `species/chelonia-mydas`, [PR #181](https://github.com/jeremyyeh11/world-oceanarium/pull/181).
 Seagrass [PR #199](https://github.com/jeremyyeh11/world-oceanarium/pull/199) merged into that branch first.
-Jeremy: "merge both to main". The two production turtles were stocked separately on 2026-11-10.
+Jeremy: "merge both to main". The two production turtles were stocked separately on 2026-11-10
+([PR #202](https://github.com/jeremyyeh11/world-oceanarium/pull/202)).
 
 ### Environment
 

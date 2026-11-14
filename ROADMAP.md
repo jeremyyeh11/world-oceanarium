@@ -15,7 +15,7 @@ Status labels:
 
 ### Audio redesign
 
-Status: `Current in development` — `v0.51.0-dev_3`, branch `feat/audio-redesign`.
+Status: `Current in development` — `v0.51.0-dev_4`, branch `feat/audio-redesign`.
 [Plan, clip list and phases](docs/audio-redesign.md) · [Every clip and where it plays](docs/audio-clips.md).
 
 - [x] Phase 0: collect the clips (plan §3, §9) with a credits sheet: 91 clips from Freesound CC0 and
@@ -23,6 +23,7 @@ Status: `Current in development` — `v0.51.0-dev_3`, branch `feat/audio-redesig
 - [x] Wire the clips (`v0.51.0-dev_3`): event pools grunt, knock, click, bloop, bubble; recorded bed
   layers for The Reefs, Open Sea and The Shallows with loop points and lowered synth layers; Sounds
   credits in the Sources modal; `docs/audio-clips.md` generated from the catalog.
+- [x] No crackle and one underwater lowpass on all world sound (`v0.51.0-dev_4`, Jeremy): shrimp beds, procedural crackle and click events out; 1200 Hz 24 dB/oct on the world bus.
 - [ ] Recorded clips follow-ups (`v0.51.0-dev_3`): physical-phone listen of each reserve with the
   recordings (bed balance against the synth noise and rumble, event clip levels, never heard); listen
   to the loop seams of shallows-bubble-flow, shallows-surf and (before it is wired) descent-scuba;

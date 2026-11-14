@@ -31,6 +31,11 @@ const UI_SFX_MIN_GAP_SECONDS = 0.035
 // keeps only a 12 kHz guard. The SFX and UI tints copy the old master filter exactly, so
 // swims and clicks sound as before.
 const MASTER_LOWPASS_HZ = 12000
+// Everything heard "in the water" (beds, fish swims, events) shares one underwater lowpass
+// on the world bus, two flat biquads in series (24 dB/oct), so the whole mix sounds muffled
+// the way sound does underwater (Jeremy, v0.51.0-dev_4). UI clicks skip it and keep their
+// own 1600 Hz tint.
+const UNDERWATER_LOWPASS_HZ = 1200
 const LEGACY_TINT_HZ = 1600
 const LEGACY_TINT_Q = 0.36
 // Lowpass/highpass Q is in dB for BiquadFilterNode: -3.01 dB is a flat (Butterworth) knee.
@@ -557,7 +562,11 @@ function buildAudioGraph(context, profileId) {
 
   const overallAnalyser = connectAnalyser(context, masterGain, outputLowpass)
   outputLowpass.connect(context.destination)
-  worldBus.connect(masterGain)
+  const underwaterLowpass = createFilter(context, 'lowpass', UNDERWATER_LOWPASS_HZ, FLAT_Q_DB)
+  const underwaterLowpassSlope = createFilter(context, 'lowpass', UNDERWATER_LOWPASS_HZ, FLAT_Q_DB)
+  worldBus.connect(underwaterLowpass)
+  underwaterLowpass.connect(underwaterLowpassSlope)
+  underwaterLowpassSlope.connect(masterGain)
   const ambientAnalyser = connectAnalyser(context, bedBus, worldBus)
   const sfxAnalyser = connectAnalyser(context, sfxGain, sfxTint)
   sfxTint.connect(worldBus)

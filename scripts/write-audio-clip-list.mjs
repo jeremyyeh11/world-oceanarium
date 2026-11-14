@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { AMBIENCE_PROFILES, EVENT_ARCHETYPES } from '../src/audio/ambienceProfiles.js'
-import { clipUse, soundCredits } from '../src/audio/clipUses.js'
+import { clipUseFor, soundCredits } from '../src/audio/clipUses.js'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const CATALOG_PATH = join(ROOT, 'src', 'audio', 'clipCatalog.json')
@@ -57,7 +57,7 @@ function bedWhere(use, clip) {
 }
 
 function status(clip) {
-  const use = clipUse(clip.use)
+  const use = clipUseFor(clip)
   if (use.status === 'in use') return `**in use**: ${use.archetype ? eventWhere(use) : bedWhere(use, clip)}`
   if (use.status === 'existing') return `**existing**: ${use.where}`
   return `staged: ${use.where}`
@@ -88,14 +88,14 @@ function clipLine(clip) {
 function downloadSummary() {
   const lines = []
   for (const [id, profile] of Object.entries(AMBIENCE_PROFILES)) {
-    const beds = catalog.filter(clip => clipUse(clip.use).bed === id && clipUse(clip.use).status === 'in use')
+    const beds = catalog.filter(clip => clipUseFor(clip).bed === id && clipUseFor(clip).status === 'in use')
     const archetypes = Object.keys(profile.events?.rates ?? {})
     const events = catalog.filter(clip => {
-      const use = clipUse(clip.use)
+      const use = clipUseFor(clip)
       return use.status === 'in use' && use.archetype && archetypes.includes(use.archetype)
     })
     const bytes = [...beds, ...events].reduce((sum, clip) => sum + (clip.bytes?.webm ?? 0), 0)
-    const pools = [...new Set(events.map(clip => clipUse(clip.use).archetype))]
+    const pools = [...new Set(events.map(clip => clipUseFor(clip).archetype))]
     const parts = []
     if (beds.length) parts.push(`${beds.length} bed${beds.length > 1 ? 's' : ''}`)
     if (pools.length) parts.push(`event pools ${pools.join(', ')}`)
@@ -105,7 +105,7 @@ function downloadSummary() {
 }
 
 const counts = { 'in use': 0, staged: 0, existing: 0 }
-for (const clip of catalog) counts[clipUse(clip.use).status] += 1
+for (const clip of catalog) counts[clipUseFor(clip).status] += 1
 const recordings = soundCredits(catalog)
 
 const out = [

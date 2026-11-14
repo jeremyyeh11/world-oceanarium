@@ -36,7 +36,12 @@ export const CLIP_USES = {
   },
   grunt: { status: 'in use', archetype: 'grunt', label: 'Fish grunts', where: 'grunts, with call and response' },
   knock: { status: 'in use', archetype: 'knock', label: 'Fish knocks', where: 'knocks, with call and response' },
-  click: { status: 'in use', archetype: 'click', label: 'Shrimp snaps', where: 'single snaps' },
+  // Dropped in v0.51.0-dev_4: Jeremy didn't want crackle. Kept in public/audio, never fetched.
+  click: {
+    status: 'staged',
+    label: 'Shrimp snaps',
+    where: 'not played: crackle was dropped (Jeremy, v0.51.0-dev_4); kept in case',
+  },
   bloop: { status: 'in use', archetype: 'bloop', label: 'Bubbles', where: 'single bubbles' },
   bubble: { status: 'in use', archetype: 'bubble', label: 'Bubbles', where: 'bubble clusters' },
   'knock-train': {
@@ -80,21 +85,43 @@ export const CLIP_USES = {
   'ui:click': { status: 'existing', legacy: 'ui:click', label: 'Interface clicks', where: 'button clicks; unchanged' },
 }
 
+// Single clips taken out of an otherwise in-use `use`, by clip id: these fields replace the
+// use's own. The two snapping-shrimp beds left The Reefs in v0.51.0-dev_4 (Jeremy didn't
+// want crackle); Gray's Reef stays.
+const CLIP_OVERRIDES = {
+  'reef-shrimp-hvar': {
+    status: 'staged',
+    bed: null,
+    where: 'not played: shrimp crackle was dropped from The Reefs (Jeremy, v0.51.0-dev_4); kept in case',
+  },
+  'reef-shrimp-aberwrach': {
+    status: 'staged',
+    bed: null,
+    where: 'not played: shrimp crackle was dropped from The Reefs (Jeremy, v0.51.0-dev_4); kept in case',
+  },
+}
+
 const STAGED = { status: 'staged', label: 'Other sounds', where: 'not wired (no entry in src/audio/clipUses.js)' }
 
 export function clipUse(use) {
   return CLIP_USES[use] ?? STAGED
 }
 
+// The use of one catalog clip, with any per-clip override applied.
+export function clipUseFor(clip) {
+  const override = CLIP_OVERRIDES[clip.id]
+  return override ? { ...clipUse(clip.use), ...override } : clipUse(clip.use)
+}
+
 export function isClipInUse(clip) {
-  return clipUse(clip.use).status !== 'staged'
+  return clipUseFor(clip).status !== 'staged'
 }
 
 // Public paths (no extension) of the in-use event clips, by archetype.
 export function eventClipPaths(catalog) {
   const pools = {}
   for (const clip of catalog) {
-    const use = clipUse(clip.use)
+    const use = clipUseFor(clip)
     if (use.status !== 'in use' || !use.archetype) continue
     if (!pools[use.archetype]) pools[use.archetype] = []
     pools[use.archetype].push(clip.path)
@@ -105,7 +132,7 @@ export function eventClipPaths(catalog) {
 // Catalog entries of the in-use bed layers for one ambience profile, in catalog order.
 export function bedClips(catalog, profileId) {
   return catalog.filter(clip => {
-    const use = clipUse(clip.use)
+    const use = clipUseFor(clip)
     return use.status === 'in use' && use.bed === profileId
   })
 }
@@ -114,7 +141,7 @@ export function bedClips(catalog, profileId) {
 export function legacyClipUrls(catalog) {
   const pools = {}
   for (const clip of catalog) {
-    const use = clipUse(clip.use)
+    const use = clipUseFor(clip)
     if (!use.legacy) continue
     if (!pools[use.legacy]) pools[use.legacy] = []
     pools[use.legacy].push(`${clip.path}.${clip.formats?.[0] ?? 'mp3'}`)
@@ -129,7 +156,7 @@ export function soundCredits(catalog) {
   const rows = new Map()
   for (const clip of catalog) {
     const key = clip.sourceUrl || clip.credit || clip.author
-    const use = clipUse(clip.use)
+    const use = clipUseFor(clip)
     let row = rows.get(key)
     if (!row) {
       row = {

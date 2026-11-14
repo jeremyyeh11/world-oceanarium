@@ -10,10 +10,20 @@ Versioning convention notes:
 
 ## v0.51.0 — Audio redesign
 
-Status: in development (`v0.51.0-dev_3`), branch `feat/audio-redesign`, [PR #204](https://github.com/jeremyyeh11/world-oceanarium/pull/204).
+Status: in development (`v0.51.0-dev_4`), branch `feat/audio-redesign`, [PR #204](https://github.com/jeremyyeh11/world-oceanarium/pull/204).
 Phases 1 and 2 of `docs/audio-redesign.md` (the engine and the event layer) and the first recorded
 clips (Freesound CC0 and NOAA Fisheries), layered with the synthesised beds and voices. Nothing has
 been heard yet: levels come from offline renders.
+
+### Underwater sound (dev_4)
+
+- Jeremy didn't like the crackle, so none plays anywhere: the procedural snapping-shrimp crackle,
+  the two shrimp beds in The Reefs (Hvar, Aber Wrac'h) and the click events are out. The shrimp clips
+  stay in `public/audio`, staged and never fetched (`CLIP_OVERRIDES` in `src/audio/clipUses.js`).
+  The Reefs keeps the Gray's Reef recording.
+- All world sound (beds, fish swims, events) now passes one underwater lowpass on the world bus: two
+  flat biquads in series at 1200 Hz (24 dB/oct, `UNDERWATER_LOWPASS_HZ`). UI clicks skip it and keep
+  their 1600 Hz tint.
 
 ### Recorded clips
 

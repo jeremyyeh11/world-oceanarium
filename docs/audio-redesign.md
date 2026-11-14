@@ -375,3 +375,15 @@ Wired in `v0.51.0-dev_3` (branch `feat/audio-redesign`). Nothing has been heard:
 - **Event clip levels** (`CLIP_LEVEL` in `eventScheduler.js`, on top of the same distance gain and lowpass as the synth): clips are peak-normalised to −3 dBFS, so each archetype is scaled to land near its synth voice: grunt 0.074, knock 0.085, click 0.28, bloop 0.027, bubble 0.045. Measured with the real scheduler in an `OfflineAudioContext`: 61 triggers per archetype and mode, the same distance draws for synth and clip, loudest 50 ms RMS per voice. Clip minus synth (median / power mean / loudest, dB): grunt +1.5 / +1.2 / −0.9, knock −0.6 / −0.5 / −0.9, click −3.7 / −2.8 / −3.0, bloop +0.1 / −0.2 / +2.8, bubble −0.8 / −0.6 / −0.1. Repeat runs move about ±1.5 dB, clicks more (a near snap is broadband, a far one is cut by the distance lowpass).
 - **Credits:** the Sources modal has a Sounds section, one row per source recording with clips in `public/audio` (31: 8 NOAA Fisheries with NOAA's credit line, 22 Freesound CC0 credited as a courtesy, and one row for the 9 older MP3s, whose source was not recorded). Staged recordings are listed too, since their files ship.
 - **Still to check by ear,** on a phone: the bed loop seams (shallows-bubble-flow, shallows-surf and, when wired, descent-scuba are the ones to listen to), whether Gray's Reef and Hvar sound squashed, the event levels, and the thup clips before they are wired.
+
+## Underwater mix (v0.51.0-dev_4)
+
+Jeremy's direction after hearing dev_3:
+- **No crackle.** These are out:
+  - the procedural snapping-shrimp crackle (every profile now has `crackle: null`)
+  - the two shrimp beds in The Reefs
+  - the click events
+
+  The shrimp clips stay in `public/audio`, staged and never fetched (`CLIP_OVERRIDES` and the `click` entry in `src/audio/clipUses.js`). The Reefs keeps Gray's Reef over its noise and rumble.
+- **Everything sounds underwater.** The world bus (beds, fish swims, events) feeds one shared lowpass before the master: two flat biquads in series at `UNDERWATER_LOWPASS_HZ` = 1200 Hz, 24 dB/oct. The per-profile `tint` and the per-event distance lowpass still shape the sound underneath it. UI clicks skip it and keep their 1600 Hz tint.
+- **Not re-measured.** Bed levels were not re-rendered after this change. Removing the high end makes the recorded layers a little quieter.

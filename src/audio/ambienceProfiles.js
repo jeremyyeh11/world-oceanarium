@@ -13,9 +13,9 @@
 //   swell   — slow push and pull on the whole bed: one crest about every 1/`rate` s,
 //             each with its own length (±30%) and depth (±40% of `depth`), so it never
 //             reads as a sine LFO
-//   tint    — the bed's underwater lowpass (Hz). It replaces the old 1600 Hz master
-//             lowpass for the bed; raise it only where the bed has content up there
-//             (crackle, recorded layers)
+//   tint    — the bed's own lowpass (Hz), before the shared underwater lowpass on the
+//             world bus (useOceanAudio.js UNDERWATER_LOWPASS_HZ, 24 dB/oct), which caps
+//             every reserve; a tint above that cutoff changes little
 //   gain    — the whole bed, on top of the shared bed bus (AMBIENT_VOLUME)
 //   files   — the mix of the recorded bed layers, by clip id: { gain, pan }. Which clips
 //             a reserve's bed plays comes from src/audio/clipCatalog.json (`use`
@@ -41,9 +41,12 @@
 // stays within 0.4 LU of its synth-only dev_2 bed (Open Sea −38.9 → −39.3, Reefs −38.3 →
 // −38.3, Shallows −38.8 → −38.7), and no recording louder than the synth noise layer it
 // shares the bed with (Korcula and the surf within 1 LU of it, the rest 3–8 LU under;
-// per layer in docs/audio-redesign.md, "Recorded clips"). In the Reefs the real shrimp replace the procedural
-// crackle (withFiles crackle 0) and the two shrimp beds sit apart (±0.6); Gray's Reef and
-// Hvar are heavily limited in the build, so they stay the lowest. Never heard.
+// per layer in docs/audio-redesign.md, "Recorded clips"). Never heard.
+//
+// v0.51.0-dev_4 (Jeremy): no crackle anywhere. The procedural crackle, the two shrimp beds
+// and the click events are out (the shrimp clips stay staged in src/audio/clipUses.js),
+// and all world sound now passes one underwater lowpass, so the beds measure a little
+// quieter than the numbers above.
 //
 // A Kelp Forest reserve (when it lands): surge-led swell (rate ~0.08, depth ~0.3) and a
 // softer, lower crackle (highpass ~2000, lowpass ~5000), events tint ~0.85.
@@ -101,42 +104,40 @@ export const AMBIENCE_PROFILES = {
     // Near silent: a rare low thup (tuna-like) and the odd bubble.
     events: { tint: 0.9, rates: { thup: 0.6, bubble: 0.4, bloop: 0.3 } },
   },
-  // A healthy reef crackles: dense snaps over a mid bed.
+  // The reef: the most fish life over a mid bed. No crackle (v0.51.0-dev_4: Jeremy didn't
+  // want it), so no procedural snaps, no shrimp beds and no click events.
   'the-reefs': {
     noise: { lowpass: 420, q: 0.46, gain: 0.9 },
     rumble: { frequency: 44, gain: 0.05 },
-    crackle: { density: 14, highpass: 2300, lowpass: 7500, gain: 0.9, width: 0.7 },
+    crackle: null,
     swell: { rate: 0.14, depth: 0.1 },
-    tint: 6500,
+    tint: 1600,
     gain: 1,
-    // Two shrimp beds panned apart and the Gray's Reef chorus centred replace the
-    // procedural crackle; noise and rumble stay, a little lower, as glue. Hvar and Gray's
-    // Reef are heavily limited, so they sit lowest.
+    // The Gray's Reef recording, under the underwater lowpass, over slightly lower noise
+    // and rumble as glue. It is heavily limited in the build, so it stays low.
     files: {
-      'reef-shrimp-hvar': { gain: 0.19, pan: -0.6 },
-      'reef-shrimp-aberwrach': { gain: 0.3, pan: 0.6 },
       'reef-soundscape-grays': { gain: 0.3, pan: 0 },
     },
-    withFiles: { noise: 0.7, rumble: 0.045, crackle: 0 },
-    // Most life: grunts and knocks that answer each other, clicks and bubbles.
-    events: { tint: 1, rates: { grunt: 4, knock: 2.5, click: 6, bubble: 1, bloop: 2 } },
+    withFiles: { noise: 0.7, rumble: 0.045 },
+    // Grunts and knocks that answer each other, and bubbles.
+    events: { tint: 1, rates: { grunt: 4, knock: 2.5, bubble: 1, bloop: 2 } },
   },
-  // A sunlit sand bay: brighter, with a stronger slow swell and only faint crackle.
+  // A sunlit sand bay: a stronger slow swell. No crackle (v0.51.0-dev_4).
   'the-shallows': {
     noise: { lowpass: 560, q: 0.46, gain: 0.88 },
     rumble: { frequency: 50, gain: 0.04 },
-    crackle: { density: 4, highpass: 2500, lowpass: 6000, gain: 0.6, width: 0.5 },
+    crackle: null,
     swell: { rate: 0.09, depth: 0.26 },
-    tint: 4200,
+    tint: 2000,
     gain: 1,
-    // Surf wash and a bubble trickle over a lower noise layer; the faint crackle stays.
+    // Surf wash and a bubble trickle over a lower noise layer.
     files: {
       'shallows-surf': { gain: 0.3, pan: 0 },
       'shallows-bubble-flow': { gain: 0.2, pan: 0 },
     },
     withFiles: { noise: 0.6 },
-    // Sparse clicks, bubble fizz over the seagrass and a rare grunt.
-    events: { tint: 1.15, rates: { grunt: 0.5, click: 3, bubble: 2, bloop: 3 } },
+    // Bubble fizz over the seagrass and a rare grunt.
+    events: { tint: 1.15, rates: { grunt: 0.5, bubble: 2, bloop: 3 } },
   },
 }
 

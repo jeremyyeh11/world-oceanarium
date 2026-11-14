@@ -2825,6 +2825,8 @@ export default function Fish({ creature, selected = false, zoomActive = false, d
       type,
       intensity,
       creatureId: creature.id,
+      // Sets the size offset on this fish's voice pitch (bigger is lower).
+      bodyLengthMeters: creatureBodyLength(creature, swim) * WORLD_UNIT_METERS,
       followMode: selected,
       schooling: isSchooling,
     })

@@ -1,3 +1,6 @@
+import CLIP_CATALOG from '../audio/clipCatalog.json'
+import { soundCredits } from '../audio/clipUses'
+
 // Where the species data comes from. Kept as data rather than markup so the
 // list can grow — the Sources modal renders whatever is in here, in order.
 //
@@ -839,3 +842,28 @@ export const IMAGE_CREDITS = [
     changes: 'Mapped onto the 3D model, cropped and resized.',
   },
 ]
+
+// Sound recordings the audio is cut from: one row per source recording with clips in
+// public/audio, derived from src/audio/clipCatalog.json (scripts/build-audio-clips.py), so
+// a clip can never ship uncredited. Clips cut from one recording share a row; `subject`
+// is what they are used as (src/audio/clipUses.js labels). CC0 recordings are credited as
+// a courtesy; NOAA Fisheries recordings show NOAA's own credit line; the older MP3s show
+// what the catalog records about them. Rows include recordings staged for later phases,
+// since their files ship too (`inUse` says whether any of its clips plays in this build).
+// Every clip, with what it plays as, is listed in docs/audio-clips.md.
+const SOUND_LICENCE_URLS = {
+  'CC0 1.0': 'https://creativecommons.org/publicdomain/zero/1.0/',
+}
+
+export const SOUND_CREDITS = soundCredits(CLIP_CATALOG).map(row => ({
+  id: row.id,
+  subject: row.subjects.join(', '),
+  title: row.title,
+  author: row.author,
+  url: row.url,
+  // NOAA's suggested credit, shortened: "NOAA Fisheries, NEFSC Passive Acoustics Branch.
+  // 2023. <Species>." (their template also names the file and the page URL).
+  noaaCredit: row.credit?.startsWith('NOAA Fisheries') ? row.credit : null,
+  licence: row.licence ? { name: row.licence, url: SOUND_LICENCE_URLS[row.licence] ?? null } : null,
+  inUse: row.inUse,
+}))

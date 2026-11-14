@@ -82,7 +82,7 @@ export default function App() {
   const [sourcesOpen, setSourcesOpen] = useState(false)
   const [changelogOpen, setChangelogOpen] = useState(false)
   const [encyclopediaSpeciesId, setEncyclopediaSpeciesId] = useState(null)
-  const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio()
+  const { muted: audioMuted, started: audioStarted, supported: audioSupported, startAudio, pauseAudio, stopAudio, toggleMuted: toggleAudioMuted } = useOceanAudio(viewingTankId)
   const audioEnabled = audioStarted && !audioMuted
   const debugTapCount = useRef(0)
   const debugTapTimer = useRef(null)
@@ -200,11 +200,16 @@ export default function App() {
       audioNeedsGestureResume.current = false
     }
 
-    const pauseWhenBackgrounded = () => {
+    // Hidden or being left: fade, then suspend the context. A window blur (another app
+    // or devtools focused while the tank is still on screen) only fades, so desktop focus
+    // changes do not churn the context.
+    const pauseWhenBackgrounded = (suspend) => {
       clearAudioResumeTimers()
       audioNeedsGestureResume.current = true
-      pauseAudio()
+      pauseAudio({ suspend })
     }
+    const suspendWhenHidden = () => pauseWhenBackgrounded(true)
+    const fadeOnBlur = () => pauseWhenBackgrounded(false)
 
     const resumeWhenForegrounded = () => {
       if (document.visibilityState === 'hidden' || audioMuted) return
@@ -231,7 +236,7 @@ export default function App() {
 
     const syncVisibilityAudio = () => {
       if (document.visibilityState === 'hidden') {
-        pauseWhenBackgrounded()
+        suspendWhenHidden()
         return
       }
 
@@ -239,8 +244,8 @@ export default function App() {
     }
 
     document.addEventListener('visibilitychange', syncVisibilityAudio)
-    window.addEventListener('pagehide', pauseWhenBackgrounded)
-    window.addEventListener('blur', pauseWhenBackgrounded)
+    window.addEventListener('pagehide', suspendWhenHidden)
+    window.addEventListener('blur', fadeOnBlur)
     window.addEventListener('pageshow', resumeWhenForegrounded)
     window.addEventListener('focus', resumeWhenForegrounded)
     // Mobile Safari is pickier than desktop: canvas pointer/touch starts can be
@@ -286,8 +291,8 @@ export default function App() {
         audioSession.onstatechange = null
       }
       document.removeEventListener('visibilitychange', syncVisibilityAudio)
-      window.removeEventListener('pagehide', pauseWhenBackgrounded)
-      window.removeEventListener('blur', pauseWhenBackgrounded)
+      window.removeEventListener('pagehide', suspendWhenHidden)
+      window.removeEventListener('blur', fadeOnBlur)
       window.removeEventListener('pageshow', resumeWhenForegrounded)
       window.removeEventListener('focus', resumeWhenForegrounded)
       window.removeEventListener('pointerdown', resumeOnNextGesture, { capture: true })

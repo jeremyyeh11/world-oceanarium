@@ -13,6 +13,24 @@ Status labels:
 
 ## Current work
 
+### Audio redesign
+
+Status: `Current in development` — `v0.51.0-dev_1`, branch `feat/audio-redesign`.
+[Plan, clip list and phases](docs/audio-redesign.md).
+
+- [ ] Phase 0: collect the clips (plan §3) with a credits sheet (title, author, URL, licence).
+- [x] Phase 1: engine. Buses (beds → world → master, UI dry), 12 kHz master guard with the tint
+  moved into each chain, per-reserve synthesised beds with a 2 s crossfade, random-walk drift and
+  irregular swell, inert Opus/m4a bed-file loader, context suspended when the page is hidden
+  (`v0.51.0-dev_1`).
+- [ ] Phase 1 follow-ups: mute persistence needs Jeremy's decision (it crosses the reload boundary
+  in AGENTS.md); add bed files to the environment loading manifest once real clips exist;
+  physical-phone listen of each reserve's bed, the crossfade and suspend/resume.
+- [ ] Phase 2: event scheduler (Poisson rates, call and response, per-voice variation, day modulation).
+- [ ] Phase 3: spatial voice pool, distance and depth filter, reverb per reserve.
+- [ ] Phase 4: behaviour hooks (hush, startle, peck, turtle breath, manta, remora, focus duck).
+- [ ] Phase 5: UI sounds, volume slider, Sources-modal credits for the clips, phone tuning pass.
+
 ### Yellowfin Tuna follow-ups
 
 Status: `Next` — after clean `v0.40.0`, accepted from `v0.40.0-dev_6` on 2026-10-27.

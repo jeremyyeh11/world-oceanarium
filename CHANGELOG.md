@@ -8,6 +8,31 @@ Versioning convention notes:
 - Before the dev-patch convention, changes are grouped by minor version (`v0.6.x`, `v0.5.x`, etc.).
 - Earliest unversioned work is grouped as `pre-v0.x`.
 
+## v0.51.0 — Audio redesign
+
+Status: in development (`v0.51.0-dev_1`), branch `feat/audio-redesign`, PR link TBD.
+Phase 1 of `docs/audio-redesign.md`: the engine work, still on synthesised beds and the existing clips.
+
+### Ambience
+
+- Each reserve now has its own bed (`src/audio/ambienceProfiles.js`): The Open Sea dark, low and
+  sparse; The Reefs a mid bed with dense snapping-shrimp-like crackle; The Shallows brighter, with a
+  stronger slow swell and faint crackle. The landing gate and selector keep the previous bed.
+- Switching reserve crossfades the beds over 2 s; the old bed's nodes are stopped and disconnected.
+- Beds no longer loop audibly: the 0.18 Hz sine swell is replaced by an irregular swell (each crest
+  its own length and depth) and a slow random walk on level (±2 dB) and filters (±0.3 octave),
+  retargeted every 3–5 s by one timer. Loops start at random offsets.
+- A loader for recorded bed layers (Opus/WebM first, m4a fallback, decoded once per session) is in
+  place but inert: no profile lists files yet, and audio stays out of the environment loading manifest.
+
+### Engine
+
+- Bus layout: beds → bed bus → world bus → master; fish SFX → world bus; UI clicks → their own dry bus.
+  The 1600 Hz master lowpass is now a 12 kHz guard; the underwater tint lives in each chain, and the
+  fish SFX and UI chains copy the old master filter, so swims and clicks sound as before.
+- When the page is hidden or left, the audio context is suspended after the fade-out and resumed on
+  return. A window blur still only fades.
+
 ## v0.50.1 — Release audit follow-ups
 
 Status: clean `v0.50.1` (2026-11-10), accepted from `v0.50.1-dev_1`, branch `fix/audit-follow-ups`,

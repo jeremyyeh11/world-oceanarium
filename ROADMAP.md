@@ -15,7 +15,7 @@ Status labels:
 
 ### Audio redesign
 
-Status: `Current in development` — `v0.51.0-dev_1`, branch `feat/audio-redesign`.
+Status: `Current in development` — `v0.51.0-dev_2`, branch `feat/audio-redesign`.
 [Plan, clip list and phases](docs/audio-redesign.md).
 
 - [ ] Phase 0: collect the clips (plan §3) with a credits sheet (title, author, URL, licence).
@@ -26,7 +26,12 @@ Status: `Current in development` — `v0.51.0-dev_1`, branch `feat/audio-redesig
 - [ ] Phase 1 follow-ups: mute persistence needs Jeremy's decision (it crosses the reload boundary
   in AGENTS.md); add bed files to the environment loading manifest once real clips exist;
   physical-phone listen of each reserve's bed, the crossfade and suspend/resume.
-- [ ] Phase 2: event scheduler (Poisson rates, call and response, per-voice variation, day modulation).
+- [x] Phase 2: event scheduler. Per-reserve Poisson rate tables, call and response, synth voices
+  until clips arrive (clip manifest inert), virtual distance, dawn/dusk modulation,
+  `setEventActivity` for the hush, per-voice variation incl. fish swims (`v0.51.0-dev_2`).
+- [ ] Phase 2 follow-ups: physical-phone listen of the event levels (set from an offline render,
+  never heard), especially whether 50–300 Hz grunts carry on phone speakers; fill the clip pools
+  (`src/audio/clipManifest.js`) as Phase 0 collects clips.
 - [ ] Phase 3: spatial voice pool, distance and depth filter, reverb per reserve.
 - [ ] Phase 4: behaviour hooks (hush, startle, peck, turtle breath, manta, remora, focus duck).
 - [ ] Phase 5: UI sounds, volume slider, Sources-modal credits for the clips, phone tuning pass.

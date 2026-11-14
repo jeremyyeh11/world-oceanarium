@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { hashString } from '../utils/hash'
 import { AMBIENCE_PROFILES, ambienceProfileIdFor } from '../audio/ambienceProfiles'
+import { loadAudioBuffer, loadClip } from '../audio/clipLoader'
+import { createEventScheduler } from '../audio/eventScheduler'
+import { centsToRate, fishVoiceCents, pickWithoutRepeat, randomGainCut, randomSpread, startJitterSeconds } from '../audio/voiceVariation'
 
 const AUDIO_VOLUME_EVENT = 'world-oceanarium-audio-volume'
 const FISH_SWIM_SFX_EVENT = 'world-oceanarium-fish-swim-sfx'
@@ -55,6 +57,13 @@ const BED_RUMBLE_LOWPASS_HZ = 90
 const CRACKLE_LOOP_SECONDS = [7.3, 9.7]
 const CRACKLE_SNAP_MIN_SECONDS = 0.0004
 const CRACKLE_SNAP_RANGE_SECONDS = 0.0012
+const BED_FILE_FORMATS = ['webm', 'm4a']
+// The event layer (src/audio/eventScheduler.js) → eventBus → worldBus. Its synth voices
+// set their own levels; this is the one knob for the whole layer.
+const EVENT_BUS_GAIN = 1
+// Fish swim SFX keep a smaller random spread than events, so each fish's stable voice
+// bias (±40 cents, fishVoiceCents) stays audible.
+const FISH_SFX_PITCH_JITTER_CENTS = 30
 const FISH_SFX_ASSETS = {
   turn: [
     '/audio/fish-sfx/fish-small-movement-01.mp3',
@@ -258,17 +267,7 @@ function crackleBuffersFor(context, graph, profileId, density) {
 // canPlayType is not trusted (iOS). Decoded buffers are cached for the session; a clip
 // missing in both formats resolves to null once and is skipped from then on.
 function loadBedFile(context, graph, src) {
-  let entry = graph.bedFiles.get(src)
-  if (!entry) {
-    entry = loadAudioBuffer(context, `${src}.webm`)
-      .catch(() => loadAudioBuffer(context, `${src}.m4a`))
-      .catch(error => {
-        console.warn(`Ambience bed layer unavailable: ${src}`, error)
-        return null
-      })
-    graph.bedFiles.set(src, entry)
-  }
-  return entry
+  return loadClip(context, graph.bedFiles, src, BED_FILE_FORMATS, 'Ambience bed layer')
 }
 
 function startLoopingSource(context, buffer) {
@@ -513,6 +512,7 @@ function buildAudioGraph(context, profileId) {
   const bedBus = createGain(context, AMBIENT_VOLUME)
   const sfxGain = createGain(context, SFX_VOLUME)
   const uiBus = createGain(context, 1)
+  const eventBus = createGain(context, EVENT_BUS_GAIN)
   const sfxTint = createFilter(context, 'lowpass', LEGACY_TINT_HZ, LEGACY_TINT_Q)
   const uiTint = createFilter(context, 'lowpass', LEGACY_TINT_HZ, LEGACY_TINT_Q)
   const outputLowpass = createFilter(context, 'lowpass', MASTER_LOWPASS_HZ)
@@ -523,6 +523,7 @@ function buildAudioGraph(context, profileId) {
   const ambientAnalyser = connectAnalyser(context, bedBus, worldBus)
   const sfxAnalyser = connectAnalyser(context, sfxGain, sfxTint)
   sfxTint.connect(worldBus)
+  eventBus.connect(worldBus)
   uiBus.connect(uiTint)
   uiTint.connect(masterGain)
 
@@ -531,6 +532,8 @@ function buildAudioGraph(context, profileId) {
     worldBus,
     bedBus,
     sfxGain,
+    eventBus,
+    events: null,
     uiBus,
     overallAnalyser,
     ambientAnalyser,
@@ -550,6 +553,8 @@ function buildAudioGraph(context, profileId) {
 }
 
 function closeAudioGraph(graph) {
+  graph.events?.dispose()
+  graph.events = null
   graph.retiringBeds.forEach((chain, timer) => {
     window.clearTimeout(timer)
     retireBedChain(chain)
@@ -561,13 +566,6 @@ function closeAudioGraph(graph) {
 
 function emitAudioLevels(levels) {
   window.dispatchEvent(new CustomEvent(AUDIO_VOLUME_EVENT, { detail: levels }))
-}
-
-async function loadAudioBuffer(context, url) {
-  const response = await window.fetch(url)
-  if (!response.ok) throw new Error(`Audio asset failed to load: ${url}`)
-  const arrayBuffer = await response.arrayBuffer()
-  return context.decodeAudioData(arrayBuffer)
 }
 
 async function loadFishSfxAssets(context) {
@@ -586,18 +584,38 @@ async function loadUiSfxAssets(context) {
   return Object.fromEntries(entries)
 }
 
-function chooseSfxBuffer(graph, type, detail) {
+// Any clip of the pool except the one this pool played last (docs/audio-redesign.md §4.3).
+function chooseSfxBuffer(graph, type) {
   const buffers = graph.fishSfxBuffers?.[type]
   if (!buffers?.length) return null
-  const seed = `${detail.creatureId ?? 'fish'}:${detail.type ?? type}:${detail.followMode ? 'follow' : 'normal'}`
-  return buffers[hashString(seed) % buffers.length]
+  const lastIndex = graph.fishSfxLastIndex ?? (graph.fishSfxLastIndex = {})
+  lastIndex[type] = pickWithoutRepeat(buffers.length, lastIndex[type] ?? -1)
+  return buffers[lastIndex[type]]
+}
+
+// The fish's own pitch (stable seed bias plus size offset, fishVoiceCents) with a small
+// random spread on top.
+function fishSfxRate(detail) {
+  return centsToRate(fishVoiceCents(detail.creatureId, detail.bodyLengthMeters) + randomSpread(FISH_SFX_PITCH_JITTER_CENTS))
+}
+
+function disconnectNodes(nodes) {
+  for (const node of nodes) {
+    try {
+      node.disconnect()
+    } catch {
+      // Already disconnected.
+    }
+  }
 }
 
 function playFishAssetSfx(context, graph, type, intensity, detail) {
-  const buffer = chooseSfxBuffer(graph, type, detail)
+  const buffer = chooseSfxBuffer(graph, type)
   if (!buffer) return false
 
-  const now = context.currentTime
+  const now = context.currentTime + startJitterSeconds()
+  const rate = fishSfxRate(detail)
+  const playSeconds = buffer.duration / rate
   const source = context.createBufferSource()
   const filter = context.createBiquadFilter()
   const gain = context.createGain()
@@ -607,21 +625,25 @@ function playFishAssetSfx(context, graph, type, intensity, detail) {
   activeSfx.add(sfxNodes)
 
   source.buffer = buffer
+  source.playbackRate.value = rate
   filter.type = 'lowpass'
   filter.frequency.value = detail.followMode ? 1800 : 1200
   filter.Q.value = 0.42
 
-  const assetGain = (type === 'burst' ? 1.0 : 0.78) * intensity * (detail.followMode ? 1.35 : 0.72)
+  const assetGain = (type === 'burst' ? 1.0 : 0.78) * intensity * (detail.followMode ? 1.35 : 0.72) * randomGainCut()
   gain.gain.setValueAtTime(0.0001, now)
   gain.gain.exponentialRampToValueAtTime(assetGain, now + 0.018)
   gain.gain.setTargetAtTime(assetGain * 0.92, now + 0.08, 0.22)
-  gain.gain.setTargetAtTime(0.0001, now + Math.max(0.12, buffer.duration - 0.16), 0.08)
+  gain.gain.setTargetAtTime(0.0001, now + Math.max(0.12, playSeconds - 0.16), 0.08)
 
   source.connect(filter)
   filter.connect(gain)
   gain.connect(graph.sfxGain)
   source.start(now)
-  source.onended = () => activeSfx.delete(sfxNodes)
+  source.onended = () => {
+    activeSfx.delete(sfxNodes)
+    disconnectNodes([source, filter, gain])
+  }
   return true
 }
 
@@ -636,7 +658,14 @@ function playFishSwimSfx(context, graph, detail = {}) {
   const type = detail.type === 'burst' ? 'burst' : 'turn'
   const intensity = Math.max(0.25, Math.min(1, detail.intensity ?? 0.55))
   if (playFishAssetSfx(context, graph, type, intensity, detail)) return
+  playFishSynthSfx(context, graph, type, intensity * randomGainCut(), detail)
+}
 
+// Synthesised fallback while the clips are loading or missing: the same per-fish pitch,
+// gain spread and start jitter as the clips.
+function playFishSynthSfx(context, graph, type, intensity, detail) {
+  const now = context.currentTime + startJitterSeconds()
+  const rate = fishSfxRate(detail)
   const focusBoost = detail.followMode ? FOLLOW_MODE_SFX_BOOST : 1
   const duration = detail.followMode
     ? (type === 'burst' ? 0.62 : 0.46)
@@ -665,8 +694,8 @@ function playFishSwimSfx(context, graph, detail = {}) {
 
   const tonePeak = (type === 'burst' ? 0.025 : 0.014) * intensity * focusBoost
   tone.type = 'sine'
-  tone.frequency.setValueAtTime(type === 'burst' ? 210 : 150, now)
-  tone.frequency.exponentialRampToValueAtTime(type === 'burst' ? 82 : 70, now + duration * 0.75)
+  tone.frequency.setValueAtTime((type === 'burst' ? 210 : 150) * rate, now)
+  tone.frequency.exponentialRampToValueAtTime((type === 'burst' ? 82 : 70) * rate, now + duration * 0.75)
   toneGain.gain.setValueAtTime(0.0001, now)
   toneGain.gain.exponentialRampToValueAtTime(tonePeak, now + 0.025)
   toneGain.gain.linearRampToValueAtTime(tonePeak * 0.45, now + duration * 0.5)
@@ -682,7 +711,10 @@ function playFishSwimSfx(context, graph, detail = {}) {
   tone.start(now)
   noise.stop(now + duration + 0.12)
   tone.stop(now + duration + 0.12)
-  noise.onended = () => activeSfx.delete(sfxNodes)
+  noise.onended = () => {
+    activeSfx.delete(sfxNodes)
+    disconnectNodes([noise, filter, gain, tone, toneGain])
+  }
 }
 
 
@@ -840,6 +872,14 @@ export function useOceanAudio(tankId = null) {
 
     const graph = buildAudioGraph(context, profileIdRef.current)
     audioRef.current = { context, graph, usesMediaPlaybackSession }
+    // Events follow the viewed reserve; nothing is scheduled while muted, stopped,
+    // suspended or hidden (src/audio/eventScheduler.js).
+    graph.events = createEventScheduler(context, graph.eventBus, {
+      canPlay: () => startedRef.current && !mutedRef.current && context.state === 'running' &&
+        document.visibilityState !== 'hidden',
+    })
+    graph.events.setProfile(profileIdRef.current)
+    if (import.meta.env.DEV) globalThis.__oceanAudioEvents = graph.events
     loadFishSfxAssets(context)
       .then(buffers => {
         graph.fishSfxBuffers = buffers
@@ -987,7 +1027,9 @@ export function useOceanAudio(tankId = null) {
     const profileId = ambienceProfileIdFor(tankId)
     profileIdRef.current = profileId
     const audio = audioRef.current
-    if (audio) switchBedProfile(audio.context, audio.graph, profileId)
+    if (!audio) return
+    switchBedProfile(audio.context, audio.graph, profileId)
+    audio.graph.events?.setProfile(profileId)
   }, [tankId])
 
   useEffect(() => {

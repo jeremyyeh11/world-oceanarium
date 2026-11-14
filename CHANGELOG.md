@@ -10,8 +10,35 @@ Versioning convention notes:
 
 ## v0.51.0 — Audio redesign
 
-Status: in development (`v0.51.0-dev_1`), branch `feat/audio-redesign`, PR link TBD.
-Phase 1 of `docs/audio-redesign.md`: the engine work, still on synthesised beds and the existing clips.
+Status: in development (`v0.51.0-dev_2`), branch `feat/audio-redesign`, PR link TBD.
+Phases 1 and 2 of `docs/audio-redesign.md`: the engine and the event layer, still on synthesised
+beds, synthesised event voices and the existing clips.
+
+### Life sounds
+
+- Each reserve now has an event layer on top of its bed (`src/audio/eventScheduler.js`): fish grunts,
+  knocks, clicks, single bubbles and bubble clusters at random, Poisson-spaced moments, from a
+  per-reserve rate table in `ambienceProfiles.js`. The Reefs is the liveliest; The Shallows has sparse
+  clicks, bubble fizz and a rare grunt; The Open Sea is near silent, with a rare low thup and the odd
+  bubble; the landing gate and selector get very sparse bubbles.
+- Call and response: a grunt or knock is answered about 45% of the time, 0.5–3 s later, from the
+  other side and at another pitch; a reply is answered again about 20% of the time, at most three calls
+  in a chain.
+- Fish calls follow the visitor's clock: busier at dawn (05–08) and dusk (17–20), a little quieter
+  at night.
+- Every event sits at a random virtual distance (2–25 m, mostly far) that sets its lowpass and level,
+  with a narrow pan.
+- Until recorded clips arrive the voices are synthesised, kept low against the bed; a clip manifest
+  (`src/audio/clipManifest.js`, WebM → m4a → mp3) takes over each archetype once it lists files.
+- At most 6 event voices at once; every node is disconnected when its voice ends. Nothing is
+  scheduled while muted, suspended or hidden, and switching reserve lets sounding voices finish.
+
+### Fish swims
+
+- A fish no longer always plays the same clip: the clip is picked at random (never the same one twice
+  in a row), with a ±30 cent pitch spread, ±3 dB level spread and 5–20 ms start jitter. Each fish
+  keeps its own voice through a stable pitch bias (±40 cents from its id), and bigger fish sound lower
+  (−150 cents per doubling of body length from 0.4 m, clamped to −300…+100 cents). Throttles unchanged.
 
 ### Ambience
 

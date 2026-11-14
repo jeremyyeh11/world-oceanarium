@@ -29,9 +29,29 @@
 // about 33 dB under.
 //
 // A Kelp Forest reserve (when it lands): surge-led swell (rate ~0.08, depth ~0.3) and a
-// softer, lower crackle (highpass ~2000, lowpass ~5000).
+// softer, lower crackle (highpass ~2000, lowpass ~5000), events tint ~0.85.
+//
+// events — the one-shot layer on top of the bed (src/audio/eventScheduler.js):
+//   rates — mean events per minute for each archetype in EVENT_ARCHETYPES. Gaps are
+//           exponential (a Poisson process), never shorter than the archetype's min gap,
+//           and replies (call and response) come on top of these rates. Archetypes left
+//           out never play in that reserve.
+//   tint  — habitat tint on the virtual-distance lowpass (plan §4.5: shallows 1.15,
+//           reef 1.0, kelp 0.85): fc = clamp(9000 · 2^(−d/8) · tint, 250, 16000).
 
 export const DEFAULT_AMBIENCE_PROFILE_ID = 'default'
+
+// One-shot archetypes. `minGapSeconds` floors the gap between two spontaneous events of
+// the archetype; `fishCall` follows the time-of-day chorus (dawn and dusk ×1.6, night
+// ×0.8); `answers` lets an event start a call-and-response chain.
+export const EVENT_ARCHETYPES = {
+  grunt: { minGapSeconds: 2.5, fishCall: true, answers: true },
+  knock: { minGapSeconds: 3, fishCall: true, answers: true },
+  thup: { minGapSeconds: 12, fishCall: true, answers: false },
+  click: { minGapSeconds: 0.6, fishCall: true, answers: false },
+  bubble: { minGapSeconds: 6, fishCall: false, answers: false },
+  bloop: { minGapSeconds: 1.5, fishCall: false, answers: false },
+}
 
 export const AMBIENCE_PROFILES = {
   // The pre-redesign bed, unchanged in colour: landing gate and tank selector.
@@ -43,6 +63,8 @@ export const AMBIENCE_PROFILES = {
     tint: 1600,
     gain: 1,
     files: [],
+    // Very sparse bubbles under the landing gate and selector.
+    events: { tint: 1, rates: { bubble: 0.5 } },
   },
   // Blue water: dark, low and sparse. A lower, slightly stronger rumble and a long,
   // shallow swell; nothing above the tint.
@@ -54,6 +76,8 @@ export const AMBIENCE_PROFILES = {
     tint: 1100,
     gain: 0.95,
     files: [],
+    // Near silent: a rare low thup (tuna-like) and the odd bubble.
+    events: { tint: 0.9, rates: { thup: 0.6, bubble: 0.4, bloop: 0.3 } },
   },
   // A healthy reef crackles: dense snaps over a mid bed.
   'the-reefs': {
@@ -64,6 +88,8 @@ export const AMBIENCE_PROFILES = {
     tint: 6500,
     gain: 1,
     files: [],
+    // Most life: grunts and knocks that answer each other, clicks and bubbles.
+    events: { tint: 1, rates: { grunt: 4, knock: 2.5, click: 6, bubble: 1, bloop: 2 } },
   },
   // A sunlit sand bay: brighter, with a stronger slow swell and only faint crackle.
   'the-shallows': {
@@ -74,6 +100,8 @@ export const AMBIENCE_PROFILES = {
     tint: 4200,
     gain: 1,
     files: [],
+    // Sparse clicks, bubble fizz over the seagrass and a rare grunt.
+    events: { tint: 1.15, rates: { grunt: 0.5, click: 3, bubble: 2, bloop: 3 } },
   },
 }
 

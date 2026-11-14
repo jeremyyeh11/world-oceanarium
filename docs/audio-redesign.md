@@ -1,6 +1,6 @@
 # Audio redesign: plan and clip list
 
-Status: proposal, 2026-11-14. Phase 1 (engine) is in `v0.51.0-dev_1`; see [Phase 1 status](#phase-1-status). §1 describes the engine before it.
+Status: proposal, 2026-11-14. Phase 1 (engine) is in `v0.51.0-dev_1` and Phase 2 (event layer) in `v0.51.0-dev_2`; see [Phase 1 status](#phase-1-status) and [Phase 2 status](#phase-2-status). §1 describes the engine before them.
 
 ## 1. How it works today
 
@@ -281,3 +281,36 @@ Shipped in `v0.51.0-dev_1` (branch `feat/audio-redesign`). Still synthesised: no
 - **Bed files:** `loadBedFile` fetches and decodes `${src}.webm`, then `${src}.m4a` if the fetch or decode fails, once per session, the first time a profile that lists the file is built. Each layer loops from a random offset and fades in over 1.5 s. Every profile's `files` is empty, so this path is inert.
 - **Lifecycle:** page hidden or `pagehide` → fade, then `AudioContext.suspend()` after 560 ms; the existing foreground/gesture `startAudio` paths resume it (a rejected resume is caught and waits for the next gesture). Window blur only fades. The iOS unlock pulse and `audioSession` handling are unchanged.
 - **Not in Phase 1:** mute persistence (needs a decision: it crosses the reload boundary in AGENTS.md), volume slider, spatial audio, the one-shot scheduler, new UI sounds.
+
+## Phase 2 status
+
+Shipped in `v0.51.0-dev_2` (branch `feat/audio-redesign`). Still no new audio files: every event voice is synthesised.
+
+- **Routing:** event voices → `eventBus` (`EVENT_BUS_GAIN` 1, the one knob for the layer) → `worldBus`. Each voice is its content → distance lowpass → gain → narrow `StereoPannerNode` → `eventBus`. Events skip the 1600 Hz SFX tint; the distance lowpass replaces it.
+- **Scheduler** (`src/audio/eventScheduler.js`, created in `ensureAudio`): one self-rescheduling `setTimeout`, sleeping until the next candidate (25 ms to 5 s); nothing per frame. Each archetype draws exponential gaps (mean 60 / rate s), floored at its min gap since its last event. While muted, stopped, suspended or hidden (`canPlay`), it polls once a second and drops whatever falls due, so nothing bursts on return. On a reserve switch the new rates apply at once, pending replies are dropped and sounding voices finish. At most 6 event voices sound at once (`MAX_EVENT_VOICES`); an event over the cap is skipped, not queued. Each voice disconnects all its nodes when its last source ends.
+- **Rates** (events per minute; replies come on top), in `ambienceProfiles.js` `events.rates`:
+
+  | Profile | grunt | knock | thup | click | bubble | bloop | Distance tint |
+  |---|---|---|---|---|---|---|---|
+  | default | | | | | 0.5 | | 1.0 |
+  | open-sea | | | 0.6 | | 0.4 | 0.3 | 0.9 |
+  | the-reefs | 4 | 2.5 | | 6 | 1 | 2 | 1.0 |
+  | the-shallows | 0.5 | | | 3 | 2 | 3 | 1.15 |
+
+  Min gaps (`EVENT_ARCHETYPES`): grunt 2.5 s, knock 3 s, thup 12 s, click 0.6 s, bubble 6 s, bloop 1.5 s. Grunts and knocks start call-and-response chains; grunt, knock, thup and click are fish calls (time of day).
+- **Call and response:** a call is answered with probability 0.45 (a reply answered again with 0.2), never more than 3 in a chain, 0.5–3 s later. The reply is the same archetype from the same base pitch shifted 200–500 cents up or down (clamped ±700), panned to the other side (|pan| 0.15–0.5), at a freshly drawn distance. The reply chance scales with the current activity (below 1).
+- **Time of day:** the visitor's local clock, rechecked every 60 s: dawn 05–08 and dusk 17–20 multiply fish-call rates ×1.6, night 20–05 ×0.8, day ×1. Chosen from §4.2 (dawn and dusk choruses ×1.5–2): ×1.6 is audible without crowding the layer; night is only a little quieter because reefs keep calling after dark (invertebrate and nocturnal fish activity), and silence would read as broken. Bubbles are not fish calls and keep their rate.
+- **Activity:** `setEventActivity(multiplier, rampSeconds)` (exported, module state, default 1, clamped 0–4) ramps a multiplier on every event rate along a smoothstep from wherever the current ramp is. Rate changes use thinning: candidates are drawn at the highest rate the ramp reaches and each is kept with probability rate(now) / that ceiling; a new ramp re-draws pending candidates (exact, since the gaps are memoryless). `getEventActivity()` reads it. Phase 4's predator hush will drive it (about 0.2, recovering over 6–10 s); it is not wired to anything yet, and it changes rates only, not levels.
+- **Virtual distance** (until the Phase 3 voice pool): d = 2 + 23·√u m (density rising with distance, mean about 17 m). Lowpass fc = clamp(9000 · 2^(−d/8) · tint, 250, 16000) Hz, Q −3.01 dB, with D_oct fixed at 8 m until the fog is wired; extra gain 2^(−d/16); pan uniform within ±0.5.
+- **Variation:** events get ±50 cents, ±3 dB and a 5–20 ms start jitter (`src/audio/voiceVariation.js`); clip pools never repeat a clip twice in a row. Fish swims now pick a random clip (no immediate repeat) instead of a hashed one, with ±30 cents, ±3 dB and 5–20 ms jitter on top of the fish's own pitch: a stable bias of ±40 cents from `hashString(creatureId)` plus a size offset of −150 cents per doubling of body length from 0.4 m, clamped to −300…+100 (sardinella about +85, a 1 m fish about −200, 1.6 m and up −300). `Fish.jsx` sends `bodyLengthMeters`. The synth fallback follows the same pitch, gain and jitter. Throttles unchanged.
+- **Synth voices** (peaks before the distance gain, `SYNTH_LEVEL`):
+  - grunt (0.04): triangle or sine at 50–300 Hz (log-weighted low), glide ×1.4 → ×1 in 30 ms then down to ×0.78, 80–250 ms, 12 ms attack; a 40 ms band-passed noise burst (3× pitch, 200–900 Hz) at the onset; through a body lowpass at 5× pitch (500–1500 Hz).
+  - knock (0.07): 1–3 hits (45/35/20%) 90–160 ms apart, sine at 80–180 Hz dropping from ×1.5 in 15 ms, 2 ms attack, gone in 80 ms, each hit 4% lower and ×0.8 quieter, plus a 900 Hz-lowpassed noise tick per hit.
+  - thup (0.05): one knock at 55–110 Hz, gone in 180 ms.
+  - click (0.3): white noise through a bandpass at 2–5 kHz (Q 2.5), 5–15 ms.
+  - bloop (0.03): sine sweeping up from 300–500 Hz to 2.4–3.2× (at most 1400 Hz) over 40–120 ms, 2 ms attack, exponential decay.
+  - bubble (0.024 per bloop, ×0.6–1): 3–8 bloops 25–90 ms apart, each 5–15% higher.
+- **Levels:** set against an offline render (loudest 50 ms RMS, median of 15 draws, against the Reefs bed noise layer's RMS on the bed bus, about −42 dBFS): grunt about 0 dB median / +5 dB loudest, knock −3 / 0, thup −2 / 0, bloop and bubble −12 / −7, click −23 / −12. Never heard: the levels and the phone-speaker audibility of low grunts need a listen.
+- **Clips:** `src/audio/clipManifest.js` maps each archetype to public paths without extension; `loadClip` (`src/audio/clipLoader.js`, also used for bed files) tries `.webm`, `.m4a`, then `.mp3`, once per session, when a reserve that plays the archetype is first entered. A pool with decoded buffers plays instead of the synth (playback rate from the voice's cents). Every pool is empty.
+- **Dev probe:** in dev builds only, `globalThis.__oceanAudioEvents` is the live scheduler: `stats` (fired per archetype, replies, capped, thinned, dropped, active and peak voices) and `trigger(archetype)`. Vite strips it from production builds.
+- **Not in Phase 2:** spatial voice pool and reverb (Phase 3), predator/turtle/peck hooks and the hush wiring (Phase 4), new UI sounds, mute persistence, life-nearby density modulation (§4.2).

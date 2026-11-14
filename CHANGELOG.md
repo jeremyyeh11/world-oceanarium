@@ -10,7 +10,7 @@ Versioning convention notes:
 
 ## v0.51.0 — Audio redesign
 
-Status: in development (`v0.51.0-dev_3`), branch `feat/audio-redesign`, PR link TBD.
+Status: in development (`v0.51.0-dev_3`), branch `feat/audio-redesign`, [PR #204](https://github.com/jeremyyeh11/world-oceanarium/pull/204).
 Phases 1 and 2 of `docs/audio-redesign.md` (the engine and the event layer) and the first recorded
 clips (Freesound CC0 and NOAA Fisheries), layered with the synthesised beds and voices. Nothing has
 been heard yet: levels come from offline renders.

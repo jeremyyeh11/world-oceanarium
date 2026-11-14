@@ -965,6 +965,7 @@ Reference:
 Subtasks:
 - [ ] Decide whether Supabase `creatures` need per-tank seeding beyond the static-dev set.
 - [ ] Consider a twilight/mesopelagic depth zone as a home for The Drift or a new tank.
+- [ ] Kelp forest reserve (Jeremy, 2026-11-06): giant kelp (*Macrocystis pyrifera*) as swaying scenery, temperate eastern Pacific. Needs the new reserve checklist in `docs/tank-design.md`; its species go in `docs/fish-queue.md` once picked.
 
 #### Tank switcher scalability
 

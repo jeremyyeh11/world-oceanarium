@@ -80,6 +80,12 @@ before starting one.
   motion types.
 - Deep sea and oddities: needs a deep-sea reserve first; barreleye, mantis shrimp and the
   immortal jellyfish fall under the size floor.
+- **Chambered Nautilus** (*Nautilus pompilius*), The Reefs (fore-reef slope, rises at night).
+  Shell to ~20 cm (0.8 WU): under the 27 cm floor, so a near-camera role. Jet propulsion fits
+  no procedural type: write the type doc and confirm with Jeremy before any motion work.
+- **Anthias** (*Pseudanthias squamipinnis*, sea goldie), The Reefs: a school over the bommie
+  tops. To ~15 cm (0.6 WU), under the floor, and no anthias is larger; a near-camera school.
+- Kelp forest: a new reserve, tracked in ROADMAP (New tank / depth-zone content).
 
 ## Remora entries
 

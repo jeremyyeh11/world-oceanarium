@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AMBIENCE_PROFILES, ambienceProfileIdFor } from '../audio/ambienceProfiles'
 import { loadAudioBuffer, loadClip } from '../audio/clipLoader'
+import { bedLayersFor, FISH_SFX_URLS, UI_SFX_URLS } from '../audio/clipManifest'
 import { createEventScheduler } from '../audio/eventScheduler'
 import { centsToRate, fishVoiceCents, pickWithoutRepeat, randomGainCut, randomSpread, startJitterSeconds } from '../audio/voiceVariation'
 
@@ -64,25 +65,10 @@ const EVENT_BUS_GAIN = 1
 // Fish swim SFX keep a smaller random spread than events, so each fish's stable voice
 // bias (±40 cents, fishVoiceCents) stays audible.
 const FISH_SFX_PITCH_JITTER_CENTS = 30
-const FISH_SFX_ASSETS = {
-  turn: [
-    '/audio/fish-sfx/fish-small-movement-01.mp3',
-    '/audio/fish-sfx/fish-small-movement-02.mp3',
-    '/audio/fish-sfx/fish-small-movement-03.mp3',
-  ],
-  burst: [
-    '/audio/fish-sfx/fish-big-movement-01.mp3',
-    '/audio/fish-sfx/fish-big-movement-02.mp3',
-  ],
-}
-const UI_SFX_ASSETS = {
-  click: [
-    '/audio/ui-sfx/ui-click-01.mp3',
-    '/audio/ui-sfx/ui-click-02.mp3',
-    '/audio/ui-sfx/ui-click-03.mp3',
-    '/audio/ui-sfx/ui-click-04.mp3',
-  ],
-}
+// The older MP3s (fish-sfx/, ui-sfx/), listed in src/audio/clipCatalog.json and loaded at
+// the first gesture as before.
+const FISH_SFX_ASSETS = FISH_SFX_URLS
+const UI_SFX_ASSETS = UI_SFX_URLS
 
 function createAudioContext() {
   const AudioContextClass = window.AudioContext ?? window.webkitAudioContext
@@ -270,12 +256,23 @@ function loadBedFile(context, graph, src) {
   return loadClip(context, graph.bedFiles, src, BED_FILE_FORMATS, 'Ambience bed layer')
 }
 
-function startLoopingSource(context, buffer) {
+// `loop` = [start, end] in seconds loops only that region: the recorded beds hold the loop
+// plus ~85 ms of codec padding at each end, and looping the whole file would click.
+// Without it (or with points the decoded buffer cannot hold) the whole buffer loops.
+function startLoopingSource(context, buffer, loop = null) {
   const source = context.createBufferSource()
   source.buffer = buffer
   source.loop = true
-  // A random start offset, so a revisit never begins on the same bar.
-  source.start(context.currentTime, Math.random() * buffer.duration)
+  let start = 0
+  let length = buffer.duration
+  if (loop && loop[0] >= 0 && loop[1] > loop[0] && loop[1] <= buffer.duration + 0.001) {
+    source.loopStart = loop[0]
+    source.loopEnd = Math.min(loop[1], buffer.duration)
+    start = source.loopStart
+    length = source.loopEnd - source.loopStart
+  }
+  // A random start offset inside the loop, so a revisit never begins on the same bar.
+  source.start(context.currentTime, start + Math.random() * length)
   return source
 }
 
@@ -290,9 +287,30 @@ function addDrift(chain, param, kind) {
   })
 }
 
+// Once all of a reserve's recorded layers have started, the synth layers they stand in for
+// drop to the profile's `withFiles` gains over the same fade, with their drift base.
+function applyWithFilesMix(context, chain) {
+  if (chain.withFilesApplied) return
+  chain.withFilesApplied = true
+  const withFiles = chain.profile.withFiles ?? {}
+  const now = context.currentTime
+  Object.entries(chain.synthGains).forEach(([layer, param]) => {
+    const target = withFiles[layer]
+    if (!Number.isFinite(target)) return
+    param.cancelScheduledValues(now)
+    param.setValueAtTime(param.value, now)
+    param.linearRampToValueAtTime(target, now + BED_FILE_FADE_IN_SECONDS)
+    const drift = chain.drift.find(entry => entry.param === param)
+    if (drift) {
+      drift.base = target
+      drift.startsAt = now + BED_FILE_FADE_IN_SECONDS
+    }
+  })
+}
+
 function addBedFileLayer(context, chain, file, buffer) {
   if (chain.retired || !buffer) return
-  const source = startLoopingSource(context, buffer)
+  const source = startLoopingSource(context, buffer, file.loop)
   const gain = createGain(context, 0.0001)
   const pan = createPan(context, file.pan)
   const now = context.currentTime
@@ -331,6 +349,8 @@ function buildBedChain(context, graph, profileId) {
     sources: [],
     nodes: [],
     drift: [],
+    synthGains: {},
+    withFilesApplied: false,
     swellNextAt: 0,
     retired: false,
   }
@@ -357,6 +377,7 @@ function buildBedChain(context, graph, profileId) {
   noiseGain.connect(mix)
   chain.sources.push(noise)
   chain.nodes.push(noise, noiseLowpass, noiseGain)
+  chain.synthGains.noise = noiseGain.gain
   addDrift(chain, noiseLowpass.frequency, 'octave')
 
   const rumble = context.createOscillator()
@@ -370,6 +391,7 @@ function buildBedChain(context, graph, profileId) {
   rumble.start()
   chain.sources.push(rumble)
   chain.nodes.push(rumble, rumbleFilter, rumbleGain)
+  chain.synthGains.rumble = rumbleGain.gain
 
   const crackle = profile.crackle
   if (crackle) {
@@ -393,14 +415,30 @@ function buildBedChain(context, graph, profileId) {
       chain.nodes.push(source, ...(pan ? [pan] : []))
     })
     addDrift(chain, crackleGain.gain, 'db')
+    chain.synthGains.crackle = crackleGain.gain
   }
 
-  // Inert until a profile lists files: each one fades in when it has decoded.
-  profile.files.forEach(file => {
-    loadBedFile(context, graph, file.src)
-      .then(buffer => addBedFileLayer(context, chain, file, buffer))
-      .catch(error => console.warn(`Ambience bed layer failed to start: ${file.src}`, error))
-  })
+  // Recorded layers (the catalog's beds for this profile, mixed by its `files`), fetched
+  // the first time the reserve is entered and cached; each fades in once it has decoded.
+  // A file that fails resolves to null and is skipped: the synth layers above play on.
+  // The synth layers are lowered to `withFiles` only once every recording has started, so
+  // a partial failure (say both shrimp beds) keeps the full synth bed under the layers
+  // that did load, instead of a thinned one.
+  const layerLoads = bedLayersFor(profileId).map(file => loadBedFile(context, graph, file.src)
+    .then(buffer => {
+      if (!buffer || chain.retired) return false
+      addBedFileLayer(context, chain, file, buffer)
+      return true
+    })
+    .catch(error => {
+      console.warn(`Ambience bed layer failed to start: ${file.src}`, error)
+      return false
+    }))
+  if (layerLoads.length) {
+    Promise.all(layerLoads).then(started => {
+      if (!chain.retired && started.every(Boolean)) applyWithFilesMix(context, chain)
+    })
+  }
 
   return chain
 }
@@ -1065,7 +1103,10 @@ export function useOceanAudio(tankId = null) {
     startedRef.current = false
     setStarted(false)
     closeAudioGraph(audio.graph)
-    audio.context.close?.()
+    // Clear the ref so a remount (StrictMode, Fast Refresh) builds a fresh context rather
+    // than reusing, and closing again, this closed one.
+    audioRef.current = null
+    audio.context.close?.()?.catch?.(() => {})
   }, [clearSuspendTimer, stopBedDrift, stopLevelMeter])
 
   return { muted, started, supported, startAudio, pauseAudio, stopAudio, toggleMuted }

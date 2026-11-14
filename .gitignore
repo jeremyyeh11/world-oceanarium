@@ -19,6 +19,9 @@ _blender models/
 *.blend
 *.blend1
 
+# Python bytecode from the scripts/ tools
+__pycache__/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

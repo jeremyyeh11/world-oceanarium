@@ -15,26 +15,38 @@ Status labels:
 
 ### Audio redesign
 
-Status: `Current in development` — `v0.51.0-dev_2`, branch `feat/audio-redesign`.
-[Plan, clip list and phases](docs/audio-redesign.md).
+Status: `Current in development` — `v0.51.0-dev_3`, branch `feat/audio-redesign`.
+[Plan, clip list and phases](docs/audio-redesign.md) · [Every clip and where it plays](docs/audio-clips.md).
 
-- [ ] Phase 0: collect the clips (plan §3) with a credits sheet (title, author, URL, licence).
+- [x] Phase 0: collect the clips (plan §3, §9) with a credits sheet: 91 clips from Freesound CC0 and
+  NOAA Fisheries in `src/audio/clipCatalog.json` (`scripts/build-audio-clips.py`).
+- [x] Wire the clips (`v0.51.0-dev_3`): event pools grunt, knock, click, bloop, bubble; recorded bed
+  layers for The Reefs, Open Sea and The Shallows with loop points and lowered synth layers; Sounds
+  credits in the Sources modal; `docs/audio-clips.md` generated from the catalog.
+- [ ] Recorded clips follow-ups (`v0.51.0-dev_3`): physical-phone listen of each reserve with the
+  recordings (bed balance against the synth noise and rumble, event clip levels, never heard); listen
+  to the loop seams of shallows-bubble-flow, shallows-surf and (before it is wired) descent-scuba;
+  check whether reef-soundscape-grays and reef-shrimp-hvar sound squashed (both heavily limited in the
+  build); listen to the provisional thup-deep-impact clips before wiring them (the Open Sea thup stays
+  synthesised until then); find the source of the 9 older MP3s (credited as supplied, source not
+  recorded).
 - [x] Phase 1: engine. Buses (beds → world → master, UI dry), 12 kHz master guard with the tint
   moved into each chain, per-reserve synthesised beds with a 2 s crossfade, random-walk drift and
   irregular swell, inert Opus/m4a bed-file loader, context suspended when the page is hidden
   (`v0.51.0-dev_1`).
 - [ ] Phase 1 follow-ups: mute persistence needs Jeremy's decision (it crosses the reload boundary
-  in AGENTS.md); add bed files to the environment loading manifest once real clips exist;
+  in AGENTS.md); add bed files to the environment loading manifest now that real clips exist;
   physical-phone listen of each reserve's bed, the crossfade and suspend/resume.
 - [x] Phase 2: event scheduler. Per-reserve Poisson rate tables, call and response, synth voices
   until clips arrive (clip manifest inert), virtual distance, dawn/dusk modulation,
   `setEventActivity` for the hush, per-voice variation incl. fish swims (`v0.51.0-dev_2`).
 - [ ] Phase 2 follow-ups: physical-phone listen of the event levels (set from an offline render,
-  never heard), especially whether 50–300 Hz grunts carry on phone speakers; fill the clip pools
-  (`src/audio/clipManifest.js`) as Phase 0 collects clips.
+  never heard), especially whether 50–300 Hz grunts carry on phone speakers (the synth voices now
+  play only for the thup, or until a pool has loaded).
 - [ ] Phase 3: spatial voice pool, distance and depth filter, reverb per reserve.
 - [ ] Phase 4: behaviour hooks (hush, startle, peck, turtle breath, manta, remora, focus duck).
-- [ ] Phase 5: UI sounds, volume slider, Sources-modal credits for the clips, phone tuning pass.
+- [ ] Phase 5: UI sounds (clips staged in `public/audio/ui`), volume slider, phone tuning pass.
+  Sources-modal credits for the clips shipped in `v0.51.0-dev_3`.
 
 ### Yellowfin Tuna follow-ups
 

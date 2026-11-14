@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { IMAGE_CREDITS, SOURCES, STUDY_CREDITS } from '../data/sources'
+import { IMAGE_CREDITS, SOUND_CREDITS, SOURCES, STUDY_CREDITS } from '../data/sources'
 
 function displayHost(url) {
   try {
@@ -138,6 +138,43 @@ export default function SourcesModal({ onClose }) {
                         <span>{credit.author ? `Photo by ${credit.author}; source and licence unknown.` : 'Unknown source.'}</span>
                       )}
                       {credit.changes && <span className="sources-credit-changes">Modified: {credit.changes}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </li>
+          )}
+          {SOUND_CREDITS.length > 0 && (
+            <li>
+              <section className="sources-credits" aria-labelledby="sources-sounds-title">
+                <h3 id="sources-sounds-title" className="sources-credits-title">Sounds</h3>
+                <p className="sources-credits-intro">
+                  Recordings the ambience and sound effects are cut from, including some kept for sounds still to come.
+                </p>
+                <ul className="sources-credits-list">
+                  {SOUND_CREDITS.map(credit => (
+                    <li key={credit.id} className="sources-credit">
+                      <strong>{credit.subject}</strong>
+                      {!credit.url ? (
+                        <span>{credit.author}.</span>
+                      ) : credit.noaaCredit ? (
+                        <span>
+                          <a href={credit.url} target="_blank" rel="noreferrer noopener">{credit.noaaCredit}</a>
+                          {credit.licence ? ` ${credit.licence.name}.` : ''}
+                        </span>
+                      ) : (
+                        <span>
+                          <a href={credit.url} target="_blank" rel="noreferrer noopener">{credit.title}</a>
+                          {' by '}{credit.author}
+                          {', '}
+                          {!credit.licence
+                            ? 'licence not stated'
+                            : credit.licence.url
+                              ? <a href={credit.licence.url} target="_blank" rel="noreferrer noopener">{credit.licence.name}</a>
+                              : credit.licence.name}
+                          .
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>

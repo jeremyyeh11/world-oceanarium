@@ -12,8 +12,9 @@
 //   3 calls in a chain.
 // - Each event sits at a random virtual distance (2–25 m, weighted toward far) that sets
 //   its lowpass and gain (plan §4.5, before the spatial voice pool of Phase 3).
-// - A clip pool (src/audio/clipManifest.js) plays when it has decoded buffers; otherwise
-//   the archetype's procedural synth voice plays, so the layer is audible today.
+// - A clip pool (src/audio/clipManifest.js) plays when it has decoded buffers, scaled by
+//   CLIP_LEVEL; otherwise the archetype's procedural synth voice plays (thup always, and
+//   any archetype until its clips have decoded or if they fail).
 // - Skipped while muted, while the context is not running and while the page is hidden:
 //   candidates that fall due then are dropped, never queued, so nothing bursts on return.
 import { AMBIENCE_PROFILES, EVENT_ARCHETYPES } from './ambienceProfiles'
@@ -30,6 +31,8 @@ import {
 
 const FLAT_Q_DB = -3.01
 const MAX_EVENT_VOICES = 6
+// Recorded event clips ship as Opus (WebM) with an AAC (m4a) fallback; there is no mp3.
+const EVENT_CLIP_FORMATS = ['webm', 'm4a']
 const TICK_MIN_MS = 25
 // The longest the timer sleeps, so a time-of-day change or a rate-0 reserve still ticks.
 const TICK_MAX_MS = 5000
@@ -76,6 +79,22 @@ const SYNTH_LEVEL = {
   bloop: 0.03,
   bubble: 0.024,
 }
+// Recorded clips (peak-normalised to -3 dBFS, about 0.708) are scaled to land near the
+// synth voice of the same archetype. Set against an offline render of the real scheduler
+// (61 triggers per archetype and mode, the same distance draws for synth and clip, loudest
+// 50 ms RMS per voice): clip minus synth, median / power mean / loudest, in dB: grunt
+// +1.5 / +1.2 / −0.9, knock −0.6 / −0.5 / −0.9, click −3.7 / −2.8 / −3.0, bloop
+// +0.1 / −0.2 / +2.8, bubble −0.8 / −0.6 / −0.1. Repeat runs move about ±1.5 dB (clicks
+// more: a near snap is broadband, a far one is cut by the distance lowpass). Never heard.
+// `thup` has no entry: its clips are provisional and unwired, so the thup stays synth.
+const CLIP_LEVEL = {
+  grunt: 0.074,
+  knock: 0.085,
+  click: 0.28,
+  bloop: 0.027,
+  bubble: 0.045,
+}
+const CLIP_LEVEL_FALLBACK = 0.05
 const NOISE_BUFFER_SECONDS = 1
 
 function createFilter(context, type, frequency, q = FLAT_Q_DB) {
@@ -379,7 +398,7 @@ export function createEventScheduler(context, output, { canPlay }) {
     if (clipPools[archetype] || !sources?.length) return
     const pool = { buffers: [], last: -1 }
     clipPools[archetype] = pool
-    Promise.all(sources.map(src => loadClip(context, clipCache, src, undefined, 'Event clip')))
+    Promise.all(sources.map(src => loadClip(context, clipCache, src, EVENT_CLIP_FORMATS, 'Event clip')))
       .then(buffers => {
         pool.buffers = buffers.filter(Boolean)
       })
@@ -431,9 +450,11 @@ export function createEventScheduler(context, output, { canPlay }) {
     }
 
     // Distance lowpass → gain → narrow pan → event bus.
+    const pool = clipPools[archetype]
+    const clip = pool?.buffers.length > 0
     const lowpass = addNode(voice, createFilter(context, 'lowpass', cutoff))
     const gain = addNode(voice, context.createGain())
-    gain.gain.value = level
+    gain.gain.value = clip ? level * (CLIP_LEVEL[archetype] ?? CLIP_LEVEL_FALLBACK) : level
     lowpass.connect(gain)
     const panner = typeof context.createStereoPanner === 'function' ? context.createStereoPanner() : null
     if (panner) {
@@ -446,9 +467,8 @@ export function createEventScheduler(context, output, { canPlay }) {
     }
 
     voices += 1
-    const pool = clipPools[archetype]
     try {
-      if (pool?.buffers.length) {
+      if (clip) {
         pool.last = pickWithoutRepeat(pool.buffers.length, pool.last)
         const source = context.createBufferSource()
         source.buffer = pool.buffers[pool.last]

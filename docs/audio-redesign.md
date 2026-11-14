@@ -1,6 +1,6 @@
 # Audio redesign: plan and clip list
 
-Status: proposal, 2026-11-14. Phase 1 (engine) is in `v0.51.0-dev_1` and Phase 2 (event layer) in `v0.51.0-dev_2`; see [Phase 1 status](#phase-1-status) and [Phase 2 status](#phase-2-status). §1 describes the engine before them.
+Status: proposal, 2026-11-14. Phase 1 (engine) is in `v0.51.0-dev_1`, Phase 2 (event layer) in `v0.51.0-dev_2` and the first recorded clips in `v0.51.0-dev_3`; see [Phase 1 status](#phase-1-status), [Phase 2 status](#phase-2-status) and [Recorded clips](#recorded-clips). §1 describes the engine before them. Every shipped clip, with what it plays as, is listed in [audio-clips.md](audio-clips.md).
 
 ## 1. How it works today
 
@@ -252,6 +252,51 @@ Jeremy asked to prefer Epidemic Sound, where he holds a subscription. The catalo
 
 Signed-out search shows only the top 10 results per query, so a signed-in search may find more.
 
+## 9. Clip library: Freesound CC0 and NOAA (chosen 2026-11-14)
+
+Jeremy chose Freesound CC0 and NOAA over Epidemic Sound. The clips cut from these picks, and which of them play, are in [audio-clips.md](audio-clips.md). Each Freesound licence below was read on the sound's own page. NOAA Fisheries recordings are made by the US government and carry no copyright. Recordings that a partner owns (LGL, Puerto Rico, AWI, Cornell) are excluded.
+
+The top picks are the download batch. Freesound items are listed by sound id: the page is `freesound.org/s/<id>/` and the HQ preview is at `cdn.freesound.org/previews/…`. NOAA files sit under `fisheries.noaa.gov/s3/2023-04/`.
+
+Beds:
+- A1 open water: GirlWithSoundRecorder 773947 (Korcula, 6:44)
+- A2 shrimp crackle: KaleidacousticsAudio 630436 (Hvar, 13:30) and MeliaRoger 867441 (Aber Wrac'h, at night, 10:08)
+- A3 reef: NOAA `Sdsc01-…-GRNMS-…-soundscape-clip.mp3` (Gray's Reef: shrimp plus a fish chorus)
+- A4 surf: L.Finck 815116
+- A5 bubble fizz: KolbyRFX 852478
+- A6 surge: KolbyRFX 852167
+- A7 descent: sbvitug 634225
+
+One-shots:
+- B1 swish: JavierZumer 422657
+- B2 deep thump: Sheyvan 470084
+- B3 school rush: NapierFreesound 760849, as source material
+- B4 fish calls (NOAA): red grouper `Epmo-pulses…`, toadfish `Opsp-tonal…`, cod grunt `Gamo-grunt…`
+- B5 knock train (NOAA): haddock `Meae-knock…`
+- B6 click (NOAA): snapping shrimp `Alsp-snaps…`
+- B7 grazing: bruno.auzet 654439 (a winkle rasping seaweed)
+- B8 splash heard from below: stuniverso 761566
+- B9 breath: geraldfiebig 385796 (dolphin breaths stand in; no turtle recording found)
+- B10 exhale: timsc 274491
+- B11 bubbles: Valerie-Vivegnis 865358, JavierZumer 422666
+- B12 humpback (NOAA): `Meno-song…`
+- B13 creak: kyles 450258
+- B14 dolphin (NOAA): Atlantic spotted dolphin `Stfr-Multisound…`
+
+UI:
+- C2 bubble rise: mosaichorse 486885 (reversed for close)
+- C3 error: JonnyRuss01 478191
+- C4 ping: nicorico_120 808185
+- C5 plunge and surface: adviseme333 679404 and 679410
+
+NOAA credit for the Sources modal: "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. <Species>." plus the page URL.
+
+Remaining gaps:
+- No real school-rush recording: layer it.
+- No turtle breath.
+- No real fish-drum roll: the drum recordings are partner-owned.
+- Designed sounds only for the thump, creak and UI.
+
 ## Sources (key)
 - DOSITS: common sounds and Wenz curves, spreading loss, shallow-water reverberation (dosits.org)
 - Gottesman et al. 2020, *MEPS* 654:35 (kelp soundscape); Butler et al. 2021, *Front. Mar. Sci.* (kelp, 2.5–7.5 kHz shrimp at dawn and dusk)
@@ -314,3 +359,19 @@ Shipped in `v0.51.0-dev_2` (branch `feat/audio-redesign`). Still no new audio fi
 - **Clips:** `src/audio/clipManifest.js` maps each archetype to public paths without extension; `loadClip` (`src/audio/clipLoader.js`, also used for bed files) tries `.webm`, `.m4a`, then `.mp3`, once per session, when a reserve that plays the archetype is first entered. A pool with decoded buffers plays instead of the synth (playback rate from the voice's cents). Every pool is empty.
 - **Dev probe:** in dev builds only, `globalThis.__oceanAudioEvents` is the live scheduler: `stats` (fired per archetype, replies, capped, thinned, dropped, active and peak voices) and `trigger(archetype)`. Vite strips it from production builds.
 - **Not in Phase 2:** spatial voice pool and reverb (Phase 3), predator/turtle/peck hooks and the hush wiring (Phase 4), new UI sounds, mute persistence, life-nearby density modulation (§4.2).
+
+## Recorded clips
+
+Wired in `v0.51.0-dev_3` (branch `feat/audio-redesign`). Nothing has been heard: every level below comes from an offline render.
+
+- **Source of truth:** `src/audio/clipCatalog.json`, written by `scripts/build-audio-clips.py` (never edited by hand), lists all 100 clips (91 new, 9 older MP3s) with source, licence, trim, loop points and sizes. `src/audio/clipUses.js` says what each catalog `use` does in this build (in use, staged or existing); `src/audio/clipManifest.js` derives the event pools, each reserve's bed layers and the older MP3 URLs from the two, so no path is written twice. The clip list ([audio-clips.md](audio-clips.md), `npm run audio:clip-list`) and the Sources modal's Sounds section (`SOUND_CREDITS`) derive from the same files.
+- **Wired:** event pools grunt (red grouper, cod, toadfish: 12 clips), knock (haddock: 6), click (snapping shrimp: 6), bloop (6) and bubble (6); beds The Reefs (Hvar and Aber Wrac'h shrimp, Gray's Reef soundscape), Open Sea (Korcula) and The Shallows (surf, bubble flow). The landing gate and selector keep their synth-only bed.
+- **Not wired (never fetched):** the Kelp Forest bed (the reserve is not on `main`), the descent bed, the haddock knock train, every `later:*` one-shot, the new UI sounds (Phase 5), and the `thup` clips, which are provisional and unheard: the Open Sea thup stays synthesised.
+- **Loading:** unchanged in shape. A reserve's bed files are fetched on its first entry (WebM/Opus, then m4a), decoded once and cached for the session; an event pool loads the first time a reserve that plays it is entered (the landing's sparse bubbles load the bubble pool, about 16 KB, at the first gesture). A file that fails in both formats resolves to null and is skipped.
+- **Bed loops:** each bed file holds its loop plus about 85 ms of codec padding at each end. A layer loops only between the catalog's `loop` points (`loopStart`/`loopEnd`) and starts at a random point inside the loop; looping the whole file would click.
+- **Synth layers with recordings** (`withFiles` in `ambienceProfiles.js`): until a reserve's first recorded layer has decoded, its bed plays the full dev_2 synth layers, so a missing file never thins it. When the first layer fades in (1.5 s), the synth layers it duplicates ramp to their `withFiles` gains with it: The Reefs' procedural crackle goes to 0 (real shrimp replace it), its noise 0.9 → 0.7 and rumble 0.05 → 0.045 stay as glue; Open Sea and The Shallows lower only the noise (0.9 → 0.6, 0.88 → 0.6); the faint Shallows crackle stays.
+- **Bed mix** (`files` in each profile, gain and pan per clip id; beds are all −20 LUFS integrated): Reefs Hvar 0.19 pan −0.6, Aber Wrac'h 0.3 pan +0.6, Gray's Reef 0.3 centred; Open Sea Korcula 0.38; Shallows surf 0.3, bubble flow 0.2. Hvar and Gray's Reef are heavily limited in the build (they may sound squashed), so they sit lowest.
+- **Bed levels,** from an offline render of the bed chain on the bed bus (30 s, without drift or swell, approximate K-weighting, LUFS-like): totals stay within 0.4 LU of the dev_2 synth beds (Open Sea −38.9 → −39.3, Reefs −38.3 → −38.3, Shallows −38.8 → −38.7). Per layer: Reefs noise −42.7, rumble −43.4, Aber Wrac'h −46.2, Hvar −47.5, Gray's Reef −50.5 (the dev_2 crackle was −59.6); Open Sea rumble −42.5, noise −44.8, Korcula −45.7; Shallows rumble −43.5, noise −44.0, surf −44.4, bubble flow −49.3.
+- **Event clip levels** (`CLIP_LEVEL` in `eventScheduler.js`, on top of the same distance gain and lowpass as the synth): clips are peak-normalised to −3 dBFS, so each archetype is scaled to land near its synth voice: grunt 0.074, knock 0.085, click 0.28, bloop 0.027, bubble 0.045. Measured with the real scheduler in an `OfflineAudioContext`: 61 triggers per archetype and mode, the same distance draws for synth and clip, loudest 50 ms RMS per voice. Clip minus synth (median / power mean / loudest, dB): grunt +1.5 / +1.2 / −0.9, knock −0.6 / −0.5 / −0.9, click −3.7 / −2.8 / −3.0, bloop +0.1 / −0.2 / +2.8, bubble −0.8 / −0.6 / −0.1. Repeat runs move about ±1.5 dB, clicks more (a near snap is broadband, a far one is cut by the distance lowpass).
+- **Credits:** the Sources modal has a Sounds section, one row per source recording with clips in `public/audio` (31: 8 NOAA Fisheries with NOAA's credit line, 22 Freesound CC0 credited as a courtesy, and one row for the 9 older MP3s, whose source was not recorded). Staged recordings are listed too, since their files ship.
+- **Still to check by ear,** on a phone: the bed loop seams (shallows-bubble-flow, shallows-surf and, when wired, descent-scuba are the ones to listen to), whether Gray's Reef and Hvar sound squashed, the event levels, and the thup clips before they are wired.

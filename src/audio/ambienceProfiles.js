@@ -17,16 +17,33 @@
 //             lowpass for the bed; raise it only where the bed has content up there
 //             (crackle, recorded layers)
 //   gain    — the whole bed, on top of the shared bed bus (AMBIENT_VOLUME)
-//   files   — recorded loops to layer in when they exist: { src, gain, pan }, with
-//             `src` the public path without extension (`/audio/beds/reef-crackle-a`).
-//             The loader tries `${src}.webm` (Opus) then `${src}.m4a`. Empty until the
-//             clips in docs/audio-redesign.md §3 are collected.
+//   files   — the mix of the recorded bed layers, by clip id: { gain, pan }. Which clips
+//             a reserve's bed plays comes from src/audio/clipCatalog.json (`use`
+//             `bed:<profile id>`, wired in src/audio/clipUses.js), never from here; this
+//             only sets their level and pan (src/audio/clipManifest.js `bedLayersFor`).
+//             Each file loops between the catalog's `loop` points from a random start
+//             inside the loop, and fades in once it has decoded (WebM/Opus, then m4a).
+//             Beds are all -20 LUFS integrated, so these gains are the balance.
+//   withFiles — the synthesised layers' gains once a recorded layer is playing
+//             ({ noise, rumble, crackle }, each optional): the synth parts the
+//             recordings duplicate are lowered or removed, and ramp there as the first
+//             recorded layer fades in. Until then (or if every file fails to load) the
+//             bed plays its full synth layers, so a missing file never thins it.
 //
 // Levels stay close to the pre-redesign bed (noise 0.95 + rumble 0.055 into 0.18, which
 // `default` reproduces): the noise layer's loudness hardly moves with its lowpass, so the
 // reserves differ in colour and movement, not volume. Crackle gains were set against a
 // simulated render: reef crackle sits about 20 dB under the noise layer (RMS), shallows
 // about 33 dB under.
+//
+// Recorded layers (v0.51.0-dev_3) were mixed against an offline render of this chain
+// (30 s, no drift or swell, approximate K-weighting, on the bed bus): each bed's total
+// stays within 0.4 LU of its synth-only dev_2 bed (Open Sea −38.9 → −39.3, Reefs −38.3 →
+// −38.3, Shallows −38.8 → −38.7), and no recording louder than the synth noise layer it
+// shares the bed with (Korcula and the surf within 1 LU of it, the rest 3–8 LU under;
+// per layer in docs/audio-redesign.md, "Recorded clips"). In the Reefs the real shrimp replace the procedural
+// crackle (withFiles crackle 0) and the two shrimp beds sit apart (±0.6); Gray's Reef and
+// Hvar are heavily limited in the build, so they stay the lowest. Never heard.
 //
 // A Kelp Forest reserve (when it lands): surge-led swell (rate ~0.08, depth ~0.3) and a
 // softer, lower crackle (highpass ~2000, lowpass ~5000), events tint ~0.85.
@@ -62,7 +79,7 @@ export const AMBIENCE_PROFILES = {
     swell: { rate: 0.18, depth: 0.11 },
     tint: 1600,
     gain: 1,
-    files: [],
+    files: {},
     // Very sparse bubbles under the landing gate and selector.
     events: { tint: 1, rates: { bubble: 0.5 } },
   },
@@ -75,7 +92,12 @@ export const AMBIENCE_PROFILES = {
     swell: { rate: 0.06, depth: 0.07 },
     tint: 1100,
     gain: 0.95,
-    files: [],
+    // Korcula open water, dark under the 1100 Hz tint; the rumble stays as it was, the
+    // noise drops to make room.
+    files: {
+      'open-water-korcula': { gain: 0.38, pan: 0 },
+    },
+    withFiles: { noise: 0.6 },
     // Near silent: a rare low thup (tuna-like) and the odd bubble.
     events: { tint: 0.9, rates: { thup: 0.6, bubble: 0.4, bloop: 0.3 } },
   },
@@ -87,7 +109,15 @@ export const AMBIENCE_PROFILES = {
     swell: { rate: 0.14, depth: 0.1 },
     tint: 6500,
     gain: 1,
-    files: [],
+    // Two shrimp beds panned apart and the Gray's Reef chorus centred replace the
+    // procedural crackle; noise and rumble stay, a little lower, as glue. Hvar and Gray's
+    // Reef are heavily limited, so they sit lowest.
+    files: {
+      'reef-shrimp-hvar': { gain: 0.19, pan: -0.6 },
+      'reef-shrimp-aberwrach': { gain: 0.3, pan: 0.6 },
+      'reef-soundscape-grays': { gain: 0.3, pan: 0 },
+    },
+    withFiles: { noise: 0.7, rumble: 0.045, crackle: 0 },
     // Most life: grunts and knocks that answer each other, clicks and bubbles.
     events: { tint: 1, rates: { grunt: 4, knock: 2.5, click: 6, bubble: 1, bloop: 2 } },
   },
@@ -99,7 +129,12 @@ export const AMBIENCE_PROFILES = {
     swell: { rate: 0.09, depth: 0.26 },
     tint: 4200,
     gain: 1,
-    files: [],
+    // Surf wash and a bubble trickle over a lower noise layer; the faint crackle stays.
+    files: {
+      'shallows-surf': { gain: 0.3, pan: 0 },
+      'shallows-bubble-flow': { gain: 0.2, pan: 0 },
+    },
+    withFiles: { noise: 0.6 },
     // Sparse clicks, bubble fizz over the seagrass and a rare grunt.
     events: { tint: 1.15, rates: { grunt: 0.5, click: 3, bubble: 2, bloop: 3 } },
   },

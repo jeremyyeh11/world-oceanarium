@@ -331,6 +331,8 @@
   gap: 0.1rem;
   padding: 0.45rem 0 0;
   border-top: 1px solid rgba(127, 220, 242, 0.1);
+  /* Recording titles can be long file names with no spaces. */
+  overflow-wrap: anywhere;
 }
 
 .sources-credits-list .sources-credit:first-child {

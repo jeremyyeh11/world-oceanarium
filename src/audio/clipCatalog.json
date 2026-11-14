@@ -1,0 +1,2499 @@
+[
+  {
+    "id": "reef-shrimp-hvar",
+    "path": "/audio/beds/reef-shrimp-hvar",
+    "group": "bed",
+    "use": "bed:the-reefs",
+    "title": "Underwater crackling sounds_Hydrophone.wav",
+    "author": "KaleidacousticsAudio",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/630436/",
+    "credit": "Underwater crackling sounds_Hydrophone.wav by KaleidacousticsAudio, https://freesound.org/s/630436/ (CC0 1.0)",
+    "trim": [
+      421.0,
+      484.992
+    ],
+    "duration": 60.992,
+    "channels": 2,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 444920,
+      "m4a": 520287
+    },
+    "loop": [
+      0.085333,
+      61.077333
+    ]
+  },
+  {
+    "id": "reef-shrimp-aberwrach",
+    "path": "/audio/beds/reef-shrimp-aberwrach",
+    "group": "bed",
+    "use": "bed:the-reefs",
+    "title": "UNDRWatr_Underwater clics atmosphere at night in the port of Aber Wrac'h bubbles calm continous -20LUFS_FR-BRETAGNE 20260822_Melia Roger_Droprig F3 Gladys",
+    "author": "MeliaRoger",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/867441/",
+    "credit": "UNDRWatr_Underwater clics atmosphere at night in the port of Aber Wrac'h bubbles calm continous -20LUFS_FR-BRETAGNE 20260822_Melia Roger_Droprig F3 Gladys by MeliaRoger, https://freesound.org/s/867441/ (CC0 1.0)",
+    "trim": [
+      363.5,
+      413.4973
+    ],
+    "duration": 46.997333,
+    "channels": 2,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 304214,
+      "m4a": 388156
+    },
+    "loop": [
+      0.085333,
+      47.082667
+    ]
+  },
+  {
+    "id": "reef-soundscape-grays",
+    "path": "/audio/beds/reef-soundscape-grays",
+    "group": "bed",
+    "use": "bed:the-reefs",
+    "title": "Soundscape: Gray's Reef National Marine Sanctuary, hourly compilation",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Sdsc01-HourlySancSdCompiled-GRNMS-NOAA-PAGroup-26-amplified-soundscape-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Soundscape.",
+    "trim": [
+      0.0,
+      59.9827
+    ],
+    "duration": 35.882667,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 147950,
+      "m4a": 262363
+    },
+    "loop": [
+      0.085333,
+      35.968
+    ],
+    "segments": [
+      [
+        0.0,
+        27.5
+      ],
+      [
+        45.6,
+        59.982667
+      ]
+    ]
+  },
+  {
+    "id": "open-water-korcula",
+    "path": "/audio/beds/open-water-korcula",
+    "group": "bed",
+    "use": "bed:open-sea",
+    "title": "Below the Sea | Underwater Soundscape | Korcula, Croatia",
+    "author": "GirlWithSoundRecorder",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/773947/",
+    "credit": "Below the Sea | Underwater Soundscape | Korcula, Croatia by GirlWithSoundRecorder, https://freesound.org/s/773947/ (CC0 1.0)",
+    "trim": [
+      1.0,
+      76.9813
+    ],
+    "duration": 72.981333,
+    "channels": 2,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 672159,
+      "m4a": 605147
+    },
+    "loop": [
+      0.085333,
+      73.066667
+    ]
+  },
+  {
+    "id": "shallows-surf",
+    "path": "/audio/beds/shallows-surf",
+    "group": "bed",
+    "use": "bed:the-shallows",
+    "title": "Underwater - seashore",
+    "author": "L.Finck",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/815116/",
+    "credit": "Underwater - seashore by L.Finck, https://freesound.org/s/815116/ (CC0 1.0)",
+    "trim": [
+      17.5,
+      81.492
+    ],
+    "duration": 60.992,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 236766,
+      "m4a": 443601
+    },
+    "loop": [
+      0.085333,
+      61.077333
+    ]
+  },
+  {
+    "id": "shallows-bubble-flow",
+    "path": "/audio/beds/shallows-bubble-flow",
+    "group": "bed",
+    "use": "bed:the-shallows",
+    "title": "WATRUndwtr_Underwater Bubble Flow Loop_KOLBYR_FREE SOUNDS",
+    "author": "KolbyRFX",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/852478/",
+    "credit": "WATRUndwtr_Underwater Bubble Flow Loop_KOLBYR_FREE SOUNDS by KolbyRFX, https://freesound.org/s/852478/ (CC0 1.0)",
+    "trim": [
+      35.0,
+      84.9973
+    ],
+    "duration": 46.997333,
+    "channels": 2,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 423145,
+      "m4a": 389984
+    },
+    "loop": [
+      0.085333,
+      47.082667
+    ]
+  },
+  {
+    "id": "kelp-surge",
+    "path": "/audio/beds/kelp-surge",
+    "group": "bed",
+    "use": "bed:kelp-forest",
+    "title": "WATRUndwtr_Underwater Submerge Transition_KOLBYR_FREE SOUNDS",
+    "author": "KolbyRFX",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/852167/",
+    "credit": "WATRUndwtr_Underwater Submerge Transition_KOLBYR_FREE SOUNDS by KolbyRFX, https://freesound.org/s/852167/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      49.984
+    ],
+    "duration": 49.984,
+    "channels": 2,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 304678,
+      "m4a": 380916
+    },
+    "loop": [
+      0.085333,
+      50.069333
+    ]
+  },
+  {
+    "id": "descent-scuba",
+    "path": "/audio/beds/descent-scuba",
+    "group": "bed",
+    "use": "bed:descent",
+    "title": "Scuba_bubbles.mp3",
+    "author": "sbvitug",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/634225/",
+    "credit": "Scuba_bubbles.mp3 by sbvitug, https://freesound.org/s/634225/ (CC0 1.0)",
+    "trim": [
+      10.0,
+      53.0
+    ],
+    "duration": 40.0,
+    "channels": 2,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 296482,
+      "m4a": 331593
+    },
+    "loop": [
+      0.085333,
+      40.085333
+    ]
+  },
+  {
+    "id": "grunt-red-grouper-01",
+    "path": "/audio/events/grunt-red-grouper-01",
+    "group": "event",
+    "use": "grunt",
+    "title": "Red Grouper (Epinephelus morio): pulses",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Epmo-pulses-NOAA-PAGroup-01-red-grouper-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Red Grouper.",
+    "trim": [
+      2.73,
+      2.98
+    ],
+    "duration": 0.25,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1831,
+      "m4a": 3093
+    }
+  },
+  {
+    "id": "grunt-red-grouper-02",
+    "path": "/audio/events/grunt-red-grouper-02",
+    "group": "event",
+    "use": "grunt",
+    "title": "Red Grouper (Epinephelus morio): pulses",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Epmo-pulses-NOAA-PAGroup-01-red-grouper-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Red Grouper.",
+    "trim": [
+      3.19,
+      3.5
+    ],
+    "duration": 0.31,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2214,
+      "m4a": 3666
+    }
+  },
+  {
+    "id": "grunt-red-grouper-03",
+    "path": "/audio/events/grunt-red-grouper-03",
+    "group": "event",
+    "use": "grunt",
+    "title": "Red Grouper (Epinephelus morio): pulses",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Epmo-pulses-NOAA-PAGroup-01-red-grouper-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Red Grouper.",
+    "trim": [
+      3.57,
+      4.36
+    ],
+    "duration": 0.79,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4673,
+      "m4a": 7484
+    }
+  },
+  {
+    "id": "grunt-red-grouper-04",
+    "path": "/audio/events/grunt-red-grouper-04",
+    "group": "event",
+    "use": "grunt",
+    "title": "Red Grouper (Epinephelus morio): pulses",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Epmo-pulses-NOAA-PAGroup-01-red-grouper-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Red Grouper.",
+    "trim": [
+      10.47,
+      10.76
+    ],
+    "duration": 0.29,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2050,
+      "m4a": 3494
+    }
+  },
+  {
+    "id": "grunt-red-grouper-05",
+    "path": "/audio/events/grunt-red-grouper-05",
+    "group": "event",
+    "use": "grunt",
+    "title": "Red Grouper (Epinephelus morio): pulses",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Epmo-pulses-NOAA-PAGroup-01-red-grouper-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Red Grouper.",
+    "trim": [
+      21.15,
+      21.38
+    ],
+    "duration": 0.23,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1762,
+      "m4a": 2952
+    }
+  },
+  {
+    "id": "grunt-red-grouper-06",
+    "path": "/audio/events/grunt-red-grouper-06",
+    "group": "event",
+    "use": "grunt",
+    "title": "Red Grouper (Epinephelus morio): pulses",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Epmo-pulses-NOAA-PAGroup-01-red-grouper-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Red Grouper.",
+    "trim": [
+      21.79,
+      22.36
+    ],
+    "duration": 0.57,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 3598,
+      "m4a": 5739
+    }
+  },
+  {
+    "id": "grunt-cod-01",
+    "path": "/audio/events/grunt-cod-01",
+    "group": "event",
+    "use": "grunt",
+    "title": "Atlantic Cod (Gadus morhua): grunts",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Gamo-grunt-NOAA-PAGroup-03-amplified-atlantic-cod-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Cod.",
+    "trim": [
+      1.39,
+      1.6
+    ],
+    "duration": 0.21,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1641,
+      "m4a": 2747
+    }
+  },
+  {
+    "id": "grunt-cod-02",
+    "path": "/audio/events/grunt-cod-02",
+    "group": "event",
+    "use": "grunt",
+    "title": "Atlantic Cod (Gadus morhua): grunts",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Gamo-grunt-NOAA-PAGroup-03-amplified-atlantic-cod-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Cod.",
+    "trim": [
+      2.19,
+      2.4
+    ],
+    "duration": 0.21,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1656,
+      "m4a": 2803
+    }
+  },
+  {
+    "id": "grunt-cod-03",
+    "path": "/audio/events/grunt-cod-03",
+    "group": "event",
+    "use": "grunt",
+    "title": "Atlantic Cod (Gadus morhua): grunts",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Gamo-grunt-NOAA-PAGroup-03-amplified-atlantic-cod-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Cod.",
+    "trim": [
+      3.21,
+      3.4
+    ],
+    "duration": 0.19,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1522,
+      "m4a": 2582
+    }
+  },
+  {
+    "id": "grunt-cod-04",
+    "path": "/audio/events/grunt-cod-04",
+    "group": "event",
+    "use": "grunt",
+    "title": "Atlantic Cod (Gadus morhua): grunts",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Gamo-grunt-NOAA-PAGroup-03-amplified-atlantic-cod-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Cod.",
+    "trim": [
+      4.4,
+      4.6
+    ],
+    "duration": 0.2,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1660,
+      "m4a": 2755
+    }
+  },
+  {
+    "id": "grunt-toadfish-01",
+    "path": "/audio/events/grunt-toadfish-01",
+    "group": "event",
+    "use": "grunt",
+    "title": "Toadfish (Opsanus spp.): tonal call",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Opsp-tonal-NOAA-PAGroup-01-amplified-LPfilter500-toadfish-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Toadfish.",
+    "trim": [
+      1.4,
+      1.93
+    ],
+    "duration": 0.53,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 3491,
+      "m4a": 5448
+    }
+  },
+  {
+    "id": "grunt-toadfish-02",
+    "path": "/audio/events/grunt-toadfish-02",
+    "group": "event",
+    "use": "grunt",
+    "title": "Toadfish (Opsanus spp.): tonal call",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Opsp-tonal-NOAA-PAGroup-01-amplified-LPfilter500-toadfish-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Toadfish.",
+    "trim": [
+      3.84,
+      4.25
+    ],
+    "duration": 0.41,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2782,
+      "m4a": 4552
+    }
+  },
+  {
+    "id": "knock-haddock-01",
+    "path": "/audio/events/knock-haddock-01",
+    "group": "event",
+    "use": "knock",
+    "title": "Haddock (Melanogrammus aeglefinus): knocks",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meae-knock-NOAA-PAGroup-01-haddock-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Haddock.",
+    "trim": [
+      1.33,
+      1.43
+    ],
+    "duration": 0.1,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1398,
+      "m4a": 1862
+    }
+  },
+  {
+    "id": "knock-haddock-02",
+    "path": "/audio/events/knock-haddock-02",
+    "group": "event",
+    "use": "knock",
+    "title": "Haddock (Melanogrammus aeglefinus): knocks",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meae-knock-NOAA-PAGroup-01-haddock-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Haddock.",
+    "trim": [
+      1.46,
+      1.81
+    ],
+    "duration": 0.35,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 3202,
+      "m4a": 4026
+    }
+  },
+  {
+    "id": "knock-haddock-03",
+    "path": "/audio/events/knock-haddock-03",
+    "group": "event",
+    "use": "knock",
+    "title": "Haddock (Melanogrammus aeglefinus): knocks",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meae-knock-NOAA-PAGroup-01-haddock-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Haddock.",
+    "trim": [
+      2.36,
+      2.73
+    ],
+    "duration": 0.37,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 3479,
+      "m4a": 4167
+    }
+  },
+  {
+    "id": "knock-haddock-04",
+    "path": "/audio/events/knock-haddock-04",
+    "group": "event",
+    "use": "knock",
+    "title": "Haddock (Melanogrammus aeglefinus): knocks",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meae-knock-NOAA-PAGroup-01-haddock-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Haddock.",
+    "trim": [
+      5.43,
+      5.65
+    ],
+    "duration": 0.22,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2477,
+      "m4a": 2964
+    }
+  },
+  {
+    "id": "knock-haddock-05",
+    "path": "/audio/events/knock-haddock-05",
+    "group": "event",
+    "use": "knock",
+    "title": "Haddock (Melanogrammus aeglefinus): knocks",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meae-knock-NOAA-PAGroup-01-haddock-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Haddock.",
+    "trim": [
+      6.16,
+      6.4
+    ],
+    "duration": 0.24,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2478,
+      "m4a": 3140
+    }
+  },
+  {
+    "id": "knock-haddock-06",
+    "path": "/audio/events/knock-haddock-06",
+    "group": "event",
+    "use": "knock",
+    "title": "Haddock (Melanogrammus aeglefinus): knocks",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meae-knock-NOAA-PAGroup-01-haddock-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Haddock.",
+    "trim": [
+      13.67,
+      13.76
+    ],
+    "duration": 0.09,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1323,
+      "m4a": 1910
+    }
+  },
+  {
+    "id": "knock-haddock-train-01",
+    "path": "/audio/events/knock-haddock-train-01",
+    "group": "event",
+    "use": "knock-train",
+    "title": "Haddock (Melanogrammus aeglefinus): knocks",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meae-knock-NOAA-PAGroup-01-haddock-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Haddock.",
+    "trim": [
+      4.64,
+      6.4
+    ],
+    "duration": 1.76,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 10733,
+      "m4a": 16054
+    }
+  },
+  {
+    "id": "click-shrimp-01",
+    "path": "/audio/events/click-shrimp-01",
+    "group": "event",
+    "use": "click",
+    "title": "Snapping Shrimp (Alpheus spp.): snaps",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Alsp-snaps-NOAA-PAGroup-02-amplified-snapping-shrimp-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Snapping Shrimp.",
+    "trim": [
+      0.091,
+      0.14
+    ],
+    "duration": 0.049,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 778,
+      "m4a": 1464
+    }
+  },
+  {
+    "id": "click-shrimp-02",
+    "path": "/audio/events/click-shrimp-02",
+    "group": "event",
+    "use": "click",
+    "title": "Snapping Shrimp (Alpheus spp.): snaps",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Alsp-snaps-NOAA-PAGroup-02-amplified-snapping-shrimp-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Snapping Shrimp.",
+    "trim": [
+      0.631,
+      0.68
+    ],
+    "duration": 0.049,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 952,
+      "m4a": 1485
+    }
+  },
+  {
+    "id": "click-shrimp-03",
+    "path": "/audio/events/click-shrimp-03",
+    "group": "event",
+    "use": "click",
+    "title": "Snapping Shrimp (Alpheus spp.): snaps",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Alsp-snaps-NOAA-PAGroup-02-amplified-snapping-shrimp-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Snapping Shrimp.",
+    "trim": [
+      1.231,
+      1.28
+    ],
+    "duration": 0.049,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 742,
+      "m4a": 1412
+    }
+  },
+  {
+    "id": "click-shrimp-04",
+    "path": "/audio/events/click-shrimp-04",
+    "group": "event",
+    "use": "click",
+    "title": "Snapping Shrimp (Alpheus spp.): snaps",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Alsp-snaps-NOAA-PAGroup-02-amplified-snapping-shrimp-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Snapping Shrimp.",
+    "trim": [
+      2.771,
+      2.82
+    ],
+    "duration": 0.049,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 790,
+      "m4a": 1508
+    }
+  },
+  {
+    "id": "click-shrimp-05",
+    "path": "/audio/events/click-shrimp-05",
+    "group": "event",
+    "use": "click",
+    "title": "Snapping Shrimp (Alpheus spp.): snaps",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Alsp-snaps-NOAA-PAGroup-02-amplified-snapping-shrimp-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Snapping Shrimp.",
+    "trim": [
+      3.156,
+      3.205
+    ],
+    "duration": 0.049,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 761,
+      "m4a": 1497
+    }
+  },
+  {
+    "id": "click-shrimp-06",
+    "path": "/audio/events/click-shrimp-06",
+    "group": "event",
+    "use": "click",
+    "title": "Snapping Shrimp (Alpheus spp.): snaps",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Alsp-snaps-NOAA-PAGroup-02-amplified-snapping-shrimp-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Snapping Shrimp.",
+    "trim": [
+      3.431,
+      3.48
+    ],
+    "duration": 0.049,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 770,
+      "m4a": 1489
+    }
+  },
+  {
+    "id": "bloop-release-01",
+    "path": "/audio/events/bloop-release-01",
+    "group": "event",
+    "use": "bloop",
+    "title": "26.07.26- Underwater Bubble",
+    "author": "Valerie-Vivegnis",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/865358/",
+    "credit": "26.07.26- Underwater Bubble by Valerie-Vivegnis, https://freesound.org/s/865358/ (CC0 1.0)",
+    "trim": [
+      0.555,
+      0.735
+    ],
+    "duration": 0.18,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1550,
+      "m4a": 2607
+    }
+  },
+  {
+    "id": "bloop-release-02",
+    "path": "/audio/events/bloop-release-02",
+    "group": "event",
+    "use": "bloop",
+    "title": "26.07.26- Underwater Bubble",
+    "author": "Valerie-Vivegnis",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/865358/",
+    "credit": "26.07.26- Underwater Bubble by Valerie-Vivegnis, https://freesound.org/s/865358/ (CC0 1.0)",
+    "trim": [
+      1.325,
+      1.49
+    ],
+    "duration": 0.165,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1504,
+      "m4a": 2432
+    }
+  },
+  {
+    "id": "bloop-release-03",
+    "path": "/audio/events/bloop-release-03",
+    "group": "event",
+    "use": "bloop",
+    "title": "26.07.26- Underwater Bubble",
+    "author": "Valerie-Vivegnis",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/865358/",
+    "credit": "26.07.26- Underwater Bubble by Valerie-Vivegnis, https://freesound.org/s/865358/ (CC0 1.0)",
+    "trim": [
+      1.52,
+      1.625
+    ],
+    "duration": 0.105,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1196,
+      "m4a": 1888
+    }
+  },
+  {
+    "id": "bloop-release-04",
+    "path": "/audio/events/bloop-release-04",
+    "group": "event",
+    "use": "bloop",
+    "title": "26.07.26- Underwater Bubble",
+    "author": "Valerie-Vivegnis",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/865358/",
+    "credit": "26.07.26- Underwater Bubble by Valerie-Vivegnis, https://freesound.org/s/865358/ (CC0 1.0)",
+    "trim": [
+      1.74,
+      1.865
+    ],
+    "duration": 0.125,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1261,
+      "m4a": 2116
+    }
+  },
+  {
+    "id": "bloop-small-01",
+    "path": "/audio/events/bloop-small-01",
+    "group": "event",
+    "use": "bloop",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      8.1,
+      8.3
+    ],
+    "duration": 0.2,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1656,
+      "m4a": 2827
+    }
+  },
+  {
+    "id": "bloop-small-02",
+    "path": "/audio/events/bloop-small-02",
+    "group": "event",
+    "use": "bloop",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      10.7,
+      10.87
+    ],
+    "duration": 0.17,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1500,
+      "m4a": 2396
+    }
+  },
+  {
+    "id": "bubble-small-01",
+    "path": "/audio/events/bubble-small-01",
+    "group": "event",
+    "use": "bubble",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      1.32,
+      1.98
+    ],
+    "duration": 0.66,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4173,
+      "m4a": 6674
+    }
+  },
+  {
+    "id": "bubble-small-02",
+    "path": "/audio/events/bubble-small-02",
+    "group": "event",
+    "use": "bubble",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      4.47,
+      4.8
+    ],
+    "duration": 0.33,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2372,
+      "m4a": 3874
+    }
+  },
+  {
+    "id": "bubble-small-03",
+    "path": "/audio/events/bubble-small-03",
+    "group": "event",
+    "use": "bubble",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      6.08,
+      6.4
+    ],
+    "duration": 0.32,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2328,
+      "m4a": 3633
+    }
+  },
+  {
+    "id": "bubble-small-04",
+    "path": "/audio/events/bubble-small-04",
+    "group": "event",
+    "use": "bubble",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      20.15,
+      20.45
+    ],
+    "duration": 0.3,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2260,
+      "m4a": 3598
+    }
+  },
+  {
+    "id": "bubble-small-05",
+    "path": "/audio/events/bubble-small-05",
+    "group": "event",
+    "use": "bubble",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      21.29,
+      21.64
+    ],
+    "duration": 0.35,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2375,
+      "m4a": 4048
+    }
+  },
+  {
+    "id": "bubble-small-06",
+    "path": "/audio/events/bubble-small-06",
+    "group": "event",
+    "use": "bubble",
+    "title": "hydrophone bubbles straw small.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422666/",
+    "credit": "hydrophone bubbles straw small.wav by JavierZumer, https://freesound.org/s/422666/ (CC0 1.0)",
+    "trim": [
+      21.96,
+      22.45
+    ],
+    "duration": 0.49,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 3210,
+      "m4a": 5271
+    }
+  },
+  {
+    "id": "thup-deep-impact-01",
+    "path": "/audio/events/thup-deep-impact-01",
+    "group": "event",
+    "use": "thup",
+    "title": "Underwater Deep Impact",
+    "author": "Sheyvan",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/470084/",
+    "credit": "Underwater Deep Impact by Sheyvan, https://freesound.org/s/470084/ (CC0 1.0)",
+    "trim": [
+      0.015,
+      0.33
+    ],
+    "duration": 0.315,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2299,
+      "m4a": 3669
+    }
+  },
+  {
+    "id": "thup-deep-impact-02",
+    "path": "/audio/events/thup-deep-impact-02",
+    "group": "event",
+    "use": "thup",
+    "title": "Underwater Deep Impact",
+    "author": "Sheyvan",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/470084/",
+    "credit": "Underwater Deep Impact by Sheyvan, https://freesound.org/s/470084/ (CC0 1.0)",
+    "trim": [
+      0.015,
+      0.22
+    ],
+    "duration": 0.205,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 1673,
+      "m4a": 2743
+    }
+  },
+  {
+    "id": "swish-01",
+    "path": "/audio/oneshots/swish-01",
+    "group": "oneshot",
+    "use": "later:swish",
+    "title": "Hydrophone Underwater movements.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422657/",
+    "credit": "Hydrophone Underwater movements.wav by JavierZumer, https://freesound.org/s/422657/ (CC0 1.0)",
+    "trim": [
+      0.4,
+      1.3
+    ],
+    "duration": 0.9,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5287,
+      "m4a": 8488
+    }
+  },
+  {
+    "id": "swish-02",
+    "path": "/audio/oneshots/swish-02",
+    "group": "oneshot",
+    "use": "later:swish",
+    "title": "Hydrophone Underwater movements.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422657/",
+    "credit": "Hydrophone Underwater movements.wav by JavierZumer, https://freesound.org/s/422657/ (CC0 1.0)",
+    "trim": [
+      1.9,
+      2.8
+    ],
+    "duration": 0.9,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5276,
+      "m4a": 8486
+    }
+  },
+  {
+    "id": "swish-03",
+    "path": "/audio/oneshots/swish-03",
+    "group": "oneshot",
+    "use": "later:swish",
+    "title": "Hydrophone Underwater movements.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422657/",
+    "credit": "Hydrophone Underwater movements.wav by JavierZumer, https://freesound.org/s/422657/ (CC0 1.0)",
+    "trim": [
+      3.55,
+      4.55
+    ],
+    "duration": 1.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5855,
+      "m4a": 9271
+    }
+  },
+  {
+    "id": "swish-04",
+    "path": "/audio/oneshots/swish-04",
+    "group": "oneshot",
+    "use": "later:swish",
+    "title": "Hydrophone Underwater movements.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422657/",
+    "credit": "Hydrophone Underwater movements.wav by JavierZumer, https://freesound.org/s/422657/ (CC0 1.0)",
+    "trim": [
+      4.7,
+      5.65
+    ],
+    "duration": 0.95,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5447,
+      "m4a": 8902
+    }
+  },
+  {
+    "id": "swish-05",
+    "path": "/audio/oneshots/swish-05",
+    "group": "oneshot",
+    "use": "later:swish",
+    "title": "Hydrophone Underwater movements.wav",
+    "author": "JavierZumer",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/422657/",
+    "credit": "Hydrophone Underwater movements.wav by JavierZumer, https://freesound.org/s/422657/ (CC0 1.0)",
+    "trim": [
+      10.4,
+      11.4
+    ],
+    "duration": 1.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5910,
+      "m4a": 9254
+    }
+  },
+  {
+    "id": "deep-thump",
+    "path": "/audio/oneshots/deep-thump",
+    "group": "oneshot",
+    "use": "later:deep-thump",
+    "title": "Underwater Deep Impact",
+    "author": "Sheyvan",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/470084/",
+    "credit": "Underwater Deep Impact by Sheyvan, https://freesound.org/s/470084/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      1.497
+    ],
+    "duration": 1.497,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 8540,
+      "m4a": 13452
+    }
+  },
+  {
+    "id": "school-rush-01",
+    "path": "/audio/oneshots/school-rush-01",
+    "group": "oneshot",
+    "use": "later:school-rush",
+    "title": "Underwater Motion",
+    "author": "NapierFreesound",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/760849/",
+    "credit": "Underwater Motion by NapierFreesound, https://freesound.org/s/760849/ (CC0 1.0)",
+    "trim": [
+      12.3,
+      14.1
+    ],
+    "duration": 1.8,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 8302,
+      "m4a": 16037
+    }
+  },
+  {
+    "id": "school-rush-02",
+    "path": "/audio/oneshots/school-rush-02",
+    "group": "oneshot",
+    "use": "later:school-rush",
+    "title": "Underwater Motion",
+    "author": "NapierFreesound",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/760849/",
+    "credit": "Underwater Motion by NapierFreesound, https://freesound.org/s/760849/ (CC0 1.0)",
+    "trim": [
+      26.35,
+      27.93
+    ],
+    "duration": 1.58,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 7668,
+      "m4a": 14215
+    }
+  },
+  {
+    "id": "school-rush-03",
+    "path": "/audio/oneshots/school-rush-03",
+    "group": "oneshot",
+    "use": "later:school-rush",
+    "title": "Underwater Motion",
+    "author": "NapierFreesound",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/760849/",
+    "credit": "Underwater Motion by NapierFreesound, https://freesound.org/s/760849/ (CC0 1.0)",
+    "trim": [
+      35.68,
+      38.45
+    ],
+    "duration": 2.77,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 19067,
+      "m4a": 24623
+    }
+  },
+  {
+    "id": "school-rush-04",
+    "path": "/audio/oneshots/school-rush-04",
+    "group": "oneshot",
+    "use": "later:school-rush",
+    "title": "Underwater Motion",
+    "author": "NapierFreesound",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/760849/",
+    "credit": "Underwater Motion by NapierFreesound, https://freesound.org/s/760849/ (CC0 1.0)",
+    "trim": [
+      42.4,
+      46.15
+    ],
+    "duration": 3.75,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 14371,
+      "m4a": 26661
+    }
+  },
+  {
+    "id": "school-rush-05",
+    "path": "/audio/oneshots/school-rush-05",
+    "group": "oneshot",
+    "use": "later:school-rush",
+    "title": "Underwater Motion",
+    "author": "NapierFreesound",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/760849/",
+    "credit": "Underwater Motion by NapierFreesound, https://freesound.org/s/760849/ (CC0 1.0)",
+    "trim": [
+      53.95,
+      57.3
+    ],
+    "duration": 3.35,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 13609,
+      "m4a": 26972
+    }
+  },
+  {
+    "id": "grazing-01",
+    "path": "/audio/oneshots/grazing-01",
+    "group": "oneshot",
+    "use": "later:grazing",
+    "title": "winkle eating seaweed",
+    "author": "bruno.auzet",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/654439/",
+    "credit": "winkle eating seaweed by bruno.auzet, https://freesound.org/s/654439/ (CC0 1.0)",
+    "trim": [
+      0.68,
+      1.5
+    ],
+    "duration": 0.82,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4713,
+      "m4a": 8034
+    }
+  },
+  {
+    "id": "grazing-02",
+    "path": "/audio/oneshots/grazing-02",
+    "group": "oneshot",
+    "use": "later:grazing",
+    "title": "winkle eating seaweed",
+    "author": "bruno.auzet",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/654439/",
+    "credit": "winkle eating seaweed by bruno.auzet, https://freesound.org/s/654439/ (CC0 1.0)",
+    "trim": [
+      2.58,
+      3.42
+    ],
+    "duration": 0.84,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4677,
+      "m4a": 8161
+    }
+  },
+  {
+    "id": "grazing-03",
+    "path": "/audio/oneshots/grazing-03",
+    "group": "oneshot",
+    "use": "later:grazing",
+    "title": "winkle eating seaweed",
+    "author": "bruno.auzet",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/654439/",
+    "credit": "winkle eating seaweed by bruno.auzet, https://freesound.org/s/654439/ (CC0 1.0)",
+    "trim": [
+      4.5,
+      5.5
+    ],
+    "duration": 1.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5352,
+      "m4a": 9451
+    }
+  },
+  {
+    "id": "grazing-04",
+    "path": "/audio/oneshots/grazing-04",
+    "group": "oneshot",
+    "use": "later:grazing",
+    "title": "winkle eating seaweed",
+    "author": "bruno.auzet",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/654439/",
+    "credit": "winkle eating seaweed by bruno.auzet, https://freesound.org/s/654439/ (CC0 1.0)",
+    "trim": [
+      8.76,
+      9.7
+    ],
+    "duration": 0.94,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5162,
+      "m4a": 8873
+    }
+  },
+  {
+    "id": "grazing-05",
+    "path": "/audio/oneshots/grazing-05",
+    "group": "oneshot",
+    "use": "later:grazing",
+    "title": "winkle eating seaweed",
+    "author": "bruno.auzet",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/654439/",
+    "credit": "winkle eating seaweed by bruno.auzet, https://freesound.org/s/654439/ (CC0 1.0)",
+    "trim": [
+      14.76,
+      15.62
+    ],
+    "duration": 0.86,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4791,
+      "m4a": 8411
+    }
+  },
+  {
+    "id": "splash-below-01",
+    "path": "/audio/oneshots/splash-below-01",
+    "group": "oneshot",
+    "use": "later:splash-below",
+    "title": "something coming out of the water, underwater",
+    "author": "stuniverso",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/761566/",
+    "credit": "something coming out of the water, underwater by stuniverso, https://freesound.org/s/761566/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      3.5
+    ],
+    "duration": 3.5,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 18533,
+      "m4a": 29840
+    }
+  },
+  {
+    "id": "splash-below-02",
+    "path": "/audio/oneshots/splash-below-02",
+    "group": "oneshot",
+    "use": "later:splash-below",
+    "title": "something coming out of the water, underwater",
+    "author": "stuniverso",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/761566/",
+    "credit": "something coming out of the water, underwater by stuniverso, https://freesound.org/s/761566/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      1.3
+    ],
+    "duration": 1.3,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 7239,
+      "m4a": 11704
+    }
+  },
+  {
+    "id": "breath-01",
+    "path": "/audio/oneshots/breath-01",
+    "group": "oneshot",
+    "use": "later:breath",
+    "title": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands",
+    "author": "geraldfiebig",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/385796/",
+    "credit": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands by geraldfiebig, https://freesound.org/s/385796/ (CC0 1.0)",
+    "trim": [
+      4.2,
+      5.15
+    ],
+    "duration": 0.95,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5335,
+      "m4a": 8946
+    }
+  },
+  {
+    "id": "breath-02",
+    "path": "/audio/oneshots/breath-02",
+    "group": "oneshot",
+    "use": "later:breath",
+    "title": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands",
+    "author": "geraldfiebig",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/385796/",
+    "credit": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands by geraldfiebig, https://freesound.org/s/385796/ (CC0 1.0)",
+    "trim": [
+      11.2,
+      12.05
+    ],
+    "duration": 0.85,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4915,
+      "m4a": 8080
+    }
+  },
+  {
+    "id": "breath-03",
+    "path": "/audio/oneshots/breath-03",
+    "group": "oneshot",
+    "use": "later:breath",
+    "title": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands",
+    "author": "geraldfiebig",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/385796/",
+    "credit": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands by geraldfiebig, https://freesound.org/s/385796/ (CC0 1.0)",
+    "trim": [
+      14.72,
+      15.5
+    ],
+    "duration": 0.78,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4572,
+      "m4a": 7542
+    }
+  },
+  {
+    "id": "breath-04",
+    "path": "/audio/oneshots/breath-04",
+    "group": "oneshot",
+    "use": "later:breath",
+    "title": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands",
+    "author": "geraldfiebig",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/385796/",
+    "credit": "Atlantic Spotted Dolphins off the coast of La Gomera, Canary Islands by geraldfiebig, https://freesound.org/s/385796/ (CC0 1.0)",
+    "trim": [
+      31.82,
+      32.25
+    ],
+    "duration": 0.43,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2750,
+      "m4a": 4667
+    }
+  },
+  {
+    "id": "exhale-01",
+    "path": "/audio/oneshots/exhale-01",
+    "group": "oneshot",
+    "use": "later:exhale",
+    "title": "Under water sounds while scuba diving",
+    "author": "timsc",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/274491/",
+    "credit": "Under water sounds while scuba diving by timsc, https://freesound.org/s/274491/ (CC0 1.0)",
+    "trim": [
+      0.8,
+      3.8
+    ],
+    "duration": 3.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 15665,
+      "m4a": 25713
+    }
+  },
+  {
+    "id": "exhale-02",
+    "path": "/audio/oneshots/exhale-02",
+    "group": "oneshot",
+    "use": "later:exhale",
+    "title": "Under water sounds while scuba diving",
+    "author": "timsc",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/274491/",
+    "credit": "Under water sounds while scuba diving by timsc, https://freesound.org/s/274491/ (CC0 1.0)",
+    "trim": [
+      6.3,
+      10.3
+    ],
+    "duration": 4.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 20872,
+      "m4a": 33956
+    }
+  },
+  {
+    "id": "exhale-03",
+    "path": "/audio/oneshots/exhale-03",
+    "group": "oneshot",
+    "use": "later:exhale",
+    "title": "Under water sounds while scuba diving",
+    "author": "timsc",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/274491/",
+    "credit": "Under water sounds while scuba diving by timsc, https://freesound.org/s/274491/ (CC0 1.0)",
+    "trim": [
+      15.8,
+      20.8
+    ],
+    "duration": 5.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 25008,
+      "m4a": 42157
+    }
+  },
+  {
+    "id": "exhale-04",
+    "path": "/audio/oneshots/exhale-04",
+    "group": "oneshot",
+    "use": "later:exhale",
+    "title": "Under water sounds while scuba diving",
+    "author": "timsc",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/274491/",
+    "credit": "Under water sounds while scuba diving by timsc, https://freesound.org/s/274491/ (CC0 1.0)",
+    "trim": [
+      33.0,
+      35.3
+    ],
+    "duration": 2.3,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 11924,
+      "m4a": 19967
+    }
+  },
+  {
+    "id": "humpback-01",
+    "path": "/audio/oneshots/humpback-01",
+    "group": "oneshot",
+    "use": "later:humpback",
+    "title": "Humpback Whale (Megaptera novaeangliae): song",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meno-song-NOAA-PAGroup-13-humpback-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Humpback Whale.",
+    "trim": [
+      13.2,
+      19.2
+    ],
+    "duration": 6.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 33180,
+      "m4a": 50423
+    }
+  },
+  {
+    "id": "humpback-02",
+    "path": "/audio/oneshots/humpback-02",
+    "group": "oneshot",
+    "use": "later:humpback",
+    "title": "Humpback Whale (Megaptera novaeangliae): song",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meno-song-NOAA-PAGroup-13-humpback-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Humpback Whale.",
+    "trim": [
+      30.8,
+      40.6
+    ],
+    "duration": 9.8,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 55682,
+      "m4a": 81372
+    }
+  },
+  {
+    "id": "humpback-03",
+    "path": "/audio/oneshots/humpback-03",
+    "group": "oneshot",
+    "use": "later:humpback",
+    "title": "Humpback Whale (Megaptera novaeangliae): song",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Meno-song-NOAA-PAGroup-13-humpback-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Humpback Whale.",
+    "trim": [
+      43.4,
+      53.3
+    ],
+    "duration": 9.9,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 58541,
+      "m4a": 82750
+    }
+  },
+  {
+    "id": "creak-01",
+    "path": "/audio/oneshots/creak-01",
+    "group": "oneshot",
+    "use": "later:creak",
+    "title": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac",
+    "author": "kyles",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/450258/",
+    "credit": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac by kyles, https://freesound.org/s/450258/ (CC0 1.0)",
+    "trim": [
+      10.4,
+      11.75
+    ],
+    "duration": 1.35,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 7246,
+      "m4a": 12346
+    }
+  },
+  {
+    "id": "creak-02",
+    "path": "/audio/oneshots/creak-02",
+    "group": "oneshot",
+    "use": "later:creak",
+    "title": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac",
+    "author": "kyles",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/450258/",
+    "credit": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac by kyles, https://freesound.org/s/450258/ (CC0 1.0)",
+    "trim": [
+      44.15,
+      46.8
+    ],
+    "duration": 2.65,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 13913,
+      "m4a": 23109
+    }
+  },
+  {
+    "id": "creak-03",
+    "path": "/audio/oneshots/creak-03",
+    "group": "oneshot",
+    "use": "later:creak",
+    "title": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac",
+    "author": "kyles",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/450258/",
+    "credit": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac by kyles, https://freesound.org/s/450258/ (CC0 1.0)",
+    "trim": [
+      88.65,
+      90.4
+    ],
+    "duration": 1.75,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 9199,
+      "m4a": 15513
+    }
+  },
+  {
+    "id": "creak-04",
+    "path": "/audio/oneshots/creak-04",
+    "group": "oneshot",
+    "use": "later:creak",
+    "title": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac",
+    "author": "kyles",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/450258/",
+    "credit": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac by kyles, https://freesound.org/s/450258/ (CC0 1.0)",
+    "trim": [
+      129.75,
+      130.85
+    ],
+    "duration": 1.1,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 6180,
+      "m4a": 10297
+    }
+  },
+  {
+    "id": "creak-05",
+    "path": "/audio/oneshots/creak-05",
+    "group": "oneshot",
+    "use": "later:creak",
+    "title": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac",
+    "author": "kyles",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/450258/",
+    "credit": "Lovis ship sailboat tire rubber stretching creaking squeezed against concrete pier closeup.flac by kyles, https://freesound.org/s/450258/ (CC0 1.0)",
+    "trim": [
+      159.15,
+      160.75
+    ],
+    "duration": 1.6,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 8755,
+      "m4a": 14471
+    }
+  },
+  {
+    "id": "dolphin-whistle-01",
+    "path": "/audio/oneshots/dolphin-whistle-01",
+    "group": "oneshot",
+    "use": "later:dolphin-whistle",
+    "title": "Atlantic Spotted Dolphin (Stenella frontalis): whistles",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Stfr-Multisound-NOAA-PAGroup-01-atlantic-spotted-dolphin-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Spotted Dolphin.",
+    "trim": [
+      0.1,
+      0.9
+    ],
+    "duration": 0.8,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 5437,
+      "m4a": 7776
+    }
+  },
+  {
+    "id": "dolphin-whistle-02",
+    "path": "/audio/oneshots/dolphin-whistle-02",
+    "group": "oneshot",
+    "use": "later:dolphin-whistle",
+    "title": "Atlantic Spotted Dolphin (Stenella frontalis): whistles",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Stfr-Multisound-NOAA-PAGroup-01-atlantic-spotted-dolphin-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Spotted Dolphin.",
+    "trim": [
+      2.4,
+      3.0
+    ],
+    "duration": 0.6,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4541,
+      "m4a": 6161
+    }
+  },
+  {
+    "id": "dolphin-whistle-03",
+    "path": "/audio/oneshots/dolphin-whistle-03",
+    "group": "oneshot",
+    "use": "later:dolphin-whistle",
+    "title": "Atlantic Spotted Dolphin (Stenella frontalis): whistles",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Stfr-Multisound-NOAA-PAGroup-01-atlantic-spotted-dolphin-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Spotted Dolphin.",
+    "trim": [
+      3.1,
+      4.15
+    ],
+    "duration": 1.05,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 7113,
+      "m4a": 9783
+    }
+  },
+  {
+    "id": "dolphin-whistle-04",
+    "path": "/audio/oneshots/dolphin-whistle-04",
+    "group": "oneshot",
+    "use": "later:dolphin-whistle",
+    "title": "Atlantic Spotted Dolphin (Stenella frontalis): whistles",
+    "author": "NOAA Fisheries, NEFSC Passive Acoustics Branch",
+    "licence": "Public domain (US government work)",
+    "sourceUrl": "https://www.fisheries.noaa.gov/s3/2023-04/Stfr-Multisound-NOAA-PAGroup-01-atlantic-spotted-dolphin-clip.mp3",
+    "credit": "NOAA Fisheries, NEFSC Passive Acoustics Branch. 2023. Atlantic Spotted Dolphin.",
+    "trim": [
+      4.15,
+      4.8
+    ],
+    "duration": 0.65,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4881,
+      "m4a": 6613
+    }
+  },
+  {
+    "id": "modal-open",
+    "path": "/audio/ui/modal-open",
+    "group": "ui",
+    "use": "ui:modal-open",
+    "title": "Bubbles Rise.wav",
+    "author": "mosaichorse",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/486885/",
+    "credit": "Bubbles Rise.wav by mosaichorse, https://freesound.org/s/486885/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      0.88
+    ],
+    "duration": 0.88,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4667,
+      "m4a": 8455
+    }
+  },
+  {
+    "id": "modal-close",
+    "path": "/audio/ui/modal-close",
+    "group": "ui",
+    "use": "ui:modal-close",
+    "title": "Bubbles Rise.wav",
+    "author": "mosaichorse",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/486885/",
+    "credit": "Bubbles Rise.wav by mosaichorse, https://freesound.org/s/486885/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      0.88
+    ],
+    "duration": 0.88,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 4732,
+      "m4a": 8510
+    }
+  },
+  {
+    "id": "soft-error",
+    "path": "/audio/ui/soft-error",
+    "group": "ui",
+    "use": "ui:soft-error",
+    "title": "Beep_Error_1.wav",
+    "author": "JonnyRuss01",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/478191/",
+    "credit": "Beep_Error_1.wav by JonnyRuss01, https://freesound.org/s/478191/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      0.2448
+    ],
+    "duration": 0.245,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 2519,
+      "m4a": 3196
+    }
+  },
+  {
+    "id": "select-ping",
+    "path": "/audio/ui/select-ping",
+    "group": "ui",
+    "use": "ui:select-ping",
+    "title": "Sonar ping",
+    "author": "nicorico_120",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/808185/",
+    "credit": "Sonar ping by nicorico_120, https://freesound.org/s/808185/ (CC0 1.0)",
+    "trim": [
+      0.0,
+      1.2
+    ],
+    "duration": 1.2,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 6721,
+      "m4a": 10645
+    }
+  },
+  {
+    "id": "plunge",
+    "path": "/audio/ui/plunge",
+    "group": "ui",
+    "use": "ui:plunge",
+    "title": "Dipping below water",
+    "author": "adviseme333",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/679404/",
+    "credit": "Dipping below water by adviseme333, https://freesound.org/s/679404/ (CC0 1.0)",
+    "trim": [
+      0.55,
+      3.4
+    ],
+    "duration": 2.85,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 14759,
+      "m4a": 24885
+    }
+  },
+  {
+    "id": "surface",
+    "path": "/audio/ui/surface",
+    "group": "ui",
+    "use": "ui:surface",
+    "title": "Coming up from underwater",
+    "author": "adviseme333",
+    "licence": "CC0 1.0",
+    "sourceUrl": "https://freesound.org/s/679410/",
+    "credit": "Coming up from underwater by adviseme333, https://freesound.org/s/679410/ (CC0 1.0)",
+    "trim": [
+      3.4,
+      5.4
+    ],
+    "duration": 2.0,
+    "channels": 1,
+    "formats": [
+      "webm",
+      "m4a"
+    ],
+    "bytes": {
+      "webm": 10918,
+      "m4a": 17694
+    }
+  },
+  {
+    "id": "fish-small-movement-01",
+    "path": "/audio/fish-sfx/fish-small-movement-01",
+    "group": "event",
+    "use": "fish-swim:turn",
+    "title": "fish-small-movement-01.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 3.894,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 63212
+    }
+  },
+  {
+    "id": "fish-small-movement-02",
+    "path": "/audio/fish-sfx/fish-small-movement-02",
+    "group": "event",
+    "use": "fish-swim:turn",
+    "title": "fish-small-movement-02.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 1.306,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 21740
+    }
+  },
+  {
+    "id": "fish-small-movement-03",
+    "path": "/audio/fish-sfx/fish-small-movement-03",
+    "group": "event",
+    "use": "fish-swim:turn",
+    "title": "fish-small-movement-03.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 2.329,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 38252
+    }
+  },
+  {
+    "id": "fish-big-movement-01",
+    "path": "/audio/fish-sfx/fish-big-movement-01",
+    "group": "event",
+    "use": "fish-swim:burst",
+    "title": "fish-big-movement-01.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 3.752,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 60908
+    }
+  },
+  {
+    "id": "fish-big-movement-02",
+    "path": "/audio/fish-sfx/fish-big-movement-02",
+    "group": "event",
+    "use": "fish-swim:burst",
+    "title": "fish-big-movement-02.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 3.46,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 41396
+    }
+  },
+  {
+    "id": "ui-click-01",
+    "path": "/audio/ui-sfx/ui-click-01",
+    "group": "ui",
+    "use": "ui:click",
+    "title": "ui-click-01.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 0.979,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 16364
+    }
+  },
+  {
+    "id": "ui-click-02",
+    "path": "/audio/ui-sfx/ui-click-02",
+    "group": "ui",
+    "use": "ui:click",
+    "title": "ui-click-02.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 0.996,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 16748
+    }
+  },
+  {
+    "id": "ui-click-03",
+    "path": "/audio/ui-sfx/ui-click-03",
+    "group": "ui",
+    "use": "ui:click",
+    "title": "ui-click-03.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 1.003,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 16748
+    }
+  },
+  {
+    "id": "ui-click-04",
+    "path": "/audio/ui-sfx/ui-click-04",
+    "group": "ui",
+    "use": "ui:click",
+    "title": "ui-click-04.mp3",
+    "author": "Supplied by Jeremy (source not recorded)",
+    "licence": "Supplied by Jeremy (source not recorded)",
+    "sourceUrl": null,
+    "credit": null,
+    "trim": null,
+    "duration": 1.022,
+    "channels": 2,
+    "formats": [
+      "mp3"
+    ],
+    "bytes": {
+      "mp3": 17132
+    }
+  }
+]
